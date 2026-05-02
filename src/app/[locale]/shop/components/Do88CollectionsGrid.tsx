@@ -23,7 +23,12 @@ export default function Do88CollectionsGrid({ locale, cards: cardsProp }: Do88Co
   const [visible, setVisible] = useState(true);
   const searchParams = useSearchParams();
 
-  const baseCards = cardsProp ?? DO88_COLLECTION_CARDS;
+  // When used on the homepage (no `cards` prop), drop entries flagged
+  // `hiddenFromHome` — those categories stay reachable via the filter dropdown
+  // and the dedicated /collections listing, just not on the home grid.
+  // When the caller explicitly passes `cards` (e.g. /collections listing),
+  // trust them and render exactly what was passed.
+  const baseCards = cardsProp ?? DO88_COLLECTION_CARDS.filter((card) => !card.hiddenFromHome);
 
   useEffect(() => {
     const root = rootRef.current;

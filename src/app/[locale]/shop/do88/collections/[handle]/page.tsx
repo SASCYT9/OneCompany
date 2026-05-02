@@ -120,8 +120,22 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
 
       // Model/chassis filter: require an exact CAR_DATA entry and a category-token match.
       if (!matchedEntry) return false;
-      return matchedEntry.categoryTokens.some((token) =>
-        cat.endsWith(token) || cat.includes(`> ${token}`)
+      const tokenMatches = (token: string) =>
+        cat.endsWith(token) || cat.includes(`> ${token}`);
+      if (matchedEntry.categoryTokens.some(tokenMatches)) return true;
+
+      // Shared-parts fallback: a few products fit two trims (e.g. 992 "Turbo /
+      // Carrera" plenum / intercooler piping) but live under one category in
+      // the supplier feed. Pull them in when (a) they sit in a configured
+      // shared category AND (b) their title flags them as dual-fit.
+      const sharedCats = matchedEntry.sharedCategoryTokens ?? [];
+      const sharedTitles = matchedEntry.sharedTitleMustInclude ?? [];
+      if (sharedCats.length === 0 || sharedTitles.length === 0) return false;
+      if (!sharedCats.some(tokenMatches)) return false;
+      const titleEn = product.title?.en ?? '';
+      const titleUa = product.title?.ua ?? '';
+      return sharedTitles.some(
+        (phrase) => titleEn.includes(phrase) || titleUa.includes(phrase)
       );
     });
   }
@@ -173,19 +187,22 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
           </Link>
         </div>
 
+        {/* Vehicle picker pinned to the top — was previously in the left
+            sidebar, but the brief from the shop owner is to surface the
+            "vehicle finder" above the catalog so it's the first thing visible. */}
+        <div className="mb-8 lg:mb-10">
+          <Suspense fallback={<div className="h-20 bg-white/5 rounded-2xl animate-pulse" />}>
+            <Do88VehicleFilter locale={resolvedLocale} compact={true} currentCategory={handle} />
+          </Suspense>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-          {/* Left Sidebar */}
+          {/* Left Sidebar — categories only now; vehicle picker moved to top */}
           <aside className="w-full lg:w-[280px] shrink-0 flex flex-col gap-6">
-            <div className="sticky top-20 lg:top-40 z-20">
-              <Suspense fallback={<div className="h-32 bg-white/5 rounded-2xl animate-pulse" />}>
-                <Do88VehicleFilter locale={resolvedLocale} isSidebar={true} currentCategory={handle} />
+            <div className="sticky top-20 lg:top-40 z-20 hidden lg:block">
+              <Suspense fallback={<div className="h-32 bg-white/5 rounded-xl animate-pulse" />}>
+                <Do88CategoryFilter locale={resolvedLocale} currentHandle={handle} variant="sidebar" />
               </Suspense>
-              
-              <div className="mt-8 hidden lg:block">
-                <Suspense fallback={<div className="h-32 bg-white/5 rounded-xl animate-pulse" />}>
-                  <Do88CategoryFilter locale={resolvedLocale} currentHandle={handle} variant="sidebar" />
-                </Suspense>
-              </div>
             </div>
           </aside>
 

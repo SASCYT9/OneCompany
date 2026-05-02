@@ -408,9 +408,10 @@ function fixDo88UaTitleTerms(value: string): string {
   // "інтеркулер радіатор охолодження" → "теплообмінник інтеркулера"
   out = out.replace(/інтеркулер\s+радіатор\s+охолодження/giu, 'теплообмінник інтеркулера');
 
-  // "Extra радіатор охолодження" → "додатковий радіатор охолодження"
+  // "Extra радіатор охолодження" → "додаткові радіатори охолодження"
+  // Plural — these are kits (multiple radiators) not a single unit.
   // Trailing \b would fail (Cyrillic is non-word in JS). Use lookahead instead.
-  out = out.replace(/\bExtra\s+радіатор\s+охолодження(?![\p{L}\p{N}])/gu, 'додатковий радіатор охолодження');
+  out = out.replace(/\bExtra\s+радіатор\s+охолодження(?![\p{L}\p{N}])/gu, 'додаткові радіатори охолодження');
 
   return out;
 }

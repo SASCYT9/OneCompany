@@ -75,5 +75,19 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     buttonLabelUk: 'Переглянути товари',
     link: '/shop/do88/collections/all?brand=Audi&model=RS6+%2F+RS7&chassis=C8',
     imageUrl: '/branding/do88/do88_featured_audi_rs6_c8_studio.webp',
-  }
+  },
+  {
+    title: 'Porsche 911 Turbo S (992)',
+    titleUk: 'Porsche 911 Turbo S (992)',
+    subtitle: '992 Turbo / Turbo S cooling system',
+    subtitleUk: 'Охолодження для 992 Turbo / Turbo S',
+    badge: 'Flagship',
+    badgeUk: 'Флагман',
+    tagOne: 'Intercoolers',
+    tagTwo: 'Plenum',
+    buttonLabel: 'View Products',
+    buttonLabelUk: 'Переглянути товари',
+    link: '/shop/do88/collections/all?brand=Porsche&model=911+Turbo+S&chassis=992',
+    imageUrl: '/branding/do88/do88_featured_porsche_992_turbo_s_studio.png',
+  },
 ];
