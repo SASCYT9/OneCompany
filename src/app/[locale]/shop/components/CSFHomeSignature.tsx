@@ -187,6 +187,63 @@ export default function CSFHomeSignature({ locale, heroSummary }: Props) {
       </section>
 
       {/* ══════════════════════════════════════════════════
+          3.5 · SPOTLIGHT — Featured platform: Porsche 992 Turbo
+      ══════════════════════════════════════════════════ */}
+      <section className="csf__spotlight">
+        <div className="csf__spotlight-grid">
+          <div className="csf__spotlight-media" data-r>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/shop/csf/spotlight-992-turbo.png"
+              alt="Porsche 992 Turbo"
+              loading="lazy"
+            />
+          </div>
+          <div className="csf__spotlight-body" data-r data-r-delay="1">
+            <span className="csf__spotlight-eyebrow">
+              {L(isUa, 'Featured Platform', 'Виділена платформа')}
+            </span>
+            <h2 className="csf__spotlight-h2">992 Turbo</h2>
+            <p className="csf__spotlight-sub">Porsche 911 Turbo · 2020+</p>
+            <p className="csf__spotlight-desc">
+              {L(
+                isUa,
+                'Track-grade cooling pack for the 992 Turbo — high-performance radiators, charge-air coolers, and heat exchangers engineered for sustained boost on road and circuit.',
+                'Гоночний комплект охолодження для 992 Turbo — високопродуктивні радіатори, інтеркулери та теплообмінники для стабільного буст-тиску на дорозі і треку.'
+              )}
+            </p>
+            <ul className="csf__spotlight-specs">
+              <li>
+                <span className="csf__spotlight-spec-val">+30%</span>
+                <span className="csf__spotlight-spec-label">
+                  {L(isUa, 'Cooling capacity', 'Тепловіддача')}
+                </span>
+              </li>
+              <li>
+                <span className="csf__spotlight-spec-val">−15°C</span>
+                <span className="csf__spotlight-spec-label">
+                  {L(isUa, 'Charge-air temp', 'Темп. наддуву')}
+                </span>
+              </li>
+              <li>
+                <span className="csf__spotlight-spec-val">OEM-fit</span>
+                <span className="csf__spotlight-spec-label">
+                  {L(isUa, 'Drop-in install', 'Без переробок')}
+                </span>
+              </li>
+            </ul>
+            <Link
+              href={`/${locale}/shop/csf/collections?make=Porsche&chassis=992`}
+              className="csf__cta"
+            >
+              {L(isUa, '992 Turbo cooling parts', 'Деталі охолодження 992 Turbo')}
+              <span className="csf__cta-arrow">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
           4 · HERITAGE — Full-width Cinematic Statement
       ══════════════════════════════════════════════════ */}
       <section className="csf__heritage">
