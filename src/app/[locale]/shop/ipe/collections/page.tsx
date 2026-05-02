@@ -40,7 +40,8 @@ export default async function IpeCollectionsPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([
+    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
@@ -65,7 +66,7 @@ export default async function IpeCollectionsPage({ params }: Props) {
           className="object-cover opacity-20 sepia-[.4] hue-rotate-[-10deg]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0600]/80 via-black/90 to-[#050300] backdrop-blur-[10px]" />
-        
+
         {/* Signature Bronze Accent Ambient Glow */}
         <div className="absolute top-1/4 right-1/4 w-[800px] h-[400px] bg-[#c29d59]/5 blur-[200px] rounded-full pointer-events-none mix-blend-screen opacity-50" />
       </div>
@@ -76,7 +77,7 @@ export default async function IpeCollectionsPage({ params }: Props) {
             ← {resolvedLocale === 'ua' ? 'Повернутися до iPE' : 'Return to iPE'}
           </Link>
         </div>
-        
+
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-32">
@@ -84,9 +85,9 @@ export default async function IpeCollectionsPage({ params }: Props) {
             </div>
           }
         >
-          <IpeVehicleFilter 
-            locale={resolvedLocale} 
-            products={ipeProducts} 
+          <IpeVehicleFilter
+            locale={resolvedLocale}
+            products={ipeProducts}
             viewerContext={viewerContext}
             productPathPrefix={`/${locale}/shop/ipe/products`}
           />
