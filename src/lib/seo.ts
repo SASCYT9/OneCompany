@@ -63,11 +63,22 @@ export function buildPageMetadata(
 ): Metadata {
   const path = buildLocalizedPath(locale, slug);
   const url = absoluteUrl(path);
+  const usingDefaultOg = !meta.image;
   const ogImage = meta.image
     ? (meta.image.startsWith("http") ? meta.image : absoluteUrl(meta.image))
     : absoluteUrl(defaultOgImage);
   const description = normalizeMetaText(meta.description, 165);
-  const title = normalizeMetaText(meta.title, 68);
+  // 95 fits Telegram/Twitter/Facebook without visible truncation; the
+  // ellipsis only appears for genuinely runaway titles.
+  const title = normalizeMetaText(meta.title, 95);
+
+  // Only attach width/height when we control the asset (the default OG image
+  // we ship is 1200×630). For product/CDN images of unknown shape, omitting
+  // the dimensions lets Telegram/Facebook auto-detect from the file instead
+  // of believing a wrong 1200×630 claim.
+  const ogImageEntry = usingDefaultOg
+    ? { url: ogImage, width: 1200, height: 630, alt: title }
+    : { url: ogImage, alt: title };
 
   return {
     title,
@@ -83,14 +94,7 @@ export function buildPageMetadata(
       siteName: siteConfig.name,
       locale: localeToOg[locale],
       type: meta.type ?? "website",
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      images: [ogImageEntry],
     },
     twitter: {
       card: "summary_large_image",

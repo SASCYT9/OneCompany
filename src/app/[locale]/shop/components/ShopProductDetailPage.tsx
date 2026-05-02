@@ -300,8 +300,11 @@ export async function getShopProductPageMetadata({
     });
   }
 
+  // Drop the trailing "| One Company Shop" — siteName already carries it in
+  // og:site_name, and the suffix used to push titles past the truncation
+  // limit, producing "One C…" in Telegram/Twitter previews.
   return buildPageMetadata(resolvedLocale, pageSlug, {
-    title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand} | One Company Shop`,
+    title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand}`,
     description: localizeShopDescription(resolvedLocale, product.shortDescription),
     image: product.image,
     type: 'website',
