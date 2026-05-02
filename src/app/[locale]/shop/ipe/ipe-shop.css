@@ -111,6 +111,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Reserve lower vertical space so the centered hero text shifts up,
+     leaving room for the .ipe-finder card to overlap the lower-middle of
+     the hero without covering the title or CTA. */
+  padding-bottom: clamp(2rem, 22vh, 14rem);
 }
 .ipe-hero__bg {
   position: absolute;
@@ -763,7 +767,7 @@
   z-index: 6;
   background: linear-gradient(180deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .25) 60%, transparent 100%);
   padding: 0 clamp(1rem, 4vw, 6rem);
-  margin-top: clamp(-7rem, -8vh, -3rem);
+  margin-top: clamp(-22rem, -33vh, -12rem);
 }
 .ipe-finder__inner {
   width: 100%;
@@ -958,7 +962,7 @@
     border-radius: 8px;
   }
   .ipe-finder {
-    margin-top: -2.5rem;
+    margin-top: -15rem;
     padding: 0 1rem;
   }
   .ipe-hf__field {
