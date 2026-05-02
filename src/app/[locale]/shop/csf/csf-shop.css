@@ -63,16 +63,27 @@
   padding: 1rem 2rem;
 }
 .csf__back-link {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s var(--csf-ease);
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  transition: color 0.3s var(--csf-ease), background 0.3s var(--csf-ease), border-color 0.3s var(--csf-ease);
 }
 .csf__back-link:hover {
   color: var(--csf-white);
+  background: rgba(200, 16, 46, 0.18);
+  border-color: rgba(200, 16, 46, 0.5);
 }
 
 /* ══════════════════════════════════════════════════
@@ -847,8 +858,8 @@
   display: flex;
   justify-content: center;
   padding: 0 clamp(1.5rem, 4vw, 4rem);
-  /* Pull up so the form overlaps the bottom of the hero on desktop */
-  margin-top: clamp(-9rem, -12vh, -5rem);
+  /* Pull up so the form sits right under the hero CTA on desktop */
+  margin-top: clamp(-22rem, -32vh, -13rem);
   margin-bottom: 2rem;
   pointer-events: none;
 }
@@ -1086,9 +1097,19 @@
 }
 
 @media (max-width: 900px) {
+  /* Hero shrinks to content on mobile so the filter can sit right under the CTA */
+  .csf__hero {
+    min-height: auto;
+  }
+  .csf__hero-text {
+    padding: 5rem 1.5rem 2.5rem;
+  }
+  .csf__hero-sub {
+    margin-bottom: 2rem;
+  }
   .csf__finder {
-    margin-top: 1.5rem;
-    margin-bottom: 2.5rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
     padding: 0 1.25rem;
   }
 }
@@ -1100,7 +1121,11 @@
     padding-bottom: .7rem;
     margin-bottom: .8rem;
   }
+  .csf__hero-text {
+    padding: 4.5rem 1.25rem 2rem;
+  }
   .csf__finder {
-    margin: 1rem auto 1.75rem;
+    margin: 0.75rem auto 1.5rem;
+    padding: 0 1rem;
   }
 }

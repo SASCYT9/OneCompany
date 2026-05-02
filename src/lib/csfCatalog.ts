@@ -107,13 +107,24 @@ function uniqueValues(values: string[]) {
 }
 
 function detectVehicleMake(section: string) {
+  // Pick the make whose pattern matches earliest in the text, not the first
+  // pattern in MAKE_PATTERNS list. This way "TOYOTA GR Supra/ BMW M340iX"
+  // resolves to Toyota (the primary fitment) instead of BMW (alphabetical).
+  let bestIndex = Infinity;
+  let bestLabel: string | null = null;
   for (const entry of MAKE_PATTERNS) {
-    if (entry.patterns.some((pattern) => pattern.test(section))) {
-      return entry.label;
+    for (const pattern of entry.patterns) {
+      const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+      const re = new RegExp(pattern.source, flags);
+      const match = re.exec(section);
+      if (match && match.index < bestIndex) {
+        bestIndex = match.index;
+        bestLabel = entry.label;
+      }
     }
   }
 
-  return null;
+  return bestLabel;
 }
 
 function extractYearRange(section: string) {

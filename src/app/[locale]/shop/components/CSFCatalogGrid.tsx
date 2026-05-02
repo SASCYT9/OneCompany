@@ -14,6 +14,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import { extractCsfCatalogFitment, detectCsfStockState, isCleanCsfModelLabel } from "@/lib/csfCatalog";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import "../csf/csf-shop.css";
 
 type Props = {
   locale: SupportedLocale;
@@ -180,6 +181,27 @@ const STOCK_BADGE_CLASS: Record<Exclude<StockFilter, "all">, string> = {
   "out-of-stock": "border-white/10 bg-white/[0.04] text-white/45",
 };
 
+const CSF_CHEV = (
+  <svg
+    className="csf-hf__chev"
+    viewBox="0 0 24 24"
+    width="11"
+    height="11"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+function csfFieldClass(isActive: boolean, isDisabled?: boolean) {
+  return `csf-hf__field${isActive ? " is-active" : ""}${isDisabled ? " is-disabled" : ""}`;
+}
+
 export default function CSFCatalogGrid({ locale, products }: Props) {
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
@@ -267,19 +289,15 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
 
   // Skip the cascading reset on initial mount so deep-links from the brand-home
   // hero filter (e.g. ?make=BMW&model=3+Series&category=radiators) keep all params.
-  const previousScopeRef = useRef({ make: activeMake, category: activeCategory });
+  // Only `make` cascades — switching category must not drop the active fitment.
+  const previousMakeRef = useRef(activeMake);
   useEffect(() => {
-    if (
-      previousScopeRef.current.make === activeMake &&
-      previousScopeRef.current.category === activeCategory
-    ) {
-      return;
-    }
-    previousScopeRef.current = { make: activeMake, category: activeCategory };
+    if (previousMakeRef.current === activeMake) return;
+    previousMakeRef.current = activeMake;
     setActiveModel("all");
     setActiveChassis("all");
     setActiveYear("all");
-  }, [activeCategory, activeMake]);
+  }, [activeMake]);
 
   const previousModelRef = useRef(activeModel);
   useEffect(() => {
@@ -493,43 +511,35 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     return (
       <section className="relative z-30 min-h-screen bg-transparent py-8 text-white" aria-busy="true">
         <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
-          <div className="flex flex-col gap-12 lg:flex-row lg:gap-16">
-            <aside className="hidden w-[280px] flex-shrink-0 lg:block">
-              <div className="flex flex-col gap-6 rounded-2xl border border-white/[0.04] bg-[#050505]/80 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[120px]">
-                <div className="h-8 w-24 animate-pulse rounded-sm bg-white/5" />
-                <div className="h-6 w-40 animate-pulse rounded-sm bg-white/5" />
-                <div className="h-12 w-full animate-pulse rounded-sm bg-white/5" />
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="h-3 w-20 animate-pulse rounded-sm bg-white/5" />
-                    <div className="h-10 w-full animate-pulse rounded-sm bg-white/5" />
-                  </div>
-                ))}
-              </div>
-            </aside>
-            <main className="min-w-0 flex-1">
-              <div className="mb-6 flex items-center justify-between">
-                <div className="h-8 w-72 animate-pulse rounded-sm bg-white/5" />
-                <div className="h-10 w-48 animate-pulse rounded-sm bg-white/5" />
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 xl:grid-cols-3">
-                {Array.from({ length: Math.min(products.length || 6, 9) }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col overflow-hidden border border-white/[0.06] bg-gradient-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
-                  >
-                    <div className="aspect-square animate-pulse bg-white/[0.03]" />
-                    <div className="space-y-3 px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
-                      <div className="h-3 w-16 animate-pulse rounded-sm bg-white/5" />
-                      <div className="h-4 w-full animate-pulse rounded-sm bg-white/5" />
-                      <div className="h-4 w-3/4 animate-pulse rounded-sm bg-white/5" />
-                      <div className="h-5 w-24 animate-pulse rounded-sm bg-white/5" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </main>
+          <div className="mb-6 hidden rounded-2xl border border-white/[0.04] bg-[#050505]/80 p-4 shadow-2xl backdrop-blur-md lg:block">
+            <div className="flex flex-wrap items-end gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-12 min-w-[160px] flex-1 animate-pulse rounded-sm bg-white/5" />
+              ))}
+            </div>
           </div>
+          <main className="min-w-0">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="h-8 w-72 animate-pulse rounded-sm bg-white/5" />
+              <div className="h-10 w-48 animate-pulse rounded-sm bg-white/5" />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
+              {Array.from({ length: Math.min(products.length || 8, 12) }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col overflow-hidden border border-white/[0.06] bg-gradient-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
+                >
+                  <div className="aspect-square animate-pulse bg-white/[0.03]" />
+                  <div className="space-y-3 px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+                    <div className="h-3 w-16 animate-pulse rounded-sm bg-white/5" />
+                    <div className="h-4 w-full animate-pulse rounded-sm bg-white/5" />
+                    <div className="h-4 w-3/4 animate-pulse rounded-sm bg-white/5" />
+                    <div className="h-5 w-24 animate-pulse rounded-sm bg-white/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
         </div>
       </section>
     );
@@ -555,160 +565,323 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
           </p>
         </div>
 
-        <div className="flex flex-col gap-12 lg:flex-row lg:gap-16">
-          <aside
-            id="csf-mobile-filters"
-            className={`flex-shrink-0 transition-transform duration-300 ${
-              mobileFilterOpen
-                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
-                : "hidden w-full lg:block lg:w-[280px]"
-            }`}
-          >
-            <div
-              className={`${
-                mobileFilterOpen
-                  ? "flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
-                  : "flex flex-col gap-6 rounded-2xl border border-white/[0.04] bg-[#050505]/80 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[120px]"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={closeMobileFilter}
-                className="self-end p-1.5 text-white/40 transition-colors hover:text-white lg:hidden"
-                aria-label="Close filters"
-              >
-                <X size={16} />
-              </button>
-
-              <div>
-                <img src="/images/shop/csf/csf-logo.svg" alt="CSF Racing" className="mb-4 h-8" />
-                <h2 className="text-balance text-2xl font-light uppercase text-white">
-                  {isUa ? "Фільтр каталогу" : "Catalog filter"}
-                </h2>
-                <p className="mt-2 text-xs uppercase text-[#c8102e]/70">
-                  {filteredProducts.length} {isUa ? "результатів" : "results"}
-                </p>
-              </div>
-
-              <div className="relative">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={isUa ? "Пошук за SKU, моделлю, шасі..." : "Search SKU, model, chassis..."}
-                  className="w-full rounded-sm border border-white/10 bg-black/40 py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/30 focus:border-[#c8102e]/50 focus:outline-none"
+        {/* Desktop horizontal filter bar — styled like the home hero finder */}
+        <div className="mb-8 hidden lg:block">
+          <div className="csf-hf">
+            <header className="csf-hf__head">
+              <div className="csf-hf__brand">
+                <img
+                  src="/images/shop/csf/checkered-flag.svg"
+                  alt=""
+                  className="csf-hf__brand-flag"
+                  aria-hidden="true"
                 />
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white"
-                    aria-label="Clear search"
-                  >
-                    <X size={14} />
-                  </button>
-                ) : null}
+                <div className="csf-hf__brand-text">
+                  <span className="csf-hf__brand-eyebrow">CSF Racing</span>
+                  <span className="csf-hf__brand-line">
+                    {isUa ? "фільтр каталогу" : "catalog filter"}
+                  </span>
+                </div>
+              </div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-white/55">
+                <span className="text-[#c8102e] font-bold">{filteredProducts.length}</span>
+                {" "}
+                {isUa ? "результатів" : "results"}
+              </div>
+            </header>
+
+            <div className="csf-hf__row" style={{ gridTemplateColumns: "1.4fr 1fr 1fr 1.5fr 0.9fr auto" }}>
+              <div className={csfFieldClass(searchQuery.trim().length > 0)}>
+                <div className="csf-hf__field-head">
+                  <span className="csf-hf__field-index">00</span>
+                  <span className="csf-hf__field-label">{isUa ? "Пошук" : "Search"}</span>
+                </div>
+                <div className="csf-hf__field-body">
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder={isUa ? "SKU, модель, шасі..." : "SKU, model, chassis..."}
+                      className="csf-hf__select"
+                      style={{ paddingRight: searchQuery ? "1.5rem" : 0 }}
+                    />
+                    {searchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white"
+                        aria-label="Clear search"
+                        style={{ background: "transparent", border: 0 }}
+                      >
+                        <X size={12} />
+                      </button>
+                    ) : (
+                      <Search size={11} className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-[#c8102e]/85" />
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Категорія" : "Category"}</label>
+              <div className={csfFieldClass(activeCategory !== "all")}>
+                <div className="csf-hf__field-head">
+                  <span className="csf-hf__field-index">01</span>
+                  <span className="csf-hf__field-label">{isUa ? "Категорія" : "Category"}</span>
+                </div>
+                <div className="csf-hf__field-body">
                   <select
                     value={activeCategory}
                     onChange={(event) => setActiveCategory(event.target.value)}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                    className="csf-hf__select"
                   >
-                    <option value="all">{isUa ? "Усі категорії" : "All categories"}</option>
+                    <option value="all">{isUa ? "Усі" : "Any"}</option>
                     {categoryOptions.map((option) => (
                       <option key={option.key} value={option.key}>
-                        {option.label} ({option.count})
+                        {option.label} · {option.count}
                       </option>
                     ))}
                   </select>
+                  {CSF_CHEV}
                 </div>
+              </div>
 
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Марка" : "Make"}</label>
+              <div className={csfFieldClass(activeMake !== "all")}>
+                <div className="csf-hf__field-head">
+                  <span className="csf-hf__field-index">02</span>
+                  <span className="csf-hf__field-label">{isUa ? "Марка" : "Make"}</span>
+                </div>
+                <div className="csf-hf__field-body">
                   <select
                     value={activeMake}
                     onChange={(event) => setActiveMake(event.target.value)}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                    className="csf-hf__select"
                   >
-                    <option value="all">{isUa ? "Усі марки" : "All makes"}</option>
+                    <option value="all">{isUa ? "Усі" : "Any"}</option>
                     {makeOptions.map((option) => (
                       <option key={option.key} value={option.key}>
-                        {option.label} ({option.count})
+                        {option.label} · {option.count}
                       </option>
                     ))}
                   </select>
+                  {CSF_CHEV}
                 </div>
+              </div>
 
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Модель" : "Model"}</label>
+              <div className={csfFieldClass(activeModel !== "all", activeMake === "all" || modelOptions.length === 0)}>
+                <div className="csf-hf__field-head">
+                  <span className="csf-hf__field-index">03</span>
+                  <span className="csf-hf__field-label">{isUa ? "Модель" : "Model"}</span>
+                </div>
+                <div className="csf-hf__field-body">
                   <select
                     value={activeModel}
                     onChange={(event) => setActiveModel(event.target.value)}
                     disabled={activeMake === "all" || modelOptions.length === 0}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="csf-hf__select"
                   >
-                    <option value="all">{isUa ? "Усі моделі" : "All models"}</option>
+                    <option value="all">
+                      {activeMake === "all"
+                        ? (isUa ? "Спочатку марка" : "Pick make first")
+                        : (isUa ? "Усі" : "Any")}
+                    </option>
                     {modelOptions.map((option) => (
                       <option key={option.key} value={option.key}>
-                        {option.label} ({option.count})
+                        {option.label} · {option.count}
                       </option>
                     ))}
                   </select>
+                  {CSF_CHEV}
                 </div>
+              </div>
 
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Шасі / платформа" : "Chassis / platform"}</label>
+              <div className={csfFieldClass(activeChassis !== "all", chassisOptions.length === 0)}>
+                <div className="csf-hf__field-head">
+                  <span className="csf-hf__field-index">04</span>
+                  <span className="csf-hf__field-label">{isUa ? "Шасі" : "Chassis"}</span>
+                </div>
+                <div className="csf-hf__field-body">
                   <select
                     value={activeChassis}
                     onChange={(event) => setActiveChassis(event.target.value)}
                     disabled={chassisOptions.length === 0}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="csf-hf__select"
                   >
-                    <option value="all">{isUa ? "Усі шасі" : "All chassis"}</option>
+                    <option value="all">
+                      {chassisOptions.length === 0
+                        ? (isUa ? "Немає" : "None")
+                        : (isUa ? "Усі" : "Any")}
+                    </option>
                     {chassisOptions.map((option) => (
                       <option key={option.key} value={option.key}>
-                        {option.label} ({option.count})
+                        {option.label} · {option.count}
                       </option>
                     ))}
                   </select>
+                  {CSF_CHEV}
                 </div>
-
-                {SHOW_STOCK_BADGE ? (
-                  <div>
-                    <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Наявність" : "Stock"}</label>
-                    <select
-                      value={activeStock}
-                      onChange={(event) => setActiveStock(event.target.value as StockFilter)}
-                      className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
-                    >
-                      <option value="all">{getStockLabel(locale, "all")}</option>
-                      <option value="in-stock">{getStockLabel(locale, "in-stock")}</option>
-                      <option value="pre-order">{getStockLabel(locale, "pre-order")}</option>
-                      <option value="out-of-stock">{getStockLabel(locale, "out-of-stock")}</option>
-                    </select>
-                  </div>
-                ) : null}
-
               </div>
 
               <button
                 type="button"
                 onClick={resetFilters}
-                className="w-full rounded-sm border border-[#c8102e]/30 bg-[#c8102e]/10 px-5 py-3 text-[11px] uppercase text-white transition-colors hover:border-[#c8102e]/50 hover:bg-[#c8102e]/20"
+                disabled={!hasActiveFilters}
+                className="csf-hf__submit"
+                aria-label={isUa ? "Скинути фільтри" : "Reset filters"}
+                title={isUa ? "Скинути фільтри" : "Reset filters"}
               >
-                {isUa ? "Скинути фільтри" : "Reset filters"}
+                <span className="csf-hf__submit-text">
+                  {isUa ? "Скинути" : "Reset"}
+                </span>
               </button>
             </div>
-          </aside>
+          </div>
+        </div>
 
-          {mobileFilterOpen ? <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={closeMobileFilter} /> : null}
+        {/* Mobile filter drawer */}
+        <aside
+          id="csf-mobile-filters"
+          className={`flex-shrink-0 transition-transform duration-300 lg:hidden ${
+            mobileFilterOpen ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]" : "hidden"
+          }`}
+        >
+          <div className="flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl">
+            <button
+              type="button"
+              onClick={closeMobileFilter}
+              className="self-end p-1.5 text-white/40 transition-colors hover:text-white"
+              aria-label="Close filters"
+            >
+              <X size={16} />
+            </button>
 
-          <main className="min-w-0 flex-1">
+            <div>
+              <img src="/images/shop/csf/csf-logo.svg" alt="CSF Racing" className="mb-4 h-8" />
+              <h2 className="text-balance text-2xl font-light uppercase text-white">
+                {isUa ? "Фільтр каталогу" : "Catalog filter"}
+              </h2>
+              <p className="mt-2 text-xs uppercase text-[#c8102e]/70">
+                {filteredProducts.length} {isUa ? "результатів" : "results"}
+              </p>
+            </div>
+
+            <div className="relative">
+              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={isUa ? "Пошук за SKU, моделлю, шасі..." : "Search SKU, model, chassis..."}
+                className="w-full rounded-sm border border-white/10 bg-black/40 py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/30 focus:border-[#c8102e]/50 focus:outline-none"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Категорія" : "Category"}</label>
+                <select
+                  value={activeCategory}
+                  onChange={(event) => setActiveCategory(event.target.value)}
+                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                >
+                  <option value="all">{isUa ? "Усі категорії" : "All categories"}</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} ({option.count})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Марка" : "Make"}</label>
+                <select
+                  value={activeMake}
+                  onChange={(event) => setActiveMake(event.target.value)}
+                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                >
+                  <option value="all">{isUa ? "Усі марки" : "All makes"}</option>
+                  {makeOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} ({option.count})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Модель" : "Model"}</label>
+                <select
+                  value={activeModel}
+                  onChange={(event) => setActiveModel(event.target.value)}
+                  disabled={activeMake === "all" || modelOptions.length === 0}
+                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <option value="all">{isUa ? "Усі моделі" : "All models"}</option>
+                  {modelOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} ({option.count})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Шасі / платформа" : "Chassis / platform"}</label>
+                <select
+                  value={activeChassis}
+                  onChange={(event) => setActiveChassis(event.target.value)}
+                  disabled={chassisOptions.length === 0}
+                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <option value="all">{isUa ? "Усі шасі" : "All chassis"}</option>
+                  {chassisOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} ({option.count})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {SHOW_STOCK_BADGE ? (
+                <div>
+                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Наявність" : "Stock"}</label>
+                  <select
+                    value={activeStock}
+                    onChange={(event) => setActiveStock(event.target.value as StockFilter)}
+                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                  >
+                    <option value="all">{getStockLabel(locale, "all")}</option>
+                    <option value="in-stock">{getStockLabel(locale, "in-stock")}</option>
+                    <option value="pre-order">{getStockLabel(locale, "pre-order")}</option>
+                    <option value="out-of-stock">{getStockLabel(locale, "out-of-stock")}</option>
+                  </select>
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="w-full rounded-sm border border-[#c8102e]/30 bg-[#c8102e]/10 px-5 py-3 text-[11px] uppercase text-white transition-colors hover:border-[#c8102e]/50 hover:bg-[#c8102e]/20"
+            >
+              {isUa ? "Скинути фільтри" : "Reset filters"}
+            </button>
+          </div>
+        </aside>
+
+        {mobileFilterOpen ? <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={closeMobileFilter} /> : null}
+
+        <main className="min-w-0">
             <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-balance text-2xl font-light text-white">{isUa ? "CSF Cooling Catalog" : "CSF Cooling Catalog"}</h3>
@@ -754,7 +927,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
                 {displayedProducts.map((entry) => {
                   const { product, categoryLabel, make, models, chassisCodes, yearLabel, stockState } = entry;
                   const productTitle = stripChassisChips(stripCsfSkuPrefix(localizeShopProductTitle(locale, product), product.sku));
@@ -781,8 +954,10 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                               : computedPrice.eur > 0
                                 ? formatPrice(locale, computedPrice.eur, "EUR")
                                 : null;
-                  const cleanModel = models[0] && models[0].length <= 24 ? models[0] : null;
-                  const fitmentBadge = [make, cleanModel, chassisCodes[0], yearLabel].filter(Boolean).join(" · ");
+                  const cleanModels = models.filter((m) => m && m.length <= 22).slice(0, 3);
+                  const modelLabel = cleanModels.length > 0 ? cleanModels.join("/") : null;
+                  const chassisChip = cleanModels.length === 1 ? chassisCodes[0] : null;
+                  const fitmentBadge = [make, modelLabel, chassisChip, yearLabel].filter(Boolean).join(" · ");
 
                   return (
                     <article
@@ -877,7 +1052,6 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               </div>
             ) : null}
           </main>
-        </div>
       </div>
     </section>
   );
