@@ -218,6 +218,8 @@ function localizeOptionValue(value: string, isUa: boolean): string {
   out = out.replace(/\bEqual[- ]Length Front Pipe\b/g, "Equal-Length передня труба");
   out = out.replace(/\bCatted Downpipe\b/g, "Даунпайп з каталізатором");
   out = out.replace(/\bCatless Downpipe\b/g, "Даунпайп без каталізатора");
+  out = out.replace(/\bNon[- ]Downpipe\b/g, "Без даунпайпа");
+  out = out.replace(/\bDouble triple Gold tips\b/g, "Подвійні потрійні насадки (золоті)");
   out = out.replace(/\bStainless Steel\b/g, "Нержавіюча сталь");
   return out;
 }
