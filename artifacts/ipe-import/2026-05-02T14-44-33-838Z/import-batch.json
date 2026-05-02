@@ -1,0 +1,561 @@
+[
+  {
+    "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+    "slug": "ipe-mercedes-benz-amg-g63-w465-exhaust-system",
+    "officialUrl": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+    "matchScore": 0.72,
+    "status": "draft-review",
+    "reviewReasons": [
+      "product-match-review-threshold",
+      "unresolved-price-rows-nearby",
+      "ua-translation-pending"
+    ],
+    "matchedRows": [
+      {
+        "rowIndex": 1008,
+        "sku": "0Z6463-NVN00-2",
+        "priceKind": "absolute",
+        "brand": "Mercedes-Benz",
+        "model": "Mercedes-Benz AMG | W465-G63 | 2024-present",
+        "description": "Cat Back System ※Factory Control System | Mercedes-Benz W465-G63 Electric Valvetronic Muffler +Mercedes-Benz W465-G63 Valvetronic Muffler hanger",
+        "officialHandle": "mercedes-benz-amg-g63-w465-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+        "score": 0.72,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.933,
+          "system": 0.75,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.059,
+          "section": 0.5,
+          "total": 0.72
+        },
+        "candidates": [
+          {
+            "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+            "score": 0.72
+          },
+          {
+            "handle": "mercedes-benz-amg-cls53-c257-exhaust",
+            "score": 0.675
+          },
+          {
+            "handle": "mercedes-benz-amg-gle-450-gle-53-c292-w167-5-exhaust",
+            "score": 0.659
+          },
+          {
+            "handle": "mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust",
+            "score": 0.659
+          },
+          {
+            "handle": "mercedes-benz-e53-coupe-c238-5-exhaust",
+            "score": 0.656
+          }
+        ]
+      }
+    ],
+    "unresolvedRows": [
+      {
+        "rowIndex": 1008,
+        "sku": "0Z6463-NVN00-2",
+        "priceKind": "absolute",
+        "brand": "Mercedes-Benz",
+        "model": "Mercedes-Benz AMG | W465-G63 | 2024-present",
+        "description": "Cat Back System ※Factory Control System | Mercedes-Benz W465-G63 Electric Valvetronic Muffler +Mercedes-Benz W465-G63 Valvetronic Muffler hanger",
+        "officialHandle": "mercedes-benz-amg-g63-w465-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+        "score": 0.72,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.933,
+          "system": 0.75,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.059,
+          "section": 0.5,
+          "total": 0.72
+        },
+        "candidates": [
+          {
+            "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+            "score": 0.72
+          },
+          {
+            "handle": "mercedes-benz-amg-cls53-c257-exhaust",
+            "score": 0.675
+          },
+          {
+            "handle": "mercedes-benz-amg-gle-450-gle-53-c292-w167-5-exhaust",
+            "score": 0.659
+          },
+          {
+            "handle": "mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust",
+            "score": 0.659
+          },
+          {
+            "handle": "mercedes-benz-e53-coupe-c238-5-exhaust",
+            "score": 0.656
+          }
+        ]
+      },
+      {
+        "rowIndex": 1009,
+        "sku": "1Z6565-03-NOTB-7S",
+        "priceKind": "unpriced",
+        "brand": "Mercedes-Benz",
+        "model": "Mercedes-Benz AMG | W465-G63 | 2024-present",
+        "description": "Triple Square Tips (Satin Black) | Mercedes-Benz W465-G63 Triple Square Tips (Satin Black)",
+        "officialHandle": "mercedes-benz-amg-g63-w465-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+        "score": 0.718,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.933,
+          "system": 0.75,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.041,
+          "section": 0.5,
+          "total": 0.718
+        },
+        "candidates": [
+          {
+            "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+            "score": 0.718
+          },
+          {
+            "handle": "mercedes-benz-e53-coupe-c238-5-exhaust",
+            "score": 0.656
+          },
+          {
+            "handle": "mercedes-benz-amg-cls53-c257-exhaust",
+            "score": 0.65
+          },
+          {
+            "handle": "mercedes-benz-g500-w465-exhaust-system",
+            "score": 0.638
+          },
+          {
+            "handle": "mercedes-benz-amg-gle-450-gle-53-c292-w167-5-exhaust",
+            "score": 0.634
+          }
+        ]
+      },
+      {
+        "rowIndex": 1010,
+        "sku": "1Z6565-03-NOTG-7S",
+        "priceKind": "unpriced",
+        "brand": "Mercedes-Benz",
+        "model": "Mercedes-Benz AMG | W465-G63 | 2024-present",
+        "description": "Triple Square Tips (Satin Gold) | Mercedes-Benz W465-G63 Triple Square Tips (Satin Gold)",
+        "officialHandle": "mercedes-benz-amg-g63-w465-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+        "score": 0.606,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.933,
+          "system": 0.7,
+          "option": 0,
+          "material": 1,
+          "overlap": 0.041,
+          "section": 0,
+          "total": 0.606
+        },
+        "candidates": [
+          {
+            "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+            "score": 0.606
+          },
+          {
+            "handle": "mercedes-benz-c63-c63s-w205-c205-3-exhaust",
+            "score": 0.543
+          },
+          {
+            "handle": "mercedes-benz-c63-w204-c204-x204-3-exhaust",
+            "score": 0.543
+          },
+          {
+            "handle": "mercedes-benz-g500-w465-exhaust-system",
+            "score": 0.526
+          },
+          {
+            "handle": "mercedes-benz-amg-g63-w463-2-exhaust",
+            "score": 0.519
+          }
+        ]
+      }
+    ],
+    "mediaPlan": [
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/4_a104dd75-72f3-4e65-9e6b-48efc99bcc15.jpg?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\01.jpg",
+        "position": 1
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/2_b8a8d3eb-c273-4fbd-a99a-8436a00dbef1.jpg?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/02.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\02.jpg",
+        "position": 2
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/matteblacktips_2b1e3492-f33c-40be-b0b7-06862428a824.jpg?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/03.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\03.jpg",
+        "position": 3
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/mattegoldtips.jpg?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/04.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\04.jpg",
+        "position": 4
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/Screenshot2026-01-28at1.59.30PM.png?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/05.png",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\05.png",
+        "position": 5
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/Screenshot2026-01-28at2.00.19PM.png?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/06.png",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\06.png",
+        "position": 6
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/Screenshot2026-01-28at2.00.10PM.png?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/07.png",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\07.png",
+        "position": 7
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/Screenshot2026-01-28at2.00.02PM.png?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/08.png",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\08.png",
+        "position": 8
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/Screenshot2026-01-28at1.59.37PM.png?v=1775025329",
+        "publicPath": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/09.png",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\mercedes-benz-amg-g63-w465-exhaust-system\\09.png",
+        "position": 9
+      }
+    ],
+    "variants": [
+      {
+        "title": "Catted Downpipe / Cat-back + Double triple Gold tips",
+        "sku": "0Z6463-NVN00-2",
+        "priceUsd": 7700,
+        "optionValues": [
+          "Catted Downpipe",
+          "Cat-back + Double triple Gold tips"
+        ],
+        "optionNames": [
+          "Downpipe",
+          "Catback system"
+        ],
+        "baseSku": "0Z6463-NVN00-2",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/4_a104dd75-72f3-4e65-9e6b-48efc99bcc15.jpg?v=1775025329",
+        "reviewReasons": [],
+        "confidence": 0.748,
+        "defaultVariant": true
+      },
+      {
+        "title": "Catless Downpipe / Cat-back + Double triple Gold tips",
+        "sku": "0Z6463-NVN00-2",
+        "priceUsd": 7700,
+        "optionValues": [
+          "Catless Downpipe",
+          "Cat-back + Double triple Gold tips"
+        ],
+        "optionNames": [
+          "Downpipe",
+          "Catback system"
+        ],
+        "baseSku": "0Z6463-NVN00-2",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/4_a104dd75-72f3-4e65-9e6b-48efc99bcc15.jpg?v=1775025329",
+        "reviewReasons": [],
+        "confidence": 0.748,
+        "defaultVariant": false
+      },
+      {
+        "title": "Non-Downpipe / Cat-back + Double triple Gold tips",
+        "sku": "0Z6463-NVN00-2",
+        "priceUsd": 7700,
+        "optionValues": [
+          "Non-Downpipe",
+          "Cat-back + Double triple Gold tips"
+        ],
+        "optionNames": [
+          "Downpipe",
+          "Catback system"
+        ],
+        "baseSku": "0Z6463-NVN00-2",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/4_a104dd75-72f3-4e65-9e6b-48efc99bcc15.jpg?v=1775025329",
+        "reviewReasons": [],
+        "confidence": 0.748,
+        "defaultVariant": false
+      }
+    ],
+    "payload": {
+      "slug": "ipe-mercedes-benz-amg-g63-w465-exhaust-system",
+      "sku": "0Z6463-NVN00-2",
+      "scope": "auto",
+      "storefront": "main",
+      "brand": "iPE exhaust",
+      "vendor": "Innotech Performance Exhaust",
+      "productType": "Accessories",
+      "productCategory": "Accessories",
+      "categoryId": null,
+      "tags": [
+        "full-system",
+        "Accessories",
+        "iPE",
+        "Exhaust",
+        "Mercedes-Benz",
+        "iPE exhaust",
+        "Innotech Performance Exhaust",
+        "2024",
+        "2025",
+        "2026",
+        "AMG W465 G63",
+        "Stainless Steel",
+        "store:main"
+      ],
+      "collectionIds": [],
+      "status": "DRAFT",
+      "titleUa": "Mercedes-Benz AMG G63 (W465) Exhaust System",
+      "titleEn": "Mercedes-Benz AMG G63 (W465) Exhaust System",
+      "categoryUa": "Аксесуари",
+      "categoryEn": "Accessories",
+      "shortDescUa": null,
+      "shortDescEn": "The Mercedes-AMG G63 W465 V8 enhanced with an iPE Catback system delivers an unmistakably bold, thunderous exhaust note...",
+      "longDescUa": null,
+      "longDescEn": "The Mercedes-AMG G63 W465 V8 enhanced with an iPE Catback system delivers an unmistakably bold, thunderous exhaust note, while maintaining a smooth and refined cruise at the touch of a button.Our Valvetronic exhaust system puts full control in the driver’s hands, offering instant transitions between aggressive performance and everyday comfort. Each component is precision-engineered specifically for the Mercedes-AMG G63 W465, ensuring perfect fitment and optimal flow. By surpassing the limitations of the factory exhaust, iPE unlocks a dramatic improvement in sound character, throttle response, and overall driving excitement.When installing the iPE G63 W465 (Either catback or full system), remapping the ECU is mandatory in order to prevent potential “check engine light on” warning signals. iPE won't stand responsibility and warranty issue for the check engine light problem.1.Improper adjustments made during installation may result in short-term to permanent damages to the iPE exhaust system and/or your vehicle.iPE will not be held responsible for any damages to the vehicle, and warranties on our products will be voided if the damages occurred due to improper installation.If you have any trouble installing the system please contact your authorized dealer! 2. The manufacturer, importer or dealer shall not be liable for any incidental damage including personal injury or any other damages caused by improper installation or operation of the iPE exhaust system. When installing the iPE exhaust system be careful that the exhaust system does not touch other parts sensitive to high temperature.3. iPE makes no representation or warranties with regard to damage caused by the improper installation, use and maintenance of the iPE exhaust system. The warranty is limited to defects recognized by our technical department and of normal use only, and excludes items subject to normal wear and tear(gaskets and damping wool). The warranty is voided in case of accidents, modifications, improper or competition uses.*Actual product may vary due to product enhancement. iPE reserves the right to revise, change, explain the product.",
+      "bodyHtmlUa": null,
+      "bodyHtmlEn": "<p><strong>The Mercedes-AMG G63 W465 V8 enhanced with an iPE Catback system delivers an unmistakably bold, thunderous exhaust note, while maintaining a smooth and refined cruise at the touch of a button.</strong></p><p>Our Valvetronic exhaust system puts full control in the driver’s hands, offering instant transitions between aggressive performance and everyday comfort. Each component is precision-engineered specifically for the Mercedes-AMG G63 W465, ensuring perfect fitment and optimal flow. By surpassing the limitations of the factory exhaust, iPE unlocks a dramatic improvement in sound character, throttle response, and overall driving excitement.</p><p>When installing the iPE G63 W465 (Either catback or full system), remapping the ECU is mandatory in order to prevent potential “check engine light on” warning signals.&nbsp;<br><br>iPE won't stand responsibility and warranty issue for the check engine light problem.<br><br>1.Improper adjustments made during installation may result in short-term to permanent damages to the iPE exhaust system and/or your vehicle.<br>iPE will not be held responsible for any damages to the vehicle, and warranties on our products will be voided if the damages occurred due to improper installation.If you have any trouble installing the system please contact your authorized dealer! <br><br>2. The manufacturer, importer or dealer shall not be liable for any incidental damage including personal injury or any other damages caused by improper installation or operation of the iPE exhaust system. When installing the iPE exhaust system be careful that the exhaust system does not touch other parts sensitive to high temperature.<br><br>3. iPE makes no representation or warranties with regard to damage caused by the improper installation, use and maintenance of the iPE exhaust system. The warranty is limited to defects recognized by our technical department and of normal use only, and excludes items subject to normal wear and tear(gaskets and damping wool). The warranty is voided in case of accidents, modifications, improper or competition uses.<br><br>*Actual product may vary due to product enhancement. iPE reserves the right to revise, change, explain the product.</p>",
+      "leadTimeUa": null,
+      "leadTimeEn": null,
+      "stock": "preOrder",
+      "collectionUa": "Mercedes-Benz",
+      "collectionEn": "Mercedes-Benz",
+      "priceEur": null,
+      "priceUsd": 7700,
+      "priceUah": null,
+      "priceEurB2b": null,
+      "priceUsdB2b": null,
+      "priceUahB2b": null,
+      "compareAtEur": null,
+      "compareAtUsd": null,
+      "compareAtUah": null,
+      "compareAtEurB2b": null,
+      "compareAtUsdB2b": null,
+      "compareAtUahB2b": null,
+      "weight": null,
+      "length": null,
+      "width": null,
+      "height": null,
+      "isDimensionsEstimated": false,
+      "image": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+      "seoTitleUa": "Mercedes-Benz AMG G63 (W465) Exhaust System",
+      "seoTitleEn": "Mercedes-Benz AMG G63 (W465) Exhaust System",
+      "seoDescriptionUa": null,
+      "seoDescriptionEn": "The Mercedes-AMG G63 W465 V8 enhanced with an iPE Catback system delivers an unmistakably bold, thunderous exhaust note...",
+      "isPublished": false,
+      "publishedAt": null,
+      "gallery": [
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/02.jpg",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/03.jpg",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/04.jpg",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/05.png",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/06.png",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/07.png",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/08.png",
+        "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/09.png"
+      ],
+      "highlights": null,
+      "media": [
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 1",
+          "position": 1,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/02.jpg",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 2",
+          "position": 2,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/03.jpg",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 3",
+          "position": 3,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/04.jpg",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 4",
+          "position": 4,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/05.png",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 5",
+          "position": 5,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/06.png",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 6",
+          "position": 6,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/07.png",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 7",
+          "position": 7,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/08.png",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 8",
+          "position": 8,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/09.png",
+          "altText": "Mercedes-Benz AMG G63 (W465) Exhaust System 9",
+          "position": 9,
+          "mediaType": "IMAGE"
+        }
+      ],
+      "options": [
+        {
+          "name": "Downpipe",
+          "position": 1,
+          "values": [
+            "Catted Downpipe",
+            "Catless Downpipe",
+            "Non-Downpipe"
+          ]
+        },
+        {
+          "name": "Catback system",
+          "position": 2,
+          "values": [
+            "Cat-back + Double triple Gold tips"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Catted Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 1,
+          "option1Value": "Catted Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 7700,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+          "isDefault": true
+        },
+        {
+          "title": "Catless Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 2,
+          "option1Value": "Catless Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 7700,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+          "isDefault": false
+        },
+        {
+          "title": "Non-Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 3,
+          "option1Value": "Non-Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 7700,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg",
+          "isDefault": false
+        }
+      ],
+      "metafields": [
+        {
+          "namespace": "custom",
+          "key": "official_handle",
+          "value": "mercedes-benz-amg-g63-w465-exhaust-system",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "official_url",
+          "value": "https://ipeofficial.com/products/mercedes-benz-amg-g63-w465-exhaust-system",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "crawl_date",
+          "value": "2026-05-02T14:44:35.769Z",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "match_score",
+          "value": "0.720",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "source_pdf_name",
+          "value": "2026-april-pricelist.xlsx",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "variant_map_json",
+          "value": "{\n  \"handle\": \"mercedes-benz-amg-g63-w465-exhaust-system\",\n  \"variants\": [\n    {\n      \"title\": \"Catted Downpipe / Cat-back + Double triple Gold tips\",\n      \"sku\": \"0Z6463-NVN00-2\",\n      \"priceUsd\": 7700,\n      \"optionValues\": [\n        \"Catted Downpipe\",\n        \"Cat-back + Double triple Gold tips\"\n      ],\n      \"baseSku\": \"0Z6463-NVN00-2\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": []\n    },\n    {\n      \"title\": \"Catless Downpipe / Cat-back + Double triple Gold tips\",\n      \"sku\": \"0Z6463-NVN00-2\",\n      \"priceUsd\": 7700,\n      \"optionValues\": [\n        \"Catless Downpipe\",\n        \"Cat-back + Double triple Gold tips\"\n      ],\n      \"baseSku\": \"0Z6463-NVN00-2\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": []\n    },\n    {\n      \"title\": \"Non-Downpipe / Cat-back + Double triple Gold tips\",\n      \"sku\": \"0Z6463-NVN00-2\",\n      \"priceUsd\": 7700,\n      \"optionValues\": [\n        \"Non-Downpipe\",\n        \"Cat-back + Double triple Gold tips\"\n      ],\n      \"baseSku\": \"0Z6463-NVN00-2\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": []\n    }\n  ]\n}",
+          "valueType": "multi_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "matched_row_indexes",
+          "value": "1008,1009,1010",
+          "valueType": "multi_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "review_reasons",
+          "value": "product-match-review-threshold\nunresolved-price-rows-nearby\nua-translation-pending",
+          "valueType": "multi_line_text_field"
+        }
+      ]
+    }
+  }
+]

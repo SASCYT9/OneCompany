@@ -175,7 +175,11 @@ type IpeImportRecord = {
 function parseCliOptions(): CliOptions {
   const args = new Set(process.argv.slice(2));
   const commit = args.has('--commit');
-  const translateUa = commit || args.has('--translate-ua');
+  // --skip-ua-translation lets us commit a single new product even when no
+  // translation API is wired up (e.g. when Gemini's billing project is
+  // disabled). The product lands in DB with English copy only — UA translation
+  // can be applied later with a targeted repair script.
+  const translateUa = (commit && !args.has('--skip-ua-translation')) || args.has('--translate-ua');
   const translationProvider = resolveTranslationProvider(readArgValue('--translate-provider') ?? 'auto');
   const limitArg = readArgValue('--limit');
   const limit = limitArg ? Number(limitArg) || null : null;

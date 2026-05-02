@@ -82,6 +82,38 @@ function normalizeIpeUaCopy(value: string): string {
   return out;
 }
 
+// iPE's official Shopify body_html embeds promotional banners pointing at
+// OTHER iPE products (e.g. an `<a href="ipeofficial.com/products/mfr-02-
+// magnesium-wheels">` wrapping a "Forged Magnesium Wheels" image at the
+// bottom of every exhaust description). Those don't belong on our PDP — they
+// either dead-end (the wheels aren't in our catalog) or push the buyer off to
+// iPE's own site mid-purchase. Strip them server-side before sanitization.
+function stripIpeCrossPromoLinks(html: string): string {
+  if (!html) return html;
+  // <a href="...ipeofficial.com/products/..."> ...wrapped content... </a>
+  // Some banners are bare <img> tags with the same alt-text style; remove
+  // those too when their alt mentions a different iPE product line.
+  let out = html.replace(
+    /<a[^>]*href=(?:"|')[^"']*ipeofficial\.com\/products\/[^"']*(?:"|')[^>]*>[\s\S]*?<\/a>/gi,
+    ''
+  );
+  out = out.replace(
+    /<img[^>]*alt=(?:"|')[^"']*(?:click the button to enter the link|click here to enter the link|magnesium wheels|forged magnesium|other (?:iPE )?products?)[^"']*(?:"|')[^>]*\/?>/gi,
+    ''
+  );
+  // Strip empty anchors and empty/redundant span wrappers that iPE's bodyHtml
+  // collects from Word-style paste — they don't render anything but litter the
+  // DOM (e.g. Ferrari 296 GTB had 18 stray `<a></a>` tags).
+  let prev: string;
+  do {
+    prev = out;
+    out = out
+      .replace(/<a[^>]*>\s*<\/a>/gi, '')
+      .replace(/<span[^>]*>\s*<\/span>/gi, '');
+  } while (out !== prev);
+  return out;
+}
+
 // Pull the OPF warning ("ПОПЕРЕДЖЕННЯ - Перед покупкою..." / "WARNING - Prior
 // to purchase...") out of the body so the layout can render it as a styled
 // callout instead of letting it sit inline as a buried <strong>.
@@ -304,7 +336,8 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
   // products like iPE, so the rich HTML lives there.
   const bodySource = longDescription || shortDescription || "";
   const normalizedBody = isUa ? normalizeIpeUaCopy(bodySource) : bodySource;
-  const { body: bodyMinusOpf } = extractOpfWarning(normalizedBody, isUa);
+  const bodyWithoutCrossPromo = stripIpeCrossPromoLinks(normalizedBody);
+  const { body: bodyMinusOpf } = extractOpfWarning(bodyWithoutCrossPromo, isUa);
   const sanitizedBodyHtml = sanitizeRichTextHtml(bodyMinusOpf);
 
   const gallery = product.gallery?.length ? product.gallery : [product.image];
@@ -355,12 +388,25 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
   }, [cleanImages, imageBuckets, activeMaterial]);
 
   const [mainIdx, setMainIdx] = useState(0);
-  // Snap the main slot back to image #0 whenever the displayed list changes
-  // (i.e. user flipped between Titanium and Stainless Steel) so the buyer
-  // doesn't land on an out-of-range index.
+  // When a variant carries its own featured image, snap the main slot to that
+  // image whenever the user changes options — otherwise buyers click between
+  // Titanium / Stainless Steel (or different downpipe configs) and the picture
+  // never moves, so the toggle feels broken. Falls back to image #0 if the
+  // variant image isn't part of the (possibly material-filtered) gallery.
   useEffect(() => {
+    const variantImage = currentVariant?.image
+      ? rebaseIpeGalleryUrl(
+          currentVariant.image.replace(/^["']|["']$/g, "").trim(),
+          product.image
+        )
+      : null;
+    if (variantImage) {
+      const idx = displayedImages.findIndex((img) => img === variantImage);
+      setMainIdx(idx >= 0 ? idx : 0);
+      return;
+    }
     setMainIdx(0);
-  }, [displayedImages]);
+  }, [displayedImages, currentVariant, product.image]);
 
   const priceUsd = currentVariant?.price?.usd ?? product.price?.usd ?? 0;
   const priceEur = currentVariant?.price?.eur ?? product.price?.eur ?? 0;

@@ -1,0 +1,28 @@
+{
+  "officialProducts": 345,
+  "priceRows": 1541,
+  "manifestRows": 1541,
+  "matchedHandles": 112,
+  "importableHandles": 1,
+  "applyingHandles": 1,
+  "existingDraftsOrProducts": 0,
+  "manifestStatusCounts": {
+    "auto": 0,
+    "review": 57,
+    "unresolved": 1484
+  },
+  "sample": [
+    {
+      "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+      "slug": "ipe-mercedes-benz-amg-g63-w465-exhaust-system",
+      "matchScore": 0.72,
+      "variants": 3,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby",
+        "ua-translation-pending"
+      ],
+      "action": "create"
+    }
+  ]
+}
