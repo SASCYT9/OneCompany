@@ -92,6 +92,14 @@ export interface ShopProduct {
   height?: number | null;
   image: string;
   gallery?: string[];
+  /**
+   * Per-image material tag aligned with `gallery` order. Only set on iPE
+   * products that have both Titanium and Stainless Steel variants AND a
+   * gallery whose original (pre-rebase) filenames hint material. Used by the
+   * iPE PDP to filter the gallery to the active variant's material.
+   * `'ti' | 'ss' | null` per image.
+   */
+  galleryMaterials?: Array<'ti' | 'ss' | null>;
   highlights: LocalizedText[];
   variants?: ShopProductVariantSummary[];
   categoryNode?: {

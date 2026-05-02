@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -215,6 +215,27 @@ function pickPreferredCatbackVariant(variants: ShopProductVariantSummary[]): Sho
   return best;
 }
 
+// Classify a gallery image URL by the material hinted in its filename. iPE's
+// CDN filenames are inconsistent: some carry explicit tokens like
+// "titanium" / "stainlesssteel", some use short prefixes ("sscatback",
+// "tiadapter"), and most generic shots have neither. Anything ambiguous
+// returns null and is treated as "shown for both materials".
+function classifyImageMaterial(url: string): "ti" | "ss" | null {
+  const fileSegment = (url.split("/").pop() ?? url).split("?")[0].toLowerCase();
+  if (/stainless\s*steel|stainlesssteel|stainless/.test(fileSegment)) return "ss";
+  if (/titanium/.test(fileSegment)) return "ti";
+  // Boundary-anchored short tokens: -ti-, _ti_, ti., -ss-, etc. Letter
+  // boundaries on either side prevent matching inside words like "tip".
+  if (/(?:^|[^a-z])ti(?:[^a-z]|$)/.test(fileSegment)) return "ti";
+  if (/(?:^|[^a-z])ss(?:[^a-z]|$)/.test(fileSegment)) return "ss";
+  // iPE-specific filename prefixes: "tiadapter", "ssadapter*", "sscatback".
+  // Restrict to a small allowlist of known iPE asset stems so we don't
+  // false-positive on stray English words.
+  if (/^ti(adapter|catback|tip)/.test(fileSegment)) return "ti";
+  if (/^ss(adapter|catback|tip)/.test(fileSegment)) return "ss";
+  return null;
+}
+
 function rebaseIpeGalleryUrl(g: string, refImage: string | null | undefined): string {
   if (!g || !g.startsWith("/media/shop/")) return g;
   const ref = String(refImage ?? "");
@@ -287,11 +308,59 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
   const sanitizedBodyHtml = sanitizeRichTextHtml(bodyMinusOpf);
 
   const gallery = product.gallery?.length ? product.gallery : [product.image];
-  const cleanImages = gallery
-    .map((img) => img?.replace(/^["']|["']$/g, "").trim())
-    .filter(Boolean)
-    .map((img) => rebaseIpeGalleryUrl(img as string, product.image)) as string[];
+  const cleanImages = useMemo(
+    () =>
+      gallery
+        .map((img) => img?.replace(/^["']|["']$/g, "").trim())
+        .filter(Boolean)
+        .map((img) => rebaseIpeGalleryUrl(img as string, product.image)) as string[],
+    [gallery, product.image]
+  );
+
+  // Bucket images by material. Prefer the pre-classified `galleryMaterials`
+  // tag list shipped on the product (set at import time from the original
+  // Shopify URLs before they got rebased to Vercel Blob and lost their
+  // material hints). Fall back to runtime URL-pattern classification for
+  // products that still carry meaningful filenames. Only kicks in when the
+  // gallery has at least one Ti AND one SS image — otherwise filtering
+  // would empty the "wrong" material tab.
+  const imageBuckets = useMemo(() => {
+    const ti: string[] = [];
+    const ss: string[] = [];
+    const generic: string[] = [];
+    cleanImages.forEach((url, idx) => {
+      const preTagged = product.galleryMaterials?.[idx];
+      const tag = preTagged ?? classifyImageMaterial(url);
+      if (tag === "ti") ti.push(url);
+      else if (tag === "ss") ss.push(url);
+      else generic.push(url);
+    });
+    const splitActive = ti.length > 0 && ss.length > 0;
+    return { ti, ss, generic, splitActive };
+  }, [cleanImages, product.galleryMaterials]);
+
+  const activeMaterial: "ti" | "ss" | null = useMemo(() => {
+    const joined = (currentVariant?.optionValues ?? []).join(" | ").toLowerCase();
+    if (/\btitanium\b/.test(joined)) return "ti";
+    if (/\bstainless\b/.test(joined)) return "ss";
+    return null;
+  }, [currentVariant]);
+
+  const displayedImages = useMemo(() => {
+    if (!imageBuckets.splitActive || !activeMaterial) return cleanImages;
+    const matchBucket = activeMaterial === "ti" ? imageBuckets.ti : imageBuckets.ss;
+    // Material-specific images first, then generic shots so the gallery
+    // never collapses to a single thumbnail.
+    return [...matchBucket, ...imageBuckets.generic];
+  }, [cleanImages, imageBuckets, activeMaterial]);
+
   const [mainIdx, setMainIdx] = useState(0);
+  // Snap the main slot back to image #0 whenever the displayed list changes
+  // (i.e. user flipped between Titanium and Stainless Steel) so the buyer
+  // doesn't land on an out-of-range index.
+  useEffect(() => {
+    setMainIdx(0);
+  }, [displayedImages]);
 
   const priceUsd = currentVariant?.price?.usd ?? product.price?.usd ?? 0;
   const priceEur = currentVariant?.price?.eur ?? product.price?.eur ?? 0;
@@ -365,18 +434,18 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
           </div>
 
           <div className="ipe-pdp__gallery-main">
-            {cleanImages[mainIdx] ? (
+            {displayedImages[mainIdx] ? (
               <ShopProductImage
-                src={cleanImages[mainIdx]}
+                src={displayedImages[mainIdx]}
                 alt={productTitle}
                 fill
                 sizes="(max-width: 960px) 100vw, 60vw"
               />
             ) : null}
           </div>
-          {cleanImages.length > 1 ? (
+          {displayedImages.length > 1 ? (
             <div className="ipe-pdp__thumbs">
-              {cleanImages.map((src, idx) => (
+              {displayedImages.map((src, idx) => (
                 <button
                   key={`${src}-${idx}`}
                   type="button"

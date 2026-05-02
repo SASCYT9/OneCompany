@@ -149,5 +149,5 @@ function buildFitmentChips(match: CrossShopMatch): string[] {
   if (match.fitment.models[0]) {
     chips.push(prettifyVehicleLabel(match.fitment.models[0]));
   }
-  return chips.slice(0, 2);
+  return Array.from(new Set(chips)).slice(0, 2);
 }

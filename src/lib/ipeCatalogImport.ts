@@ -841,10 +841,17 @@ function rowMatchesVariantContext(
   const tokens = buildIpeCanonicalTokenSetFromPriceRow(row);
   const flags = tokens.featureFlags;
   const family = tokens.systemFamily;
+  const isUpstreamPipework = family === 'downpipe' || family === 'header' || family === 'header-back' || family === 'mid-pipe';
 
-  // Material exclusion: if variant explicitly chose SS, exclude Ti rows (and vice versa)
+  // Material exclusion: SS context can't pull Ti rows. Ti context can't pull
+  // SS rows either, EXCEPT for upstream pipework (downpipes / headers /
+  // mid-pipes) — iPE doesn't catalog Ti versions of those, so a Ti exhaust
+  // is actually Ti cat-back + SS upstream pipework. Without this carve-out,
+  // Ti Full System variants only price the cat-back and never pick up the
+  // downpipe delta (e.g. Ferrari 296 GTB Ti Full System = $8,300 instead of
+  // ~$13,600).
   if (context.material === 'ss' && tokens.material === 'ti') return { eligible: false, required: false };
-  if (context.material === 'ti' && tokens.material === 'ss') return { eligible: false, required: false };
+  if (context.material === 'ti' && tokens.material === 'ss' && !isUpstreamPipework) return { eligible: false, required: false };
 
   // OPF exclusion across rows that carry an OPF flag
   if (context.opf === 'opf' && flags.includes('non-opf') && !flags.includes('opf')) return { eligible: false, required: false };

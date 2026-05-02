@@ -1257,6 +1257,21 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     : resolvedPrimaryImage
       ? [resolvedPrimaryImage]
       : [];
+
+  // iPE-only: surface the per-image material tag stored at import time so
+  // the iPE PDP can filter gallery shots to the active variant's material.
+  const galleryMaterialsMeta = row.metafields.find(
+    (m) => m.namespace === 'ipe' && m.key === 'gallery_image_materials'
+  );
+  const galleryMaterialsRaw = galleryMaterialsMeta?.value
+    ? galleryMaterialsMeta.value.split(',').map((token) => token.trim())
+    : null;
+  const galleryMaterials =
+    galleryMaterialsRaw && galleryMaterialsRaw.length === productGallery.length
+      ? (galleryMaterialsRaw.map((token) =>
+          token === 'ti' || token === 'ss' ? token : null
+        ) as Array<'ti' | 'ss' | null>)
+      : undefined;
   const unsafeGpDescription = [
     row.shortDescUa,
     row.shortDescEn,
@@ -1496,6 +1511,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
         : undefined,
     image: resolvedPrimaryImage,
     gallery: productGallery,
+    galleryMaterials,
     highlights: highlightsArr,
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
