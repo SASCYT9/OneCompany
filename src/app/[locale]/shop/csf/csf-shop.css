@@ -1273,10 +1273,16 @@
   }
 }
 
-/* Mobile: kill heavy GPU effects on hero to prevent scroll jank.
-   Gradient fallback in .csf__hero-video-wrap remains visible. */
+/* Mobile: lighten GPU work on hero to reduce scroll jank — keep
+   the video visible, but drop the per-frame filter chain on the
+   iframe (blur on a YouTube embed forces full-frame repaints).
+   Promote to its own compositor layer so scroll is cheap translate. */
 @media (max-width: 900px) {
-  .csf-video-bg iframe { display: none; }
+  .csf-video-bg iframe {
+    filter: brightness(0.35) saturate(0.7);
+    transform: translate(-50%, -50%) translateZ(0);
+    will-change: transform;
+  }
   .csf__hero::after { display: none; }
-  .csf-video-bg { filter: none; }
+  .csf__hero { contain: paint; }
 }
