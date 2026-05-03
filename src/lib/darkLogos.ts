@@ -118,7 +118,6 @@ export const DARK_LOGOS = [
   "lynk-co.svg",
   "loba-motorsport.svg",
   "link-ecu.png",
-  "lingenfelter.svg",
   "lincoln.svg",
   "life-racing.svg",
   "lexus.svg",
