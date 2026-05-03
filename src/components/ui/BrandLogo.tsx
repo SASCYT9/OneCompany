@@ -50,7 +50,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '',
     return () => obs.disconnect();
   }, [lazy, inView]);
 
-  const current = idx < candidates.length ? candidates[idx] : '/logos/placeholder.svg';
+  const current = idx < candidates.length ? candidates[idx] : '/branding/one-company-logo.svg';
   const heightClass = variant === 'compact' ? 'h-20' : 'h-28';
 
   return (
