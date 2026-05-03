@@ -97,20 +97,20 @@ function StoreCard({
           fill
           sizes={sizes}
           className={`object-cover object-center transition-all duration-700 ease-out group-hover:scale-[1.03] ${
-            isLogoAsset ? "opacity-90 !object-contain p-10" : "opacity-75 group-hover:opacity-100"
+            isLogoAsset ? "opacity-90 !object-contain p-10" : "opacity-90 group-hover:opacity-100"
           }`}
           loading={eager ? "eager" : "lazy"}
           unoptimized={isLogoAsset}
         />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 transition-opacity duration-500 group-hover:from-black/75" />
 
-      <div className="relative z-10 mt-auto px-4 pb-4 md:px-7 md:pb-7">
+      <div className="relative z-10 mt-auto w-full px-4 pb-4 md:px-7 md:pb-7">
         <h3 className="text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] sm:text-lg lg:text-xl">
           {t(isUa, store.name, store.nameUk)}
         </h3>
-        <p className="mt-1.5 line-clamp-2 max-w-[40ch] text-xs font-light leading-relaxed text-white/50 md:text-sm">
+        <p className="mt-1.5 line-clamp-2 text-xs font-light leading-relaxed text-white/65 md:max-w-[40ch] md:text-sm">
           {t(isUa, store.description, store.descriptionUk)}
         </p>
         <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/0 transition-all duration-400 group-hover:text-white/70 group-hover:gap-3">
@@ -158,8 +158,8 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           className="object-cover sm:brightness-[0.25] sm:saturate-[0.5] brightness-[0.3]"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/70 via-[#050505]/30 to-[#050505]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505]/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-[#050505]/15 to-[#050505]" />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505]/40 sm:block" />
 
         <div className="relative z-10 flex flex-col items-center gap-3 px-4 text-center sm:gap-5">
           <h1 className="text-2xl font-extralight uppercase leading-tight tracking-[0.12em] text-white/90 sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
