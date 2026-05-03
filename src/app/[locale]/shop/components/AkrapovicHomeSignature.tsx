@@ -66,6 +66,8 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         <AkrapovicVideoBackground
           videoSrc={AKRAPOVIC_HERO.heroVideoUrl}
           fallbackImage={AKRAPOVIC_HERO.heroImageFallback}
+          fallbackWidth={AKRAPOVIC_HERO.heroImageWidth}
+          fallbackHeight={AKRAPOVIC_HERO.heroImageHeight}
           overlayStyle="hero"
           withAudio
           isMuted
@@ -118,7 +120,15 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
             >
               <div className="ak-gallery__media">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.image} alt="" loading="lazy" aria-hidden="true" />
+                <img
+                  src={item.image}
+                  alt=""
+                  width={item.width}
+                  height={item.height}
+                  loading="lazy"
+                  decoding="async"
+                  aria-hidden="true"
+                />
               </div>
             </article>
           ))}
@@ -151,7 +161,10 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                 className="ak-line-card__img"
                 src={line.image}
                 alt={L(isUa, line.name, line.nameUk)}
+                width={line.imageWidth}
+                height={line.imageHeight}
                 loading="lazy"
+                decoding="async"
               />
               <div className="ak-line-card__overlay" />
               <span className="ak-line-card__badge">
@@ -228,7 +241,10 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         <AkrapovicVideoBackground
           videoSrc={AKRAPOVIC_HERITAGE.videoUrl}
           fallbackImage={AKRAPOVIC_HERITAGE.fallbackImage}
+          fallbackWidth={AKRAPOVIC_HERITAGE.fallbackWidth}
+          fallbackHeight={AKRAPOVIC_HERITAGE.fallbackHeight}
           overlayStyle="heritage"
+          defer
         />
 
         <div className="ak-heritage__content">

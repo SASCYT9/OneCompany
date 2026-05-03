@@ -5,6 +5,8 @@
 export const AKRAPOVIC_HERO = {
   heroVideoUrl: '/videos/shop/akrapovic/akrapovic-hero.mp4',
   heroImageFallback: '/images/shop/akrapovic/hero-fallback.jpg',
+  heroImageWidth: 1920,
+  heroImageHeight: 1440,
   subtitle:
     'Hand-crafted titanium & carbon fibre exhaust systems that redefine automotive sound engineering.',
   subtitleUk:
@@ -19,6 +21,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič road film still',
     eyebrowUk: 'Офіційний кадр Akrapovič з дороги',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-porsche-road-hero-live.webp',
+    width: 1280,
+    height: 568,
   },
   {
     id: 'bmw-rear-live',
@@ -27,6 +31,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič social media image',
     eyebrowUk: 'Офіційне фото Akrapovič із соцмереж',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-bmw-rear-live.webp',
+    width: 640,
+    height: 640,
   },
   {
     id: 'carbon-tailpipe-live',
@@ -35,6 +41,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič product media',
     eyebrowUk: 'Офіційне product-медіа Akrapovič',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-carbon-tailpipe-live.webp',
+    width: 640,
+    height: 640,
   },
   {
     id: 'glowing-tailpipe-live',
@@ -43,6 +51,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič multimedia image',
     eyebrowUk: 'Офіційне multimedia-медіа Akrapovič',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-glowing-tailpipe-live.webp',
+    width: 1500,
+    height: 951,
   },
   {
     id: 'rs6-tailpipe-live',
@@ -51,6 +61,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič product media',
     eyebrowUk: 'Офіційне product-медіа Akrapovič',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-rs6-tailpipe-live.webp',
+    width: 1400,
+    height: 934,
   },
   {
     id: 'm8-tailpipe-wide-live',
@@ -59,6 +71,8 @@ export const AKRAPOVIC_GALLERY = [
     eyebrow: 'Official Akrapovič product media',
     eyebrowUk: 'Офіційне product-медіа Akrapovič',
     image: '/images/shop/akrapovic/gallery/live/akrapovic-m8-tailpipe-wide-live.webp',
+    width: 1400,
+    height: 580,
   },
 ] as const;
 
@@ -71,6 +85,8 @@ export type ProductLine = {
   badge: string;
   badgeUk: string;
   image: string;
+  imageWidth: number;
+  imageHeight: number;
   videoUrl?: string;
   link: string;
 };
@@ -85,6 +101,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     badge: 'Flagship',
     badgeUk: 'Флагман',
     image: '/images/shop/akrapovic/line-evolution.jpg',
+    imageWidth: 1920,
+    imageHeight: 1440,
     link: '/shop/akrapovic/collections',
   },
   {
@@ -96,6 +114,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     badge: 'Best Seller',
     badgeUk: 'Найпопулярніший',
     image: '/images/shop/akrapovic/line-slip-on.jpg',
+    imageWidth: 1920,
+    imageHeight: 1440,
     link: '/shop/akrapovic/collections',
   },
   {
@@ -107,6 +127,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     badge: 'Track',
     badgeUk: 'Трек',
     image: '/images/shop/akrapovic/line-link-pipe-official.png',
+    imageWidth: 1920,
+    imageHeight: 1440,
     link: '/shop/akrapovic/collections',
   },
   {
@@ -118,6 +140,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     badge: 'Power',
     badgeUk: 'Потужність',
     image: '/images/shop/akrapovic/line-downpipe-official.png',
+    imageWidth: 1920,
+    imageHeight: 1440,
     link: '/shop/akrapovic/collections',
   },
   {
@@ -129,6 +153,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     badge: 'Accessories',
     badgeUk: 'Аксесуари',
     image: '/images/shop/akrapovic/line-sound-kit-official.png',
+    imageWidth: 1075,
+    imageHeight: 675,
     link: '/shop/akrapovic/collections',
   },
 ];
@@ -136,6 +162,8 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
 export const AKRAPOVIC_HERITAGE = {
   videoUrl: '/videos/shop/akrapovic/akrapovic-factory.mp4',
   fallbackImage: '/images/shop/akrapovic/factory-fallback.jpg',
+  fallbackWidth: 1920,
+  fallbackHeight: 1458,
   title: 'Born in Slovenia',
   titleUk: 'Народжено в Словенії',
   description:

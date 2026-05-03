@@ -1,31 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 type Props = {
   videoSrc: string;
   fallbackImage?: string;
+  /** Intrinsic dimensions of the fallback image — set both to reserve layout
+   * space and pass Lighthouse's unsized-images audit (avoids CLS). */
+  fallbackWidth?: number;
+  fallbackHeight?: number;
   className?: string;
   overlayStyle?: "hero" | "material" | "heritage";
   /** If true, renders a mute/unmute toggle and starts with audio */
   withAudio?: boolean;
   onMuteChange?: (muted: boolean) => void;
   isMuted?: boolean;
+  /** When true, the <video> element is not mounted until the wrapper enters
+   * the viewport (with 300px rootMargin pre-load). The fallback image stays
+   * visible until then. Use for below-the-fold instances to avoid loading
+   * megabytes of video on initial page render. */
+  defer?: boolean;
 };
 
 export default function AkrapovicVideoBackground({
   videoSrc,
   fallbackImage,
+  fallbackWidth,
+  fallbackHeight,
   className = "",
   overlayStyle = "hero",
   withAudio = false,
   isMuted = true,
+  defer = false,
 }: Props) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [shouldMountVideo, setShouldMountVideo] = useState(!defer);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!defer || shouldMountVideo) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldMountVideo(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "300px 0px" }
+    );
+    io.observe(wrapper);
+    return () => io.disconnect();
+  }, [defer, shouldMountVideo]);
 
   return (
     <div
+      ref={wrapperRef}
       className={`absolute inset-0 w-full h-full overflow-hidden bg-[#0d0d0b] ${className}`}
     >
       {/* Fallback image shown while video loads */}
@@ -36,27 +68,35 @@ export default function AkrapovicVideoBackground({
           transition={{ duration: 1.5 }}
           src={fallbackImage}
           alt=""
+          width={fallbackWidth}
+          height={fallbackHeight}
+          loading={defer ? "lazy" : "eager"}
+          fetchPriority={defer ? "low" : "high"}
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
       )}
 
       {/* Native HTML5 Video */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoaded ? 1 : 0 }}
-        transition={{ duration: 2 }}
-        className="absolute pointer-events-none z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto"
-      >
-        <video
-          src={videoSrc}
-          autoPlay
-          loop
-          muted={withAudio ? isMuted : true}
-          playsInline
-          onCanPlay={() => setIsLoaded(true)}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      </motion.div>
+      {shouldMountVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isLoaded ? 1 : 0 }}
+          transition={{ duration: 2 }}
+          className="absolute pointer-events-none z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto"
+        >
+          <video
+            src={videoSrc}
+            autoPlay
+            loop
+            muted={withAudio ? isMuted : true}
+            playsInline
+            poster={fallbackImage}
+            onCanPlay={() => setIsLoaded(true)}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </motion.div>
+      )}
 
       {/* Overlays */}
       {overlayStyle === "hero" && (
