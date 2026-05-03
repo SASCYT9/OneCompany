@@ -73,7 +73,12 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           isMuted
         />
 
-        <div className="ak-hero__content" data-ak-reveal>
+        {/* No data-ak-reveal: hero is always above the fold, so the
+           reveal animation (opacity:0 → 1 driven by IO + 1s transition)
+           was making `<p class="ak-hero__title">` the LCP element with
+           a 14s element-render-delay on Slow 4G. Hero now paints
+           immediately. Below-fold sections still reveal on scroll. */}
+        <div className="ak-hero__content">
           <div className="ak-hero__logo-wrapper">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logos/akrapovic.svg" alt="Akrapovič" className="ak-hero__logo" />
