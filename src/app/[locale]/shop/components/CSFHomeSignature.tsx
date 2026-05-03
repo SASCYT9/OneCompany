@@ -63,7 +63,7 @@ export default function CSFHomeSignature({ locale, heroSummary }: Props) {
             data-r-delay="1"
           />
           <h1 className="csf__hero-h1" data-r data-r-delay="2">
-            {L(isUa, 'Cooling Excellence', 'Досконалість\u00A0Охолодження')}
+            {L(isUa, 'Cooling Excellence', 'Досконалість охолодження')}
           </h1>
           <p className="csf__hero-sub" data-r data-r-delay="2">
             {L(isUa, CSF_HERO.subtitle, CSF_HERO.subtitleUk)}

@@ -1272,3 +1272,11 @@
     padding: 0 1rem;
   }
 }
+
+/* Mobile: kill heavy GPU effects on hero to prevent scroll jank.
+   Gradient fallback in .csf__hero-video-wrap remains visible. */
+@media (max-width: 900px) {
+  .csf-video-bg iframe { display: none; }
+  .csf__hero::after { display: none; }
+  .csf-video-bg { filter: none; }
+}
