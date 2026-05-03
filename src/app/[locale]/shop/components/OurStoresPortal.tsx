@@ -142,7 +142,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
   const exploreLabel = isUa ? "Дослідити" : "Explore";
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white/20">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#050505] text-white selection:bg-white/20">
       {/* Ambient */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-40 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,_rgba(194,157,89,0.06)_0%,_transparent_70%)]" />
@@ -204,7 +204,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
 
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
-            {heroStores.map((store, idx) => (
+            {heroStores.map((store) => (
               <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[280px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
             ))}
           </div>
