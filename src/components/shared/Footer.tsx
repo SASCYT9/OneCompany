@@ -30,6 +30,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
     services: [
       { name: t('automotive'), href: `/${locale}/auto` },
       { name: t('motorcycles'), href: `/${locale}/moto` },
+      { name: t('shop'), href: `/${locale}/shop` },
     ],
   };
 
@@ -168,7 +169,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
             <div className="flex flex-col items-center lg:items-start gap-2">
               <p className="text-center lg:text-left">© {currentYear} One Company. {t('engineeredIn')}.</p>
             </div>
-            
+
             <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
               <Link href={`/${locale}/delivery`} className="transition-colors hover:text-white shrink-0">
                 {t('deliveryAndPayment')}
@@ -183,15 +184,18 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                 {t('terms')}
               </Link>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-3 sm:gap-5 mt-6 lg:mt-0 flex-wrap px-2">
-              <span className="text-base text-white font-medium text-center sm:text-right shrink-0">
-                {locale === 'ua' ? 'Безпечна оплата' : 'Secure Payment'}
-              </span>
-              <div className="flex items-center justify-center gap-5 bg-white/5 px-5 py-2.5 rounded-xl border border-white/10 shrink-0 shadow-lg">
-                <img src="/images/payments/visa.svg" alt="Visa" className="h-7 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
-                <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-[32px] w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
-              </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 flex-wrap">
+            <span className="text-base text-white font-medium shrink-0">
+              {locale === 'ua' ? 'Безпечна оплата' : 'Secure Payment'}
+            </span>
+            <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2 sm:gap-x-4 bg-white/5 px-4 py-2.5 rounded-xl border border-white/10 shadow-lg max-w-full">
+              <img src="/images/payments/visa.svg" alt="Visa" className="h-6 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
+              <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-7 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
+              <img src="/images/payments/whitepay.svg" alt="Whitepay" className="h-4 w-auto object-contain opacity-100 shrink-0" loading="lazy" />
+              <img src="/images/payments/tether.svg" alt="Tether (USDT)" className="h-6 w-auto object-contain opacity-100 shrink-0" loading="lazy" />
+              <img src="/images/payments/bitcoin.svg" alt="Bitcoin" className="h-6 w-auto object-contain opacity-100 shrink-0" loading="lazy" />
             </div>
           </div>
         </div>
