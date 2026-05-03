@@ -105,7 +105,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 pt-2 sm:pt-4">
       <div
         className={cn(
-          "relative mx-2 flex items-center rounded-2xl border backdrop-blur-3xl px-3 py-2.5 sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
+          "relative mx-4 flex items-center rounded-2xl border backdrop-blur-3xl px-3 py-2.5 sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
           isShopRoute
             ? "max-w-7xl border-obsidian-border bg-obsidian-panel/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
             : "max-w-6xl border-obsidian-border bg-obsidian/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
