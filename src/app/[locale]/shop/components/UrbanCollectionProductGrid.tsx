@@ -29,6 +29,31 @@ function formatPrice(locale: SupportedLocale, amount: number) {
     : `EUR ${formatter.format(amount)}`;
 }
 
+function buildCardExcerpt(value: string) {
+  const normalized = value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return '';
+  }
+
+  const firstSentence = normalized.split(/(?<=[.!?])\s+/)[0]?.trim() ?? normalized;
+  const preferred = firstSentence.length >= 96 ? firstSentence : normalized;
+
+  if (preferred.length <= 148) {
+    return preferred;
+  }
+
+  const sliced = preferred.slice(0, 148);
+  const safeBoundary = sliced.lastIndexOf(' ');
+  const cutoff = safeBoundary > 96 ? safeBoundary : 148;
+
+  return `${sliced.slice(0, cutoff).trimEnd()}...`;
+}
+
 export default function UrbanCollectionProductGrid({
   locale,
   handle,
@@ -80,54 +105,60 @@ export default function UrbanCollectionProductGrid({
 
         {products.length > 0 ? (
           <div className="urban-product-grid__cards">
-            {products.map((product) => (
-              <article key={product.slug} className="urban-product-grid__card">
-                <Link
-                  href={buildShopProductPath(locale, product)}
-                  className="urban-product-grid__card-link"
-                  aria-label={localize(locale, product.title)}
-                />
-                <div className="urban-product-grid__media">
-                  <Image
-                    src={product.image}
-                    alt={localize(locale, product.title)}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    className="object-cover"
+            {products.map((product) => {
+              const localizedTitle = localize(locale, product.title);
+              const localizedDescription = buildCardExcerpt(localize(locale, product.shortDescription));
+              const localizedCollection = localize(locale, product.collection);
+
+              return (
+                <article key={product.slug} className="urban-product-grid__card">
+                  <Link
+                    href={buildShopProductPath(locale, product)}
+                    className="urban-product-grid__card-link"
+                    aria-label={localizedTitle}
                   />
-                </div>
-                <div className="urban-product-grid__body">
-                  <p className="urban-product-grid__brand">{product.brand}</p>
-                  <h3 className="urban-product-grid__name">
-                    {localize(locale, product.title)}
-                  </h3>
-                  <p className="urban-product-grid__description">
-                    {localize(locale, product.shortDescription)}
-                  </p>
-                  <div className="urban-product-grid__meta">
-                    <span>{localize(locale, product.collection)}</span>
-                    <span>{formatPrice(locale, locale === 'ua' ? product.price.uah : product.price.eur)}</span>
-                  </div>
-                  <div className="urban-product-grid__actions">
-                    <AddToCartButton
-                      slug={product.slug}
-                      locale={locale}
-                      redirect={false}
-                      variant="inline"
-                      className="urban-product-grid__add"
-                      label={isUa ? 'Додати в кошик' : 'Add to cart'}
-                      labelAdded={isUa ? 'Додано' : 'Added'}
+                  <div className="urban-product-grid__media">
+                    <Image
+                      src={product.image}
+                      alt={localizedTitle}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
                     />
-                    <Link
-                      href={buildShopProductPath(locale, product)}
-                      className="urban-product-grid__details"
-                    >
-                      {isUa ? 'Деталі' : 'Details'}
-                    </Link>
                   </div>
-                </div>
-              </article>
-            ))}
+                  <div className="urban-product-grid__body">
+                    <p className="urban-product-grid__brand">{product.brand}</p>
+                    <h3 className="urban-product-grid__name" title={localizedTitle}>
+                      {localizedTitle}
+                    </h3>
+                    <p className="urban-product-grid__description" title={localizedDescription}>
+                      {localizedDescription}
+                    </p>
+                    <div className="urban-product-grid__meta">
+                      <span title={localizedCollection}>{localizedCollection}</span>
+                      <span>{formatPrice(locale, locale === 'ua' ? product.price.uah : product.price.eur)}</span>
+                    </div>
+                    <div className="urban-product-grid__actions">
+                      <AddToCartButton
+                        slug={product.slug}
+                        locale={locale}
+                        redirect={false}
+                        variant="inline"
+                        className="urban-product-grid__add"
+                        label={isUa ? 'Додати в кошик' : 'Add to cart'}
+                        labelAdded={isUa ? 'Додано' : 'Added'}
+                      />
+                      <Link
+                        href={buildShopProductPath(locale, product)}
+                        className="urban-product-grid__details"
+                      >
+                        {isUa ? 'Деталі' : 'Details'}
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="urban-product-grid__empty">
