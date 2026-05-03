@@ -105,31 +105,6 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
           <div className="uh7-hero__corner uh7-hero__corner--tr" aria-hidden />
           <div className="uh7-hero__corner uh7-hero__corner--bl" aria-hidden />
           <div className="uh7-hero__corner uh7-hero__corner--br" aria-hidden />
-          <div className="uh7-hero__particles" aria-hidden>
-            {[
-              { left: '8%', bottom: '10%', dur: 9, dly: 0 },
-              { left: '22%', bottom: '5%', dur: 11, dly: 1.5 },
-              { left: '38%', bottom: '15%', dur: 8, dly: 3 },
-              { left: '55%', bottom: '8%', dur: 10, dly: 0.8 },
-              { left: '68%', bottom: '12%', dur: 12, dly: 2.2 },
-              { left: '82%', bottom: '6%', dur: 9, dly: 4 },
-              { left: '92%', bottom: '18%', dur: 10, dly: 1 },
-              { left: '15%', bottom: '20%', dur: 13, dly: 5 },
-              { left: '45%', bottom: '3%', dur: 7, dly: 2.8 },
-              { left: '75%', bottom: '22%', dur: 11, dly: 3.5 },
-            ].map((p, i) => (
-              <div
-                key={i}
-                className="uh7-hero__particle"
-                style={{
-                  left: p.left,
-                  bottom: p.bottom,
-                  ['--dur' as string]: p.dur + 's',
-                  ['--dly' as string]: p.dly + 's',
-                }}
-              />
-            ))}
-          </div>
           <span className="uh7-hero__side-text uh7-hero__side-text--l" aria-hidden>
             {isUa ? 'Засн. 2015 — Бірмінгем, Англія' : 'Est. 2015 — Birmingham, England'}
           </span>
