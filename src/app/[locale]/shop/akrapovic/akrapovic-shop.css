@@ -692,3 +692,18 @@
     border-radius: 12px;
   }
 }
+
+/* Mobile: lighten GPU work on hero/heritage to reduce scroll jank —
+   keep videos visible, but isolate each section's repaint scope and
+   promote video layers to their own compositor texture so scroll is
+   a cheap translate, not a full re-composite. */
+@media (max-width: 900px) {
+  .ak-home { background-attachment: scroll; }
+  .ak-hero,
+  .ak-heritage { contain: paint; }
+  .ak-hero video,
+  .ak-heritage video {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}

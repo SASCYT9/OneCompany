@@ -932,6 +932,24 @@ export default function BrabusHomeSignature({ locale }: Props) {
           .br-rocket__content { padding: 3rem 1.5rem; }
           .br-back { display: none; }
         }
+
+        /* Mobile: lighten GPU work to reduce scroll jank — kill the
+           page-wide bg-attachment:fixed + backdrop-filter combo (mobile
+           browsers repaint it on every scroll frame), isolate each
+           video section's repaint scope, promote video layers to GPU. */
+        @media (max-width: 900px) {
+          .br-home {
+            background-attachment: scroll;
+            backdrop-filter: none;
+          }
+          .br-hero,
+          .br-rocket { contain: paint; }
+          .br-hero video,
+          .br-rocket video {
+            transform: translateZ(0);
+            will-change: transform;
+          }
+        }
       `}</style>
     </div>
   );
