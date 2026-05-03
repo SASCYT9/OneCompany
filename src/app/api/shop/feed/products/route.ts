@@ -11,6 +11,9 @@ import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopDescription, localizeShopProductTitle } from '@/lib/shopText';
+import { expandShopPrices } from '@/lib/shopPriceConversion';
+import { prisma } from '@/lib/prisma';
+import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -34,17 +37,6 @@ function localize(product: ShopProduct, locale: 'ua' | 'en'): { title: string; d
   };
 }
 
-function getPrice(product: ShopProduct, currency: 'EUR' | 'USD' | 'UAH'): number {
-  switch (currency) {
-    case 'USD':
-      return product.price.usd;
-    case 'UAH':
-      return product.price.uah;
-    default:
-      return product.price.eur;
-  }
-}
-
 function formatPrice(amount: number, currency: string): string {
   return `${Number(amount).toFixed(2)} ${currency}`;
 }
@@ -54,13 +46,33 @@ function getAvailability(product: ShopProduct): string {
   return 'in stock';
 }
 
-function buildItemXml(product: ShopProduct, locale: 'ua' | 'en', currency: 'EUR' | 'USD' | 'UAH'): string {
+function buildItemXml(
+  product: ShopProduct,
+  locale: 'ua' | 'en',
+  currency: 'EUR' | 'USD' | 'UAH',
+  rates: Record<'EUR' | 'USD' | 'UAH', number>
+): string {
   const id = (product.sku || product.slug).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) || product.slug;
   const { title, description } = localize(product, locale);
   const path = buildShopProductPath(locale, product, true);
   const link = `${SITE_URL}${path}`;
   const imageUrl = product.image.startsWith('http') ? product.image : `${SITE_URL}${product.image}`;
-  const price = formatPrice(getPrice(product, currency), currency);
+
+  // Cross-currency expansion: use whatever currency is set on the product
+  // (USD for iPE, EUR for Brabus, UAH for some) and convert to the requested
+  // feed currency via the same rate table the storefront uses.
+  const variantPrice = product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
+  const expanded = expandShopPrices(product.price ?? variantPrice ?? null, rates);
+  const compareExpanded = expandShopPrices(product.compareAt ?? null, rates);
+  const currencyKey = currency.toLowerCase() as 'usd' | 'eur' | 'uah';
+  const priceValue = expanded[currencyKey];
+  if (!priceValue || priceValue <= 0) {
+    return ''; // Skip items with no resolvable price (Merchant rejects 0).
+  }
+  const price = formatPrice(priceValue, currency);
+  const compareValue = compareExpanded[currencyKey];
+  const salePrice = compareValue && compareValue > priceValue ? formatPrice(priceValue, currency) : null;
+  const listPrice = salePrice ? formatPrice(compareValue!, currency) : null;
   const availability = getAvailability(product);
 
   return [
@@ -71,10 +83,14 @@ function buildItemXml(product: ShopProduct, locale: 'ua' | 'en', currency: 'EUR'
     `<description>${escapeXml(description)}</description>`,
     `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
     `<g:availability>${availability}</g:availability>`,
-    `<g:price>${escapeXml(price)}</g:price>`,
+    listPrice ? `<g:price>${escapeXml(listPrice)}</g:price>` : `<g:price>${escapeXml(price)}</g:price>`,
+    salePrice ? `<g:sale_price>${escapeXml(salePrice)}</g:sale_price>` : '',
     '<g:condition>new</g:condition>',
+    '<g:identifier_exists>false</g:identifier_exists>',
     product.brand ? `<g:brand>${escapeXml(product.brand)}</g:brand>` : '',
     product.sku ? `<g:mpn>${escapeXml(product.sku)}</g:mpn>` : '',
+    '<g:google_product_category>Vehicles &amp; Parts &gt; Vehicle Parts &amp; Accessories</g:google_product_category>',
+    '<g:shipping><g:country>UA</g:country><g:service>Standard</g:service><g:price>0.00 EUR</g:price></g:shipping>',
     '</item>',
   ]
     .filter(Boolean)
@@ -88,16 +104,24 @@ export async function GET(request: NextRequest) {
     currencyParam === 'UAH' ? 'UAH' : currencyParam === 'USD' ? 'USD' : 'EUR';
 
   let products: ShopProduct[];
+  let rates: Record<'EUR' | 'USD' | 'UAH', number>;
   try {
-    products = await getShopProductsServer();
+    const [productsResult, settingsRecord] = await Promise.all([
+      getShopProductsServer(),
+      getOrCreateShopSettings(prisma),
+    ]);
+    products = productsResult;
+    rates = getShopSettingsRuntime(settingsRecord).currencyRates;
   } catch (e) {
     console.error('Shop feed: failed to load products', e);
     return new Response('Failed to generate feed', { status: 500 });
   }
 
   const itemsXml = products
-    .filter((p) => p.image && (p.price.eur > 0 || p.price.usd > 0 || p.price.uah > 0))
-    .map((p) => buildItemXml(p, locale, currency))
+    .filter((p) => p.image && ((p.price?.eur ?? 0) > 0 || (p.price?.usd ?? 0) > 0 || (p.price?.uah ?? 0) > 0 ||
+      (p.variants?.some((v) => (v.price?.eur ?? 0) > 0 || (v.price?.usd ?? 0) > 0 || (v.price?.uah ?? 0) > 0) ?? false)))
+    .map((p) => buildItemXml(p, locale, currency, rates))
+    .filter(Boolean)
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

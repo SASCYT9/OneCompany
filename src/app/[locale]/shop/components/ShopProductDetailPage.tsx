@@ -308,7 +308,7 @@ export async function getShopProductPageMetadata({
     title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand}`,
     description: localizeShopDescription(resolvedLocale, product.shortDescription),
     image: product.image,
-    type: 'website',
+    type: 'product',
   });
 }
 
@@ -674,7 +674,7 @@ export default async function ShopProductDetailPage({
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
-      <ShopProductStructuredData product={product} locale={resolvedLocale} />
+      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}

@@ -3,6 +3,8 @@ import { localizeShopProductTitle, localizeShopDescription, localizeShopText } f
 import type { SupportedLocale } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/seo";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { expandShopPrices, pickPrimaryCurrency } from "@/lib/shopPriceConversion";
+import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 
 function toSchemaId(value: string): string {
   const normalized = value
@@ -161,6 +163,16 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   );
 }
 
+type Availability = 'inStock' | 'preOrder' | 'outOfStock';
+
+interface OfferLike {
+  price: number;
+  priceCurrency: ShopCurrencyCode;
+  compareAtPrice?: number;
+  availability: Availability;
+  priceValidUntil?: string;
+}
+
 interface ProductSchemaProps {
   name: string;
   description: string;
@@ -169,19 +181,76 @@ interface ProductSchemaProps {
   category: string;
   url: string;
   sku?: string;
-  offers?: {
-    price: number;
-    priceCurrency: 'USD' | 'EUR' | 'UAH';
-    availability: 'inStock' | 'preOrder' | 'outOfStock';
-    priceValidUntil?: string;
-  };
+  offers?: OfferLike[];
 }
 
-const SCHEMA_AVAILABILITY: Record<NonNullable<ProductSchemaProps['offers']>['availability'], string> = {
+const SCHEMA_AVAILABILITY: Record<Availability, string> = {
   inStock: 'https://schema.org/InStock',
   preOrder: 'https://schema.org/PreOrder',
   outOfStock: 'https://schema.org/OutOfStock',
 };
+
+const SHARED_RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: ["UA", "US", "GB", "DE", "FR", "AE"],
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 14,
+  returnMethod: "https://schema.org/ReturnByMail",
+  returnFees: "https://schema.org/ReturnShippingFees",
+};
+
+const SHARED_SHIPPING_DETAILS = {
+  "@type": "OfferShippingDetails",
+  shippingDestination: [
+    { "@type": "DefinedRegion", addressCountry: "UA" },
+    { "@type": "DefinedRegion", addressCountry: "US" },
+    { "@type": "DefinedRegion", addressCountry: "GB" },
+    { "@type": "DefinedRegion", addressCountry: "DE" },
+    { "@type": "DefinedRegion", addressCountry: "FR" },
+    { "@type": "DefinedRegion", addressCountry: "AE" },
+  ],
+  deliveryTime: {
+    "@type": "ShippingDeliveryTime",
+    handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 3, unitCode: "DAY" },
+    transitTime: { "@type": "QuantitativeValue", minValue: 3, maxValue: 14, unitCode: "DAY" },
+  },
+};
+
+function buildOfferEntry(offer: OfferLike, url: string) {
+  const entry: Record<string, unknown> = {
+    "@type": "Offer",
+    url,
+    price: offer.price.toFixed(2),
+    priceCurrency: offer.priceCurrency,
+    availability: SCHEMA_AVAILABILITY[offer.availability],
+    itemCondition: "https://schema.org/NewCondition",
+    seller: {
+      "@type": "Organization",
+      name: "One Company Global",
+      "@id": "https://onecompany.global/#organization",
+    },
+    hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
+    shippingDetails: SHARED_SHIPPING_DETAILS,
+  };
+  if (offer.priceValidUntil) entry.priceValidUntil = offer.priceValidUntil;
+  if (offer.compareAtPrice && offer.compareAtPrice > offer.price) {
+    entry.priceSpecification = [
+      {
+        "@type": "UnitPriceSpecification",
+        priceType: "https://schema.org/SalePrice",
+        price: offer.price.toFixed(2),
+        priceCurrency: offer.priceCurrency,
+      },
+      {
+        "@type": "UnitPriceSpecification",
+        priceType: "https://schema.org/ListPrice",
+        price: offer.compareAtPrice.toFixed(2),
+        priceCurrency: offer.priceCurrency,
+      },
+    ];
+  }
+  return entry;
+}
 
 export function ProductSchema({ name, description, image, brand, category, url, sku, offers }: ProductSchemaProps) {
   const schema: Record<string, unknown> = {
@@ -201,20 +270,23 @@ export function ProductSchema({ name, description, image, brand, category, url, 
     schema.sku = sku;
     schema.mpn = sku;
   }
-  if (offers) {
-    schema.offers = {
-      "@type": "Offer",
-      url,
-      price: offers.price.toFixed(2),
-      priceCurrency: offers.priceCurrency,
-      availability: SCHEMA_AVAILABILITY[offers.availability],
-      ...(offers.priceValidUntil ? { priceValidUntil: offers.priceValidUntil } : {}),
-      seller: {
-        "@type": "Organization",
-        name: "One Company Global",
-        "@id": "https://onecompany.global/#organization",
-      },
-    };
+  if (offers && offers.length > 0) {
+    if (offers.length === 1) {
+      schema.offers = buildOfferEntry(offers[0], url);
+    } else {
+      const primary = offers[0];
+      const allPrices = offers.map((o) => o.price);
+      schema.offers = {
+        "@type": "AggregateOffer",
+        url,
+        priceCurrency: primary.priceCurrency,
+        lowPrice: Math.min(...allPrices).toFixed(2),
+        highPrice: Math.max(...allPrices).toFixed(2),
+        offerCount: offers.length,
+        availability: SCHEMA_AVAILABILITY[primary.availability],
+        offers: offers.map((o) => buildOfferEntry(o, url)),
+      };
+    }
   }
 
   return (
@@ -229,9 +301,16 @@ export function ProductSchema({ name, description, image, brand, category, url, 
 interface ShopProductStructuredDataProps {
   product: ShopProduct;
   locale: SupportedLocale;
+  rates?: Record<ShopCurrencyCode, number>;
 }
 
-export function ShopProductStructuredData({ product, locale }: ShopProductStructuredDataProps) {
+function priceValidUntilFromNow(days = 90): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function ShopProductStructuredData({ product, locale, rates }: ShopProductStructuredDataProps) {
   const productPath = buildShopStorefrontProductPathForProduct(locale, product);
   const url = absoluteUrl(productPath);
   const name = localizeShopProductTitle(locale, product);
@@ -245,17 +324,28 @@ export function ShopProductStructuredData({ product, locale }: ShopProductStruct
   const images = galleryImages.length > 0 ? galleryImages : [absoluteUrl('/branding/og-image.png')];
 
   const variantPrice = product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
-  const sourcePrice = product.price ?? variantPrice;
-  let offers: ProductSchemaProps['offers'] | undefined;
-  if (sourcePrice) {
-    if ((sourcePrice.usd ?? 0) > 0) {
-      offers = { price: sourcePrice.usd, priceCurrency: 'USD', availability: product.stock };
-    } else if ((sourcePrice.eur ?? 0) > 0) {
-      offers = { price: sourcePrice.eur, priceCurrency: 'EUR', availability: product.stock };
-    } else if ((sourcePrice.uah ?? 0) > 0) {
-      offers = { price: sourcePrice.uah, priceCurrency: 'UAH', availability: product.stock };
-    }
-  }
+  const rawPrice = product.price ?? variantPrice;
+  const ratesToUse = rates ?? DEFAULT_CURRENCY_RATES;
+  const expanded = expandShopPrices(rawPrice ?? null, ratesToUse);
+  const compareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
+  const validUntil = priceValidUntilFromNow(90);
+  const primary = pickPrimaryCurrency(locale);
+  const currencyOrder: ShopCurrencyCode[] = primary === 'UAH' ? ['UAH', 'USD', 'EUR'] : ['USD', 'EUR', 'UAH'];
+  const offers = currencyOrder
+    .map((c) => {
+      const key = c.toLowerCase() as 'usd' | 'eur' | 'uah';
+      const price = expanded[key];
+      if (!Number.isFinite(price) || price <= 0) return null;
+      const compareAtPrice = compareExpanded[key];
+      return {
+        price,
+        priceCurrency: c,
+        availability: product.stock,
+        priceValidUntil: validUntil,
+        ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
+      };
+    })
+    .filter((o): o is NonNullable<typeof o> => Boolean(o));
 
   const shopRoot = absoluteUrl(`/${locale}/shop`);
   const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -279,7 +369,7 @@ export function ShopProductStructuredData({ product, locale }: ShopProductStruct
         category={category}
         url={url}
         sku={product.sku}
-        offers={offers}
+        offers={offers.length > 0 ? offers : undefined}
       />
       <BreadcrumbSchema items={breadcrumbItems} />
     </>

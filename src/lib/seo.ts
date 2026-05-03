@@ -59,7 +59,7 @@ export function buildAlternateLinks(slug = ""): Record<string, string> {
 export function buildPageMetadata(
   locale: SupportedLocale,
   slug: string,
-  meta: { title: string; description: string; image?: string; type?: "website" | "article" | "profile" }
+  meta: { title: string; description: string; image?: string; type?: "website" | "article" | "profile" | "product" }
 ): Metadata {
   const path = buildLocalizedPath(locale, slug);
   const url = absoluteUrl(path);
@@ -93,7 +93,11 @@ export function buildPageMetadata(
       url,
       siteName: siteConfig.name,
       locale: localeToOg[locale],
-      type: meta.type ?? "website",
+      // Next.js Metadata silently drops the entire openGraph block when type
+      // is "product" (not in its built-in enum), so we always declare
+      // "website" here and let the page emit a raw <meta property="og:type"
+      // content="product"> via OpenGraphProductMeta when needed.
+      type: meta.type === "product" ? "website" : (meta.type ?? "website"),
       images: [ogImageEntry],
     },
     twitter: {

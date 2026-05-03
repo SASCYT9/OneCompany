@@ -35,6 +35,7 @@ export async function generateMetadata({
       localizeShopDescription(resolvedLocale, product.shortDescription) ||
       `Buy ${title} tuning module. Maximum performance and efficiency with RaceChip app control.`,
     image: product.image || undefined,
+    type: 'product',
   });
 }
 
@@ -56,8 +57,9 @@ export default async function RacechipProductPage({
     getShopProductsServer(),
   ]);
 
+  const settingsRuntime = getShopSettingsRuntime(settingsRecord);
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRuntime,
     null,
     false,
     null
@@ -81,7 +83,7 @@ export default async function RacechipProductPage({
 
   return (
     <>
-      <ShopProductStructuredData product={product} locale={resolvedLocale} />
+      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={settingsRuntime.currencyRates} />
       <RacechipShopProductDetailLayout
         locale={resolvedLocale}
         product={product}
