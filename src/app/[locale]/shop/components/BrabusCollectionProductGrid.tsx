@@ -134,7 +134,7 @@ export default function BrabusCollectionProductGrid({
         </div>
 
         {products.length > 0 ? (
-          <BrabusSpotlightGrid className="urban-product-grid__cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem' }}>
+          <BrabusSpotlightGrid className="urban-product-grid__cards">
             {products.map((product) => {
               const pricing = viewerContext
                 ? resolveShopProductPricing(product, viewerContext)
