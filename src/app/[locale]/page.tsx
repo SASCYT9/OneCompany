@@ -90,7 +90,7 @@ export default async function LocalizedHomePage({
       id: 'experience',
       title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
       description: locale === 'ua'
-        ? 'Формуємо культуру преміум тюнінгу та забезпечує безкомпромісну підтримку.'
+        ? 'Формуємо культуру преміум тюнінгу та забезпечуємо безкомпромісну підтримку.'
         : 'We create the culture of premium tuning and provide uncompromising support.',
       meta: locale === 'ua' ? 'Офіційні програми з 2007 року' : 'Official programs since 2007',
     },

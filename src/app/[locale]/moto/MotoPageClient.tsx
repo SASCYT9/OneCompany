@@ -682,7 +682,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.8, delay: 0.5 }}
                 className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
                 onClick={() => {
-                  const catalogSection = document.getElementById('brand-catalog');
+                  const catalogSection = document.getElementById('moto-brand-catalog');
                   catalogSection?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >

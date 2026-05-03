@@ -96,7 +96,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Fragola Performance Systems': '/logos/fragola-performance-systems.png',
   'Full-Race': '/logos/full-race.svg',
   'Fullsix Carbon': '/logos/fullsix-carbon.png',
-  'GBracing': '/logos/gbracing.png',
+  'GBracing': '/logos/gbracing.png?v=2',
   'Gilles Tooling': '/logos/gilles-tooling.jpg',
   'Girodisc': '/logos/girodisc.webp',
   'G-Sport by GESi': '/logos/gsport-by-gesi.png',
