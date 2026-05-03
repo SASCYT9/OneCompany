@@ -3,6 +3,15 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
+  "ignoreCommand": "if [ \"${VERCEL_GIT_COMMIT_REF#archive/}\" != \"$VERCEL_GIT_COMMIT_REF\" ]; then echo 'Skipping build for archive branch'; exit 0; else exit 1; fi",
+  "git": {
+    "deploymentEnabled": {
+      "archive/promotions-2026-03": false,
+      "archive/stash-admin-redesign-2025-11": false,
+      "archive/stash-urban-grid-2026-03": false,
+      "archive/stash-wiki-changelog-2026-04": false
+    }
+  },
   "rewrites": [
     {
       "source": "/api/telegram/webhook",
