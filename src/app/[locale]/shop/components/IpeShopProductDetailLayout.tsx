@@ -211,16 +211,36 @@ function localizeAxisName(name: string, isUa: boolean): string {
 function localizeOptionValue(value: string, isUa: boolean): string {
   if (!isUa) return value;
   let out = value;
+  // System families. Header Back System перекладаємо до Cat-back, бо
+  // українські тюнери використовують саме "cat-back" для "від колектора".
+  out = out.replace(/\bHeader Back System\b/g, "Система від колектора");
   out = out.replace(/\bFull System\b/g, "Повна система");
   out = out.replace(/\bCatback System\b/g, "Cat-back");
   out = out.replace(/\bCat\s*back\b/g, "Cat-back");
+  // Standalone Header (тільки коли НЕ перед Back) → Колектор
+  out = out.replace(/\bHeader\b(?!\s*Back)/g, "Колектор");
   out = out.replace(/\bFactory Front Pipe\b/g, "Заводська передня труба");
   out = out.replace(/\bEqual[- ]Length Front Pipe\b/g, "Equal-Length передня труба");
   out = out.replace(/\bCatted Downpipe\b/g, "Даунпайп з каталізатором");
   out = out.replace(/\bCatless Downpipe\b/g, "Даунпайп без каталізатора");
   out = out.replace(/\bNon[- ]Downpipe\b/g, "Без даунпайпа");
-  out = out.replace(/\bDouble triple Gold tips\b/g, "Подвійні потрійні насадки (золоті)");
+  // Tip finishes — кольори лишаємо англійською (як бренд-назви), додаємо "насадки"
+  out = out.replace(/\bTips\s+Chrome\s+Silver\b/gi, "насадки Chrome Silver");
+  out = out.replace(/\bTips\s+Chrome\s+Black\b/gi, "насадки Chrome Black");
+  out = out.replace(/\bTips\s+Titanium\s+Blue\b/gi, "насадки Titanium Blue");
+  out = out.replace(/\bTips\s+Carbon\s+Fiber\b/gi, "насадки Carbon Fiber");
+  out = out.replace(/\bTips\s+Gold\b/gi, "насадки Gold");
+  out = out.replace(/\bChrome Silver Tips\b/gi, "насадки Chrome Silver");
+  out = out.replace(/\bChrome Black Tips\b/gi, "насадки Chrome Black");
+  out = out.replace(/\bPolished Silver Tips\b/gi, "насадки Polished Silver");
+  out = out.replace(/\bDouble triple Gold tips\b/gi, "подвійні потрійні насадки (золоті)");
+  // Mufflers
+  out = out.replace(/\bValvetronic Muffler\b/g, "Valvetronic-глушник");
+  // Materials
   out = out.replace(/\bStainless Steel\b/g, "Нержавіюча сталь");
+  // "with" в назвах варіантів iPE — це з'єднувач секцій, не прийменник.
+  // Замінюємо на " · " щоб обійти граматичні відмінки в українській.
+  out = out.replace(/\s+with\s+/gi, " · ");
   return out;
 }
 
@@ -246,7 +266,11 @@ function pickPreferredCatbackVariant(variants: ShopProductVariantSummary[]): Sho
       bestPrice = price;
     }
   }
-  return best;
+  // Only return when at least one variant carries a real cat-back / factory
+  // /catted / opf signal. Otherwise fall through to the explicit `isDefault`
+  // flag set by the catalog editors. Without this guard, a "Catted Downpipe"
+  // variant (score 50) would always beat the editor-marked default.
+  return bestScore > 0 ? best : null;
 }
 
 // Classify a gallery image URL by the material hinted in its filename. iPE's
@@ -292,9 +316,14 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
   const optionAxes = useMemo(() => buildOptionAxes(variants), [variants]);
 
   const initialVariant = useMemo(() => {
+    // Editor-marked default wins. We rebuilt iPE variants from the official
+    // pricelist + Excel and explicitly chose the canonical entry (Cat-back
+    // for cars where it exists, Rear Valvetronic for split-system cars). The
+    // catback-heuristic below is a fallback for products that came in via
+    // older import paths without a real isDefault flag.
     return (
-      pickPreferredCatbackVariant(variants) ??
       variants.find((v) => v.isDefault) ??
+      pickPreferredCatbackVariant(variants) ??
       variants[0] ??
       null
     );

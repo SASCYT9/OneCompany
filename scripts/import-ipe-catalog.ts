@@ -1012,6 +1012,22 @@ async function buildImportRecord(
     })
     .filter((variant): variant is IpeResolvedVariantRecord => Boolean(variant));
 
+  // Dedupe by SKU — `buildIpeVariantCandidates` can produce multiple candidates
+  // that resolve to the same SKU (different titles / option labels), and the
+  // writer would otherwise persist each as a separate row. Keep the first
+  // occurrence; later duplicates only differ in `position`/labels.
+  const seenSkus = new Set<string>();
+  const dedupedVariants = resolvedVariants.filter((variant) => {
+    if (!variant.sku) return true;
+    if (seenSkus.has(variant.sku)) return false;
+    seenSkus.add(variant.sku);
+    return true;
+  });
+  if (dedupedVariants.length !== resolvedVariants.length) {
+    resolvedVariants.length = 0;
+    resolvedVariants.push(...dedupedVariants);
+  }
+
   if (!resolvedVariants.length) {
     return null;
   }
