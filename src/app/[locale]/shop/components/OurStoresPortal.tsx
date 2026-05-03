@@ -149,34 +149,34 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
       </div>
 
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[42vh] items-center justify-center overflow-hidden pt-20 sm:min-h-[50vh] sm:pt-24">
+      <section className="relative flex min-h-[55vh] items-center justify-center overflow-hidden pt-24 pb-10 sm:min-h-[50vh] sm:pt-24 sm:pb-0">
         <Image
           src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
           alt=""
           fill
           sizes="100vw"
-          className="object-cover brightness-[0.25] saturate-[0.5]"
+          className="object-cover sm:brightness-[0.25] sm:saturate-[0.5] brightness-[0.3]"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-[#050505]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/70 via-[#050505]/30 to-[#050505]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505]/40" />
 
-        <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center sm:gap-5">
-          <h1 className="text-xl font-extralight uppercase leading-none tracking-[0.1em] text-white/90 sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
+        <div className="relative z-10 flex flex-col items-center gap-3 px-4 text-center sm:gap-5">
+          <h1 className="text-2xl font-extralight uppercase leading-tight tracking-[0.12em] text-white/90 sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
             {t(isUa, "Our Stores", "Наші Магазини")}
           </h1>
           <div className="flex items-center gap-3">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#C29D59]/70 sm:w-24" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#C29D59]/70 sm:w-24" />
             <div className="h-1.5 w-1.5 rotate-45 bg-[#C29D59]/50" />
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#C29D59]/70 sm:w-24" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[#C29D59]/70 sm:w-24" />
           </div>
-          <p className="max-w-lg text-sm font-light leading-relaxed text-white/50 md:text-base">
+          <p className="max-w-lg text-[13px] font-light leading-relaxed text-white/55 sm:text-sm md:text-base">
             {t(isUa,
               "Official One Company stores. Explore the world of premium automotive brands and tuning ateliers.",
               "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
             )}
           </p>
-          <div className="mt-6 animate-bounce text-white/25 sm:mt-8">
+          <div className="mt-4 animate-bounce text-white/25 sm:mt-8">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
@@ -205,21 +205,21 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {heroStores.map((store, idx) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[280px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
             ))}
           </div>
 
           {/* Rows 2–3 — main: 4 columns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {mainStores.map((store) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[320px] lg:h-[420px]" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[420px]" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
             ))}
           </div>
 
           {/* Row 4 — bottom: KW + FI + Eventuri (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {bottomStores.map((store) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[320px] lg:h-[400px]" sizes="(max-width: 640px) 100vw, 33vw" />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[400px]" sizes="(max-width: 640px) 100vw, 33vw" />
             ))}
           </div>
 
