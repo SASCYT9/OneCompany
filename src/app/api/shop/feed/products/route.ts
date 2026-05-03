@@ -12,8 +12,7 @@ import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopDescription, localizeShopProductTitle } from '@/lib/shopText';
 import { expandShopPrices } from '@/lib/shopPriceConversion';
-import { prisma } from '@/lib/prisma';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { getNbuRates } from '@/lib/nbuRates';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -106,12 +105,12 @@ export async function GET(request: NextRequest) {
   let products: ShopProduct[];
   let rates: Record<'EUR' | 'USD' | 'UAH', number>;
   try {
-    const [productsResult, settingsRecord] = await Promise.all([
+    const [productsResult, ratesResult] = await Promise.all([
       getShopProductsServer(),
-      getOrCreateShopSettings(prisma),
+      getNbuRates(),
     ]);
     products = productsResult;
-    rates = getShopSettingsRuntime(settingsRecord).currencyRates;
+    rates = ratesResult;
   } catch (e) {
     console.error('Shop feed: failed to load products', e);
     return new Response('Failed to generate feed', { status: 500 });

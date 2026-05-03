@@ -1,8 +1,10 @@
 import NextAuth from "next-auth";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 
 const handler = NextAuth(authOptions);
+
+type RouteContext = { params: Promise<{ nextauth: string[] }> };
 
 function buildAuthFallbackResponse(request: Request, error: unknown) {
   const url = new URL(request.url);
@@ -40,17 +42,21 @@ function buildAuthFallbackResponse(request: Request, error: unknown) {
   return NextResponse.json({ error: 'Auth route unavailable' }, { status: 500 });
 }
 
-export async function GET(request: Request) {
+// NextAuth v4 catch-all handler expects the [...nextauth] params via the
+// second context arg (it reads `req.query.nextauth` internally). Forwarding
+// the App Router context keeps session / _log / signin / callback / error
+// all working without falling back to the legacy shim every request.
+export async function GET(request: NextRequest, ctx: RouteContext) {
   try {
-    return await handler(request);
+    return await (handler as (req: NextRequest, ctx: RouteContext) => Promise<Response>)(request, ctx);
   } catch (error) {
     return buildAuthFallbackResponse(request, error);
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest, ctx: RouteContext) {
   try {
-    return await handler(request);
+    return await (handler as (req: NextRequest, ctx: RouteContext) => Promise<Response>)(request, ctx);
   } catch (error) {
     return buildAuthFallbackResponse(request, error);
   }

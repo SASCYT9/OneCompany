@@ -61,6 +61,28 @@ export default function AutoBreadcrumbs() {
     const pathname = usePathname();
     if (!pathname) return null;
 
+    // Shop product detail pages render their own ShopProductStructuredData
+    // breadcrumb (with the real product title and brand link). The auto-
+    // generated one is a slug-cased duplicate ("Akrapovic Slip On Bmw M"),
+    // so suppress it on every shop PDP — both the brand-prefixed canonical
+    // path and the short /<locale>/shop/<slug> form.
+    const SHOP_BRAND_DIRS = new Set([
+      'akrapovic', 'brabus', 'burger', 'csf', 'do88', 'girodisc',
+      'ipe', 'ohlins', 'racechip', 'urban', 'adro',
+    ]);
+    const earlySegs = pathname.split('/').filter(Boolean);
+    const isBrandPdp =
+      earlySegs.length >= 5 &&
+      (earlySegs[0] === 'ua' || earlySegs[0] === 'en') &&
+      earlySegs[1] === 'shop' &&
+      earlySegs[3] === 'products';
+    const isShortPdp =
+      earlySegs.length === 3 &&
+      (earlySegs[0] === 'ua' || earlySegs[0] === 'en') &&
+      earlySegs[1] === 'shop' &&
+      !SHOP_BRAND_DIRS.has(earlySegs[2]);
+    if (isBrandPdp || isShortPdp) return null;
+
     const segments = pathname.split('/').filter(Boolean);
 
     // Extract locale from URL

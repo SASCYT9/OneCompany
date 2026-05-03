@@ -6,6 +6,7 @@ import { localizedStaticSlugs } from "@/lib/seoIndexPolicy";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import { getUrbanCollectionHandleForProduct } from "@/lib/urbanCollectionMatcher";
 import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 
 const staticPageConfig: Record<string, { priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }> = {
   "": { priority: 1.0, changeFrequency: "daily" },
@@ -124,10 +125,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
   const shopProductEntries = siteConfig.locales.flatMap((locale) =>
     shopProducts.map((product) => {
-      const pageSlug = getUrbanCollectionHandleForProduct(product)
-        ? `/shop/urban/products/${product.slug}`
-        : `/shop/${product.slug}`;
-      const path = buildLocalizedPath(locale, pageSlug);
+      // Always emit the canonical brand-prefixed product URL the storefront
+      // resolves to. Otherwise Google crawls /shop/<slug>, the page returns
+      // a static-friendly meta-refresh to the brand path, and the short URL
+      // ends up in the index as a soft 301 (wasting crawl budget).
+      const path = buildShopStorefrontProductPathForProduct(locale, product);
+      const pageSlug = path.replace(`/${locale}`, '');
       return {
         url: absoluteUrl(path),
         lastModified: buildLastModified,

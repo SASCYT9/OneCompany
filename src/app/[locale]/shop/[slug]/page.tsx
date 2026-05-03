@@ -19,6 +19,7 @@ import { MobileProductDisclosure } from '../components/MobileProductDisclosure';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
 import { ShopProductStructuredData } from '@/components/seo/StructuredData';
+import { getNbuRates } from '@/lib/nbuRates';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
@@ -70,8 +71,10 @@ export default async function ShopProductPage({ params }: Props) {
     redirect(canonicalPath);
   }
 
-  const [allProducts, settingsRecord] = await Promise.all([
-    getShopProductsServer(),    getOrCreateShopSettings(prisma),
+  const [allProducts, settingsRecord, nbuRates] = await Promise.all([
+    getShopProductsServer(),
+    getOrCreateShopSettings(prisma),
+    getNbuRates(),
   ]);
 
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
@@ -96,7 +99,7 @@ export default async function ShopProductPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
-      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={settingsRuntime.currencyRates} />
+      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={nbuRates} />
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}
