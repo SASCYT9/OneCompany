@@ -96,7 +96,7 @@ export function Header() {
         href: `/${locale}${item.href}`,
         label: tNav(item.key),
       }));
-  const logoHref = isShopRoute ? `/${locale}/shop` : `/${locale}`;
+  const logoHref = `/${locale}`;
   const { currency, region, setRegion, setCurrency } = useShopCurrency();
 
   return (
@@ -115,7 +115,7 @@ export function Header() {
           href={logoHref}
           suppressHydrationWarning
           className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          aria-label={isShopRoute ? "Urban home" : "ONE COMPANY home"}
+          aria-label="ONE COMPANY home"
         >
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
           <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
