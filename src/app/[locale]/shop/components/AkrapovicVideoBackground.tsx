@@ -85,13 +85,17 @@ export default function AkrapovicVideoBackground({
           transition={{ duration: 2 }}
           className="absolute pointer-events-none z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto"
         >
+          {/* No `poster` attr: the motion.img above already provides the
+             fallback frame. Adding the same image as poster makes the
+             browser repaint it on the <video> when isLoaded flips, which
+             Lighthouse counts as a fresh LCP candidate (regression to ~12s
+             on Slow 4G — confirmed empirically). */}
           <video
             src={videoSrc}
             autoPlay
             loop
             muted={withAudio ? isMuted : true}
             playsInline
-            poster={fallbackImage}
             onCanPlay={() => setIsLoaded(true)}
             className="absolute inset-0 w-full h-full object-cover"
           />
