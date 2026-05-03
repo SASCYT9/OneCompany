@@ -1,4 +1,8 @@
-import Script from "next/script";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { localizeShopProductTitle, localizeShopDescription, localizeShopText } from "@/lib/shopText";
+import type { SupportedLocale } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/seo";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 
 function toSchemaId(value: string): string {
   const normalized = value
@@ -100,7 +104,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
   };
 
   return (
-    <Script
+    <script
       id="organization-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -124,7 +128,7 @@ export function WebSiteSchema() {
   };
 
   return (
-    <Script
+    <script
       id="website-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -149,7 +153,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   };
 
   return (
-    <Script
+    <script
       id="breadcrumb-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -160,14 +164,27 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
 interface ProductSchemaProps {
   name: string;
   description: string;
-  image: string;
+  image: string | string[];
   brand: string;
   category: string;
   url: string;
+  sku?: string;
+  offers?: {
+    price: number;
+    priceCurrency: 'USD' | 'EUR' | 'UAH';
+    availability: 'inStock' | 'preOrder' | 'outOfStock';
+    priceValidUntil?: string;
+  };
 }
 
-export function ProductSchema({ name, description, image, brand, category, url }: ProductSchemaProps) {
-  const schema = {
+const SCHEMA_AVAILABILITY: Record<NonNullable<ProductSchemaProps['offers']>['availability'], string> = {
+  inStock: 'https://schema.org/InStock',
+  preOrder: 'https://schema.org/PreOrder',
+  outOfStock: 'https://schema.org/OutOfStock',
+};
+
+export function ProductSchema({ name, description, image, brand, category, url, sku, offers }: ProductSchemaProps) {
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name,
@@ -180,13 +197,92 @@ export function ProductSchema({ name, description, image, brand, category, url }
     category,
     url,
   };
+  if (sku) {
+    schema.sku = sku;
+    schema.mpn = sku;
+  }
+  if (offers) {
+    schema.offers = {
+      "@type": "Offer",
+      url,
+      price: offers.price.toFixed(2),
+      priceCurrency: offers.priceCurrency,
+      availability: SCHEMA_AVAILABILITY[offers.availability],
+      ...(offers.priceValidUntil ? { priceValidUntil: offers.priceValidUntil } : {}),
+      seller: {
+        "@type": "Organization",
+        name: "One Company Global",
+        "@id": "https://onecompany.global/#organization",
+      },
+    };
+  }
 
   return (
-    <Script
+    <script
       id={`product-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
+  );
+}
+
+interface ShopProductStructuredDataProps {
+  product: ShopProduct;
+  locale: SupportedLocale;
+}
+
+export function ShopProductStructuredData({ product, locale }: ShopProductStructuredDataProps) {
+  const productPath = buildShopStorefrontProductPathForProduct(locale, product);
+  const url = absoluteUrl(productPath);
+  const name = localizeShopProductTitle(locale, product);
+  const description = localizeShopDescription(locale, product.shortDescription) ||
+    localizeShopDescription(locale, product.longDescription) ||
+    name;
+  const category = localizeShopText(locale, product.category);
+  const galleryImages = (product.gallery?.length ? product.gallery : [product.image])
+    .filter((src): src is string => Boolean(src))
+    .map((src) => (src.startsWith('http') ? src : absoluteUrl(src.startsWith('/') ? src : `/${src}`)));
+  const images = galleryImages.length > 0 ? galleryImages : [absoluteUrl('/branding/og-image.png')];
+
+  const variantPrice = product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
+  const sourcePrice = product.price ?? variantPrice;
+  let offers: ProductSchemaProps['offers'] | undefined;
+  if (sourcePrice) {
+    if ((sourcePrice.usd ?? 0) > 0) {
+      offers = { price: sourcePrice.usd, priceCurrency: 'USD', availability: product.stock };
+    } else if ((sourcePrice.eur ?? 0) > 0) {
+      offers = { price: sourcePrice.eur, priceCurrency: 'EUR', availability: product.stock };
+    } else if ((sourcePrice.uah ?? 0) > 0) {
+      offers = { price: sourcePrice.uah, priceCurrency: 'UAH', availability: product.stock };
+    }
+  }
+
+  const shopRoot = absoluteUrl(`/${locale}/shop`);
+  const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const brandShopHref = brandSlug ? absoluteUrl(`/${locale}/shop/${brandSlug}`) : null;
+  const breadcrumbItems: { name: string; url: string }[] = [
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(`/${locale}`) },
+    { name: locale === 'ua' ? 'Магазин' : 'Shop', url: shopRoot },
+  ];
+  if (brandShopHref) {
+    breadcrumbItems.push({ name: product.brand, url: brandShopHref });
+  }
+  breadcrumbItems.push({ name, url });
+
+  return (
+    <>
+      <ProductSchema
+        name={name}
+        description={description}
+        image={images}
+        brand={product.brand}
+        category={category}
+        url={url}
+        sku={product.sku}
+        offers={offers}
+      />
+      <BreadcrumbSchema items={breadcrumbItems} />
+    </>
   );
 }
 
@@ -260,7 +356,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
   };
 
   return (
-    <Script
+    <script
       id="localbusiness-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -293,7 +389,7 @@ export function BrandSchema({ name, description, url, logo, country }: BrandSche
   };
 
   return (
-    <Script
+    <script
       id={`brand-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -320,7 +416,7 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
   };
 
   return (
-    <Script
+    <script
       id={`collection-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -349,7 +445,7 @@ export function FAQSchema({ faqItems }: FAQSchemaProps) {
   };
 
   return (
-    <Script
+    <script
       id="faq-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
@@ -407,7 +503,7 @@ export function ArticleSchema({
   };
 
   return (
-    <Script
+    <script
       id={id}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

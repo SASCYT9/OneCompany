@@ -18,6 +18,7 @@ import { ShopProductGallery } from '../components/ShopProductGallery';
 import { MobileProductDisclosure } from '../components/MobileProductDisclosure';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
+import { ShopProductStructuredData } from '@/components/seo/StructuredData';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
@@ -95,6 +96,7 @@ export default async function ShopProductPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+      <ShopProductStructuredData product={product} locale={resolvedLocale} />
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}

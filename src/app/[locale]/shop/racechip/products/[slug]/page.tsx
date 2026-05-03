@@ -12,6 +12,7 @@ import {
 } from '@/lib/crossShopFitment';
 import CrossShopFitment from '../../../components/CrossShopFitment';
 import RacechipShopProductDetailLayout from '../../../components/RacechipShopProductDetailLayout';
+import { ShopProductStructuredData } from '@/components/seo/StructuredData';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
@@ -80,6 +81,7 @@ export default async function RacechipProductPage({
 
   return (
     <>
+      <ShopProductStructuredData product={product} locale={resolvedLocale} />
       <RacechipShopProductDetailLayout
         locale={resolvedLocale}
         product={product}

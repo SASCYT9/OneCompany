@@ -47,6 +47,7 @@ import {
 import { isBlobStorageUrl } from '@/lib/runtimeAssetPaths';
 import { ShopProductGallery } from './ShopProductGallery';
 import { MobileProductDisclosure } from './MobileProductDisclosure';
+import { ShopProductStructuredData } from '@/components/seo/StructuredData';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 import { findRelatedProducts } from '@/lib/shopRelatedProducts';
 import {
@@ -673,12 +674,13 @@ export default async function ShopProductDetailPage({
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+      <ShopProductStructuredData product={product} locale={resolvedLocale} />
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}
         priceEur={computeCrossPrices(pricing.effectivePrice).eur}
       />
-      
+
       {product.brand === 'Brabus' || mode === 'brabus' ? (
         <BrabusShopProductDetailLayout
           locale={locale}

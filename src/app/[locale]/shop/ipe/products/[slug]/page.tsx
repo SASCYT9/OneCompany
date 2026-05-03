@@ -9,6 +9,7 @@ import {
 import CrossShopFitment from '../../../components/CrossShopFitment';
 import { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
 import { IpeShopProductDetailLayout } from '../../../components/IpeShopProductDetailLayout';
+import { ShopProductStructuredData } from '@/components/seo/StructuredData';
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 export const dynamic = 'force-static';
@@ -48,6 +49,7 @@ export default async function IpeProductPage({ params }: Props) {
 
   return (
     <>
+      <ShopProductStructuredData product={product} locale={resolvedLocale} />
       <IpeShopProductDetailLayout
         locale={resolvedLocale}
         resolvedLocale={resolvedLocale}
