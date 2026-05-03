@@ -1,12 +1,50 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Globe, Wrench, Users, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { trackEvent } from '@/lib/analytics';
+import { absoluteUrl, buildLocalizedPath, resolveLocale } from '@/lib/seo';
 
 const AboutPage: React.FC = () => {
   const t = useTranslations('aboutPage');
+  const params = useParams();
+  const locale = resolveLocale((params?.locale as string) || undefined);
+  const storyParagraphs = t.raw('storyParagraphs') as string[];
+  const aboutUrl = absoluteUrl(buildLocalizedPath(locale, 'about'));
+  const contactPath = buildLocalizedPath(locale, 'contact');
+  const contactUrl = absoluteUrl(contactPath);
+  const aboutSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: t('title'),
+    description: t('heroSubtitle'),
+    url: aboutUrl,
+    mainEntityOfPage: aboutUrl,
+    primaryTopic: {
+      '@type': 'Organization',
+      name: 'onecompany',
+      url: aboutUrl,
+      email: 'info@onecompany.com',
+      telephone: '+380123456789',
+      sameAs: ['https://kwsuspension.shop/', 'https://fiexhaust.shop/', 'https://eventuri.shop/'],
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '21B Baseina St',
+        addressLocality: 'Kyiv',
+        addressCountry: 'UA',
+      },
+      areaServed: ['Europe', 'North America', 'Middle East', 'Asia'],
+    },
+    potentialAction: {
+      '@type': 'CommunicateAction',
+      target: contactUrl,
+      name: t('ctaButton'),
+    },
+  };
 
   const values = [
     {
@@ -33,6 +71,11 @@ const AboutPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image */}
@@ -64,7 +107,7 @@ const AboutPage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl font-light text-white/70 max-w-3xl mx-auto"
           >
-            Delivering premium automotive performance solutions worldwide
+            {t('heroSubtitle')}
           </motion.p>
         </div>
 
@@ -96,23 +139,13 @@ const AboutPage: React.FC = () => {
             className="mb-20"
           >
             <h2 className="text-4xl md:text-6xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-8">
-              Our Story
+              {t('storyTitle')}
             </h2>
             <div className="w-24 h-px bg-zinc-300 dark:bg-white/20 mb-12" />
             <div className="space-y-6 text-lg md:text-xl font-light text-zinc-600 dark:text-white/60 leading-relaxed">
-              <p>
-                Founded with a passion for automotive excellence, OneCompany has grown into a trusted partner 
-                for enthusiasts and professionals seeking the finest performance upgrades and parts.
-              </p>
-              <p>
-                We believe that every vehicle deserves the best. That&rsquo;s why we&rsquo;ve carefully curated relationships 
-                with over 200 premium brands from around the world, bringing you unparalleled access to cutting-edge 
-                automotive technology and craftsmanship.
-              </p>
-              <p>
-                Our commitment goes beyond just selling parts. We&rsquo;re here to help you realize your automotive dreams, 
-                whether that&rsquo;s improving performance, enhancing aesthetics, or achieving the perfect balance of both.
-              </p>
+              {storyParagraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -129,7 +162,7 @@ const AboutPage: React.FC = () => {
             className="text-center mb-20"
           >
             <h2 className="text-4xl md:text-6xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-6">
-              What We Offer
+              {t('valuesTitle')}
             </h2>
             <div className="w-24 h-px bg-zinc-300 dark:bg-white/20 mx-auto" />
           </motion.div>
@@ -171,19 +204,20 @@ const AboutPage: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl md:text-6xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-8">
-              Ready to elevate your ride?
+              {t('ctaTitle')}
             </h2>
             <p className="text-lg md:text-xl font-light text-zinc-600 dark:text-white/60 mb-12 max-w-2xl mx-auto">
-              Get in touch with our team and let&rsquo;s discuss how we can help bring your automotive vision to life.
+              {t('ctaDescription')}
             </p>
-            <motion.a
-              href="/contact"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-block px-12 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-light tracking-wider uppercase text-sm hover:bg-zinc-800 dark:hover:bg-white/90 transition-colors duration-300"
-            >
-              {t('contact')}
-            </motion.a>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex">
+              <Link
+                href={contactPath}
+                className="inline-block px-12 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-light tracking-wider uppercase text-sm hover:bg-zinc-800 dark:hover:bg-white/90 transition-colors duration-300"
+                onClick={() => trackEvent('cta_about_contact', { locale })}
+              >
+                {t('ctaButton')}
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
       </section>

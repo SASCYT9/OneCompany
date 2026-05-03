@@ -91,8 +91,8 @@ const translations = {
     phone: 'Телефон',
     location: 'Київ, Україна',
     messageUs: 'Або напишіть нам безпосередньо - відповімо протягом 15 хвилин',
-    dashboardTitle: 'Web3 Dashboard',
-    dashboardPanel: 'Панель управління повідомленнями',
+  dashboardTitle: 'Telegram Web App',
+  dashboardPanel: 'Миттєві заявки та статуси в Telegram',
     helpSteps: [
       'Підібрати деталі для вашого авто/мото',
       'Проконсультувати по наявності та цінам',
@@ -129,11 +129,11 @@ const translations = {
     adminOnly: 'Доступ обмежено для адміністраторів',
     features: 'Функціонал',
     featuresList: [
-      'Перегляд всіх повідомлень',
-      'Фільтри за категоріями',
-      'Пошук та управління статусами',
-      'Архівування',
-      'Оновлення в реальному часі'
+      'Створення заявки без переходу на сайт',
+  'Статуси та нотатки по кожному ліду',
+      'Push-оновлення безпосередньо в Telegram',
+      'Експорт контактів для менеджерів',
+      'Захищене зʼєднання 24/7'
     ],
     howWeHelp: 'Як ми можемо допомогти',
     services: [
@@ -156,7 +156,7 @@ const translations = {
     requestReceived: 'Ваш запит отримано та передано менеджеру',
     expectResponse: 'Очікуйте відповіді',
     meanwhile: 'Тим часом ви можете',
-    openDashboard: 'Відкрити Dashboard',
+  openDashboard: 'Відкрити Telegram App',
     changeLanguage: 'Змінити мову'
   },
   en: {
@@ -201,8 +201,8 @@ const translations = {
     phone: 'Phone',
     location: 'Kyiv, Ukraine',
     messageUs: 'Or message us directly - we respond within 15 minutes',
-    dashboardTitle: 'Web3 Dashboard',
-    dashboardPanel: 'Message Management Panel',
+  dashboardTitle: 'Telegram Web App',
+  dashboardPanel: 'Concierge lead hub inside Telegram',
     helpSteps: [
       'Select parts for your vehicle',
       'Consult on availability and pricing',
@@ -239,11 +239,11 @@ const translations = {
     adminOnly: 'Access restricted to administrators',
     features: 'Features',
     featuresList: [
-      'View all messages',
-      'Category filters',
-      'Search and status management',
-      'Archiving',
-      'Real-time updates'
+      'Submit requests without leaving Telegram',
+      'Live status + notes for every lead',
+      'Instant push updates inside the chat',
+      'Exportable contact cards for managers',
+      'Secure connection 24/7'
     ],
     howWeHelp: 'How We Can Help',
     services: [
@@ -266,7 +266,7 @@ const translations = {
     requestReceived: 'Your request has been received and forwarded to our manager',
     expectResponse: 'Expect a response',
     meanwhile: 'Meanwhile, you can',
-    openDashboard: 'Open Dashboard',
+  openDashboard: 'Open Telegram App',
     changeLanguage: 'Change Language'
   }
 };
@@ -520,7 +520,8 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
 // Функція для відправки головного меню
 async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en') {
   const t = translations[lang];
-  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const telegramAppUrl = `${siteUrl}/telegram-app`;
   
   const message = 
     `${t.welcome(userName)}\n\n` +
@@ -540,7 +541,7 @@ async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en')
       [
         { 
           text: `💼 ${t.openDashboard}`,
-          web_app: { url: `${dashboardUrl}/messages` }
+          web_app: { url: telegramAppUrl }
         },
         { text: `❓ ${t.help}`, callback_data: 'btn_help' }
       ],
@@ -559,7 +560,8 @@ async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en')
 async function handleButtonCallback(chatId: number, data: string, userName: string, userId: number = 0) {
   const lang = getUserLanguage(userId);
   const t = translations[lang];
-  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const telegramAppUrl = `${siteUrl}/telegram-app`;
   
   switch (data) {
     case 'lang_uk':
@@ -690,7 +692,7 @@ async function handleButtonCallback(chatId: number, data: string, userName: stri
         chatId,
         `<b>${t.dashboardTitle}</b>\n\n` +
         `${t.dashboardPanel}:\n\n` +
-        `🔗 ${dashboardUrl}/messages\n\n` +
+        `🔗 ${telegramAppUrl}\n\n` +
         `<b>${t.authorization}:</b>\n` +
         `${t.adminOnly}\n\n` +
         `<b>${t.features}:</b>\n` +

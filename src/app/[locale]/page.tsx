@@ -1,5 +1,32 @@
 import Link from "next/link";
-import clsx from "clsx";
+import type { Metadata } from "next";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import { readSiteContent } from "@/lib/siteContentServer";
+
+const homeMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
+  en: {
+    title: "onecompany · Global Auto & Moto Performance Atelier",
+    description:
+      "Premium automotive and motorcycle tuning programs with concierge homologation, logistics, and installation partners across four continents.",
+  },
+  ua: {
+    title: "onecompany · Преміум ательє автотюнінгу",
+    description:
+      "Преміальні програми автота мототюнінгу з логістикою, гомологацією та партнерами з встановлення по всьому світу.",
+  },
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const resolvedLocale = resolveLocale(locale);
+  const meta = homeMetaCopy[resolvedLocale];
+
+  return buildPageMetadata(resolvedLocale, "", meta);
+}
 
 type ExperienceSplit = {
   label: string;
@@ -18,6 +45,36 @@ export default async function LocalizedHomePage({
   params,
 }: LocalizedHomePageProps) {
   const { locale } = await params;
+  const resolvedLocale = resolveLocale(locale);
+  const schemaUrl = absoluteUrl(buildLocalizedPath(resolvedLocale));
+  const siteContent = await readSiteContent();
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "AutomotiveBusiness",
+    name: "onecompany",
+    url: schemaUrl,
+    image: absoluteUrl("/branding/one-company-logo.svg"),
+    telephone: "+380123456789",
+    sameAs: [
+      "https://kwsuspension.shop/",
+      "https://fiexhaust.shop/",
+      "https://eventuri.shop/",
+    ],
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "21B Baseina St",
+      addressLocality: "Kyiv",
+      addressCountry: "UA",
+    },
+    areaServed: ["Europe", "North America", "Middle East", "Asia"],
+    makesOffer: [
+      "Performance exhaust systems",
+      "Suspension programs",
+      "Carbon aero kits",
+      "Moto race packages",
+    ],
+  };
 
   const experiences: ExperienceSplit[] = [
     {
@@ -25,7 +82,7 @@ export default async function LocalizedHomePage({
       title: "Hypercar & GT programs",
       description:
         "Forged wheels, carbon aero, suspension, intake and exhaust systems with OEM-level validation and support.",
-      href: `/${locale}/auto`,
+      href: `/${resolvedLocale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       stats: [
         { value: "120+", note: "curated marques" },
@@ -37,7 +94,7 @@ export default async function LocalizedHomePage({
       title: "Factory race packages",
       description:
         "WorldSBK-grade exhausts, ECU calibrations, carbon protection and track-ready ergonomics for litre bikes.",
-      href: `/${locale}/moto`,
+      href: `/${resolvedLocale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       stats: [
         { value: "80+", note: "specialist partners" },
@@ -46,35 +103,15 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/hero-smoke.mp4";
-  const heroBadgeCopy = "onecompany · dual signature programs";
+  const heroBadgeCopy = siteContent.hero.badge;
   const heroMeta = {
-    globalPresence: "services worldwide since 2007",
-    brandPromise: "200+ brands premium tuning parts",
-    atelierAddress: "21B Baseina St · Kyiv atelier",
+    globalPresence: siteContent.hero.globalPresence,
+    brandPromise: siteContent.hero.brandPromise,
+    atelierAddress: siteContent.hero.atelierAddress,
   };
 
-  const statHighlights = [
-    { value: "18", label: "years of atelier heritage" },
-    { value: "200+", label: "performance marques curated" },
-    { value: "36h", label: "door-to-door logistics" },
-    { value: "4", label: "continents served weekly" },
-  ];
-
-  const marqueeBrands = [
-    "Aston Martin Racing",
-    "Brabus",
-    "Akrapovič",
-    "KW Suspensions",
-    "Novitec",
-    "Eventuri",
-    "ABT Sportsline",
-    "Mansory",
-    "Ruf Automobile",
-    "Techart",
-    "Z Performance",
-    "Capristo",
-  ];
+  const statHighlights = siteContent.statHighlights;
+  const marqueeBrands = siteContent.marqueeBrands;
 
   const atelierServices = [
     {
@@ -92,180 +129,135 @@ export default async function LocalizedHomePage({
   ];
 
   return (
-    <main className="relative min-h-screen overflow-hidden text-white">
-      <div className="absolute inset-0 -z-10">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          className="h-full w-full object-cover"
-        >
-          <source src={heroVideo} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(255,179,71,0.25),transparent_45%)]" />
-      </div>
-      <section className="relative flex min-h-screen flex-col">
-        <div className="px-6 pt-16 text-center text-[10px] uppercase tracking-[0.5em] text-white/55">
-          <p>{heroBadgeCopy}</p>
-        </div>
-        <div className="mt-4 flex flex-col items-center gap-1 px-6 text-center text-[11px] uppercase tracking-[0.4em] text-white/60">
-          <p>{heroMeta.globalPresence}</p>
-          <p className="text-white/70">{heroMeta.brandPromise}</p>
-        </div>
+    <main className="relative text-white">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      {/* Full-screen video will be handled in layout.tsx */}
+      <section className="relative flex min-h-dvh flex-col justify-center px-4 pb-16 pt-24 sm:px-6 lg:pt-32">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_0%,rgba(255,179,71,0.4),transparent_58%)]" />
 
-  <div className="relative isolate flex flex-1 flex-col gap-6 px-4 pb-4 pt-8 md:flex-row md:gap-0 md:px-0">
-          <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[1px] -translate-x-1/2 bg-gradient-to-b from-transparent via-white/60 to-transparent md:block" />
-          <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-40 -translate-x-1/2 bg-gradient-to-r from-black/40 via-black/5 to-transparent blur-3xl md:block" />
-          <div className="relative flex flex-1 flex-col gap-6 md:flex-row md:gap-0">
-            {experiences.map((experience, index) => (
+        <div className="relative mx-auto flex w/full max-w-6xl flex-col items-center text-center">
+          <p className="text-[10px] uppercase tracking-[0.45em] text-white/60 sm:text-[11px]">{heroBadgeCopy}</p>
+          <p className="mt-3 text-[11px] uppercase tracking-[0.35em] text-white/70 sm:text-xs">{heroMeta.globalPresence}</p>
+
+          <h1 className="mt-8 text-balance text-4xl font-light uppercase leading-tight text-white sm:text-6xl lg:text-7xl">
+            <span className="text-white/70">Hypercar & Moto</span>{" "}
+            <span className="bg-gradient-to-r from-amber-200 via-white to-amber-400 bg-clip-text text-transparent">Signature Atelier</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-3xl text-base text-white/80 sm:text-xl">{heroMeta.brandPromise}</p>
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            {experiences.map((experience) => (
               <Link
                 key={experience.label}
                 href={experience.href}
-                className={clsx(
-                  "group relative flex flex-1 min-h-[420px] flex-col justify-between gap-10 overflow-hidden px-8 py-10 text-left text-white",
-                  "backdrop-blur-md bg-black/30 shadow-[0_40px_120px_rgba(0,0,0,0.45)] transition duration-500 hover:bg-black/15 hover:backdrop-blur-xl",
-                  index === 0 ? "md:pr-20" : "md:pl-20 md:text-right md:items-end"
-                )}
+                className="group inline-flex items-center gap-3 rounded-full border border-white/25 bg-white/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-white transition duration-300 hover:border-white hover:bg-white/20"
               >
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/30 opacity-60" />
-                <div
-                  aria-hidden
-                  className={clsx(
-                    "pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100",
-                    "bg-gradient-to-br",
-                    experience.accent
-                  )}
-                />
-                <div className="relative flex w-full items-center justify-between text-[11px] uppercase tracking-[0.35em] text-white/60">
-                  <span className="rounded-full border border-white/30 px-4 py-1 text-[10px] tracking-[0.45em]">
-                    {experience.label}
-                  </span>
-                  <span className="text-white/40">program access</span>
-                </div>
-                <div className={clsx("relative space-y-4 text-left", index === 1 && "md:text-right")}>
-                  <h2 className="text-4xl font-light leading-tight text-white md:text-5xl">
-                    {experience.title}
-                  </h2>
-                  <p className="text-base text-white/80">
-                    {experience.description}
-                  </p>
-                </div>
-                <div className="relative flex w-full items-end justify-between gap-6 pt-6">
-                  <div className="flex flex-wrap gap-6 font-mono text-white/80">
-                    {experience.stats.map((stat) => (
-                      <div key={stat.note}>
-                        <p className="text-3xl tracking-tight text-white">{stat.value}</p>
-                        <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">{stat.note}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 text-sm uppercase tracking-[0.3em] text-white/70 transition group-hover:border-white group-hover:bg-white group-hover:text-black">
-                    →
-                  </span>
-                </div>
+                {experience.label}
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white transition group-hover:bg-white/20">
+                  ↗
+                </span>
               </Link>
             ))}
           </div>
-        </div>
-        <div className="mb-6 flex justify-center px-6">
-          <Link
-            href="#signature-programs"
-            className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-[11px] uppercase tracking-[0.4em] text-white transition hover:border-white/70 hover:bg-white hover:text-black"
-          >
-            Signature Programs
-            <span className="text-base">↘</span>
-          </Link>
-        </div>
-        <div className="px-6 pb-10 text-center text-[11px] uppercase tracking-[0.35em] text-white/60">
-          <p className="font-semibold text-white/70">{heroMeta.atelierAddress}</p>
-        </div>
-      </section>
-      <section className="border-t border-white/10 bg-black/70">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 text-center text-white md:grid-cols-4">
-          {statHighlights.map((stat) => (
-            <div key={stat.label} className="space-y-3">
-              <p className="text-4xl font-light tracking-tight">{stat.value}</p>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-black via-black/90 to-[#050505] py-20 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,179,71,0.12),_transparent_45%)]" aria-hidden />
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/50">Iconic marques</p>
-          <h3 className="mt-3 text-4xl font-light">Beyond the GP Products roster</h3>
-          <p className="mt-4 text-base text-white/75">
-            Deeper allocations, bespoke specs, and dual automotive / moto mastery with atelier accountability.
+          <div className="mt-10 grid gap-6 text-left text-white/80 sm:grid-cols-2">
+            {experiences.map((experience) => (
+              <div key={`${experience.label}-detail`} className="space-y-2 border-l border-white/15 pl-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">{experience.label}</p>
+                <p className="text-lg font-light uppercase text-white">{experience.title}</p>
+                <p className="text-sm text-white/70">{experience.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 grid w-full grid-cols-2 gap-8 text-center text-white sm:grid-cols-4">
+            {statHighlights.map((stat) => (
+              <div key={stat.label} className="space-y-2">
+                <p className="text-4xl font-light sm:text-5xl">{stat.value}</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-12 text-[10px] uppercase tracking-[0.35em] text-white/60 sm:text-[11px]">
+            {heroMeta.atelierAddress}
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-4 text-sm uppercase tracking-[0.25em] text-white/70 sm:grid-cols-3">
+        </div>
+      </section>
+      <section className="relative px-4 py-20 text-white" id="signature-programs">
+        <div className="relative mx-auto w-full max-w-6xl space-y-12 text-center md:text-left">
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.4em] text-white/55 sm:text-sm">Iconic marques</p>
+            <h3 className="text-balance text-3xl font-light sm:text-4xl md:text-5xl">Beyond the GP Products roster</h3>
+            <p className="text-pretty text-base text-white/75 sm:text-lg">
+              Deeper allocations, bespoke specs, and dual automotive / moto mastery with atelier accountability.
+            </p>
+          </div>
+          <div className="grid gap-4 text-xs uppercase tracking-[0.25em] text-white/70 sm:grid-cols-3 sm:text-sm">
             {marqueeBrands.map((brand) => (
-              <div
+              <span
                 key={brand}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-white"
+                className="border-b border-white/10 pb-3 text-center text-white/65 transition-colors hover:text-white sm:text-left"
               >
                 {brand}
-              </div>
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#050505] px-6 py-20 text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505] to-[#040404]" aria-hidden />
-        <div className="relative mx-auto max-w-6xl">
-          <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/50">Signature atelier</p>
-              <h3 className="mt-3 text-4xl font-light">Programs engineered for collectors</h3>
+      <section className="relative px-4 py-20 text-white" id="atelier-programs">
+        <div className="relative mx-auto w-full max-w-6xl space-y-10">
+          <div className="flex flex-col gap-6 text-center md:flex-row md:items-end md:justify-between md:text-left">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.35em] text-white/55 sm:text-sm">Signature atelier</p>
+              <h3 className="text-balance text-3xl font-light sm:text-4xl md:text-5xl">Programs engineered for collectors</h3>
             </div>
             <Link
-              href={`/${locale}/contact`}
-              className="inline-flex items-center gap-3 rounded-full border border-white/20 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition hover:border-white hover:bg-white hover:text-black"
+              href={`/${resolvedLocale}/contact`}
+              className="mx-auto inline-flex flex-shrink-0 items-center gap-3 rounded-full border border-white/25 px-6 py-3 text-[11px] uppercase tracking-[0.3em] text-white transition duration-300 hover:border-white md:mx-0 sm:gap-4 sm:px-8 sm:py-4 sm:text-xs"
             >
               Arrange consult ↗
             </Link>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="divide-y divide-white/10 border-y border-white/10">
             {atelierServices.map((service) => (
-              <div
-                key={service.title}
-                className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 via-transparent to-black/40 p-6 backdrop-blur"
-              >
-                <p className="text-sm uppercase tracking-[0.3em] text-white/50">{heroBadgeCopy}</p>
-                <h4 className="mt-4 text-2xl font-light text-white">{service.title}</h4>
-                <p className="mt-3 text-sm text-white/70">{service.copy}</p>
+              <div key={service.title} className="grid gap-6 py-8 text-left md:grid-cols-3">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-white/50 sm:text-sm">{heroBadgeCopy}</p>
+                <div className="md:col-span-2 space-y-3">
+                  <h4 className="text-2xl font-light text-white sm:text-3xl">{service.title}</h4>
+                  <p className="text-base text-white/70">{service.copy}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#040404] px-6 pb-24 text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#040404] via-[#050505] to-transparent" aria-hidden />
-        <div className="absolute inset-x-0 -top-24 h-32 bg-gradient-to-b from-transparent via-[#050505] to-[#040404] blur-3xl" aria-hidden />
-        <div className="relative mx-auto max-w-4xl rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-10 text-center md:text-left shadow-[0_40px_120px_rgba(0,0,0,0.6)]">
-          <p className="text-xs uppercase tracking-[0.5em] text-white/50">Kyiv command studio</p>
-          <h3 className="mt-4 text-4xl font-light">21B Baseina St · concierge@onecompany.com</h3>
-          <p className="mt-4 text-base text-white/70">
-            Private fittings, remote video approvals, and deployment within 36 hours globally.
-          </p>
-          <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
+      <section className="relative px-4 pb-24 pt-10 text-white">
+        <div className="mx-auto w-full max-w-5xl space-y-6 text-center md:text-left">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/55 sm:text-sm">Kyiv command studio</p>
+          <h3 className="text-balance text-3xl font-light sm:text-4xl md:text-5xl">{siteContent.contactCta.heading}</h3>
+          <p className="text-pretty text-base text-white/70 sm:text-lg">{siteContent.contactCta.body}</p>
+          <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
             <a
               href="tel:+380442781234"
-              className="flex-1 rounded-full border border-white/20 px-6 py-3 text-sm uppercase tracking-[0.35em] text-white transition hover:border-white hover:bg-white hover:text-black"
+              className="flex-1 rounded-full border border-white/30 px-6 py-4 text-center text-[11px] uppercase tracking-[0.25em] text-white transition-colors hover:border-white sm:px-8 sm:text-sm sm:tracking-[0.35em]"
             >
               +380 (44) 278 12 34
             </a>
             <Link
-              href={`/${locale}/showcase`}
-              className="flex-1 rounded-full border border-white/0 bg-white px-6 py-3 text-sm uppercase tracking-[0.35em] text-black shadow-[0_10px_40px_rgba(255,255,255,0.25)]"
+              href={`/${resolvedLocale}${siteContent.contactCta.buttonHref}`}
+              className="flex-1 rounded-full border border-white bg-white px-6 py-4 text-center text-[11px] uppercase tracking-[0.25em] text-black transition-colors hover:bg-white/90 sm:px-8 sm:text-sm sm:tracking-[0.35em]"
             >
-              View showcase
+              {siteContent.contactCta.buttonLabel}
             </Link>
           </div>
         </div>

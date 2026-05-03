@@ -2,17 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/render';
 import { ReplyEmail } from '@/components/emails/ReplyEmail';
 import { Resend } from 'resend';
-import { getServerSession } from "next-auth/next"
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import React from 'react';
 import { PrismaClient, Status } from '@prisma/client';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function handleGet(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -32,8 +34,10 @@ async function handleGet(req: NextRequest) {
 }
 
 async function handlePost(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -113,8 +117,10 @@ async function handlePost(req: NextRequest) {
 }
 
 async function handleDelete(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   

@@ -93,4 +93,98 @@
             mask-composite: exclude;
     pointer-events: none;
   }
+
+  .admin-font {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: normal;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .admin-font * {
+    font-family: inherit;
+    font-feature-settings: inherit;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Marquee animation for raw brand rows */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: inline-flex;
+    gap: 3rem;
+    animation: marquee 26s linear infinite;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: clamp(0.98rem, 0.7rem + 1.5vw, 1.08rem);
+    line-height: 1.5;
+    letter-spacing: normal;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  [class*="tracking-["] {
+    letter-spacing: clamp(0.05em, 0.035em + 0.25vw, 0.18em) !important;
+  }
+
+  .text-\[11px\] {
+    font-size: 0.78rem !important;
+  }
+
+  .text-\[10px\] {
+    font-size: 0.72rem !important;
+  }
+
+  .text-\[9px\] {
+    font-size: 0.68rem !important;
+  }
+
+  .text-xs {
+    font-size: 0.78rem !important;
+  }
+
+  .text-sm {
+    font-size: 0.88rem !important;
+  }
+
+  .text-lg {
+    font-size: 1.05rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.25rem !important;
+  }
+
+  .text-2xl {
+    font-size: 1.65rem !important;
+  }
+
+  .text-3xl {
+    font-size: 2.2rem !important;
+    line-height: 1.15 !important;
+  }
 }

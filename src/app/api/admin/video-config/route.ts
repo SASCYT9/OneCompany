@@ -1,53 +1,35 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
-
-async function ensureConfigFile() {
-  try {
-    await fs.access(configPath);
-  } catch {
-    const dir = path.dirname(configPath);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      JSON.stringify({ heroVideo: 'hero-smoke.mp4', videos: [] }, null, 2)
-    );
-  }
-}
+import { assertAdminRequest } from '@/lib/adminAuth';
+import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
 
 export async function GET() {
   try {
-    await ensureConfigFile();
-    const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
+    const config = await readVideoConfig();
     return NextResponse.json(config);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to load video config' },
-      { status: 500 }
-    );
+    if ((error as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.json({ error: 'Failed to load video config' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const { heroVideo } = await request.json();
-    
-    await ensureConfigFile();
-    const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
-    
-    config.heroVideo = heroVideo;
-    
-    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-    
-    return NextResponse.json(config);
+    const config = await readVideoConfig();
+    const updated = { ...config, heroVideo };
+    await writeVideoConfig(updated);
+    return NextResponse.json(updated);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to save video config' },
-      { status: 500 }
-    );
+    if ((error as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.json({ error: 'Failed to save video config' }, { status: 500 });
   }
 }

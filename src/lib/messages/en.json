@@ -1,10 +1,16 @@
 {
   "nav": {
     "stores": "Stores",
+    "automotive": "Automotive",
+    "moto": "Moto",
     "about": "About Us",
+    "contact": "Contact",
     "categories": "Categories",
     "selectStore": "Select Store",
-    "contact": "Inquiry"
+    "bookAtelier": "Book atelier",
+    "menu": "Menu",
+    "close": "Close",
+    "home": "Home"
   },
   "choice": {
     "tagline": "Premium Tuning Parts",
@@ -185,6 +191,17 @@
   "aboutPage": {
     "title": "Why Choose Us?",
     "contact": "Contact a Specialist",
+    "heroSubtitle": "Delivering premium automotive and motorcycle performance solutions worldwide.",
+    "storyTitle": "Our Story",
+    "storyParagraphs": [
+      "Founded with a passion for automotive excellence, onecompany has become a trusted atelier for enthusiasts who expect perfection.",
+      "We curate over 200 premium brands spanning exhaust, suspension, aero, and motorsport technologies so you can access the rarest components in one place.",
+      "From concept to installation we coordinate homologation, logistics, and partner studios to bring every build to life without compromise."
+    ],
+    "valuesTitle": "What We Offer",
+    "ctaTitle": "Ready to elevate your ride?",
+    "ctaDescription": "Connect with our specialists to design a tailored upgrade program with verified partners across four continents.",
+    "ctaButton": "Start a project",
     "info": {
       "selectionTitle": "Individual Selection",
       "selectionDesc": "Our team of specialists can select parts individually to meet your specific needs.",
@@ -209,5 +226,35 @@
     "fieldRequired": "This field is required",
     "submit": "Send",
     "submitting": "Sending..."
+  },
+  "contactPage": {
+    "heroTitle": "Get in touch",
+    "heroSubtitle": "Bespoke selection for your car or motorcycle with worldwide logistics and atelier support.",
+    "infoTitle": "Contact information",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "locationLabel": "Location",
+    "locationValue": "Kyiv, Ukraine",
+    "infoBody": "Our experts are ready to help you find the ideal components for your build. Fill in the form and we will reply shortly.",
+    "typeAuto": "Auto",
+    "typeMoto": "Moto",
+    "modelAutoLabel": "Car make and model",
+    "modelMotoLabel": "Motorcycle make and model",
+    "modelAutoPlaceholder": "Example: BMW M3 G80",
+    "modelMotoPlaceholder": "Example: Ducati Panigale V4",
+    "vinLabel": "VIN code",
+    "vinPlaceholder": "17 characters",
+    "optionalSuffix": "(optional)",
+    "wishesLabel": "Project details",
+    "wishesPlaceholder": "Describe the parts or upgrades you are looking for...",
+    "budgetLabel": "Budget",
+    "budgetPlaceholder": "1000-5000 USD",
+    "emailFieldLabel": "Email",
+    "emailPlaceholder": "example@mail.com",
+    "submitCta": "Send inquiry",
+    "submittingCta": "Sending...",
+    "successMessage": "Thank you! Your inquiry has been sent.",
+    "genericError": "Something went wrong. Please try again.",
+    "networkError": "Unable to send the request. Check your internet connection."
   }
 }

@@ -23,7 +23,8 @@ Create `.env.local` (not committed) with:
 - **EMAIL_FROM**: Sender address (e.g., `contact@onecompany.com`)
 - **EMAIL_AUTO**: Recipient for auto inquiries (e.g., `auto@onecompany.com`)
 - **EMAIL_MOTO**: Recipient for moto inquiries (e.g., `moto@onecompany.com`)
-- **ADMIN_SECRET**: Shared secret for media admin API (used by `/admin` UI)
+- **ADMIN_PASSWORD**: Password required to access the `/admin` panel (set a strong value)
+- **ADMIN_SESSION_SECRET**: Secret used to sign encrypted admin session cookies
 - **NEXT_PUBLIC_PLAUSIBLE_DOMAIN** (optional): Enables Plausible analytics
 
 Security notes:
@@ -37,8 +38,10 @@ Setup guides:
 
 ## Media admin
 
-- Visit `/admin` and provide the `ADMIN_SECRET` to upload/delete media.
-- Files stored under `public/media`; manifest at `public/media/media.json`.
+- Visit `/admin` and authenticate with the configured `ADMIN_PASSWORD`.
+- Successful logins receive a short-lived, HTTP-only cookie signed with `ADMIN_SESSION_SECRET`.
+- Manage the hero autoplay video: upload files to `public/videos/` and switch which asset is active via the UI (config stored at `public/config/video-config.json`).
+- If the session expires or is invalid, the UI will prompt you to log in again before calling admin APIs.
 
 ## Contact submissions
 

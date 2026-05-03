@@ -1,6 +1,7 @@
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,10 +9,9 @@ import {
   Html,
   Img,
   Preview,
+  Row,
   Section,
   Text,
-  Row,
-  Column,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -29,12 +29,13 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL}`
   : 'http://localhost:3000';
 
-const accentColor = '#ffb256'; // Amber
-const backgroundColor = '#090c11';
+const accentColor = '#ffb256';
+const backgroundColor = '#050608';
 const foregroundColor = '#f5f7fa';
 const subtleTextColor = '#a1a1aa';
-const cardBackgroundColor = '#10151d';
 const borderColor = 'rgba(255,255,255,0.08)';
+const surfaceColor = '#0b0f16';
+const gradient = 'linear-gradient(135deg, rgba(255,178,86,0.28), rgba(104,151,255,0.22))';
 
 export const ContactEmail = ({
   name,
@@ -50,82 +51,86 @@ export const ContactEmail = ({
     <Preview>New {inquiryType} Inquiry from {name}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={{ paddingTop: '20px' }}>
+        <Section style={heroSection}>
           <Img
             src={`${baseUrl}/branding/one-company-logo.svg`}
-            width="150"
+            width="120"
             alt="OneCompany Logo"
             style={logo}
           />
+          <Text style={eyebrow}>Concierge intake · {inquiryType}</Text>
+          <Heading style={heroTitle}>New Request</Heading>
+          <Text style={heroSubtitle}>
+            {name} just submitted a premium {inquiryType.toLowerCase()} brief via the website.
+          </Text>
+          <div style={chipRow as React.CSSProperties}>
+            <span style={chip}>Lead priority · 2h SLA</span>
+            <span style={chip}>channel · web form</span>
+          </div>
         </Section>
-        <Heading style={heading}>New Contact Request</Heading>
-        <Text style={subheading}>
-          A new <strong>{inquiryType}</strong> inquiry has been submitted through the website.
-        </Text>
-        
+
         <Section style={card}>
+          <Text style={cardHeading}>Lead summary</Text>
           <Row style={row}>
-            <Column style={label}>From:</Column>
+            <Column style={label}>Client</Column>
             <Column style={value}>{name}</Column>
           </Row>
-          <Hr style={hr} />
           <Row style={row}>
-            <Column style={label}>Contact:</Column>
+            <Column style={label}>Contact</Column>
             <Column style={value}>{contact}</Column>
           </Row>
           {model && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>{inquiryType === 'Auto' ? 'Car Model:' : 'Moto Model:'}</Column>
-                <Column style={value}>{model}</Column>
-              </Row>
-            </>
+            <Row style={row}>
+              <Column style={label}>{inquiryType === 'Auto' ? 'Car model' : 'Moto model'}</Column>
+              <Column style={value}>{model}</Column>
+            </Row>
           )}
           {vin && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>VIN:</Column>
-                <Column style={value}>{vin}</Column>
-              </Row>
-            </>
+            <Row style={row}>
+              <Column style={label}>VIN</Column>
+              <Column style={value}>{vin}</Column>
+            </Row>
           )}
           {budget && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>Budget:</Column>
-                <Column style={value}>{budget}</Column>
-              </Row>
-            </>
+            <Row style={row}>
+              <Column style={label}>Budget</Column>
+              <Column style={value}>{budget}</Column>
+            </Row>
           )}
-          <Hr style={hr} />
-          <Row style={row}>
-            <Column style={label}>Message:</Column>
-          </Row>
-          <Row>
-            <Column>
-              <Text style={messageText}>{message}</Text>
-            </Column>
-          </Row>
         </Section>
 
-        <Section style={{ textAlign: 'center', marginTop: '32px' }}>
-          <Button
-            style={button}
-            href={`${baseUrl}/admin/messages`}
-          >
-            View in Dashboard
+        <Section style={messageCard}>
+          <Text style={cardHeading}>Message</Text>
+          <Text style={messageText}>
+            “{message}”
+          </Text>
+        </Section>
+
+        <Section style={metaCard}>
+          <Column style={metaColumn}>
+            <Text style={metaLabel}>Inquiry type</Text>
+            <Text style={metaValue}>{inquiryType}</Text>
+          </Column>
+          <Column style={metaColumn}>
+            <Text style={metaLabel}>Response CTA</Text>
+            <Text style={metaValue}>Dashboard · Telegram</Text>
+          </Column>
+          <Column style={metaColumn}>
+            <Text style={metaLabel}>Suggested follow-up</Text>
+            <Text style={metaValue}>Send spec sheet · confirm logistics</Text>
+          </Column>
+        </Section>
+
+        <Section style={ctaSection}>
+          <Button style={button} href={`${baseUrl}/admin/messages`}>
+            Open dashboard
           </Button>
         </Section>
-        
+
         <Hr style={footerHr} />
-        
+
         <Section>
-          <Text style={footer}>
-            OneCompany | Automated Notification System
-          </Text>
+          <Text style={footer}>OneCompany · Automated concierge notification</Text>
         </Section>
       </Container>
     </Body>
@@ -143,43 +148,87 @@ const main = {
 const container = {
   margin: '0 auto',
   padding: '20px 0 48px',
-  width: '580px',
+  width: '600px',
+  maxWidth: '600px',
 };
 
 const logo = {
-  margin: '0 auto',
+  marginBottom: '12px',
 };
 
-const heading = {
-  fontSize: '28px',
-  fontWeight: 'bold',
+const heroSection = {
+  background: gradient,
+  borderRadius: '28px',
+  padding: '32px',
   textAlign: 'center' as const,
-  color: accentColor,
-  marginTop: '30px',
+  border: `1px solid ${borderColor}`,
 };
 
-const subheading = {
+const eyebrow = {
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.4em',
+  fontSize: '11px',
+  color: subtleTextColor,
+  marginBottom: '12px',
+};
+
+const heroTitle = {
+  fontSize: '32px',
+  color: foregroundColor,
+  margin: '0',
+  fontWeight: 700,
+};
+
+const heroSubtitle = {
+  color: foregroundColor,
   fontSize: '16px',
   lineHeight: '26px',
-  textAlign: 'center' as const,
-  color: foregroundColor,
+  marginTop: '12px',
+  marginBottom: '16px',
+};
+
+const chipRow = {
+  display: 'inline-flex',
+  gap: '10px',
+  flexWrap: 'wrap' as const,
+  justifyContent: 'center',
+};
+
+const chip = {
+  borderRadius: '999px',
+  border: '1px solid rgba(255,255,255,0.6)',
+  padding: '6px 14px',
+  fontSize: '12px',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.2em',
+  color: '#fff',
 };
 
 const card = {
-  backgroundColor: cardBackgroundColor,
-  borderRadius: '8px',
-  padding: '20px',
-  marginTop: '20px',
+  backgroundColor: surfaceColor,
+  borderRadius: '20px',
+  padding: '24px 28px',
+  marginTop: '24px',
   border: `1px solid ${borderColor}`,
+  boxShadow: '0 15px 60px rgba(0,0,0,0.35)',
+};
+
+const cardHeading = {
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.4em',
+  fontSize: '11px',
+  color: subtleTextColor,
+  marginBottom: '20px',
 };
 
 const row = {
   width: '100%',
   display: 'table',
+  marginBottom: '12px',
 };
 
 const label = {
-  width: '100px',
+  width: '120px',
   color: subtleTextColor,
   fontSize: '14px',
   verticalAlign: 'top',
@@ -187,21 +236,22 @@ const label = {
 
 const value = {
   color: foregroundColor,
-  fontSize: '14px',
-  fontWeight: 'bold',
+  fontSize: '16px',
+  fontWeight: 500,
 };
 
 const messageText = {
   color: foregroundColor,
-  fontSize: '14px',
-  lineHeight: '24px',
+  fontSize: '18px',
+  lineHeight: '30px',
   whiteSpace: 'pre-wrap' as const,
-  marginTop: '10px',
+  fontWeight: 300,
 };
 
-const hr = {
-  borderColor: borderColor,
-  margin: '16px 0',
+const messageCard = {
+  ...card,
+  background: 'rgba(5,6,8,0.9)',
+  border: '1px solid rgba(255,255,255,0.12)',
 };
 
 const footerHr = {
@@ -209,17 +259,51 @@ const footerHr = {
   margin: '40px 0',
 };
 
+const metaCard = {
+  ...card,
+  display: 'table',
+  width: '100%',
+};
+
+const metaColumn = {
+  display: 'table-cell',
+  width: '33.33%',
+  paddingRight: '12px',
+};
+
+const metaLabel = {
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.3em',
+  fontSize: '10px',
+  color: subtleTextColor,
+  marginBottom: '6px',
+};
+
+const metaValue = {
+  fontSize: '14px',
+  color: foregroundColor,
+  lineHeight: '20px',
+  fontWeight: 500,
+};
+
+const ctaSection = {
+  textAlign: 'center' as const,
+  marginTop: '32px',
+};
+
 const button = {
   backgroundColor: accentColor,
-  borderRadius: '8px',
+  borderRadius: '999px',
   color: '#000',
-  fontSize: '16px',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: 600,
   textDecoration: 'none',
   textAlign: 'center' as const,
   display: 'inline-block',
-  padding: '12px 24px',
-  boxShadow: `0 4px 20px rgba(255, 178, 86, 0.25)`,
+  padding: '14px 34px',
+  letterSpacing: '0.25em',
+  textTransform: 'uppercase' as const,
+  boxShadow: '0 20px 40px rgba(255,178,86,0.35)',
 };
 
 const footer = {

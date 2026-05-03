@@ -31,18 +31,10 @@ const Footer = () => {
   ];
 
   const scopeRef = useRef<HTMLDivElement | null>(null);
-  const gradientRef = useRef<HTMLDivElement | null>(null);
   const signatureRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      if (gradientRef.current) {
-        gsap.fromTo(
-          gradientRef.current,
-          { opacity: 0, y: 80, scale: 0.92 },
-          { opacity: 0.9, y: 0, scale: 1, duration: 1.3, ease: "power3.out" }
-        );
-      }
       if (signatureRef.current) {
         gsap.fromTo(
           signatureRef.current,
@@ -57,14 +49,8 @@ const Footer = () => {
 
   return (
     <footer className="relative -mt-8 border-t border-white/5 bg-transparent">
-      <div className="pointer-events-none absolute inset-x-0 -top-48 h-48 bg-gradient-to-b from-transparent via-[#080808] to-[#050505]" aria-hidden />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,179,71,0.12),_transparent_55%)]" aria-hidden />
       <div ref={scopeRef} className="relative mx-auto max-w-6xl px-6 py-16">
-        <div
-          ref={gradientRef}
-          aria-hidden
-          className="pointer-events-none -mt-16 mb-10 h-28 w-full rounded-[999px] bg-gradient-to-r from-[#1f1610] via-[#1c120d] to-[#1a110d] opacity-80 shadow-[0_0_60px_rgba(255,179,71,0.25)] blur-3xl"
-        />
         <div
           ref={signatureRef}
           id="signature-programs"

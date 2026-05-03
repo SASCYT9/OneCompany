@@ -109,13 +109,3 @@ function guessExt(mime: string) {
   return '';
 }
 
-export function requireAdminSecret(req: Request): { ok: boolean; reason?: string } {
-  const header = req.headers.get('x-admin-secret') || '';
-  const envSecret = process.env.ADMIN_SECRET;
-  // In dev, allow fallback secret to ease local testing
-  const fallback = process.env.NODE_ENV !== 'production' ? 'dev-admin' : undefined;
-  const valid = envSecret || fallback;
-  if (!valid) return { ok: false, reason: 'Missing server secret' };
-  if (header !== valid) return { ok: false, reason: 'Unauthorized' };
-  return { ok: true };
-}

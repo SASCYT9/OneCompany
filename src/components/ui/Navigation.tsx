@@ -68,14 +68,24 @@ export function Navigation() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-out" style={{ background: isScrolled ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.1)', backdropFilter: isScrolled ? 'blur(40px) saturate(180%)' : 'blur(20px) saturate(150%)', boxShadow: isScrolled ? 'inset 0 -1px 0 0 rgba(255,255,255,0.08), 0 4px 24px rgba(0,0,0,0.3)' : 'inset 0 -1px 0 0 rgba(255,255,255,0.04)' }}>
-      <div className="max-w-7xl mx-auto px-8 py-4">
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-out"
+      style={{
+        background: isScrolled ? 'rgba(0, 0, 0, 0.55)' : 'rgba(0, 0, 0, 0.25)',
+        backdropFilter: isScrolled ? 'blur(32px) saturate(180%)' : 'blur(18px) saturate(160%)',
+        boxShadow: isScrolled
+          ? 'inset 0 -1px 0 0 rgba(255,255,255,0.08), 0 6px 28px rgba(0,0,0,0.35)'
+          : 'inset 0 -1px 0 0 rgba(255,255,255,0.04)',
+        paddingTop: 'max(env(safe-area-inset-top, 0px), 0.35rem)'
+      }}
+    >
+      <div className="mx-auto flex max-w-7xl flex-col px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo
               asLink
               priority
-              className="w-40 transition-transform duration-500 hover:scale-[1.02]"
+              className="w-32 transition-transform duration-500 hover:scale-[1.02] sm:w-40"
               tone="light"
             />
             <span className="hidden sm:block text-[11px] font-light text-white/60 tracking-wide">
@@ -90,7 +100,7 @@ export function Navigation() {
               </button>
               <div className="absolute top-full left-0 mt-3 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 group-hover:translate-y-0 -translate-y-2">
                 <div className="rounded-3xl overflow-hidden" style={{ background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(60px) saturate(180%)', boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)' }}>
-                  {stores.map((store, idx) => (
+                  {stores.map((store) => (
                     <Link key={store.name} href={store.url} target="_blank" rel="noopener noreferrer" className="block px-7 py-5 text-white/80 hover:text-white transition-all duration-400 group/item relative overflow-hidden" style={{ borderBottom: 'none' }}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" />
                       <div className="relative z-10 flex items-center justify-between">
@@ -131,25 +141,36 @@ export function Navigation() {
             </div>
           </button>
         </div>
-        <div className={'md:hidden transition-all duration-500 overflow-hidden ' + (isMobileMenuOpen ? 'max-h-screen opacity-100 mt-6' : 'max-h-0 opacity-0')}>
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex items-center gap-2 px-4">
+        <div className={'md:hidden transition-all duration-500 overflow-hidden ' + (isMobileMenuOpen ? 'max-h-[70vh] opacity-100 mt-4' : 'max-h-0 opacity-0')}>
+          <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto rounded-3xl border border-white/10 bg-black/60 p-4 backdrop-blur">
+            <div className="flex items-center gap-2">
               <button onClick={() => setLocale('ua')} className={'px-4 py-2 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'ua' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>UA</button>
               <button onClick={() => setLocale('en')} className={'px-4 py-2 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'en' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>EN</button>
             </div>
-            <Link href="/about" className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.about}</Link>
+            <Link href="/about" className="rounded-2xl px-4 py-2 text-white/70 hover:bg-white/10 hover:text-white transition" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.about}</Link>
             {extraLinks.map(link => (
-              <Link key={link.href} href={link.href} className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link key={link.href} href={link.href} className="rounded-2xl px-4 py-2 text-white/70 hover:bg-white/10 hover:text-white transition" onClick={() => setIsMobileMenuOpen(false)}>
                 {locale==='ua' ? link.labelUa : link.labelEn}
               </Link>
             ))}
             <button
               onClick={() => { setContactOpen(true); setIsMobileMenuOpen(false); }}
-              className="mx-4 mb-4 px-5 py-3 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/15 font-light tracking-wide transition-colors"
+              className="mx-1 mb-2 rounded-full bg-white/10 px-5 py-3 text-white/80 transition hover:bg-white/20 hover:text-white"
             >{t.nav.contact}</button>
             <div className="px-4 pt-2">
               <p className="text-xs uppercase tracking-wider text-white/40 mb-3">{t.nav.stores}</p>
-              {stores.map((store) => (<Link key={store.name} href={store.url} target="_blank" rel="noopener noreferrer" className="block py-2 text-white/60 hover:text-white font-light transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{store.name} </Link>))}
+              {stores.map((store) => (
+                <Link
+                  key={store.name}
+                  href={store.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-2xl px-3 py-2 text-white/65 transition hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {store.name}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -157,10 +178,13 @@ export function Navigation() {
 
       {/* Contact Modal */}
       {contactOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-xl" onClick={() => formState==='submitting'?null:setContactOpen(false)} />
-          <div className="relative z-10 w-full max-w-lg overflow-hidden" style={{ background: 'linear-gradient(165deg, rgba(22,22,26,0.92), rgba(12,12,16,0.92))' }}>
-            <div className="p-8">
+          <div
+            className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 shadow-[0_30px_120px_rgba(0,0,0,0.65)]"
+            style={{ background: 'linear-gradient(165deg, rgba(22,22,26,0.98), rgba(12,12,16,0.95))' }}
+          >
+            <div className="max-h-[90vh] overflow-y-auto p-6 sm:p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-light text-white">{t.nav.contact}</h3>
                 <button onClick={() => setContactOpen(false)} className="text-white/50 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-sm" disabled={formState==='submitting'}>

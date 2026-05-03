@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { addMediaFromBuffer, listMedia, requireAdminSecret } from '@/lib/mediaStore';
+import { cookies } from 'next/headers';
+import { addMediaFromBuffer, listMedia } from '@/lib/mediaStore';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,10 +12,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireAdminSecret(req);
-  if (!auth.ok) return NextResponse.json({ error: auth.reason || 'Unauthorized' }, { status: 401 });
-
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const form = await req.formData();
     const file = form.get('file');
     if (!file || !(file instanceof File)) {
@@ -24,6 +25,9 @@ export async function POST(req: Request) {
     const item = await addMediaFromBuffer(buf, file.name, file.type || 'application/octet-stream');
     return NextResponse.json({ item }, { status: 201 });
   } catch (e: unknown) {
+    if ((e as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const errorMessage = e instanceof Error ? e.message : 'Upload failed';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
