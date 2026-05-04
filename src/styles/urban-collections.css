@@ -368,6 +368,19 @@
   margin-bottom: 28px;
 }
 
+/* Do88 collection grid switches to flex-col on mobile (added via Tailwind
+   `flex-col`). With the parent's unconditional `align-items: end`, that
+   maps to "right edge" — pushing the eyebrow + ІНТЕРКУЛЕРИ title to the
+   right side of the screen. Recenter the title block on mobile only when
+   the flex-col modifier is present, so Urban/Brabus grids (which keep
+   flex-row at every breakpoint) remain unchanged. */
+@media (max-width: 767px) {
+  .urban-product-grid__head.flex-col {
+    align-items: center;
+    text-align: center;
+  }
+}
+
 .urban-product-grid__eyebrow {
   margin: 0 0 8px;
   font-size: 10px;
