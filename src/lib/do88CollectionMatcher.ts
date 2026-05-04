@@ -146,14 +146,12 @@ const EXCLUDED_VEHICLE_PATTERNS: RegExp[] = [
   // Old Porsche
   /\b911\s*\(?930\)?\b/i,
 
-  // Brands not in the One Company target list (Porsche / BMW / Audi /
-  // Volkswagen / Toyota only).
+  // Brands not in the One Company target list. Pure-brand exclusions only
+  // (no in-scope co-occurrence) — see VAG_SISTER_BRAND_PATTERNS below for the
+  // multi-fit relaxation that lets MQB/EA888 platform parts surface.
   /\bsuzuki\b/i,
   /\bopel\b/i,
   /\bbuick\b/i,
-  /\bcupra\b/i,
-  /\bseat(?:\b|\s)/i,
-  /\bskoda\b/i,
   /\bford\b/i,
   /\bmazda\b/i,
   /\brenault\b/i,
@@ -169,6 +167,24 @@ const EXCLUDED_VEHICLE_PATTERNS: RegExp[] = [
   /\baudi\s+rs4\b/i, // RS4 not in target list (only RS3, RS6/RS7 C8)
 ];
 
+/**
+ * VAG sister brands (CUPRA / SEAT / Skoda) appear in two contexts in the do88
+ * catalog: (a) as the primary brand of a sister-only product (e.g. Formentor
+ * VZ5 intercooler — these we don't sell), and (b) as a multi-fit label on
+ * platform parts whose primary fitment is the Audi/VW we DO sell, e.g.
+ * "AUDI SEAT SKODA VW 1.8 / 2.0 TSI (MQB) Intercooler". We only exclude
+ * the (a) case — when no in-scope brand co-occurs in the haystack.
+ */
+const VAG_SISTER_BRAND_PATTERNS: RegExp[] = [
+  /\bcupra\b/i,
+  /\bseat(?:\b|\s)/i,
+  /\bskoda\b/i,
+];
+// Includes platform tokens (MQB, EA888) so do88's "VAG ... MQB Evo" / "MQB Evo
+// 2.0 TSI EA888 Gen4" multi-fit titles for the Mk7/Mk8 Golf survive even when
+// they sit in the supplier's CUPRA folder.
+const VAG_IN_SCOPE_TOKENS = /\b(?:audi|vw|volkswagen|vag|porsche|bmw|toyota|mqb|ea888)\b/i;
+
 function isExcludedVehicleProduct(product: Pick<ShopProduct, 'title' | 'collection' | 'tags'>) {
   const haystack = [
     product.title.en,
@@ -177,7 +193,15 @@ function isExcludedVehicleProduct(product: Pick<ShopProduct, 'title' | 'collecti
     product.collection.ua,
     ...(product.tags ?? []),
   ].join(' ');
-  return EXCLUDED_VEHICLE_PATTERNS.some((pattern) => pattern.test(haystack));
+  if (EXCLUDED_VEHICLE_PATTERNS.some((pattern) => pattern.test(haystack))) {
+    return true;
+  }
+  // VAG sister-brand mention without any in-scope brand → pure SEAT/Skoda/CUPRA
+  // product, exclude. With an in-scope brand co-occurring → multi-fit, keep.
+  if (VAG_SISTER_BRAND_PATTERNS.some((pattern) => pattern.test(haystack))) {
+    return !VAG_IN_SCOPE_TOKENS.test(haystack);
+  }
+  return false;
 }
 
 /**

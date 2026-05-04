@@ -66,8 +66,36 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   ],
   VW: [
     // Newer chassis on top, older below — per shop owner brief.
-    { model: 'Golf GTI / R', chassis: 'Mk8', categoryTokens: ['Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)'] },
-    { model: 'Golf GTI / R', chassis: 'Mk7', categoryTokens: ['Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)'] },
+    {
+      model: 'Golf GTI / R',
+      chassis: 'Mk8',
+      categoryTokens: ['Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)'],
+      // do88 files most EA888 Gen 4 / MQB Evo platform parts under the bare
+      // "Modellanpassat > CUPRA" bucket (titles read "VAG 2.0 TSI EA888 Gen4…"
+      // or "MQB Evo…"). The title gate excludes Formentor-only SKUs (e.g.
+      // ICM-380-VZ5) which sit in the same bucket but don't fit the Mk8 Golf.
+      sharedCategoryTokens: ['CUPRA'],
+      sharedTitleMustInclude: ['Gen4', 'GEN4', 'Gen 4', 'MQB Evo'],
+    },
+    {
+      model: 'Golf GTI / R',
+      chassis: 'Mk7',
+      categoryTokens: ['Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)'],
+      // The vast majority of Mk7 GTI/R-fitting parts live under the Audi A3/S3
+      // EA888 (8V) category as multi-fit MQB-Gen3 platform parts (titles read
+      // "VAG…(MQB)" / "AUDI SEAT SKODA VW 1.8 / 2.0 TSI (MQB)" / "VAG EA888").
+      // do88's GFB dump-valve aisle also lists two valves explicitly tagged
+      // "Fits VW Mk7 Golf R and Audi 8V S3" (T9359, T9659).
+      // Token for the GFB aisle uses the English suffix because that bucket
+      // gets translated by do88's import — "Dumpventiler" → "Dump Valves" —
+      // unlike the chassis-suffix tokens (e.g. "8V 8S") which are identical
+      // across locales.
+      sharedCategoryTokens: [
+        'A3 S3 TT, 2.0 TFSI EA888 (8V 8S)',
+        'GFB Dump Valves',
+      ],
+      sharedTitleMustInclude: ['MQB', 'EA888', 'Mk7 Golf'],
+    },
   ],
   Toyota: [
     {
