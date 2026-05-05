@@ -3,6 +3,7 @@ import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
+  SHOP_BRAND_DEFAULT_RULE_ID,
   type ShopBrandShippingRule,
   type ShopCurrencyCode,
   type ShopRegionalPricingRule,
@@ -265,6 +266,27 @@ function calculateShippingCost(
   let totalCost = zone.baseRate;
   const brandsRequiringQuote = new Set<string>();
 
+  // Default fallback rule (special id '__default__') applies to any item whose
+  // brand has no dedicated rule. Read once up front.
+  const defaultRule = settings.brandShippingRules.find(
+    (r) => r.enabled && r.id === SHOP_BRAND_DEFAULT_RULE_ID,
+  );
+
+  /** Resolve the rule that should govern shipping for an item: brand-specific
+   * first, then the global default. Returns null if neither applies. */
+  function resolveItemRule(itemBrandName: string | null): ShopBrandShippingRule | null {
+    if (itemBrandName) {
+      const specific = settings.brandShippingRules.find(
+        (r) =>
+          r.enabled &&
+          r.id !== SHOP_BRAND_DEFAULT_RULE_ID &&
+          r.brandName.toLowerCase() === itemBrandName.toLowerCase(),
+      );
+      if (specific) return specific;
+    }
+    return defaultRule ?? null;
+  }
+
   if (zone.calcMode === 'volumetric') {
     // Pre-compute per-brand subtotals (in zone.currency) for cart-level rules
     // (tiered / percent / manual_quote). These rules are applied ONCE per brand,
@@ -273,13 +295,14 @@ function calculateShippingCost(
     const cartLevelBrandsSeen = new Set<string>();
     for (const item of items) {
       if (!item.brandName) continue;
-      const rule = settings.brandShippingRules.find(
-        (r) => r.enabled && r.brandName.toLowerCase() === item.brandName?.toLowerCase(),
-      );
+      const rule = resolveItemRule(item.brandName);
       if (!rule) continue;
       if (rule.mode !== 'tiered' && rule.mode !== 'percent' && rule.mode !== 'manual_quote') continue;
       const lineTotalZone = convertAmount(item.total, item.priceSourceCurrency, zone.currency, settings.currencyRates);
-      cartLevelBrandSubtotals.set(rule.brandName, (cartLevelBrandSubtotals.get(rule.brandName) || 0) + lineTotalZone);
+      // Key by item.brandName (NOT rule.brandName) — when default applies, each
+      // brand still gets its own subtotal bucket so a tiered fallback charges
+      // per brand, not once for the whole cart.
+      cartLevelBrandSubtotals.set(item.brandName, (cartLevelBrandSubtotals.get(item.brandName) || 0) + lineTotalZone);
     }
 
     for (const item of items) {
@@ -301,44 +324,43 @@ function calculateShippingCost(
 
       const standardCostForOne = physicalDeliveryCost + volumeSurcharge;
 
-      if (item.brandName) {
-        const rule = settings.brandShippingRules.find((r) => r.enabled && r.brandName.toLowerCase() === item.brandName?.toLowerCase());
-        if (rule) {
-          handledByRule = true;
-          const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
+      const rule = resolveItemRule(item.brandName);
+      if (rule) {
+        handledByRule = true;
+        const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
+        // Use the item's brand for cart-level keying so default-rule applications
+        // bucket per brand. brandsRequiringQuote messaging also reads better
+        // ("Brabus needs a quote") than the literal default-rule label.
+        const brandKey = item.brandName || rule.brandName || 'default';
 
-          if (rule.mode === 'free') {
-            itemCost = 0;
-          } else if (rule.mode === 'fixed') {
-            const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
-            itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
-          } else if (rule.mode === 'multiplier') {
-            itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
-          } else if (rule.mode === 'tiered' || rule.mode === 'percent') {
-            // Cart-level rule: apply ONCE per brand, on first occurrence.
-            // Subsequent items of the same brand only contribute warehouseRatePerKg.
-            if (!cartLevelBrandsSeen.has(rule.brandName)) {
-              cartLevelBrandsSeen.add(rule.brandName);
-              const brandSubtotalZone = cartLevelBrandSubtotals.get(rule.brandName) || 0;
-              // Convert brand subtotal to rule.currency for bracket / percent math
-              const brandSubtotalRuleCurrency = convertAmount(brandSubtotalZone, zone.currency, rule.currency, settings.currencyRates);
-              let feeRuleCurrency = 0;
-              if (rule.mode === 'tiered') {
-                feeRuleCurrency = pickTieredFee(rule.brackets ?? [], brandSubtotalRuleCurrency);
-              } else {
-                // percent of subtotal
-                feeRuleCurrency = brandSubtotalRuleCurrency * (rule.value / 100);
-              }
-              const feeZone = convertAmount(feeRuleCurrency, rule.currency, zone.currency, settings.currencyRates);
-              itemCost = feeZone + warehouseDeliveryCostForOne * item.quantity;
+        if (rule.mode === 'free') {
+          itemCost = 0;
+        } else if (rule.mode === 'fixed') {
+          const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
+          itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
+        } else if (rule.mode === 'multiplier') {
+          itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
+        } else if (rule.mode === 'tiered' || rule.mode === 'percent') {
+          // Cart-level rule: apply ONCE per brand, on first occurrence.
+          // Subsequent items of the same brand only contribute warehouseRatePerKg.
+          if (!cartLevelBrandsSeen.has(brandKey)) {
+            cartLevelBrandsSeen.add(brandKey);
+            const brandSubtotalZone = cartLevelBrandSubtotals.get(brandKey) || 0;
+            const brandSubtotalRuleCurrency = convertAmount(brandSubtotalZone, zone.currency, rule.currency, settings.currencyRates);
+            let feeRuleCurrency = 0;
+            if (rule.mode === 'tiered') {
+              feeRuleCurrency = pickTieredFee(rule.brackets ?? [], brandSubtotalRuleCurrency);
             } else {
-              itemCost = warehouseDeliveryCostForOne * item.quantity;
+              feeRuleCurrency = brandSubtotalRuleCurrency * (rule.value / 100);
             }
-          } else if (rule.mode === 'manual_quote') {
-            // No automatic shipping cost — storefront must trigger a quote.
-            brandsRequiringQuote.add(rule.brandName);
-            itemCost = 0;
+            const feeZone = convertAmount(feeRuleCurrency, rule.currency, zone.currency, settings.currencyRates);
+            itemCost = feeZone + warehouseDeliveryCostForOne * item.quantity;
+          } else {
+            itemCost = warehouseDeliveryCostForOne * item.quantity;
           }
+        } else if (rule.mode === 'manual_quote') {
+          brandsRequiringQuote.add(brandKey);
+          itemCost = 0;
         }
       }
 
