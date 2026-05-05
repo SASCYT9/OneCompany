@@ -245,74 +245,86 @@ export async function POST(req: Request) {
       totalPagesFromMeta = Number(body.meta.total_pages);
     }
 
-    // Filter and run upserts SEQUENTIALLY. Earlier attempts with Promise.all
-    // returned a bare 500 after ~23s — Prisma Accelerate apparently hangs
-    // or fails when ~hundreds of upserts run concurrently. Sequential is
-    // slower per page but it doesn't fall over.
-    let pageUpsertErrors = 0;
+    // Filter then BULK-insert via createMany (single SQL round-trip per
+    // page). Sequential upserts via Prisma Accelerate proxy were ~600ms
+    // each — for 67 items per page that's 40s, and full catalog would
+    // take >7 hours. createMany is one INSERT statement so a page lands
+    // in <1s.
+    //
+    // Tradeoff: createMany with skipDuplicates means existing rows aren't
+    // updated. For a fresh catalog load (current Turn14Item is empty) this
+    // is exactly right. A separate "refresh" pathway can later target only
+    // changed rows; we don't need it for the initial population.
+    type ItemRow = {
+      id: string;
+      partNumber: string;
+      brand: string;
+      brandId: string;
+      name: string;
+      category: string | null;
+      subcategory: string | null;
+      price: number;
+      inStock: boolean;
+      thumbnail: string | null;
+      attributes: any;
+    };
+    const rows: ItemRow[] = [];
     for (const it of items) {
       const attrs = it?.attributes || {};
       const itemBrandId = attrs.brand_id !== undefined ? String(attrs.brand_id) : null;
       if (!itemBrandId || !targetMap.has(itemBrandId)) continue;
 
       totalItemsKept++;
-      const partNumber: string =
-        (attrs.part_number || attrs.mfr_part_number || '').toString();
-      const name: string = (attrs.product_name || attrs.item_name || attrs.name || 'Auto Part').toString();
       const brandName = targetMap.get(itemBrandId) as string;
-      const category = attrs.category ?? null;
-      const subcategory = attrs.subcategory ?? null;
-      const price =
-        parseFloat(
-          attrs.retail_price || attrs.list_price || attrs.price || '0',
-        ) || 0;
-      const inStock =
-        attrs.regular_stock > 0 ||
-        attrs.can_purchase === true ||
-        attrs.in_stock === true;
-      const thumbnail =
-        attrs.thumbnail || attrs.primary_image || attrs.image_url || null;
-
-      try {
-        await prisma.turn14Item.upsert({
-          where: { id: String(it.id) },
-          create: {
-            id: String(it.id),
-            partNumber,
-            brand: brandName,
-            brandId: itemBrandId,
-            name,
-            category,
-            subcategory,
-            price,
-            inStock,
-            thumbnail,
-            attributes: attrs,
-          },
-          update: {
-            partNumber,
-            brand: brandName,
-            brandId: itemBrandId,
-            name,
-            category,
-            subcategory,
-            price,
-            inStock,
-            thumbnail,
-            attributes: attrs,
-          },
-        });
-        totalItemsUpserted++;
-        perBrandUpserted[brandName] = (perBrandUpserted[brandName] || 0) + 1;
-      } catch {
-        pageUpsertErrors++;
-      }
+      rows.push({
+        id: String(it.id),
+        partNumber: (attrs.part_number || attrs.mfr_part_number || '').toString(),
+        brand: brandName,
+        brandId: itemBrandId,
+        name: (attrs.product_name || attrs.item_name || attrs.name || 'Auto Part').toString(),
+        category: attrs.category ?? null,
+        subcategory: attrs.subcategory ?? null,
+        price:
+          parseFloat(
+            attrs.retail_price || attrs.list_price || attrs.price || '0',
+          ) || 0,
+        inStock:
+          attrs.regular_stock > 0 ||
+          attrs.can_purchase === true ||
+          attrs.in_stock === true,
+        thumbnail: attrs.thumbnail || attrs.primary_image || attrs.image_url || null,
+        attributes: attrs,
+      });
+      perBrandUpserted[brandName] = (perBrandUpserted[brandName] || 0) + 1;
     }
-    // (intentionally swallow per-item errors so one bad row doesn't sink
-    // the whole chunk; aggregate count is reported in the response.)
-    if (pageUpsertErrors > 0) {
-      // Bubble through the response counter; not adding a new field to keep
-      // the diagnostic shape stable.
+    if (rows.length > 0) {
+      try {
+        const result = await prisma.turn14Item.createMany({
+          data: rows,
+          skipDuplicates: true,
+        });
+        totalItemsUpserted += result.count;
+      } catch (err) {
+        // Bail with diagnostic — single failed page should still tell
+        // caller how many we got.
+        return NextResponse.json(
+          {
+            success: false,
+            error: `createMany failed at page ${page}: ${(err as Error).message?.slice(0, 200)}`,
+            progress: {
+              startPage,
+              stoppedAtPage: page,
+              totalItemsSeen,
+              totalItemsKept,
+              totalItemsUpserted,
+              perBrandUpserted,
+              elapsedSec: (Date.now() - startedAt) / 1000,
+              markupsUpserted,
+            },
+          },
+          { status: 500 },
+        );
+      }
     }
 
     lastFullyProcessedPage = page;
