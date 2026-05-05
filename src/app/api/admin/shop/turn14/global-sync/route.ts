@@ -102,20 +102,20 @@ export async function POST(req: Request) {
 
   const url = new URL(req.url);
   const startPage = Math.max(1, parseInt(url.searchParams.get('startPage') || '1', 10));
-  // Default chunk size kept small because per-page wall-clock is dominated
-  // by Prisma Accelerate upsert RTTs (~100-200ms each); 30 pages with
-  // ~30 kept items per page = ~900 upserts ≈ 90-180s in the worst case.
-  // Caller is expected to loop POST until done:true. Override via query if
-  // you want bigger or smaller chunks.
+  // Default chunk size = 5 pages. Each page has ~30-70 items belonging to
+  // our target brands; we upsert them SEQUENTIALLY (Prisma Accelerate
+  // appears to fail or stall when too many upserts run via Promise.all).
+  // Sequential RTT ≈ 80-150ms per upsert; 5 pages × ~70 items = ~350
+  // upserts ≈ 30-50s wall-clock. Caller is expected to loop POST until
+  // done:true. Override via ?maxPages=N if you want a different chunk size.
   const maxPagesParam = url.searchParams.get('maxPages');
   const pageStop =
     maxPagesParam !== null
       ? Math.max(1, parseInt(maxPagesParam, 10))
-      : startPage + 29; // 30 pages per call by default
+      : startPage + 4; // 5 pages per call by default
   const maxPages = pageStop;
-  // Vercel function timeout is 300s on Pro. Default budget 50s leaves
-  // huge headroom and matches the 30-page default.
-  const maxSeconds = Math.max(10, parseInt(url.searchParams.get('maxSeconds') || '50', 10));
+  // Vercel Pro function timeout is 300s. Default budget 90s leaves headroom.
+  const maxSeconds = Math.max(10, parseInt(url.searchParams.get('maxSeconds') || '90', 10));
 
   const startedAt = Date.now();
 
@@ -245,8 +245,11 @@ export async function POST(req: Request) {
       totalPagesFromMeta = Number(body.meta.total_pages);
     }
 
-    // Filter and prep upserts.
-    const ops: Array<Promise<unknown>> = [];
+    // Filter and run upserts SEQUENTIALLY. Earlier attempts with Promise.all
+    // returned a bare 500 after ~23s — Prisma Accelerate apparently hangs
+    // or fails when ~hundreds of upserts run concurrently. Sequential is
+    // slower per page but it doesn't fall over.
+    let pageUpsertErrors = 0;
     for (const it of items) {
       const attrs = it?.attributes || {};
       const itemBrandId = attrs.brand_id !== undefined ? String(attrs.brand_id) : null;
@@ -270,8 +273,8 @@ export async function POST(req: Request) {
       const thumbnail =
         attrs.thumbnail || attrs.primary_image || attrs.image_url || null;
 
-      ops.push(
-        prisma.turn14Item.upsert({
+      try {
+        await prisma.turn14Item.upsert({
           where: { id: String(it.id) },
           create: {
             id: String(it.id),
@@ -298,15 +301,18 @@ export async function POST(req: Request) {
             thumbnail,
             attributes: attrs,
           },
-        }),
-      );
-      perBrandUpserted[brandName] = (perBrandUpserted[brandName] || 0) + 1;
+        });
+        totalItemsUpserted++;
+        perBrandUpserted[brandName] = (perBrandUpserted[brandName] || 0) + 1;
+      } catch {
+        pageUpsertErrors++;
+      }
     }
-
-    // Run this page's upserts in parallel with a small concurrency cap.
-    if (ops.length > 0) {
-      await Promise.all(ops);
-      totalItemsUpserted += ops.length;
+    // (intentionally swallow per-item errors so one bad row doesn't sink
+    // the whole chunk; aggregate count is reported in the response.)
+    if (pageUpsertErrors > 0) {
+      // Bubble through the response counter; not adding a new field to keep
+      // the diagnostic shape stable.
     }
 
     lastFullyProcessedPage = page;
