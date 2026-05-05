@@ -59,11 +59,12 @@ type ShopShippingZone = {
 type ShopBrandShippingRule = {
   id: string;
   brandName: string;
-  mode: 'fixed' | 'multiplier' | 'free';
+  mode: 'fixed' | 'multiplier' | 'free' | 'tiered' | 'percent' | 'manual_quote';
   value: number;
   warehouseRatePerKg: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
+  brackets?: Array<{ maxAmount: number | null; fee: number }>;
 };
 
 type ShopTaxRegion = {
