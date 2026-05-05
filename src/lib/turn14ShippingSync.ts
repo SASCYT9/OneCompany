@@ -606,6 +606,30 @@ export async function syncBrandShippingData(
 }
 
 /**
+ * Car-make labels that ShopProduct.brand uses to GROUP Urban Automotive
+ * products on the storefront (e.g. "Land Rover", "Audi", "Lamborghini" —
+ * see src/app/[locale]/shop/data/urbanCollectionsList.ts URBAN_COLLECTION_BRANDS).
+ * These aren't tuning-part brands and are not present on Turn14, so they
+ * pollute the shipping-sync brand picker. Hide them from this admin tool.
+ *
+ * Hardcoded (mirroring URBAN_COLLECTION_BRANDS) instead of imported to keep
+ * the lib free of `app/` dependencies; if the storefront list grows, just
+ * add the new entry here too.
+ */
+const URBAN_PSEUDO_BRANDS = new Set<string>(
+  [
+    'land rover',
+    'lamborghini',
+    'rolls-royce',
+    'mercedes-benz',
+    'audi',
+    'range rover',
+    'bentley',
+    'volkswagen',
+  ].map((s) => s.toLowerCase()),
+);
+
+/**
  * List ShopProduct distinct brands enriched with Turn14 mapping info.
  *
  * `turn14BrandId` is non-null when the brand has a row in `Turn14BrandMarkup`
@@ -613,9 +637,13 @@ export async function syncBrandShippingData(
  * the operator instantly see which shop brands are syncable via Turn14
  * without trial-and-error.
  *
- * Brands without a markup row are NOT hidden — the sync path still tries an
- * exact + substring match against the live Turn14 brands list, so the
- * operator can attempt them. The badge is just a hint about confidence.
+ * Excluded: car-make pseudo-brands used to group Urban products on the
+ * storefront. Those rows belong to Urban Automotive parts, not to a
+ * Turn14-syncable supplier, so they're hidden from this admin tool.
+ *
+ * Brands without a markup row are still shown — the sync path still tries
+ * an exact + substring match against the live Turn14 brands list, so the
+ * operator can attempt them. The "?" badge flags them visually.
  */
 export async function listShopBrands(
   prisma: PrismaClient,
@@ -634,6 +662,7 @@ export async function listShopBrands(
   }
   return rows
     .filter((r) => r.brand && r.brand.trim().length > 0)
+    .filter((r) => !URBAN_PSEUDO_BRANDS.has((r.brand as string).trim().toLowerCase()))
     .map((r) => ({
       brand: r.brand as string,
       productCount: r._count._all,
