@@ -10,7 +10,10 @@ import '../racechip-shop.css';
 
 // racechip/catalog inlines the full Racechip product catalogue (~25 MB
 // pre-rendered) which exceeds Vercel's ISR fallback limit (19.07 MB).
-// Stay dynamic; future optimization: paginate or split the catalog.
+// Force-dynamic so Next.js 16 doesn't emit an .rsc.fallback file for it
+// (Next 16 generates one even without force-static, unlike prior versions).
+// Future optimization: paginate or split the catalog.
+export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ locale: string }>;
