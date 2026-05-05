@@ -83,7 +83,7 @@ function emptyRule(id: string, brandName: string): Rule {
   };
 }
 
-function ruleFromServer(r: SettingsResponse['brandShippingRules'][number]): Rule {
+function ruleFromServer(r: NonNullable<SettingsResponse['brandShippingRules']>[number]): Rule {
   return {
     id: r.id,
     brandName: r.brandName,
