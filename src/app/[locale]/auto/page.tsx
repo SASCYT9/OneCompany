@@ -7,6 +7,7 @@ import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { categoryData } from "@/lib/categoryData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 interface Props {
