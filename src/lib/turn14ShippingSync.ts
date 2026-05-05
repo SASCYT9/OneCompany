@@ -50,6 +50,12 @@ export interface SyncBrandShippingResult {
   unmatched: Array<{ variantId: string; sku: string | null; reason: string }>;
   dryRun: boolean;
   durationMs: number;
+  /** Diagnostics — populated only on dry-run when no matches found. */
+  debug?: {
+    turn14ItemMapSize: number;
+    turn14SampleKeys: string[];
+    turn14SamplePartPairs: Array<{ partNumber: string; mfrPartNumber: string | null }>;
+  };
 }
 
 export interface SyncBrandShippingOptions {
@@ -269,6 +275,21 @@ export async function syncBrandShippingData(
 
   // 3. Build SKU map for this brand from Turn14
   const itemMap = await buildBrandItemMap(turn14BrandId, maxPagesPerBrand);
+
+  // Stash a small diagnostic sample so we can see why matches fail.
+  const seenIds = new Set<string>();
+  const samplePartPairs: Array<{ partNumber: string; mfrPartNumber: string | null }> = [];
+  for (const entry of itemMap.values()) {
+    if (seenIds.has(entry.id)) continue;
+    seenIds.add(entry.id);
+    samplePartPairs.push({ partNumber: entry.partNumber, mfrPartNumber: entry.mfrPartNumber });
+    if (samplePartPairs.length >= 10) break;
+  }
+  result.debug = {
+    turn14ItemMapSize: itemMap.size,
+    turn14SampleKeys: Array.from(itemMap.keys()).slice(0, 10),
+    turn14SamplePartPairs: samplePartPairs,
+  };
 
   // 4. Iterate variants
   for (const variant of variants) {
