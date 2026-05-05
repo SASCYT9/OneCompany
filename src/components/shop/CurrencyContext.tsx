@@ -75,7 +75,7 @@ export function ShopCurrencyProvider({
   const normalizedDefaultCurrency = normalizeCurrency(defaultCurrency, "UAH");
   const [region, setRegionState] = useState<RegionCode>(currencyToRegion(normalizedDefaultCurrency));
   const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
-  const [rates, setRates] = useState<Rates | null>(normalizeRates(initialRates));
+  const [rates] = useState<Rates | null>(normalizeRates(initialRates));
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -111,31 +111,6 @@ export function ShopCurrencyProvider({
       })
     );
   }, [region, currency]);
-
-  useEffect(() => {
-    async function fetchRates() {
-      try {
-        const [eurRes, usdRes] = await Promise.all([
-          fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=EUR&json"),
-          fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json"),
-        ]);
-        const eurJson = await eurRes.json();
-        const usdJson = await usdRes.json();
-        const eurRate = typeof eurJson?.[0]?.rate === "number" ? eurJson[0].rate : Number(eurJson?.[0]?.rate);
-        const usdRate = typeof usdJson?.[0]?.rate === "number" ? usdJson[0].rate : Number(usdJson?.[0]?.rate);
-        if (!Number.isFinite(eurRate) || !Number.isFinite(usdRate)) return;
-        setRates({
-          base: "EUR",
-          UAH: eurRate,
-          EUR: 1,
-          USD: eurRate / usdRate,
-        });
-      } catch {
-        // fail silently – використовуємо вбудовані прайси
-      }
-    }
-    fetchRates();
-  }, []);
 
   function setRegion(next: RegionCode) {
     setRegionState(next);
