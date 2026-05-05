@@ -102,10 +102,20 @@ export async function POST(req: Request) {
 
   const url = new URL(req.url);
   const startPage = Math.max(1, parseInt(url.searchParams.get('startPage') || '1', 10));
-  const maxPages = Math.max(1, parseInt(url.searchParams.get('maxPages') || '760', 10));
-  // Vercel function timeout is 300s on Pro. Default budget 240s leaves room
-  // for response serialization and a graceful exit.
-  const maxSeconds = Math.max(30, parseInt(url.searchParams.get('maxSeconds') || '240', 10));
+  // Default chunk size kept small because per-page wall-clock is dominated
+  // by Prisma Accelerate upsert RTTs (~100-200ms each); 30 pages with
+  // ~30 kept items per page = ~900 upserts ≈ 90-180s in the worst case.
+  // Caller is expected to loop POST until done:true. Override via query if
+  // you want bigger or smaller chunks.
+  const maxPagesParam = url.searchParams.get('maxPages');
+  const pageStop =
+    maxPagesParam !== null
+      ? Math.max(1, parseInt(maxPagesParam, 10))
+      : startPage + 29; // 30 pages per call by default
+  const maxPages = pageStop;
+  // Vercel function timeout is 300s on Pro. Default budget 50s leaves
+  // huge headroom and matches the 30-page default.
+  const maxSeconds = Math.max(10, parseInt(url.searchParams.get('maxSeconds') || '50', 10));
 
   const startedAt = Date.now();
 
@@ -189,12 +199,13 @@ export async function POST(req: Request) {
   let totalItemsUpserted = 0;
   const perBrandUpserted: Record<string, number> = {};
   let totalPagesFromMeta: number | undefined;
-  let nextPage: number | null = null;
+  let lastFullyProcessedPage = startPage - 1; // none yet
+  let stopReason: 'done' | 'budget' | 'pagecap' | 'empty' = 'done';
 
   while (page <= maxPages) {
     const elapsedSec = (Date.now() - startedAt) / 1000;
     if (elapsedSec > maxSeconds) {
-      nextPage = page;
+      stopReason = 'budget';
       break;
     }
 
@@ -223,7 +234,12 @@ export async function POST(req: Request) {
     }
 
     const items = body?.data || [];
-    if (items.length === 0) break;
+    if (items.length === 0) {
+      // Empty page = end of catalog — fully done regardless of meta.
+      stopReason = 'empty';
+      lastFullyProcessedPage = page - 1;
+      break;
+    }
     totalItemsSeen += items.length;
     if (totalPagesFromMeta === undefined && body?.meta?.total_pages) {
       totalPagesFromMeta = Number(body.meta.total_pages);
@@ -293,17 +309,45 @@ export async function POST(req: Request) {
       totalItemsUpserted += ops.length;
     }
 
-    if (totalPagesFromMeta !== undefined && page >= totalPagesFromMeta) break;
+    lastFullyProcessedPage = page;
+    if (totalPagesFromMeta !== undefined && page >= totalPagesFromMeta) {
+      stopReason = 'done';
+      page++;
+      break;
+    }
     page++;
   }
+  if (stopReason !== 'budget' && stopReason !== 'empty' && stopReason !== 'done') {
+    // Loop exited because page > maxPages (maxPages is the inclusive upper
+    // bound); we have more pages to walk in a follow-up call.
+    if (totalPagesFromMeta === undefined || lastFullyProcessedPage < totalPagesFromMeta) {
+      stopReason = 'pagecap';
+    }
+  }
+  // Detect "loop ended because page > maxPages" precisely. After the loop,
+  // if stopReason is still 'done' but we didn't hit the catalog end, downgrade
+  // to 'pagecap'.
+  if (
+    stopReason === 'done' &&
+    lastFullyProcessedPage > 0 &&
+    totalPagesFromMeta !== undefined &&
+    lastFullyProcessedPage < totalPagesFromMeta
+  ) {
+    stopReason = 'pagecap';
+  }
+  const fullyDone = stopReason === 'done' || stopReason === 'empty';
+  const nextPage = fullyDone ? null : lastFullyProcessedPage + 1;
 
   const elapsedSec = (Date.now() - startedAt) / 1000;
   return NextResponse.json({
     success: true,
-    done: nextPage === null,
+    done: fullyDone,
     nextPage, // null when fully done; otherwise the page to resume from
+    stopReason, // 'done' | 'empty' | 'budget' | 'pagecap'
     startPage,
-    lastPageProcessed: nextPage !== null ? nextPage - 1 : page,
+    maxPages,
+    maxSeconds,
+    lastPageProcessed: lastFullyProcessedPage,
     totalPagesFromMeta,
     targetBrandCount: targetMap.size,
     targetBrands: Array.from(targetMap.values()).slice(0, 50),
