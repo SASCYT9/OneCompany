@@ -130,10 +130,12 @@ export async function POST(req: Request) {
   // 2. Fetch Turn14 /v1/brands and intersect.
   await throttle();
   const brandsRes = await fetchTurn14Brands();
-  const allTurn14Brands: Array<{ id: string; name: string }> = (brandsRes?.data || []).map((b: any) => ({
-    id: String(b?.id ?? ''),
-    name: ((b?.attributes?.name || b?.name || '') as string).trim(),
-  })).filter((b) => b.id && b.name);
+  const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
+    .map((b): { id: string; name: string } => ({
+      id: String(b?.id ?? ''),
+      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+    }))
+    .filter((b) => b.id && b.name);
   const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
 
   if (targetMap.size === 0) {
@@ -302,10 +304,12 @@ export async function GET() {
   const txt = await fs.readFile(path.join(process.cwd(), 'BRANDS_LIST.txt'), 'utf8');
   const brandsListNames = parseBrandsList(txt);
   const brandsRes = await fetchTurn14Brands();
-  const allTurn14Brands: Array<{ id: string; name: string }> = (brandsRes?.data || []).map((b: any) => ({
-    id: String(b?.id ?? ''),
-    name: ((b?.attributes?.name || b?.name || '') as string).trim(),
-  })).filter((b) => b.id && b.name);
+  const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
+    .map((b): { id: string; name: string } => ({
+      id: String(b?.id ?? ''),
+      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+    }))
+    .filter((b) => b.id && b.name);
   const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
 
   return NextResponse.json({
