@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
@@ -29,6 +29,7 @@ export default async function LocalizedHomePage({
   params,
 }: LocalizedHomePageProps) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("home");
   const resolvedLocale = resolveLocale(locale);
   const typography = getTypography(resolvedLocale);

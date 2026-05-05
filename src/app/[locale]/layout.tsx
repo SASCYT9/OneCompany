@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { unstable_cache } from 'next/cache';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import Footer from '@/components/shared/Footer';
@@ -50,6 +50,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   if (!locales.includes(locale)) {
     notFound();
   }
+
+  // Required for static rendering: the next-intl middleware is skipped for
+  // already-localized paths in proxy.ts (to preserve ISR caching), so without
+  // this call requestLocale is undefined and getRequestConfig falls back to
+  // the default 'ua' locale — breaking translations on /en pages.
+  setRequestLocale(locale);
 
   // Get messages for this locale
   const messages = await getMessages();

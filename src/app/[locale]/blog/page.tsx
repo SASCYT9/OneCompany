@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import {
@@ -74,6 +74,7 @@ const getPreviewText = (caption: string, title: string, max = 180) => {
 
 export default async function BlogPage({ params }: Props) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const l = resolveLocale(locale);
   const t = await getTranslations("blog");
   const content = await readSiteContent();

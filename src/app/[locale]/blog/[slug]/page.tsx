@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import {
@@ -127,6 +127,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { locale, slug } = await params;
+  setRequestLocale(locale);
   const l = resolveLocale(locale);
   const t = await getTranslations("blog");
   const content = await readSiteContent();
