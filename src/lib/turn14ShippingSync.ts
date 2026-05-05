@@ -50,13 +50,20 @@ export interface SyncBrandShippingResult {
   unmatched: Array<{ variantId: string; sku: string | null; reason: string }>;
   dryRun: boolean;
   durationMs: number;
-  /** Diagnostics — populated only on dry-run when no matches found. */
+  /** Diagnostics — populated to help triage match failures. */
   debug?: {
-    turn14ItemMapSize: number;
-    turn14SampleKeys: string[];
-    turn14SamplePartPairs: Array<{ partNumber: string; mfrPartNumber: string | null }>;
+    turn14ItemMapSize?: number;
+    turn14SampleKeys?: string[];
+    turn14SamplePartPairs?: Array<{ partNumber: string; mfrPartNumber: string | null }>;
     /** Up to 8 Turn14 brands whose name shares any token with the requested brand. */
     turn14CandidateBrands?: Array<{ id: string; name: string }>;
+    /** How many /v1/items pages we walked. */
+    turn14PagesWalked?: number;
+    /** How many raw items came back across those pages. */
+    turn14ItemCount?: number;
+    /** Distribution of attributes.brand_name across returned items. If
+     * brand_id is filtering correctly there should be exactly one key. */
+    turn14BrandNameDistribution?: Record<string, number>;
   };
 }
 
@@ -193,36 +200,54 @@ export async function resolveTurn14BrandId(
   return substring?.id ?? null;
 }
 
+interface BrandItemMapResult {
+  map: Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>;
+  pagesWalked: number;
+  itemCount: number;
+  /** Distribution of brand_name as reported by Turn14 in attributes. */
+  brandNameDistribution: Record<string, number>;
+}
+
 /**
  * Build a SKU/MPN -> turn14ItemId map for a single brand by walking all
  * pages of /v1/items?brand_id={id}. Limited by maxPagesPerBrand.
  *
- * Throttled to ~4 req/s (Turn14 caps at 5).
+ * Throttled to ~4 req/s (Turn14 caps at 5). Also tracks the distribution
+ * of `attributes.brand_name` across returned items so we can detect when
+ * Turn14 silently ignores `brand_id` and returns the full catalog.
  */
 async function buildBrandItemMap(
   turn14BrandId: string,
   maxPagesPerBrand: number,
-): Promise<Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>> {
+): Promise<BrandItemMapResult> {
   const map = new Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>();
+  const brandNameDistribution: Record<string, number> = {};
   let page = 1;
+  let pagesWalked = 0;
+  let itemCount = 0;
   while (page <= maxPagesPerBrand) {
     await turn14Throttle();
     const body = await fetchTurn14ItemsByBrand(turn14BrandId, page);
     const items: any[] = body?.data || [];
+    pagesWalked++;
     if (items.length === 0) break;
     for (const it of items) {
       const attrs = it?.attributes || {};
       const partNumber: string | undefined = attrs.part_number;
       const mfrPartNumber: string | undefined = attrs.mfr_part_number;
+      const brandName: string | undefined = attrs.brand_name || attrs.brand;
       const entry = { id: String(it.id), partNumber: partNumber || '', mfrPartNumber: mfrPartNumber || null };
       if (partNumber) map.set(partNumber.toUpperCase(), entry);
       if (mfrPartNumber) map.set(mfrPartNumber.toUpperCase(), entry);
+      itemCount++;
+      const key = (brandName || '<none>').trim();
+      brandNameDistribution[key] = (brandNameDistribution[key] || 0) + 1;
     }
     const totalPages = body?.meta?.total_pages;
     if (typeof totalPages === 'number' && page >= totalPages) break;
     page++;
   }
-  return map;
+  return { map, pagesWalked, itemCount, brandNameDistribution };
 }
 
 /**
@@ -318,7 +343,10 @@ export async function syncBrandShippingData(
   }
 
   // 3. Build SKU map for this brand from Turn14
-  const itemMap = await buildBrandItemMap(turn14BrandId, maxPagesPerBrand);
+  const { map: itemMap, pagesWalked, itemCount, brandNameDistribution } = await buildBrandItemMap(
+    turn14BrandId,
+    maxPagesPerBrand,
+  );
 
   // Stash a small diagnostic sample so we can see why matches fail.
   const seenIds = new Set<string>();
@@ -330,9 +358,13 @@ export async function syncBrandShippingData(
     if (samplePartPairs.length >= 10) break;
   }
   result.debug = {
+    ...(result.debug ?? {}),
     turn14ItemMapSize: itemMap.size,
     turn14SampleKeys: Array.from(itemMap.keys()).slice(0, 10),
     turn14SamplePartPairs: samplePartPairs,
+    turn14PagesWalked: pagesWalked,
+    turn14ItemCount: itemCount,
+    turn14BrandNameDistribution: brandNameDistribution,
   };
 
   // 4. Iterate variants
