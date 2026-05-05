@@ -284,10 +284,16 @@ export default function LogisticsPage() {
           <p className="mt-2 text-white/40 text-sm max-w-2xl">
             Управління складами, зонами доставки та логістичними тарифами. Кожен склад має власний набір зон з незалежними тарифами.
           </p>
-          <Link href="/admin/shop/logistics/taxes"
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-none border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[11px] uppercase tracking-widest font-medium hover:bg-rose-500/10 transition-all">
-            <Receipt className="w-3.5 h-3.5" /> Регіональні Податки
-          </Link>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Link href="/admin/shop/logistics/taxes"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[11px] uppercase tracking-widest font-medium hover:bg-rose-500/10 transition-all">
+              <Receipt className="w-3.5 h-3.5" /> Регіональні Податки
+            </Link>
+            <Link href="/admin/shop/logistics/brand-rules"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-blue-500/20 bg-blue-500/5 text-blue-300 text-[11px] uppercase tracking-widest font-medium hover:bg-blue-500/10 transition-all">
+              <Package className="w-3.5 h-3.5" /> Правила доставки за брендом
+            </Link>
+          </div>
         </div>
 
         {/* ─── Warehouse Cards ─── */}

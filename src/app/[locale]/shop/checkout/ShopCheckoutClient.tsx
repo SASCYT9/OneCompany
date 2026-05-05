@@ -46,6 +46,9 @@ type CheckoutQuote = {
   taxRegion: { id: string; name: string; rate?: number } | null;
   regionalPricingRule: { id: string; name: string; value?: number; mode?: 'percent' | 'fixed'; currency?: string } | null;
   showTaxesIncludedNotice: boolean;
+  /** True when at least one brand in the cart is `manual_quote`. Backend-driven flag. */
+  requiresQuote?: boolean;
+  brandsRequiringQuote?: string[];
 };
 
 type PaymentOptions = {
@@ -503,12 +506,30 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             ) : null}
           </div>
 
+          {quote?.requiresQuote ? (
+            <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-950/20 p-4 text-amber-100">
+              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-300">
+                {isUa ? 'Потрібен ручний прорахунок' : 'Manual quote required'}
+              </div>
+              <p className="mt-2 text-[13px] leading-5 text-amber-100/85">
+                {isUa
+                  ? `У кошику є товари брендів${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(', ')})` : ''}, для яких доставка прораховується вручну. Менеджер зв'яжеться з вами для уточнення вартості.`
+                  : `Your cart contains items from brands${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(', ')})` : ''} that require manual quoting. A manager will reach out to confirm shipping.`}
+              </p>
+            </div>
+          ) : null}
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || quote?.requiresQuote === true}
             className="w-full rounded-full border border-white/10 bg-zinc-950 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-[#c29d59] transition-all duration-300 hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.3)] shadow-2xl disabled:opacity-50"
+            title={quote?.requiresQuote ? (isUa ? 'Спочатку залиш заявку нижче' : 'Submit a quote request first') : undefined}
           >
-            {submitting ? (isUa ? 'Відправка…' : 'Submitting…') : (isUa ? 'Підтвердити замовлення' : 'Place order')}
+            {submitting
+              ? (isUa ? 'Відправка…' : 'Submitting…')
+              : quote?.requiresQuote
+                ? (isUa ? 'Запит на прорахунок (скоро)' : 'Quote request (coming soon)')
+                : (isUa ? 'Підтвердити замовлення' : 'Place order')}
           </button>
         </form>
       </div>

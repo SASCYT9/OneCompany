@@ -2,122 +2,159 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
-import { getTurn14AccessToken } from '@/lib/turn14';
+import {
+  syncBrandShippingData,
+  listShopBrands,
+  type SyncBrandShippingResult,
+} from '@/lib/turn14ShippingSync';
+import { lookupShippingDims } from '@/lib/perplexityDimensions';
 
-async function fetchAllTurn14ItemsMap(): Promise<Record<string, string>> {
-  const token = await getTurn14AccessToken();
-  const map: Record<string, string> = {};
+/**
+ * SHIPPING-DATA-ONLY Turn14 sync.
+ *
+ * GET  — list shop brands (for the admin UI dropdown).
+ * POST — sync one brand. Defaults to dry-run; pass `apply=true` to mutate.
+ *
+ * This route NEVER writes title / description / image fields — see
+ * `src/lib/turn14ShippingSync.ts` for the field whitelist.
+ */
 
-  // For safety and time limit on Vercel, we only fetch first 50 pages or until end
-  // In a real cron environment, we would fetch all 740 pages.
-  let page = 1;
-  const maxPages = 50; 
+export async function GET() {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
 
-  while (page <= maxPages) {
-    const url = `https://api.turn14.com/v1/items?page=${page}`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) break;
-    const body = await res.json();
-    if (!body.data || body.data.length === 0) break;
-
-    for (const item of body.data) {
-       // Save mfr_part_number OR part_number -> Turn14 ID
-       const mfrPart = item.attributes?.mfr_part_number;
-       const part = item.attributes?.part_number;
-       if (mfrPart) map[mfrPart.toUpperCase()] = item.id;
-       if (part) map[part.toUpperCase()] = item.id;
-    }
-
-    if (page >= body.meta.total_pages) break;
-    page++;
-  }
-  return map;
+  const brands = await listShopBrands(prisma);
+  return NextResponse.json({ success: true, brands });
 }
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
   assertAdminRequest(cookieStore);
+
+  let payload: {
+    brand?: string;
+    apply?: boolean;
+    refreshExisting?: boolean;
+    maxVariants?: number;
+    maxPagesPerBrand?: number;
+    perplexityFallback?: boolean;
+  };
   try {
-    // 1. Get variants missing dimensions
-    const variantsWithoutDimensions = await prisma.shopProductVariant.findMany({
-      where: {
-        AND: [
-          { weight: null },
-          { length: null }
-        ]
-      },
-      take: 200, // Batch limit
+    payload = await req.json();
+  } catch {
+    payload = {};
+  }
+
+  const brandName = (payload.brand || '').trim();
+  if (!brandName) {
+    return NextResponse.json(
+      { success: false, error: 'Missing required field: brand' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const result = await syncBrandShippingData(prisma, {
+      brandName,
+      apply: payload.apply === true,
+      refreshExisting: payload.refreshExisting === true,
+      maxVariants: payload.maxVariants,
+      maxPagesPerBrand: payload.maxPagesPerBrand,
     });
 
-    if (variantsWithoutDimensions.length === 0) {
-       return NextResponse.json({ success: true, message: 'No missing dimensions found.' });
+    // Optional Perplexity fallback for variants Turn14 couldn't fill.
+    // We resolve up to 5 variants per request to keep the round-trip bounded.
+    let perplexity: {
+      attempted: number;
+      resolved: number;
+      changes: SyncBrandShippingResult['changes'];
+      skips: Array<{ variantId: string; reason: string; detail?: string }>;
+    } | null = null;
+
+    if (payload.perplexityFallback === true && result.unmatched.length > 0) {
+      const FALLBACK_LIMIT = 5;
+      const candidates = result.unmatched.slice(0, FALLBACK_LIMIT);
+      perplexity = { attempted: candidates.length, resolved: 0, changes: [], skips: [] };
+
+      for (const candidate of candidates) {
+        const variant = await prisma.shopProductVariant.findUnique({
+          where: { id: candidate.variantId },
+          select: {
+            id: true,
+            sku: true,
+            weight: true,
+            length: true,
+            width: true,
+            height: true,
+            product: { select: { titleEn: true, titleUa: true, brand: true } },
+          },
+        });
+        if (!variant) {
+          perplexity.skips.push({ variantId: candidate.variantId, reason: 'variant disappeared' });
+          continue;
+        }
+
+        const lookup = await lookupShippingDims({
+          brand: variant.product.brand || brandName,
+          productTitle: variant.product.titleEn || variant.product.titleUa || '(untitled)',
+          sku: variant.sku,
+        });
+
+        if (!lookup.ok) {
+          perplexity.skips.push({
+            variantId: variant.id,
+            reason: lookup.reason,
+            detail: lookup.detail,
+          });
+          continue;
+        }
+
+        const before = {
+          weightKg: variant.weight ?? null,
+          lengthCm: variant.length ?? null,
+          widthCm: variant.width ?? null,
+          heightCm: variant.height ?? null,
+        };
+        const after = {
+          weightKg: lookup.weightKg ?? before.weightKg,
+          lengthCm: lookup.lengthCm ?? before.lengthCm,
+          widthCm: lookup.widthCm ?? before.widthCm,
+          heightCm: lookup.heightCm ?? before.heightCm,
+        };
+
+        perplexity.changes.push({
+          variantId: variant.id,
+          sku: variant.sku,
+          productTitle: variant.product.titleUa || variant.product.titleEn || '(untitled)',
+          before,
+          after,
+          source: 'perplexity',
+        });
+        perplexity.resolved++;
+
+        if (payload.apply === true) {
+          const updateData: Record<string, unknown> = { isDimensionsEstimated: true };
+          if (lookup.weightKg !== null) {
+            updateData.weight = lookup.weightKg;
+            updateData.grams = Math.round(lookup.weightKg * 1000);
+          }
+          if (lookup.lengthCm !== null) updateData.length = lookup.lengthCm;
+          if (lookup.widthCm !== null) updateData.width = lookup.widthCm;
+          if (lookup.heightCm !== null) updateData.height = lookup.heightCm;
+          await prisma.shopProductVariant.update({
+            where: { id: variant.id },
+            data: updateData as any,
+          });
+        }
+      }
     }
 
-    // 2. Build Turn14 Item ID map
-    const t14Map = await fetchAllTurn14ItemsMap();
-    const token = await getTurn14AccessToken();
-
-    let updatedCount = 0;
-
-    // 3. For each variant, look up in Turn14
-    for (const variant of variantsWithoutDimensions) {
-      if (!variant.sku) continue;
-
-      const baseSku = variant.sku.toUpperCase(); // e.g. "JB4-B58"
-      // Known prefixes logic (Fallback)
-      const possibleSkus = [
-        baseSku, 
-        `BMS-${baseSku}`, // Burger
-        `EMN-${baseSku}`, // Eventuri
-        `MIM-${baseSku}`, // Mishimoto
-        `RAD-${baseSku}` // Radium
-      ];
-
-      let matchedId = null;
-      for (const sku of possibleSkus) {
-         if (t14Map[sku]) {
-             matchedId = t14Map[sku];
-             break;
-         }
-      }
-
-      if (matchedId) {
-         // 4. Fetch the detailed item dimensions from Turn14 API
-         const detailRes = await fetch(`https://api.turn14.com/v1/items/${matchedId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-         });
-         
-         if (detailRes.ok) {
-           const body = await detailRes.json();
-           const dims = body.data?.attributes?.dimensions;
-           if (dims && Array.isArray(dims) && dims[0]) {
-             const t14Length = dims[0].length;
-             const t14Width = dims[0].width;
-             const t14Height = dims[0].height;
-             const t14Weight = dims[0].weight;
-             
-             // Convert to metric
-             const weight = t14Weight ? (Number(t14Weight) * 0.453592) : null;
-             const length = t14Length ? (Number(t14Length) * 2.54) : null;
-             const width = t14Width ? (Number(t14Width) * 2.54) : null;
-             const height = t14Height ? (Number(t14Height) * 2.54) : null;
-
-             if (weight && weight > 0) {
-               await prisma.shopProductVariant.update({
-                 where: { id: variant.id },
-                 data: { weight, length, width, height }
-               });
-               updatedCount++;
-             }
-           }
-         }
-      }
-    }
-
-    return NextResponse.json({ success: true, updatedCount });
-
+    return NextResponse.json({ success: true, result, perplexity });
   } catch (error: any) {
-    console.error('Turn14 Sync Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('[Turn14 ShippingSync] error:', error);
+    return NextResponse.json(
+      { success: false, error: error?.message || String(error) },
+      { status: 500 },
+    );
   }
 }

@@ -3,6 +3,8 @@ import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
+  SHOP_BRAND_DEFAULT_RULE_ID,
+  type ShopBrandShippingRule,
   type ShopCurrencyCode,
   type ShopRegionalPricingRule,
   type ShopSettingsRuntime,
@@ -83,6 +85,14 @@ export type CheckoutQuote = {
   regionalPricingRule: CheckoutRuleSnapshot | null;
   showTaxesIncludedNotice: boolean;
   pricingSnapshot: Prisma.InputJsonValue;
+  /**
+   * True when at least one item in the cart is governed by a brand shipping
+   * rule with `mode: 'manual_quote'`. Storefront should block standard
+   * checkout and show a "Запит на прорахунок" (request a quote) flow.
+   */
+  requiresQuote: boolean;
+  /** Brand names that triggered manual_quote (for UI messaging). */
+  brandsRequiringQuote: string[];
 };
 
 type CheckoutQuoteSummaryInput = {
@@ -224,6 +234,22 @@ function resolveRegionalPricingRule(
   return matched ?? null;
 }
 
+type ShippingCostResult = {
+  cost: number;
+  requiresQuote: boolean;
+  brandsRequiringQuote: string[];
+};
+
+function pickTieredFee(brackets: NonNullable<ShopBrandShippingRule['brackets']>, subtotal: number): number {
+  // brackets are normalized ascending by maxAmount; null (open-ended) is last.
+  for (const b of brackets) {
+    if (b.maxAmount === null) return b.fee;
+    if (subtotal <= b.maxAmount) return b.fee;
+  }
+  // Fallback if no open-ended bracket and subtotal exceeds all caps:
+  return brackets[brackets.length - 1]?.fee ?? 0;
+}
+
 function calculateShippingCost(
   zone: ShopShippingZone | null,
   currency: ShopCurrencyCode,
@@ -231,15 +257,54 @@ function calculateShippingCost(
   subtotal: number,
   itemCount: number,
   items: ResolvedCheckoutItem[]
-) {
-  if (!zone) return 0;
+): ShippingCostResult {
+  if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   if (zone.freeOver != null && subtotal >= zone.freeOver) {
-    return 0;
+    return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   }
 
   let totalCost = zone.baseRate;
+  const brandsRequiringQuote = new Set<string>();
+
+  // Default fallback rule (special id '__default__') applies to any item whose
+  // brand has no dedicated rule. Read once up front.
+  const defaultRule = settings.brandShippingRules.find(
+    (r) => r.enabled && r.id === SHOP_BRAND_DEFAULT_RULE_ID,
+  );
+
+  /** Resolve the rule that should govern shipping for an item: brand-specific
+   * first, then the global default. Returns null if neither applies. */
+  function resolveItemRule(itemBrandName: string | null): ShopBrandShippingRule | null {
+    if (itemBrandName) {
+      const specific = settings.brandShippingRules.find(
+        (r) =>
+          r.enabled &&
+          r.id !== SHOP_BRAND_DEFAULT_RULE_ID &&
+          r.brandName.toLowerCase() === itemBrandName.toLowerCase(),
+      );
+      if (specific) return specific;
+    }
+    return defaultRule ?? null;
+  }
 
   if (zone.calcMode === 'volumetric') {
+    // Pre-compute per-brand subtotals (in zone.currency) for cart-level rules
+    // (tiered / percent / manual_quote). These rules are applied ONCE per brand,
+    // not per item, since they're conceptually about the whole cart line.
+    const cartLevelBrandSubtotals = new Map<string, number>();
+    const cartLevelBrandsSeen = new Set<string>();
+    for (const item of items) {
+      if (!item.brandName) continue;
+      const rule = resolveItemRule(item.brandName);
+      if (!rule) continue;
+      if (rule.mode !== 'tiered' && rule.mode !== 'percent' && rule.mode !== 'manual_quote') continue;
+      const lineTotalZone = convertAmount(item.total, item.priceSourceCurrency, zone.currency, settings.currencyRates);
+      // Key by item.brandName (NOT rule.brandName) — when default applies, each
+      // brand still gets its own subtotal bucket so a tiered fallback charges
+      // per brand, not once for the whole cart.
+      cartLevelBrandSubtotals.set(item.brandName, (cartLevelBrandSubtotals.get(item.brandName) || 0) + lineTotalZone);
+    }
+
     for (const item of items) {
       let itemCost = 0;
       let handledByRule = false;
@@ -256,31 +321,53 @@ function calculateShippingCost(
 
       const physicalDeliveryCost = actualWeight * zone.ratePerKg;
       const volumeSurcharge = Math.max(0, volumeWeight - actualWeight) * zone.volSurchargePerKg;
-      
+
       const standardCostForOne = physicalDeliveryCost + volumeSurcharge;
 
-      if (item.brandName) {
-        const rule = settings.brandShippingRules.find((r) => r.enabled && r.brandName.toLowerCase() === item.brandName?.toLowerCase());
-        if (rule) {
-          handledByRule = true;
-          // Warehouse delivery is calculated anyway (unless it is 'free' rule)
-          const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
-          
-          if (rule.mode === 'free') {
-            itemCost = 0;
-          } else if (rule.mode === 'fixed') {
-            const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
-            itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
-          } else if (rule.mode === 'multiplier') {
-            itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
+      const rule = resolveItemRule(item.brandName);
+      if (rule) {
+        handledByRule = true;
+        const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
+        // Use the item's brand for cart-level keying so default-rule applications
+        // bucket per brand. brandsRequiringQuote messaging also reads better
+        // ("Brabus needs a quote") than the literal default-rule label.
+        const brandKey = item.brandName || rule.brandName || 'default';
+
+        if (rule.mode === 'free') {
+          itemCost = 0;
+        } else if (rule.mode === 'fixed') {
+          const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
+          itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
+        } else if (rule.mode === 'multiplier') {
+          itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
+        } else if (rule.mode === 'tiered' || rule.mode === 'percent') {
+          // Cart-level rule: apply ONCE per brand, on first occurrence.
+          // Subsequent items of the same brand only contribute warehouseRatePerKg.
+          if (!cartLevelBrandsSeen.has(brandKey)) {
+            cartLevelBrandsSeen.add(brandKey);
+            const brandSubtotalZone = cartLevelBrandSubtotals.get(brandKey) || 0;
+            const brandSubtotalRuleCurrency = convertAmount(brandSubtotalZone, zone.currency, rule.currency, settings.currencyRates);
+            let feeRuleCurrency = 0;
+            if (rule.mode === 'tiered') {
+              feeRuleCurrency = pickTieredFee(rule.brackets ?? [], brandSubtotalRuleCurrency);
+            } else {
+              feeRuleCurrency = brandSubtotalRuleCurrency * (rule.value / 100);
+            }
+            const feeZone = convertAmount(feeRuleCurrency, rule.currency, zone.currency, settings.currencyRates);
+            itemCost = feeZone + warehouseDeliveryCostForOne * item.quantity;
+          } else {
+            itemCost = warehouseDeliveryCostForOne * item.quantity;
           }
+        } else if (rule.mode === 'manual_quote') {
+          brandsRequiringQuote.add(brandKey);
+          itemCost = 0;
         }
       }
 
       if (!handledByRule) {
         itemCost = standardCostForOne * item.quantity;
       }
-      
+
       totalCost += itemCost;
     }
   } else {
@@ -288,7 +375,11 @@ function calculateShippingCost(
     totalCost += zone.perItemRate * actualItemCount;
   }
 
-  return convertAmount(totalCost, zone.currency, currency, settings.currencyRates);
+  return {
+    cost: convertAmount(totalCost, zone.currency, currency, settings.currencyRates),
+    requiresQuote: brandsRequiringQuote.size > 0,
+    brandsRequiringQuote: Array.from(brandsRequiringQuote),
+  };
 }
 
 function calculateTaxAmount(
@@ -416,7 +507,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const adjustedSubtotal = roundMoney(Math.max(0, subtotal + rawRegionalAdjustmentAmount));
   const regionalAdjustmentAmount = roundMoney(adjustedSubtotal - subtotal);
   const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, adjustedSubtotal);
-  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, subtotal, itemCount, input.items);
+  const shippingResult = calculateShippingCost(shippingZone, currency, input.settings, subtotal, itemCount, input.items);
+  const shippingCost = shippingResult.cost;
   const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
   const taxAmount = calculateTaxAmount(taxRegion, adjustedSubtotal, shippingCost);
   const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);
@@ -487,6 +579,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
       : null,
     showTaxesIncludedNotice: input.settings.showTaxesIncludedNotice,
     pricingSnapshot,
+    requiresQuote: shippingResult.requiresQuote,
+    brandsRequiringQuote: shippingResult.brandsRequiringQuote,
   };
 }
 

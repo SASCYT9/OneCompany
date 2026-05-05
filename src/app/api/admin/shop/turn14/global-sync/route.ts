@@ -1,0 +1,405 @@
+/**
+ * GLOBAL Turn14 catalog sync — single walk, multi-brand, resumable.
+ *
+ * Why this exists:
+ *   - Turn14's /v1/items endpoint silently ignores ALL filter params on our
+ *     access tier (we proved this via the probe endpoint). Every request
+ *     returns the global catalog (~747 pages × 1000 items).
+ *   - The existing /api/admin/turn14-sync route walks the catalog ONCE
+ *     PER BRAND (post-filtering each time), which is wasteful — 30 brands
+ *     × 747 pages = 22k API calls.
+ *   - This route walks the catalog ONCE, partitions items by brand_id, and
+ *     upserts only items belonging to brands listed in BRANDS_LIST.txt
+ *     (intersected with what Turn14 actually carries). Same result, ~30×
+ *     fewer API calls and fits comfortably under the Prisma Postgres Pro
+ *     daily ops budget.
+ *
+ * Behavior:
+ *   - Reads BRANDS_LIST.txt at runtime, skips section headers ([...] / ===).
+ *   - Fetches /v1/brands and intersects (case-insensitive, with substring
+ *     match for "Burger Motorsport(s)" → "Burger Tuning" naming drift).
+ *   - Auto-seeds Turn14BrandMarkup so the existing per-brand cron and
+ *     pricing flows light up too.
+ *   - Walks catalog; skips items whose attributes.brand_id isn't in our
+ *     target set. Upserts kept items into Turn14Item with their brandId.
+ *   - Throttled to ~4 req/s (Turn14 caps at 5).
+ *   - Resumable via `?startPage=N` query param. Honors a soft wall-clock
+ *     budget (`?maxSeconds=240`, default) and returns `nextPage` when it
+ *     stops early so the caller can resume in a follow-up POST.
+ *
+ * Read-only inputs: BRANDS_LIST.txt, Turn14 API.
+ * Writes: Turn14BrandMarkup (upsert), Turn14Item (upsert). Never touches
+ *   ShopProduct, titles, descriptions, or images.
+ */
+
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { assertAdminRequest } from '@/lib/adminAuth';
+import { prisma } from '@/lib/prisma';
+import { fetchTurn14Brands, getTurn14AccessToken } from '@/lib/turn14';
+
+const TURN14_API_BASE = 'https://api.turn14.com/v1';
+const REQ_INTERVAL_MS = 260; // ~4 req/s, under Turn14's 5 req/s cap
+
+let lastCallAt = 0;
+async function throttle() {
+  const wait = lastCallAt + REQ_INTERVAL_MS - Date.now();
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastCallAt = Date.now();
+}
+
+function parseBrandsList(text: string): string[] {
+  const out: string[] = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('===')) continue; // section header
+    if (line.startsWith('[') && line.endsWith(']')) continue; // sub-section header
+    out.push(line);
+  }
+  return Array.from(new Set(out));
+}
+
+function buildTargetMap(
+  brandsListNames: string[],
+  turn14Brands: Array<{ id: string; name: string }>,
+): Map<string, string> {
+  // Returns Map<turn14BrandId, displayName>.
+  const m = new Map<string, string>();
+  const lowerNames = brandsListNames.map((n) => n.trim().toLowerCase());
+  for (const tb of turn14Brands) {
+    const lc = tb.name.toLowerCase();
+    const exact = lowerNames.includes(lc);
+    const substring = lowerNames.some(
+      (n) => (n.length >= 4 && lc.includes(n)) || (lc.length >= 4 && n.includes(lc)),
+    );
+    if (exact || substring) {
+      // Prefer Turn14's canonical name as displayName (matches /v1/brands).
+      m.set(tb.id, tb.name);
+    }
+  }
+  return m;
+}
+
+async function fetchPage(page: number): Promise<{ data: any[]; meta: any }> {
+  const token = await getTurn14AccessToken();
+  const res = await fetch(`${TURN14_API_BASE}/items?page=${page}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Turn14 /v1/items page=${page} failed: ${res.status} ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
+
+  const url = new URL(req.url);
+  const startPage = Math.max(1, parseInt(url.searchParams.get('startPage') || '1', 10));
+  // Default chunk size = 5 pages. Each page has ~30-70 items belonging to
+  // our target brands; we upsert them SEQUENTIALLY (Prisma Accelerate
+  // appears to fail or stall when too many upserts run via Promise.all).
+  // Sequential RTT ≈ 80-150ms per upsert; 5 pages × ~70 items = ~350
+  // upserts ≈ 30-50s wall-clock. Caller is expected to loop POST until
+  // done:true. Override via ?maxPages=N if you want a different chunk size.
+  const maxPagesParam = url.searchParams.get('maxPages');
+  const pageStop =
+    maxPagesParam !== null
+      ? Math.max(1, parseInt(maxPagesParam, 10))
+      : startPage + 4; // 5 pages per call by default
+  const maxPages = pageStop;
+  // Vercel Pro function timeout is 300s. Default budget 90s leaves headroom.
+  const maxSeconds = Math.max(10, parseInt(url.searchParams.get('maxSeconds') || '90', 10));
+
+  const startedAt = Date.now();
+
+  // 1. Read BRANDS_LIST.txt (works in Vercel because it's part of the repo
+  //    and not gitignored). process.cwd() in Next.js routes is the project
+  //    root.
+  let brandsListNames: string[] = [];
+  try {
+    const txt = await fs.readFile(path.join(process.cwd(), 'BRANDS_LIST.txt'), 'utf8');
+    brandsListNames = parseBrandsList(txt);
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Could not read BRANDS_LIST.txt',
+        detail: (err as Error).message,
+      },
+      { status: 500 },
+    );
+  }
+
+  // 2. Fetch Turn14 /v1/brands and intersect.
+  await throttle();
+  const brandsRes = await fetchTurn14Brands();
+  const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
+    .map((b): { id: string; name: string } => ({
+      id: String(b?.id ?? ''),
+      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+    }))
+    .filter((b) => b.id && b.name);
+  const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
+
+  if (targetMap.size === 0) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No overlap between BRANDS_LIST.txt and Turn14 brands list.',
+        brandsListCount: brandsListNames.length,
+        turn14BrandsCount: allTurn14Brands.length,
+      },
+      { status: 500 },
+    );
+  }
+
+  // 3. Auto-seed Turn14BrandMarkup so existing pricing/sync flows wake up.
+  let markupsUpserted = 0;
+  const markupErrors: Array<{ brandId: string; brandName: string; error: string }> = [];
+  for (const [brandId, brandName] of targetMap) {
+    try {
+      await prisma.turn14BrandMarkup.upsert({
+        where: { brandId },
+        create: { brandId, brandName },
+        update: { brandName },
+      });
+      markupsUpserted++;
+    } catch (err) {
+      markupErrors.push({
+        brandId,
+        brandName,
+        error: (err as Error).message?.slice(0, 200) || String(err),
+      });
+    }
+  }
+  // Bail early with diagnostic if every upsert failed — prevents wasted Turn14 walk.
+  if (markupsUpserted === 0 && markupErrors.length > 0) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'All Turn14BrandMarkup upserts failed — likely schema or db issue',
+        firstError: markupErrors[0],
+        sampleErrors: markupErrors.slice(0, 3),
+      },
+      { status: 500 },
+    );
+  }
+
+  // 4. Walk catalog, save matching items.
+  let page = startPage;
+  let totalItemsSeen = 0;
+  let totalItemsKept = 0;
+  let totalItemsUpserted = 0;
+  const perBrandUpserted: Record<string, number> = {};
+  let totalPagesFromMeta: number | undefined;
+  let lastFullyProcessedPage = startPage - 1; // none yet
+  let stopReason: 'done' | 'budget' | 'pagecap' | 'empty' = 'done';
+
+  while (page <= maxPages) {
+    const elapsedSec = (Date.now() - startedAt) / 1000;
+    if (elapsedSec > maxSeconds) {
+      stopReason = 'budget';
+      break;
+    }
+
+    let body: { data: any[]; meta: any };
+    try {
+      await throttle();
+      body = await fetchPage(page);
+    } catch (err) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `fetch failed at page ${page}: ${(err as Error).message}`,
+          progress: {
+            startPage,
+            stoppedAtPage: page,
+            totalItemsSeen,
+            totalItemsKept,
+            totalItemsUpserted,
+            perBrandUpserted,
+            elapsedSec,
+            markupsUpserted,
+          },
+        },
+        { status: 502 },
+      );
+    }
+
+    const items = body?.data || [];
+    if (items.length === 0) {
+      // Empty page = end of catalog — fully done regardless of meta.
+      stopReason = 'empty';
+      lastFullyProcessedPage = page - 1;
+      break;
+    }
+    totalItemsSeen += items.length;
+    if (totalPagesFromMeta === undefined && body?.meta?.total_pages) {
+      totalPagesFromMeta = Number(body.meta.total_pages);
+    }
+
+    // Filter then BULK-insert via createMany (single SQL round-trip per
+    // page). Sequential upserts via Prisma Accelerate proxy were ~600ms
+    // each — for 67 items per page that's 40s, and full catalog would
+    // take >7 hours. createMany is one INSERT statement so a page lands
+    // in <1s.
+    //
+    // Tradeoff: createMany with skipDuplicates means existing rows aren't
+    // updated. For a fresh catalog load (current Turn14Item is empty) this
+    // is exactly right. A separate "refresh" pathway can later target only
+    // changed rows; we don't need it for the initial population.
+    type ItemRow = {
+      id: string;
+      partNumber: string;
+      brand: string;
+      brandId: string;
+      name: string;
+      category: string | null;
+      subcategory: string | null;
+      price: number;
+      inStock: boolean;
+      thumbnail: string | null;
+      attributes: any;
+    };
+    const rows: ItemRow[] = [];
+    for (const it of items) {
+      const attrs = it?.attributes || {};
+      const itemBrandId = attrs.brand_id !== undefined ? String(attrs.brand_id) : null;
+      if (!itemBrandId || !targetMap.has(itemBrandId)) continue;
+
+      totalItemsKept++;
+      const brandName = targetMap.get(itemBrandId) as string;
+      rows.push({
+        id: String(it.id),
+        partNumber: (attrs.part_number || attrs.mfr_part_number || '').toString(),
+        brand: brandName,
+        brandId: itemBrandId,
+        name: (attrs.product_name || attrs.item_name || attrs.name || 'Auto Part').toString(),
+        category: attrs.category ?? null,
+        subcategory: attrs.subcategory ?? null,
+        price:
+          parseFloat(
+            attrs.retail_price || attrs.list_price || attrs.price || '0',
+          ) || 0,
+        inStock:
+          attrs.regular_stock > 0 ||
+          attrs.can_purchase === true ||
+          attrs.in_stock === true,
+        thumbnail: attrs.thumbnail || attrs.primary_image || attrs.image_url || null,
+        attributes: attrs,
+      });
+      perBrandUpserted[brandName] = (perBrandUpserted[brandName] || 0) + 1;
+    }
+    if (rows.length > 0) {
+      try {
+        const result = await prisma.turn14Item.createMany({
+          data: rows,
+          skipDuplicates: true,
+        });
+        totalItemsUpserted += result.count;
+      } catch (err) {
+        // Bail with diagnostic — single failed page should still tell
+        // caller how many we got.
+        return NextResponse.json(
+          {
+            success: false,
+            error: `createMany failed at page ${page}: ${(err as Error).message?.slice(0, 200)}`,
+            progress: {
+              startPage,
+              stoppedAtPage: page,
+              totalItemsSeen,
+              totalItemsKept,
+              totalItemsUpserted,
+              perBrandUpserted,
+              elapsedSec: (Date.now() - startedAt) / 1000,
+              markupsUpserted,
+            },
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    lastFullyProcessedPage = page;
+    if (totalPagesFromMeta !== undefined && page >= totalPagesFromMeta) {
+      stopReason = 'done';
+      page++;
+      break;
+    }
+    page++;
+  }
+  if (stopReason !== 'budget' && stopReason !== 'empty' && stopReason !== 'done') {
+    // Loop exited because page > maxPages (maxPages is the inclusive upper
+    // bound); we have more pages to walk in a follow-up call.
+    if (totalPagesFromMeta === undefined || lastFullyProcessedPage < totalPagesFromMeta) {
+      stopReason = 'pagecap';
+    }
+  }
+  // Detect "loop ended because page > maxPages" precisely. After the loop,
+  // if stopReason is still 'done' but we didn't hit the catalog end, downgrade
+  // to 'pagecap'.
+  if (
+    stopReason === 'done' &&
+    lastFullyProcessedPage > 0 &&
+    totalPagesFromMeta !== undefined &&
+    lastFullyProcessedPage < totalPagesFromMeta
+  ) {
+    stopReason = 'pagecap';
+  }
+  const fullyDone = stopReason === 'done' || stopReason === 'empty';
+  const nextPage = fullyDone ? null : lastFullyProcessedPage + 1;
+
+  const elapsedSec = (Date.now() - startedAt) / 1000;
+  return NextResponse.json({
+    success: true,
+    done: fullyDone,
+    nextPage, // null when fully done; otherwise the page to resume from
+    stopReason, // 'done' | 'empty' | 'budget' | 'pagecap'
+    startPage,
+    maxPages,
+    maxSeconds,
+    lastPageProcessed: lastFullyProcessedPage,
+    totalPagesFromMeta,
+    targetBrandCount: targetMap.size,
+    targetBrands: Array.from(targetMap.values()).slice(0, 50),
+    markupsUpserted,
+    totalItemsSeen,
+    totalItemsKept,
+    totalItemsUpserted,
+    perBrandUpserted,
+    elapsedSec,
+  });
+}
+
+// Allow GET for status / dry preview without writes — same response shape
+// minus actual page walking. Just confirms which brands intersect.
+export async function GET() {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
+
+  const txt = await fs.readFile(path.join(process.cwd(), 'BRANDS_LIST.txt'), 'utf8');
+  const brandsListNames = parseBrandsList(txt);
+  const brandsRes = await fetchTurn14Brands();
+  const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
+    .map((b): { id: string; name: string } => ({
+      id: String(b?.id ?? ''),
+      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+    }))
+    .filter((b) => b.id && b.name);
+  const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
+
+  return NextResponse.json({
+    success: true,
+    brandsListCount: brandsListNames.length,
+    turn14BrandsCount: allTurn14Brands.length,
+    intersectionCount: targetMap.size,
+    intersection: Array.from(targetMap.entries()).map(([brandId, brandName]) => ({ brandId, brandName })),
+  });
+}

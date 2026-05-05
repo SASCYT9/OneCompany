@@ -26,14 +26,34 @@ export type ShopShippingZone = {
   etaMaxDays: number | null;
 };
 
+export const SHOP_BRAND_SHIPPING_MODES = [
+  'fixed',
+  'multiplier',
+  'free',
+  'tiered',
+  'percent',
+  'manual_quote',
+] as const;
+export type ShopBrandShippingMode = (typeof SHOP_BRAND_SHIPPING_MODES)[number];
+
+export type ShopBrandShippingBracket = {
+  /** Upper bound (inclusive) of cart subtotal in this rule's currency. `null` = open-ended top tier. */
+  maxAmount: number | null;
+  /** Flat shipping fee charged when subtotal falls in this bracket. */
+  fee: number;
+};
+
 export type ShopBrandShippingRule = {
   id: string;
   brandName: string;
-  mode: 'fixed' | 'multiplier' | 'free';
+  mode: ShopBrandShippingMode;
+  /** For fixed/multiplier/percent. Ignored for tiered/manual_quote/free. */
   value: number;
   warehouseRatePerKg: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
+  /** For `tiered` mode only. Sorted ascending by maxAmount; final entry may have null. */
+  brackets?: ShopBrandShippingBracket[];
 };
 
 export type ShopTaxRegion = {
@@ -326,13 +346,44 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
   return zones.length ? zones : DEFAULT_SHIPPING_ZONES.map((zone) => ({ ...zone }));
 }
 
+function normalizeShopBrandShippingBrackets(value: unknown): ShopBrandShippingBracket[] {
+  if (!Array.isArray(value)) return [];
+  const brackets = value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+    .map((entry) => {
+      const rawMax = entry.maxAmount;
+      const max = rawMax === null || rawMax === undefined || rawMax === '' ? null : Number(rawMax);
+      const fee = Number(entry.fee ?? 0);
+      return {
+        maxAmount: max !== null && Number.isFinite(max) && max > 0 ? max : null,
+        fee: Number.isFinite(fee) && fee >= 0 ? fee : 0,
+      } satisfies ShopBrandShippingBracket;
+    });
+  // Sort ascending; null (open-ended) goes last. Drop intermediate nulls.
+  const finite = brackets.filter((b) => b.maxAmount !== null).sort((a, b) => (a.maxAmount as number) - (b.maxAmount as number));
+  const openEnded = brackets.find((b) => b.maxAmount === null);
+  return openEnded ? [...finite, openEnded] : finite;
+}
+
+/**
+ * Special id used by the per-brand rules editor to store the global default
+ * fallback rule. Lives in the same `brandShippingRules` JSON array; the
+ * checkout calculator and the admin UI both branch on this id.
+ *
+ * Saving the default in-place avoids adding a Prisma column and keeps the
+ * JSON write path / hooks identical for default and per-brand entries.
+ */
+export const SHOP_BRAND_DEFAULT_RULE_ID = '__default__';
+
 function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[] {
   const rules = asObjectArray(value).map((entry, index) => {
     const modeRaw = stringValue(entry.mode, 'fixed');
-    const mode = ['fixed', 'multiplier', 'free'].includes(modeRaw) ? (modeRaw as 'fixed' | 'multiplier' | 'free') : 'fixed';
+    const mode: ShopBrandShippingMode = (SHOP_BRAND_SHIPPING_MODES as readonly string[]).includes(modeRaw)
+      ? (modeRaw as ShopBrandShippingMode)
+      : 'fixed';
     const valueNum = Number(entry.value ?? 0);
-
     const warehouseRatePerKgNum = Number(entry.warehouseRatePerKg ?? 0);
+    const brackets = mode === 'tiered' ? normalizeShopBrandShippingBrackets(entry.brackets) : undefined;
 
     return {
       id: stringValue(entry.id, `brand-rule-${index + 1}`) || `brand-rule-${index + 1}`,
@@ -342,10 +393,13 @@ function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[
       warehouseRatePerKg: Number.isFinite(warehouseRatePerKgNum) ? warehouseRatePerKgNum : 0,
       currency: normalizeCurrencyCode(entry.currency, 'EUR'),
       enabled: entry.enabled !== false,
+      ...(brackets ? { brackets } : {}),
     } satisfies ShopBrandShippingRule;
   });
 
-  return rules.filter((r) => r.brandName);
+  // Keep brand-specific rules (have brandName) AND the special default rule
+  // (id === '__default__', brandName may be blank).
+  return rules.filter((r) => r.brandName || r.id === SHOP_BRAND_DEFAULT_RULE_ID);
 }
 
 function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
