@@ -132,14 +132,23 @@ type ShippingZoneForm = {
   enabled: boolean;
 };
 
+type BrandShippingBracketForm = {
+  /** "" means open-ended top tier (null on submit). */
+  maxAmount: string;
+  fee: string;
+};
+
+type BrandShippingRuleMode = 'fixed' | 'multiplier' | 'free' | 'tiered' | 'percent' | 'manual_quote';
+
 type BrandShippingRuleForm = {
   id: string;
   brandName: string;
-  mode: 'fixed' | 'multiplier' | 'free';
+  mode: BrandShippingRuleMode;
   value: string;
   warehouseRatePerKg: string;
   currency: ShopCurrencyCode;
   enabled: boolean;
+  brackets: BrandShippingBracketForm[];
 };
 
 type TaxRegionForm = {
@@ -301,6 +310,7 @@ function createBrandShippingRuleForm(seed: number): BrandShippingRuleForm {
     warehouseRatePerKg: '0',
     currency: 'EUR',
     enabled: true,
+    brackets: [],
   };
 }
 
@@ -407,6 +417,10 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       warehouseRatePerKg: formatNumber(rule.warehouseRatePerKg),
       currency: rule.currency,
       enabled: rule.enabled,
+      brackets: (rule.brackets ?? []).map((b) => ({
+        maxAmount: b.maxAmount === null ? '' : formatNumber(b.maxAmount),
+        fee: formatNumber(b.fee),
+      })),
     })) || [],
     taxRegions: settings.taxRegions.map((region) => ({
       id: region.id,
@@ -478,6 +492,13 @@ function formToPayload(form: ShopSettingsFormState) {
       warehouseRatePerKg: parseNumber(rule.warehouseRatePerKg),
       currency: rule.currency,
       enabled: rule.enabled,
+      brackets:
+        rule.mode === 'tiered'
+          ? rule.brackets.map((b) => ({
+              maxAmount: b.maxAmount.trim() === '' ? null : parseNumber(b.maxAmount, 0) || null,
+              fee: parseNumber(b.fee, 0),
+            }))
+          : undefined,
     })),
     taxRegions: form.taxRegions.map((region) => ({
       id: region.id.trim(),
@@ -1423,19 +1444,30 @@ export default function AdminShopSettingsPage() {
                     <SelectField
                       label="Тип правила"
                       value={rule.mode}
-                      onChange={(value) => updateBrandShippingRule(index, 'mode', value as 'free' | 'multiplier' | 'fixed')}
+                      onChange={(value) => updateBrandShippingRule(index, 'mode', value as BrandShippingRuleMode)}
                       options={[
                         { value: 'free', label: 'Безкоштовно (Free)' },
                         { value: 'multiplier', label: 'Множник ваги (Multiplier)' },
                         { value: 'fixed', label: 'Фіксована ставка (Fixed)' },
+                        { value: 'tiered', label: 'Брекети суми (Tiered)' },
+                        { value: 'percent', label: 'Відсоток від кошика (Percent)' },
+                        { value: 'manual_quote', label: 'Ручний прорахунок (Запит)' },
                       ]}
                     />
                     <InputField
-                      label={rule.mode === 'free' ? 'Значення (ігнорується)' : 'Значення'}
+                      label={
+                        rule.mode === 'free' || rule.mode === 'tiered' || rule.mode === 'manual_quote'
+                          ? 'Значення (ігнорується)'
+                          : rule.mode === 'percent'
+                            ? 'Відсоток (%)'
+                            : 'Значення'
+                      }
                       value={rule.value}
                       onChange={(value) => updateBrandShippingRule(index, 'value', value)}
-                      placeholder={rule.mode === 'multiplier' ? '1.25' : '150'}
-                      disabled={rule.mode === 'free'}
+                      placeholder={
+                        rule.mode === 'multiplier' ? '1.25' : rule.mode === 'percent' ? '5' : '150'
+                      }
+                      disabled={rule.mode === 'free' || rule.mode === 'tiered' || rule.mode === 'manual_quote'}
                     />
                     <InputField
                       label="Доставка: Виробник → Склад (за 1 КГ)"
@@ -1455,6 +1487,120 @@ export default function AdminShopSettingsPage() {
                       onChange={(checked) => updateBrandShippingRule(index, 'enabled', checked)}
                     />
                   </div>
+
+                  {rule.mode === 'tiered' ? (
+                    <div className="mt-4 rounded-none border border-white/[0.08] bg-black/30 p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <div>
+                          <div className="text-[11px] font-medium uppercase tracking-wider text-blue-300">
+                            Брекети тарифів
+                          </div>
+                          <div className="text-[11px] text-white/40">
+                            Тариф спрацьовує, якщо сума кошика бренду ≤ <code>maxAmount</code>. Останній брекет можна
+                            залишити з порожнім <code>maxAmount</code> для відкритої «верхньої» суми.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm((current) => ({
+                              ...current,
+                              brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                i === index
+                                  ? { ...r, brackets: [...r.brackets, { maxAmount: '', fee: '0' }] }
+                                  : r,
+                              ),
+                            }))
+                          }
+                          className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-1.5 text-[11px] uppercase tracking-wider text-white hover:bg-white/5"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Брекет
+                        </button>
+                      </div>
+                      {rule.brackets.length === 0 ? (
+                        <p className="text-[11px] text-white/40">Немає брекетів. Додай хоча б один.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {rule.brackets.map((b, bIdx) => (
+                            <div key={bIdx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                              <InputField
+                                label={`Сума до (${rule.currency})`}
+                                value={b.maxAmount}
+                                onChange={(value) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                      i === index
+                                        ? {
+                                            ...r,
+                                            brackets: r.brackets.map((bb, bbi) =>
+                                              bbi === bIdx ? { ...bb, maxAmount: value } : bb,
+                                            ),
+                                          }
+                                        : r,
+                                    ),
+                                  }))
+                                }
+                                placeholder="300 (порожньо = відкритий брекет)"
+                              />
+                              <InputField
+                                label={`Доставка (${rule.currency})`}
+                                value={b.fee}
+                                onChange={(value) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                      i === index
+                                        ? {
+                                            ...r,
+                                            brackets: r.brackets.map((bb, bbi) =>
+                                              bbi === bIdx ? { ...bb, fee: value } : bb,
+                                            ),
+                                          }
+                                        : r,
+                                    ),
+                                  }))
+                                }
+                                placeholder="70"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                      i === index
+                                        ? { ...r, brackets: r.brackets.filter((_, bbi) => bbi !== bIdx) }
+                                        : r,
+                                    ),
+                                  }))
+                                }
+                                className="self-end rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 hover:border-blue-500/50 hover:bg-blue-950/40"
+                                title="Видалити брекет"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {rule.mode === 'manual_quote' ? (
+                    <div className="mt-3 rounded-none border border-amber-500/25 bg-amber-950/15 p-3 text-[12px] text-amber-200">
+                      Цей бренд завжди йде через ручний прорахунок. Стандартний checkout буде заблоковано —
+                      покупець побачить кнопку «Запит на прорахунок».
+                    </div>
+                  ) : null}
+
+                  {rule.mode === 'percent' ? (
+                    <div className="mt-3 rounded-none border border-blue-500/20 bg-blue-950/15 p-3 text-[12px] text-blue-100">
+                      Доставка = <code>сума_кошика_цього_бренду × значення / 100</code>. Сума береться у валюті правила
+                      ({rule.currency}).
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
