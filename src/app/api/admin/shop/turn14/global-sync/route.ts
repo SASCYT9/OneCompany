@@ -152,13 +152,34 @@ export async function POST(req: Request) {
 
   // 3. Auto-seed Turn14BrandMarkup so existing pricing/sync flows wake up.
   let markupsUpserted = 0;
+  const markupErrors: Array<{ brandId: string; brandName: string; error: string }> = [];
   for (const [brandId, brandName] of targetMap) {
-    await prisma.turn14BrandMarkup.upsert({
-      where: { brandId },
-      create: { id: brandId, brandId, brandName },
-      update: { brandName },
-    });
-    markupsUpserted++;
+    try {
+      await prisma.turn14BrandMarkup.upsert({
+        where: { brandId },
+        create: { brandId, brandName },
+        update: { brandName },
+      });
+      markupsUpserted++;
+    } catch (err) {
+      markupErrors.push({
+        brandId,
+        brandName,
+        error: (err as Error).message?.slice(0, 200) || String(err),
+      });
+    }
+  }
+  // Bail early with diagnostic if every upsert failed — prevents wasted Turn14 walk.
+  if (markupsUpserted === 0 && markupErrors.length > 0) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'All Turn14BrandMarkup upserts failed — likely schema or db issue',
+        firstError: markupErrors[0],
+        sampleErrors: markupErrors.slice(0, 3),
+      },
+      { status: 500 },
+    );
   }
 
   // 4. Walk catalog, save matching items.
