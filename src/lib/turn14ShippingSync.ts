@@ -55,6 +55,8 @@ export interface SyncBrandShippingResult {
     turn14ItemMapSize: number;
     turn14SampleKeys: string[];
     turn14SamplePartPairs: Array<{ partNumber: string; mfrPartNumber: string | null }>;
+    /** Up to 8 Turn14 brands whose name shares any token with the requested brand. */
+    turn14CandidateBrands?: Array<{ id: string; name: string }>;
   };
 }
 
@@ -132,12 +134,18 @@ async function turn14Throttle(): Promise<void> {
 /**
  * Resolve a Turn14 `brand_id` for a given ShopProduct brand string.
  *
- * Strategy (cheapest → most expensive):
- *   1. Local mapping in `Turn14BrandMarkup` (case-insensitive). This table
- *      is already populated by the markup management UI; if a brand has
- *      ever been priced/synced, its `brandId` is here.
- *   2. Turn14 `/v1/brands` API — exact case-insensitive match.
- *   3. Turn14 `/v1/brands` API — substring match (handles cases like
+ * We always fetch /v1/brands (one cached call) so we can verify whatever
+ * `brandId` the local markup table claims. Without verification, a stale
+ * row in `Turn14BrandMarkup` can point at a brandId that Turn14 silently
+ * ignores — and Turn14's `/v1/items?brand_id=X` returns the *whole*
+ * catalog when X is unknown, which we observed as 5991 mixed-supplier
+ * items for what should be a ~150-item brand.
+ *
+ * Strategy:
+ *   1. Markup row exists AND its brandId resolves to the same name on
+ *      Turn14 (case-insensitive) → trust the markup.
+ *   2. Otherwise, try exact case-insensitive name match.
+ *   3. Otherwise, try substring match either direction (handles e.g.
  *      "Burger Motorsports" in shop vs "Burger Tuning" in Turn14).
  *
  * Returns null if no match.
@@ -150,14 +158,6 @@ export async function resolveTurn14BrandId(
   if (!trimmed) return null;
   const lower = trimmed.toLowerCase();
 
-  // 1. Local mapping table.
-  const local = await prisma.turn14BrandMarkup.findFirst({
-    where: { brandName: { equals: trimmed, mode: 'insensitive' } },
-    select: { brandId: true },
-  });
-  if (local?.brandId) return local.brandId;
-
-  // 2 + 3. Fall back to Turn14 brands list.
   await turn14Throttle();
   const res = await fetchTurn14Brands();
   const items: any[] = res?.data || (Array.isArray(res) ? res : []);
@@ -165,10 +165,27 @@ export async function resolveTurn14BrandId(
     id: String(b?.id ?? ''),
     name: ((b?.attributes?.name || b?.name || '') as string).trim(),
   }));
+  const namedById = new Map<string, { id: string; name: string }>(named.map((n) => [n.id, n]));
 
+  // 1. Local mapping — but only if Turn14 still names that brandId the same.
+  const local = await prisma.turn14BrandMarkup.findFirst({
+    where: { brandName: { equals: trimmed, mode: 'insensitive' } },
+    select: { brandId: true },
+  });
+  if (local?.brandId) {
+    const canonical = namedById.get(local.brandId);
+    if (canonical && canonical.name.toLowerCase() === lower) {
+      return local.brandId;
+    }
+    // Stale or wrong markup — fall through to name-based lookup so we don't
+    // ship products to the wrong brand_id and pull the entire Turn14 catalog.
+  }
+
+  // 2. Exact case-insensitive match against the canonical list.
   const exact = named.find((b) => b.name.toLowerCase() === lower);
   if (exact?.id) return exact.id;
 
+  // 3. Substring match either direction (covers naming drift).
   const substring = named.find((b) => {
     const n = b.name.toLowerCase();
     return n.length > 0 && (n.includes(lower) || lower.includes(n));
@@ -243,6 +260,33 @@ export async function syncBrandShippingData(
   // 1. Resolve Turn14 brand
   const turn14BrandId = await resolveTurn14BrandId(prisma, options.brandName);
   result.turn14BrandId = turn14BrandId;
+
+  // Collect Turn14 brand candidates whose name shares any token with our
+  // brand — surfaces stale-mapping situations where the markup table
+  // points at the wrong brandId. Cheap one extra fetch (cached server-side).
+  try {
+    await turn14Throttle();
+    const brandsRes = await fetchTurn14Brands();
+    const brandList: any[] = brandsRes?.data || (Array.isArray(brandsRes) ? brandsRes : []);
+    const ourTokens = options.brandName.toLowerCase().split(/\s+/).filter((t) => t.length >= 3);
+    const candidates: Array<{ id: string; name: string }> = [];
+    for (const b of brandList) {
+      const id = String(b?.id ?? '');
+      const name = ((b?.attributes?.name || b?.name || '') as string).trim();
+      if (!id || !name) continue;
+      const lc = name.toLowerCase();
+      if (ourTokens.some((t) => lc.includes(t)) || lc.includes(options.brandName.toLowerCase())) {
+        candidates.push({ id, name });
+        if (candidates.length >= 8) break;
+      }
+    }
+    if (candidates.length > 0) {
+      result.debug = { ...(result.debug ?? { turn14ItemMapSize: 0, turn14SampleKeys: [], turn14SamplePartPairs: [] }), turn14CandidateBrands: candidates };
+    }
+  } catch {
+    // best-effort diagnostic, never fail the main flow
+  }
+
   if (!turn14BrandId) {
     result.durationMs = Date.now() - start;
     return result;
