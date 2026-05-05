@@ -13,7 +13,6 @@ import {
 import CrossShopFitment from '../../../components/CrossShopFitment';
 import RacechipShopProductDetailLayout from '../../../components/RacechipShopProductDetailLayout';
 import { ShopProductStructuredData } from '@/components/seo/StructuredData';
-import { getNbuRates } from '@/lib/nbuRates';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
@@ -84,7 +83,7 @@ export default async function RacechipProductPage({
 
   return (
     <>
-      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={await getNbuRates()} />
+      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={settingsRuntime.currencyRates} />
       <RacechipShopProductDetailLayout
         locale={resolvedLocale}
         product={product}

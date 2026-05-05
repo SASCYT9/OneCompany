@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
@@ -81,6 +82,9 @@ export async function PATCH(request: NextRequest) {
         whiteBitEnabled: payload.whiteBitEnabled,
       },
     });
+
+    revalidatePath('/[locale]/shop', 'layout');
+
     await writeAdminAuditLog(prisma, session, {
       scope: 'shop',
       action: 'settings.update',

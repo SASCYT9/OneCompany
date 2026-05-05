@@ -48,7 +48,6 @@ import { isBlobStorageUrl } from '@/lib/runtimeAssetPaths';
 import { ShopProductGallery } from './ShopProductGallery';
 import { MobileProductDisclosure } from './MobileProductDisclosure';
 import { ShopProductStructuredData } from '@/components/seo/StructuredData';
-import { getNbuRates } from '@/lib/nbuRates';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 import { findRelatedProducts } from '@/lib/shopRelatedProducts';
 import {
@@ -333,10 +332,7 @@ export default async function ShopProductDetailPage({
   }
 
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
-  // Use NBU official daily rates (cached 1h) so SEO/Merchant pricing is
-  // always anchored to the real exchange-rate the storefront converter
-  // shows. Falls back to settings/defaults if NBU is unreachable.
-  const rates = await getNbuRates();
+  const rates = settingsRuntime.currencyRates;
 
   // Anonymous SSR viewer context — page is ISR-cached. B2B users get the
   // live context via useShopViewerContext in client layouts (Brabus/Burger

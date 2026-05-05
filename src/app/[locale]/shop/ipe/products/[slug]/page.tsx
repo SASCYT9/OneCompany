@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
 import { resolveLocale } from '@/lib/seo';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
+import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import {
   extractProductFitment,
   findCrossShopFitmentMatches,
@@ -10,7 +12,6 @@ import CrossShopFitment from '../../../components/CrossShopFitment';
 import { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
 import { IpeShopProductDetailLayout } from '../../../components/IpeShopProductDetailLayout';
 import { ShopProductStructuredData } from '@/components/seo/StructuredData';
-import { getNbuRates } from '@/lib/nbuRates';
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 export const dynamic = 'force-static';
@@ -32,12 +33,13 @@ export async function generateMetadata({ params }: Props) {
 export default async function IpeProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const [product, allProducts, nbuRates] = await Promise.all([
+  const [product, allProducts, settingsRecord] = await Promise.all([
     getShopProductBySlugServer(slug),
     getShopProductsServer(),
-    getNbuRates(),
+    getOrCreateShopSettings(prisma),
   ]);
   if (!product) notFound();
+  const rates = getShopSettingsRuntime(settingsRecord).currencyRates;
 
   const crossShopFitment =
     !isExcludedFromCrossShop(product) ? extractProductFitment(product) : null;
@@ -51,7 +53,7 @@ export default async function IpeProductPage({ params }: Props) {
 
   return (
     <>
-      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={nbuRates} />
+      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <IpeShopProductDetailLayout
         locale={resolvedLocale}
         resolvedLocale={resolvedLocale}
