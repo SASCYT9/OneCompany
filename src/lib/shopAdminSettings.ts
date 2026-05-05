@@ -365,6 +365,16 @@ function normalizeShopBrandShippingBrackets(value: unknown): ShopBrandShippingBr
   return openEnded ? [...finite, openEnded] : finite;
 }
 
+/**
+ * Special id used by the per-brand rules editor to store the global default
+ * fallback rule. Lives in the same `brandShippingRules` JSON array; the
+ * checkout calculator and the admin UI both branch on this id.
+ *
+ * Saving the default in-place avoids adding a Prisma column and keeps the
+ * JSON write path / hooks identical for default and per-brand entries.
+ */
+export const SHOP_BRAND_DEFAULT_RULE_ID = '__default__';
+
 function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[] {
   const rules = asObjectArray(value).map((entry, index) => {
     const modeRaw = stringValue(entry.mode, 'fixed');
@@ -387,7 +397,9 @@ function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[
     } satisfies ShopBrandShippingRule;
   });
 
-  return rules.filter((r) => r.brandName);
+  // Keep brand-specific rules (have brandName) AND the special default rule
+  // (id === '__default__', brandName may be blank).
+  return rules.filter((r) => r.brandName || r.id === SHOP_BRAND_DEFAULT_RULE_ID);
 }
 
 function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
