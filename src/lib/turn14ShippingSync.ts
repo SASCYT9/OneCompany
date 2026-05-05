@@ -345,6 +345,15 @@ export async function syncBrandShippingData(
     durationMs: 0,
   };
 
+  // 0. Compute brand filter early — used both by the no-Turn14 fast path
+  //    and by the main scan below. Aggregate Urban bucket expands to all
+  //    car-make pseudo-brand labels.
+  const isUrbanAggregate =
+    options.brandName.trim().toLowerCase() === URBAN_AGGREGATE_BRAND.toLowerCase();
+  const brandFilter = isUrbanAggregate
+    ? { brand: { in: URBAN_PSEUDO_BRAND_LABELS as unknown as string[] } }
+    : { brand: { equals: options.brandName, mode: 'insensitive' as const } };
+
   // 1. Resolve Turn14 brand
   const turn14BrandId = await resolveTurn14BrandId(prisma, options.brandName);
   result.turn14BrandId = turn14BrandId;
@@ -375,15 +384,41 @@ export async function syncBrandShippingData(
     // best-effort diagnostic, never fail the main flow
   }
 
+  // If Turn14 doesn't carry this brand at all (e.g. Urban Automotive — UK
+  // bodykit maker, not in the Turn14 catalog), we can't build an item map.
+  // We still scan our variants and mark every one as unmatched so the
+  // Perplexity fallback in the route handler has something to chew on.
   if (!turn14BrandId) {
+    const variants = await prisma.shopProductVariant.findMany({
+      where: { product: brandFilter },
+      select: { id: true, sku: true, weight: true, length: true, width: true, height: true },
+      take: maxVariants,
+    });
+    result.variantsScanned = variants.length;
+    for (const v of variants) {
+      const has = v.weight !== null && v.length !== null && v.width !== null && v.height !== null;
+      if (has && !refreshExisting) {
+        result.variantsSkippedAlreadyHave++;
+        continue;
+      }
+      result.variantsNoTurn14Match++;
+      result.perplexityFallbackQueued++;
+      result.unmatched.push({
+        variantId: v.id,
+        sku: v.sku,
+        reason: 'brand not present in Turn14',
+      });
+    }
     result.durationMs = Date.now() - start;
     return result;
   }
 
-  // 2. Find variants for this brand in our DB
+  // 2. Find variants for this brand in our DB. brandFilter was computed at
+  //    step 0 (handles the "Urban Automotive" aggregate that expands to
+  //    all car-make pseudo-brand labels).
   const variants = await prisma.shopProductVariant.findMany({
     where: {
-      product: { brand: { equals: options.brandName, mode: 'insensitive' } },
+      product: brandFilter,
     },
     select: {
       id: true,
@@ -607,27 +642,38 @@ export async function syncBrandShippingData(
 
 /**
  * Car-make labels that ShopProduct.brand uses to GROUP Urban Automotive
- * products on the storefront (e.g. "Land Rover", "Audi", "Lamborghini" —
- * see src/app/[locale]/shop/data/urbanCollectionsList.ts URBAN_COLLECTION_BRANDS).
- * These aren't tuning-part brands and are not present on Turn14, so they
- * pollute the shipping-sync brand picker. Hide them from this admin tool.
+ * products on the storefront (see src/app/[locale]/shop/data/urbanCollectionsList.ts
+ * URBAN_COLLECTION_BRANDS). These aren't tuning-part brands but rather the
+ * vehicle make a given Urban part fits.
+ *
+ * In this admin tool we hide the individual rows and surface a single
+ * aggregated "Urban Automotive" row instead, so the operator can pick a
+ * single bucket that covers all 8 vehicle groupings.
  *
  * Hardcoded (mirroring URBAN_COLLECTION_BRANDS) instead of imported to keep
  * the lib free of `app/` dependencies; if the storefront list grows, just
  * add the new entry here too.
  */
+export const URBAN_PSEUDO_BRAND_LABELS = [
+  'Land Rover',
+  'Lamborghini',
+  'Rolls-Royce',
+  'Mercedes-Benz',
+  'Audi',
+  'Range Rover',
+  'Bentley',
+  'Volkswagen',
+] as const;
 const URBAN_PSEUDO_BRANDS = new Set<string>(
-  [
-    'land rover',
-    'lamborghini',
-    'rolls-royce',
-    'mercedes-benz',
-    'audi',
-    'range rover',
-    'bentley',
-    'volkswagen',
-  ].map((s) => s.toLowerCase()),
+  URBAN_PSEUDO_BRAND_LABELS.map((s) => s.toLowerCase()),
 );
+
+/**
+ * Canonical name we use as the `brand` selector for the aggregated Urban
+ * Automotive bucket. When the operator picks this, sync expands it to
+ * every label in URBAN_PSEUDO_BRAND_LABELS.
+ */
+export const URBAN_AGGREGATE_BRAND = 'Urban Automotive';
 
 /**
  * List ShopProduct distinct brands enriched with Turn14 mapping info.
@@ -660,19 +706,34 @@ export async function listShopBrands(
   for (const m of markups) {
     if (m.brandName) markupByName.set(m.brandName.trim().toLowerCase(), m.brandId);
   }
-  return rows
+  // Aggregate Urban-pseudo-brand rows into a single "Urban Automotive" entry
+  // so the operator has a single bucket for these 8 vehicle groupings.
+  const urbanCount = rows
+    .filter((r) => r.brand && URBAN_PSEUDO_BRANDS.has((r.brand as string).trim().toLowerCase()))
+    .reduce((sum, r) => sum + r._count._all, 0);
+
+  const out = rows
     .filter((r) => r.brand && r.brand.trim().length > 0)
     .filter((r) => !URBAN_PSEUDO_BRANDS.has((r.brand as string).trim().toLowerCase()))
     .map((r) => ({
       brand: r.brand as string,
       productCount: r._count._all,
       turn14BrandId: markupByName.get(r.brand!.trim().toLowerCase()) ?? null,
-    }))
-    .sort((a, b) => {
-      // Turn14-mapped brands first, then by product count desc, then alphabetical.
-      const aIn = a.turn14BrandId !== null ? 1 : 0;
-      const bIn = b.turn14BrandId !== null ? 1 : 0;
-      if (aIn !== bIn) return bIn - aIn;
-      return b.productCount - a.productCount || a.brand.localeCompare(b.brand);
+    }));
+
+  if (urbanCount > 0) {
+    out.push({
+      brand: URBAN_AGGREGATE_BRAND,
+      productCount: urbanCount,
+      turn14BrandId: markupByName.get(URBAN_AGGREGATE_BRAND.toLowerCase()) ?? null,
     });
+  }
+
+  return out.sort((a, b) => {
+    // Turn14-mapped brands first, then by product count desc, then alphabetical.
+    const aIn = a.turn14BrandId !== null ? 1 : 0;
+    const bIn = b.turn14BrandId !== null ? 1 : 0;
+    if (aIn !== bIn) return bIn - aIn;
+    return b.productCount - a.productCount || a.brand.localeCompare(b.brand);
+  });
 }
