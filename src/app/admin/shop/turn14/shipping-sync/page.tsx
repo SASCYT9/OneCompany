@@ -279,6 +279,13 @@ export default function Turn14ShippingSyncPage() {
             </AdminCardSection>
           ) : null}
 
+          {result && result.turn14BrandId === null ? (
+            <AdminInlineAlert tone="warning">
+              <AlertTriangle className="mr-2 inline h-4 w-4" />
+              Бренд <strong>{result.brandName}</strong> не знайдено в Turn14 (ні в локальній мапі <code>Turn14BrandMarkup</code>, ні через substring-пошук). Перевір назву бренду в каталозі Turn14 і додай маппінг через <code>/admin/shop/turn14/markups</code>.
+            </AdminInlineAlert>
+          ) : null}
+
           {result ? (
             <>
               <AdminMetricGrid>

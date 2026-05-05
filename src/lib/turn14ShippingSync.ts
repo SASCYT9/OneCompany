@@ -111,23 +111,70 @@ function hasAnyDim(d: ShippingDims): boolean {
 }
 
 /**
- * Resolve Turn14 brand_id by ShopProduct brand name, case-insensitive.
- * Returns null if the brand is not present in Turn14.
+ * Stay safely under Turn14's 5 req/s rate limit. We aim for ~4 req/s by
+ * sleeping 250 ms between consecutive Turn14 calls in this module.
  */
-export async function resolveTurn14BrandId(brandName: string): Promise<string | null> {
+const TURN14_REQ_INTERVAL_MS = 260;
+let lastTurn14CallAt = 0;
+async function turn14Throttle(): Promise<void> {
+  const now = Date.now();
+  const wait = lastTurn14CallAt + TURN14_REQ_INTERVAL_MS - now;
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastTurn14CallAt = Date.now();
+}
+
+/**
+ * Resolve a Turn14 `brand_id` for a given ShopProduct brand string.
+ *
+ * Strategy (cheapest → most expensive):
+ *   1. Local mapping in `Turn14BrandMarkup` (case-insensitive). This table
+ *      is already populated by the markup management UI; if a brand has
+ *      ever been priced/synced, its `brandId` is here.
+ *   2. Turn14 `/v1/brands` API — exact case-insensitive match.
+ *   3. Turn14 `/v1/brands` API — substring match (handles cases like
+ *      "Burger Motorsports" in shop vs "Burger Tuning" in Turn14).
+ *
+ * Returns null if no match.
+ */
+export async function resolveTurn14BrandId(
+  prisma: PrismaClient,
+  brandName: string,
+): Promise<string | null> {
+  const trimmed = brandName.trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+
+  // 1. Local mapping table.
+  const local = await prisma.turn14BrandMarkup.findFirst({
+    where: { brandName: { equals: trimmed, mode: 'insensitive' } },
+    select: { brandId: true },
+  });
+  if (local?.brandId) return local.brandId;
+
+  // 2 + 3. Fall back to Turn14 brands list.
+  await turn14Throttle();
   const res = await fetchTurn14Brands();
   const items: any[] = res?.data || (Array.isArray(res) ? res : []);
-  const lower = brandName.trim().toLowerCase();
-  const match = items.find((b) => {
-    const name = (b?.attributes?.name || b?.name || '').toString().toLowerCase();
-    return name === lower;
+  const named = items.map((b) => ({
+    id: String(b?.id ?? ''),
+    name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+  }));
+
+  const exact = named.find((b) => b.name.toLowerCase() === lower);
+  if (exact?.id) return exact.id;
+
+  const substring = named.find((b) => {
+    const n = b.name.toLowerCase();
+    return n.length > 0 && (n.includes(lower) || lower.includes(n));
   });
-  return match?.id ?? null;
+  return substring?.id ?? null;
 }
 
 /**
  * Build a SKU/MPN -> turn14ItemId map for a single brand by walking all
  * pages of /v1/items?brand_id={id}. Limited by maxPagesPerBrand.
+ *
+ * Throttled to ~4 req/s (Turn14 caps at 5).
  */
 async function buildBrandItemMap(
   turn14BrandId: string,
@@ -136,6 +183,7 @@ async function buildBrandItemMap(
   const map = new Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>();
   let page = 1;
   while (page <= maxPagesPerBrand) {
+    await turn14Throttle();
     const body = await fetchTurn14ItemsByBrand(turn14BrandId, page);
     const items: any[] = body?.data || [];
     if (items.length === 0) break;
@@ -187,7 +235,7 @@ export async function syncBrandShippingData(
   };
 
   // 1. Resolve Turn14 brand
-  const turn14BrandId = await resolveTurn14BrandId(options.brandName);
+  const turn14BrandId = await resolveTurn14BrandId(prisma, options.brandName);
   result.turn14BrandId = turn14BrandId;
   if (!turn14BrandId) {
     result.durationMs = Date.now() - start;
@@ -256,9 +304,10 @@ export async function syncBrandShippingData(
 
     result.variantsMatched++;
 
-    // 5. Fetch detail to read dimensions
+    // 5. Fetch detail to read dimensions (throttled)
     let detail: any = null;
     try {
+      await turn14Throttle();
       detail = await fetchTurn14ItemDetail(t14ItemId);
     } catch (err) {
       result.unmatched.push({
