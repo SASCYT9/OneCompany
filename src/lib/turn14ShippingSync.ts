@@ -64,6 +64,8 @@ export interface SyncBrandShippingResult {
     /** Distribution of attributes.brand_name across returned items. If
      * brand_id is filtering correctly there should be exactly one key. */
     turn14BrandNameDistribution?: Record<string, number>;
+    /** Where the item map came from: local Turn14Item cache, live API, or empty. */
+    turn14ItemSource?: 'local' | 'api' | 'empty';
   };
 }
 
@@ -200,28 +202,77 @@ export async function resolveTurn14BrandId(
   return substring?.id ?? null;
 }
 
+interface BrandItemMapEntry {
+  id: string;
+  partNumber: string;
+  mfrPartNumber: string | null;
+  /** Cached `attributes` blob from local Turn14Item, when available. Lets us
+   * read `dimensions` without an extra Turn14 detail fetch. */
+  attributes?: any;
+}
+
 interface BrandItemMapResult {
-  map: Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>;
+  map: Map<string, BrandItemMapEntry>;
+  source: 'local' | 'api' | 'empty';
   pagesWalked: number;
   itemCount: number;
   /** Distribution of brand_name as reported by Turn14 in attributes. */
   brandNameDistribution: Record<string, number>;
 }
 
+function indexEntry(
+  map: Map<string, BrandItemMapEntry>,
+  entry: BrandItemMapEntry,
+) {
+  if (entry.partNumber) map.set(entry.partNumber.toUpperCase(), entry);
+  if (entry.mfrPartNumber) map.set(entry.mfrPartNumber.toUpperCase(), entry);
+}
+
 /**
- * Build a SKU/MPN -> turn14ItemId map for a single brand by walking all
- * pages of /v1/items?brand_id={id}. Limited by maxPagesPerBrand.
+ * Build a SKU/MPN -> Turn14 item map for a single brand.
  *
- * Throttled to ~4 req/s (Turn14 caps at 5). Also tracks the distribution
- * of `attributes.brand_name` across returned items so we can detect when
- * Turn14 silently ignores `brand_id` and returns the full catalog.
+ * Strategy:
+ *   1. Try the local `Turn14Item` table (populated by /api/admin/turn14-sync).
+ *      Fast, free, and already brand-filtered correctly (the catalog sync
+ *      post-filters items by `attributes.brand_id` because Turn14's
+ *      /v1/items?brand_id=X is known to return the full catalog when X
+ *      doesn't filter). Each cached row carries `attributes` so we can
+ *      read `dimensions` without a Turn14 detail call.
+ *   2. Fall back to the live /v1/items API with the same post-filter:
+ *      drop items whose `attributes.brand_id` doesn't match. Throttled
+ *      to ~4 req/s. Used when the local cache is empty for this brand.
  */
 async function buildBrandItemMap(
+  prisma: PrismaClient,
   turn14BrandId: string,
   maxPagesPerBrand: number,
 ): Promise<BrandItemMapResult> {
-  const map = new Map<string, { id: string; partNumber: string; mfrPartNumber: string | null }>();
+  const map = new Map<string, BrandItemMapEntry>();
   const brandNameDistribution: Record<string, number> = {};
+
+  // 1. Local cache via Turn14Item.
+  const localItems = await prisma.turn14Item.findMany({
+    where: { brandId: turn14BrandId },
+    select: {
+      id: true,
+      partNumber: true,
+      attributes: true,
+    },
+    take: 5000,
+  });
+  if (localItems.length > 0) {
+    for (const it of localItems) {
+      const attrs = (it.attributes ?? {}) as any;
+      const partNumber: string = it.partNumber || attrs.part_number || '';
+      const mfrPartNumber: string | null = attrs.mfr_part_number || null;
+      const brandName: string = attrs.brand_name || attrs.brand || '<unknown>';
+      indexEntry(map, { id: it.id, partNumber, mfrPartNumber, attributes: attrs });
+      brandNameDistribution[brandName.trim()] = (brandNameDistribution[brandName.trim()] || 0) + 1;
+    }
+    return { map, source: 'local', pagesWalked: 0, itemCount: localItems.length, brandNameDistribution };
+  }
+
+  // 2. Live Turn14 API fallback with post-filter.
   let page = 1;
   let pagesWalked = 0;
   let itemCount = 0;
@@ -233,21 +284,33 @@ async function buildBrandItemMap(
     if (items.length === 0) break;
     for (const it of items) {
       const attrs = it?.attributes || {};
+      const itemBrandId = attrs.brand_id !== undefined ? String(attrs.brand_id) : null;
+      const brandName = (attrs.brand_name || attrs.brand || '<none>').toString().trim();
+      brandNameDistribution[brandName] = (brandNameDistribution[brandName] || 0) + 1;
+      itemCount++;
+      // Skip items whose Turn14 brand_id doesn't match (Turn14 frequently
+      // returns the global catalog when its brand_id filter is bogus).
+      if (itemBrandId && itemBrandId !== turn14BrandId) continue;
       const partNumber: string | undefined = attrs.part_number;
       const mfrPartNumber: string | undefined = attrs.mfr_part_number;
-      const brandName: string | undefined = attrs.brand_name || attrs.brand;
-      const entry = { id: String(it.id), partNumber: partNumber || '', mfrPartNumber: mfrPartNumber || null };
-      if (partNumber) map.set(partNumber.toUpperCase(), entry);
-      if (mfrPartNumber) map.set(mfrPartNumber.toUpperCase(), entry);
-      itemCount++;
-      const key = (brandName || '<none>').trim();
-      brandNameDistribution[key] = (brandNameDistribution[key] || 0) + 1;
+      indexEntry(map, {
+        id: String(it.id),
+        partNumber: partNumber || '',
+        mfrPartNumber: mfrPartNumber || null,
+        attributes: attrs,
+      });
     }
     const totalPages = body?.meta?.total_pages;
     if (typeof totalPages === 'number' && page >= totalPages) break;
     page++;
   }
-  return { map, pagesWalked, itemCount, brandNameDistribution };
+  return {
+    map,
+    source: map.size > 0 ? 'api' : 'empty',
+    pagesWalked,
+    itemCount,
+    brandNameDistribution,
+  };
 }
 
 /**
@@ -342,11 +405,9 @@ export async function syncBrandShippingData(
     return result;
   }
 
-  // 3. Build SKU map for this brand from Turn14
-  const { map: itemMap, pagesWalked, itemCount, brandNameDistribution } = await buildBrandItemMap(
-    turn14BrandId,
-    maxPagesPerBrand,
-  );
+  // 3. Build SKU map for this brand — local cache first, Turn14 API fallback
+  const { map: itemMap, source, pagesWalked, itemCount, brandNameDistribution } =
+    await buildBrandItemMap(prisma, turn14BrandId, maxPagesPerBrand);
 
   // Stash a small diagnostic sample so we can see why matches fail.
   const seenIds = new Set<string>();
@@ -365,6 +426,7 @@ export async function syncBrandShippingData(
     turn14PagesWalked: pagesWalked,
     turn14ItemCount: itemCount,
     turn14BrandNameDistribution: brandNameDistribution,
+    turn14ItemSource: source,
   };
 
   // 4. Iterate variants
@@ -446,20 +508,28 @@ export async function syncBrandShippingData(
 
     result.variantsMatched++;
 
-    // 5. Fetch detail to read dimensions (throttled)
-    let detail: any = null;
-    try {
-      await turn14Throttle();
-      detail = await fetchTurn14ItemDetail(t14ItemId);
-    } catch (err) {
-      result.unmatched.push({
-        variantId: variant.id,
-        sku: variant.sku,
-        reason: `Turn14 detail fetch failed: ${(err as Error).message}`,
-      });
-      continue;
+    // 5. Read dimensions — prefer the cached attributes blob from the
+    //    item map (covers the local-cache path with zero extra API calls);
+    //    fall back to a throttled Turn14 detail fetch when the cached
+    //    attributes don't carry dimensions.
+    const matchedEntry = sku ? itemMap.get(sku) : null;
+    let attrs: any = matchedEntry?.attributes ?? null;
+    let dims = attrs?.dimensions;
+    if (!Array.isArray(dims) || dims.length === 0) {
+      try {
+        await turn14Throttle();
+        const detail = await fetchTurn14ItemDetail(t14ItemId);
+        attrs = detail?.data?.attributes ?? null;
+        dims = attrs?.dimensions;
+      } catch (err) {
+        result.unmatched.push({
+          variantId: variant.id,
+          sku: variant.sku,
+          reason: `Turn14 detail fetch failed: ${(err as Error).message}`,
+        });
+        continue;
+      }
     }
-    const dims = detail?.data?.attributes?.dimensions;
     const firstDim = Array.isArray(dims) ? dims[0] : null;
     const newDims = toMetric(firstDim);
 
