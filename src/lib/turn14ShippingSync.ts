@@ -287,10 +287,9 @@ export async function syncBrandShippingData(
     const sku = variant.sku?.toUpperCase() || null;
     let t14ItemId: string | null = variant.turn14Id ?? null;
     if (!t14ItemId && sku) {
-      // Try the SKU as-is first, then progressively strip leading dash-
-      // prefixed segments. Covers shop SKUs that prepend their own prefix
-      // ("OC-BMS-JB4-B58") in front of Turn14's ("BMS-JB4-B58") or the
-      // raw MFR ("JB4-B58").
+      // 1. Exact + prefix-strip: try the SKU as-is, then progressively strip
+      //    leading dash-prefixed segments. Covers shop SKUs that prepend
+      //    their own prefix ("OC-BMS-JB4-B58" → "BMS-JB4-B58" → "JB4-B58").
       const candidates: string[] = [];
       let remaining = sku;
       candidates.push(remaining);
@@ -307,6 +306,33 @@ export async function syncBrandShippingData(
           t14ItemId = entry.id;
           break;
         }
+      }
+
+      // 2. Suffix-match fallback. Covers the opposite shape: shop holds the
+      //    clean MFR part number (e.g. "A1-163") while Turn14 prefixed it
+      //    with the supplier code (e.g. "GIR-A1-163"). Walk the item map and
+      //    find a Turn14 key that ends with the shop SKU. We require >=4
+      //    characters to avoid promiscuous matches like a 2-char SKU "B1"
+      //    matching dozens of unrelated Turn14 items.
+      if (!t14ItemId && sku.length >= 4) {
+        const sep = '-';
+        let suffixHit: { id: string; key: string } | null = null;
+        let ambiguous = false;
+        for (const [key, entry] of itemMap) {
+          if (key === sku) continue; // already covered by exact above
+          if (!key.endsWith(sku)) continue;
+          // Require a separator boundary to avoid matching deep into a token
+          // (e.g. shop "B58" should NOT match Turn14 "ABCB58"). Either the
+          // matched portion starts at index 0 or is preceded by a dash.
+          const startIdx = key.length - sku.length;
+          if (startIdx > 0 && key[startIdx - 1] !== sep) continue;
+          if (suffixHit && suffixHit.id !== entry.id) {
+            ambiguous = true;
+            break;
+          }
+          suffixHit = { id: entry.id, key };
+        }
+        if (suffixHit && !ambiguous) t14ItemId = suffixHit.id;
       }
     }
 
