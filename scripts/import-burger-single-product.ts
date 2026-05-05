@@ -43,7 +43,11 @@ async function main() {
   }
 
   const dbSlug = `burger-${p.slug}`;
-  const sku = p.sku || `BURGER-${p.shopifyProductId}`;
+  // Burger's Shopify variants sometimes expose a variant title in `sku`
+  // (e.g. "+ PRO BT Adapter"). Reject anything with whitespace or a
+  // non-alphanumeric leading char and fall back to the stable Shopify id.
+  const looksLikeRealSku = p.sku && /^[A-Za-z0-9]/.test(p.sku) && !/\s/.test(p.sku);
+  const sku = looksLikeRealSku ? p.sku! : `BURGER-${p.shopifyProductId}`;
   const priceEur = p.priceUsd ? Math.round(p.priceUsd * 0.92 * 100) / 100 : null;
 
   const existing = await prisma.shopProduct.findUnique({ where: { slug: dbSlug } });

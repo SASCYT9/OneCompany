@@ -134,6 +134,17 @@ function applyPricing(usd) {
   return Math.round((usd * MARKUP + FLAT_FEE) * 100) / 100;
 }
 
+// Burger's Shopify variants often expose a variant title in `sku` (e.g.
+// "+ PRO BT Adapter", "Q50 JB4 ***V6***"). Treat anything with whitespace
+// or a non-alphanumeric leading char as garbage and fall back to the
+// stable Shopify product id.
+function cleanSku(rawSku, productId) {
+  if (!rawSku) return `BURGER-${productId}`;
+  if (/\s/.test(rawSku)) return `BURGER-${productId}`;
+  if (!/^[A-Za-z0-9]/.test(rawSku)) return `BURGER-${productId}`;
+  return rawSku;
+}
+
 // ── Map product type to a category slug ──
 const TYPE_TO_CATEGORY = {
   'JB4 Tuners': 'jb4-tuners',
@@ -214,7 +225,7 @@ async function main() {
     return {
       title: p.title,
       slug: p.handle,
-      sku: variant.sku || `BURGER-${p.id}`,
+      sku: cleanSku(variant.sku, p.id),
       descriptionEn: stripHtml(p.body_html),
       descriptionUa: '', // translate later
       brand: 'Burger Motorsports',
