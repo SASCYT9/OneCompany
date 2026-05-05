@@ -287,8 +287,27 @@ export async function syncBrandShippingData(
     const sku = variant.sku?.toUpperCase() || null;
     let t14ItemId: string | null = variant.turn14Id ?? null;
     if (!t14ItemId && sku) {
-      const entry = itemMap.get(sku);
-      if (entry) t14ItemId = entry.id;
+      // Try the SKU as-is first, then progressively strip leading dash-
+      // prefixed segments. Covers shop SKUs that prepend their own prefix
+      // ("OC-BMS-JB4-B58") in front of Turn14's ("BMS-JB4-B58") or the
+      // raw MFR ("JB4-B58").
+      const candidates: string[] = [];
+      let remaining = sku;
+      candidates.push(remaining);
+      let safety = 4;
+      while (safety-- > 0) {
+        const dashIdx = remaining.indexOf('-');
+        if (dashIdx <= 0 || dashIdx >= remaining.length - 1) break;
+        remaining = remaining.slice(dashIdx + 1);
+        candidates.push(remaining);
+      }
+      for (const candidate of candidates) {
+        const entry = itemMap.get(candidate);
+        if (entry) {
+          t14ItemId = entry.id;
+          break;
+        }
+      }
     }
 
     if (!t14ItemId) {
@@ -394,17 +413,44 @@ export async function syncBrandShippingData(
 }
 
 /**
- * List ShopProduct distinct brands. Useful for the admin UI to populate a
- * dropdown so we never sync brands not present in the shop.
+ * List ShopProduct distinct brands enriched with Turn14 mapping info.
+ *
+ * `turn14BrandId` is non-null when the brand has a row in `Turn14BrandMarkup`
+ * (the existing local mapping populated by the markups admin UI). This lets
+ * the operator instantly see which shop brands are syncable via Turn14
+ * without trial-and-error.
+ *
+ * Brands without a markup row are NOT hidden — the sync path still tries an
+ * exact + substring match against the live Turn14 brands list, so the
+ * operator can attempt them. The badge is just a hint about confidence.
  */
-export async function listShopBrands(prisma: PrismaClient): Promise<Array<{ brand: string; productCount: number }>> {
-  const rows = await prisma.shopProduct.groupBy({
-    by: ['brand'],
-    _count: { _all: true },
-    where: { brand: { not: null } },
-  });
+export async function listShopBrands(
+  prisma: PrismaClient,
+): Promise<Array<{ brand: string; productCount: number; turn14BrandId: string | null }>> {
+  const [rows, markups] = await Promise.all([
+    prisma.shopProduct.groupBy({
+      by: ['brand'],
+      _count: { _all: true },
+      where: { brand: { not: null } },
+    }),
+    prisma.turn14BrandMarkup.findMany({ select: { brandId: true, brandName: true } }),
+  ]);
+  const markupByName = new Map<string, string>();
+  for (const m of markups) {
+    if (m.brandName) markupByName.set(m.brandName.trim().toLowerCase(), m.brandId);
+  }
   return rows
     .filter((r) => r.brand && r.brand.trim().length > 0)
-    .map((r) => ({ brand: r.brand as string, productCount: r._count._all }))
-    .sort((a, b) => b.productCount - a.productCount || a.brand.localeCompare(b.brand));
+    .map((r) => ({
+      brand: r.brand as string,
+      productCount: r._count._all,
+      turn14BrandId: markupByName.get(r.brand!.trim().toLowerCase()) ?? null,
+    }))
+    .sort((a, b) => {
+      // Turn14-mapped brands first, then by product count desc, then alphabetical.
+      const aIn = a.turn14BrandId !== null ? 1 : 0;
+      const bIn = b.turn14BrandId !== null ? 1 : 0;
+      if (aIn !== bIn) return bIn - aIn;
+      return b.productCount - a.productCount || a.brand.localeCompare(b.brand);
+    });
 }

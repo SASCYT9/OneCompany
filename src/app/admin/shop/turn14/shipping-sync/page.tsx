@@ -24,7 +24,7 @@ import {
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
 
-type Brand = { brand: string; productCount: number };
+type Brand = { brand: string; productCount: number; turn14BrandId: string | null };
 
 type Dims = {
   weightKg: number | null;
@@ -199,8 +199,24 @@ export default function Turn14ShippingSyncPage() {
                         ? 'bg-blue-500/10 text-blue-100'
                         : 'text-zinc-300 hover:bg-white/[0.03] hover:text-zinc-100'
                     }`}
+                    title={
+                      b.turn14BrandId
+                        ? `Замаплено на Turn14 brandId=${b.turn14BrandId} (з Turn14BrandMarkup)`
+                        : 'Немає у Turn14BrandMarkup. Sync спробує exact + substring пошук.'
+                    }
                   >
-                    <span className="truncate">{b.brand}</span>
+                    <span className="flex min-w-0 items-center gap-2">
+                      {b.turn14BrandId ? (
+                        <span className="shrink-0 rounded-sm bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+                          T14
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-sm bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">
+                          ?
+                        </span>
+                      )}
+                      <span className="truncate">{b.brand}</span>
+                    </span>
                     <span className="ml-3 shrink-0 text-[10px] uppercase tracking-wider text-zinc-500">
                       {b.productCount} товарів
                     </span>
