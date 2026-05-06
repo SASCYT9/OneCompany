@@ -19,6 +19,8 @@ const TelegramIcon = (props: React.SVGProps<SVGSVGElement>) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
     {...props}
   >
     <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
@@ -122,7 +124,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   href={TG_AUTO_HREF}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Telegram channel for auto inquiries"
+                  aria-label={locale === 'ua' ? 'Telegram — Авто' : 'Telegram — Auto'}
                   whileHover={{ y: -2 }}
                   className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-white"
                 >
@@ -134,7 +136,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   href={TG_MOTO_HREF}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Telegram channel for moto inquiries"
+                  aria-label={locale === 'ua' ? 'Telegram — Мото' : 'Telegram — Moto'}
                   whileHover={{ y: -2 }}
                   className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-white"
                 >
