@@ -10,6 +10,24 @@ import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
+const TelegramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
+  </svg>
+);
+
+const TG_AUTO_HREF = "https://t.me/onecompany_global";
+const TG_MOTO_HREF = "https://t.me/onecompany_moto";
+
 type FooterProps = {
   currentYear: number;
   companyRequisites?: string | null;
@@ -36,24 +54,6 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
 
   const socials = [
     { icon: Instagram, href: "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr", label: "Instagram" },
-    {
-      icon: (props: React.SVGProps<SVGSVGElement>) => (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          {...props}
-        >
-          <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
-        </svg>
-      ),
-      href: "https://t.me/onecompany_global",
-      label: "Telegram"
-    },
     {
       icon: (props: React.SVGProps<SVGSVGElement>) => (
         <svg
@@ -111,6 +111,40 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
             <p className={`leading-relaxed text-white/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}>
               {t('description')}
             </p>
+
+            {/* Telegram CTA — dual auto/moto channels */}
+            <div className="space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-white/50 font-semibold">
+                {locale === 'ua' ? "Зв'язок у Telegram" : 'Telegram contact'}
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                <motion.a
+                  href={TG_AUTO_HREF}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Telegram channel for auto inquiries"
+                  whileHover={{ y: -2 }}
+                  className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-white"
+                >
+                  <TelegramIcon className="h-4 w-4 text-sky-400" />
+                  <span className="font-semibold">{locale === 'ua' ? 'Авто' : 'Auto'}</span>
+                  <span className="text-white/40 transition-colors group-hover:text-white/70">→</span>
+                </motion.a>
+                <motion.a
+                  href={TG_MOTO_HREF}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Telegram channel for moto inquiries"
+                  whileHover={{ y: -2 }}
+                  className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-white"
+                >
+                  <TelegramIcon className="h-4 w-4 text-orange-400" />
+                  <span className="font-semibold">{locale === 'ua' ? 'Мото' : 'Moto'}</span>
+                  <span className="text-white/40 transition-colors group-hover:text-white/70">→</span>
+                </motion.a>
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-2 justify-center lg:justify-start">
               {socials.map(({ icon: Icon, href, label }) => (
                 <motion.a
