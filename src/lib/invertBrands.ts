@@ -28,7 +28,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'RYFT',
     'VF Engineering',
     'WheelForce',
-    '1221 wheels',
+    '1221 Wheels',
     'AC Schnitzer',
     'Avant Garde Wheels',
     // Added 2026-05-07: dark logos misclassified as also-solid by the auto

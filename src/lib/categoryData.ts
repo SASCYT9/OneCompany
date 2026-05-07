@@ -35,13 +35,13 @@ export const categoryData: CategoryData[] = [
     },
     brands: [
       // TOP 8 first
-      'HRE wheels',
-      '1221 wheels',
-      'ADV.1 wheels',
-      'AL13 wheels',
-      'ANRKY wheels',
+      'HRE Wheels',
+      '1221 Wheels',
+      'ADV.1 Wheels',
+      'AL13 Wheels',
+      'ANRKY Wheels',
       'Velos Designwerks',
-      'Brixton wheels',
+      'Brixton Wheels',
       'MV Forged',
       // Rest alphabetically
       'Mickey Thompson',
@@ -49,7 +49,7 @@ export const categoryData: CategoryData[] = [
       'Project 6GR',
       'ProTrack Wheels',
       'Raliw Forged',
-      'Strasse wheels',
+      'Strasse Wheels',
       'Avant Garde Wheels',
       'Vorsteiner',
       'WheelForce',

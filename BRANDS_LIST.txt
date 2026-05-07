@@ -3,14 +3,16 @@
 [USA & Performance]
 034 Motorsport
 1016 Industries
-1221 wheels
+1221 Wheels
 5150 Autosport
-ADV.1 wheels
+ADV.1 Wheels
+aFe Power
 Airlift Performance
-AL13 wheels
+Alcon
+AL13 Wheels
 American Racing Headers
 AMS / Alpha Performance
-ANRKY wheels
+ANRKY Wheels
 APR
 Avant Garde Wheels
 BBi Autosport
@@ -19,7 +21,7 @@ Big Boost
 BimmerWorld
 BootMod3
 Borla
-Brixton wheels
+Brixton Wheels
 Burger Motorsports
 Circle D
 Cobb tuning
@@ -38,10 +40,11 @@ Fragola Performance Systems
 Full-Race
 Girodisc
 GTHaus
-HRE wheels
+HRE Wheels
 Injector Dynamics
 Integrated Engineering
 JXB Performance
+K&N
 Killer B Motorsport
 KLM Race
 Kooks Headers
@@ -71,7 +74,7 @@ SPL Parts
 Spool Performance
 Stillen
 Stoptech
-Strasse wheels
+Strasse Wheels
 Titan Motorsport
 Turner Motorsport
 Vargas Turbo

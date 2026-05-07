@@ -410,7 +410,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
     ],
   },
-  'HRE wheels': {
+  'HRE Wheels': {
     headline: { en: 'HRE · The World\'s Best Custom Forged Wheels', ua: 'HRE · Найкращі у світі ковані диски' },
     description: {
       en: 'Custom forged wheels. Lightweight, strong, and infinitely customizable for your vehicle.',
@@ -712,7 +712,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Bolt-on fitment', ua: 'Bolt-on встановлення' },
     ],
   },
-  'ADV.1 wheels': {
+  'ADV.1 Wheels': {
     headline: { en: 'ADV.1 Engineered Design', ua: 'ADV.1 — інженерний дизайн' },
     description: {
       en: 'Known for concave wheel design and engineering, offering extensive customization for exotic builds.',
@@ -724,7 +724,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Aerospace aluminum', ua: 'Авіаційний алюміній' },
     ],
   },
-  'Strasse wheels': {
+  'Strasse Wheels': {
     headline: { en: 'Strasse Performance Series', ua: 'Strasse — серія Performance' },
     description: {
       en: 'High-performance 3-piece wheels built for speed and style, featuring deep concave profiles and carbon fiber barrels.',
@@ -748,7 +748,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Aero-discs available', ua: 'Доступні аеро-диски' },
     ],
   },
-  'AL13 wheels': {
+  'AL13 Wheels': {
     headline: { en: 'AL13 Design House', ua: 'AL13 — дім дизайну' },
     description: {
       en: 'The pinnacle of wheel design, offering intricate machining and multi-piece construction for the most discerning builds.',
@@ -760,7 +760,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Exotic finishes', ua: 'Екзотичні фініші' },
     ],
   },
-  '1221 wheels': {
+  '1221 Wheels': {
     headline: { en: '1221 Advanced Metallurgy', ua: '1221 — передова металургія' },
     description: {
       en: 'Utilizing proprietary alloy blends and AP3X technology to create the lightest and strongest wheels on the market.',
