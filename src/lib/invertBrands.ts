@@ -108,7 +108,10 @@ export const shouldInvertBrandOrLogo = (
 
 const SMART_INVERT_BRANDS_NORMALIZED = new Set(
   [
-    '3D Design',
+    // 3D Design removed 2026-05-07: replaced source PNG with a clean
+    // white-on-transparent silhouette extracted from the brand catalog.
+    // Smart-invert would now turn the white into black, breaking the
+    // dark-theme card. See issue #18.
     'BE bearings',
     'Marchesini',
     'SparkExhaust',

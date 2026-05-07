@@ -213,8 +213,6 @@ export const SOLID_LOGOS: string[] = [
   "stillen.png",
   "stillen.webp",
   "stompgrip.png",
-  "stoptech.png",
-  "stoptech.webp",
   "strasse-wheels.png",
   "strasse-wheels.webp",
   "summit-racing.png",
