@@ -1,9 +1,12 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { useState, type ReactNode } from 'react';
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { AdminSlideOver } from './AdminSlideOver';
 
 /**
  * "OneCompany Blue" — premium dark with single blue accent.
@@ -197,11 +200,72 @@ function SparkLine({ data }: { data: number[] }) {
   );
 }
 
-export function AdminFilterBar({ children, className }: { children: ReactNode; className?: string }) {
+export function AdminFilterBar({
+  children,
+  className,
+  collapsible,
+  collapsibleLabel = 'Фільтри',
+  collapsibleCount,
+  primary,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** When true, on ≤md hide filters behind a "Фільтри" button that opens a bottom sheet. */
+  collapsible?: boolean;
+  collapsibleLabel?: string;
+  /** Number of active filters — shown in the button as a counter chip. */
+  collapsibleCount?: number;
+  /** Always-visible elements on mobile (e.g. search input). Rendered above the trigger button. */
+  primary?: ReactNode;
+}) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  if (!collapsible) {
+    return (
+      <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
+        <div className="flex flex-wrap items-center gap-3">{children}</div>
+      </section>
+    );
+  }
+
   return (
-    <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
-      <div className="flex flex-wrap items-center gap-3">{children}</div>
-    </section>
+    <>
+      <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
+        {/* ≤md layout: primary slot + Filter button */}
+        <div className="flex flex-col gap-2 md:hidden">
+          {primary ? <div className="flex flex-wrap items-center gap-2">{primary}</div> : null}
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="flex h-11 items-center justify-center gap-2 rounded-none border border-white/[0.08] bg-black/30 px-3 text-sm font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+            <span>{collapsibleLabel}</span>
+            {typeof collapsibleCount === 'number' && collapsibleCount > 0 ? (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
+                {collapsibleCount}
+              </span>
+            ) : null}
+          </button>
+        </div>
+        {/* ≥md layout: original wrap row */}
+        <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">{children}</div>
+      </section>
+
+      <AdminSlideOver
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        position="bottom"
+        title={collapsibleLabel}
+        subtitle={
+          typeof collapsibleCount === 'number' && collapsibleCount > 0
+            ? `Активних: ${collapsibleCount}`
+            : undefined
+        }
+      >
+        <div className="flex flex-col gap-3">{children}</div>
+      </AdminSlideOver>
+    </>
   );
 }
 
@@ -209,6 +273,51 @@ export function AdminTableShell({ children, className }: { children: ReactNode; 
   return (
     <div className={cn('overflow-x-auto border bg-[#171717]', BORDER, className)}>
       {children}
+    </div>
+  );
+}
+
+/**
+ * Responsive list shell — renders the desktop variant (typically a `<table>`)
+ * on ≥lg viewports and the mobile variant (typically a stack of
+ * `<AdminMobileCard>`) below that. Replaces the manual `hidden lg:block`
+ * + `lg:hidden` pattern duplicated across 30+ list pages.
+ *
+ * Usage:
+ *   <AdminResponsiveTable
+ *     desktop={
+ *       <AdminTableShell>
+ *         <table className="w-full text-left text-sm">…</table>
+ *       </AdminTableShell>
+ *     }
+ *     mobile={
+ *       <div className="space-y-2">
+ *         {rows.map(r => <AdminMobileCard key={r.id} … />)}
+ *       </div>
+ *     }
+ *   />
+ */
+export function AdminResponsiveTable({
+  desktop,
+  mobile,
+  breakpoint = 'lg',
+  className,
+}: {
+  desktop: ReactNode;
+  mobile: ReactNode;
+  /** Where to switch from cards (mobile) to table (desktop). Defaults to `lg`. */
+  breakpoint?: 'md' | 'lg' | 'xl';
+  className?: string;
+}) {
+  const desktopClass =
+    breakpoint === 'md' ? 'hidden md:block' : breakpoint === 'xl' ? 'hidden xl:block' : 'hidden lg:block';
+  const mobileClass =
+    breakpoint === 'md' ? 'md:hidden' : breakpoint === 'xl' ? 'xl:hidden' : 'lg:hidden';
+
+  return (
+    <div className={className}>
+      <div className={desktopClass}>{desktop}</div>
+      <div className={mobileClass}>{mobile}</div>
     </div>
   );
 }
@@ -632,9 +741,9 @@ export function AdminSplitDetailShell({
   className?: string;
 }) {
   return (
-    <div className={cn('grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]', className)}>
+    <div className={cn('grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]', className)}>
       <div className="min-w-0 space-y-6">{main}</div>
-      <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside>
+      <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">{sidebar}</aside>
     </div>
   );
 }

@@ -12,9 +12,11 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
 import { useToast } from '@/components/admin/AdminToast';
 
@@ -178,7 +180,7 @@ export default function AdminDiscountsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={search}
@@ -231,6 +233,39 @@ export default function AdminDiscountsPage() {
           }
         />
       ) : (
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
+              {discounts.map((d) => (
+                <AdminMobileCard
+                  key={d.id}
+                  title={
+                    <span className="flex items-center gap-2">
+                      <Ticket className="h-4 w-4 text-blue-400" aria-hidden="true" />
+                      <span className="font-mono">{d.code}</span>
+                    </span>
+                  }
+                  subtitle={d.description || undefined}
+                  badge={<AdminStatusBadge tone={statusTone(d.status)}>{d.status}</AdminStatusBadge>}
+                  rows={[
+                    { label: 'Тип', value: typeLabel(d.type, d.value, d.currency) },
+                    { label: 'Викор.', value: d.usageLimit != null ? `${d.usageCount} / ${d.usageLimit}` : d.usageCount },
+                    {
+                      label: 'Дійсність',
+                      value:
+                        d.validUntil
+                          ? `до ${new Date(d.validUntil).toLocaleDateString()}`
+                          : d.validFrom
+                            ? `від ${new Date(d.validFrom).toLocaleDateString()}`
+                            : 'Завжди',
+                    },
+                  ]}
+                  href={`/admin/shop/discounts/${d.id}`}
+                />
+              ))}
+            </div>
+          }
+          desktop={
         <AdminTableShell>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1080px] text-left text-sm">
@@ -321,6 +356,8 @@ export default function AdminDiscountsPage() {
             </table>
           </div>
         </AdminTableShell>
+          }
+        />
       )}
     </AdminPage>
   );

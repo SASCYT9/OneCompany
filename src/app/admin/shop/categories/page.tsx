@@ -13,9 +13,11 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 import { useConfirm } from '@/components/admin/AdminConfirmDialog';
 import { useToast } from '@/components/admin/AdminToast';
 
@@ -176,7 +178,7 @@ export default function AdminShopCategoriesPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+        <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -204,6 +206,50 @@ export default function AdminShopCategoriesPage() {
           }
         />
       ) : (
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
+              {filteredCategories.map((category) => (
+                <AdminMobileCard
+                  key={category.id}
+                  title={category.titleEn || category.titleUa}
+                  subtitle={category.slug}
+                  badge={
+                    <AdminStatusBadge tone={category.isPublished ? 'success' : 'warning'}>
+                      {category.isPublished ? 'Published' : 'Hidden'}
+                    </AdminStatusBadge>
+                  }
+                  rows={[
+                    { label: 'Parent', value: category.parent ? (category.parent.titleEn || category.parent.titleUa) : '—' },
+                    { label: 'Products', value: category.productsCount },
+                    { label: 'Children', value: category.childrenCount },
+                    { label: 'Updated', value: new Date(category.updatedAt).toLocaleDateString() },
+                  ]}
+                  footer={
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/shop/categories/${category.id}`}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/10 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(category.id)}
+                        disabled={deletingId === category.id}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-none border border-blue-500/20 px-3 py-2.5 text-xs text-blue-300 disabled:opacity-50"
+                        aria-label="Delete category"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+          }
+          desktop={
         <AdminTableShell>
           <table className="w-full text-left text-sm">
             <thead>
@@ -269,6 +315,8 @@ export default function AdminShopCategoriesPage() {
             </tbody>
           </table>
         </AdminTableShell>
+          }
+        />
       )}
     </AdminPage>
   );

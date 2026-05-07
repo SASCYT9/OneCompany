@@ -181,7 +181,7 @@ export default function BrandMarkupsPage() {
       {saveStatus === 'error' ? <AdminInlineAlert tone="error">Не вдалося зберегти націнки. Перевірте API або спробуйте ще раз.</AdminInlineAlert> : null}
 
       <AdminFilterBar>
-        <label className="min-w-[260px] flex-1">
+        <label className="w-full min-w-0 flex-1 md:min-w-[260px]">
           <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Brand search</span>
           <input
             type="text"

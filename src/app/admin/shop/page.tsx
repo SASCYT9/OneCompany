@@ -27,6 +27,7 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
@@ -638,7 +639,7 @@ function AdminShopPageContent() {
             ))}
           </select>
 
-          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[280px]">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={searchInput}
@@ -717,9 +718,9 @@ function AdminShopPageContent() {
           }
         />
       ) : (
-        <>
-          {/* Mobile card view */}
-          <div className="space-y-2 lg:hidden">
+        <AdminResponsiveTable
+          mobile={
+          <div className="space-y-2">
             {products.map((product) => (
               <AdminMobileCard
                 key={product.id}
@@ -769,9 +770,9 @@ function AdminShopPageContent() {
               />
             ))}
           </div>
-
-          {/* Desktop table */}
-          <AdminTableShell className="hidden lg:block">
+          }
+          desktop={
+          <AdminTableShell>
             <table className="w-full min-w-[1080px] text-left text-sm">
               <thead className="sticky top-0 z-20 bg-[#171717]/95 backdrop-blur-md">
                 <tr className="border-b border-white/10">
@@ -922,7 +923,8 @@ function AdminShopPageContent() {
                 </tbody>
               </table>
           </AdminTableShell>
-        </>
+          }
+        />
       )}
 
       <ProductQuickView

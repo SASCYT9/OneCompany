@@ -111,7 +111,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           }}
         />
 
-        <div className="relative flex min-h-screen items-center justify-center px-6 py-12">
+        <div className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -119,13 +119,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             className="w-full max-w-[440px]"
           >
             {/* Brand logo above card */}
-            <div className="mb-8 flex justify-center">
+            <div className="mb-6 flex justify-center sm:mb-8">
               <Image
                 src="/branding/logo-light.svg"
                 alt="OneCompany"
                 width={200}
                 height={48}
-                className="h-12 w-auto"
+                className="h-10 w-auto sm:h-12"
                 priority
               />
             </div>
@@ -134,7 +134,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {/* Top blue accent line */}
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 
-              <div className="p-9">
+              <div className="p-6 sm:p-9">
                 <div className="mb-8 text-center">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.85 }}

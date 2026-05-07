@@ -1,0 +1,289 @@
+
+=== Active-brand logo issues — 237 active brands, 140 flagged ===
+
+-- no-logo-mapping (5) --
+  [exterior,exterior,exterior,exterior,exterior,exterior,exterior,exterior,exterior,exterior,exterior,exterior] ,
+        →  NO FILE
+  [suspension] Alcon  →  NO FILE
+  [intake] K&N  →  NO FILE
+  [exterior] Matt  →  NO FILE
+  [intake] aFe Power  →  NO FILE
+
+-- opaque-light-bg (32) --
+  [electronics,racing] AIM Sportline  →  aim-sportline.png 128x128
+  [moto-electronics] AIM Tech  →  aim-sportline.png 128x128
+  [moto-electronics] Alpha Racing  →  alpha-racing.jpg 185x66
+  [cooling,racing] Bell Intercoolers  →  bell-intercoolers.png 128x128
+  [moto-suspension] Capit  →  capit.webp 304x80
+  [moto-electronics] Cordona  →  cordona.png 225x225
+  [moto-carbon] DB-Race  →  db-race.png 256x256
+  [electronics] Dahler  →  dahler.jpg 388x102
+  [performance] Dorch Engineering  →  dorch-engineering.png 192x192
+  [moto-electronics] EVR  →  evr.jpg 948x246
+  [cooling,racing] Extreme Performance Tyres  →  extreme-tyres.webp 2560x733
+  [exhaust,performance,electronics] Fabspeed  →  fabspeed.jpg 900x900
+  [moto-controls] Gilles Tooling  →  gilles-tooling.jpg 225x225
+  [suspension] Girodisc  →  girodisc.webp 420x100
+  [moto-carbon] Ilmberger Carbon  →  ilmberger-carbon.webp 1200x416
+  [performance] ItalianRP  →  italianrp.jpg 1600x1200
+  [performance] KLM Race  →  klm-race.jpg 1200x1200
+  [performance] Killer B Motorsport  →  killer-b-motorsport.jpg 1024x357
+  [exhaust] Kline Innovation  →  kline-innovation.png 128x128
+  [exhaust] Kooks Headers  →  kooks-headers.png 700x350
+  [electronics,racing] Lithiumax  →  lithiumax-batteries.png 128x128
+  [suspension,racing] MCA Suspension  →  mca-suspension.png 128x128
+  [drivetrain,racing] Modena Engineering  →  modena-engineering.png 128x128
+  [moto-carbon] New Rage Cycles  →  new-rage-cycles.jpg 227x222
+  [suspension] Nitron Suspension  →  nitron-suspension.png 128x128
+  [performance] Pure Turbos  →  pure-turbos.png 500x78
+  [drivetrain] Sachs Performance  →  sachs-performance-white.png 128x128
+  [moto-suspension] Samco Sport  →  samco-sport.jpg 540x540
+  [moto-wheels] Stompgrip  →  stompgrip.png 667x52
+  [moto-controls] TWM  →  twm.jpg 253x158
+  [performance] Whipple Superchargers  →  whipple-superchargers.jpg 850x142
+  [moto-wheels] X-GRIP  →  x-grip.png 225x225
+
+-- logo-too-dark (25) --
+  [exterior] 1016 Industries  →  1016-industries.webp 2266x821
+  [exterior] 3D Design  →  3d-design.png 212x83
+  [exterior,electronics] ABT  →  abt.png 2619x1024
+  [exterior,electronics] AC Schnitzer  →  ac-schnitzer.png 2191x595
+  [moto-controls] AEM Factory  →  aem-factory.png 412x78
+  [wheels] Avantgarde Wheels  →  avantgarde-wheels.png 1000x171
+  [performance] BE bearings  →  be-bearings.png 302x85
+  [intake,performance] BMC filters  →  bmc-filters.png 300x164
+  [electronics,electronics] BootMod3  →  bootmod3.webp 1024x819
+  [electronics] Cobb tuning  →  cobb-tuning.png 1477x535
+  [performance] Fore Innovations  →  fore-innovations.png 225x225
+  [exterior] Liberty Walk  →  liberty-walk.png 320x320
+  [moto-controls] Melotti Racing  →  melotti-racing.webp 480x480
+  [electronics] Onyx Concept  →  onyx-concept.png 90x128
+  [electronics] R44 Performance  →  r44-performance.png 1024x536
+  [suspension] RS-R  →  rs-r.png 440x97
+  [electronics] RYFT  →  ryft.webp 1932x768
+  [wheels] Raliw Forged  →  raliw-forged.png 1013x214
+  [exhaust] Remus  →  remus.png 1500x277
+  [moto-controls] Rizoma  →  rizoma.webp 250x42
+  [suspension] STOPART ceramic  →  stopart-ceramic.png 296x104
+  [performance] VF Engineering  →  vf-engineering.png 320x55
+  [performance,electronics] Vargas Turbo  →  vargas-turbo-white.png 300x50
+  [intake,cooling] Verus Engineering  →  verus-engineering.png 546x120
+  [performance] XDI fuel systems  →  xdi-fuel-systems.webp 3248x906
+
+-- jpeg-format (16) --
+  [moto-electronics] Alpha Racing  →  alpha-racing.jpg 185x66
+  [moto-exhaust] Austin Racing  →  austin-racing.jpg 150x95
+  [electronics] Dahler  →  dahler.jpg 388x102
+  [moto-electronics] ECUStudio  →  ecustudio.jpg 1408x334
+  [moto-electronics] EVR  →  evr.jpg 948x246
+  [exhaust,performance,electronics] Fabspeed  →  fabspeed.jpg 900x900
+  [moto-controls] Gilles Tooling  →  gilles-tooling.jpg 225x225
+  [moto-electronics] HM Quickshifter  →  hm-quickshifter.jpg 1200x400
+  [moto-exhaust] IXIL  →  ixil.jpg 120x65
+  [performance] ItalianRP  →  italianrp.jpg 1600x1200
+  [performance] KLM Race  →  klm-race.jpg 1200x1200
+  [performance] Killer B Motorsport  →  killer-b-motorsport.jpg 1024x357
+  [moto-carbon] New Rage Cycles  →  new-rage-cycles.jpg 227x222
+  [moto-suspension] Samco Sport  →  samco-sport.jpg 540x540
+  [moto-controls] TWM  →  twm.jpg 253x158
+  [performance] Whipple Superchargers  →  whipple-superchargers.jpg 850x142
+
+-- no-alpha (39) --
+  [electronics,racing] AIM Sportline  →  aim-sportline.png 128x128
+  [moto-electronics] AIM Tech  →  aim-sportline.png 128x128
+  [moto-electronics] Alpha Racing  →  alpha-racing.jpg 185x66
+  [cooling,racing] Bell Intercoolers  →  bell-intercoolers.png 128x128
+  [electronics,electronics] BootMod3  →  bootmod3.webp 1024x819
+  [moto-suspension] Capit  →  capit.webp 304x80
+  [moto-electronics] Cordona  →  cordona.png 225x225
+  [moto-carbon] DB-Race  →  db-race.png 256x256
+  [electronics] Dahler  →  dahler.jpg 388x102
+  [performance] Dorch Engineering  →  dorch-engineering.png 192x192
+  [moto-electronics] EVR  →  evr.jpg 948x246
+  [cooling,racing] Extreme Performance Tyres  →  extreme-tyres.webp 2560x733
+  [exhaust,performance,electronics] Fabspeed  →  fabspeed.jpg 900x900
+  [performance] Fore Innovations  →  fore-innovations.png 225x225
+  [moto-controls] Gilles Tooling  →  gilles-tooling.jpg 225x225
+  [suspension] Girodisc  →  girodisc.webp 420x100
+  [moto-electronics] HM Quickshifter  →  hm-quickshifter.jpg 1200x400
+  [moto-exhaust] IXIL  →  ixil.jpg 120x65
+  [moto-carbon] Ilmberger Carbon  →  ilmberger-carbon.webp 1200x416
+  [performance] ItalianRP  →  italianrp.jpg 1600x1200
+  [performance] KLM Race  →  klm-race.jpg 1200x1200
+  [exterior,performance] Karbonius  →  karbonius.png 128x128
+  [performance] Killer B Motorsport  →  killer-b-motorsport.jpg 1024x357
+  [exhaust] Kline Innovation  →  kline-innovation.png 128x128
+  [exhaust] Kooks Headers  →  kooks-headers.png 700x350
+  [electronics,racing] Lithiumax  →  lithiumax-batteries.png 128x128
+  [suspension,racing] MCA Suspension  →  mca-suspension.png 128x128
+  [drivetrain,racing] Modena Engineering  →  modena-engineering.png 128x128
+  [moto-carbon] New Rage Cycles  →  new-rage-cycles.jpg 227x222
+  [suspension] Nitron Suspension  →  nitron-suspension.png 128x128
+  [electronics] Onyx Concept  →  onyx-concept.png 90x128
+  [performance] Power Division  →  power-division.png 128x128
+  [performance] Pure Turbos  →  pure-turbos.png 500x78
+  [electronics] R44 Performance  →  r44-performance.png 1024x536
+  [drivetrain] Sachs Performance  →  sachs-performance-white.png 128x128
+  [moto-suspension] Samco Sport  →  samco-sport.jpg 540x540
+  [moto-controls] TWM  →  twm.jpg 253x158
+  [performance] Whipple Superchargers  →  whipple-superchargers.jpg 850x142
+  [moto-wheels] X-GRIP  →  x-grip.png 225x225
+
+-- tiny-dims (55) --
+  [wheels] 1221 wheels  →  1221-wheels.png 250x25
+  [exterior] 3D Design  →  3d-design.png 212x83
+  [moto-controls] AEM Factory  →  aem-factory.png 412x78
+  [intake,performance] ARMA Speed  →  armaspeed.png 86x86
+  [moto-electronics] Alpha Racing  →  alpha-racing.jpg 185x66
+  [exhaust] American Racing Headers  →  american-racing-headers.png 250x76
+  [exhaust] Armytrix  →  armytrix.png 250x38
+  [moto-exhaust] Austin Racing  →  austin-racing.jpg 150x95
+  [suspension] BC Racing  →  bc-racing-new.png 600x66
+  [performance] BE bearings  →  be-bearings.png 302x85
+  [performance,electronics] Black Boost  →  black-boost.avif 225x39
+  [moto-controls] Bonamici  →  bonamici.png 300x75
+  [suspension,moto-wheels,moto-controls] Brembo  →  brembo.png 48x48
+  [moto-controls] CNC Racing  →  cnc-racing.png 57x57
+  [moto-suspension] Capit  →  capit.webp 304x80
+  [performance] Deatschwerks  →  deatschwerks.webp 223x58
+  [intake,performance,electronics] Dinan  →  dinan.avif 333x55
+  [exterior] Duke Dynamics  →  duke-dynamics-white.webp 287x75
+  [exterior] Eterna Motorworks  →  eterna-motorworks.png 128x30
+  [intake,performance] Eventuri  →  eventuri-v2.png 398x42
+  [performance,electronics] Fall-Line Motorsports  →  fall-line-motorsports.avif 180x70
+  [moto-suspension] Febur  →  febur.png 65x49
+  [performance] Fragola Performance Systems  →  fragola-performance-systems.png 215x74
+  [moto-carbon] Fullsix Carbon  →  fullsix-carbon.png 435x57
+  [exhaust] G-Sport by GESi  →  gsport-by-gesi.png 330x75
+  [exhaust] GTHaus  →  gthaus-white.png 330x64
+  [intake,performance] Gruppe-M  →  gruppe-m-white.png 236x57
+  [moto-suspension] HyperPro  →  hyperpro.png 269x72
+  [moto-exhaust] IXIL  →  ixil.jpg 120x65
+  [performance,electronics] Lamspeed  →  lamspeed.png 128x20
+  [exterior,electronics] Lumma  →  lumma.png 243x71
+  [suspension] MTS Technik  →  mts-technik.png 129x74
+  [performance] Mamba turbo  →  mamba-turbo.png 128x38
+  [exhaust] Milltek  →  milltek.png 600x91
+  [moto-controls] Moto Corse  →  moto-corse.png 200x47
+  [intake,electronics] Mountune  →  mountune.webp 400x84
+  [moto-wheels] OZ Racing  →  oz-racing.png 171x70
+  [electronics] Onyx Concept  →  onyx-concept.png 90x128
+  [moto-carbon] P3 Carbon  →  p3-carbon.png 130x59
+  [electronics] Premier Tuning Group  →  premier-tuning-group.png 160x92
+  [performance] Pure Turbos  →  pure-turbos.png 500x78
+  [performance] RK Autowerks  →  rk-autowerks.png 263x40
+  [moto-controls] Rizoma  →  rizoma.webp 250x42
+  [suspension] SPL Parts  →  spl-parts.png 200x80
+  [moto-electronics] Starlane  →  starlane.png 195x50
+  [electronics] Stillen  →  stillen.png 600x86
+  [moto-wheels] Stompgrip  →  stompgrip.png 667x52
+  [moto-suspension] Thermal Technology  →  thermal-technology.png 216x80
+  [performance,electronics] Titan Motorsport  →  titan-motorsport.png 250x80
+  [performance] VF Engineering  →  vf-engineering.png 320x55
+  [moto-controls] ValterMoto  →  valtermoto.png 239x66
+  [moto-exhaust] Vandemon  →  vandemon.png 250x46
+  [performance,electronics] Vargas Turbo  →  vargas-turbo-white.png 300x50
+  [intake,performance,electronics] Weistec Engineering  →  weistec-engineering.png 406x63
+  [cooling] do88  →  do88.png 142x54
+
+-- small-dims (20) --
+  [electronics,racing] AIM Sportline  →  aim-sportline.png 128x128
+  [moto-electronics] AIM Tech  →  aim-sportline.png 128x128
+  [cooling,racing] Bell Intercoolers  →  bell-intercoolers.png 128x128
+  [performance] Big Boost  →  big-boost.avif 150x136
+  [exhaust,moto-exhaust] Cobra Sport  →  cobra-sport.png 192x192
+  [performance] Dorch Engineering  →  dorch-engineering.png 192x192
+  [moto-suspension] GPR Stabilizer  →  gpr-stabilizer.png 196x196
+  [exterior,performance] Karbonius  →  karbonius.png 128x128
+  [exhaust] Kline Innovation  →  kline-innovation.png 128x128
+  [electronics,racing] Lithiumax  →  lithiumax-batteries.png 128x128
+  [suspension,racing] MCA Suspension  →  mca-suspension.png 128x128
+  [intake,performance] MST Performance  →  mst-performance.png 127x128
+  [drivetrain,racing] Modena Engineering  →  modena-engineering.png 128x128
+  [suspension] Nitron Suspension  →  nitron-suspension.png 128x128
+  [performance] Power Division  →  power-division.png 128x128
+  [drivetrain] RPM Transmissions  →  rpm-transmissions.png 190x162
+  [moto-carbon] S2 Concept  →  s2-concept.png 180x180
+  [drivetrain] Sachs Performance  →  sachs-performance-white.png 128x128
+  [wheels] Strasse wheels  →  strasse-wheels.png 128x128
+  [performance] VP Racing Fuel  →  vp-racing-fuel.png 100x100
+
+-- over-compressed (25) --
+  [exterior] 1016 Industries  →  1016-industries.webp 2266x821
+  [exterior,electronics] AC Schnitzer  →  ac-schnitzer.png 2191x595
+  [exhaust,moto-exhaust] Akrapovic  →  akrapovic.png 1858x2000
+  [performance,electronics] BBi Autosport  →  bbi-autosport.webp 1318x605
+  [cooling] CSF  →  csf.png 5000x2169
+  [exterior] CT Carbon  →  ct-carbon-white.webp 4355x574
+  [electronics] Cobb tuning  →  cobb-tuning.png 1477x535
+  [performance,electronics] ESS Tuning  →  ess-tuning.webp 1728x570
+  [cooling,racing] Extreme Performance Tyres  →  extreme-tyres.webp 2560x733
+  [exterior,electronics] Hamann  →  hamann.png 2272x369
+  [moto-carbon] Ilmberger Carbon  →  ilmberger-carbon.webp 1200x416
+  [exterior,electronics] KAHN design  →  kahn-design-white.png 400x400
+  [exterior,electronics] Lorinser  →  lorinser.webp 3999x860
+  [wheels] MV Forged  →  mv-forged.webp 2418x211
+  [suspension] Paragon brakes  →  paragon-brakes.webp 1512x240
+  [performance] Pulsar turbo  →  pulsar-turbo.png 3838x870
+  [electronics] R44 Performance  →  r44-performance.png 1024x536
+  [suspension] RS-R  →  rs-r.png 440x97
+  [electronics] RYFT  →  ryft.webp 1932x768
+  [moto-wheels] Rotobox  →  rotobox.png 256x256
+  [wheels,exterior] Vorsteiner  →  vorsteiner.png 5076x2552
+  [drivetrain] Wavetrac  →  wavetrac.webp 1271x512
+  [moto-wheels] X-GRIP  →  x-grip.png 225x225
+  [performance] XDI fuel systems  →  xdi-fuel-systems.webp 3248x906
+  [exhaust] iPE exhaust  →  ipe-exhaust.webp 800x800
+
+-- extreme-aspect (21) --
+  [wheels] 1221 wheels  →  1221-wheels.png 250x25
+  [exhaust] Armytrix  →  armytrix.png 250x38
+  [suspension] BC Racing  →  bc-racing-new.png 600x66
+  [exterior] CT Carbon  →  ct-carbon-white.webp 4355x574
+  [intake,performance,electronics] Dinan  →  dinan.avif 333x55
+  [intake,performance] Eventuri  →  eventuri-v2.png 398x42
+  [moto-carbon] Fullsix Carbon  →  fullsix-carbon.png 435x57
+  [exterior,electronics] Hamann  →  hamann.png 2272x369
+  [performance,electronics] Lamspeed  →  lamspeed.png 128x20
+  [wheels] MV Forged  →  mv-forged.webp 2418x211
+  [exhaust] Milltek  →  milltek.png 600x91
+  [suspension] Paragon brakes  →  paragon-brakes.webp 1512x240
+  [wheels] Project 6GR  →  project-6gr.png 1455x191
+  [performance] Pure Turbos  →  pure-turbos.png 500x78
+  [performance] RK Autowerks  →  rk-autowerks.png 263x40
+  [moto-controls] Racefoxx  →  racefoxx.png 2000x250
+  [performance,electronics] Silly Rabbit Motorsport  →  silly-rabbit-motorsport-white.png 2560x383
+  [electronics] Stillen  →  stillen.png 600x86
+  [moto-wheels] Stompgrip  →  stompgrip.png 667x52
+  [exhaust] Supersprint  →  supersprint.png 700x96
+  [intake,performance,electronics] Weistec Engineering  →  weistec-engineering.png 406x63
+
+-- flat-grey (9) --
+  [exterior,intake] APR  →  apr.png 850x145
+  [intake,performance] ARMA Speed  →  armaspeed.png 86x86
+  [performance,electronics] Lamspeed  →  lamspeed.png 128x20
+  [moto-wheels] OZ Racing  →  oz-racing.png 171x70
+  [exhaust] QuickSilver Exhausts  →  quicksilver-exhausts.png 410x175
+  [moto-controls] Racefoxx  →  racefoxx.png 2000x250
+  [performance,electronics] Silly Rabbit Motorsport  →  silly-rabbit-motorsport-white.png 2560x383
+  [electronics] Turner Motorsport  →  turner-motorsport.webp 600x400
+  [exhaust] iPE exhaust  →  ipe-exhaust.webp 800x800
+
+
+=== Breakdown by category (count of flagged brands) ===
+  performance: 35/48 flagged
+  electronics: 30/46 flagged
+  exterior: 28/39 flagged
+  exhaust: 14/18 flagged
+  intake: 12/15 flagged
+  moto-controls: 11/15 flagged
+  suspension: 11/16 flagged
+  wheels: 7/17 flagged
+  moto-electronics: 7/15 flagged
+  racing: 6/12 flagged
+  moto-suspension: 6/8 flagged
+  moto-carbon: 6/12 flagged
+  moto-exhaust: 5/12 flagged
+  cooling: 5/7 flagged
+  moto-wheels: 5/8 flagged
+  drivetrain: 4/15 flagged

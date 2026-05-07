@@ -1,0 +1,366 @@
+
+=== Logo audit — 337 files inspected, 193 with issues ===
+
+-- opaque-light-bg (45) --
+  aim-sportline.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  alpha-racing.jpg 185x66  →  edges 100% opaque, 100% light → renders as "white square"
+  bc-racing.webp 1200x600  →  edges 100% opaque, 100% light → renders as "white square"
+  bell-intercoolers.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  capit.webp 304x80  →  edges 100% opaque, 99% light → renders as "white square"
+  cobb-tuning.jpg 262x262  →  edges 100% opaque, 100% light → renders as "white square"
+  cordona.png 225x225  →  edges 100% opaque, 100% light → renders as "white square"
+  custom-cages.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  dahler.jpg 388x102  →  edges 100% opaque, 100% light → renders as "white square"
+  db-race.png 256x256  →  edges 100% opaque, 100% light → renders as "white square"
+  dorch-engineering.png 192x192  →  edges 100% opaque, 100% light → renders as "white square"
+  driftworks.png 128x128  →  edges 100% opaque, 99% light → renders as "white square"
+  evolution-bike.png 1144x581  →  edges 100% opaque, 100% light → renders as "white square"
+  evr.jpg 948x246  →  edges 100% opaque, 79% light → renders as "white square"
+  extreme-tyres.webp 2560x733  →  edges 100% opaque, 100% light → renders as "white square"
+  fabspeed.jpg 900x900  →  edges 100% opaque, 100% light → renders as "white square"
+  gilles-tooling.jpg 225x225  →  edges 100% opaque, 100% light → renders as "white square"
+  girodisc.webp 420x100  →  edges 100% opaque, 91% light → renders as "white square"
+  ilmberger-carbon.webp 1200x416  →  edges 100% opaque, 100% light → renders as "white square"
+  italianrp.jpg 1600x1200  →  edges 100% opaque, 100% light → renders as "white square"
+  killer-b-motorsport.jpg 1024x357  →  edges 100% opaque, 100% light → renders as "white square"
+  kline-innovation.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  klm-race.jpg 1200x1200  →  edges 100% opaque, 94% light → renders as "white square"
+  kooks-headers.png 700x350  →  edges 100% opaque, 100% light → renders as "white square"
+  lithiumax-batteries.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  mca-suspension.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  modena-engineering.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  new-rage-cycles.jpg 227x222  →  edges 100% opaque, 100% light → renders as "white square"
+  nitron-suspension.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  pure-turbos.png 500x78  →  edges 100% opaque, 79% light → renders as "white square"
+  rkp.png 1778x1778  →  edges 100% opaque, 100% light → renders as "white square"
+  sachs-performance-white.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  sachs-performance.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  samco-sport.jpg 540x540  →  edges 100% opaque, 100% light → renders as "white square"
+  samsonas-motorsport.avif 300x200  →  edges 100% opaque, 100% light → renders as "white square"
+  sandtler.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  seibon-carbon-white-mask.png 234x50  →  edges 64% opaque, 99% light → renders as "white square"
+  sooqoo.png 225x225  →  edges 100% opaque, 99% light → renders as "white square"
+  southern-hotrod.jpg 200x200  →  edges 100% opaque, 100% light → renders as "white square"
+  stompgrip.png 667x52  →  edges 65% opaque, 83% light → renders as "white square"
+  stopart-ceramic-white-mask.png 296x104  →  edges 90% opaque, 98% light → renders as "white square"
+  team-oreca.png 128x128  →  edges 100% opaque, 100% light → renders as "white square"
+  twm.jpg 253x158  →  edges 100% opaque, 100% light → renders as "white square"
+  whipple-superchargers.jpg 850x142  →  edges 100% opaque, 100% light → renders as "white square"
+  x-grip.png 225x225  →  edges 100% opaque, 100% light → renders as "white square"
+
+-- logo-too-dark (33) --
+  1016-industries.webp 2266x821  →  avg luma 23 → invisible on dark theme without invert
+  3d-design.png 212x83  →  avg luma 23 → invisible on dark theme without invert
+  abt.png 2619x1024  →  avg luma 0 → invisible on dark theme without invert
+  ac-schnitzer.png 2191x595  →  avg luma 0 → invisible on dark theme without invert
+  ae-design.png 128x128  →  avg luma 24 → invisible on dark theme without invert
+  aem-factory.png 412x78  →  avg luma 1 → invisible on dark theme without invert
+  avantgarde-wheels.png 1000x171  →  avg luma 22 → invisible on dark theme without invert
+  be-bearings.png 302x85  →  avg luma 19 → invisible on dark theme without invert
+  bmc-filters.png 300x164  →  avg luma 28 → invisible on dark theme without invert
+  bootmod3.webp 1024x819  →  avg luma 31 → invisible on dark theme without invert
+  cobb-tuning.png 1477x535  →  avg luma 13 → invisible on dark theme without invert
+  extreme-tyres.png 80x80  →  avg luma 0 → invisible on dark theme without invert
+  fore-innovations.png 225x225  →  avg luma 27 → invisible on dark theme without invert
+  karbel.png 164x66  →  avg luma 28 → invisible on dark theme without invert
+  leib-engineering.png 300x57  →  avg luma 31 → invisible on dark theme without invert
+  liberty-walk.png 320x320  →  avg luma 0 → invisible on dark theme without invert
+  melotti-racing.webp 480x480  →  avg luma 29 → invisible on dark theme without invert
+  oettinger.png 350x60  →  avg luma 30 → invisible on dark theme without invert
+  onyx-concept.png 90x128  →  avg luma 23 → invisible on dark theme without invert
+  r44-performance.png 1024x536  →  avg luma 24 → invisible on dark theme without invert
+  raliw-forged.png 1013x214  →  avg luma 27 → invisible on dark theme without invert
+  remus.png 1500x277  →  avg luma 23 → invisible on dark theme without invert
+  renegade-design.png 1500x450  →  avg luma 32 → invisible on dark theme without invert
+  rizoma.webp 250x42  →  avg luma 23 → invisible on dark theme without invert
+  rs-r.png 440x97  →  avg luma 22 → invisible on dark theme without invert
+  ryft.webp 1932x768  →  avg luma 0 → invisible on dark theme without invert
+  stopart-ceramic.png 296x104  →  avg luma 13 → invisible on dark theme without invert
+  vargas-turbo-white.png 300x50  →  avg luma 30 → invisible on dark theme without invert
+  vargas-turbo.webp 300x50  →  avg luma 12 → invisible on dark theme without invert
+  verus-engineering.png 546x120  →  avg luma 0 → invisible on dark theme without invert
+  vf-engineering.png 320x55  →  avg luma 0 → invisible on dark theme without invert
+  xdi-fuel-systems.webp 3248x906  →  avg luma 32 → invisible on dark theme without invert
+  zard-exhaust.png 32x32  →  avg luma 10 → invisible on dark theme without invert
+
+-- jpeg-format (20) --
+  alpha-racing.jpg 185x66  →  JPEG cannot carry alpha — almost always wrong for logos
+  austin-racing.jpg 150x95  →  JPEG cannot carry alpha — almost always wrong for logos
+  cobb-tuning.jpg 262x262  →  JPEG cannot carry alpha — almost always wrong for logos
+  ct-carbon.jpg 1080x608  →  JPEG cannot carry alpha — almost always wrong for logos
+  dahler.jpg 388x102  →  JPEG cannot carry alpha — almost always wrong for logos
+  ecustudio.jpg 1408x334  →  JPEG cannot carry alpha — almost always wrong for logos
+  evr.jpg 948x246  →  JPEG cannot carry alpha — almost always wrong for logos
+  fabspeed.jpg 900x900  →  JPEG cannot carry alpha — almost always wrong for logos
+  gilles-tooling.jpg 225x225  →  JPEG cannot carry alpha — almost always wrong for logos
+  hm-quickshifter.jpg 1200x400  →  JPEG cannot carry alpha — almost always wrong for logos
+  italianrp.jpg 1600x1200  →  JPEG cannot carry alpha — almost always wrong for logos
+  ixil.jpg 120x65  →  JPEG cannot carry alpha — almost always wrong for logos
+  killer-b-motorsport.jpg 1024x357  →  JPEG cannot carry alpha — almost always wrong for logos
+  klm-race.jpg 1200x1200  →  JPEG cannot carry alpha — almost always wrong for logos
+  mega3-performance.jpg 1200x630  →  JPEG cannot carry alpha — almost always wrong for logos
+  new-rage-cycles.jpg 227x222  →  JPEG cannot carry alpha — almost always wrong for logos
+  samco-sport.jpg 540x540  →  JPEG cannot carry alpha — almost always wrong for logos
+  southern-hotrod.jpg 200x200  →  JPEG cannot carry alpha — almost always wrong for logos
+  twm.jpg 253x158  →  JPEG cannot carry alpha — almost always wrong for logos
+  whipple-superchargers.jpg 850x142  →  JPEG cannot carry alpha — almost always wrong for logos
+
+-- no-alpha (59) --
+  adv-1-wheels.webp 1200x630  →  PNG/WEBP without alpha channel — bg won't be transparent
+  ae-design.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  aim-sportline.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  alpha-racing.jpg 185x66  →  PNG/WEBP without alpha channel — bg won't be transparent
+  bc-racing.webp 1200x600  →  PNG/WEBP without alpha channel — bg won't be transparent
+  bell-intercoolers.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  bootmod3.webp 1024x819  →  PNG/WEBP without alpha channel — bg won't be transparent
+  capit.webp 304x80  →  PNG/WEBP without alpha channel — bg won't be transparent
+  cmst.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  cobb-tuning.jpg 262x262  →  PNG/WEBP without alpha channel — bg won't be transparent
+  cordona.png 225x225  →  PNG/WEBP without alpha channel — bg won't be transparent
+  ct-carbon.jpg 1080x608  →  PNG/WEBP without alpha channel — bg won't be transparent
+  custom-cages.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  dahler.jpg 388x102  →  PNG/WEBP without alpha channel — bg won't be transparent
+  db-race.png 256x256  →  PNG/WEBP without alpha channel — bg won't be transparent
+  dorch-engineering.png 192x192  →  PNG/WEBP without alpha channel — bg won't be transparent
+  driftworks.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  evr.jpg 948x246  →  PNG/WEBP without alpha channel — bg won't be transparent
+  extreme-tyres.webp 2560x733  →  PNG/WEBP without alpha channel — bg won't be transparent
+  fabspeed.jpg 900x900  →  PNG/WEBP without alpha channel — bg won't be transparent
+  fore-innovations.png 225x225  →  PNG/WEBP without alpha channel — bg won't be transparent
+  gilles-tooling.jpg 225x225  →  PNG/WEBP without alpha channel — bg won't be transparent
+  girodisc.webp 420x100  →  PNG/WEBP without alpha channel — bg won't be transparent
+  hm-quickshifter.jpg 1200x400  →  PNG/WEBP without alpha channel — bg won't be transparent
+  ilmberger-carbon.webp 1200x416  →  PNG/WEBP without alpha channel — bg won't be transparent
+  italianrp.jpg 1600x1200  →  PNG/WEBP without alpha channel — bg won't be transparent
+  ixil.jpg 120x65  →  PNG/WEBP without alpha channel — bg won't be transparent
+  karbonius.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  killer-b-motorsport.jpg 1024x357  →  PNG/WEBP without alpha channel — bg won't be transparent
+  kline-innovation.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  klm-race.jpg 1200x1200  →  PNG/WEBP without alpha channel — bg won't be transparent
+  kooks-headers.png 700x350  →  PNG/WEBP without alpha channel — bg won't be transparent
+  lithiumax-batteries.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  mca-suspension.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  mega3-performance.jpg 1200x630  →  PNG/WEBP without alpha channel — bg won't be transparent
+  modena-engineering.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  new-rage-cycles.jpg 227x222  →  PNG/WEBP without alpha channel — bg won't be transparent
+  nitron-suspension.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  onyx-concept.png 90x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  power-division.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  pure-turbos.png 500x78  →  PNG/WEBP without alpha channel — bg won't be transparent
+  r44-performance.png 1024x536  →  PNG/WEBP without alpha channel — bg won't be transparent
+  rkp.png 1778x1778  →  PNG/WEBP without alpha channel — bg won't be transparent
+  sachs-performance-white.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  sachs-performance.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  samco-sport.jpg 540x540  →  PNG/WEBP without alpha channel — bg won't be transparent
+  samsonas-motorsport.avif 300x200  →  PNG/WEBP without alpha channel — bg won't be transparent
+  samsonas-motorsport.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  sandtler.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  seibon.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  sooqoo.png 225x225  →  PNG/WEBP without alpha channel — bg won't be transparent
+  southern-hotrod.jpg 200x200  →  PNG/WEBP without alpha channel — bg won't be transparent
+  sterckenn.webp 1205x124  →  PNG/WEBP without alpha channel — bg won't be transparent
+  team-oreca.png 128x128  →  PNG/WEBP without alpha channel — bg won't be transparent
+  turner-motorsport.png 185x60  →  PNG/WEBP without alpha channel — bg won't be transparent
+  twm.jpg 253x158  →  PNG/WEBP without alpha channel — bg won't be transparent
+  whipple-superchargers.jpg 850x142  →  PNG/WEBP without alpha channel — bg won't be transparent
+  x-grip.png 225x225  →  PNG/WEBP without alpha channel — bg won't be transparent
+  zard-exhaust.png 32x32  →  PNG/WEBP without alpha channel — bg won't be transparent
+
+-- tiny-dims (79) --
+  1221-wheels.png 250x25  →  250x25
+  3d-design.png 212x83  →  212x83
+  aem-factory.png 412x78  →  412x78
+  alpha-racing.jpg 185x66  →  185x66
+  american-racing-headers.png 250x76  →  250x76
+  armaspeed.png 86x86  →  86x86
+  armytrix.png 250x38  →  250x38
+  austin-racing.jpg 150x95  →  150x95
+  bc-racing-new.png 600x66  →  600x66
+  be-bearings.png 302x85  →  302x85
+  black-boost.avif 225x39  →  225x39
+  bonamici.png 300x75  →  300x75
+  brembo.png 48x48  →  48x48
+  capit.webp 304x80  →  304x80
+  cnc-racing.png 57x57  →  57x57
+  dbilas-dynamic.png 445x78  →  445x78
+  deatschwerks.webp 223x58  →  223x58
+  dinan.avif 333x55  →  333x55
+  do88.png 142x54  →  142x54
+  duke-dynamics-white.webp 287x75  →  287x75
+  ess-tuning.png 254x60  →  254x60
+  eterna-motorworks.png 128x30  →  128x30
+  eventuri-v2.png 398x42  →  398x42
+  extreme-tyres.png 80x80  →  80x80
+  fabspeed.png 254x60  →  254x60
+  fall-line-motorsports.avif 180x70  →  180x70
+  febur.png 65x49  →  65x49
+  fragola-performance-systems.png 215x74  →  215x74
+  fullsix-carbon.png 435x57  →  435x57
+  gruppe-m-white.png 236x57  →  236x57
+  gsport-by-gesi.png 330x75  →  330x75
+  gthaus-white.png 330x64  →  330x64
+  hyperpro.png 269x72  →  269x72
+  isa-racing.png 128x46  →  128x46
+  ixil.jpg 120x65  →  120x65
+  karbel.png 164x66  →  164x66
+  killer-b-motorsport.png 62x20  →  62x20
+  lamspeed.png 128x20  →  128x20
+  leib-engineering.png 300x57  →  300x57
+  lumma.png 243x71  →  243x71
+  mamba-turbo.png 128x38  →  128x38
+  milltek.png 600x91  →  600x91
+  moto-corse.png 200x47  →  200x47
+  mountune.webp 400x84  →  400x84
+  mts-technik.png 129x74  →  129x74
+  oettinger.png 350x60  →  350x60
+  onyx-concept.png 90x128  →  90x128
+  oz-racing.png 171x70  →  171x70
+  p3-carbon.png 130x59  →  130x59
+  paktechz.png 217x26  →  217x26
+  premier-tuning-group.png 160x92  →  160x92
+  pure-turbos.png 500x78  →  500x78
+  r-g-racing.png 164x66  →  164x66
+  res-exhaust.png 128x34  →  128x34
+  rizoma.webp 250x42  →  250x42
+  rk-autowerks.png 263x40  →  263x40
+  scl-concept.png 400x75  →  400x75
+  seibon-carbon-white-mask.png 234x50  →  234x50
+  seibon-carbon.webp 234x50  →  234x50
+  southern-hotrod.png 254x60  →  254x60
+  spl-parts.png 200x80  →  200x80
+  starlane.png 195x50  →  195x50
+  stillen.png 600x86  →  600x86
+  stompgrip.png 667x52  →  667x52
+  thermal-technology.png 216x80  →  216x80
+  titan-motorsport.png 250x80  →  250x80
+  tte-turbos.png 500x75  →  500x75
+  turner-motorsport.png 185x60  →  185x60
+  urban-automotive.png 16x16  →  16x16
+  valtermoto.png 239x66  →  239x66
+  vandemon.png 250x46  →  250x46
+  vargas-turbo-white.png 300x50  →  300x50
+  vargas-turbo.webp 300x50  →  300x50
+  vf-engineering.png 320x55  →  320x55
+  vr-aero.png 128x26  →  128x26
+  vr-forged.png 227x90  →  227x90
+  wald.png 500x73  →  500x73
+  weistec-engineering.png 406x63  →  406x63
+  zard-exhaust.png 32x32  →  32x32
+
+-- small-dims (31) --
+  ae-design.png 128x128  →  128x128
+  aim-sportline.png 128x128  →  128x128
+  bell-intercoolers.png 128x128  →  128x128
+  big-boost.avif 150x136  →  150x136
+  cmst.png 128x128  →  128x128
+  cobra-sport.png 192x192  →  192x192
+  custom-cages.png 128x128  →  128x128
+  dorch-engineering.png 192x192  →  192x192
+  driftworks.png 128x128  →  128x128
+  gpr-stabilizer.png 196x196  →  196x196
+  karbonius.png 128x128  →  128x128
+  kline-innovation.png 128x128  →  128x128
+  lithiumax-batteries.png 128x128  →  128x128
+  mca-suspension.png 128x128  →  128x128
+  modena-engineering.png 128x128  →  128x128
+  mst-performance.png 127x128  →  127x128
+  nitron-suspension.png 128x128  →  128x128
+  power-division.png 128x128  →  128x128
+  rpm-transmissions.png 190x162  →  190x162
+  s2-concept.png 180x180  →  180x180
+  sachs-performance-white.png 128x128  →  128x128
+  sachs-performance.png 128x128  →  128x128
+  samsonas-motorsport.png 128x128  →  128x128
+  sandtler.png 128x128  →  128x128
+  seibon.png 128x128  →  128x128
+  strasse-wheels.png 128x128  →  128x128
+  team-oreca.png 128x128  →  128x128
+  vp-racing-fuel.png 100x100  →  100x100
+  vr-bespoke.png 128x128  →  128x128
+  vr-performance.png 128x128  →  128x128
+  xhp.png 128x128  →  128x128
+
+-- extreme-aspect (30) --
+  1221-wheels.png 250x25  →  10.00
+  armytrix.png 250x38  →  6.58
+  bc-racing-new.png 600x66  →  9.09
+  ct-carbon-white.webp 4355x574  →  7.59
+  dinan.avif 333x55  →  6.05
+  eventuri-v2.png 398x42  →  9.48
+  fullsix-carbon.png 435x57  →  7.63
+  hamann.png 2272x369  →  6.16
+  lamspeed.png 128x20  →  6.40
+  milltek.png 600x91  →  6.59
+  mv-forged.webp 2418x211  →  11.46
+  paktechz.png 217x26  →  8.35
+  paragon-brakes.webp 1512x240  →  6.30
+  project-6gr.png 1455x191  →  7.62
+  pure-turbos.png 500x78  →  6.41
+  racefoxx.png 2000x250  →  8.00
+  rk-autowerks.png 263x40  →  6.58
+  rw-carbon.png 704x100  →  7.04
+  silly-rabbit-motorsport-white.png 2560x383  →  6.68
+  silly-rabbit-motorsport.png 2560x383  →  6.68
+  sterckenn-white-mask.png 1205x124  →  9.72
+  sterckenn-white.png 1205x124  →  9.72
+  sterckenn.webp 1205x124  →  9.72
+  stillen.png 600x86  →  6.98
+  stompgrip.png 667x52  →  12.83
+  summit-racing.png 1400x136  →  10.29
+  supersprint.png 700x96  →  7.29
+  tte-turbos.png 500x75  →  6.67
+  wald.png 500x73  →  6.85
+  weistec-engineering.png 406x63  →  6.44
+
+-- over-compressed (28) --
+  1016-industries.webp 2266x821  →  0.01 B/px
+  ac-schnitzer.png 2191x595  →  0.05 B/px
+  akrapovic.png 1858x2000  →  0.02 B/px
+  bbi-autosport.webp 1318x605  →  0.00 B/px
+  cobb-tuning.png 1477x535  →  0.03 B/px
+  csf.png 5000x2169  →  0.05 B/px
+  ct-carbon-white.webp 4355x574  →  0.01 B/px
+  domino.png 1094x437  →  0.02 B/px
+  ess-tuning.webp 1728x570  →  0.03 B/px
+  evolution-bike.png 1144x581  →  0.04 B/px
+  extreme-tyres.webp 2560x733  →  0.01 B/px
+  hamann.png 2272x369  →  0.04 B/px
+  ilmberger-carbon.webp 1200x416  →  0.02 B/px
+  ipe-exhaust.webp 800x800  →  0.04 B/px
+  kahn-design-white.png 400x400  →  0.02 B/px
+  lorinser.webp 3999x860  →  0.01 B/px
+  mv-forged.webp 2418x211  →  0.01 B/px
+  paragon-brakes.webp 1512x240  →  0.04 B/px
+  pulsar-turbo.png 3838x870  →  0.03 B/px
+  r44-performance.png 1024x536  →  0.03 B/px
+  rkp.png 1778x1778  →  0.00 B/px
+  rotobox.png 256x256  →  0.03 B/px
+  rs-r.png 440x97  →  0.05 B/px
+  ryft.webp 1932x768  →  0.01 B/px
+  vorsteiner.png 5076x2552  →  0.01 B/px
+  wavetrac.webp 1271x512  →  0.04 B/px
+  x-grip.png 225x225  →  0.05 B/px
+  xdi-fuel-systems.webp 3248x906  →  0.03 B/px
+
+-- flat-grey (12) --
+  adv-1-wheels.webp 1200x630  →  avg luma 167, no strong contrast → may look washed out
+  apr.png 850x145  →  avg luma 122, no strong contrast → may look washed out
+  armaspeed.png 86x86  →  avg luma 161, no strong contrast → may look washed out
+  ipe-exhaust.webp 800x800  →  avg luma 146, no strong contrast → may look washed out
+  killer-b-motorsport.png 62x20  →  avg luma 130, no strong contrast → may look washed out
+  lamspeed.png 128x20  →  avg luma 144, no strong contrast → may look washed out
+  oz-racing.png 171x70  →  avg luma 122, no strong contrast → may look washed out
+  quicksilver-exhausts.png 410x175  →  avg luma 131, no strong contrast → may look washed out
+  racefoxx.png 2000x250  →  avg luma 132, no strong contrast → may look washed out
+  silly-rabbit-motorsport-white.png 2560x383  →  avg luma 122, no strong contrast → may look washed out
+  silly-rabbit-motorsport.png 2560x383  →  avg luma 122, no strong contrast → may look washed out
+  turner-motorsport.webp 600x400  →  avg luma 130, no strong contrast → may look washed out
+
+-- svg-bloated (1) --
+  kooks-headers.svg  →  6127KB
+
+-- metadata-error (3) --
+  akrapovic.webp  →  Input file contains unsupported image format
+  deikin.png  →  Input file contains unsupported image format
+  rg-racing.png  →  Input file contains unsupported image format
+

@@ -29,7 +29,7 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
   'Brabus',
   'Mansory',
-  'HRE wheels',
+  'HRE Wheels',
   'Urban Automotive',
   'Eventuri',
   'KW Suspension',
@@ -44,7 +44,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Samsonas Motorsport': 'SAMSONAS',
   'Xshift': 'XSHIFT',
   'Weistec Engineering': 'WEISTEC',
-  'Burger Motorsport': 'BURGER MOTORSPORTS',
+  'Burger Motorsports': 'BURGER MOTORSPORTS',
   'DTE Systems': 'DTE',
   'BootMod3': 'BM3',
   'Drenth Gearboxes': 'DRENTH',
@@ -53,7 +53,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Kline Innovation': 'KLINE',
   'FI Exhaust': 'FI EXHAUST',
   'Urban Automotive': 'URBAN',
-  'Velos Wheels': 'VELOS',
+  'Velos Designwerks': 'VELOS',
   'Airlift Performance': 'AIRLIFT',
   'Nitron Suspension': 'NITRON',
   'Alcon': 'ALCON',
@@ -75,10 +75,10 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'BMC filters': 'BMC',
   '1016 Industries': '1016 INDUSTRIES',
   'DarwinPro': 'DARWINPRO',
-  'Brixton wheels': 'BRIXTON',
+  'Brixton Wheels': 'BRIXTON',
   'MV Forged': 'MV FORGED',
   'Vorsteiner': 'VORSTEINER',
-  'Extreme tyres': 'EXTREME',
+  'Extreme Performance Tyres': 'EXTREME',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
@@ -117,7 +117,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     description: { en: 'Premium tuning', ua: 'Преміум тюнінг' },
     invertLogo: true,
   },
-  'HRE wheels': {
+  'HRE Wheels': {
     flag: 'рџ‡єрџ‡ё',
     country: 'USA',
     tag: 'Forged Wheels',
@@ -435,7 +435,7 @@ export default function AutomotivePage() {
 
               {/* HRE */}
               <m.button
-                onClick={() => handleBrandClick('HRE wheels')}
+                onClick={() => handleBrandClick('HRE Wheels')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -448,7 +448,7 @@ export default function AutomotivePage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                      <Image src={getBrandLogo('HRE wheels')} alt="HRE Wheels Україна - ковані диски тюнінг Київ, купити HRE OneCompany" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('HRE Wheels')} alt="HRE Wheels Україна - ковані диски тюнінг Київ, купити HRE OneCompany" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div className="flex items-end justify-between">

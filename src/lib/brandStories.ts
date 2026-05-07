@@ -34,6 +34,7 @@ function getSubcategoryTagline(subcategory: ProductSubcategory | undefined, cont
     Suspension: { en: 'Control & Comfort', ua: 'Контроль та комфорт' },
     Brakes: { en: 'Absolute Control', ua: 'Абсолютний контроль' },
     Wheels: { en: 'Forged Lightness', ua: 'Кована легкість' },
+    Tires: { en: 'Grip & Compound', ua: 'Зчеплення та компаунд' },
     Exhaust: { en: 'Sound & Performance', ua: 'Звук та продуктивність' },
     Electronics: { en: 'Smart Performance', ua: 'Розумна продуктивність' },
     Interior: { en: 'Crafted Cockpit', ua: 'Досконалий салон' },
@@ -69,6 +70,11 @@ function getSubcategoryHighlights(subcategory: ProductSubcategory | undefined): 
       { en: 'Forged strength with low weight', ua: 'Кована міцність та мала вага' },
       { en: 'Custom specs and finishes', ua: 'Індивідуальні параметри та покриття' },
       { en: 'Designed for perfect stance', ua: 'Створено для ідеальної посадки' },
+    ],
+    Tires: [
+      { en: 'Premium compounds for street and track', ua: 'Преміум компаунди для дороги і треку' },
+      { en: 'Consistent grip across temperatures', ua: 'Стабільне зчеплення в усьому діапазоні' },
+      { en: 'Motorsport-derived construction', ua: 'Конструкція з автоспорту' },
     ],
     Suspension: [
       { en: 'Sharper handling and stability', ua: 'Краще керування та стабільність' },
@@ -404,7 +410,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
     ],
   },
-  'HRE wheels': {
+  'HRE Wheels': {
     headline: { en: 'HRE · The World\'s Best Custom Forged Wheels', ua: 'HRE · Найкращі у світі ковані диски' },
     description: {
       en: 'Custom forged wheels. Lightweight, strong, and infinitely customizable for your vehicle.',
@@ -706,7 +712,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Bolt-on fitment', ua: 'Bolt-on встановлення' },
     ],
   },
-  'ADV.1 wheels': {
+  'ADV.1 Wheels': {
     headline: { en: 'ADV.1 Engineered Design', ua: 'ADV.1 — інженерний дизайн' },
     description: {
       en: 'Known for concave wheel design and engineering, offering extensive customization for exotic builds.',
@@ -718,7 +724,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Aerospace aluminum', ua: 'Авіаційний алюміній' },
     ],
   },
-  'Strasse wheels': {
+  'Strasse Wheels': {
     headline: { en: 'Strasse Performance Series', ua: 'Strasse — серія Performance' },
     description: {
       en: 'High-performance 3-piece wheels built for speed and style, featuring deep concave profiles and carbon fiber barrels.',
@@ -742,7 +748,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Aero-discs available', ua: 'Доступні аеро-диски' },
     ],
   },
-  'AL13 wheels': {
+  'AL13 Wheels': {
     headline: { en: 'AL13 Design House', ua: 'AL13 — дім дизайну' },
     description: {
       en: 'The pinnacle of wheel design, offering intricate machining and multi-piece construction for the most discerning builds.',
@@ -754,7 +760,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Exotic finishes', ua: 'Екзотичні фініші' },
     ],
   },
-  '1221 wheels': {
+  '1221 Wheels': {
     headline: { en: '1221 Advanced Metallurgy', ua: '1221 — передова металургія' },
     description: {
       en: 'Utilizing proprietary alloy blends and AP3X technology to create the lightest and strongest wheels on the market.',
@@ -1114,7 +1120,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Water-cooled manifolds', ua: 'Колектори з водяним охолодженням' },
     ],
   },
-  'Burger Motorsport': {
+  'Burger Motorsports': {
     headline: { en: 'BMS JB4 Tuning', ua: 'BMS JB4 — тюнінг' },
     description: {
       en: 'Famous for the JB4 piggyback tuner, offering plug-and-play performance for turbocharged vehicles.',

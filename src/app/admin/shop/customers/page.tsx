@@ -13,6 +13,7 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
@@ -227,7 +228,7 @@ export default function AdminShopCustomersPage() {
       </AdminActionBar>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -267,46 +268,46 @@ export default function AdminShopCustomersPage() {
           description="Спробуйте інший запит або створіть нового клієнта вручну."
         />
       ) : (
-        <>
-          {/* Mobile card view */}
-          <div className="space-y-2 lg:hidden">
-            {filteredCustomers.map((customer) => (
-              <AdminMobileCard
-                key={customer.id}
-                title={customer.fullName || customer.email}
-                subtitle={customer.email}
-                badge={<AdminStatusBadge tone={groupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>}
-                rows={[
-                  { label: 'Статус', value: customer.isActive ? 'Активний' : 'Неактивний' },
-                  { label: 'Замовлень', value: customer.counts.orders },
-                  { label: 'Компанія', value: customer.companyName || '—' },
-                  { label: 'Оновлено', value: new Date(customer.updatedAt).toLocaleDateString() },
-                ]}
-                footer={
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setQuickViewId(customer.id)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                      Швидкий перегляд
-                    </button>
-                    <Link
-                      href={`/admin/shop/customers/${customer.id}`}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
-                    >
-                      Відкрити
-                      <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  </div>
-                }
-              />
-            ))}
-          </div>
-
-          {/* Desktop table */}
-          <AdminTableShell className="hidden lg:block">
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
+              {filteredCustomers.map((customer) => (
+                <AdminMobileCard
+                  key={customer.id}
+                  title={customer.fullName || customer.email}
+                  subtitle={customer.email}
+                  badge={<AdminStatusBadge tone={groupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>}
+                  rows={[
+                    { label: 'Статус', value: customer.isActive ? 'Активний' : 'Неактивний' },
+                    { label: 'Замовлень', value: customer.counts.orders },
+                    { label: 'Компанія', value: customer.companyName || '—' },
+                    { label: 'Оновлено', value: new Date(customer.updatedAt).toLocaleDateString() },
+                  ]}
+                  footer={
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuickViewId(customer.id)}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Швидкий перегляд
+                      </button>
+                      <Link
+                        href={`/admin/shop/customers/${customer.id}`}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      >
+                        Відкрити
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+          }
+          desktop={
+            <AdminTableShell>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
@@ -385,7 +386,8 @@ export default function AdminShopCustomersPage() {
             </table>
           </div>
           </AdminTableShell>
-        </>
+          }
+        />
       )}
 
       <CustomerQuickView

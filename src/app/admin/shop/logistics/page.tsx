@@ -324,7 +324,7 @@ export default function LogisticsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`
-                    relative flex-shrink-0 min-w-[200px] p-4 rounded-none border transition-all duration-300 text-left group
+                    relative flex-shrink-0 min-w-[180px] p-4 rounded-none border transition-all duration-300 text-left group sm:min-w-[200px]
                     ${selectedWarehouse === w.id
                       ? 'bg-zinc-800/40 border-blue-500/40 shadow-[0_0_25px_rgba(59,130,246,0.15)]'
                       : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
@@ -413,7 +413,7 @@ export default function LogisticsPage() {
                       placeholder="Пошук бренду..."
                       value={filter}
                       onChange={e => setFilter(e.target.value)}
-                      className="w-full min-w-[300px] pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-none text-sm text-white focus:outline-none focus:border-blue-500/50 placeholder-white/20 transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-none text-sm text-white focus:outline-none focus:border-blue-500/50 placeholder-white/20 transition-colors md:min-w-[300px]"
                     />
                   </div>
                   <div className="text-sm text-white/30">

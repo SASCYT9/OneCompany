@@ -1,0 +1,65 @@
+name: Brand audit finding
+description: Per-brand finding from the catalog visual sweep (logo, naming, URL, category placement)
+title: "[<brand>] <one-line summary>"
+labels: ["brand-audit"]
+body:
+  - type: input
+    id: brand
+    attributes:
+      label: Brand name
+      description: Exact brand name as it appears in `src/lib/brands.ts`
+      placeholder: e.g. "Bell Intercoolers"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area of issue
+      options:
+        - logo (rendering, file quality, white square, invisible)
+        - naming (canonical form, typos, capitalization)
+        - url (website outdated, redirects, dead)
+        - category (wrong slug, missing from category)
+        - metadata (description, country, subcategory)
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - high (visible bug, blocks ideal UX)
+        - medium (should fix soon)
+        - low (nice-to-have polish)
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: What was observed
+      description: What's wrong on the site/modal/grid? Include URL and screenshot if relevant.
+      placeholder: |
+        On http://localhost:3000/en/auto/categories/cooling, the Bell Intercoolers card shows the logo on an opaque white square instead of transparent. Modal also shows white square. File is `public/logos/bell-intercoolers.png` (128x128, no alpha channel).
+    validations:
+      required: true
+  - type: textarea
+    id: source-of-truth
+    attributes:
+      label: Source of truth (PDF/official site)
+      description: What does the PDF or the brand's official site say should be there?
+      placeholder: |
+        Official site: https://bellintercoolers.com — header logo is white-on-dark with the same B mark, transparent SVG available.
+  - type: textarea
+    id: proposed-fix
+    attributes:
+      label: Proposed fix
+      placeholder: |
+        Replace `public/logos/bell-intercoolers.png` with transparent SVG from official site. No code changes needed (path stays the same).
+  - type: textarea
+    id: files
+    attributes:
+      label: Files to touch (optional)
+      placeholder: |
+        - public/logos/bell-intercoolers.png
+        - (no code edits needed)

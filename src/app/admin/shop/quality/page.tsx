@@ -185,10 +185,10 @@ export default function CatalogQualityPage() {
             </div>
           </AdminActionBar>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               <AdminFilterBar>
-                <label className="flex min-w-[260px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+                <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[260px]">
                   <Search className="h-4 w-4 text-zinc-500" />
                   <input
                     value={query}
