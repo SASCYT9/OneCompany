@@ -48,6 +48,14 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'Vargas Turbo',
     'Verus Engineering',
     'XDI fuel systems',
+    // Added 2026-05-07 (post-merge fix): SooQoo source PNG is black-ink
+    // on an opaque white background — chroma-keyed the white to
+    // transparent so the modal's auto-invert produces a clean white
+    // silhouette. The category grid uses the MANUAL invert list only
+    // (not the dark-logo auto-detect), so without this entry the grid
+    // tile shows faint black ink on dark and the modal shows a white
+    // square. Force grid-invert here too.
+    'SooQoo',
     // NOTE: Onyx Concept, Fore Innovations, BootMod3 are NOT inverted —
     // their source PNGs are essentially solid dark rectangles with no
     // real logo content (≥85% near-black pixels). Inverting them produces
