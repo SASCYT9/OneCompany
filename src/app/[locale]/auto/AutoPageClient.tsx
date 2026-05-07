@@ -44,7 +44,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Samsonas Motorsport': 'SAMSONAS',
   'Xshift': 'XSHIFT',
   'Weistec Engineering': 'WEISTEC',
-  'Burger Motorsport': 'BURGER MOTORSPORTS',
+  'Burger Motorsports': 'BURGER MOTORSPORTS',
   'DTE Systems': 'DTE',
   'BootMod3': 'BM3',
   'Drenth Gearboxes': 'DRENTH',
@@ -53,7 +53,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Kline Innovation': 'KLINE',
   'FI Exhaust': 'FI EXHAUST',
   'Urban Automotive': 'URBAN',
-  'Velos Wheels': 'VELOS',
+  'Velos Designwerks': 'VELOS',
   'Airlift Performance': 'AIRLIFT',
   'Nitron Suspension': 'NITRON',
   'Alcon': 'ALCON',
@@ -78,7 +78,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Brixton wheels': 'BRIXTON',
   'MV Forged': 'MV FORGED',
   'Vorsteiner': 'VORSTEINER',
-  'Extreme tyres': 'EXTREME',
+  'Extreme Performance Tyres': 'EXTREME',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');

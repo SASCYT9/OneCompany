@@ -26,8 +26,6 @@ export const DARK_LOGOS = [
   "tte-turbos.svg",
   "triumph.svg",
   "titan-motorsport.svg",
-  "tirerack.svg",
-  "tirerack.png",
   "thorney-motorsport.svg",
   "tex-racing.svg",
   "tesla.svg",

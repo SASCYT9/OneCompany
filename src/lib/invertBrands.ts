@@ -30,7 +30,30 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'WheelForce',
     '1221 wheels',
     'AC Schnitzer',
-    'Avantgarde Wheels',
+    'Avant Garde Wheels',
+    // Added 2026-05-07: dark logos misclassified as also-solid by the auto
+    // detector, so the runtime !isSolid guard suppresses auto-invert. Force
+    // invert via the manual list — they all have dark wordmarks on dark
+    // backgrounds otherwise.
+    '1016 Industries',
+    'AEM Factory',
+    'BMC filters',
+    'Cobb tuning',
+    'Melotti Racing',
+    'Raliw Forged',
+    'Remus',
+    'Rizoma',
+    'RS-R',
+    'STOPART ceramic',
+    'Vargas Turbo',
+    'Verus Engineering',
+    'XDI fuel systems',
+    // NOTE: Onyx Concept, Fore Innovations, BootMod3 are NOT inverted —
+    // their source PNGs are essentially solid dark rectangles with no
+    // real logo content (≥85% near-black pixels). Inverting them produces
+    // a glaring white block. Better to leave them dark (mostly invisible
+    // on the dark theme) until proper logo files are sourced. See issues
+    // #19, #24, #26 for follow-up.
   ].map(normalizeBrandName)
 );
 
@@ -49,6 +72,7 @@ const NO_INVERT_BRANDS_NORMALIZED = new Set(
   [
     'GTHaus',
     'Hardrace',
+    'Extreme Performance Tyres',
   ].map(normalizeBrandName)
 );
 

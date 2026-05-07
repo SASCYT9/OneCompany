@@ -226,8 +226,6 @@ export const SOLID_LOGOS: string[] = [
   "tein.png",
   "termignoni.png",
   "termignoni.webp",
-  "tirerack.png",
-  "tirerack.webp",
   "titan-7.png",
   "titan-motorsport.png",
   "titan-motorsport.webp",

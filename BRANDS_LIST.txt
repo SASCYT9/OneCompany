@@ -12,7 +12,7 @@ American Racing Headers
 AMS / Alpha Performance
 ANRKY wheels
 APR
-Avantgarde Wheels
+Avant Garde Wheels
 BBi Autosport
 BE bearings
 Big Boost
@@ -20,7 +20,7 @@ BimmerWorld
 BootMod3
 Borla
 Brixton wheels
-Burger Motorsport
+Burger Motorsports
 Circle D
 Cobb tuning
 CSF
@@ -28,6 +28,7 @@ DarwinPro
 Deatschwerks
 Dinan
 Dorch Engineering
+Driveshaftshop
 Duke Dynamics
 Eterna Motorworks
 Fabspeed
@@ -71,11 +72,10 @@ Spool Performance
 Stillen
 Stoptech
 Strasse wheels
-TireRack
 Titan Motorsport
 Turner Motorsport
 Vargas Turbo
-Velos Wheels
+Velos Designwerks
 Verus Engineering
 VF Engineering
 Vorsteiner
@@ -125,14 +125,16 @@ Lamspeed
 Larte Design
 LEIB Engineering
 Liberty Walk
+Lingenfelter
 LOBA Motorsport
 Lorinser
 Lumma
 Mamba turbo
 Manhart
 Mansory
-Matt's carbon
+Matts Performance
 Milltek
+Mishimoto
 MST Performance
 Nitron Suspension
 Novitec
@@ -144,14 +146,22 @@ ProTrack Wheels
 Pulsar turbo
 R44 Performance
 Raliw Forged
+Red Star Exhaust
 Remus
+Renegade Design
+RES Exhaust
+Ronin Design
 RS-R
 Sachs Performance
 Schrick
+SCL Concept
+SooQoo
 Sterckenn
 STOPART ceramic
 STOPFLEX
 Supersprint
+TopCar Design
+TTE Turbos
 TTH turbos
 Tubi Style
 Urban Automotive
@@ -174,10 +184,10 @@ AIM Sportline
 ARE dry sump
 Bell Intercoolers
 Drenth Gearboxes
-Extreme tyres
+Extreme Performance Tyres
 Kotouc
 Link ECU
-Lithiumax batteries
+Lithiumax
 MCA Suspension
 Modena Engineering
 Samsonas Motorsport
