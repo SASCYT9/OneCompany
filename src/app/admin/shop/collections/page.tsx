@@ -13,9 +13,11 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 import { useConfirm } from '@/components/admin/AdminConfirmDialog';
 import { useToast } from '@/components/admin/AdminToast';
 
@@ -168,7 +170,7 @@ export default function AdminShopCollectionsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+        <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -196,6 +198,49 @@ export default function AdminShopCollectionsPage() {
           }
         />
       ) : (
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
+              {filteredCollections.map((collection) => (
+                <AdminMobileCard
+                  key={collection.id}
+                  title={collection.titleEn || collection.titleUa}
+                  subtitle={collection.handle}
+                  badge={
+                    <AdminStatusBadge tone={collection.isPublished ? 'success' : 'warning'}>
+                      {collection.isPublished ? 'Published' : 'Hidden'}
+                    </AdminStatusBadge>
+                  }
+                  rows={[
+                    { label: 'Brand', value: collection.brand || '—' },
+                    { label: 'Products', value: collection.productsCount },
+                    { label: 'Updated', value: new Date(collection.updatedAt).toLocaleDateString() },
+                  ]}
+                  footer={
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/shop/collections/${collection.id}`}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/10 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(collection.id)}
+                        disabled={deletingId === collection.id}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-none border border-blue-500/20 px-3 py-2.5 text-xs text-blue-300 disabled:opacity-50"
+                        aria-label="Delete collection"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+          }
+          desktop={
         <AdminTableShell>
           <table className="w-full text-left text-sm">
             <thead>
@@ -252,6 +297,8 @@ export default function AdminShopCollectionsPage() {
             </tbody>
           </table>
         </AdminTableShell>
+          }
+        />
       )}
     </AdminPage>
   );

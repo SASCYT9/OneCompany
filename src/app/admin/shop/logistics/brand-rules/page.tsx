@@ -22,6 +22,7 @@ import {
   AdminInlineAlert,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminSwitch,
   AdminTableShell,
@@ -297,7 +298,100 @@ export default function BrandRulesPage() {
           title={`Бренди магазину (${brands.length})`}
           description="Кожен рядок — окреме правило. Заповни поля, постав 'Увімкнено', натисни 'Зберегти' зверху."
         >
-          <AdminTableShell>
+          <AdminResponsiveTable
+            mobile={
+              <div className="space-y-3">
+                {sortedBrandKeys.map((key) => {
+                  const r = brandRules[key];
+                  const brand = brands.find((b) => b.brand.toLowerCase() === key);
+                  return (
+                    <div key={key} className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            {brand?.turn14BrandId ? (
+                              <span className="rounded-sm bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+                                T14
+                              </span>
+                            ) : null}
+                            <span className="truncate font-semibold text-zinc-100">{r.brandName}</span>
+                          </div>
+                          <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
+                            {brand?.productCount ?? 0} товарів
+                          </div>
+                        </div>
+                        <AdminStatusBadge tone={r.enabled ? 'success' : defaultRule.enabled ? 'warning' : 'default'}>
+                          {r.enabled ? 'Custom' : defaultRule.enabled ? 'Default' : 'No rule'}
+                        </AdminStatusBadge>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Режим</span>
+                          <select
+                            value={r.mode}
+                            onChange={(e) => patchBrandRule(key, { mode: e.target.value as Mode })}
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                          >
+                            {MODES.map((m) => (
+                              <option key={m} value={m}>
+                                {MODE_LABELS[m]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Валюта</span>
+                          <select
+                            value={r.currency}
+                            onChange={(e) => patchBrandRule(key, { currency: e.target.value as Currency })}
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                          >
+                            {CURRENCIES.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="mt-3">
+                        <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Параметри</span>
+                        <div className="mt-1">
+                          <ModeFields rule={r} onChange={(p) => patchBrandRule(key, p)} />
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Склад $/кг</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={r.warehouseRatePerKg}
+                            onChange={(e) => patchBrandRule(key, { warehouseRatePerKg: e.target.value })}
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                          />
+                        </label>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Стан</span>
+                          <div className="flex h-10 items-center">
+                            <AdminSwitch
+                              checked={r.enabled}
+                              onChange={(v) => patchBrandRule(key, { enabled: v })}
+                              label={r.enabled ? 'Увімк.' : 'Вимк.'}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+            desktop={
+              <AdminTableShell>
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-zinc-500">
@@ -384,6 +478,8 @@ export default function BrandRulesPage() {
               </tbody>
             </table>
           </AdminTableShell>
+            }
+          />
         </AdminCardSection>
       </div>
     </AdminPage>

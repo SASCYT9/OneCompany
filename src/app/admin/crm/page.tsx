@@ -346,7 +346,7 @@ export default function CrmDashboardPage() {
 
       {activeTab !== 'overview' ? (
         <AdminFilterBar>
-          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[280px]">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={searchQuery}

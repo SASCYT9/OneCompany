@@ -160,7 +160,7 @@ export default function AdminReturnsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={search}

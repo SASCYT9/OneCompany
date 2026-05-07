@@ -15,6 +15,7 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
@@ -641,8 +642,22 @@ export default function AdminOrdersPage() {
         </div>
       </AdminActionBar>
 
-      <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+      <AdminFilterBar
+        collapsible
+        collapsibleCount={[status, currency, shippingZone, taxRegion].filter(Boolean).length}
+        primary={
+          <label className="flex w-full items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+            <Search className="h-4 w-4 text-zinc-500" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Пошук за номером, клієнтом або email"
+              className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            />
+          </label>
+        }
+      >
+        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -790,8 +805,9 @@ export default function AdminOrdersPage() {
         </>
       ) : (
         <>
-          {/* Mobile card view */}
-          <div className="space-y-2 lg:hidden">
+          <AdminResponsiveTable
+            mobile={
+          <div className="space-y-2">
             {visibleOrders.map((order) => (
               <AdminMobileCard
                 key={order.id}
@@ -830,9 +846,9 @@ export default function AdminOrdersPage() {
               />
             ))}
           </div>
-
-          {/* Desktop table */}
-          <AdminTableShell className="hidden lg:block">
+            }
+            desktop={
+          <AdminTableShell>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1180px] text-left text-sm">
               <thead>
@@ -983,6 +999,8 @@ export default function AdminOrdersPage() {
             </table>
           </div>
           </AdminTableShell>
+            }
+          />
         </>
       )}
 

@@ -1405,7 +1405,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         {error ? <div className="mb-4"><AdminInlineAlert tone="error">{error}</AdminInlineAlert></div> : null}
         {success ? <div className="mb-4"><AdminInlineAlert tone="success">{success}</AdminInlineAlert></div> : null}
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0 space-y-5">
           <AdminEditorSection
             id="overview"
@@ -2111,7 +2111,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           </div>
 
           {/* Right sidebar — Shopify-style organization & quick actions */}
-          <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="border border-white/[0.05] bg-[#171717] p-5">
               <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                 Стан каталогу

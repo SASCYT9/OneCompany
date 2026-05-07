@@ -354,7 +354,7 @@ function AdminInventoryPageContent() {
               value: location.id,
               label: `${location.nameUa || location.name} (${location.code})`,
             }))}
-            className="min-w-[260px]"
+            className="md:min-w-[260px]"
           />
           <SelectField
             label="Brand"
@@ -364,9 +364,9 @@ function AdminInventoryPageContent() {
               { value: 'ALL', label: 'All brands' },
               ...uniqueBrands.map((brand) => ({ value: brand, label: brand })),
             ]}
-            className="min-w-[220px]"
+            className="md:min-w-[220px]"
           />
-          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <label className="flex w-full min-w-0 flex-1 items-center gap-2 self-end rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[320px]">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={query}

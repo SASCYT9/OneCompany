@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
       </AdminMetricGrid>
 
       <AdminActionBar>
-        <div className="flex min-w-[260px] flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/25 px-4 py-3">
+        <div className="flex w-full min-w-0 flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/25 px-4 py-3 md:min-w-[260px]">
           <Shield className="h-4 w-4 text-zinc-500" />
           <input
             value={query}

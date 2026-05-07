@@ -13,6 +13,7 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminSplitDetailShell,
   AdminStatusBadge,
   AdminTableShell,
@@ -28,7 +29,7 @@ import { useToast } from '@/components/admin/AdminToast';
 import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
 import { AdminNotes } from '@/components/admin/AdminNotes';
 import { AdminTagInput } from '@/components/admin/AdminTagInput';
-import { AdminMobileBottomBar } from '@/components/admin/AdminMobileCard';
+import { AdminMobileBottomBar, AdminMobileCard } from '@/components/admin/AdminMobileCard';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -626,47 +627,77 @@ export default function AdminOrderDetailPage() {
                 <h2 className="text-xl font-semibold text-zinc-100">Items</h2>
                 <p className="mt-1 text-sm text-zinc-500">Current order composition and pricing at line level.</p>
               </div>
-              <AdminTableShell>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[720px] text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                        <th className="px-4 py-4 font-medium">Item</th>
-                        <th className="px-4 py-4 font-medium">SKU</th>
-                        <th className="px-4 py-4 font-medium">Qty</th>
-                        <th className="px-4 py-4 font-medium">Price</th>
-                        <th className="px-4 py-4 font-medium">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/6">
-                      {order.items.map((item) => (
-                        <tr key={item.id} className="transition hover:bg-white/[0.03]">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-3">
-                              {item.image ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={item.image} alt={item.title} className="h-10 w-10 rounded-none border border-white/10 object-cover" />
-                              ) : (
-                                <div className="flex h-10 w-10 items-center justify-center rounded-none border border-white/10 bg-black/25">
-                                  <Package className="h-4 w-4 text-zinc-600" />
-                                </div>
-                              )}
-                              <div>
-                                <div className="font-medium text-zinc-100">{item.title}</div>
-                                {item.productSlug ? <div className="mt-1 text-xs text-zinc-500">{item.productSlug}</div> : null}
-                              </div>
+              <AdminResponsiveTable
+                mobile={
+                  <div className="space-y-2">
+                    {order.items.map((item) => (
+                      <AdminMobileCard
+                        key={item.id}
+                        leading={
+                          item.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.image} alt={item.title} className="h-12 w-12 rounded-none border border-white/10 object-cover" />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-none border border-white/10 bg-black/25">
+                              <Package className="h-5 w-5 text-zinc-600" />
                             </div>
-                          </td>
-                          <td className="px-4 py-4 font-mono text-xs text-zinc-400">{item.productSlug || '—'}</td>
-                          <td className="px-4 py-4 text-zinc-300">{item.quantity}</td>
-                          <td className="px-4 py-4 text-zinc-300">{formatMoney(item.price, order.currency)}</td>
-                          <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(item.total, order.currency)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </AdminTableShell>
+                          )
+                        }
+                        title={item.title}
+                        subtitle={item.productSlug || undefined}
+                        rows={[
+                          { label: 'Qty', value: item.quantity },
+                          { label: 'Price', value: formatMoney(item.price, order.currency) },
+                          { label: 'Total', value: formatMoney(item.total, order.currency) },
+                        ]}
+                      />
+                    ))}
+                  </div>
+                }
+                desktop={
+                  <AdminTableShell>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[720px] text-left text-sm">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                            <th className="px-4 py-4 font-medium">Item</th>
+                            <th className="px-4 py-4 font-medium">SKU</th>
+                            <th className="px-4 py-4 font-medium">Qty</th>
+                            <th className="px-4 py-4 font-medium">Price</th>
+                            <th className="px-4 py-4 font-medium">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/6">
+                          {order.items.map((item) => (
+                            <tr key={item.id} className="transition hover:bg-white/[0.03]">
+                              <td className="px-4 py-4">
+                                <div className="flex items-center gap-3">
+                                  {item.image ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={item.image} alt={item.title} className="h-10 w-10 rounded-none border border-white/10 object-cover" />
+                                  ) : (
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-none border border-white/10 bg-black/25">
+                                      <Package className="h-4 w-4 text-zinc-600" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-medium text-zinc-100">{item.title}</div>
+                                    {item.productSlug ? <div className="mt-1 text-xs text-zinc-500">{item.productSlug}</div> : null}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 font-mono text-xs text-zinc-400">{item.productSlug || '—'}</td>
+                              <td className="px-4 py-4 text-zinc-300">{item.quantity}</td>
+                              <td className="px-4 py-4 text-zinc-300">{formatMoney(item.price, order.currency)}</td>
+                              <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(item.total, order.currency)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </AdminTableShell>
+                }
+              />
             </section>
 
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">

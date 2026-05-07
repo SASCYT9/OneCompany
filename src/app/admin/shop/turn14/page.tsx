@@ -257,7 +257,7 @@ export default function Turn14AdminPage() {
 
       <form onSubmit={handleSearch}>
         <AdminFilterBar>
-          <label className="min-w-[260px] flex-1">
+          <label className="w-full min-w-0 flex-1 md:min-w-[260px]">
             <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search supplier catalog</span>
             <div className="flex items-center gap-2 rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3">
               <Search className="h-4 w-4 text-zinc-500" />

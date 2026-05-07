@@ -134,7 +134,7 @@ export default function AdminShopAuditPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="min-w-[260px] flex-1">
+        <label className="w-full min-w-0 flex-1 md:min-w-[260px]">
           <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search</span>
           <input
             value={query}
