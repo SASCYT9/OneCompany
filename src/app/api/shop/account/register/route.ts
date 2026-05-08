@@ -54,12 +54,24 @@ export async function POST(request: NextRequest) {
       currencyPref,
     });
 
+    // Count guest orders that share this email — they auto-link to the cabinet
+    // via getOrdersForCustomerDisplay's OR clause, so we surface a banner on
+    // first visit so the customer doesn't think they're seeing someone else's
+    // orders.
+    const linkedOrdersCount = await prisma.shopOrder.count({
+      where: {
+        customerId: null,
+        email: { equals: email, mode: 'insensitive' },
+      },
+    });
+
     return NextResponse.json({
       id: customer.id,
       email: customer.email,
       firstName: customer.firstName,
       lastName: customer.lastName,
       group: customer.group,
+      linkedOrdersCount,
     });
   } catch (error) {
     if ((error as Error).message === 'CUSTOMER_EXISTS') {

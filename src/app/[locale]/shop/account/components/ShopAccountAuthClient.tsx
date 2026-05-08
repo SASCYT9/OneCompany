@@ -118,6 +118,18 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
       throw new Error(registerData.error || (isUa ? 'Не вдалося створити акаунт' : 'Failed to create account'));
     }
 
+    // Cabinet reads this on first mount to show "We linked X past orders" banner.
+    if (typeof window !== 'undefined' && Number(registerData?.linkedOrdersCount) > 0) {
+      try {
+        sessionStorage.setItem(
+          'shop.account.claimedOrdersCount',
+          String(registerData.linkedOrdersCount),
+        );
+      } catch {
+        // Storage might be disabled (private mode) — banner just won't show.
+      }
+    }
+
     await handleLogin();
   }
 

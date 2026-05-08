@@ -147,6 +147,29 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
       : balanceWho === 'client_owes'
         ? (isUa ? 'Клієнт винен' : 'Customer owes')
         : (isUa ? 'Ми винні' : 'We owe');
+
+  // First-cabinet-visit banner: when register API reports past guest orders
+  // that auto-link to this email, surface the count so the customer knows
+  // why their order history isn't empty.
+  const [claimedOrdersCount, setClaimedOrdersCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('shop.account.claimedOrdersCount');
+      const parsed = raw ? Number(raw) : 0;
+      if (Number.isFinite(parsed) && parsed > 0) setClaimedOrdersCount(parsed);
+    } catch {
+      // ignore
+    }
+  }, []);
+  function dismissClaimedOrdersBanner() {
+    setClaimedOrdersCount(null);
+    try {
+      sessionStorage.removeItem('shop.account.claimedOrdersCount');
+    } catch {
+      // ignore
+    }
+  }
   const signOutCallbackUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/${locale}/shop/account/login`
@@ -200,6 +223,30 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
           </div>
         </div>
 
+        {claimedOrdersCount && claimedOrdersCount > 0 ? (
+          <div className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.06] px-5 py-4 flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-sm text-emerald-100">
+                {isUa
+                  ? `Ми знайшли ${claimedOrdersCount} попередніх замовлень на цей email і прив'язали їх до акаунта.`
+                  : `We linked ${claimedOrdersCount} past orders on this email to your account.`}
+              </p>
+              <p className="mt-1 text-[11px] text-emerald-100/55">
+                {isUa
+                  ? 'Тепер ви можете бачити їх історію в розділі «Замовлення».'
+                  : 'You can now see them in the Orders section.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={dismissClaimedOrdersBanner}
+              className="rounded-full border border-emerald-300/25 bg-emerald-500/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-emerald-100 transition hover:bg-emerald-500/15"
+            >
+              {isUa ? 'Зрозуміло' : 'Got it'}
+            </button>
+          </div>
+        ) : null}
+
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="space-y-6 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div>
@@ -251,23 +298,50 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
             </div>
 
             <div>
-              <h2 className="text-lg font-medium text-white">{isUa ? 'Баланс (Airtable)' : 'Balance (Airtable)'}</h2>
-              <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-5 mb-8">
-                {crmLoading ? (
-                  <div className="text-xs text-white/40 uppercase tracking-widest">{isUa ? 'Завантаження…' : 'Loading…'}</div>
-                ) : (
-                  <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 mb-1">
-                        {isUa ? 'Поточний стан балансу' : 'Current balance state'}
-                      </p>
+              <h2 className="text-lg font-medium text-white">{isUa ? 'Баланс' : 'Balance'}</h2>
+              <p className="mt-1 text-xs text-white/40">
+                {isUa
+                  ? 'Замовлення з сайту та з CRM (sales-команда) обліковуються окремо.'
+                  : 'Web orders and CRM (sales-team) orders are tracked separately.'}
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 mb-8">
+                {/* Web orders card */}
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-white/50 rounded-full" />
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                      {isUa ? 'З сайту' : 'Web orders'}
+                    </p>
+                  </div>
+                  <p className="text-2xl font-light text-white/85">
+                    {profile.orders.length}
+                  </p>
+                  <p className="text-[11px] text-white/45 mt-1">
+                    {profile.orders.length === 0
+                      ? (isUa ? 'Замовлень ще немає' : 'No orders yet')
+                      : isUa
+                        ? `Замовлень в історії`
+                        : `Orders in history`}
+                  </p>
+                </div>
+
+                {/* CRM (Airtable) card */}
+                <div className="rounded-2xl border border-indigo-500/15 bg-indigo-500/[0.04] p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-indigo-200/55">
+                      {isUa ? 'CRM (Sales)' : 'CRM (Sales)'}
+                    </p>
+                  </div>
+                  {crmLoading ? (
+                    <p className="text-2xl font-light text-white/40">…</p>
+                  ) : (
+                    <>
                       <p className={`text-2xl font-light ${balanceWho === 'client_owes' ? 'text-red-400' : balanceWho === 'we_owe' ? 'text-emerald-400' : 'text-white/70'}`}>
                         {crmBalance === 0 ? '$0' : crmBalance > 0 ? `+$${crmBalance.toLocaleString()}` : `-$${Math.abs(crmBalance).toLocaleString()}`}
                       </p>
-                    </div>
-                    <div className="text-right">
                       <span
-                        className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full border ${
+                        className={`mt-2 inline-block text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full border ${
                           balanceWho === 'client_owes'
                             ? 'border-red-500/20 text-red-400 bg-red-500/5'
                             : balanceWho === 'we_owe'
@@ -277,9 +351,9 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                       >
                         {balanceLabel}
                       </span>
-                    </div>
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between gap-3">
