@@ -41,6 +41,15 @@ function nullable(value: unknown) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await assertCurrentShopCustomerSession();
+    if (session.impersonator) {
+      return NextResponse.json(
+        {
+          error:
+            'Profile cannot be edited while an admin is impersonating this account. Exit impersonation first.',
+        },
+        { status: 403 },
+      );
+    }
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
 
     const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : '';

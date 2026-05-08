@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { CheckCircle2, Copy, Database, KeyRound, Mail, RotateCcw, Save, UserRound } from 'lucide-react';
+import { CheckCircle2, Copy, Database, Eye, KeyRound, Mail, RotateCcw, Save, UserRound } from 'lucide-react';
 
 import {
   AdminEntityToolbar,
@@ -328,6 +328,30 @@ export default function AdminShopCustomerDetailPage() {
     }
   }
 
+  async function startImpersonation() {
+    if (!customer) return;
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/customers/${customer.id}/impersonate`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const msg = (data as { error?: string }).error || 'Не вдалось запустити імперсонацію';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      toast.success('Імперсонацію запущено', 'Ви будете перенаправлені у кабінет клієнта');
+      // Open in same tab so the cookie applies for the navigation.
+      window.location.href = `/${customer.preferredLocale === 'ua' ? 'ua' : 'en'}/shop/account`;
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function updateForm<K extends keyof CustomerForm>(field: K, value: CustomerForm[K]) {
     setForm((current) => (current ? { ...current, [field]: value } : current));
   }
@@ -403,6 +427,20 @@ export default function AdminShopCustomerDetailPage() {
               Повернути до B2C
             </button>
           ) : null}
+          <button
+            type="button"
+            onClick={() => void startImpersonation()}
+            disabled={saving || !customer.isActive}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/15 disabled:opacity-50"
+            title={
+              customer.isActive
+                ? 'Зайти у кабінет як цей клієнт (1 година)'
+                : 'Деактивованих клієнтів імперсонувати не можна'
+            }
+          >
+            <Eye className="h-4 w-4" />
+            Зайти як клієнт
+          </button>
           <button
             type="button"
             onClick={() => void runAction('send_password_reset')}
