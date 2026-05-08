@@ -7,6 +7,17 @@ import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
 import { Package, ArrowLeft } from 'lucide-react';
 
+type ShopOrderShippingAddress = {
+  name?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postcode?: string | null;
+  country?: string | null;
+  phone?: string | null;
+} | null;
+
 type OrderItem = {
   id: string;
   title: string;
@@ -30,8 +41,8 @@ type Order = {
   taxAmount: number;
   total: number;
   items: OrderItem[];
-  shippingAddress: any; // json
-  pricingSnapshot: any; // json
+  shippingAddress: ShopOrderShippingAddress;
+  pricingSnapshot: unknown;
 };
 
 export default function ShopOrderDetailClient({ locale, order }: { locale: SupportedLocale; order: Order }) {
@@ -87,8 +98,6 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm font-medium text-white/90">{item.title}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
-                        {(item as any).sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {(item as any).sku}</span>}
-                        {(item as any).brand && <span className="text-white/40">{(item as any).brand}</span>}
                         <span>
                           {item.quantity} × {formatShopMoney(locale, item.price, order.currency as ShopCurrencyCode)}
                         </span>

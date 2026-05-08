@@ -206,11 +206,14 @@ export async function createShopCustomerRegistration(
 }
 
 export async function findCustomerAccountByEmail(prisma: PrismaClient, email: string) {
+  // NOTE: we deliberately do NOT filter on `isActive` here so callers can
+  // distinguish between "no such account" (return null) and "account is
+  // disabled" (return record + customer.isActive === false). Login flow uses
+  // that distinction to surface a specific error code.
   return prisma.shopCustomerAccount.findFirst({
     where: {
       customer: {
         email: normalizeCustomerEmail(email),
-        isActive: true,
       },
     },
     include: {
@@ -437,6 +440,127 @@ export async function upsertCustomerDefaultShippingAddress(
       isDefaultShipping: true,
     },
   });
+}
+
+/**
+ * Address CRUD helpers used by both `/shop/account/addresses` cabinet page
+ * and `/admin/shop/customers` admin detail. All accept `customerId` as a
+ * mandatory ownership guard — never expose by id alone.
+ */
+
+type AddressInput = {
+  label?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  region?: string | null;
+  postcode?: string | null;
+  country: string;
+  isDefaultShipping?: boolean;
+  isDefaultBilling?: boolean;
+};
+
+function sanitizeAddressInput(input: AddressInput) {
+  const line1 = String(input.line1 ?? '').trim();
+  const city = String(input.city ?? '').trim();
+  const country = String(input.country ?? '').trim();
+  if (!line1 || !city || !country) {
+    throw new Error('ADDRESS_MISSING_REQUIRED_FIELDS');
+  }
+  return {
+    label: nullableString(input.label) ?? 'Shipping',
+    line1,
+    line2: nullableString(input.line2),
+    city,
+    region: nullableString(input.region),
+    postcode: nullableString(input.postcode),
+    country,
+    isDefaultShipping: Boolean(input.isDefaultShipping),
+    isDefaultBilling: Boolean(input.isDefaultBilling),
+  };
+}
+
+export async function listShopCustomerAddresses(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomerAddress.findMany({
+    where: { customerId },
+    orderBy: [{ isDefaultShipping: 'desc' }, { isDefaultBilling: 'desc' }, { createdAt: 'asc' }],
+  });
+}
+
+export async function createShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  input: AddressInput,
+) {
+  const data = sanitizeAddressInput(input);
+
+  return prisma.$transaction(async (tx) => {
+    if (data.isDefaultShipping) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultShipping: true },
+        data: { isDefaultShipping: false },
+      });
+    }
+    if (data.isDefaultBilling) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultBilling: true },
+        data: { isDefaultBilling: false },
+      });
+    }
+    return tx.shopCustomerAddress.create({
+      data: { customerId, ...data },
+    });
+  });
+}
+
+export async function updateShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  addressId: string,
+  input: AddressInput,
+) {
+  const owned = await prisma.shopCustomerAddress.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true },
+  });
+  if (!owned) {
+    throw new Error('ADDRESS_NOT_FOUND');
+  }
+  const data = sanitizeAddressInput(input);
+
+  return prisma.$transaction(async (tx) => {
+    if (data.isDefaultShipping) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultShipping: true, NOT: { id: addressId } },
+        data: { isDefaultShipping: false },
+      });
+    }
+    if (data.isDefaultBilling) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultBilling: true, NOT: { id: addressId } },
+        data: { isDefaultBilling: false },
+      });
+    }
+    return tx.shopCustomerAddress.update({
+      where: { id: addressId },
+      data,
+    });
+  });
+}
+
+export async function deleteShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  addressId: string,
+) {
+  const owned = await prisma.shopCustomerAddress.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true },
+  });
+  if (!owned) {
+    throw new Error('ADDRESS_NOT_FOUND');
+  }
+  await prisma.shopCustomerAddress.delete({ where: { id: addressId } });
 }
 
 function serializeAddress(address: {

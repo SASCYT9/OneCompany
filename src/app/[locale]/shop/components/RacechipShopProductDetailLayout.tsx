@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, ChevronRight, Zap, Target, Truck } from "lucide-react";
 
 import type { SupportedLocale } from "@/lib/seo";
+import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
@@ -104,6 +105,12 @@ export default function RacechipShopProductDetailLayout({
 
   const pricing = getPricing();
   const finalPriceLabel = pricing?.primary ?? null;
+
+  // Independent ShopResolvedPricing for the B2B disclosure band — keeps the
+  // existing display-formatted `pricing` untouched.
+  const resolvedB2B = variant
+    ? resolveVariantPricing(variant, viewerContext)
+    : resolveShopProductPricing(product, viewerContext);
   
   const handleAddToCart = async () => {
     if (!variant || isAdding || inCart) return;
@@ -248,6 +255,10 @@ export default function RacechipShopProductDetailLayout({
                         {isUa ? "Доставка 10-14 днів" : "Delivery 10-14 days"}
                      </span>
                    </div>
+                </div>
+
+                <div className="mb-6">
+                  <ShopB2BPricingBand pricing={resolvedB2B} locale={locale as SupportedLocale} />
                 </div>
 
                {finalPriceLabel ? (

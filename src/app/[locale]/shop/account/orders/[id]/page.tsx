@@ -42,6 +42,20 @@ export default async function ShopOrderDetailPage({ params }: Props) {
     notFound();
   }
 
+  const shippingAddress =
+    order.shippingAddress && typeof order.shippingAddress === 'object'
+      ? (order.shippingAddress as Record<string, unknown> as {
+          name?: string | null;
+          line1?: string | null;
+          line2?: string | null;
+          city?: string | null;
+          region?: string | null;
+          postcode?: string | null;
+          country?: string | null;
+          phone?: string | null;
+        })
+      : null;
+
   const safeOrder = {
     ...order,
     subtotal: Number(order.subtotal),
@@ -52,8 +66,10 @@ export default async function ShopOrderDetailPage({ params }: Props) {
       ...item,
       price: Number(item.price),
       total: Number(item.total),
-    }))
+    })),
+    shippingAddress,
+    pricingSnapshot: order.pricingSnapshot ?? null,
   };
 
-  return <ShopOrderDetailClient locale={locale} order={safeOrder as any} />;
+  return <ShopOrderDetailClient locale={locale} order={safeOrder} />;
 }
