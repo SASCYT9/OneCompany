@@ -29,6 +29,7 @@ import { AdminNotes } from '@/components/admin/AdminNotes';
 import { AdminTagInput } from '@/components/admin/AdminTagInput';
 import { CustomerCreditPanel } from '@/app/admin/shop/customers/components/CustomerCreditPanel';
 import { CustomerLtvHeader } from '@/app/admin/shop/customers/components/CustomerLtvHeader';
+import { CustomerBrandDiscountsPanel } from '@/app/admin/shop/customers/components/CustomerBrandDiscountsPanel';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -653,6 +654,11 @@ export default function AdminShopCustomerDetailPage() {
                 </div>
               </div>
             </section>
+
+            <CustomerBrandDiscountsPanel
+              customerId={customer.id}
+              globalDiscountPct={customer.b2bDiscountPercent}
+            />
 
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center gap-2">

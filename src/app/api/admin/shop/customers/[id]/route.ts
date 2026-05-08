@@ -4,7 +4,13 @@ import { render } from '@react-email/render';
 import { Resend } from 'resend';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { approveCustomerB2B, createShopCustomerPasswordSetup, revertCustomerToB2C } from '@/lib/shopCustomers';
+import {
+  approveCustomerB2B,
+  archiveShopCustomer,
+  createShopCustomerPasswordSetup,
+  restoreShopCustomer,
+  revertCustomerToB2C,
+} from '@/lib/shopCustomers';
 import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
@@ -94,6 +100,30 @@ export async function PATCH(request: NextRequest, context: Params) {
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
     
+    if (action === 'archive') {
+      await archiveShopCustomer(prisma, id);
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.archive',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: { email: existing.email },
+      });
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    }
+
+    if (action === 'restore') {
+      await restoreShopCustomer(prisma, id);
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.restore',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: { email: existing.email },
+      });
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    }
+
     if (action === 'send_password_reset') {
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,

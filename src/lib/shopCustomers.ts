@@ -377,6 +377,20 @@ export async function approveCustomerB2B(prisma: PrismaClient, customerId: strin
   });
 }
 
+export async function archiveShopCustomer(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomer.update({
+    where: { id: customerId },
+    data: { archivedAt: new Date(), isActive: false },
+  });
+}
+
+export async function restoreShopCustomer(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomer.update({
+    where: { id: customerId },
+    data: { archivedAt: null, isActive: true },
+  });
+}
+
 export async function revertCustomerToB2C(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomer.update({
     where: { id: customerId },
