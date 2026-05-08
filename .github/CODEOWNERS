@@ -1,0 +1,18 @@
+# OneCompany code owners
+# Order matters — last matching pattern wins.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+*                                @SASCYT9
+
+# Infrastructure & CI
+/.github/                        @SASCYT9
+/.github/workflows/              @SASCYT9
+/prisma/                         @SASCYT9
+/scripts/                        @SASCYT9
+
+# Documentation
+/docs/                           @SASCYT9
+/README.md                       @SASCYT9
+/CHANGELOG.md                    @SASCYT9
+/LICENSE                         @SASCYT9
