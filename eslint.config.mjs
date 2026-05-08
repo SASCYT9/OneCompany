@@ -19,10 +19,10 @@ const eslintConfig = defineConfig([
     ".agents/**",
     "public/sw.js",
 
+    // Archived one-off scripts and historical artifacts.
+    "archive/**",
     // Ignore one-off repo maintenance scripts stored at the repo root.
     "*.js",
-    "replaceUrbanImages.ts",
-    "test-ai.ts",
     "fix-*.js",
     "restore-auto-blocks*.js",
   ]),
