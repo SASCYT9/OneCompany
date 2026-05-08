@@ -15,8 +15,12 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const GEMINI_API_KEY = 'AIzaSyAWXpyYjsJ7ERbc4zalxnmk5ij6YPH2zkk';
-const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  console.error('Missing GEMINI_API_KEY in environment.');
+  process.exit(1);
+}
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const TEST_MODE = process.argv.includes('--test');
