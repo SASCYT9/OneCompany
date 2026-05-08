@@ -125,9 +125,13 @@ export async function PATCH(request: NextRequest, context: Params) {
     }
 
     if (action === 'send_password_reset') {
+      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+      const requestBaseUrl = host ? `${proto}://${host}` : undefined;
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,
         preferredLocale: existing.preferredLocale,
+        baseUrl: requestBaseUrl,
       });
 
       const targetLocale: 'ua' | 'en' = existing.preferredLocale === 'ua' ? 'ua' : 'en';
@@ -175,9 +179,13 @@ export async function PATCH(request: NextRequest, context: Params) {
     }
 
     if (action === 'generate_password' || action === 'create_setup_link') {
+      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+      const requestBaseUrl = host ? `${proto}://${host}` : undefined;
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,
         preferredLocale: existing.preferredLocale,
+        baseUrl: requestBaseUrl,
       });
 
       await writeAdminAuditLog(prisma, session, {

@@ -52,6 +52,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Use request headers as the most accurate source of the deployed origin
+  // (covers branch-preview URLs even when VERCEL_URL isn't injected).
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+  const requestBaseUrl = host ? `${proto}://${host}` : '';
+
   try {
     const customer = await prisma.shopCustomer.findUnique({
       where: { email },
@@ -67,6 +73,7 @@ export async function POST(request: NextRequest) {
       const setup = await createShopCustomerPasswordSetup(prisma, {
         customerId: customer.id,
         preferredLocale: customer.preferredLocale ?? locale,
+        baseUrl: requestBaseUrl || undefined,
       });
 
       const html = await render(

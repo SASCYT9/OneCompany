@@ -226,18 +226,38 @@ function hashPasswordSetupToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+/**
+ * Resolves the absolute base URL for outbound emails (password setup, reset).
+ * Order:
+ * 1. Explicit `NEXT_PUBLIC_SITE_URL` (production canonical, e.g. https://onecompany.global)
+ * 2. `VERCEL_URL` for preview deployments (returned without protocol — we add https://)
+ * 3. Fallback to onecompany.global so we never send a relative URL that
+ *    Gmail/Outlook will mangle into `http:///path`.
+ */
+function resolveOutboundBaseUrl(): string {
+  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  if (explicit) return explicit;
+  const vercelHost = (process.env.VERCEL_URL || '').trim().replace(/\/$/, '');
+  if (vercelHost) {
+    return vercelHost.startsWith('http') ? vercelHost : `https://${vercelHost}`;
+  }
+  return 'https://onecompany.global';
+}
+
 export async function createShopCustomerPasswordSetup(
   prisma: PrismaClient,
   input: {
     customerId: string;
     preferredLocale?: string | null;
+    /** Optional override (e.g. derived from request headers) */
+    baseUrl?: string;
   }
 ) {
   const rawToken = crypto.randomBytes(24).toString('base64url');
   const tokenHash = hashPasswordSetupToken(rawToken);
   const expiresAt = new Date(Date.now() + PASSWORD_SETUP_TTL_MS);
   const locale = String(input.preferredLocale ?? '').trim() === 'ua' ? 'ua' : 'en';
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  const baseUrl = (input.baseUrl ?? resolveOutboundBaseUrl()).trim().replace(/\/$/, '');
   const path = `/${locale}/shop/account/setup-password?token=${encodeURIComponent(rawToken)}`;
 
   await prisma.shopCustomerPasswordSetupToken.upsert({
@@ -254,7 +274,7 @@ export async function createShopCustomerPasswordSetup(
   });
 
   return {
-    url: baseUrl ? `${baseUrl}${path}` : path,
+    url: `${baseUrl}${path}`,
     expiresAt,
   };
 }
