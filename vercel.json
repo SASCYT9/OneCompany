@@ -1,8 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
+  "regions": ["fra1"],
   "ignoreCommand": "if [ \"${VERCEL_GIT_COMMIT_REF#archive/}\" != \"$VERCEL_GIT_COMMIT_REF\" ]; then echo 'Skipping build for archive branch'; exit 0; else exit 1; fi",
   "git": {
     "deploymentEnabled": {
@@ -22,10 +24,6 @@
     {
       "path": "/api/telegram/cron?task=all",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/admin/turn14-sync",
-      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/admin/cron/atomic-sync",

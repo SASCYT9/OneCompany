@@ -2,6 +2,9 @@
   "name": "onecompany-3d",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0 <23.0.0"
+  },
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true, force:true}); console.log('.next removed');\"",
     "dev": "next dev",
