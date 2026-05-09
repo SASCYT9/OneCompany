@@ -5,8 +5,12 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config({ path: '.env.local' });
 
 // Configuration
-const TURN14_CLIENT_ID = process.env.TURN14_CLIENT_ID || 'f7a47aba33fa6f87a218de26e824d32e499d58e9';
-const TURN14_CLIENT_SECRET = process.env.TURN14_CLIENT_SECRET || 'efc5ff7645b09faa8c9b5c602a6c8fec2937f89f';
+const TURN14_CLIENT_ID = process.env.TURN14_CLIENT_ID;
+const TURN14_CLIENT_SECRET = process.env.TURN14_CLIENT_SECRET;
+if (!TURN14_CLIENT_ID || !TURN14_CLIENT_SECRET) {
+  console.error('Missing TURN14_CLIENT_ID or TURN14_CLIENT_SECRET in environment.');
+  process.exit(1);
+}
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Товары/Услуги test';

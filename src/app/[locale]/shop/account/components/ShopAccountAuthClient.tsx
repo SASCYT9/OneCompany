@@ -49,10 +49,14 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   const nextHref = sanitizeNextPath(searchParams.get('next'), `/${locale}/shop/account`);
   const [submitting, setSubmitting] = useState(false);
 
-  /* If NextAuth redirected here with ?error=auth, show a message immediately */
+  /* If NextAuth redirected here with ?error=..., show a message immediately */
   const errorParam = searchParams.get('error');
   const initialError = errorParam
-    ? (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
+    ? errorParam === 'ACCOUNT_DISABLED'
+      ? (isUa
+          ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
+          : 'This account has been disabled. Please contact support.')
+      : (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
     : '';
   const [error, setError] = useState(initialError);
   const [form, setForm] = useState({
@@ -77,6 +81,13 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     }
 
     if (!result?.ok) {
+      if (result?.error === 'ACCOUNT_DISABLED') {
+        throw new Error(
+          isUa
+            ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
+            : 'This account has been disabled. Please contact support.',
+        );
+      }
       throw new Error(isUa ? 'Невірний email або пароль' : 'Invalid email or password');
     }
 
@@ -107,6 +118,18 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
       throw new Error(registerData.error || (isUa ? 'Не вдалося створити акаунт' : 'Failed to create account'));
     }
 
+    // Cabinet reads this on first mount to show "We linked X past orders" banner.
+    if (typeof window !== 'undefined' && Number(registerData?.linkedOrdersCount) > 0) {
+      try {
+        sessionStorage.setItem(
+          'shop.account.claimedOrdersCount',
+          String(registerData.linkedOrdersCount),
+        );
+      } catch {
+        // Storage might be disabled (private mode) — banner just won't show.
+      }
+    }
+
     await handleLogin();
   }
 
@@ -130,7 +153,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-28 sm:px-6">
-        <div className="w-full rounded-[30px] border border-white/10 bg-white/[0.05] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
+        <div className="w-full rounded-[30px] border border-white/10 bg-white/5 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
           <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">{copy.eyebrow}</p>
           <h1 className="mt-4 text-3xl font-light tracking-tight sm:text-4xl">{copy.title}</h1>
           <p className="mt-3 text-sm text-white/55">{copy.subtitle}</p>
@@ -192,6 +215,17 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
               {submitting ? (isUa ? 'Зачекайте…' : 'Please wait…') : copy.submit}
             </button>
           </form>
+
+          {mode === 'login' ? (
+            <div className="mt-4 text-right">
+              <Link
+                href={`/${locale}/shop/account/forgot-password`}
+                className="text-xs uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
+              >
+                {isUa ? 'Забули пароль?' : 'Forgot password?'}
+              </Link>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex items-center justify-between gap-4 text-sm text-white/50">
             <Link href={`/${locale}/shop/urban/collections`} className="hover:text-white">

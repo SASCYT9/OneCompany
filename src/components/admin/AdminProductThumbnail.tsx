@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
-type Size = 'sm' | 'md' | 'lg';
+type Size = "sm" | "md" | "lg";
 
 const SIZE_CLASS: Record<Size, string> = {
-  sm: 'h-11 w-11',
-  md: 'h-[60px] w-[60px]',
-  lg: 'h-[72px] w-[72px]',
+  sm: "h-11 w-11",
+  md: "h-[60px] w-[60px]",
+  lg: "h-[72px] w-[72px]",
 };
 
 const FONT_SIZE_CLASS: Record<Size, string> = {
-  sm: 'text-sm',
-  md: 'text-lg',
-  lg: 'text-xl',
+  sm: "text-sm",
+  md: "text-lg",
+  lg: "text-xl",
 };
 
 function getInitials(...candidates: Array<string | null | undefined>): string {
@@ -30,7 +30,7 @@ function getInitials(...candidates: Array<string | null | undefined>): string {
     }
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
-  return '—';
+  return "—";
 }
 
 function pickGradient(seed: string): { from: string; to: string } {
@@ -51,7 +51,7 @@ export function AdminProductThumbnail({
   imageUrl,
   brand,
   title,
-  size = 'md',
+  size = "md",
   tintHex,
   className,
 }: {
@@ -65,7 +65,7 @@ export function AdminProductThumbnail({
 }) {
   const [errored, setErrored] = useState(false);
   const initials = getInitials(brand, title);
-  const seed = (brand || title || 'oc-product').toString();
+  const seed = (brand || title || "oc-product").toString();
   const gradient = pickGradient(seed);
   const fallbackBg = tintHex
     ? `linear-gradient(135deg, ${tintHex}33 0%, ${tintHex}10 100%)`
@@ -75,8 +75,8 @@ export function AdminProductThumbnail({
   return (
     <div
       className={cn(
-        'admin-product-thumb relative shrink-0 overflow-hidden rounded-none border border-white/[0.08] bg-[#0A0A0A]',
-        'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+        "admin-product-thumb relative shrink-0 overflow-hidden rounded-none border border-white/8 bg-[#0A0A0A]",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
         SIZE_CLASS[size],
         className
       )}
@@ -98,10 +98,7 @@ export function AdminProductThumbnail({
           style={{ backgroundImage: fallbackBg }}
         >
           <span
-            className={cn(
-              'font-semibold tracking-[0.04em] text-white/85',
-              FONT_SIZE_CLASS[size]
-            )}
+            className={cn("font-semibold tracking-[0.04em] text-white/85", FONT_SIZE_CLASS[size])}
             style={tintHex ? { color: tintHex } : undefined}
           >
             {initials}

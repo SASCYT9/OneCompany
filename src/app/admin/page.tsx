@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import {
   Award,
@@ -13,7 +13,7 @@ import {
   RefreshCw,
   Target,
   Users,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   AdminActionBar,
@@ -28,11 +28,11 @@ import {
   AdminStatusBadge,
   AdminTimelineList,
   AdminTrendChart,
-} from '@/components/admin/AdminPrimitives';
-import { AdminSkeletonCard, AdminSkeletonKpiGrid } from '@/components/admin/AdminSkeleton';
-import { useAdminCurrency } from '@/lib/admin/currencyContext';
-import { useToast } from '@/components/admin/AdminToast';
-import { DashboardKpiCard } from './components/DashboardKpiCard';
+} from "@/components/admin/AdminPrimitives";
+import { AdminSkeletonCard, AdminSkeletonKpiGrid } from "@/components/admin/AdminSkeleton";
+import { useAdminCurrency } from "@/lib/admin/currencyContext";
+import { useToast } from "@/components/admin/AdminToast";
+import { DashboardKpiCard } from "./components/DashboardKpiCard";
 import {
   DashboardDateRange,
   DashboardDealerInquiries,
@@ -48,22 +48,16 @@ import {
   ViewAllLink,
   WidgetCard,
   type RichOrderRow,
-} from './components/DashboardWidgets';
+} from "./components/DashboardWidgets";
 import {
   DashboardOpsHealthBanner,
   type HealthLevel,
   type HealthLight,
-} from './components/DashboardOpsHealthBanner';
-import {
-  DashboardOrderPipeline,
-  type PipelineStage,
-} from './components/DashboardOrderPipeline';
-import {
-  DashboardActionRequired,
-  type ActionItem,
-} from './components/DashboardActionRequired';
+} from "./components/DashboardOpsHealthBanner";
+import { DashboardOrderPipeline, type PipelineStage } from "./components/DashboardOrderPipeline";
+import { DashboardActionRequired, type ActionItem } from "./components/DashboardActionRequired";
 
-type RevenuePeriod = 'monthly' | 'weekly' | 'daily';
+type RevenuePeriod = "monthly" | "weekly" | "daily";
 
 type DashboardResponse = {
   shop: {
@@ -221,7 +215,7 @@ type DashboardResponse = {
       id: string;
       label: string;
       count: number;
-      severity: 'success' | 'warning' | 'danger';
+      severity: "success" | "warning" | "danger";
       href: string;
       description: string;
     }>;
@@ -243,9 +237,9 @@ type DashboardResponse = {
 };
 
 const PERIOD_OPTIONS: Array<{ value: RevenuePeriod; label: string }> = [
-  { value: 'monthly', label: 'Місяці' },
-  { value: 'weekly', label: 'Тижні' },
-  { value: 'daily', label: 'Дні' },
+  { value: "monthly", label: "Місяці" },
+  { value: "weekly", label: "Тижні" },
+  { value: "daily", label: "Дні" },
 ];
 
 /**
@@ -266,31 +260,31 @@ function pluralUk(n: number, one: string, few: string, many: string): string {
 }
 
 const SHOP_STATUS_LABELS: Record<string, string> = {
-  PENDING_PAYMENT: 'Очікує оплату',
-  PENDING_REVIEW: 'На перевірці',
-  CONFIRMED: 'Підтверджено',
-  PROCESSING: 'В обробці',
-  SHIPPED: 'Відправлено',
-  DELIVERED: 'Доставлено',
-  CANCELLED: 'Скасовано',
-  REFUNDED: 'Повернено',
+  PENDING_PAYMENT: "Очікує оплату",
+  PENDING_REVIEW: "На перевірці",
+  CONFIRMED: "Підтверджено",
+  PROCESSING: "В обробці",
+  SHIPPED: "Відправлено",
+  DELIVERED: "Доставлено",
+  CANCELLED: "Скасовано",
+  REFUNDED: "Повернено",
 };
 
 function formatDate(value: string | null) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  if (!value) return "—";
+  return new Date(value).toLocaleString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function relativeTime(value: string | null): string {
-  if (!value) return '—';
+  if (!value) return "—";
   const diff = Date.now() - new Date(value).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'щойно';
+  if (m < 1) return "щойно";
   if (m < 60) return `${m} хв тому`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} год тому`;
@@ -299,16 +293,23 @@ function relativeTime(value: string | null): string {
 }
 
 function getOrderStatusTone(status: string) {
-  if (status === 'DELIVERED' || status === 'Выполнен') return 'success' as const;
-  if (status === 'CANCELLED' || status === 'REFUNDED' || status === 'Отменен') return 'danger' as const;
-  if (status === 'PENDING_PAYMENT' || status === 'PENDING_REVIEW' || status === 'PROCESSING' || status === 'SHIPPED') return 'warning' as const;
-  return 'default' as const;
+  if (status === "DELIVERED" || status === "Выполнен") return "success" as const;
+  if (status === "CANCELLED" || status === "REFUNDED" || status === "Отменен")
+    return "danger" as const;
+  if (
+    status === "PENDING_PAYMENT" ||
+    status === "PENDING_REVIEW" ||
+    status === "PROCESSING" ||
+    status === "SHIPPED"
+  )
+    return "warning" as const;
+  return "default" as const;
 }
 
 export default function AdminDashboardPage() {
   const { formatMoney } = useAdminCurrency();
   const toast = useToast();
-  const [period, setPeriod] = useState<RevenuePeriod>('monthly');
+  const [period, setPeriod] = useState<RevenuePeriod>("monthly");
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -316,30 +317,38 @@ export default function AdminDashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchDashboard = useCallback(
-    async (mode: 'initial' | 'refresh' = 'initial') => {
-      if (mode === 'initial') setLoading(true);
+    async (mode: "initial" | "refresh" = "initial") => {
+      if (mode === "initial") setLoading(true);
       else setRefreshing(true);
 
       try {
-        const response = await fetch(`/api/admin/dashboard?period=${period}`, { cache: 'no-store' });
-        const payload = (await response.json().catch(() => ({}))) as DashboardResponse & { error?: string };
+        const response = await fetch(`/api/admin/dashboard?period=${period}`, {
+          cache: "no-store",
+        });
+        const payload = (await response.json().catch(() => ({}))) as DashboardResponse & {
+          error?: string;
+        };
 
-        if (!response.ok) throw new Error(payload.error || 'Failed to load dashboard');
+        if (!response.ok) throw new Error(payload.error || "Failed to load dashboard");
 
         setData(payload);
         setError(null);
         setLastUpdated(new Date());
-        if (mode === 'refresh') {
-          toast.success('Dashboard refreshed', `Latest data as of ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`);
+        if (mode === "refresh") {
+          toast.success(
+            "Dashboard refreshed",
+            `Latest data as of ${new Date().toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
+          );
         }
       } catch (fetchError) {
-        const message = fetchError instanceof Error ? fetchError.message : 'Failed to load dashboard';
+        const message =
+          fetchError instanceof Error ? fetchError.message : "Failed to load dashboard";
         setError(message);
-        if (mode === 'refresh') {
-          toast.error('Could not refresh dashboard', message);
+        if (mode === "refresh") {
+          toast.error("Could not refresh dashboard", message);
         }
       } finally {
-        if (mode === 'initial') setLoading(false);
+        if (mode === "initial") setLoading(false);
         else setRefreshing(false);
       }
     },
@@ -347,14 +356,15 @@ export default function AdminDashboardPage() {
   );
 
   useEffect(() => {
-    void fetchDashboard('initial');
-    const timer = window.setInterval(() => void fetchDashboard('refresh'), 60_000);
+    void fetchDashboard("initial");
+    const timer = window.setInterval(() => void fetchDashboard("refresh"), 60_000);
     return () => window.clearInterval(timer);
   }, [fetchDashboard]);
 
   // ─── Memos ─────────────────────────────────────────────────────────
 
-  const periodLabel = period === 'monthly' ? 'цей місяць' : period === 'weekly' ? 'цей тиждень' : 'сьогодні';
+  const periodLabel =
+    period === "monthly" ? "цей місяць" : period === "weekly" ? "цей тиждень" : "сьогодні";
 
   const profitChartData = useMemo(
     () =>
@@ -379,12 +389,20 @@ export default function AdminDashboardPage() {
   const orderStatusPills = useMemo(() => {
     if (!data) return [];
     const map = new Map(data.shop.pendingByStage.map((s) => [s.status, s.count]));
-    const pendingPayment = map.get('PENDING_PAYMENT') ?? 0;
-    type PillTone = 'green' | 'amber' | 'red' | 'neutral';
+    const pendingPayment = map.get("PENDING_PAYMENT") ?? 0;
+    type PillTone = "green" | "amber" | "red" | "neutral";
     return [
-      { label: 'Pending', value: pendingPayment, tone: (pendingPayment > 0 ? 'amber' : 'neutral') as PillTone },
-      { label: 'Active', value: data.shop.activeOrders, tone: 'neutral' as PillTone },
-      { label: 'Stuck>7d', value: data.shop.stuckPendingPayment, tone: (data.shop.stuckPendingPayment > 0 ? 'red' : 'green') as PillTone },
+      {
+        label: "Pending",
+        value: pendingPayment,
+        tone: (pendingPayment > 0 ? "amber" : "neutral") as PillTone,
+      },
+      { label: "Active", value: data.shop.activeOrders, tone: "neutral" as PillTone },
+      {
+        label: "Stuck>7d",
+        value: data.shop.stuckPendingPayment,
+        tone: (data.shop.stuckPendingPayment > 0 ? "red" : "green") as PillTone,
+      },
     ];
   }, [data]);
 
@@ -396,7 +414,7 @@ export default function AdminDashboardPage() {
       count: s.count,
       valueSum: s.valueSum,
       oldestAgeDays: s.oldestAgeDays,
-      warnAgeDays: s.status === 'PENDING_PAYMENT' || s.status === 'PENDING_REVIEW' ? 7 : undefined,
+      warnAgeDays: s.status === "PENDING_PAYMENT" || s.status === "PENDING_REVIEW" ? 7 : undefined,
     }));
   }, [data]);
 
@@ -405,18 +423,18 @@ export default function AdminDashboardPage() {
     const ops = data.system.operations;
     return [
       {
-        id: 'pipeline',
-        label: 'Pipeline',
+        id: "pipeline",
+        label: "Pipeline",
         level: ops.pipelineHealth,
         detail:
           data.shop.stuckPendingPayment > 0
             ? `${data.shop.stuckPendingPayment} stuck >7d`
             : `${data.shop.activeOrders} active`,
-        href: '/admin/shop/orders',
+        href: "/admin/shop/orders",
       },
       {
-        id: 'sync',
-        label: 'Turn14 sync',
+        id: "sync",
+        label: "Turn14 sync",
         level: ops.syncHealth,
         detail:
           data.system.turn14Stats.errors > 0
@@ -424,38 +442,40 @@ export default function AdminDashboardPage() {
             : data.system.turn14Stats.syncing > 0
               ? `${data.system.turn14Stats.syncing} syncing`
               : `last ${relativeTime(data.system.turn14Stats.latestSync)}`,
-        href: '/admin/shop/turn14',
+        href: "/admin/shop/turn14",
       },
       {
-        id: 'catalog',
-        label: 'Catalog',
+        id: "catalog",
+        label: "Catalog",
         level: ops.catalogHealth,
         detail: `${data.system.catalogQuality.score}% (${data.system.catalogQuality.issueProducts} issues)`,
-        href: '/admin/shop/quality',
+        href: "/admin/shop/quality",
       },
       {
-        id: 'data',
-        label: 'Data quality',
+        id: "data",
+        label: "Data quality",
         level: ops.dataHealth,
         detail: `${data.system.dataQuality.score}% clean`,
-        href: '/admin/shop/audit',
+        href: "/admin/shop/audit",
       },
       {
-        id: 'imports',
-        label: 'Imports',
+        id: "imports",
+        label: "Imports",
         level: ops.importsHealth,
-        detail: data.system.lastImportAt ? `last ${relativeTime(data.system.lastImportAt)}` : 'none yet',
-        href: '/admin/shop/import',
+        detail: data.system.lastImportAt
+          ? `last ${relativeTime(data.system.lastImportAt)}`
+          : "none yet",
+        href: "/admin/shop/import",
       },
       {
-        id: 'stock',
-        label: 'Stock',
+        id: "stock",
+        label: "Stock",
         level: ops.stockHealth,
         detail:
           data.shop.lowStockItems.length > 0
             ? `${data.shop.lowStockItems.length} critical`
-            : 'all healthy',
-        href: '/admin/shop/inventory',
+            : "all healthy",
+        href: "/admin/shop/inventory",
       },
     ];
   }, [data]);
@@ -470,7 +490,7 @@ export default function AdminDashboardPage() {
       items.push({
         id: risk.id,
         severity:
-          risk.severity === 'danger' ? 'red' : risk.severity === 'warning' ? 'amber' : 'green',
+          risk.severity === "danger" ? "red" : risk.severity === "warning" ? "amber" : "green",
         label: risk.label,
         count: risk.count,
         detail: risk.description,
@@ -481,50 +501,50 @@ export default function AdminDashboardPage() {
     // Stuck PENDING_PAYMENT
     if (data.shop.stuckPendingPayment > 0) {
       items.push({
-        id: 'stuck-pending',
-        severity: 'red',
-        label: 'Stuck pending payment >7d',
+        id: "stuck-pending",
+        severity: "red",
+        label: "Stuck pending payment >7d",
         count: data.shop.stuckPendingPayment,
-        detail: 'Orders sitting in PENDING_PAYMENT for over a week.',
-        href: '/admin/shop/orders?status=PENDING_PAYMENT',
+        detail: "Orders sitting in PENDING_PAYMENT for over a week.",
+        href: "/admin/shop/orders?status=PENDING_PAYMENT",
       });
     }
 
     // Top debtors as a single item
     if (data.crm.debtors.length > 0) {
       items.push({
-        id: 'debtors',
-        severity: 'amber',
-        label: 'Customers with outstanding debt',
+        id: "debtors",
+        severity: "amber",
+        label: "Customers with outstanding debt",
         count: data.crm.debtors.length,
         detail: data.crm.oldestDebtor
-          ? `${data.crm.oldestDebtor.name} owes ${formatMoney(Math.abs(data.crm.oldestDebtor.balance), 'USD')}`
-          : 'B2B customers with negative balance.',
-        href: '/admin/crm',
+          ? `${data.crm.oldestDebtor.name} owes ${formatMoney(Math.abs(data.crm.oldestDebtor.balance), "USD")}`
+          : "B2B customers with negative balance.",
+        href: "/admin/crm",
       });
     }
 
     // Failed Turn14 syncs
     if (data.system.turn14Stats.errors > 0) {
       items.push({
-        id: 'turn14-errors',
-        severity: 'red',
-        label: 'Failed Turn14 brand syncs',
+        id: "turn14-errors",
+        severity: "red",
+        label: "Failed Turn14 brand syncs",
         count: data.system.turn14Stats.errors,
-        detail: 'Supplier sync failures blocking inventory updates.',
-        href: '/admin/shop/turn14',
+        detail: "Supplier sync failures blocking inventory updates.",
+        href: "/admin/shop/turn14",
       });
     }
 
     // Low stock summary
     if (data.shop.lowStockItems.length > 0) {
       items.push({
-        id: 'low-stock',
-        severity: 'amber',
-        label: 'Низькі залишки',
+        id: "low-stock",
+        severity: "amber",
+        label: "Низькі залишки",
         count: data.shop.lowStockItems.length,
-        detail: `Топ: ${data.shop.lowStockItems[0]?.title?.slice(0, 60) ?? '—'}`,
-        href: '/admin/shop/inventory',
+        detail: `Топ: ${data.shop.lowStockItems[0]?.title?.slice(0, 60) ?? "—"}`,
+        href: "/admin/shop/inventory",
       });
     }
 
@@ -542,16 +562,16 @@ export default function AdminDashboardPage() {
           <span className="font-semibold">{o.customerName}</span>
           <span
             className={`inline-flex items-center rounded-[3px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider ${
-              o.customerGroup?.startsWith('B2B')
-                ? 'border-blue-500/30 bg-blue-500/[0.08] text-blue-300'
-                : 'border-zinc-500/30 bg-stone-500/[0.06] text-zinc-400'
+              o.customerGroup?.startsWith("B2B")
+                ? "border-blue-500/30 bg-blue-500/8 text-blue-300"
+                : "border-zinc-500/30 bg-stone-500/6 text-zinc-400"
             }`}
           >
-            {o.customerGroup?.startsWith('B2B') ? 'B2B' : 'B2C'}
+            {o.customerGroup?.startsWith("B2B") ? "B2B" : "B2C"}
           </span>
         </span>
       ),
-      meta: `${formatMoney(o.total, 'UAH')} · ${o.status} · ${relativeTime(o.createdAt)}`,
+      meta: `${formatMoney(o.total, "UAH")} · ${o.status} · ${relativeTime(o.createdAt)}`,
       tone: getOrderStatusTone(o.status),
       href: `/admin/shop/orders/${o.id}`,
       ts: o.createdAt,
@@ -564,15 +584,15 @@ export default function AdminDashboardPage() {
         <span className="flex items-center gap-2">
           <span className="font-mono text-xs text-zinc-400">CRM-{o.number}</span>
           <span className="font-semibold">{o.customerName}</span>
-          <span className="inline-flex items-center rounded-[3px] border border-blue-500/30 bg-blue-500/[0.08] px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
+          <span className="inline-flex items-center rounded-[3px] border border-blue-500/30 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
             CRM
           </span>
         </span>
       ),
-      meta: `${formatMoney(o.clientTotal, 'USD')} profit ${formatMoney(o.profit, 'USD')} · ${o.orderStatus} · ${relativeTime(o.orderDate)}`,
+      meta: `${formatMoney(o.clientTotal, "USD")} profit ${formatMoney(o.profit, "USD")} · ${o.orderStatus} · ${relativeTime(o.orderDate)}`,
       tone: getOrderStatusTone(o.orderStatus),
       href: `/admin/crm/orders/${o.id}`,
-      ts: o.orderDate ?? '',
+      ts: o.orderDate ?? "",
     }));
 
     return [...shop, ...crm]
@@ -599,11 +619,11 @@ export default function AdminDashboardPage() {
   // Brand logo lookup — uses real /brands/*.svg if available, falls back to text mark
   const BRAND_LOGOS: Record<string, string> = useMemo(
     () => ({
-      Eventuri: '/brands/eventuri-logo.svg',
-      'FI Exhaust': '/brands/fi-logo.svg',
-      'Frequency Intelligence': '/brands/fi-logo.svg',
-      KW: '/brands/kw-logo.svg',
-      'H&R': '/brands/kw-logo.svg',
+      Eventuri: "/brands/eventuri-logo.svg",
+      "FI Exhaust": "/brands/fi-logo.svg",
+      "Frequency Intelligence": "/brands/fi-logo.svg",
+      KW: "/brands/kw-logo.svg",
+      "H&R": "/brands/kw-logo.svg",
     }),
     []
   );
@@ -617,26 +637,30 @@ export default function AdminDashboardPage() {
   const recentOrdersRich: RichOrderRow[] = useMemo(() => {
     if (!data) return [];
     return data.shop.recentOrders.slice(0, 6).map((o) => {
-      const status: RichOrderRow['status'] =
-        o.status === 'DELIVERED'
-          ? 'delivered'
-          : o.status === 'SHIPPED'
-            ? 'shipped'
-            : o.status === 'CANCELLED' || o.status === 'REFUNDED'
-              ? 'cancelled'
-              : o.status === 'PROCESSING' || o.status === 'CONFIRMED'
-                ? 'processing'
-                : 'pending';
+      const status: RichOrderRow["status"] =
+        o.status === "DELIVERED"
+          ? "delivered"
+          : o.status === "SHIPPED"
+            ? "shipped"
+            : o.status === "CANCELLED" || o.status === "REFUNDED"
+              ? "cancelled"
+              : o.status === "PROCESSING" || o.status === "CONFIRMED"
+                ? "processing"
+                : "pending";
       return {
         id: o.id,
         displayId: o.displayId,
         customer: o.customerName,
-        brand: o.brand ?? (o.customerGroup?.startsWith('B2B') ? 'B2B' : 'Retail'),
+        brand: o.brand ?? (o.customerGroup?.startsWith("B2B") ? "B2B" : "Retail"),
         brandLogo: o.brandLogo ?? undefined,
         items: o.itemCount ?? 1,
-        total: formatMoney(o.total, 'UAH'),
+        total: formatMoney(o.total, "UAH"),
         status,
-        date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        date: new Date(o.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
       };
     });
   }, [data, formatMoney]);
@@ -654,13 +678,16 @@ export default function AdminDashboardPage() {
   // Recent dealer inquiries — derived from B2B pending or top debtors
   const dealerInquiriesList = useMemo(() => {
     if (!data) return [];
-    const flags = ['🇦🇪', '🇬🇧', '🇱🇧', '🇺🇸', '🇦🇺', '🇩🇪', '🇫🇷', '🇮🇹'];
+    const flags = ["🇦🇪", "🇬🇧", "🇱🇧", "🇺🇸", "🇦🇺", "🇩🇪", "🇫🇷", "🇮🇹"];
     return data.crm.debtors.slice(0, 4).map((c, i) => ({
       id: c.id,
       dealer: c.name,
-      location: ['Dubai, UAE', 'London, UK', 'Beirut, Lebanon', 'Los Angeles, USA', 'Sydney, Australia'][i] || 'Global',
-      flag: flags[i] || '🌐',
-      ago: i === 0 ? '2 год тому' : i === 1 ? '5 год тому' : i === 2 ? '8 год тому' : '1 д тому',
+      location:
+        ["Dubai, UAE", "London, UK", "Beirut, Lebanon", "Los Angeles, USA", "Sydney, Australia"][
+          i
+        ] || "Global",
+      flag: flags[i] || "🌐",
+      ago: i === 0 ? "2 год тому" : i === 1 ? "5 год тому" : i === 2 ? "8 год тому" : "1 д тому",
     }));
   }, [data]);
 
@@ -675,7 +702,7 @@ export default function AdminDashboardPage() {
             ? `$${p.priceUsd.toLocaleString()}`
             : p.priceUah != null
               ? `${p.priceUah.toLocaleString()}₴`
-              : 'Price on request';
+              : "Price on request";
       return {
         id: p.id,
         name: p.title,
@@ -691,15 +718,15 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <AdminPage className="space-y-6" >
+      <AdminPage className="space-y-6">
         <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
           <span className="sr-only">Loading dashboard…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
-              <div className="h-4 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/6" />
+              <div className="h-4 w-96 motion-safe:animate-pulse rounded-none bg-white/4" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/4" />
           </div>
           <AdminSkeletonKpiGrid count={6} />
           <AdminSkeletonKpiGrid count={4} />
@@ -722,7 +749,7 @@ export default function AdminDashboardPage() {
   if (!data) {
     return (
       <AdminPage>
-        <AdminInlineAlert tone="error">{error ?? 'No data available.'}</AdminInlineAlert>
+        <AdminInlineAlert tone="error">{error ?? "No data available."}</AdminInlineAlert>
       </AdminPage>
     );
   }
@@ -735,18 +762,24 @@ export default function AdminDashboardPage() {
         description="Ось що відбувається з вашим бізнесом сьогодні."
         actions={
           <>
-            <DashboardDateRange label={`Останні ${data.shop.monthlyRevenue.length} ${period === 'daily' ? 'днів' : period === 'weekly' ? 'тижнів' : 'місяців'}`} />
-            <div role="group" aria-label="Вибір періоду" className="flex items-center gap-1 rounded-none border border-white/[0.08] bg-black/30 p-1">
+            <DashboardDateRange
+              label={`Останні ${data.shop.monthlyRevenue.length} ${period === "daily" ? "днів" : period === "weekly" ? "тижнів" : "місяців"}`}
+            />
+            <div
+              role="group"
+              aria-label="Вибір періоду"
+              className="flex items-center gap-1 rounded-none border border-white/8 bg-black/30 p-1"
+            >
               {PERIOD_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setPeriod(opt.value)}
                   aria-pressed={period === opt.value}
-                  className={`rounded-none px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] ${
+                  className={`rounded-none px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] ${
                     period === opt.value
-                      ? 'bg-blue-600 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? "bg-blue-600 text-white"
+                      : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   {opt.label}
@@ -755,12 +788,15 @@ export default function AdminDashboardPage() {
             </div>
             <button
               type="button"
-              onClick={() => void fetchDashboard('refresh')}
+              onClick={() => void fetchDashboard("refresh")}
               disabled={refreshing}
-              aria-label={refreshing ? 'Оновлення дашборду' : 'Оновити дашборд'}
-              className="inline-flex items-center gap-2 rounded-none border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/[0.04] hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50"
+              aria-label={refreshing ? "Оновлення дашборду" : "Оновити дашборд"}
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/4 hover:text-blue-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${refreshing ? "motion-safe:animate-spin" : ""}`}
+                aria-hidden="true"
+              />
               Оновити
             </button>
           </>
@@ -774,10 +810,10 @@ export default function AdminDashboardPage() {
         <DashboardKpiCard
           icon={<DollarSign />}
           label="Дохід"
-          value={formatMoney(data.shop.totalRevenuePeriod, 'UAH')}
+          value={formatMoney(data.shop.totalRevenuePeriod, "UAH")}
           current={data.shop.totalRevenuePeriod}
           previous={data.shop.totalRevenuePrevPeriod}
-          meta={`Середній чек ${formatMoney(data.shop.aov, 'UAH')}`}
+          meta={`Середній чек ${formatMoney(data.shop.aov, "UAH")}`}
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.paid)}
         />
         <DashboardKpiCard
@@ -786,24 +822,29 @@ export default function AdminDashboardPage() {
           value={(data.shop.activeOrders + data.crm.activeOrders).toLocaleString()}
           current={data.shop.ordersCountPeriod}
           previous={data.shop.ordersCountPrevPeriod}
-          meta={`${data.shop.activeOrders} ${pluralUk(data.shop.activeOrders, 'магазинне', 'магазинних', 'магазинних')} · ${data.crm.activeOrders} CRM`}
+          meta={`${data.shop.activeOrders} ${pluralUk(data.shop.activeOrders, "магазинне", "магазинних", "магазинних")} · ${data.crm.activeOrders} CRM`}
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders)}
         />
         <DashboardKpiCard
           icon={<Users />}
           label="Заявки дилерів"
-          value={data.system.operationalRisks.find((r) => r.id === 'b2b-pending')?.count.toString() ?? '0'}
+          value={
+            data.system.operationalRisks.find((r) => r.id === "b2b-pending")?.count.toString() ??
+            "0"
+          }
           meta="B2B на розгляді"
-          spark={data.shop.monthlyRevenue.slice(-12).map((m) => Math.max(1, Math.round(m.orders / 4)))}
+          spark={data.shop.monthlyRevenue
+            .slice(-12)
+            .map((m) => Math.max(1, Math.round(m.orders / 4)))}
         />
         <DashboardKpiCard
           icon={<BarChart3 />}
           label="Трафік сайту"
-          value={data.analytics ? data.analytics.activeUsers.toLocaleString('uk-UA') : '—'}
+          value={data.analytics ? data.analytics.activeUsers.toLocaleString("uk-UA") : "—"}
           meta={
             data.analytics
-              ? `Активних користувачів за ${data.analytics.periodDays} ${pluralUk(data.analytics.periodDays, 'день', 'дні', 'днів')}`
-              : 'GA4 не підключено'
+              ? `Активних користувачів за ${data.analytics.periodDays} ${pluralUk(data.analytics.periodDays, "день", "дні", "днів")}`
+              : "GA4 не підключено"
           }
         />
         <DashboardKpiCard
@@ -812,13 +853,9 @@ export default function AdminDashboardPage() {
           value={
             data.analytics && data.analytics.activeUsers > 0
               ? `${((data.shop.ordersCountPeriod / data.analytics.activeUsers) * 100).toFixed(2)}%`
-              : '—'
+              : "—"
           }
-          meta={
-            data.analytics
-              ? 'Замовлення / активні користувачі'
-              : 'GA4 не підключено'
-          }
+          meta={data.analytics ? "Замовлення / активні користувачі" : "GA4 не підключено"}
         />
         <DashboardKpiCard
           icon={<Award />}
@@ -835,18 +872,22 @@ export default function AdminDashboardPage() {
           tone="accent"
           icon={<DollarSign />}
           label={`Прибуток CRM · ${periodLabel}`}
-          value={formatMoney(data.crm.totalProfitPeriod, 'USD')}
+          value={formatMoney(data.crm.totalProfitPeriod, "USD")}
           current={data.crm.totalProfitPeriod}
           previous={data.crm.totalProfitPrevPeriod}
-          meta={periodMarginPct != null ? `Маржа ${periodMarginPct}% · Загалом ${formatMoney(data.crm.totalProfit, 'USD')}` : 'За період'}
+          meta={
+            periodMarginPct != null
+              ? `Маржа ${periodMarginPct}% · Загалом ${formatMoney(data.crm.totalProfit, "USD")}`
+              : "За період"
+          }
           spark={data.crm.monthlyRevenue.slice(-12).map((m) => m.profit)}
         />
         <DashboardKpiCard
           icon={<Briefcase />}
           label="Заборгованість"
-          value={formatMoney(data.crm.totalDebt + data.shop.unpaidTotal, 'USD')}
+          value={formatMoney(data.crm.totalDebt + data.shop.unpaidTotal, "USD")}
           invertDelta
-          meta={`${data.crm.debtors.length} боржників · ${data.shop.unpaidCount} неоплачених${data.shop.oldestUnpaid ? ` · найстаріша ${data.shop.oldestUnpaid.ageDays}д` : ''}`}
+          meta={`${data.crm.debtors.length} боржників · ${data.shop.unpaidCount} неоплачених${data.shop.oldestUnpaid ? ` · найстаріша ${data.shop.oldestUnpaid.ageDays}д` : ""}`}
         />
       </div>
 
@@ -856,12 +897,17 @@ export default function AdminDashboardPage() {
       <div className="grid gap-4 lg:grid-cols-12">
         <WidgetCard
           title="Аналітика продажів"
-          action={<span className="text-xs text-zinc-500">За останні {data.shop.monthlyRevenue.length} {pluralUk(data.shop.monthlyRevenue.length, 'період', 'періоди', 'періодів')}</span>}
+          action={
+            <span className="text-xs text-zinc-500">
+              За останні {data.shop.monthlyRevenue.length}{" "}
+              {pluralUk(data.shop.monthlyRevenue.length, "період", "періоди", "періодів")}
+            </span>
+          }
           className="lg:col-span-6"
         >
           <DashboardSalesChart
             data={data.shop.monthlyRevenue.slice(-14).map((m) => ({
-              label: m.month.slice(-2) + (m.month.length > 7 ? '' : ' ' + m.month.slice(0, 4)),
+              label: m.month.slice(-2) + (m.month.length > 7 ? "" : " " + m.month.slice(0, 4)),
               primary: m.revenue,
               secondary: m.orders,
             }))}
@@ -877,14 +923,16 @@ export default function AdminDashboardPage() {
             <span className="text-xs text-zinc-500">
               {(() => {
                 const n = Math.min(data.shop.monthlyRevenue.length, 30);
-                return `Останні ${n} ${pluralUk(n, 'період', 'періоди', 'періодів')}`;
+                return `Останні ${n} ${pluralUk(n, "період", "періоди", "періодів")}`;
               })()}
             </span>
           }
           className="lg:col-span-3"
         >
           <DashboardRevenueBars
-            data={data.shop.monthlyRevenue.slice(-30).map((m) => ({ label: m.month.slice(-2), value: m.revenue }))}
+            data={data.shop.monthlyRevenue
+              .slice(-30)
+              .map((m) => ({ label: m.month.slice(-2), value: m.revenue }))}
             currencySymbol="₴"
           />
         </WidgetCard>
@@ -896,19 +944,19 @@ export default function AdminDashboardPage() {
         >
           <DashboardRegionsDonut
             totalLabel="Дохід"
-            totalValue={formatMoney(data.shop.totalRevenue, 'UAH')}
+            totalValue={formatMoney(data.shop.totalRevenue, "UAH")}
             data={
               data.shop.salesByRegion.length > 0
                 ? data.shop.salesByRegion.map((r) => ({
                     region: r.name,
                     pct: r.pct,
-                    value: formatMoney(r.revenue, 'UAH'),
+                    value: formatMoney(r.revenue, "UAH"),
                   }))
-                : [{ region: 'Поки немає регіональних даних', pct: 100, value: '—' }]
+                : [{ region: "Поки немає регіональних даних", pct: 100, value: "—" }]
             }
             footnote={
               data.shop.unknownCountryCount > 0
-                ? `${data.shop.unknownCountryCount} ${pluralUk(data.shop.unknownCountryCount, 'замовлення', 'замовлення', 'замовлень')} без даних про країну`
+                ? `${data.shop.unknownCountryCount} ${pluralUk(data.shop.unknownCountryCount, "замовлення", "замовлення", "замовлень")} без даних про країну`
                 : undefined
             }
           />
@@ -952,8 +1000,15 @@ export default function AdminDashboardPage() {
             regions={
               data.shop.salesByRegion.length > 0
                 ? data.shop.salesByRegion.slice(0, 5).map((r) => ({
-                    name: r.name === 'North America' ? 'N. America' : r.name === 'Middle East' ? 'M. East' : r.name === 'South America' ? 'S. America' : r.name,
-                    value: formatMoney(r.revenue, 'UAH'),
+                    name:
+                      r.name === "North America"
+                        ? "N. America"
+                        : r.name === "Middle East"
+                          ? "M. East"
+                          : r.name === "South America"
+                            ? "S. America"
+                            : r.name,
+                    value: formatMoney(r.revenue, "UAH"),
                     pct: r.pct,
                   }))
                 : []
@@ -979,10 +1034,38 @@ export default function AdminDashboardPage() {
         >
           <DashboardMarketingPerformance
             campaigns={[
-              { id: '1', name: 'New Carbon Collection', channel: 'instagram', reach: '128K', engagement: '6.2K', ctr: '4.8%' },
-              { id: '2', name: 'KW V3 Campaign', channel: 'facebook', reach: '92K', engagement: '4.1K', ctr: '3.7%' },
-              { id: '3', name: 'FI Exhaust Sound Video', channel: 'youtube', reach: '210K', engagement: '9.8K', ctr: '5.1%' },
-              { id: '4', name: 'May Newsletter', channel: 'email', reach: '18K', engagement: '2.3K', ctr: '12.6%' },
+              {
+                id: "1",
+                name: "New Carbon Collection",
+                channel: "instagram",
+                reach: "128K",
+                engagement: "6.2K",
+                ctr: "4.8%",
+              },
+              {
+                id: "2",
+                name: "KW V3 Campaign",
+                channel: "facebook",
+                reach: "92K",
+                engagement: "4.1K",
+                ctr: "3.7%",
+              },
+              {
+                id: "3",
+                name: "FI Exhaust Sound Video",
+                channel: "youtube",
+                reach: "210K",
+                engagement: "9.8K",
+                ctr: "5.1%",
+              },
+              {
+                id: "4",
+                name: "May Newsletter",
+                channel: "email",
+                reach: "18K",
+                engagement: "2.3K",
+                ctr: "12.6%",
+              },
             ]}
           />
         </WidgetCard>
@@ -994,7 +1077,11 @@ export default function AdminDashboardPage() {
         >
           <DashboardInventorySnapshot
             totalSkus={data.system.catalogQuality.totalProducts}
-            inStock={data.system.catalogQuality.totalProducts - data.system.catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK - data.shop.lowStockItems.length}
+            inStock={
+              data.system.catalogQuality.totalProducts -
+              data.system.catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK -
+              data.shop.lowStockItems.length
+            }
             lowStock={data.shop.lowStockItems.length}
             outOfStock={data.system.catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK}
           />
@@ -1014,13 +1101,9 @@ export default function AdminDashboardPage() {
             title={`Тренд прибутку · ${periodLabel}`}
             description="Стовпці: прибуток за період · пунктир: дохід. Маржа виведена нижче."
           >
-            <AdminTrendChart
-              data={profitChartData}
-              valueLabel="Прибуток"
-              secondaryLabel="Дохід"
-            />
+            <AdminTrendChart data={profitChartData} valueLabel="Прибуток" secondaryLabel="Дохід" />
             {data.crm.marginByPeriod.length > 0 ? (
-              <div className="mt-3 flex items-center justify-between border-t border-white/[0.05] pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                 <span>Маржа за період</span>
                 <div className="flex items-center gap-3 tabular-nums">
                   {data.crm.marginByPeriod.slice(-6).map((m) => (
@@ -1042,10 +1125,17 @@ export default function AdminDashboardPage() {
                 data={data.crm.brandBreakdown.slice(0, 10).map((b) => ({
                   label: b.brand,
                   value: b.profit,
-                  meta: `Дохід ${formatMoney(b.revenue, 'USD')} · маржа ${b.marginPct}%`,
-                  tone: b.marginPct >= 25 ? 'accent' : b.marginPct >= 15 ? 'success' : b.marginPct >= 5 ? 'warning' : 'danger',
+                  meta: `Дохід ${formatMoney(b.revenue, "USD")} · маржа ${b.marginPct}%`,
+                  tone:
+                    b.marginPct >= 25
+                      ? "accent"
+                      : b.marginPct >= 15
+                        ? "success"
+                        : b.marginPct >= 5
+                          ? "warning"
+                          : "danger",
                 }))}
-                valueFormatter={(v) => formatMoney(v, 'USD')}
+                valueFormatter={(v) => formatMoney(v, "USD")}
               />
             ) : (
               <div className="text-sm text-zinc-500">Немає даних по брендах.</div>
@@ -1061,7 +1151,7 @@ export default function AdminDashboardPage() {
       >
         <DashboardOrderPipeline
           stages={pipelineStages}
-          formatMoney={(v) => formatMoney(v, 'UAH')}
+          formatMoney={(v) => formatMoney(v, "UAH")}
           b2cCount={data.shop.b2cOrdersCount}
           b2bCount={data.shop.b2bOrdersCount}
           cancellationRatePct={data.shop.cancellationRate}
@@ -1079,7 +1169,7 @@ export default function AdminDashboardPage() {
           {/* Revenue trend on right for context (kept since it's still useful) */}
           <AdminInsightPanel
             title="Дохід магазину (оплачено vs виставлено)"
-            description={`Оплачена готівка vs виставлені суми за вікно ${periodLabel.replace('цей ', 'останній ').replace('сьогодні', 'останні дні')}.`}
+            description={`Оплачена готівка vs виставлені суми за вікно ${periodLabel.replace("цей ", "останній ").replace("сьогодні", "останні дні")}.`}
           >
             <AdminTrendChart
               data={revenueChartData}
@@ -1133,7 +1223,9 @@ export default function AdminDashboardPage() {
         <AdminActionBar>
           <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            <span>Last updated {formatDate(lastUpdated.toISOString())} · auto-refresh every 60s</span>
+            <span>
+              Last updated {formatDate(lastUpdated.toISOString())} · auto-refresh every 60s
+            </span>
           </div>
         </AdminActionBar>
       ) : null}

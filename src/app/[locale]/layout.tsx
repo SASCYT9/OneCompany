@@ -1,27 +1,31 @@
-import { ReactNode } from 'react';
-import { unstable_cache } from 'next/cache';
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { Header } from '@/components/layout/Header';
-import Footer from '@/components/shared/Footer';
-import AuthProvider from '@/components/AuthProvider';
-import { cn } from '@/lib/utils';
-import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
-import LocaleLangSetter from '@/components/LocaleLangSetter';
-import { readVideoConfig } from '@/lib/videoConfig';
-import LoadingScreen from '@/components/ui/LoadingScreen';
-import CookieBanner from '@/components/ui/CookieBanner';
-import AutoBreadcrumbs from '@/components/seo/AutoBreadcrumbs';
+import { ReactNode } from "react";
+import { unstable_cache } from "next/cache";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { Header } from "@/components/layout/Header";
+import Footer from "@/components/shared/Footer";
+import AuthProvider from "@/components/AuthProvider";
+import { cn } from "@/lib/utils";
+import HeroVideoWrapper from "@/components/layout/HeroVideoWrapper";
+import LocaleLangSetter from "@/components/LocaleLangSetter";
+import { readVideoConfig } from "@/lib/videoConfig";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import CookieBanner from "@/components/ui/CookieBanner";
+import AutoBreadcrumbs from "@/components/seo/AutoBreadcrumbs";
 
-import { ScrollToTop } from '@/components/ScrollToTop';
-import { ShopCurrencyProvider } from '@/components/shop/CurrencyContext';
-import { prisma } from '@/lib/prisma';
-import { getOrCreateShopSettings, getShopSettingsRuntime, type ShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { resolveImageAssetReference, resolveVideoAssetReference } from '@/lib/runtimeAssetPaths';
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { ShopCurrencyProvider } from "@/components/shop/CurrencyContext";
+import { prisma } from "@/lib/prisma";
+import {
+  getOrCreateShopSettings,
+  getShopSettingsRuntime,
+  type ShopSettingsRuntime,
+} from "@/lib/shopAdminSettings";
+import { resolveImageAssetReference, resolveVideoAssetReference } from "@/lib/runtimeAssetPaths";
 
 export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'ua' }];
+  return [{ locale: "en" }, { locale: "ua" }];
 }
 
 // Cached lookup for the shop settings used in the footer. Keeps the layout
@@ -32,8 +36,8 @@ const getCachedShopSettings = unstable_cache(
     const record = await getOrCreateShopSettings(prisma);
     return getShopSettingsRuntime(record);
   },
-  ['shop-settings-runtime'],
-  { revalidate: 3600, tags: ['shop-settings'] }
+  ["shop-settings-runtime"],
+  { revalidate: 3600, tags: ["shop-settings"] }
 );
 
 type Props = {
@@ -46,7 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const currentYear = new Date().getFullYear();
 
   // Validate locale
-  const locales = ['en', 'ua'];
+  const locales = ["en", "ua"];
   if (!locales.includes(locale)) {
     notFound();
   }
@@ -68,33 +72,34 @@ export default async function LocaleLayout({ children, params }: Props) {
   try {
     const shopSettings = await Promise.race([
       getCachedShopSettings(),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 5000))
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("DB timeout")), 5000)),
     ]);
     shopSettingsRuntime = shopSettings;
     if (shopSettings.fopCompanyName) {
-      companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ''}`;
+      companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ""}`;
     }
   } catch (error) {
-    companyRequisites = 'ФОП Побережець Іван Юрійович, ЄДРПОУ: 3803206192';
-    console.warn("Failed to fetch shop settings from DB for footer, using fallback:", error instanceof Error ? error.message : error);
+    companyRequisites = "ФОП Побережець Іван Юрійович, ЄДРПОУ: 3803206192";
+    console.warn(
+      "Failed to fetch shop settings from DB for footer, using fallback:",
+      error instanceof Error ? error.message : error
+    );
   }
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
         <LocaleLangSetter locale={locale} />
-        {heroPosterSrc && (
-          <link rel="preload" href={heroPosterSrc} as="image" />
-        )}
+        {heroPosterSrc && <link rel="preload" href={heroPosterSrc} as="image" />}
         <LoadingScreen />
         <ShopCurrencyProvider
-          defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? 'UAH'}
+          defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? "UAH"}
           initialRates={shopSettingsRuntime?.currencyRates ?? null}
         >
           <div
-            data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
-            className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
-            lang={locale === 'ua' ? 'uk' : 'en'}
+            data-server-hero-enabled={videoConfig.heroEnabled ? "true" : "false"}
+            className={cn("flex flex-col min-h-screen", locale === "ua" && "locale-ua")}
+            lang={locale === "ua" ? "uk" : "en"}
           >
             {heroVideoSrc ? (
               <HeroVideoWrapper
@@ -106,7 +111,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             ) : null}
             {/* Font debug overlay removed */}
             <Header />
-            <main id="main-content" className="flex-grow relative z-10">
+            <main id="main-content" className="grow relative z-10">
               {children}
             </main>
             <AutoBreadcrumbs />

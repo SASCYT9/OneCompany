@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Bell,
@@ -15,7 +15,7 @@ import {
   Search,
   Shield,
   Store,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   AdminDangerZone,
@@ -30,16 +30,16 @@ import {
   AdminSettingsShell,
   AdminStatusBadge,
   AdminStickyActionBar,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 import {
   AdminCheckboxField,
   AdminInputField,
   AdminSelectField,
   AdminTextareaField,
-} from '@/components/admin/AdminFormFields';
-import { useToast } from '@/components/admin/AdminToast';
+} from "@/components/admin/AdminFormFields";
+import { useToast } from "@/components/admin/AdminToast";
 
-type SettingsSection = 'notifications' | 'company' | 'shop' | 'seo' | 'appearance' | 'security';
+type SettingsSection = "notifications" | "company" | "shop" | "seo" | "appearance" | "security";
 
 type AppSettings = {
   soundEnabled: boolean;
@@ -60,30 +60,42 @@ type AppSettings = {
 };
 
 const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string; description: string }> = [
-  { id: 'notifications', label: 'Notifications', description: 'Push alerts and operator sound feedback.' },
-  { id: 'company', label: 'Company', description: 'Core business identity and contact details.' },
-  { id: 'shop', label: 'Shop defaults', description: 'Default currency, language, markup, and VAT visibility.' },
-  { id: 'seo', label: 'SEO', description: 'Search metadata and Open Graph defaults.' },
-  { id: 'appearance', label: 'Appearance', description: 'Brand accents, logo, and admin UI preferences.' },
-  { id: 'security', label: 'Security', description: 'Admin session handling and reset controls.' },
+  {
+    id: "notifications",
+    label: "Notifications",
+    description: "Push alerts and operator sound feedback.",
+  },
+  { id: "company", label: "Company", description: "Core business identity and contact details." },
+  {
+    id: "shop",
+    label: "Shop defaults",
+    description: "Default currency, language, markup, and VAT visibility.",
+  },
+  { id: "seo", label: "SEO", description: "Search metadata and Open Graph defaults." },
+  {
+    id: "appearance",
+    label: "Appearance",
+    description: "Brand accents, logo, and admin UI preferences.",
+  },
+  { id: "security", label: "Security", description: "Admin session handling and reset controls." },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {
   soundEnabled: false,
-  companyName: 'OneCompany',
-  contactEmail: 'info@onecompany.com.ua',
-  contactPhone: '+380 XX XXX XX XX',
-  address: 'Україна',
-  defaultCurrency: 'USD',
+  companyName: "OneCompany",
+  contactEmail: "info@onecompany.com.ua",
+  contactPhone: "+380 XX XXX XX XX",
+  address: "Україна",
+  defaultCurrency: "USD",
   defaultMarkup: 25,
-  defaultLanguage: 'ua',
+  defaultLanguage: "ua",
   showPricesWithVat: false,
-  metaTitle: 'OneCompany — Premium Tuning & Performance Parts',
+  metaTitle: "OneCompany — Premium Tuning & Performance Parts",
   metaDescription:
     "Офіційний дистриб'ютор Urban Automotive, KW Suspension, FI Exhaust. Оригінальні деталі для BMW, Porsche, Mercedes та інших.",
-  ogImage: '/branding/one-company-logo.png',
-  accentColor: '#6366f1',
-  logoUrl: '/branding/one-company-logo.png',
+  ogImage: "/branding/one-company-logo.png",
+  accentColor: "#6366f1",
+  logoUrl: "/branding/one-company-logo.png",
   darkMode: true,
 };
 
@@ -93,33 +105,40 @@ function createSnapshot(value: AppSettings) {
 
 export default function AdminSettingsPage() {
   const toast = useToast();
-  const [activeSection, setActiveSection] = useState<SettingsSection>('notifications');
+  const [activeSection, setActiveSection] = useState<SettingsSection>("notifications");
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [draft, setDraft] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [permissionStatus, setPermissionStatus] = useState<'default' | 'granted' | 'denied'>('default');
+  const [permissionStatus, setPermissionStatus] = useState<"default" | "granted" | "denied">(
+    "default"
+  );
 
-  const hasChanges = useMemo(() => createSnapshot(settings) !== createSnapshot(draft), [settings, draft]);
+  const hasChanges = useMemo(
+    () => createSnapshot(settings) !== createSnapshot(draft),
+    [settings, draft]
+  );
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/settings/app', { cache: 'no-store' });
-      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & { error?: string };
+      const response = await fetch("/api/admin/settings/app", { cache: "no-store" });
+      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & {
+        error?: string;
+      };
 
       if (!response.ok) {
-        throw new Error(payload.error || 'Failed to load settings');
+        throw new Error(payload.error || "Failed to load settings");
       }
 
       let merged = { ...DEFAULT_SETTINGS, ...payload };
 
       try {
-        const localRaw = localStorage.getItem('adminSettings');
+        const localRaw = localStorage.getItem("adminSettings");
         if (localRaw) {
           const localSettings = JSON.parse(localRaw) as Partial<AppSettings>;
           const isServerDefault =
@@ -139,11 +158,11 @@ export default function AdminSettingsPage() {
       setDraft(merged);
       setSaved(false);
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Failed to load settings';
+      const message = loadError instanceof Error ? loadError.message : "Failed to load settings";
       setError(message);
 
       try {
-        const localRaw = localStorage.getItem('adminSettings');
+        const localRaw = localStorage.getItem("adminSettings");
         if (localRaw) {
           const localSettings = JSON.parse(localRaw) as Partial<AppSettings>;
           const merged = { ...DEFAULT_SETTINGS, ...localSettings };
@@ -161,7 +180,7 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     void loadSettings();
 
-    if ('Notification' in window) {
+    if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
     }
   }, [loadSettings]);
@@ -179,17 +198,19 @@ export default function AdminSettingsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/settings/app', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/settings/app", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(draft),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & { error?: string };
+      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & {
+        error?: string;
+      };
 
       if (!response.ok) {
-        const msg = payload.error || 'Failed to save settings';
-        toast.error('Could not save settings', msg);
+        const msg = payload.error || "Failed to save settings";
+        toast.error("Could not save settings", msg);
         throw new Error(msg);
       }
 
@@ -197,32 +218,32 @@ export default function AdminSettingsPage() {
       setSettings(merged);
       setDraft(merged);
       setSaved(true);
-      localStorage.removeItem('adminSettings');
-      toast.success('Settings saved');
+      localStorage.removeItem("adminSettings");
+      toast.success("Settings saved");
       window.setTimeout(() => setSaved(false), 2_000);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save settings');
+      setError(saveError instanceof Error ? saveError.message : "Failed to save settings");
     } finally {
       setSaving(false);
     }
   };
 
   const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
+    if (!("Notification" in window)) {
       return;
     }
 
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
-      if (permission === 'granted') {
-        new Notification('OneCompany Admin', {
-          body: 'Notifications are now enabled.',
-          icon: '/branding/one-company-logo.png',
+      if (permission === "granted") {
+        new Notification("OneCompany Admin", {
+          body: "Notifications are now enabled.",
+          icon: "/branding/one-company-logo.png",
         });
       }
     } catch {
-      setError('Notification permission could not be updated');
+      setError("Notification permission could not be updated");
     }
   };
 
@@ -230,29 +251,29 @@ export default function AdminSettingsPage() {
     setDraft(DEFAULT_SETTINGS);
     setSettings(DEFAULT_SETTINGS);
     setSaved(false);
-    localStorage.removeItem('adminSettings');
+    localStorage.removeItem("adminSettings");
 
     try {
-      const response = await fetch('/api/admin/settings/app', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/settings/app", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(DEFAULT_SETTINGS),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to reset settings');
+        throw new Error("Failed to reset settings");
       }
     } catch (resetError) {
-      setError(resetError instanceof Error ? resetError.message : 'Failed to reset settings');
+      setError(resetError instanceof Error ? resetError.message : "Failed to reset settings");
     }
   };
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/admin/auth', { method: 'DELETE' });
+      await fetch("/api/admin/auth", { method: "DELETE" });
       window.location.reload();
     } catch {
-      setError('Failed to close admin session');
+      setError("Failed to close admin session");
     }
   };
 
@@ -274,12 +295,12 @@ export default function AdminSettingsPage() {
       <AdminPage>
         <AdminEmptyState
           title="Settings are unavailable"
-          description={error || 'The system settings payload could not be loaded.'}
+          description={error || "The system settings payload could not be loaded."}
           action={
             <button
               type="button"
               onClick={() => void loadSettings()}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+              className="rounded-full border border-white/10 bg-white/3 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/6"
             >
               Retry
             </button>
@@ -289,7 +310,8 @@ export default function AdminSettingsPage() {
     );
   }
 
-  const activeLabel = SETTINGS_SECTIONS.find((section) => section.id === activeSection)?.label ?? 'Settings';
+  const activeLabel =
+    SETTINGS_SECTIONS.find((section) => section.id === activeSection)?.label ?? "Settings";
 
   return (
     <AdminPage className="space-y-6">
@@ -301,10 +323,18 @@ export default function AdminSettingsPage() {
 
       <AdminStickyActionBar>
         <div className="flex flex-wrap items-center gap-2">
-          <AdminStatusBadge tone={hasChanges ? 'warning' : 'success'}>
-            {hasChanges ? 'Unsaved changes' : saved ? 'Saved' : 'In sync'}
+          <AdminStatusBadge tone={hasChanges ? "warning" : "success"}>
+            {hasChanges ? "Unsaved changes" : saved ? "Saved" : "In sync"}
           </AdminStatusBadge>
-          <AdminStatusBadge tone={permissionStatus === 'granted' ? 'success' : permissionStatus === 'denied' ? 'danger' : 'warning'}>
+          <AdminStatusBadge
+            tone={
+              permissionStatus === "granted"
+                ? "success"
+                : permissionStatus === "denied"
+                  ? "danger"
+                  : "warning"
+            }
+          >
             Notifications {permissionStatus}
           </AdminStatusBadge>
           <AdminStatusBadge>{activeLabel}</AdminStatusBadge>
@@ -314,7 +344,7 @@ export default function AdminSettingsPage() {
           <button
             type="button"
             onClick={() => void loadSettings()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reload
@@ -323,10 +353,14 @@ export default function AdminSettingsPage() {
             type="button"
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {saving ? <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            {saving ? 'Saving' : 'Save changes'}
+            {saving ? (
+              <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
+            {saving ? "Saving" : "Save changes"}
           </button>
         </div>
       </AdminStickyActionBar>
@@ -343,7 +377,7 @@ export default function AdminSettingsPage() {
         }
         content={
           <>
-            {activeSection === 'notifications' ? (
+            {activeSection === "notifications" ? (
               <AdminInsightPanel
                 title="Notifications"
                 description="Manage operator-facing notification behavior without mixing it with broader system settings."
@@ -352,7 +386,7 @@ export default function AdminSettingsPage() {
                   <AdminCheckboxField
                     label="Enable sound feedback"
                     checked={draft.soundEnabled}
-                    onChange={(value) => updateDraft('soundEnabled', value)}
+                    onChange={(value) => updateDraft("soundEnabled", value)}
                     helper="Play a sound cue when new requests enter the admin queue."
                   />
                   <div className="rounded-none border border-white/8 bg-black/25 p-4">
@@ -366,10 +400,14 @@ export default function AdminSettingsPage() {
                       <button
                         type="button"
                         onClick={() => void requestNotificationPermission()}
-                        disabled={permissionStatus === 'granted'}
-                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100 disabled:opacity-40"
+                        disabled={permissionStatus === "granted"}
+                        className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100 disabled:opacity-40"
                       >
-                        {permissionStatus === 'granted' ? 'Enabled' : permissionStatus === 'denied' ? 'Blocked' : 'Request'}
+                        {permissionStatus === "granted"
+                          ? "Enabled"
+                          : permissionStatus === "denied"
+                            ? "Blocked"
+                            : "Request"}
                       </button>
                     </div>
                   </div>
@@ -377,7 +415,7 @@ export default function AdminSettingsPage() {
               </AdminInsightPanel>
             ) : null}
 
-            {activeSection === 'company' ? (
+            {activeSection === "company" ? (
               <AdminInsightPanel
                 title="Company identity"
                 description="These values power business metadata and shared contact references across the admin and storefront."
@@ -386,33 +424,33 @@ export default function AdminSettingsPage() {
                   <AdminInputField
                     label="Company name"
                     value={draft.companyName}
-                    onChange={(value) => updateDraft('companyName', value)}
+                    onChange={(value) => updateDraft("companyName", value)}
                     helper="Internal and customer-facing business name."
                   />
                   <AdminInputField
                     label="Contact email"
                     type="email"
                     value={draft.contactEmail}
-                    onChange={(value) => updateDraft('contactEmail', value)}
+                    onChange={(value) => updateDraft("contactEmail", value)}
                     helper="Public-facing email for storefront contact blocks."
                   />
                   <AdminInputField
                     label="Contact phone"
                     value={draft.contactPhone}
-                    onChange={(value) => updateDraft('contactPhone', value)}
+                    onChange={(value) => updateDraft("contactPhone", value)}
                     helper="Displayed in contact and support contexts."
                   />
                   <AdminInputField
                     label="Address"
                     value={draft.address}
-                    onChange={(value) => updateDraft('address', value)}
+                    onChange={(value) => updateDraft("address", value)}
                     helper="Primary office or warehouse address."
                   />
                 </div>
               </AdminInsightPanel>
             ) : null}
 
-            {activeSection === 'shop' ? (
+            {activeSection === "shop" ? (
               <AdminInsightPanel
                 title="Shop defaults"
                 description="These defaults shape how catalog pricing and language behave before route-level overrides."
@@ -421,20 +459,20 @@ export default function AdminSettingsPage() {
                   <AdminSelectField
                     label="Default currency"
                     value={draft.defaultCurrency}
-                    onChange={(value) => updateDraft('defaultCurrency', value)}
+                    onChange={(value) => updateDraft("defaultCurrency", value)}
                     options={[
-                      { value: 'USD', label: 'USD ($)' },
-                      { value: 'EUR', label: 'EUR (€)' },
-                      { value: 'UAH', label: 'UAH (₴)' },
+                      { value: "USD", label: "USD ($)" },
+                      { value: "EUR", label: "EUR (€)" },
+                      { value: "UAH", label: "UAH (₴)" },
                     ]}
                   />
                   <AdminSelectField
                     label="Default language"
                     value={draft.defaultLanguage}
-                    onChange={(value) => updateDraft('defaultLanguage', value)}
+                    onChange={(value) => updateDraft("defaultLanguage", value)}
                     options={[
-                      { value: 'ua', label: 'Українська' },
-                      { value: 'en', label: 'English' },
+                      { value: "ua", label: "Українська" },
+                      { value: "en", label: "English" },
                     ]}
                   />
                   <AdminInputField
@@ -442,20 +480,20 @@ export default function AdminSettingsPage() {
                     type="number"
                     step="1"
                     value={String(draft.defaultMarkup)}
-                    onChange={(value) => updateDraft('defaultMarkup', Number(value || 0))}
+                    onChange={(value) => updateDraft("defaultMarkup", Number(value || 0))}
                     helper="Base markup percent used by admin pricing defaults."
                   />
                   <AdminCheckboxField
                     label="Show prices with VAT"
                     checked={draft.showPricesWithVat}
-                    onChange={(value) => updateDraft('showPricesWithVat', value)}
+                    onChange={(value) => updateDraft("showPricesWithVat", value)}
                     helper="Use VAT-inclusive messaging as the default storefront posture."
                   />
                 </div>
               </AdminInsightPanel>
             ) : null}
 
-            {activeSection === 'seo' ? (
+            {activeSection === "seo" ? (
               <AdminInsightPanel
                 title="Search and social metadata"
                 description="System-wide metadata defaults for Google and Open Graph surfaces."
@@ -464,13 +502,13 @@ export default function AdminSettingsPage() {
                   <AdminInputField
                     label="Meta title"
                     value={draft.metaTitle}
-                    onChange={(value) => updateDraft('metaTitle', value)}
+                    onChange={(value) => updateDraft("metaTitle", value)}
                     helper={`${draft.metaTitle.length}/60 characters`}
                   />
                   <AdminTextareaField
                     label="Meta description"
                     value={draft.metaDescription}
-                    onChange={(value) => updateDraft('metaDescription', value)}
+                    onChange={(value) => updateDraft("metaDescription", value)}
                     helper={`${draft.metaDescription.length}/160 characters`}
                     rows={4}
                   />
@@ -478,24 +516,26 @@ export default function AdminSettingsPage() {
                     <AdminInputField
                       label="Open Graph image"
                       value={draft.ogImage}
-                      onChange={(value) => updateDraft('ogImage', value)}
+                      onChange={(value) => updateDraft("ogImage", value)}
                     />
                     <AdminInputField
                       label="Logo URL"
                       value={draft.logoUrl}
-                      onChange={(value) => updateDraft('logoUrl', value)}
+                      onChange={(value) => updateDraft("logoUrl", value)}
                     />
                   </div>
                   <div className="rounded-none border border-white/8 bg-white p-4">
-                    <div className="text-lg text-[#1a0dab]">{draft.metaTitle || 'OneCompany'}</div>
+                    <div className="text-lg text-[#1a0dab]">{draft.metaTitle || "OneCompany"}</div>
                     <div className="mt-1 text-sm text-[#006621]">onecompany.com.ua</div>
-                    <div className="mt-1 text-sm leading-6 text-[#545454]">{draft.metaDescription || 'Description preview'}</div>
+                    <div className="mt-1 text-sm leading-6 text-[#545454]">
+                      {draft.metaDescription || "Description preview"}
+                    </div>
                   </div>
                 </div>
               </AdminInsightPanel>
             ) : null}
 
-            {activeSection === 'appearance' ? (
+            {activeSection === "appearance" ? (
               <AdminInsightPanel
                 title="Appearance"
                 description="Keep the internal UI anchored to the brand while preserving usability and clarity."
@@ -504,26 +544,26 @@ export default function AdminSettingsPage() {
                   <AdminInputField
                     label="Accent color"
                     value={draft.accentColor}
-                    onChange={(value) => updateDraft('accentColor', value)}
+                    onChange={(value) => updateDraft("accentColor", value)}
                     helper="Hex value used for internal accent treatments."
                   />
                   <AdminInputField
                     label="Logo URL"
                     value={draft.logoUrl}
-                    onChange={(value) => updateDraft('logoUrl', value)}
+                    onChange={(value) => updateDraft("logoUrl", value)}
                     helper="Used by admin and fallback OG surfaces."
                   />
                   <AdminCheckboxField
                     label="Dark mode"
                     checked={draft.darkMode}
-                    onChange={(value) => updateDraft('darkMode', value)}
+                    onChange={(value) => updateDraft("darkMode", value)}
                     helper="Keep the admin UI in the dark operations theme."
                   />
                 </div>
               </AdminInsightPanel>
             ) : null}
 
-            {activeSection === 'security' ? (
+            {activeSection === "security" ? (
               <>
                 <AdminInsightPanel
                   title="Session and access posture"
@@ -531,9 +571,12 @@ export default function AdminSettingsPage() {
                 >
                   <AdminKeyValueGrid
                     rows={[
-                      { label: 'Session state', value: 'Authenticated' },
-                      { label: 'Notification permission', value: permissionStatus },
-                      { label: 'Settings flow', value: hasChanges ? 'Unsaved changes pending' : 'Synchronized with server' },
+                      { label: "Session state", value: "Authenticated" },
+                      { label: "Notification permission", value: permissionStatus },
+                      {
+                        label: "Settings flow",
+                        value: hasChanges ? "Unsaved changes pending" : "Synchronized with server",
+                      },
                     ]}
                   />
                 </AdminInsightPanel>
@@ -546,7 +589,7 @@ export default function AdminSettingsPage() {
                     <button
                       type="button"
                       onClick={() => void handleReset()}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/[0.06]"
+                      className="rounded-full border border-white/10 bg-white/3 px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/6"
                     >
                       Reset to defaults
                     </button>
@@ -571,10 +614,10 @@ export default function AdminSettingsPage() {
             >
               <AdminKeyValueGrid
                 rows={[
-                  { label: 'Currency', value: draft.defaultCurrency },
-                  { label: 'Language', value: draft.defaultLanguage.toUpperCase() },
-                  { label: 'Markup', value: `${draft.defaultMarkup}%` },
-                  { label: 'VAT mode', value: draft.showPricesWithVat ? 'Visible' : 'Hidden' },
+                  { label: "Currency", value: draft.defaultCurrency },
+                  { label: "Language", value: draft.defaultLanguage.toUpperCase() },
+                  { label: "Markup", value: `${draft.defaultMarkup}%` },
+                  { label: "VAT mode", value: draft.showPricesWithVat ? "Visible" : "Hidden" },
                 ]}
               />
             </AdminInspectorCard>
@@ -585,10 +628,10 @@ export default function AdminSettingsPage() {
             >
               <AdminKeyValueGrid
                 rows={[
-                  { label: 'Company', value: draft.companyName },
-                  { label: 'Contact', value: `${draft.contactEmail} · ${draft.contactPhone}` },
-                  { label: 'Meta title', value: draft.metaTitle },
-                  { label: 'Accent', value: draft.accentColor },
+                  { label: "Company", value: draft.companyName },
+                  { label: "Contact", value: `${draft.contactEmail} · ${draft.contactPhone}` },
+                  { label: "Meta title", value: draft.metaTitle },
+                  { label: "Accent", value: draft.accentColor },
                 ]}
               />
             </AdminInspectorCard>

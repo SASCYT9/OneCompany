@@ -1,13 +1,25 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { render } from '@react-email/render';
+import { Resend } from 'resend';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { approveCustomerB2B, createShopCustomerPasswordSetup, revertCustomerToB2C } from '@/lib/shopCustomers';
+import {
+  approveCustomerB2B,
+  archiveShopCustomer,
+  createShopCustomerPasswordSetup,
+  restoreShopCustomer,
+  revertCustomerToB2C,
+} from '@/lib/shopCustomers';
 import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
 } from '@/lib/shopAdminCustomers';
 import { prisma } from '@/lib/prisma';
+import ShopPasswordResetEmail from '@/emails/ShopPasswordResetEmail';
+
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
+const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'One Company <noreply@onecompany.global>';
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -88,10 +100,92 @@ export async function PATCH(request: NextRequest, context: Params) {
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
     
-    if (action === 'generate_password' || action === 'create_setup_link') {
+    if (action === 'archive') {
+      await archiveShopCustomer(prisma, id);
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.archive',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: { email: existing.email },
+      });
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    }
+
+    if (action === 'restore') {
+      await restoreShopCustomer(prisma, id);
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.restore',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: { email: existing.email },
+      });
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    }
+
+    if (action === 'send_password_reset') {
+      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+      const requestBaseUrl = host ? `${proto}://${host}` : undefined;
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,
         preferredLocale: existing.preferredLocale,
+        baseUrl: requestBaseUrl,
+      });
+
+      const targetLocale: 'ua' | 'en' = existing.preferredLocale === 'ua' ? 'ua' : 'en';
+      const html = await render(
+        ShopPasswordResetEmail({
+          resetUrl: setupLink.url,
+          firstName: existing.firstName,
+          locale: targetLocale,
+        }),
+      );
+
+      let emailSent = true;
+      try {
+        await resend.emails.send({
+          from: FROM_ADDRESS,
+          to: existing.email,
+          subject:
+            targetLocale === 'ua'
+              ? 'Скидання пароля — One Company'
+              : 'Reset your One Company password',
+          html,
+        });
+      } catch (sendError) {
+        emailSent = false;
+        console.error('Admin send_password_reset email send', sendError);
+      }
+
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.password_reset.send',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: {
+          email: existing.email,
+          emailSent,
+          expiresAt: setupLink.expiresAt.toISOString(),
+        },
+      });
+
+      return NextResponse.json({
+        ...(await getShopCustomerAdminDetail(prisma, id)),
+        passwordResetSent: emailSent,
+        passwordResetTo: existing.email,
+      });
+    }
+
+    if (action === 'generate_password' || action === 'create_setup_link') {
+      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+      const requestBaseUrl = host ? `${proto}://${host}` : undefined;
+      const setupLink = await createShopCustomerPasswordSetup(prisma, {
+        customerId: id,
+        preferredLocale: existing.preferredLocale,
+        baseUrl: requestBaseUrl,
       });
 
       await writeAdminAuditLog(prisma, session, {

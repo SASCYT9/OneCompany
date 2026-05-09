@@ -67,24 +67,28 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
     );
   }
 
+  const conversionParts: string[] = [];
+  if (currency !== "USD" && hasValid(computedUsd)) {
+    conversionParts.push(formatPrice(locale, computedUsd, "USD"));
+  }
+  if (currency !== "EUR" && hasValid(computedEur)) {
+    conversionParts.push(formatPrice(locale, computedEur, "EUR"));
+  }
+  if (currency !== "UAH" && hasValid(computedUah)) {
+    conversionParts.push(formatPrice(locale, computedUah, "UAH"));
+  }
+
   return (
     <>
       <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
         {isUa ? "Ціна" : "Pricing"}
       </p>
       <p className="mt-2 text-3xl font-light">
-        {currency === "USD" &&
-          formatPrice(locale, displayAmount, "USD")}
-        {currency === "EUR" &&
-          formatPrice(locale, displayAmount, "EUR")}
-        {currency === "UAH" &&
-          formatPrice(locale, displayAmount, "UAH")}
+        {formatPrice(locale, displayAmount, currency)}
       </p>
-      <p className="text-sm text-white/60">
-        {formatPrice(locale, computedUsd, "USD")}{" "}
-        / {formatPrice(locale, computedEur, "EUR")}{" "}
-        / {formatPrice(locale, computedUah, "UAH")}
-      </p>
+      {conversionParts.length > 0 ? (
+        <p className="text-sm text-white/60">{conversionParts.join(" / ")}</p>
+      ) : null}
     </>
   );
 }

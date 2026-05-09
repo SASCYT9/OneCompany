@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Per-brand shipping rules editor with a global default fallback.
@@ -13,8 +13,8 @@
  * `SHOP_BRAND_DEFAULT_RULE_ID = '__default__'`. No Prisma migration.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Eye, Loader2, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Eye, Loader2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 
 import {
   AdminButton,
@@ -26,21 +26,21 @@ import {
   AdminStatusBadge,
   AdminSwitch,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 
-const SHOP_BRAND_DEFAULT_RULE_ID = '__default__';
-const MODES = ['fixed', 'multiplier', 'free', 'tiered', 'percent', 'manual_quote'] as const;
+const SHOP_BRAND_DEFAULT_RULE_ID = "__default__";
+const MODES = ["fixed", "multiplier", "free", "tiered", "percent", "manual_quote"] as const;
 type Mode = (typeof MODES)[number];
-const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
+const CURRENCIES = ["EUR", "USD", "UAH"] as const;
 type Currency = (typeof CURRENCIES)[number];
 
 const MODE_LABELS: Record<Mode, string> = {
-  fixed: 'Фіксована ставка',
-  multiplier: 'Множник стандартної',
-  free: 'Безкоштовно',
-  tiered: 'Брекети суми',
-  percent: 'Відсоток від кошика',
-  manual_quote: 'Ручний прорахунок (запит)',
+  fixed: "Фіксована ставка",
+  multiplier: "Множник стандартної",
+  free: "Безкоштовно",
+  tiered: "Брекети суми",
+  percent: "Відсоток від кошика",
+  manual_quote: "Ручний прорахунок (запит)",
 };
 
 type Bracket = { maxAmount: string; fee: string };
@@ -75,16 +75,16 @@ function emptyRule(id: string, brandName: string): Rule {
   return {
     id,
     brandName,
-    mode: 'free',
-    value: '0',
-    warehouseRatePerKg: '0',
-    currency: 'EUR',
+    mode: "free",
+    value: "0",
+    warehouseRatePerKg: "0",
+    currency: "EUR",
     enabled: false,
     brackets: [],
   };
 }
 
-function ruleFromServer(r: NonNullable<SettingsResponse['brandShippingRules']>[number]): Rule {
+function ruleFromServer(r: NonNullable<SettingsResponse["brandShippingRules"]>[number]): Rule {
   return {
     id: r.id,
     brandName: r.brandName,
@@ -94,7 +94,7 @@ function ruleFromServer(r: NonNullable<SettingsResponse['brandShippingRules']>[n
     currency: r.currency,
     enabled: r.enabled,
     brackets: (r.brackets ?? []).map((b) => ({
-      maxAmount: b.maxAmount === null ? '' : String(b.maxAmount),
+      maxAmount: b.maxAmount === null ? "" : String(b.maxAmount),
       fee: String(b.fee),
     })),
   };
@@ -104,9 +104,9 @@ function ruleToServer(r: Rule) {
   const value = Number(r.value) || 0;
   const warehouseRatePerKg = Number(r.warehouseRatePerKg) || 0;
   const brackets =
-    r.mode === 'tiered'
+    r.mode === "tiered"
       ? r.brackets.map((b) => ({
-          maxAmount: b.maxAmount.trim() === '' ? null : Number(b.maxAmount) || null,
+          maxAmount: b.maxAmount.trim() === "" ? null : Number(b.maxAmount) || null,
           fee: Number(b.fee) || 0,
         }))
       : undefined;
@@ -124,7 +124,7 @@ function ruleToServer(r: Rule) {
 
 export default function BrandRulesPage() {
   const [defaultRule, setDefaultRule] = useState<Rule>(() =>
-    emptyRule(SHOP_BRAND_DEFAULT_RULE_ID, ''),
+    emptyRule(SHOP_BRAND_DEFAULT_RULE_ID, "")
   );
   const [brands, setBrands] = useState<Brand[]>([]);
   const [brandRules, setBrandRules] = useState<Record<string, Rule>>({});
@@ -138,10 +138,10 @@ export default function BrandRulesPage() {
     setError(null);
     try {
       const [settingsRes, brandsRes] = await Promise.all([
-        fetch('/api/admin/shop/settings'),
-        fetch('/api/admin/shop/turn14/sync-dimensions'),
+        fetch("/api/admin/shop/settings"),
+        fetch("/api/admin/shop/turn14/sync-dimensions"),
       ]);
-      if (!settingsRes.ok) throw new Error('Failed to load settings');
+      if (!settingsRes.ok) throw new Error("Failed to load settings");
       const settings: SettingsResponse = await settingsRes.json();
       const brandsData = brandsRes.ok ? await brandsRes.json() : { brands: [] };
       const brandList: Brand[] = (brandsData.brands as Brand[]) ?? [];
@@ -149,7 +149,7 @@ export default function BrandRulesPage() {
 
       const rules = settings.brandShippingRules ?? [];
       const def = rules.find((r) => r.id === SHOP_BRAND_DEFAULT_RULE_ID);
-      setDefaultRule(def ? ruleFromServer(def) : emptyRule(SHOP_BRAND_DEFAULT_RULE_ID, ''));
+      setDefaultRule(def ? ruleFromServer(def) : emptyRule(SHOP_BRAND_DEFAULT_RULE_ID, ""));
 
       const map: Record<string, Rule> = {};
       for (const r of rules) {
@@ -193,12 +193,19 @@ export default function BrandRulesPage() {
       // Build the final brandShippingRules array: default first, then every
       // brand row that's enabled OR has been customized away from the empty
       // default (so we don't pollute the JSON with no-op rows).
-      const settingsRes = await fetch('/api/admin/shop/settings');
-      if (!settingsRes.ok) throw new Error('Failed to fetch current settings for save');
+      const settingsRes = await fetch("/api/admin/shop/settings");
+      if (!settingsRes.ok) throw new Error("Failed to fetch current settings for save");
       const current = await settingsRes.json();
 
       const brandRulesArr = Object.values(brandRules)
-        .filter((r) => r.enabled || r.mode !== 'free' || r.value !== '0' || r.warehouseRatePerKg !== '0' || r.brackets.length > 0)
+        .filter(
+          (r) =>
+            r.enabled ||
+            r.mode !== "free" ||
+            r.value !== "0" ||
+            r.warehouseRatePerKg !== "0" ||
+            r.brackets.length > 0
+        )
         .map(ruleToServer);
 
       const newBrandShippingRules = [ruleToServer(defaultRule), ...brandRulesArr];
@@ -208,9 +215,9 @@ export default function BrandRulesPage() {
         brandShippingRules: newBrandShippingRules,
       };
 
-      const res = await fetch('/api/admin/shop/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/shop/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -237,7 +244,7 @@ export default function BrandRulesPage() {
         if (aActive !== bActive) return bActive - aActive;
         return ar.brandName.localeCompare(br.brandName);
       }),
-    [brandRules],
+    [brandRules]
   );
 
   if (loading) {
@@ -287,11 +294,14 @@ export default function BrandRulesPage() {
             <AdminSwitch
               checked={defaultRule.enabled}
               onChange={(v) => setDefaultRule({ ...defaultRule, enabled: v })}
-              label={defaultRule.enabled ? 'Увімкнено' : 'Вимкнено'}
+              label={defaultRule.enabled ? "Увімкнено" : "Вимкнено"}
             />
           }
         >
-          <RuleEditor rule={defaultRule} onChange={(p) => setDefaultRule({ ...defaultRule, ...p })} />
+          <RuleEditor
+            rule={defaultRule}
+            onChange={(p) => setDefaultRule({ ...defaultRule, ...p })}
+          />
         </AdminCardSection>
 
         <AdminCardSection
@@ -305,7 +315,7 @@ export default function BrandRulesPage() {
                   const r = brandRules[key];
                   const brand = brands.find((b) => b.brand.toLowerCase() === key);
                   return (
-                    <div key={key} className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
+                    <div key={key} className="rounded-none border border-white/5 bg-[#171717] p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -314,24 +324,30 @@ export default function BrandRulesPage() {
                                 T14
                               </span>
                             ) : null}
-                            <span className="truncate font-semibold text-zinc-100">{r.brandName}</span>
+                            <span className="truncate font-semibold text-zinc-100">
+                              {r.brandName}
+                            </span>
                           </div>
                           <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
                             {brand?.productCount ?? 0} товарів
                           </div>
                         </div>
-                        <AdminStatusBadge tone={r.enabled ? 'success' : defaultRule.enabled ? 'warning' : 'default'}>
-                          {r.enabled ? 'Custom' : defaultRule.enabled ? 'Default' : 'No rule'}
+                        <AdminStatusBadge
+                          tone={r.enabled ? "success" : defaultRule.enabled ? "warning" : "default"}
+                        >
+                          {r.enabled ? "Custom" : defaultRule.enabled ? "Default" : "No rule"}
                         </AdminStatusBadge>
                       </div>
 
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <label className="flex flex-col gap-1">
-                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Режим</span>
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+                            Режим
+                          </span>
                           <select
                             value={r.mode}
                             onChange={(e) => patchBrandRule(key, { mode: e.target.value as Mode })}
-                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
                           >
                             {MODES.map((m) => (
                               <option key={m} value={m}>
@@ -341,11 +357,15 @@ export default function BrandRulesPage() {
                           </select>
                         </label>
                         <label className="flex flex-col gap-1">
-                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Валюта</span>
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+                            Валюта
+                          </span>
                           <select
                             value={r.currency}
-                            onChange={(e) => patchBrandRule(key, { currency: e.target.value as Currency })}
-                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                            onChange={(e) =>
+                              patchBrandRule(key, { currency: e.target.value as Currency })
+                            }
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
                           >
                             {CURRENCIES.map((c) => (
                               <option key={c} value={c}>
@@ -357,7 +377,9 @@ export default function BrandRulesPage() {
                       </div>
 
                       <div className="mt-3">
-                        <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Параметри</span>
+                        <span className="block text-[10px] uppercase tracking-wider text-zinc-500">
+                          Параметри
+                        </span>
                         <div className="mt-1">
                           <ModeFields rule={r} onChange={(p) => patchBrandRule(key, p)} />
                         </div>
@@ -365,22 +387,28 @@ export default function BrandRulesPage() {
 
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <label className="flex flex-col gap-1">
-                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Склад $/кг</span>
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+                            Склад $/кг
+                          </span>
                           <input
                             type="number"
                             step="0.1"
                             value={r.warehouseRatePerKg}
-                            onChange={(e) => patchBrandRule(key, { warehouseRatePerKg: e.target.value })}
-                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                            onChange={(e) =>
+                              patchBrandRule(key, { warehouseRatePerKg: e.target.value })
+                            }
+                            className="h-10 rounded-none border border-white/10 bg-black/40 px-2 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
                           />
                         </label>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Стан</span>
+                          <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+                            Стан
+                          </span>
                           <div className="flex h-10 items-center">
                             <AdminSwitch
                               checked={r.enabled}
                               onChange={(v) => patchBrandRule(key, { enabled: v })}
-                              label={r.enabled ? 'Увімк.' : 'Вимк.'}
+                              label={r.enabled ? "Увімк." : "Вимк."}
                             />
                           </div>
                         </div>
@@ -392,92 +420,106 @@ export default function BrandRulesPage() {
             }
             desktop={
               <AdminTableShell>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-zinc-500">
-                  <th className="px-3 py-3 font-medium">Бренд</th>
-                  <th className="px-3 py-3 font-medium">Режим</th>
-                  <th className="px-3 py-3 font-medium">Параметри</th>
-                  <th className="px-3 py-3 font-medium">Склад $/кг</th>
-                  <th className="px-3 py-3 font-medium">Валюта</th>
-                  <th className="px-3 py-3 font-medium">Стан</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.04]">
-                {sortedBrandKeys.map((key) => {
-                  const r = brandRules[key];
-                  const brand = brands.find((b) => b.brand.toLowerCase() === key);
-                  return (
-                    <tr key={key} className="align-top">
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          {brand?.turn14BrandId ? (
-                            <span className="rounded-sm bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
-                              T14
-                            </span>
-                          ) : null}
-                          <span className="font-medium text-zinc-100">{r.brandName}</span>
-                        </div>
-                        <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                          {brand?.productCount ?? 0} товарів
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <select
-                          value={r.mode}
-                          onChange={(e) => patchBrandRule(key, { mode: e.target.value as Mode })}
-                          className="rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
-                        >
-                          {MODES.map((m) => (
-                            <option key={m} value={m}>
-                              {MODE_LABELS[m]}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-3 py-3">
-                        <ModeFields rule={r} onChange={(p) => patchBrandRule(key, p)} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={r.warehouseRatePerKg}
-                          onChange={(e) => patchBrandRule(key, { warehouseRatePerKg: e.target.value })}
-                          className="w-20 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
-                        />
-                      </td>
-                      <td className="px-3 py-3">
-                        <select
-                          value={r.currency}
-                          onChange={(e) => patchBrandRule(key, { currency: e.target.value as Currency })}
-                          className="rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
-                        >
-                          {CURRENCIES.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-col gap-1">
-                          <AdminSwitch
-                            checked={r.enabled}
-                            onChange={(v) => patchBrandRule(key, { enabled: v })}
-                            label={r.enabled ? 'Увімк.' : 'Вимк.'}
-                          />
-                          <AdminStatusBadge tone={r.enabled ? 'success' : defaultRule.enabled ? 'warning' : 'default'}>
-                            {r.enabled ? 'Custom' : defaultRule.enabled ? 'Default' : 'No rule'}
-                          </AdminStatusBadge>
-                        </div>
-                      </td>
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/6 bg-white/2 text-[10px] uppercase tracking-[0.15em] text-zinc-500">
+                      <th className="px-3 py-3 font-medium">Бренд</th>
+                      <th className="px-3 py-3 font-medium">Режим</th>
+                      <th className="px-3 py-3 font-medium">Параметри</th>
+                      <th className="px-3 py-3 font-medium">Склад $/кг</th>
+                      <th className="px-3 py-3 font-medium">Валюта</th>
+                      <th className="px-3 py-3 font-medium">Стан</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </AdminTableShell>
+                  </thead>
+                  <tbody className="divide-y divide-white/4">
+                    {sortedBrandKeys.map((key) => {
+                      const r = brandRules[key];
+                      const brand = brands.find((b) => b.brand.toLowerCase() === key);
+                      return (
+                        <tr key={key} className="align-top">
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              {brand?.turn14BrandId ? (
+                                <span className="rounded-sm bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+                                  T14
+                                </span>
+                              ) : null}
+                              <span className="font-medium text-zinc-100">{r.brandName}</span>
+                            </div>
+                            <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
+                              {brand?.productCount ?? 0} товарів
+                            </div>
+                          </td>
+                          <td className="px-3 py-3">
+                            <select
+                              value={r.mode}
+                              onChange={(e) =>
+                                patchBrandRule(key, { mode: e.target.value as Mode })
+                              }
+                              className="rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
+                            >
+                              {MODES.map((m) => (
+                                <option key={m} value={m}>
+                                  {MODE_LABELS[m]}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-3 py-3">
+                            <ModeFields rule={r} onChange={(p) => patchBrandRule(key, p)} />
+                          </td>
+                          <td className="px-3 py-3">
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={r.warehouseRatePerKg}
+                              onChange={(e) =>
+                                patchBrandRule(key, { warehouseRatePerKg: e.target.value })
+                              }
+                              className="w-20 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
+                            />
+                          </td>
+                          <td className="px-3 py-3">
+                            <select
+                              value={r.currency}
+                              onChange={(e) =>
+                                patchBrandRule(key, { currency: e.target.value as Currency })
+                              }
+                              className="rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
+                            >
+                              {CURRENCIES.map((c) => (
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex flex-col gap-1">
+                              <AdminSwitch
+                                checked={r.enabled}
+                                onChange={(v) => patchBrandRule(key, { enabled: v })}
+                                label={r.enabled ? "Увімк." : "Вимк."}
+                              />
+                              <AdminStatusBadge
+                                tone={
+                                  r.enabled
+                                    ? "success"
+                                    : defaultRule.enabled
+                                      ? "warning"
+                                      : "default"
+                                }
+                              >
+                                {r.enabled ? "Custom" : defaultRule.enabled ? "Default" : "No rule"}
+                              </AdminStatusBadge>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </AdminTableShell>
             }
           />
         </AdminCardSection>
@@ -493,7 +535,7 @@ function RuleEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
         <select
           value={rule.mode}
           onChange={(e) => onChange({ mode: e.target.value as Mode })}
-          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
         >
           {MODES.map((m) => (
             <option key={m} value={m}>
@@ -502,14 +544,22 @@ function RuleEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
           ))}
         </select>
       </Field>
-      <Field label={rule.mode === 'percent' ? 'Відсоток (%)' : rule.mode === 'multiplier' ? 'Множник' : 'Значення'}>
+      <Field
+        label={
+          rule.mode === "percent"
+            ? "Відсоток (%)"
+            : rule.mode === "multiplier"
+              ? "Множник"
+              : "Значення"
+        }
+      >
         <input
           type="number"
           step="0.1"
           value={rule.value}
           onChange={(e) => onChange({ value: e.target.value })}
-          disabled={rule.mode === 'free' || rule.mode === 'tiered' || rule.mode === 'manual_quote'}
-          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-none disabled:opacity-40"
+          disabled={rule.mode === "free" || rule.mode === "tiered" || rule.mode === "manual_quote"}
+          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-hidden disabled:opacity-40"
         />
       </Field>
       <Field label="Склад $/кг">
@@ -518,14 +568,14 @@ function RuleEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
           step="0.1"
           value={rule.warehouseRatePerKg}
           onChange={(e) => onChange({ warehouseRatePerKg: e.target.value })}
-          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
         />
       </Field>
       <Field label="Валюта">
         <select
           value={rule.currency}
           onChange={(e) => onChange({ currency: e.target.value as Currency })}
-          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+          className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
         >
           {CURRENCIES.map((c) => (
             <option key={c} value={c}>
@@ -534,22 +584,23 @@ function RuleEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
           ))}
         </select>
       </Field>
-      {rule.mode === 'tiered' ? (
+      {rule.mode === "tiered" ? (
         <div className="md:col-span-2 xl:col-span-4">
           <BracketsEditor rule={rule} onChange={onChange} />
         </div>
       ) : null}
-      {rule.mode === 'manual_quote' ? (
+      {rule.mode === "manual_quote" ? (
         <div className="md:col-span-2 xl:col-span-4">
           <AdminInlineAlert tone="warning">
             Цей режим блокує стандартний checkout — покупець побачить кнопку «Запит на прорахунок».
           </AdminInlineAlert>
         </div>
       ) : null}
-      {rule.mode === 'percent' ? (
+      {rule.mode === "percent" ? (
         <div className="md:col-span-2 xl:col-span-4 text-[12px] text-blue-200/80">
-          Доставка = <code className="text-zinc-300">сума_кошика_бренду × {rule.value || '?'}% / 100</code> у валюті{' '}
-          {rule.currency}.
+          Доставка ={" "}
+          <code className="text-zinc-300">сума_кошика_бренду × {rule.value || "?"}% / 100</code> у
+          валюті {rule.currency}.
         </div>
       ) : null}
     </div>
@@ -557,10 +608,10 @@ function RuleEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
 }
 
 function ModeFields({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule>) => void }) {
-  if (rule.mode === 'free' || rule.mode === 'manual_quote') {
+  if (rule.mode === "free" || rule.mode === "manual_quote") {
     return <span className="text-[11px] text-zinc-500">—</span>;
   }
-  if (rule.mode === 'tiered') {
+  if (rule.mode === "tiered") {
     return (
       <details>
         <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-blue-300">
@@ -578,15 +629,15 @@ function ModeFields({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule
       step="0.1"
       value={rule.value}
       onChange={(e) => onChange({ value: e.target.value })}
-      placeholder={rule.mode === 'multiplier' ? '1.25' : rule.mode === 'percent' ? '5' : '150'}
-      className="w-24 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+      placeholder={rule.mode === "multiplier" ? "1.25" : rule.mode === "percent" ? "5" : "150"}
+      className="w-24 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
     />
   );
 }
 
 function BracketsEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<Rule>) => void }) {
   function add() {
-    onChange({ brackets: [...rule.brackets, { maxAmount: '', fee: '0' }] });
+    onChange({ brackets: [...rule.brackets, { maxAmount: "", fee: "0" }] });
   }
   function remove(idx: number) {
     onChange({ brackets: rule.brackets.filter((_, i) => i !== idx) });
@@ -597,7 +648,7 @@ function BracketsEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<
     });
   }
   return (
-    <div className="rounded-none border border-white/[0.08] bg-black/30 p-3">
+    <div className="rounded-none border border-white/8 bg-black/30 p-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="text-[11px] uppercase tracking-wider text-blue-300">Брекети тарифів</div>
         <AdminButton variant="ghost" size="sm" icon={<Plus />} onClick={add}>
@@ -617,7 +668,7 @@ function BracketsEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<
                   value={b.maxAmount}
                   onChange={(e) => patch(idx, { maxAmount: e.target.value })}
                   placeholder="порожнє = відкритий брекет"
-                  className="w-44 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                  className="w-44 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
                 />
               </Field>
               <Field label={`Доставка (${rule.currency})`}>
@@ -627,7 +678,7 @@ function BracketsEditor({ rule, onChange }: { rule: Rule; onChange: (p: Partial<
                   value={b.fee}
                   onChange={(e) => patch(idx, { fee: e.target.value })}
                   placeholder="70"
-                  className="w-32 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-none"
+                  className="w-32 rounded-none border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-100 focus:border-blue-500/40 focus:outline-hidden"
                 />
               </Field>
               <button

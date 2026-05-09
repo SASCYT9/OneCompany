@@ -19,9 +19,9 @@ export default function BrabusCustomCursor() {
 
     // Hide standard cursor globally while this component routes
     document.documentElement.style.cursor = "none";
-    
+
     // Elements should also inherit the cursor hide to avoid flickers
-    document.body.classList.add('br-custom-cursor-active');
+    document.body.classList.add("br-custom-cursor-active");
 
     const moveCursor = (e: MouseEvent) => {
       setHidden(false);
@@ -37,7 +37,7 @@ export default function BrabusCustomCursor() {
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (
-        window.getComputedStyle(target).cursor === 'pointer' ||
+        window.getComputedStyle(target).cursor === "pointer" ||
         target.tagName.toLowerCase() === "a" ||
         target.tagName.toLowerCase() === "button" ||
         target.closest("a") ||
@@ -56,7 +56,7 @@ export default function BrabusCustomCursor() {
 
     return () => {
       document.documentElement.style.cursor = "auto";
-      document.body.classList.remove('br-custom-cursor-active');
+      document.body.classList.remove("br-custom-cursor-active");
       window.removeEventListener("mousemove", moveCursor);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseover", handleMouseOver);
@@ -65,7 +65,7 @@ export default function BrabusCustomCursor() {
   }, [cursorX, cursorY]);
 
   // Don't render on mobile or SSR
-  if (hidden || typeof window === 'undefined' || window.innerWidth < 768) return null;
+  if (hidden || typeof window === "undefined" || window.innerWidth < 768) return null;
 
   return (
     <>
@@ -75,7 +75,7 @@ export default function BrabusCustomCursor() {
           cursor: none !important;
         }
       `}</style>
-      <div className="pointer-events-none fixed inset-0 z-[9999]">
+      <div className="pointer-events-none fixed inset-0 z-9999">
         {/* Outer physics ring */}
         <motion.div
           className="absolute left-0 top-0 rounded-full border border-[#c29d59]/60 mix-blend-screen"
@@ -95,14 +95,16 @@ export default function BrabusCustomCursor() {
         <motion.div
           className="absolute left-0 top-0 w-2 h-2 rounded-full bg-[#c29d59] -ml-1 -mt-1 mix-blend-screen"
           style={{
-            boxShadow: '0 0 10px 2px rgba(194,157,89,0.8)'
+            boxShadow: "0 0 10px 2px rgba(194,157,89,0.8)",
           }}
           animate={{
             x: position.x,
             y: position.y,
             scale: isHovering ? 4 : 1,
             backgroundColor: isHovering ? "rgba(194,157,89,0.5)" : "rgba(194,157,89,1)",
-            boxShadow: isHovering ? '0 0 15px 4px rgba(194,157,89,0.4)' : '0 0 10px 2px rgba(194,157,89,0.8)'
+            boxShadow: isHovering
+              ? "0 0 15px 4px rgba(194,157,89,0.4)"
+              : "0 0 10px 2px rgba(194,157,89,0.8)",
           }}
           transition={{ type: "spring", stiffness: 1000, damping: 28, mass: 0.1 }}
         />

@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackBeginCheckout } from '@/lib/analytics';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
+import { SHOP_COUNTRIES } from '@/lib/shopCountries';
 import { ShoppingBag, Loader2 } from 'lucide-react';
 
 type CartItem = {
@@ -71,6 +72,7 @@ function getPrice(
   return price.uah;
 }
 
+
 export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
   const router = useRouter();
   const isUa = locale === 'ua';
@@ -82,16 +84,18 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [accountLoaded, setAccountLoaded] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [form, setForm] = useState({
     email: '',
-    name: '',
+    firstName: '',
+    lastName: '',
     phone: '',
     line1: '',
     line2: '',
     city: '',
     region: '',
     postcode: '',
-    country: isUa ? 'Ukraine' : '',
+    country: isUa ? 'Ukraine' : 'Ukraine',
     currency: isUa ? 'UAH' : 'EUR',
     paymentMethod: 'FOP' as 'FOP' | 'WHITEBIT' | 'WHITEPAY_FIAT',
   });
@@ -114,11 +118,13 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       .then(([cartData, accountData, paymentOpts]) => {
         setCart(cartData);
         setPaymentOptions(paymentOpts as PaymentOptions);
+        setIsAuthenticated(Boolean(accountData));
         if (accountData) {
           setForm((current) => ({
             ...current,
             email: accountData.email || current.email,
-            name: [accountData.firstName, accountData.lastName].filter(Boolean).join(' ').trim() || current.name,
+            firstName: accountData.firstName || current.firstName,
+            lastName: accountData.lastName || current.lastName,
             phone: accountData.phone || current.phone,
             line1: accountData.defaultShippingAddress?.line1 || current.line1,
             line2: accountData.defaultShippingAddress?.line2 || current.line2,
@@ -202,7 +208,13 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: (cart?.items ?? []).map((i) => ({ slug: i.slug, quantity: i.quantity, variantId: i.variantId })),
-          contact: { email: form.email.trim(), name: form.name.trim(), phone: form.phone.trim() || undefined },
+          contact: {
+            email: form.email.trim(),
+            name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+            firstName: form.firstName.trim() || undefined,
+            lastName: form.lastName.trim() || undefined,
+            phone: form.phone.trim() || undefined,
+          },
           shipping: {
             line1: form.line1.trim(),
             line2: form.line2.trim() || undefined,
@@ -273,6 +285,18 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           </p>
         </header>
 
+        {isAuthenticated === false ? (
+          <div className="mt-6 rounded-2xl border border-[#c29d59]/25 bg-[#c29d59]/5 px-5 py-3 text-sm text-white/75 flex flex-wrap items-center justify-between gap-3">
+            <span>{isUa ? 'Уже маєте акаунт?' : 'Already have an account?'}</span>
+            <Link
+              href={`/${locale}/shop/account/login?next=${encodeURIComponent(`/${locale}/shop/checkout`)}`}
+              className="text-[11px] uppercase tracking-[0.22em] text-[#c29d59] hover:text-white transition"
+            >
+              {isUa ? 'Увійти →' : 'Sign in →'}
+            </Link>
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit} className="mt-8 space-y-10 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
           {error && <p className="rounded-xl bg-red-950/30 p-4 border border-red-900/50 text-red-500 text-sm">{error}</p>}
 
@@ -290,14 +314,26 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
-              <input
-                type="text"
-                required
-                placeholder={isUa ? 'ПІБ' : 'Full name'}
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input
+                  type="text"
+                  required
+                  autoComplete="given-name"
+                  placeholder={isUa ? 'Ім’я' : 'First name'}
+                  value={form.firstName}
+                  onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                />
+                <input
+                  type="text"
+                  required
+                  autoComplete="family-name"
+                  placeholder={isUa ? 'Прізвище' : 'Last name'}
+                  value={form.lastName}
+                  onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                />
+              </div>
               <input
                 type="tel"
                 placeholder={isUa ? 'Телефон' : 'Phone'}
@@ -354,14 +390,22 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                   onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
                 />
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder={isUa ? 'Країна' : 'Country'}
+                  aria-label={isUa ? 'Країна' : 'Country'}
                   value={form.country}
                   onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
-                />
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                >
+                  <option value="" disabled>
+                    {isUa ? 'Оберіть країну' : 'Select country'}
+                  </option>
+                  {SHOP_COUNTRIES.map((country) => (
+                    <option key={country.value} value={country.value}>
+                      {isUa ? country.ua : country.en}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -388,7 +432,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               {isUa ? 'Спосіб оплати' : 'Payment method'}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                 <div className="flex items-center gap-4 relative z-10">
                   <input
                     type="radio"
@@ -409,7 +453,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </div>
               </label>
               {paymentOptions?.methods.includes('WHITEBIT') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                   <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
@@ -490,19 +534,42 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4 text-lg font-light text-white">
-                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
+                <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
                 <span className="tabular-nums">{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
             </div>
 
             <p className="mt-4 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
-              {quote?.pricingAudience === 'b2b' ? 'B2B pricing applied' : 'B2C pricing applied'}
+              {quote?.pricingAudience === 'b2b'
+                ? (isUa ? 'Застосовано B2B ціни' : 'B2B pricing applied')
+                : (isUa ? 'Застосовано B2C ціни' : 'B2C pricing applied')}
             </p>
 
             {quote?.regionalPricingRule ? (
               <p className="mt-1 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
                 {isUa ? 'Корекція' : 'Adjustment'}: {quote.regionalPricingRule.name}
               </p>
+            ) : null}
+
+            {(form.email || form.firstName || form.line1) ? (
+              <div className="mt-6 border-t border-white/10 pt-5 space-y-1.5 text-[12px] text-white/55">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-white/35 mb-2">
+                  {isUa ? 'Замовлення оформлюється на' : 'Order will be sent to'}
+                </p>
+                {(form.firstName || form.lastName) ? (
+                  <p className="text-white/80">{`${form.firstName} ${form.lastName}`.trim()}</p>
+                ) : null}
+                {form.email ? <p>{form.email}</p> : null}
+                {form.phone ? <p>{form.phone}</p> : null}
+                {form.line1 ? (
+                  <p>
+                    {form.line1}
+                    {form.line2 ? `, ${form.line2}` : ''}
+                    {form.city ? `, ${form.city}` : ''}
+                    {form.country ? `, ${form.country}` : ''}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </div>
 
@@ -522,7 +589,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <button
             type="submit"
             disabled={submitting || quote?.requiresQuote === true}
-            className="w-full rounded-full border border-white/10 bg-zinc-950 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-[#c29d59] transition-all duration-300 hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.3)] shadow-2xl disabled:opacity-50"
+            className="w-full rounded-full border border-white bg-white py-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-black transition-all duration-300 hover:bg-[#c29d59] hover:border-[#c29d59] hover:text-white hover:shadow-[0_18px_40px_-18px_rgba(194,157,89,0.65)] shadow-[0_18px_40px_-24px_rgba(255,255,255,0.95)] disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:cursor-not-allowed"
             title={quote?.requiresQuote ? (isUa ? 'Спочатку залиш заявку нижче' : 'Submit a quote request first') : undefined}
           >
             {submitting

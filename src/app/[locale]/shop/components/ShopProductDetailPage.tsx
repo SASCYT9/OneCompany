@@ -5,6 +5,7 @@ import { ShoppingBag } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
+import { ShopB2BPricingBand } from '@/components/shop/ShopB2BPricingBand';
 import { ShopInlinePriceText } from '@/components/shop/ShopInlinePriceText';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
@@ -154,7 +155,7 @@ function DetailSpecPanel({
         {specs.map((spec) => (
           <div
             key={`${spec.label}:${spec.value}`}
-            className="grid gap-1 rounded-xl border border-white/8 bg-white/[0.02] p-3"
+            className="grid gap-1 rounded-xl border border-white/8 bg-white/2 p-3"
           >
             <dt className="text-[10px] uppercase tracking-[0.18em] text-white/38">{spec.label}</dt>
             <dd className="text-pretty text-white/82">{spec.value}</dd>
@@ -673,7 +674,7 @@ export default async function ShopProductDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+    <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-white">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -716,7 +717,7 @@ export default async function ShopProductDetailPage({
           {contextLinkHref && contextLinkLabel ? (
             <Link
               href={contextLinkHref}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-white/72 transition hover:border-white/35 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/4 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-white/72 transition hover:border-white/35 hover:text-white"
             >
               {contextLinkLabel}
             </Link>
@@ -725,7 +726,7 @@ export default async function ShopProductDetailPage({
           {isUrbanMode ? (
             <Link
               href={`/${resolvedLocale}/shop/urban`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/60 transition hover:border-white/40 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/4 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/60 transition hover:border-white/40 hover:text-white"
             >
               {isUa ? 'Urban Home' : 'Urban home'}
             </Link>
@@ -734,13 +735,13 @@ export default async function ShopProductDetailPage({
           {isDo88Mode ? (
             <Link
               href={`/${resolvedLocale}/shop/do88`}
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-900/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-400 transition hover:border-cyan-400/40 hover:text-cyan-300"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-900/4 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-400 transition hover:border-cyan-400/40 hover:text-cyan-300"
             >
               {isUa ? 'DO88 Home' : 'DO88 home'}
             </Link>
           ) : null}
 
-          <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/65">
+          <span className="rounded-full border border-white/20 bg-white/4 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/65">
             {product.scope === 'auto' ? (isUa ? 'Авто' : 'Auto') : (isUa ? 'Мото' : 'Moto')}
           </span>
         </div>
@@ -756,9 +757,9 @@ export default async function ShopProductDetailPage({
             />
           </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-7">
+          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/3 p-6 backdrop-blur-xl sm:p-7">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/[0.06] p-1.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/6 p-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getBrandLogo(product.brand)} alt={product.brand} className="h-full w-full object-contain" />
               </div>
@@ -775,7 +776,7 @@ export default async function ShopProductDetailPage({
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
             {primaryPartNumber ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/12 bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                <span className="rounded-full border border-white/12 bg-white/3 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
                   {isUa ? 'Артикул' : 'Part number'}
                 </span>
                 <span className="min-w-0 break-all rounded-full border border-[#c29d59]/25 bg-[#c29d59]/10 px-3 py-1 font-mono text-xs tracking-[0.04em] text-[#f1d8a5]">
@@ -829,71 +830,18 @@ export default async function ShopProductDetailPage({
                 ) : null}
               </div>
 
-              {pricing.b2bVisible ? (
-                <div className="rounded-xl bg-cyan-950/30 border border-cyan-500/20 p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-[10px] text-cyan-300">✓</span>
-                    <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">
-                      {isUa ? 'B2B Ціноутворення' : 'B2B Pricing'}
-                    </p>
-                  </div>
-                  
-                  {pricing.bands.b2b?.price ? (
-                    (() => {
-                      const b2bPrices = computeCrossPrices(pricing.bands.b2b.price);
-                      return (
-                        <div className="pl-7">
-                          <p className="text-2xl font-light text-white">
-                            <ShopInlinePriceText
-                              locale={resolvedLocale}
-                              price={b2bPrices}
-                              requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
-                            />
-                          </p>
-                          <p className="text-[11px] text-cyan-100/50 mt-1">
-                            {formatPrice(resolvedLocale, b2bPrices.usd, 'USD')} / {formatPrice(resolvedLocale, b2bPrices.uah, 'UAH')}
-                          </p>
-                        </div>
-                      );
-                    })()
-                  ) : null}
-
-                  {pricing.audience === 'b2b' && pricing.source === 'b2b-discount' && pricing.discountPercent != null ? (
-                    <div className="pl-7">
-                       <span className="inline-block px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] uppercase text-emerald-300 tracking-wider">
-                         {isUa
-                          ? `Знижка -${pricing.discountPercent}%`
-                          : `Discount -${pricing.discountPercent}%`}
-                       </span>
-                    </div>
-                  ) : pricing.bands.b2b?.source === 'b2b-discount' && pricing.bands.b2b.discountPercent != null ? (
-                    <div className="pl-7">
-                       <span className="inline-block px-2 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[10px] uppercase text-cyan-300 tracking-wider">
-                         {isUa
-                          ? `Базова B2B знижка -${pricing.bands.b2b.discountPercent}%`
-                          : `Base B2B discount -${pricing.bands.b2b.discountPercent}%`}
-                       </span>
-                    </div>
-                  ) : null}
-
-                  {pricing.requestQuote ? (
-                    <p className="pl-7 text-[11px] text-cyan-200/50 leading-relaxed uppercase tracking-[0.1em]">
-                      {isUa ? 'Очікує верифікації акаунта' : 'Pending account verification'}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
+              <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} />
             </div>
 
             {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
 
             {product.bundle ? (
-              <div className="space-y-3 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
+              <div className="space-y-3 rounded-2xl border border-white/15 bg-white/3 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
                     {isUa ? 'Склад комплекту' : 'Bundle contents'}
                   </p>
-                  <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/70">
+                  <span className="rounded-full border border-white/20 bg-white/4 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/70">
                     {isUa
                       ? `Доступно комплектів: ${product.bundle.availableQuantity}`
                       : `Available bundles: ${product.bundle.availableQuantity}`}
@@ -932,7 +880,7 @@ export default async function ShopProductDetailPage({
               />
               <Link
                 href={`/${resolvedLocale}/contact`}
-                className="group relative overflow-hidden rounded-full border border-white/10 bg-white/[0.02] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
+                className="group relative overflow-hidden rounded-full border border-white/10 bg-white/2 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/8 hover:text-white"
               >
                 {pricing.requestQuote ? (isUa ? 'Запитати B2B ціну' : 'Request B2B pricing') : (isUa ? 'Запит по товару' : 'Request product')}
               </Link>

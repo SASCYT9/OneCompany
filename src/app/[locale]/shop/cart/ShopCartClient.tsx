@@ -7,6 +7,7 @@ import type { SupportedLocale } from '@/lib/seo';
 import { localizeShopText } from '@/lib/shopText';
 import { trackViewCart } from '@/lib/analytics';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
+import { convertShopMoney } from '@/lib/shopMoneyFormat';
 
 type CartItem = {
   id: string;
@@ -37,7 +38,6 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const isUa = locale === 'ua';
-  const { currency: selectedCurrency } = useShopCurrency();
 
   const CartItemImage = ({ src, fallbackSrc, alt }: { src: string; fallbackSrc?: string | null; alt: string }) => {
     const [failedCount, setFailedCount] = useState(0);
@@ -102,43 +102,13 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   };
 
   const items = cart?.items ?? [];
-  const currency = selectedCurrency as 'EUR' | 'USD' | 'UAH';
-  const { rates } = useShopCurrency();
+  const { currency: contextCurrency, rates } = useShopCurrency();
+  const currency = contextCurrency as 'EUR' | 'USD' | 'UAH';
 
-  // Smart cross-currency conversion using live NBU rates
-  // If the requested currency column is 0, convert from whichever currency IS available
-  function getPrice(p: { eur: number; usd: number; uah: number }, c: string): number {
-    const direct = c === 'USD' ? p.usd : c === 'UAH' ? p.uah : p.eur;
-    if (direct > 0) return direct;
-
-    // No direct price — try to convert from another currency using NBU rates
-    if (!rates) {
-      // No rates loaded yet, use any available value as rough fallback
-      return p.uah || p.usd || p.eur || 0;
-    }
-
-    // rates.USD = how many UAH per 1 USD (e.g. 41.5)
-    // rates.EUR = how many UAH per 1 EUR (e.g. 45.5)
-    // Find a source price that has a value
-    let sourceUah = 0;
-    if (p.uah > 0) {
-      sourceUah = p.uah;
-    } else if (p.usd > 0 && rates.USD > 0) {
-      sourceUah = p.usd * rates.USD; // USD → UAH
-    } else if (p.eur > 0 && rates.EUR > 0) {
-      sourceUah = p.eur * rates.EUR; // EUR → UAH
-    }
-
-    if (sourceUah <= 0) return 0;
-
-    // Convert from UAH to target currency
-    if (c === 'UAH') return Math.round(sourceUah);
-    if (c === 'USD' && rates.USD > 0) return Math.round((sourceUah / rates.USD) * 100) / 100;
-    if (c === 'EUR' && rates.EUR > 0) return Math.round((sourceUah / rates.EUR) * 100) / 100;
-    return Math.round(sourceUah);
-  }
-
-  const subtotal = items.reduce((s, i) => s + (i.price ? getPrice(i.price, currency) * i.quantity : 0), 0);
+  const subtotal = items.reduce(
+    (s, i) => s + (i.price ? convertShopMoney(i.price, currency, rates) * i.quantity : 0),
+    0,
+  );
 
   useEffect(() => {
     if (!cart) return;
@@ -205,7 +175,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                     <p className="font-light text-lg text-white truncate">{localize(locale, i.title)}</p>
                     {i.variantTitle ? <p className="mt-1 text-xs text-[#c29d59]/80 uppercase tracking-widest truncate">{i.variantTitle}</p> : null}
                     <p className="mt-2 text-sm text-white/55">
-                      {i.price ? formatPrice(locale, getPrice(i.price, currency), currency) : ''} × {i.quantity}
+                      {i.price ? formatPrice(locale, convertShopMoney(i.price, currency, rates), currency) : ''} × {i.quantity}
                     </p>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <button
@@ -238,14 +208,14 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                     </div>
                   </div>
                   <div className="text-left text-lg font-light text-white sm:text-right sm:shrink-0">
-                    {i.price ? formatPrice(locale, getPrice(i.price, currency) * i.quantity, currency) : '—'}
+                    {i.price ? formatPrice(locale, convertShopMoney(i.price, currency, rates) * i.quantity, currency) : '—'}
                   </div>
                 </li>
               ))}
             </ul>
             <div className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
               <div className="flex justify-between items-center text-xl font-light text-white">
-                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-xs font-normal">{isUa ? 'Підсумок' : 'Subtotal'}</span>
+                <span className="text-[#c29d59] uppercase tracking-widest text-xs font-normal">{isUa ? 'Підсумок' : 'Subtotal'}</span>
                 <span>{formatPrice(locale, subtotal, currency)}</span>
               </div>
               <Link

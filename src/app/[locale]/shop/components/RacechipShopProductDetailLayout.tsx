@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, ChevronRight, Zap, Target, Truck } from "lucide-react";
 
 import type { SupportedLocale } from "@/lib/seo";
+import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
@@ -104,6 +105,12 @@ export default function RacechipShopProductDetailLayout({
 
   const pricing = getPricing();
   const finalPriceLabel = pricing?.primary ?? null;
+
+  // Independent ShopResolvedPricing for the B2B disclosure band — keeps the
+  // existing display-formatted `pricing` untouched.
+  const resolvedB2B = variant
+    ? resolveVariantPricing(variant, viewerContext)
+    : resolveShopProductPricing(product, viewerContext);
   
   const handleAddToCart = async () => {
     if (!variant || isAdding || inCart) return;
@@ -157,7 +164,7 @@ export default function RacechipShopProductDetailLayout({
           
           {/* LEFT: IMAGE GALLERY (Floating Canvas) */}
           <div className="relative sticky top-[120px]">
-            <div className="bg-[#0a0a0a] rounded-3xl border border-white/[0.04] p-12 aspect-square flex items-center justify-center relative overflow-hidden group shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
+            <div className="bg-[#0a0a0a] rounded-3xl border border-white/4 p-12 aspect-square flex items-center justify-center relative overflow-hidden group shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
                {/* Accent Background */}
                <div className="absolute inset-0 bg-white/5 group-hover:bg-white/[0.07] transition-colors duration-500" />
                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-1000 bg-[radial-gradient(circle_at_center,rgba(255,74,0,1)_0%,transparent_60%)] pointer-events-none" />
@@ -195,7 +202,7 @@ export default function RacechipShopProductDetailLayout({
               )}
             </div>
 
-            <div className="w-full h-px bg-white/[0.05] my-8" />
+            <div className="w-full h-px bg-white/5 my-8" />
 
             {/* PERFORMANCE SPECS (Extracted dynamically from longDescription HTML if present) */}
             {longDesc && (
@@ -207,7 +214,7 @@ export default function RacechipShopProductDetailLayout({
                   className="prose prose-invert prose-orange max-w-none text-sm text-zinc-300
                   [&_.racechip-specs_h3]:text-[#ff4a00] [&_.racechip-specs_h3]:uppercase [&_.racechip-specs_h3]:tracking-widest [&_.racechip-specs_h3]:text-[13px] [&_.racechip-specs_h3]:mb-4
                   [&_.racechip-specs_ul]:list-none [&_.racechip-specs_ul]:pl-0 [&_.racechip-specs_ul]:space-y-3
-                  [&_.racechip-specs_li]:border-b [&_.racechip-specs_li]:border-white/[0.04] [&_.racechip-specs_li]:pb-3
+                  [&_.racechip-specs_li]:border-b [&_.racechip-specs_li]:border-white/4 [&_.racechip-specs_li]:pb-3
                   [&_strong]:text-white [&_strong]:font-bold"
                   dangerouslySetInnerHTML={{ __html: longDesc }}
                 />
@@ -215,7 +222,7 @@ export default function RacechipShopProductDetailLayout({
             )}
 
             {/* ACTION CENTER */}
-            <div className="bg-[#0a0a0a] rounded-2xl border border-white/[0.06] p-8 shadow-2xl relative overflow-hidden group">
+            <div className="bg-[#0a0a0a] rounded-2xl border border-white/6 p-8 shadow-2xl relative overflow-hidden group">
                {/* Hover Accent Glow */}
                <div className="absolute inset-x-0 bottom-0 h-1 bg-[#ff4a00]/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
 
@@ -250,11 +257,15 @@ export default function RacechipShopProductDetailLayout({
                    </div>
                 </div>
 
+                <div className="mb-6">
+                  <ShopB2BPricingBand pricing={resolvedB2B} locale={locale as SupportedLocale} />
+                </div>
+
                {finalPriceLabel ? (
                  <button
                    onClick={handleAddToCart}
                    disabled={isAdding || inCart}
-                   className={`w-full py-5 px-8 rounded-xl text-sm font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
+                   className={`w-full py-5 px-8 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${
                      inCart
                        ? "bg-white text-black drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
                        : "bg-[#ff4a00] text-white hover:bg-[#ff6a00] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,74,0,0.3)] shadow-[0_5px_15px_rgba(255,74,0,0.2)]"
@@ -273,7 +284,7 @@ export default function RacechipShopProductDetailLayout({
                  </button>
                ) : (
                  <Link href={`/${locale}/contact`}>
-                  <button className="w-full bg-[#111] hover:bg-white text-white hover:text-black border border-white/10 hover:border-transparent py-5 px-8 rounded-xl text-sm font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
+                  <button className="w-full bg-[#111] hover:bg-white text-white hover:text-black border border-white/10 hover:border-transparent py-5 px-8 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
                     <Target size={18} />
                     {isUa ? "Запитати ціну" : "Request Price"}
                   </button>

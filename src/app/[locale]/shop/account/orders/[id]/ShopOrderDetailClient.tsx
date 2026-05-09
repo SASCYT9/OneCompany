@@ -5,7 +5,18 @@ import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
-import { Package, ArrowLeft } from 'lucide-react';
+import { Package, ArrowLeft, Download } from 'lucide-react';
+
+type ShopOrderShippingAddress = {
+  name?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postcode?: string | null;
+  country?: string | null;
+  phone?: string | null;
+} | null;
 
 type OrderItem = {
   id: string;
@@ -30,9 +41,24 @@ type Order = {
   taxAmount: number;
   total: number;
   items: OrderItem[];
-  shippingAddress: any; // json
-  pricingSnapshot: any; // json
+  shippingAddress: ShopOrderShippingAddress;
+  pricingSnapshot: unknown;
+  ttnNumber?: string | null;
+  deliveryMethod?: string | null;
 };
+
+function isLikelyNovaPoshtaTtn(value: string) {
+  // Nova Poshta TTN is exactly 14 digits.
+  return /^\d{14}$/.test(value.replace(/\s+/g, ''));
+}
+
+function buildTrackingUrl(ttn: string) {
+  const compact = ttn.replace(/\s+/g, '');
+  if (isLikelyNovaPoshtaTtn(compact)) {
+    return `https://novaposhta.ua/tracking/?cargo_number=${compact}`;
+  }
+  return null;
+}
 
 export default function ShopOrderDetailClient({ locale, order }: { locale: SupportedLocale; order: Order }) {
   const isUa = locale === 'ua';
@@ -61,17 +87,25 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
               })}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 items-center">
             <span className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.2em] ${shopOrderStatusBadgeClass(order.status)}`}>
               {formatShopOrderStatus(locale, order.status)}
             </span>
+            <a
+              href={`/api/shop/account/orders/${order.orderNumber}/invoice`}
+              download={`invoice-${order.orderNumber}.pdf`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/85 transition hover:border-white/30 hover:bg-white/10"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {isUa ? 'PDF-інвойс' : 'PDF invoice'}
+            </a>
           </div>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-4">
             <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Товари' : 'Items'}</h2>
-            <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
               <ul className="space-y-4">
                 {order.items.map((item) => (
                   <li key={item.id} className="flex items-center gap-4">
@@ -87,8 +121,6 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm font-medium text-white/90">{item.title}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
-                        {(item as any).sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {(item as any).sku}</span>}
-                        {(item as any).brand && <span className="text-white/40">{(item as any).brand}</span>}
                         <span>
                           {item.quantity} × {formatShopMoney(locale, item.price, order.currency as ShopCurrencyCode)}
                         </span>
@@ -106,7 +138,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
           <aside className="space-y-6">
             <section>
               <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Підсумок замовлення' : 'Order Summary'}</h2>
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm">
                 <div className="flex justify-between text-white/60 mb-3">
                   <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
                   <span>{formatShopMoney(locale, order.subtotal, order.currency as ShopCurrencyCode)}</span>
@@ -128,7 +160,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
 
             <section>
               <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Інформація про доставку' : 'Shipping Info'}</h2>
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
                 {order.shippingAddress && order.shippingAddress.line1 ? (
                   <>
                     <p className="text-white/80 font-medium mb-1">{order.shippingAddress.name}</p>
@@ -143,6 +175,42 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
                 )}
               </div>
             </section>
+
+            {order.ttnNumber ? (
+              <section>
+                <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">
+                  {isUa ? 'Відстеження' : 'Tracking'}
+                </h2>
+                <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-2">
+                    {isUa ? 'Номер ТТН' : 'Tracking number'}
+                  </p>
+                  <p className="font-mono text-base text-white/85 break-all">{order.ttnNumber}</p>
+                  {(() => {
+                    const url = buildTrackingUrl(order.ttnNumber!);
+                    if (!url) {
+                      return (
+                        <p className="mt-3 text-xs text-white/45">
+                          {isUa
+                            ? 'Скопіюйте номер і відстежте на сайті перевізника.'
+                            : 'Copy the number and track on the carrier website.'}
+                        </p>
+                      );
+                    }
+                    return (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-[#c29d59] transition hover:text-white"
+                      >
+                        {isUa ? 'Відстежити на Новій Пошті' : 'Track on Nova Poshta'} →
+                      </a>
+                    );
+                  })()}
+                </div>
+              </section>
+            ) : null}
           </aside>
         </div>
       </div>

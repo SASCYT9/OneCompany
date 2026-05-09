@@ -206,11 +206,14 @@ export async function createShopCustomerRegistration(
 }
 
 export async function findCustomerAccountByEmail(prisma: PrismaClient, email: string) {
+  // NOTE: we deliberately do NOT filter on `isActive` here so callers can
+  // distinguish between "no such account" (return null) and "account is
+  // disabled" (return record + customer.isActive === false). Login flow uses
+  // that distinction to surface a specific error code.
   return prisma.shopCustomerAccount.findFirst({
     where: {
       customer: {
         email: normalizeCustomerEmail(email),
-        isActive: true,
       },
     },
     include: {
@@ -223,18 +226,38 @@ function hashPasswordSetupToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+/**
+ * Resolves the absolute base URL for outbound emails (password setup, reset).
+ * Order:
+ * 1. Explicit `NEXT_PUBLIC_SITE_URL` (production canonical, e.g. https://onecompany.global)
+ * 2. `VERCEL_URL` for preview deployments (returned without protocol — we add https://)
+ * 3. Fallback to onecompany.global so we never send a relative URL that
+ *    Gmail/Outlook will mangle into `http:///path`.
+ */
+function resolveOutboundBaseUrl(): string {
+  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  if (explicit) return explicit;
+  const vercelHost = (process.env.VERCEL_URL || '').trim().replace(/\/$/, '');
+  if (vercelHost) {
+    return vercelHost.startsWith('http') ? vercelHost : `https://${vercelHost}`;
+  }
+  return 'https://onecompany.global';
+}
+
 export async function createShopCustomerPasswordSetup(
   prisma: PrismaClient,
   input: {
     customerId: string;
     preferredLocale?: string | null;
+    /** Optional override (e.g. derived from request headers) */
+    baseUrl?: string;
   }
 ) {
   const rawToken = crypto.randomBytes(24).toString('base64url');
   const tokenHash = hashPasswordSetupToken(rawToken);
   const expiresAt = new Date(Date.now() + PASSWORD_SETUP_TTL_MS);
   const locale = String(input.preferredLocale ?? '').trim() === 'ua' ? 'ua' : 'en';
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  const baseUrl = (input.baseUrl ?? resolveOutboundBaseUrl()).trim().replace(/\/$/, '');
   const path = `/${locale}/shop/account/setup-password?token=${encodeURIComponent(rawToken)}`;
 
   await prisma.shopCustomerPasswordSetupToken.upsert({
@@ -251,7 +274,7 @@ export async function createShopCustomerPasswordSetup(
   });
 
   return {
-    url: baseUrl ? `${baseUrl}${path}` : path,
+    url: `${baseUrl}${path}`,
     expiresAt,
   };
 }
@@ -374,6 +397,20 @@ export async function approveCustomerB2B(prisma: PrismaClient, customerId: strin
   });
 }
 
+export async function archiveShopCustomer(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomer.update({
+    where: { id: customerId },
+    data: { archivedAt: new Date(), isActive: false },
+  });
+}
+
+export async function restoreShopCustomer(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomer.update({
+    where: { id: customerId },
+    data: { archivedAt: null, isActive: true },
+  });
+}
+
 export async function revertCustomerToB2C(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomer.update({
     where: { id: customerId },
@@ -437,6 +474,127 @@ export async function upsertCustomerDefaultShippingAddress(
       isDefaultShipping: true,
     },
   });
+}
+
+/**
+ * Address CRUD helpers used by both `/shop/account/addresses` cabinet page
+ * and `/admin/shop/customers` admin detail. All accept `customerId` as a
+ * mandatory ownership guard — never expose by id alone.
+ */
+
+type AddressInput = {
+  label?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  region?: string | null;
+  postcode?: string | null;
+  country: string;
+  isDefaultShipping?: boolean;
+  isDefaultBilling?: boolean;
+};
+
+function sanitizeAddressInput(input: AddressInput) {
+  const line1 = String(input.line1 ?? '').trim();
+  const city = String(input.city ?? '').trim();
+  const country = String(input.country ?? '').trim();
+  if (!line1 || !city || !country) {
+    throw new Error('ADDRESS_MISSING_REQUIRED_FIELDS');
+  }
+  return {
+    label: nullableString(input.label) ?? 'Shipping',
+    line1,
+    line2: nullableString(input.line2),
+    city,
+    region: nullableString(input.region),
+    postcode: nullableString(input.postcode),
+    country,
+    isDefaultShipping: Boolean(input.isDefaultShipping),
+    isDefaultBilling: Boolean(input.isDefaultBilling),
+  };
+}
+
+export async function listShopCustomerAddresses(prisma: PrismaClient, customerId: string) {
+  return prisma.shopCustomerAddress.findMany({
+    where: { customerId },
+    orderBy: [{ isDefaultShipping: 'desc' }, { isDefaultBilling: 'desc' }, { createdAt: 'asc' }],
+  });
+}
+
+export async function createShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  input: AddressInput,
+) {
+  const data = sanitizeAddressInput(input);
+
+  return prisma.$transaction(async (tx) => {
+    if (data.isDefaultShipping) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultShipping: true },
+        data: { isDefaultShipping: false },
+      });
+    }
+    if (data.isDefaultBilling) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultBilling: true },
+        data: { isDefaultBilling: false },
+      });
+    }
+    return tx.shopCustomerAddress.create({
+      data: { customerId, ...data },
+    });
+  });
+}
+
+export async function updateShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  addressId: string,
+  input: AddressInput,
+) {
+  const owned = await prisma.shopCustomerAddress.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true },
+  });
+  if (!owned) {
+    throw new Error('ADDRESS_NOT_FOUND');
+  }
+  const data = sanitizeAddressInput(input);
+
+  return prisma.$transaction(async (tx) => {
+    if (data.isDefaultShipping) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultShipping: true, NOT: { id: addressId } },
+        data: { isDefaultShipping: false },
+      });
+    }
+    if (data.isDefaultBilling) {
+      await tx.shopCustomerAddress.updateMany({
+        where: { customerId, isDefaultBilling: true, NOT: { id: addressId } },
+        data: { isDefaultBilling: false },
+      });
+    }
+    return tx.shopCustomerAddress.update({
+      where: { id: addressId },
+      data,
+    });
+  });
+}
+
+export async function deleteShopCustomerAddress(
+  prisma: PrismaClient,
+  customerId: string,
+  addressId: string,
+) {
+  const owned = await prisma.shopCustomerAddress.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true },
+  });
+  if (!owned) {
+    throw new Error('ADDRESS_NOT_FOUND');
+  }
+  await prisma.shopCustomerAddress.delete({ where: { id: addressId } });
 }
 
 function serializeAddress(address: {

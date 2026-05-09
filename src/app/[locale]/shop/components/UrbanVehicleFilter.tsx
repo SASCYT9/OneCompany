@@ -45,11 +45,7 @@ type FacetItem = {
 const PAGE_SIZE = 24;
 
 function normalizeSearchValue(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[ʼ'’]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.toLowerCase().replace(/[ʼ'’]/g, "").replace(/\s+/g, " ").trim();
 }
 
 type PremiumComboboxOption = {
@@ -105,8 +101,6 @@ const FAMILY_LABELS: Record<
   },
 };
 
-
-
 function computePricesFromEur(
   price: ShopProduct["price"],
   rates: { EUR: number; USD: number; UAH?: number } | null
@@ -156,7 +150,10 @@ function formatDisplayPrice(
   return formatShopMoney(locale, price.uah, "UAH");
 }
 
-function displayAmount(currency: ShopCurrencyCode, price: { eur: number; usd: number; uah: number }) {
+function displayAmount(
+  currency: ShopCurrencyCode,
+  price: { eur: number; usd: number; uah: number }
+) {
   if (currency === "USD") return price.usd;
   if (currency === "EUR") return price.eur;
   return price.uah;
@@ -209,20 +206,26 @@ function PremiumCombobox({
         className={`flex min-h-[58px] w-full items-center justify-between gap-4 rounded-[10px] px-4 py-3 text-left transition duration-300 ${
           open
             ? "bg-white/[0.07] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] backdrop-blur-md"
-            : "bg-transparent hover:bg-white/[0.04]"
+            : "bg-transparent hover:bg-white/4"
         }`}
       >
         <span className="min-w-0">
-          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-white/40">{label}</span>
-          <span className={`mt-0.5 block truncate text-[14px] font-medium ${selectedOption ? "text-white" : "text-white/60"}`}>
+          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-white/40">
+            {label}
+          </span>
+          <span
+            className={`mt-0.5 block truncate text-[14px] font-medium ${selectedOption ? "text-white" : "text-white/60"}`}
+          >
             {selectedOption?.label ?? placeholder}
           </span>
         </span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-white/45 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-white/45 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[14px] border border-white/12 bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-70 overflow-hidden rounded-[14px] border border-white/12 bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
           <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
             <button
               type="button"
@@ -232,8 +235,8 @@ function PremiumCombobox({
               }}
               className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                 value === "all"
-                  ? "bg-white/[0.08] text-white"
-                  : "text-white/72 hover:bg-white/[0.04] hover:text-white"
+                  ? "bg-white/8 text-white"
+                  : "text-white/72 hover:bg-white/4 hover:text-white"
               }`}
             >
               {allLabel}
@@ -243,7 +246,9 @@ function PremiumCombobox({
               groups.map((group) => (
                 <div key={group.label ?? "group"} className="mt-2">
                   {group.label ? (
-                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/28">{group.label}</p>
+                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/28">
+                      {group.label}
+                    </p>
                   ) : null}
                   <div className="space-y-1">
                     {group.options.map((option) => (
@@ -256,8 +261,8 @@ function PremiumCombobox({
                         }}
                         className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                           value === option.value
-                            ? "bg-white/[0.08] text-white"
-                            : "text-white/72 hover:bg-white/[0.04] hover:text-white"
+                            ? "bg-white/8 text-white"
+                            : "text-white/72 hover:bg-white/4 hover:text-white"
                         }`}
                       >
                         {option.label}
@@ -311,7 +316,11 @@ function ProductCard({
   const hasPrice = currentAmount > 0;
   const canOrder = hasPrice && !pricing.requestQuote;
   const productUrl = buildShopProductPath(locale, entry.product);
-  const productImage = resolveUrbanProductImage(entry.product.image, entry.modelHandles, entry.product.slug);
+  const productImage = resolveUrbanProductImage(
+    entry.product.image,
+    entry.modelHandles,
+    entry.product.slug
+  );
 
   const availability =
     entry.product.stock === "inStock"
@@ -328,7 +337,7 @@ function ProductCard({
         featured ? "border-white/18 bg-[#0b0b0b]" : "border-white/10 bg-white/[0.018]"
       } shadow-[0_18px_56px_rgba(0,0,0,0.24)] transition duration-500 hover:-translate-y-1 hover:border-white/28 hover:bg-white/[0.035] hover:shadow-[0_26px_72px_rgba(0,0,0,0.62)]`}
     >
-      <div className="relative aspect-[16/11] overflow-hidden border-b border-white/10 bg-[#050505]">
+      <div className="relative aspect-16/11 overflow-hidden border-b border-white/10 bg-[#050505]">
         <Image
           src={productImage}
           alt={entry.title}
@@ -336,7 +345,7 @@ function ProductCard({
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
           className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {featured ? (
             <span className="border border-white/20 bg-black/45 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/82 backdrop-blur-md">
@@ -392,9 +401,7 @@ function ProductCard({
             {SHOW_STOCK_BADGE ? (
               <span
                 className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                  entry.product.stock === "inStock"
-                    ? "text-white/58"
-                    : "text-white/45"
+                  entry.product.stock === "inStock" ? "text-white/58" : "text-white/45"
                 }`}
               >
                 {availability}
@@ -423,7 +430,7 @@ function ProductCard({
             ) : (
               <Link
                 href={`/${locale}/contact`}
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/18 bg-white/[0.04] px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/78 transition hover:border-white/32 hover:bg-white/[0.07]"
+                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/18 bg-white/4 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/78 transition hover:border-white/32 hover:bg-white/[0.07]"
               >
                 {isUa ? "Запитати комплект" : "Request"}
               </Link>
@@ -457,9 +464,7 @@ export default function UrbanVehicleFilter({
   }, []);
 
   const displayCurrency = mounted ? currency : "UAH";
-  const displayRates = mounted
-    ? rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
-    : null;
+  const displayRates = mounted ? rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH } : null;
 
   const enrichedProducts = useMemo<EnrichedUrbanProduct[]>(() => {
     return buildUrbanCatalogEntries({
@@ -718,7 +723,8 @@ export default function UrbanVehicleFilter({
   }, [enrichedProducts]);
 
   const currentBrandLabel = activeBrand === "all" ? null : activeBrand;
-  const currentModelLabel = activeModel === "all" ? null : modelLabelByHandle.get(activeModel) ?? null;
+  const currentModelLabel =
+    activeModel === "all" ? null : (modelLabelByHandle.get(activeModel) ?? null);
   const currentCategoryLabel = activeCategory === "all" ? null : activeCategory;
   const hasActiveFilters =
     activeBrand !== "all" ||
@@ -813,18 +819,18 @@ export default function UrbanVehicleFilter({
         <div className="relative z-50 mb-12 rounded-[16px] border border-white/10 bg-[#070707]/78 p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.34)]">
           <div className="mb-3">
             <label className="relative block">
-              <span className="sr-only">{isUa ? "Пошук по каталогу Urban" : "Search Urban catalog"}</span>
+              <span className="sr-only">
+                {isUa ? "Пошук по каталогу Urban" : "Search Urban catalog"}
+              </span>
               <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder={
-                  isUa
-                    ? "Пошук за моделлю, деталлю або SKU"
-                    : "Search by model, part, or SKU"
+                  isUa ? "Пошук за моделлю, деталлю або SKU" : "Search by model, part, or SKU"
                 }
-                className="min-h-[58px] w-full rounded-[10px] border border-white/10 bg-black/30 px-12 pr-5 text-sm text-white outline-none transition placeholder:text-white/32 focus:border-white/25 focus:bg-black/45"
+                className="min-h-[58px] w-full rounded-[10px] border border-white/10 bg-black/30 px-12 pr-5 text-sm text-white outline-hidden transition placeholder:text-white/32 focus:border-white/25 focus:bg-black/45"
               />
             </label>
           </div>
@@ -865,7 +871,7 @@ export default function UrbanVehicleFilter({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="flex min-h-[60px] items-center justify-center gap-2 rounded-[16px] bg-white/[0.02] px-6 text-xs font-semibold uppercase tracking-[0.1em] text-white/50 transition duration-300 hover:bg-[#c29d59]/15 hover:text-[#ead29d] hover:shadow-[0_0_20px_rgba(194,157,89,0.15)]"
+                className="flex min-h-[60px] items-center justify-center gap-2 rounded-[16px] bg-white/2 px-6 text-xs font-semibold uppercase tracking-widest text-white/50 transition duration-300 hover:bg-[#c29d59]/15 hover:text-[#ead29d] hover:shadow-[0_0_20px_rgba(194,157,89,0.15)]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span className="hidden xl:block">{isUa ? "Скинути" : "Reset"}</span>
@@ -879,7 +885,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="inline-flex items-center gap-2 rounded-[999px] border border-white/14 bg-white/[0.04] px-3 py-1.5 text-xs text-white/72 transition hover:border-white/25 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-[999px] border border-white/14 bg-white/4 px-3 py-1.5 text-xs text-white/72 transition hover:border-white/25 hover:text-white"
                 >
                   <span>{searchQuery.trim()}</span>
                   <X className="h-3 w-3" />
@@ -889,7 +895,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveBrand("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
                 >
                   <span>{currentBrandLabel}</span>
                   <X className="h-3 w-3" />
@@ -899,7 +905,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveModel("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
                 >
                   <span>{currentModelLabel}</span>
                   <X className="h-3 w-3" />
@@ -909,9 +915,11 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveFamily("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
                 >
-                  <span>{isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}</span>
+                  <span>
+                    {isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}
+                  </span>
                   <X className="h-3 w-3" />
                 </button>
               ) : null}
@@ -919,7 +927,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveCategory("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
                 >
                   <span>{currentCategoryLabel}</span>
                   <X className="h-3 w-3" />
@@ -930,7 +938,7 @@ export default function UrbanVehicleFilter({
         </div>
 
         {filteredProducts.length === 0 ? (
-          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.03] p-8 text-center">
+          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/3 p-8 text-center">
             <h3 className="text-2xl font-semibold text-white">
               {isUa ? "Нічого не знайдено" : "No matching products"}
             </h3>
@@ -950,7 +958,8 @@ export default function UrbanVehicleFilter({
                   {isUa ? "Програми" : "Programmes"}
                 </h3>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
-                  {featuredBodykits.length} / {filteredProducts.filter((entry) => entry.family === "bodykits").length}
+                  {featuredBodykits.length} /{" "}
+                  {filteredProducts.filter((entry) => entry.family === "bodykits").length}
                 </span>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -975,7 +984,8 @@ export default function UrbanVehicleFilter({
                     {isUa ? "Компоненти" : "Components"}
                   </h3>
                   <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
-                    {componentProducts.length} / {filteredProducts.filter((entry) => entry.family !== "bodykits").length}
+                    {componentProducts.length} /{" "}
+                    {filteredProducts.filter((entry) => entry.family !== "bodykits").length}
                   </span>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

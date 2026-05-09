@@ -573,6 +573,8 @@ model ShopCustomer {
   vatNumber          String?
   group              CustomerGroup                   @default(B2C)
   isActive           Boolean                         @default(true)
+  /// Soft-delete: when set, customer is hidden from default lists and blocked from login.
+  archivedAt         DateTime?
   notes              String?
   preferredLocale    String                          @default("en")
   createdAt          DateTime                        @default(now())
@@ -584,9 +586,29 @@ model ShopCustomer {
   addresses          ShopCustomerAddress[]
   orders             ShopOrder[]
   credits            ShopCustomerCredit[]
+  brandDiscounts     ShopCustomerBrandDiscount[]
 
   @@index([group, isActive])
   @@index([createdAt])
+  @@index([archivedAt])
+}
+
+/// Per-customer per-brand discount override. When a row exists for a customer
+/// and brand, `resolveEffectiveDiscountPercent` uses this percentage instead
+/// of the global `ShopCustomer.b2bDiscountPercent`.
+model ShopCustomerBrandDiscount {
+  id          String       @id @default(cuid())
+  customerId  String
+  brand       String
+  discountPct Decimal      @db.Decimal(5, 2)
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  customer    ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, brand])
+  @@index([customerId])
+  @@index([brand])
 }
 
 model ShopCustomerAccount {

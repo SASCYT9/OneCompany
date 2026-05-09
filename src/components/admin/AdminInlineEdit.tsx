@@ -1,17 +1,11 @@
-'use client';
+"use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
-import { motion } from 'framer-motion';
-import { Check, Loader2, X } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Check, Loader2, X } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * Inline-editable cell. Click → popover with input/select → Enter saves, Esc cancels.
@@ -35,7 +29,7 @@ type Editable<TValue> = {
    ════════════════════════════════════════════════════ */
 
 type InlineSelectProps<T extends string> = Editable<T> & {
-  options: Array<{ value: T; label: string; tone?: 'default' | 'success' | 'warning' | 'danger' }>;
+  options: Array<{ value: T; label: string; tone?: "default" | "success" | "warning" | "danger" }>;
   placeholder?: string;
 };
 
@@ -57,21 +51,21 @@ export function AdminInlineSelect<T extends string>({
     function onClick(e: MouseEvent) {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
   // Escape closes
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent | globalThis.KeyboardEvent) {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         e.preventDefault();
         setOpen(false);
       }
     }
-    window.addEventListener('keydown', onKey as never);
-    return () => window.removeEventListener('keydown', onKey as never);
+    window.addEventListener("keydown", onKey as never);
+    return () => window.removeEventListener("keydown", onKey as never);
   }, [open]);
 
   async function handlePick(next: T) {
@@ -100,7 +94,7 @@ export function AdminInlineSelect<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
+          "group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/6 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40",
           className
         )}
         aria-haspopup="listbox"
@@ -110,7 +104,10 @@ export function AdminInlineSelect<T extends string>({
         {saving ? (
           <Loader2 className="h-3 w-3 motion-safe:animate-spin text-blue-400" aria-hidden="true" />
         ) : (
-          <span className="h-3 w-3 rounded-full bg-white/[0.04] opacity-0 transition group-hover:opacity-100" aria-hidden="true">
+          <span
+            className="h-3 w-3 rounded-full bg-white/4 opacity-0 transition group-hover:opacity-100"
+            aria-hidden="true"
+          >
             <span className="block h-full w-full rounded-full bg-blue-400/40" />
           </span>
         )}
@@ -121,7 +118,7 @@ export function AdminInlineSelect<T extends string>({
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.12 }}
-          className="absolute left-0 top-full z-30 mt-1.5 min-w-[180px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+          className="absolute left-0 top-full z-30 mt-1.5 min-w-[180px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
           role="listbox"
         >
           {options.map((opt) => {
@@ -135,10 +132,10 @@ export function AdminInlineSelect<T extends string>({
                 onClick={() => void handlePick(opt.value)}
                 disabled={saving}
                 className={cn(
-                  'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition',
-                  'hover:bg-white/[0.04]',
-                  isCurrent ? 'bg-blue-500/[0.08] text-blue-300' : 'text-zinc-200',
-                  saving && 'opacity-50'
+                  "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition",
+                  "hover:bg-white/4",
+                  isCurrent ? "bg-blue-500/8 text-blue-300" : "text-zinc-200",
+                  saving && "opacity-50"
                 )}
               >
                 {isCurrent ? (
@@ -247,12 +244,15 @@ export function AdminInlineNumber({
         type="button"
         onClick={() => setEditing(true)}
         className={cn(
-          'group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
+          "group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/6 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40",
           className
         )}
       >
         <span className="tabular-nums">{display ?? format?.(value) ?? value}</span>
-        <span className="h-2 w-2 rounded-full bg-blue-400/40 opacity-0 transition group-hover:opacity-100" aria-hidden="true" />
+        <span
+          className="h-2 w-2 rounded-full bg-blue-400/40 opacity-0 transition group-hover:opacity-100"
+          aria-hidden="true"
+        />
       </button>
     );
   }
@@ -269,17 +269,17 @@ export function AdminInlineNumber({
         max={max}
         step={step}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === "Enter") {
             e.preventDefault();
             void commit();
-          } else if (e.key === 'Escape') {
+          } else if (e.key === "Escape") {
             e.preventDefault();
             cancel();
           }
         }}
         onBlur={() => void commit()}
         disabled={saving}
-        className="w-16 bg-transparent text-sm tabular-nums text-zinc-100 focus:outline-none disabled:opacity-50"
+        className="w-16 bg-transparent text-sm tabular-nums text-zinc-100 focus:outline-hidden disabled:opacity-50"
       />
       {suffix ? <span className="text-xs text-zinc-500">{suffix}</span> : null}
       {saving ? (
@@ -289,7 +289,7 @@ export function AdminInlineNumber({
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => void commit()}
-          className="rounded-none p-0.5 text-blue-400 hover:bg-blue-500/[0.15]"
+          className="rounded-none p-0.5 text-blue-400 hover:bg-blue-500/15"
           aria-label="Save"
         >
           <Check className="h-3 w-3" aria-hidden="true" />
@@ -300,7 +300,7 @@ export function AdminInlineNumber({
         onMouseDown={(e) => e.preventDefault()}
         onClick={cancel}
         disabled={saving}
-        className="rounded-none p-0.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
+        className="rounded-none p-0.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
         aria-label="Cancel"
       >
         <X className="h-3 w-3" aria-hidden="true" />

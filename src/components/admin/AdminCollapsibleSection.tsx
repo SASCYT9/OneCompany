@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from "react";
 
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * Shopify-style collapsible card.
@@ -35,18 +35,12 @@ export function AdminCollapsibleSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section
-      id={id}
-      className={cn(
-        'scroll-mt-24 border border-white/[0.05] bg-[#171717]',
-        className
-      )}
-    >
+    <section id={id} className={cn("scroll-mt-24 border border-white/5 bg-[#171717]", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-white/[0.02] md:px-6"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-white/2 md:px-6"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -59,16 +53,14 @@ export function AdminCollapsibleSection({
         </div>
         <ChevronDown
           className={cn(
-            'h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200',
-            open ? 'rotate-180' : 'rotate-0'
+            "h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200",
+            open ? "rotate-180" : "rotate-0"
           )}
           aria-hidden="true"
         />
       </button>
       {open ? (
-        <div className="border-t border-white/[0.05] px-5 py-5 md:px-6 md:py-6">
-          {children}
-        </div>
+        <div className="border-t border-white/5 px-5 py-5 md:px-6 md:py-6">{children}</div>
       ) : null}
     </section>
   );

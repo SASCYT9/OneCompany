@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,8 +24,8 @@ export default function ScrollPinnedAnimation() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: 'top top',
-        end: '+=3000', // Довжина скролу (3000px віртуального скролу)
+        start: "top top",
+        end: "+=3000", // Довжина скролу (3000px віртуального скролу)
         scrub: true, // Прив'язка до скролу
         pin: true, // Прикріплюємо секцію
         anticipatePin: 1,
@@ -37,27 +37,24 @@ export default function ScrollPinnedAnimation() {
     tl.fromTo(
       item1,
       { opacity: 0, scale: 0.8, y: 50 },
-      { opacity: 1, scale: 1, y: 0, duration: 1, ease: 'power2.out' }
-    )
-      .to(item1, { opacity: 0, scale: 1.1, y: -50, duration: 1, ease: 'power2.in' });
+      { opacity: 1, scale: 1, y: 0, duration: 1, ease: "power2.out" }
+    ).to(item1, { opacity: 0, scale: 1.1, y: -50, duration: 1, ease: "power2.in" });
 
     // Анімація Item 2: fade in → fade out
     tl.fromTo(
       item2,
       { opacity: 0, scale: 0.8, y: 50 },
-      { opacity: 1, scale: 1, y: 0, duration: 1, ease: 'power2.out' },
-      '-=0.5' // Перекриття з попередньою анімацією
-    )
-      .to(item2, { opacity: 0, scale: 1.1, y: -50, duration: 1, ease: 'power2.in' });
+      { opacity: 1, scale: 1, y: 0, duration: 1, ease: "power2.out" },
+      "-=0.5" // Перекриття з попередньою анімацією
+    ).to(item2, { opacity: 0, scale: 1.1, y: -50, duration: 1, ease: "power2.in" });
 
     // Анімація Item 3: fade in → fade out
     tl.fromTo(
       item3,
       { opacity: 0, scale: 0.8, y: 50 },
-      { opacity: 1, scale: 1, y: 0, duration: 1, ease: 'power2.out' },
-      '-=0.5'
-    )
-      .to(item3, { opacity: 1, scale: 1, y: 0, duration: 1 }); // Залишається видимим в кінці
+      { opacity: 1, scale: 1, y: 0, duration: 1, ease: "power2.out" },
+      "-=0.5"
+    ).to(item3, { opacity: 1, scale: 1, y: 0, duration: 1 }); // Залишається видимим в кінці
 
     return () => {
       tl.kill();
@@ -68,7 +65,7 @@ export default function ScrollPinnedAnimation() {
   return (
     <div className="w-full">
       {/* Секція ДО (для демонстрації скролу) */}
-      <section className="min-h-screen h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+      <section className="min-h-screen h-screen bg-linear-to-br from-slate-900 to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-6xl font-bold text-white mb-4">Скрольте вниз</h2>
           <p className="text-2xl text-slate-400">↓ Дивіться магію анімації ↓</p>
@@ -81,7 +78,7 @@ export default function ScrollPinnedAnimation() {
         className="relative min-h-screen h-screen bg-black flex items-center justify-center overflow-hidden"
       >
         {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 via-black to-blue-900/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-amber-900/20 via-black to-blue-900/20" />
 
         {/* Animated Items Container */}
         <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -91,7 +88,7 @@ export default function ScrollPinnedAnimation() {
             className="absolute inset-0 flex flex-col items-center justify-center opacity-0"
           >
             <div className="text-9xl mb-8">🔧</div>
-            <h3 className="text-7xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent mb-4">
+            <h3 className="text-7xl font-bold bg-linear-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent mb-4">
               KW Suspension
             </h3>
             <p className="text-3xl text-white/80">Німецька точність підвіски</p>
@@ -117,7 +114,7 @@ export default function ScrollPinnedAnimation() {
             className="absolute inset-0 flex flex-col items-center justify-center opacity-0"
           >
             <div className="text-9xl mb-8">🔥</div>
-            <h3 className="text-7xl font-bold bg-gradient-to-r from-red-400 to-rose-600 bg-clip-text text-transparent mb-4">
+            <h3 className="text-7xl font-bold bg-linear-to-r from-red-400 to-rose-600 bg-clip-text text-transparent mb-4">
               Fi Exhaust
             </h3>
             <p className="text-3xl text-white/80">Титановий звук перемоги</p>
@@ -143,7 +140,7 @@ export default function ScrollPinnedAnimation() {
             className="absolute inset-0 flex flex-col items-center justify-center opacity-0"
           >
             <div className="text-9xl mb-8">💨</div>
-            <h3 className="text-7xl font-bold bg-gradient-to-r from-blue-400 to-cyan-600 bg-clip-text text-transparent mb-4">
+            <h3 className="text-7xl font-bold bg-linear-to-r from-blue-400 to-cyan-600 bg-clip-text text-transparent mb-4">
               Eventuri
             </h3>
             <p className="text-3xl text-white/80">Карбонова інженерія</p>
@@ -171,7 +168,7 @@ export default function ScrollPinnedAnimation() {
       </section>
 
       {/* Секція ПІСЛЯ (для демонстрації скролу) */}
-      <section className="min-h-screen h-screen bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+      <section className="min-h-screen h-screen bg-linear-to-br from-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-6xl font-bold text-white mb-4">Кінець анімації</h2>
           <p className="text-2xl text-slate-400">↑ Прокрутіть назад щоб побачити знову ↑</p>

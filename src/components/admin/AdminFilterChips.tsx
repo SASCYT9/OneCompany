@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export type FilterChip = {
   id: string;
@@ -28,7 +28,7 @@ export function AdminFilterChips({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-2 rounded-none border border-white/[0.05] bg-[#141414] px-3 py-2',
+        "flex flex-wrap items-center gap-2 rounded-none border border-white/5 bg-[#141414] px-3 py-2",
         className
       )}
       role="region"
@@ -44,8 +44,8 @@ export function AdminFilterChips({
           onClick={chip.onRemove}
           data-chip={chip.id}
           className={cn(
-            'group inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] font-medium transition',
-            'hover:bg-white/[0.06]'
+            "group inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] font-medium transition",
+            "hover:bg-white/6"
           )}
           style={
             chip.tintHex
@@ -55,9 +55,9 @@ export function AdminFilterChips({
                   color: chip.tintHex,
                 }
               : {
-                  borderColor: 'rgba(255,255,255,0.08)',
-                  background: 'rgba(255,255,255,0.04)',
-                  color: 'rgb(228, 228, 231)',
+                  borderColor: "rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.04)",
+                  color: "rgb(228, 228, 231)",
                 }
           }
           aria-label={`Видалити фільтр ${chip.label}: ${chip.value}`}
@@ -66,17 +66,14 @@ export function AdminFilterChips({
             {chip.label}
           </span>
           <span className="font-medium">{chip.value}</span>
-          <X
-            className="h-3 w-3 opacity-60 transition group-hover:opacity-100"
-            aria-hidden="true"
-          />
+          <X className="h-3 w-3 opacity-60 transition group-hover:opacity-100" aria-hidden="true" />
         </button>
       ))}
       {onClearAll ? (
         <button
           type="button"
           onClick={onClearAll}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-transparent px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.04] hover:text-zinc-200"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-transparent px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400 transition hover:border-white/20 hover:bg-white/4 hover:text-zinc-200"
           aria-label="Очистити всі активні фільтри"
         >
           Очистити всі

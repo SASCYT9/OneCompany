@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { resolveLocale } from '@/lib/seo';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import {
   extractProductFitment,
   findCrossShopFitmentMatches,
@@ -39,7 +41,13 @@ export default async function IpeProductPage({ params }: Props) {
     getOrCreateShopSettings(prisma),
   ]);
   if (!product) notFound();
-  const rates = getShopSettingsRuntime(settingsRecord).currencyRates;
+  const settings = getShopSettingsRuntime(settingsRecord);
+  const rates = settings.currencyRates;
+  // ISR-cached: anonymous viewer context. Logged-in B2B sees their discount via
+  // `useShopViewerContext` on the client side; this ensures the price band
+  // component still has a valid baseline pricing object on initial paint.
+  const viewerContext = buildShopViewerPricingContext(settings, null, false, null);
+  const pricing = resolveShopProductPricing(product, viewerContext);
 
   const crossShopFitment =
     !isExcludedFromCrossShop(product) ? extractProductFitment(product) : null;
@@ -58,6 +66,7 @@ export default async function IpeProductPage({ params }: Props) {
         locale={resolvedLocale}
         resolvedLocale={resolvedLocale}
         product={product}
+        pricing={pricing}
       />
       {crossShopFitment && crossShopGroups.length > 0 ? (
         <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">

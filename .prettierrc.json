@@ -13,7 +13,6 @@
   "jsxSingleQuote": false,
   "quoteProps": "as-needed",
   "embeddedLanguageFormatting": "auto",
-  "plugins": ["prettier-plugin-tailwindcss"],
   "overrides": [
     {
       "files": ["*.md", "*.mdx"],

@@ -406,7 +406,7 @@ export default function AkrapovicVehicleFilter({
       <div className={`max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 ${filterOnly ? "pb-8 pt-4" : "pb-20 pt-4"}`}>
 
         {/* ═══ DESKTOP: Horizontal top filter bar ═══ */}
-        <div className="hidden lg:flex flex-col gap-4 mb-8 bg-[#050505]/70 backdrop-blur-md border border-white/[0.04] rounded-2xl p-5 shadow-2xl">
+        <div className="hidden lg:flex flex-col gap-4 mb-8 bg-[#050505]/70 backdrop-blur-md border border-white/4 rounded-2xl p-5 shadow-2xl">
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-light tracking-widest uppercase whitespace-nowrap">
@@ -465,10 +465,10 @@ export default function AkrapovicVehicleFilter({
         </div>
 
         {/* ═══ MOBILE: Burger button + sort ═══ */}
-        <div className="lg:hidden sticky top-[72px] z-30 -mx-3 mb-5 flex items-center justify-between gap-3 border-y border-white/[0.06] bg-black/75 px-3 py-3 backdrop-blur-xl">
+        <div className="lg:hidden sticky top-[72px] z-30 -mx-3 mb-5 flex items-center justify-between gap-3 border-y border-white/6 bg-black/75 px-3 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button type="button" onClick={toggleMobileFilter}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-lg text-white text-[10px] uppercase tracking-[0.15em] font-semibold hover:border-[#e50000]/40 transition-colors shadow-xl">
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#050505]/80 backdrop-blur-md border border-white/8 rounded-lg text-white text-[10px] uppercase tracking-[0.15em] font-semibold hover:border-[#e50000]/40 transition-colors shadow-xl">
               <SlidersHorizontal size={13} />
               {isUa ? "Фільтри" : "Filters"}
               {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-[#e50000] ml-1" />}
@@ -494,7 +494,7 @@ export default function AkrapovicVehicleFilter({
 
         {/* ═══ MOBILE: Drawer overlay ═══ */}
         {mobileFilterOpen && <div className="lg:hidden fixed inset-0 z-40 bg-black/60" onClick={closeMobileFilter} />}
-        <div className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] bg-[#050505] border-r border-white/[0.08] shadow-2xl transform transition-transform duration-300 ${mobileFilterOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] bg-[#050505] border-r border-white/8 shadow-2xl transform transition-transform duration-300 ${mobileFilterOpen ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="flex flex-col gap-5 h-full overflow-y-auto px-5 py-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-light tracking-widest uppercase">{isUa ? "Фільтри" : "Filters"}</h2>
@@ -565,9 +565,9 @@ export default function AkrapovicVehicleFilter({
                             : null;
               const productTitle = localizeShopProductTitle(locale, product);
               return (
-                <article key={product.slug} className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl">
-                  <Link href={`${productPathPrefix}/${product.slug}`} className="flex flex-col flex-grow z-10">
-                    <div className="relative aspect-[1/1] sm:aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/[0.02]">
+                <article key={product.slug} className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/4 shadow-2xl">
+                  <Link href={`${productPathPrefix}/${product.slug}`} className="flex flex-col grow z-10">
+                    <div className="relative aspect-square sm:aspect-4/3 bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/2">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(229,0,0,0.1)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                       {(product.image && product.image.length > 5) ? (
                         <Image
@@ -589,7 +589,7 @@ export default function AkrapovicVehicleFilter({
                         className={`absolute inset-0 w-full h-full object-contain p-4 sm:p-8 opacity-30 fallback-img ${(product.image && product.image.length > 5) ? 'hidden' : 'block'}`}
                       />
                     </div>
-                    <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col flex-grow">
+                    <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col grow">
                       <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#e50000] mb-1.5">{product.brand}</p>
                       <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">{productTitle}</h3>
                       <div className="mt-auto">
@@ -602,16 +602,16 @@ export default function AkrapovicVehicleFilter({
                         )}
                       </div>
                     </div>
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#e50000] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                    <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#e50000] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                   </Link>
                   <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
                     <Link href={`${productPathPrefix}/${product.slug}`}
-                      className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#e50000]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#e50000] hover:text-white hover:bg-[#e50000] hover:border-[#e50000] transition-all duration-300">
+                      className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-white/15 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-white/85 hover:text-white hover:border-white/40 hover:bg-white/6 transition-all duration-300">
                       {isUa ? "Деталі" : "View"} <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                     </Link>
                     <AddToCartButton slug={product.slug} variantId={null} locale={locale} redirect={true} productName={productTitle}
-                      label={isUa ? "КОШИК" : "CART"} labelAdded={isUa ? "✓" : "✓"}
-                      className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                      label={isUa ? "В кошик" : "Add to cart"} labelAdded={isUa ? "У кошику ✓" : "In cart ✓"}
+                      className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-[#e50000] text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-white bg-[#e50000]/90 hover:bg-[#e50000] transition-all duration-300"
                       variant="inline" />
                   </div>
                 </article>

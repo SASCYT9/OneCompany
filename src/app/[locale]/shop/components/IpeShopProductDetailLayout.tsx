@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
+import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -13,11 +14,13 @@ import {
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { SupportedLocale } from "@/lib/seo";
+import type { ShopResolvedPricing } from "@/lib/shopPricingAudience";
 
 type Props = {
   locale: string;
   resolvedLocale: SupportedLocale;
   product: ShopProduct;
+  pricing?: ShopResolvedPricing;
 };
 
 // Render-time UA-copy normalizer. Mirrors the import-side `sanitizeIpeUaCopy`
@@ -310,7 +313,7 @@ function variantMatches(variant: ShopProductVariantSummary, selected: string[]):
   return true;
 }
 
-export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: Props) {
+export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pricing }: Props) {
   const isUa = resolvedLocale === "ua";
   const variants = product.variants ?? [];
   const optionAxes = useMemo(() => buildOptionAxes(variants), [variants]);
@@ -548,6 +551,11 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
               price={{ eur: priceEur, usd: priceUsd, uah: priceUah }}
             />
           </div>
+          {pricing ? (
+            <div className="ipe-pdp__b2b">
+              <ShopB2BPricingBand pricing={pricing} locale={locale as any} />
+            </div>
+          ) : null}
           {currentVariant && /catback|cat\s*back/i.test((currentVariant.optionValues ?? []).join(" ")) ? (
             <div className="ipe-pdp__price-note">
               {isUa ? "Ціна за Cat-back систему" : "Price for cat-back system"}
