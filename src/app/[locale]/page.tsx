@@ -209,9 +209,11 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Gradient overlay for text readability — black veil on dark
-                      photos, soft cream veil on light photos */}
-                  <div className="absolute inset-0 bg-linear-to-t from-card/70 via-card/20 to-transparent dark:from-black/70 dark:via-black/20" />
+                  {/* Gradient overlay for text readability. Dark theme: black
+                      veil over the obsidian photo. Light theme: dark veil
+                      (foreground at 40-15%) over the cream photo so the
+                      dark text/pill reads with proper contrast. */}
+                  <div className="absolute inset-0 bg-linear-to-t from-foreground/40 via-foreground/15 to-transparent dark:from-black/70 dark:via-black/20" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
