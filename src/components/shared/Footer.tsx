@@ -115,6 +115,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           <div className="lg:col-span-4 space-y-6">
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
               <Logo tone="light" className="w-40 mx-auto lg:mx-0" />
+              {/* Footer is force-dark, logo stays light */}
             </Link>
             <p
               className={`leading-relaxed text-foreground/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}

@@ -54,12 +54,9 @@ export function HeroVideoWrapper({
 
   return (
     <>
-      {/* Hero video / dark ambient is part of the dark luxury aesthetic.
-          Hide entirely on light theme — it would otherwise cover the cream
-          body with a black layer and overlay. */}
-      <div className="fixed inset-0 z-0 w-full h-full pointer-events-none hidden dark:block">
-        {/* Base background */}
-        <div className="absolute inset-0 bg-black" />
+      <div className="fixed inset-0 z-0 w-full h-full pointer-events-none">
+        {/* Base background — theme-aware so we don't paint black on cream */}
+        <div className="absolute inset-0 bg-background" />
 
         {/* Poster image as fallback */}
         {poster && (
@@ -93,8 +90,8 @@ export function HeroVideoWrapper({
           </video>
         )}
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+        {/* Overlay — strong dark veil on dark theme, soft cream veil on light */}
+        <div className="absolute inset-0 bg-background/60 dark:bg-black/60 pointer-events-none" />
       </div>
       {!serverEnabled && (
         <div className="fixed top-4 right-4 z-40 rounded-md bg-zinc-900/80 text-white px-3 py-1 text-xs">

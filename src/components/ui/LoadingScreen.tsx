@@ -47,7 +47,7 @@ export default function LoadingScreen() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative"
           >
-            <Logo tone="light" className="w-48 sm:w-64" priority />
+            <Logo tone="auto" className="w-48 sm:w-64" priority />
             <motion.div
               className="absolute -bottom-8 left-0 right-0 h-0.5 bg-foreground/20 rounded-full overflow-hidden"
               initial={{ opacity: 0 }}
