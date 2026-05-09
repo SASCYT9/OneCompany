@@ -102,6 +102,33 @@ tmp/
 .claude/worktrees/
 scripts/_check_*.mjs
 
+# Root-level junk patterns — keep the project root clean.
+# One-off / scratch artifacts belong in archive/ (committed) or .tmp/ (ignored).
+/test-*.js
+/test-*.ts
+/test*.js
+/testAkr*.js
+/testDb.js
+/testIds.js
+/testStats.js
+/testWholeSite.js
+/script.js
+/script_*.js
+/tmp_*.js
+/tmp_*.mjs
+/tmp_*.ts
+/tmp-*.json
+/scratch.ts
+/scratch.js
+/in.txt
+/input.txt
+/test.txt
+/vlogs*.txt
+/debug-images.txt
+/*.log
+/.codex-*
+/.tmp-*
+
 # Obsidian vault — share config, ignore per-user UI state and plugin binaries
 wiki/.obsidian/workspace.json
 wiki/.obsidian/workspace-mobile.json

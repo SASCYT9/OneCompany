@@ -1,0 +1,102 @@
+version: 2
+updates:
+  # npm — production runtime + dev tooling
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Kyiv"
+    open-pull-requests-limit: 10
+    versioning-strategy: "increase"
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    groups:
+      next-react:
+        patterns:
+          - "next"
+          - "next-*"
+          - "react"
+          - "react-*"
+          - "@next/*"
+          - "eslint-config-next"
+      three:
+        patterns:
+          - "three"
+          - "three-*"
+          - "@react-three/*"
+          - "@react-spring/*"
+          - "camera-controls"
+          - "maath"
+          - "leva"
+          - "postprocessing"
+      animation:
+        patterns:
+          - "framer-motion"
+          - "gsap"
+          - "@gsap/*"
+          - "animejs"
+          - "@types/animejs"
+          - "@studio-freight/lenis"
+          - "lenis"
+      grammy:
+        patterns:
+          - "grammy"
+          - "@grammyjs/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      types:
+        patterns:
+          - "@types/*"
+      lint-format:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "prettier"
+          - "prettier-*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "tailwindcss-*"
+          - "@tailwindcss/*"
+          - "autoprefixer"
+          - "postcss"
+    ignore:
+      # Pin major bumps for the runtime — review manually
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions — keep workflow actions current
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Kyiv"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"

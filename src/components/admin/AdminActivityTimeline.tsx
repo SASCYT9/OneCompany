@@ -196,7 +196,7 @@ function ActionDetail({ action, metadata }: { action: string; metadata: Record<s
 
   // Note attached
   if (typeof metadata.note === 'string' && metadata.note) {
-    return <div className="mt-1.5 text-xs italic text-zinc-400">"{metadata.note}"</div>;
+    return <div className="mt-1.5 text-xs italic text-zinc-400">&ldquo;{metadata.note}&rdquo;</div>;
   }
 
   // Updates summary

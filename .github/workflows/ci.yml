@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  # Stub values so `prisma generate` and Next config don't fail on missing env.
+  # Real secrets stay in Vercel; CI only validates code shape, not runtime.
+  DATABASE_URL: "postgresql://stub:stub@localhost:5432/stub?schema=public"
+  SKIP_ENV_VALIDATION: "true"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: ESLint
+        run: npm run lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+  prisma:
+    name: Prisma validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Validate schema
+        run: npx prisma validate
+      - name: Format check
+        run: npx prisma format --check || (echo "::warning::prisma schema is not formatted; run 'npx prisma format'" && exit 0)
