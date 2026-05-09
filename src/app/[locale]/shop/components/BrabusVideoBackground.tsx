@@ -10,11 +10,11 @@ type Props = {
   overlayStyle?: "hero" | "collection" | "rocket";
 };
 
-export default function BrabusVideoBackground({ 
-  videoSrc, 
-  fallbackImage, 
+export default function BrabusVideoBackground({
+  videoSrc,
+  fallbackImage,
   className = "",
-  overlayStyle = "hero" 
+  overlayStyle = "hero",
 }: Props) {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -58,10 +58,10 @@ export default function BrabusVideoBackground({
           {/* Bottom gradient for text readability */}
           <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.65)_0%,transparent_40%)]" />
           {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
+          <div className="absolute top-0 left-0 right-0 h-px z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
         </>
       )}
-      
+
       {overlayStyle === "rocket" && (
         <div className="absolute inset-0 z-10 bg-[linear-gradient(105deg,rgba(0,0,0,0.7)_0%,rgba(0,0,0,0.2)_40%,transparent_60%)]" />
       )}
@@ -69,7 +69,7 @@ export default function BrabusVideoBackground({
       {overlayStyle === "collection" && (
         <>
           <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.2)_40%,transparent_100%)]" />
-          <div className="absolute bottom-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
+          <div className="absolute bottom-0 left-0 right-0 h-px z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
         </>
       )}
     </div>

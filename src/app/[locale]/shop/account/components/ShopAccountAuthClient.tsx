@@ -153,7 +153,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-28 sm:px-6">
-        <div className="w-full rounded-[30px] border border-white/10 bg-white/[0.05] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
+        <div className="w-full rounded-[30px] border border-white/10 bg-white/5 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
           <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">{copy.eyebrow}</p>
           <h1 className="mt-4 text-3xl font-light tracking-tight sm:text-4xl">{copy.title}</h1>
           <p className="mt-3 text-sm text-white/55">{copy.subtitle}</p>

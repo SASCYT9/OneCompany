@@ -24,7 +24,15 @@ type BrabusVehicleFilterProps = {
 };
 
 /* ─── Brand display names & order ─── */
-const BRAND_ORDER = ["Mercedes", "Porsche", "Rolls-Royce", "Bentley", "Lamborghini", "Range Rover", "smart"];
+const BRAND_ORDER = [
+  "Mercedes",
+  "Porsche",
+  "Rolls-Royce",
+  "Bentley",
+  "Lamborghini",
+  "Range Rover",
+  "smart",
+];
 const BRAND_LABELS: Record<string, Record<string, string>> = {
   Mercedes: { en: "Mercedes-Benz", ua: "Mercedes-Benz" },
   Porsche: { en: "Porsche", ua: "Porsche" },
@@ -43,7 +51,7 @@ const MODEL_LABELS: Record<string, Record<string, string>> = {
   "CLS-Klasse": { en: "CLS-Class", ua: "CLS-Клас" },
   "E-Klasse": { en: "E-Class", ua: "E-Клас" },
   "EQC-Klasse": { en: "EQC", ua: "EQC" },
-  "EQC": { en: "EQC", ua: "EQC" },
+  EQC: { en: "EQC", ua: "EQC" },
   "EQS-Klasse": { en: "EQS", ua: "EQS" },
   "EQS SUV": { en: "EQS SUV", ua: "EQS SUV" },
   "GLB-Klasse": { en: "GLB-Class", ua: "GLB-Клас" },
@@ -62,7 +70,7 @@ const MODEL_LABELS: Record<string, Record<string, string>> = {
   "Bentley Continental GT Speed": { en: "Continental GT", ua: "Continental GT" },
   "Bentley Continental GTC Speed": { en: "Continental GTC", ua: "Continental GTC" },
   "Lamborghini Urus SE": { en: "Urus", ua: "Urus" },
-  "P530": { en: "P530", ua: "P530" },
+  P530: { en: "P530", ua: "P530" },
   "smart #1": { en: "#1", ua: "#1" },
   "smart #3": { en: "#3", ua: "#3" },
 };
@@ -168,7 +176,6 @@ function isKitProduct(title: string) {
   return KIT_PRIORITY_PATTERN.test(title);
 }
 
-
 export default function BrabusVehicleFilter({
   locale,
   products,
@@ -193,7 +200,6 @@ export default function BrabusVehicleFilter({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-
 
   /* ─── Data derivation ─── */
   const availableBrands = useMemo(() => {
@@ -232,7 +238,8 @@ export default function BrabusVehicleFilter({
     const chassisCount = new Map<string, number>();
     for (const p of products) {
       if (activeBrand !== "all" && !p.tags?.includes(activeBrand)) continue;
-      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel) continue;
+      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel)
+        continue;
       const chassis = resolveBrabusChassisKey(p);
       if (chassis) chassisCount.set(chassis, (chassisCount.get(chassis) || 0) + 1);
     }
@@ -245,7 +252,8 @@ export default function BrabusVehicleFilter({
     const engineCount = new Map<string, number>();
     for (const p of products) {
       if (activeBrand !== "all" && !p.tags?.includes(activeBrand)) continue;
-      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel) continue;
+      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel)
+        continue;
       if (activeChassis !== "all" && resolveBrabusChassisKey(p) !== activeChassis) continue;
       const engine = resolveBrabusEngineKey(p);
       if (engine) engineCount.set(engine, (engineCount.get(engine) || 0) + 1);
@@ -323,7 +331,16 @@ export default function BrabusVehicleFilter({
       return priceB - priceA;
     });
     return result;
-  }, [activeBrand, activeModel, activeChassis, activeEngine, searchQuery, sortOrder, products, MODEL_KEYS_SET]);
+  }, [
+    activeBrand,
+    activeModel,
+    activeChassis,
+    activeEngine,
+    searchQuery,
+    sortOrder,
+    products,
+    MODEL_KEYS_SET,
+  ]);
 
   const totalCount = products.length;
   const hasActiveFilters =
@@ -342,22 +359,26 @@ export default function BrabusVehicleFilter({
   return (
     <section id="catalog" className="bg-transparent text-white min-h-screen relative z-30">
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
-
         {/* ═══ HORIZONTAL FILTER BAR ═══ */}
-        <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0a0a0a] border-y border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-[#111] [&_option]:text-white">
+        <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0a0a0a] border-y border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-[#111] [&_option]:text-white">
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[170px_160px_140px_180px_1fr_140px_auto] items-center gap-3 py-4">
-
             {/* Brand Select */}
             <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Марка" : "Brand"}</label>
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">
+                {isUa ? "Марка" : "Brand"}
+              </label>
               <select
                 value={activeBrand}
                 onChange={(e) => setActiveBrand(e.target.value)}
-                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20"
+                className="appearance-none w-full bg-[#111] border border-white/10 text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20"
               >
-                <option value="all">{isUa ? `Всі марки (${totalCount})` : `All Brands (${totalCount})`}</option>
+                <option value="all">
+                  {isUa ? `Всі марки (${totalCount})` : `All Brands (${totalCount})`}
+                </option>
                 {availableBrands.map((b) => (
-                  <option key={b.key} value={b.key}>{b.label} ({b.count})</option>
+                  <option key={b.key} value={b.key}>
+                    {b.label} ({b.count})
+                  </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
@@ -367,16 +388,20 @@ export default function BrabusVehicleFilter({
 
             {/* Model Select */}
             <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Модель" : "Model"}</label>
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">
+                {isUa ? "Модель" : "Model"}
+              </label>
               <select
                 value={activeModel}
                 onChange={(e) => setActiveModel(e.target.value)}
                 disabled={activeBrand === "all" || availableModels.length === 0}
-                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-[#111] border border-white/10 text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <option value="all">{isUa ? "Всі моделі" : "All Models"}</option>
                 {availableModels.map((m) => (
-                  <option key={m.key} value={m.key}>{m.label} ({m.count})</option>
+                  <option key={m.key} value={m.key}>
+                    {m.label} ({m.count})
+                  </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
@@ -386,16 +411,20 @@ export default function BrabusVehicleFilter({
 
             {/* Chassis Select */}
             <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Кузов" : "Chassis"}</label>
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">
+                {isUa ? "Кузов" : "Chassis"}
+              </label>
               <select
                 value={activeChassis}
                 onChange={(e) => setActiveChassis(e.target.value)}
                 disabled={availableChassis.length === 0}
-                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-[#111] border border-white/10 text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <option value="all">{isUa ? "Усі кузови" : "All Chassis"}</option>
                 {availableChassis.map((c) => (
-                  <option key={c.key} value={c.key}>{c.label} ({c.count})</option>
+                  <option key={c.key} value={c.key}>
+                    {c.label} ({c.count})
+                  </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
@@ -405,16 +434,20 @@ export default function BrabusVehicleFilter({
 
             {/* Engine Select */}
             <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Двигун" : "Engine"}</label>
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">
+                {isUa ? "Двигун" : "Engine"}
+              </label>
               <select
                 value={activeEngine}
                 onChange={(e) => setActiveEngine(e.target.value)}
                 disabled={availableEngines.length === 0}
-                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-[#111] border border-white/10 text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <option value="all">{isUa ? "Усі двигуни" : "All Engines"}</option>
                 {availableEngines.map((e) => (
-                  <option key={e.key} value={e.key}>{e.label} ({e.count})</option>
+                  <option key={e.key} value={e.key}>
+                    {e.label} ({e.count})
+                  </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
@@ -424,13 +457,20 @@ export default function BrabusVehicleFilter({
 
             {/* Search */}
             <div className="relative col-span-2 sm:col-span-4 lg:col-span-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25"
+              />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isUa ? "Пошук: назва, кузов (W 463A), двигун (G 63), артикул..." : "Search: name, chassis (W 463A), engine (G 63), SKU..."}
-                className="w-full bg-[#111] border border-white/[0.10] pl-10 pr-9 py-3 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#c29d59]/50 transition-colors hover:border-white/20"
+                placeholder={
+                  isUa
+                    ? "Пошук: назва, кузов (W 463A), двигун (G 63), артикул..."
+                    : "Search: name, chassis (W 463A), engine (G 63), SKU..."
+                }
+                className="w-full bg-[#111] border border-white/10 pl-10 pr-9 py-3 text-xs text-white placeholder-white/30 focus:outline-hidden focus:border-[#c29d59]/50 transition-colors hover:border-white/20"
               />
               {searchQuery && (
                 <button
@@ -444,11 +484,15 @@ export default function BrabusVehicleFilter({
 
             {/* Sort Select */}
             <div className="relative hidden sm:block">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Сортування" : "Sort"}</label>
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">
+                {isUa ? "Сортування" : "Sort"}
+              </label>
               <select
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20"
+                onChange={(e) =>
+                  setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
+                }
+                className="appearance-none w-full bg-[#111] border border-white/10 text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20"
               >
                 <option value="default">{isUa ? "Популярні" : "Popular"}</option>
                 <option value="price_desc">{isUa ? "Ціна: спадання" : "Price: High → Low"}</option>
@@ -481,17 +525,20 @@ export default function BrabusVehicleFilter({
                 </button>
               )}
             </div>
-
           </div>
 
           {/* Mobile Sort Row (sm only) */}
-          <div className="sm:hidden flex items-center justify-between pb-3 border-t border-white/[0.04] pt-3 -mt-1">
-            <span className="text-[11px] text-white/40 tabular-nums">{filteredProducts.length} / {totalCount}</span>
+          <div className="sm:hidden flex items-center justify-between pb-3 border-t border-white/4 pt-3 -mt-1">
+            <span className="text-[11px] text-white/40 tabular-nums">
+              {filteredProducts.length} / {totalCount}
+            </span>
             <div className="flex items-center gap-3">
               <select
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-                className="appearance-none bg-transparent text-white/60 text-[10px] uppercase tracking-[0.12em] font-medium outline-none cursor-pointer"
+                onChange={(e) =>
+                  setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
+                }
+                className="appearance-none bg-transparent text-white/60 text-[10px] uppercase tracking-[0.12em] font-medium outline-hidden cursor-pointer"
               >
                 <option value="default">{isUa ? "Популярні" : "Popular"}</option>
                 <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
@@ -499,7 +546,14 @@ export default function BrabusVehicleFilter({
               </select>
               {hasActiveFilters && (
                 <button
-                  onClick={() => { setActiveBrand("all"); setActiveModel("all"); setActiveChassis("all"); setActiveEngine("all"); setSearchQuery(""); setSortOrder("default"); }}
+                  onClick={() => {
+                    setActiveBrand("all");
+                    setActiveModel("all");
+                    setActiveChassis("all");
+                    setActiveEngine("all");
+                    setSearchQuery("");
+                    setSortOrder("default");
+                  }}
                   className="text-[10px] uppercase tracking-wider text-white/30 hover:text-white transition-colors"
                 >
                   <X size={12} />
@@ -512,7 +566,7 @@ export default function BrabusVehicleFilter({
         {/* ═══ PRODUCT GRID (Full Width) ═══ */}
         <div className="pt-8">
           {filteredProducts.length === 0 ? (
-            <div className="py-32 text-center bg-black/40 backdrop-blur-sm border border-white/5 rounded-none flex flex-col items-center">
+            <div className="py-32 text-center bg-black/40 backdrop-blur-xs border border-white/5 rounded-none flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
                 <Search className="w-6 h-6 text-white/20" />
               </div>
@@ -542,108 +596,112 @@ export default function BrabusVehicleFilter({
             </div>
           ) : (
             <>
-            <BrabusSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
-              {displayedProducts.map((product) => {
-                const pricing = viewerContext
-                  ? resolveShopProductPricing(product, viewerContext)
-                  : {
-                      effectivePrice: product.price,
-                      effectiveCompareAt: product.compareAt,
-                      audience: "b2c",
-                      b2bVisible: false,
-                    };
-                const computed = computePricesFromEur(
-                  pricing.effectivePrice,
-                  rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
-                );
-                const productTitle = localizeShopProductTitle(locale, product);
-                const productFallbackImage = resolveBrabusFallbackImage(product);
+              <BrabusSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+                {displayedProducts.map((product) => {
+                  const pricing = viewerContext
+                    ? resolveShopProductPricing(product, viewerContext)
+                    : {
+                        effectivePrice: product.price,
+                        effectiveCompareAt: product.compareAt,
+                        audience: "b2c",
+                        b2bVisible: false,
+                      };
+                  const computed = computePricesFromEur(
+                    pricing.effectivePrice,
+                    rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+                  );
+                  const productTitle = localizeShopProductTitle(locale, product);
+                  const productFallbackImage = resolveBrabusFallbackImage(product);
 
-                return (
-                  <article
-                    key={product.slug}
-                    className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl rounded-none"
-                  >
-                    <Link
-                      href={buildShopProductPathBrabus(locale, product)}
-                      className="flex flex-col flex-grow z-10"
+                  return (
+                    <article
+                      key={product.slug}
+                      className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/4 shadow-2xl rounded-none"
                     >
-                      {/* Image */}
-                      <div className="relative aspect-square sm:aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/[0.02]">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                        <ShopProductImage
-                          src={product.image || "/images/placeholders/product-fallback.svg"}
-                          fallbackSrc={productFallbackImage}
-                          alt={productTitle}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-contain p-2 sm:p-4 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
-                        />
-                      </div>
-
-                      {/* Card Body */}
-                      <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col flex-grow">
-                        <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
-                          {product.brand}
-                        </p>
-                        <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">
-                          {productTitle}
-                        </h3>
-                        <div className="mt-auto">
-                          {computed.eur === 0 ? (
-                            <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-white/50">
-                              {isUa ? "Ціна за запитом" : "Price on Request"}
-                            </span>
-                          ) : (
-                            <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-white">
-                              {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
-                              {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
-                              {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Hover top accent */}
-                      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-                    </Link>
-
-                    {/* Actions */}
-                    <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
                       <Link
                         href={buildShopProductPathBrabus(locale, product)}
-                        className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-none"
+                        className="flex flex-col grow z-10"
                       >
-                        {isUa ? "Деталі" : "View"}
-                        <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
+                        {/* Image */}
+                        <div className="relative aspect-square sm:aspect-4/3 bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/2">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                          <ShopProductImage
+                            src={product.image || "/images/placeholders/product-fallback.svg"}
+                            fallbackSrc={productFallbackImage}
+                            alt={productTitle}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            className="object-contain p-2 sm:p-4 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
+                          />
+                        </div>
+
+                        {/* Card Body */}
+                        <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col grow">
+                          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
+                            {product.brand}
+                          </p>
+                          <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">
+                            {productTitle}
+                          </h3>
+                          <div className="mt-auto">
+                            {computed.eur === 0 ? (
+                              <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-white/50">
+                                {isUa ? "Ціна за запитом" : "Price on Request"}
+                              </span>
+                            ) : (
+                              <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-white">
+                                {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                                {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                                {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Hover top accent */}
+                        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                       </Link>
-                      <AddToCartButton
-                        slug={product.slug}
-                        variantId={null}
-                        locale={locale}
-                        redirect={true}
-                        productName={productTitle}
-                        label={isUa ? "КОШИК" : "CART"}
-                        labelAdded={isUa ? "✓" : "✓"}
-                        className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-none"
-                        variant="inline"
-                      />
-                    </div>
-                  </article>
-                );
-              })}
-            </BrabusSpotlightGrid>
-            {visibleCount < filteredProducts.length ? (
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-                  className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
-                >
-                  {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
-                </button>
-              </div>
-            ) : null}
+
+                      {/* Actions */}
+                      <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
+                        <Link
+                          href={buildShopProductPathBrabus(locale, product)}
+                          className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-none"
+                        >
+                          {isUa ? "Деталі" : "View"}
+                          <ArrowRight
+                            size={11}
+                            strokeWidth={2}
+                            className="hidden min-[390px]:block"
+                          />
+                        </Link>
+                        <AddToCartButton
+                          slug={product.slug}
+                          variantId={null}
+                          locale={locale}
+                          redirect={true}
+                          productName={productTitle}
+                          label={isUa ? "КОШИК" : "CART"}
+                          labelAdded={isUa ? "✓" : "✓"}
+                          className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-none"
+                          variant="inline"
+                        />
+                      </div>
+                    </article>
+                  );
+                })}
+              </BrabusSpotlightGrid>
+              {visibleCount < filteredProducts.length ? (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                    className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
+                  >
+                    {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
+                  </button>
+                </div>
+              ) : null}
             </>
           )}
         </div>

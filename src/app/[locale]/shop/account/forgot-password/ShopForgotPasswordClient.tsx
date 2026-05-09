@@ -55,7 +55,7 @@ export default function ShopForgotPasswordClient({ locale }: { locale: Supported
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-md items-center px-6 py-24">
-        <div className="w-full rounded-[28px] border border-white/10 bg-white/[0.04] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="w-full rounded-[28px] border border-white/10 bg-white/4 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
           <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
             {isUa ? 'Акаунт клієнта' : 'Customer account'}
           </p>

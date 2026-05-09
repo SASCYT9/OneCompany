@@ -17,11 +17,11 @@ interface BrandCarouselProps {
   title?: string;
 }
 
-export default function BrandCarousel({ 
-  brands, 
-  direction = "left", 
+export default function BrandCarousel({
+  brands,
+  direction = "left",
   speed = 40,
-  title 
+  title,
 }: BrandCarouselProps) {
   const [duplicatedBrands, setDuplicatedBrands] = useState<Brand[]>([]);
 
@@ -40,12 +40,12 @@ export default function BrandCarousel({
           {title}
         </h3>
       )}
-      
+
       <div className="relative group">
-  {/* Gradient Overlays */}
-  <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-10 pointer-events-none" />
-  <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-10 pointer-events-none" />
-        
+        {/* Gradient Overlays */}
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-linear-to-r from-white dark:from-black to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-linear-to-l from-white dark:from-black to-transparent z-10 pointer-events-none" />
+
         <motion.div
           className="flex gap-6"
           animate={{
@@ -66,15 +66,15 @@ export default function BrandCarousel({
           {duplicatedBrands.map((brand, index) => (
             <motion.div
               key={`${brand.name}-${index}`}
-              className="flex-shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-white/10 hover:border-zinc-900/30 dark:hover:border-white/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-sm relative overflow-hidden group/card"
-              whileHover={{ 
+              className="shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-white/10 hover:border-zinc-900/30 dark:hover:border-white/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-xs relative overflow-hidden group/card"
+              whileHover={{
                 scale: 1.05,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.2 },
               }}
             >
               {/* Shine effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-200%] group-hover/card:translate-x-[200%] transition-transform duration-700 dark:via-white/5" />
-              
+              <div className="absolute inset-0 bg-linear-to-r from-transparent via-black/5 to-transparent translate-x-[-200%] group-hover/card:translate-x-[200%] transition-transform duration-700 dark:via-white/5" />
+
               {brand.logo.endsWith(".svg") ? (
                 <img
                   src={brand.logo}
@@ -82,7 +82,7 @@ export default function BrandCarousel({
                   width={140}
                   height={70}
                   loading="lazy"
-                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert opacity-95 group-hover/card:opacity-100' : 'opacity-80 group-hover/card:opacity-100'} transition-opacity duration-300 relative z-10`}
+                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? "filter brightness-0 invert opacity-95 group-hover/card:opacity-100" : "opacity-80 group-hover/card:opacity-100"} transition-opacity duration-300 relative z-10`}
                 />
               ) : (
                 <Image
@@ -90,7 +90,7 @@ export default function BrandCarousel({
                   alt={brand.name}
                   width={140}
                   height={70}
-                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert opacity-95 group-hover/card:opacity-100' : 'opacity-80 group-hover/card:opacity-100'} transition-opacity duration-300 relative z-10`}
+                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? "filter brightness-0 invert opacity-95 group-hover/card:opacity-100" : "opacity-80 group-hover/card:opacity-100"} transition-opacity duration-300 relative z-10`}
                 />
               )}
             </motion.div>

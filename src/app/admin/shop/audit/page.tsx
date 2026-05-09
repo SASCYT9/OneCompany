@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ExternalLink, RefreshCcw } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ExternalLink, RefreshCcw } from "lucide-react";
 
 import {
   AdminEmptyState,
@@ -14,7 +14,7 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 
 type AuditLogItem = {
   id: string;
@@ -32,33 +32,33 @@ function resolveAuditEntityHref(log: AuditLogItem) {
   if (!log.entityId) return null;
 
   const entityType = log.entityType.toLowerCase();
-  if (entityType.includes('order')) return `/admin/shop/orders/${log.entityId}`;
-  if (entityType.includes('customer')) return `/admin/shop/customers/${log.entityId}`;
-  if (entityType.includes('import')) return `/admin/shop/import/jobs/${log.entityId}`;
-  if (entityType.includes('product')) return `/admin/shop/${log.entityId}`;
+  if (entityType.includes("order")) return `/admin/shop/orders/${log.entityId}`;
+  if (entityType.includes("customer")) return `/admin/shop/customers/${log.entityId}`;
+  if (entityType.includes("import")) return `/admin/shop/import/jobs/${log.entityId}`;
+  if (entityType.includes("product")) return `/admin/shop/${log.entityId}`;
   return null;
 }
 
 export default function AdminShopAuditPage() {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
-  const [entityType, setEntityType] = useState('');
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [entityType, setEntityType] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      setError('');
+      setError("");
       try {
-        const params = new URLSearchParams({ scope: 'shop', take: '100' });
-        if (entityType) params.set('entityType', entityType);
+        const params = new URLSearchParams({ scope: "shop", take: "100" });
+        if (entityType) params.set("entityType", entityType);
 
         const response = await fetch(`/api/admin/shop/audit?${params.toString()}`);
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          setError((data as { error?: string }).error || 'Не вдалося завантажити журнал аудиту');
+          setError((data as { error?: string }).error || "Не вдалося завантажити журнал аудиту");
           return;
         }
 
@@ -71,7 +71,10 @@ export default function AdminShopAuditPage() {
     void load();
   }, [entityType, reloadKey]);
 
-  const entityTypes = useMemo(() => Array.from(new Set(logs.map((log) => log.entityType))).sort(), [logs]);
+  const entityTypes = useMemo(
+    () => Array.from(new Set(logs.map((log) => log.entityType))).sort(),
+    [logs]
+  );
 
   const filteredLogs = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -94,7 +97,7 @@ export default function AdminShopAuditPage() {
 
   const groupedLogs = useMemo(() => {
     return filteredLogs.reduce<Record<string, AuditLogItem[]>>((accumulator, log) => {
-      const key = log.entityType || 'unknown';
+      const key = log.entityType || "unknown";
       accumulator[key] = accumulator[key] ? [...accumulator[key], log] : [log];
       return accumulator;
     }, {});
@@ -112,7 +115,7 @@ export default function AdminShopAuditPage() {
             onClick={() => setReloadKey((current) => current + 1)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
           >
-            <RefreshCcw className={`h-4 w-4 ${loading ? 'motion-safe:animate-spin' : ''}`} />
+            <RefreshCcw className={`h-4 w-4 ${loading ? "motion-safe:animate-spin" : ""}`} />
             Refresh
           </button>
         }
@@ -120,36 +123,48 @@ export default function AdminShopAuditPage() {
 
       <AdminMetricGrid>
         <AdminMetricCard label="Audit events" value={filteredLogs.length} meta="Поточний фільтр" />
-        <AdminMetricCard label="Entity types" value={Object.keys(groupedLogs).length} meta="Групи сутностей у видачі" />
+        <AdminMetricCard
+          label="Entity types"
+          value={Object.keys(groupedLogs).length}
+          meta="Групи сутностей у видачі"
+        />
         <AdminMetricCard
           label="Latest event"
-          value={filteredLogs[0] ? filteredLogs[0].action : '—'}
-          meta={filteredLogs[0] ? new Date(filteredLogs[0].createdAt).toLocaleString() : 'Подій ще немає'}
+          value={filteredLogs[0] ? filteredLogs[0].action : "—"}
+          meta={
+            filteredLogs[0]
+              ? new Date(filteredLogs[0].createdAt).toLocaleString()
+              : "Подій ще немає"
+          }
         />
         <AdminMetricCard
           label="Latest actor"
-          value={filteredLogs[0] ? filteredLogs[0].actorName || filteredLogs[0].actorEmail : '—'}
-          meta={filteredLogs[0]?.entityType ?? '—'}
+          value={filteredLogs[0] ? filteredLogs[0].actorName || filteredLogs[0].actorEmail : "—"}
+          meta={filteredLogs[0]?.entityType ?? "—"}
         />
       </AdminMetricGrid>
 
       <AdminFilterBar>
         <label className="w-full min-w-0 flex-1 md:min-w-[260px]">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+            Search
+          </span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="actor, action, entity, metadata"
-            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
           />
         </label>
 
         <label className="w-full md:w-[260px]">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Entity type</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+            Entity type
+          </span>
           <select
             value={entityType}
             onChange={(event) => setEntityType(event.target.value)}
-            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
           >
             <option value="">Усі типи</option>
             {entityTypes.map((entry) => (
@@ -187,7 +202,7 @@ export default function AdminShopAuditPage() {
 
               <AdminTableShell>
                 <table className="min-w-full text-left text-sm text-zinc-200">
-                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-4 py-3 font-medium">Action</th>
                       <th className="px-4 py-3 font-medium">Actor</th>
@@ -215,9 +230,11 @@ export default function AdminShopAuditPage() {
                           </td>
                           <td className="px-4 py-4 text-zinc-300">
                             <div>{log.entityType}</div>
-                            <div className="mt-1 text-xs text-zinc-500">{log.entityId || '—'}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{log.entityId || "—"}</div>
                           </td>
-                          <td className="px-4 py-4 text-zinc-400">{new Date(log.createdAt).toLocaleString()}</td>
+                          <td className="px-4 py-4 text-zinc-400">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </td>
                           <td className="px-4 py-4">
                             <div className="flex justify-end">
                               {entityHref ? (

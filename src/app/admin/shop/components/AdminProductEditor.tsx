@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Wand2 } from 'lucide-react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Wand2 } from "lucide-react";
 
 import {
   AdminEditorSection,
   AdminInlineAlert,
   AdminPage,
   AdminStatusBadge,
-} from '@/components/admin/AdminPrimitives';
-import { AdminCollapsibleSection } from '@/components/admin/AdminCollapsibleSection';
-import { AdminEditorTopBar } from '@/components/admin/AdminEditorTopBar';
+} from "@/components/admin/AdminPrimitives";
+import { AdminCollapsibleSection } from "@/components/admin/AdminCollapsibleSection";
+import { AdminEditorTopBar } from "@/components/admin/AdminEditorTopBar";
 import {
   AdminCheckboxField as CheckboxField,
   AdminInputField as InputField,
   AdminSelectField as SelectField,
   AdminTextareaField as TextareaField,
-} from '@/components/admin/AdminFormFields';
-import { isLibraryBackedAssetReference } from '@/lib/runtimeAssetPaths';
-import { stripStorefrontTags, type ShopProductStorefront } from '@/lib/shopProductStorefront';
-import { useConfirm } from '@/components/admin/AdminConfirmDialog';
-import { useToast } from '@/components/admin/AdminToast';
-import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
-import { AdminNotes } from '@/components/admin/AdminNotes';
-import { AdminTagInput } from '@/components/admin/AdminTagInput';
-import { AdminProductVariantCard } from './AdminProductVariantCard';
+} from "@/components/admin/AdminFormFields";
+import { isLibraryBackedAssetReference } from "@/lib/runtimeAssetPaths";
+import { stripStorefrontTags, type ShopProductStorefront } from "@/lib/shopProductStorefront";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
+import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
+import { AdminNotes } from "@/components/admin/AdminNotes";
+import { AdminTagInput } from "@/components/admin/AdminTagInput";
+import { AdminProductVariantCard } from "./AdminProductVariantCard";
 
-type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-type ProductMediaType = 'IMAGE' | 'VIDEO' | 'EXTERNAL_VIDEO';
-type InventoryPolicy = 'DENY' | 'CONTINUE';
+type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
+type ProductMediaType = "IMAGE" | "VIDEO" | "EXTERNAL_VIDEO";
+type InventoryPolicy = "DENY" | "CONTINUE";
 type ProductStorefront = ShopProductStorefront;
 
 type MediaFormItem = {
@@ -148,7 +148,7 @@ type VariantBulkState = {
 type ProductFormState = {
   slug: string;
   sku: string;
-  scope: 'auto' | 'moto';
+  scope: "auto" | "moto";
   storefront: ProductStorefront;
   brand: string;
   vendor: string;
@@ -170,7 +170,7 @@ type ProductFormState = {
   bodyHtmlEn: string;
   leadTimeUa: string;
   leadTimeEn: string;
-  stock: 'inStock' | 'preOrder';
+  stock: "inStock" | "preOrder";
   collectionUa: string;
   collectionEn: string;
   priceEur: string;
@@ -233,7 +233,7 @@ type ProductResponse = {
   bodyHtmlEn: string | null;
   leadTimeUa: string | null;
   leadTimeEn: string | null;
-  stock: 'inStock' | 'preOrder';
+  stock: "inStock" | "preOrder";
   collectionUa: string | null;
   collectionEn: string | null;
   priceEur: number | null;
@@ -262,7 +262,13 @@ type ProductResponse = {
   publishedAt: string | null;
   gallery: unknown;
   highlights: unknown;
-  media: Array<{ id: string; src: string; altText: string | null; position: number; mediaType: ProductMediaType }>;
+  media: Array<{
+    id: string;
+    src: string;
+    altText: string | null;
+    position: number;
+    mediaType: ProductMediaType;
+  }>;
   options: Array<{ id: string; name: string; position: number; values: string[] }>;
   variants: Array<{
     id: string;
@@ -306,103 +312,112 @@ type ProductResponse = {
     costPerItem: number | null;
     isDefault: boolean;
   }>;
-  metafields: Array<{ id: string; namespace: string; key: string; value: string; valueType: string }>;
+  metafields: Array<{
+    id: string;
+    namespace: string;
+    key: string;
+    value: string;
+    valueType: string;
+  }>;
 };
 
 function slugify(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function stringNumber(value: number | null | undefined): string {
-  return value == null ? '' : String(value);
+  return value == null ? "" : String(value);
 }
 
 function commaList(value: string[]): string {
-  return value.join(', ');
+  return value.join(", ");
 }
 
 function cleanArrayText(value: string): string[] {
-  return value.split(',').map((entry) => entry.trim()).filter(Boolean);
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 function emptyMedia(position = 1): MediaFormItem {
-  return { src: '', altText: '', position: String(position), mediaType: 'IMAGE' };
+  return { src: "", altText: "", position: String(position), mediaType: "IMAGE" };
 }
 
 function emptyOption(position = 1): OptionFormItem {
-  return { name: '', position: String(position), valuesText: '' };
+  return { name: "", position: String(position), valuesText: "" };
 }
 
 function emptyVariant(position = 1): VariantFormItem {
   return {
-    title: position === 1 ? 'Default Title' : '',
-    sku: '',
+    title: position === 1 ? "Default Title" : "",
+    sku: "",
     position: String(position),
-    option1Value: '',
-    option1LinkedTo: '',
-    option2Value: '',
-    option2LinkedTo: '',
-    option3Value: '',
-    option3LinkedTo: '',
-    grams: '',
-    inventoryTracker: '',
-    inventoryQty: '0',
-    inventoryPolicy: 'CONTINUE',
-    fulfillmentService: '',
-    priceEur: '',
-    priceUsd: '',
-    priceUah: '',
-    priceEurB2b: '',
-    priceUsdB2b: '',
-    priceUahB2b: '',
-    compareAtEur: '',
-    compareAtUsd: '',
-    compareAtUah: '',
-    compareAtEurB2b: '',
-    compareAtUsdB2b: '',
-    compareAtUahB2b: '',
+    option1Value: "",
+    option1LinkedTo: "",
+    option2Value: "",
+    option2LinkedTo: "",
+    option3Value: "",
+    option3LinkedTo: "",
+    grams: "",
+    inventoryTracker: "",
+    inventoryQty: "0",
+    inventoryPolicy: "CONTINUE",
+    fulfillmentService: "",
+    priceEur: "",
+    priceUsd: "",
+    priceUah: "",
+    priceEurB2b: "",
+    priceUsdB2b: "",
+    priceUahB2b: "",
+    compareAtEur: "",
+    compareAtUsd: "",
+    compareAtUah: "",
+    compareAtEurB2b: "",
+    compareAtUsdB2b: "",
+    compareAtUahB2b: "",
     requiresShipping: true,
     taxable: true,
-    barcode: '',
-    image: '',
-    weightUnit: '',
-    taxCode: '',
-    costPerItem: '',
+    barcode: "",
+    image: "",
+    weightUnit: "",
+    taxCode: "",
+    costPerItem: "",
     isDefault: position === 1,
-    weight: '',
-    length: '',
-    width: '',
-    height: '',
+    weight: "",
+    length: "",
+    width: "",
+    height: "",
     isDimensionsEstimated: false,
   };
 }
 
 function emptyMetafield(): MetafieldFormItem {
-  return { namespace: 'custom', key: '', value: '', valueType: 'single_line_text_field' };
+  return { namespace: "custom", key: "", value: "", valueType: "single_line_text_field" };
 }
 
 function createEmptyVariantBulk(): VariantBulkState {
   return {
-    inventoryQty: '',
-    priceEur: '',
-    priceUsd: '',
-    priceUah: '',
-    priceEurB2b: '',
-    priceUsdB2b: '',
-    priceUahB2b: '',
-    compareAtEur: '',
-    compareAtUsd: '',
-    compareAtUah: '',
-    compareAtEurB2b: '',
-    compareAtUsdB2b: '',
-    compareAtUahB2b: '',
-    image: '',
+    inventoryQty: "",
+    priceEur: "",
+    priceUsd: "",
+    priceUah: "",
+    priceEurB2b: "",
+    priceUsdB2b: "",
+    priceUahB2b: "",
+    compareAtEur: "",
+    compareAtUsd: "",
+    compareAtUah: "",
+    compareAtEurB2b: "",
+    compareAtUsdB2b: "",
+    compareAtUahB2b: "",
+    image: "",
   };
 }
 
@@ -410,13 +425,13 @@ function skuSegment(value: string): string {
   return value
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function mediaPreviewable(item: MediaFormItem) {
-  return item.mediaType === 'IMAGE' && item.src.trim();
+  return item.mediaType === "IMAGE" && item.src.trim();
 }
 
 function normalizeMediaOrder(items: MediaFormItem[]): MediaFormItem[] {
@@ -444,7 +459,7 @@ function variantOptionValues(variant: VariantFormItem, optionCount = 3): string[
 }
 
 function variantKey(values: string[]): string {
-  return values.map((value) => value.trim().toLowerCase()).join('||');
+  return values.map((value) => value.trim().toLowerCase()).join("||");
 }
 
 function cartesianProduct<T>(groups: T[][]): T[][] {
@@ -457,62 +472,62 @@ function cartesianProduct<T>(groups: T[][]): T[][] {
 
 function createEmptyForm(): ProductFormState {
   return {
-    slug: '',
-    sku: '',
-    scope: 'auto',
-    storefront: 'main',
-    brand: '',
-    vendor: '',
-    productType: '',
-    productCategory: '',
-    categoryId: '',
-    tagsText: '',
+    slug: "",
+    sku: "",
+    scope: "auto",
+    storefront: "main",
+    brand: "",
+    vendor: "",
+    productType: "",
+    productCategory: "",
+    categoryId: "",
+    tagsText: "",
     collectionIds: [],
-    status: 'ACTIVE',
-    titleUa: '',
-    titleEn: '',
-    categoryUa: '',
-    categoryEn: '',
-    shortDescUa: '',
-    shortDescEn: '',
-    longDescUa: '',
-    longDescEn: '',
-    bodyHtmlUa: '',
-    bodyHtmlEn: '',
-    leadTimeUa: '',
-    leadTimeEn: '',
-    stock: 'inStock',
-    collectionUa: '',
-    collectionEn: '',
-    priceEur: '',
-    priceUsd: '',
-    priceUah: '',
-    priceEurB2b: '',
-    priceUsdB2b: '',
-    priceUahB2b: '',
-    compareAtEur: '',
-    compareAtUsd: '',
-    compareAtUah: '',
-    compareAtEurB2b: '',
-    compareAtUsdB2b: '',
-    compareAtUahB2b: '',
-    image: '',
-    seoTitleUa: '',
-    seoTitleEn: '',
-    seoDescriptionUa: '',
-    seoDescriptionEn: '',
+    status: "ACTIVE",
+    titleUa: "",
+    titleEn: "",
+    categoryUa: "",
+    categoryEn: "",
+    shortDescUa: "",
+    shortDescEn: "",
+    longDescUa: "",
+    longDescEn: "",
+    bodyHtmlUa: "",
+    bodyHtmlEn: "",
+    leadTimeUa: "",
+    leadTimeEn: "",
+    stock: "inStock",
+    collectionUa: "",
+    collectionEn: "",
+    priceEur: "",
+    priceUsd: "",
+    priceUah: "",
+    priceEurB2b: "",
+    priceUsdB2b: "",
+    priceUahB2b: "",
+    compareAtEur: "",
+    compareAtUsd: "",
+    compareAtUah: "",
+    compareAtEurB2b: "",
+    compareAtUsdB2b: "",
+    compareAtUahB2b: "",
+    image: "",
+    seoTitleUa: "",
+    seoTitleEn: "",
+    seoDescriptionUa: "",
+    seoDescriptionEn: "",
     isPublished: true,
-    publishedAt: '',
+    publishedAt: "",
     gallery: null,
     highlights: null,
     media: [emptyMedia()],
     options: [],
     variants: [emptyVariant()],
     metafields: [],
-    weight: '',
-    length: '',
-    width: '',
-    height: '',
+    weight: "",
+    length: "",
+    width: "",
+    height: "",
     isDimensionsEstimated: false,
   };
 }
@@ -520,32 +535,32 @@ function createEmptyForm(): ProductFormState {
 function productToForm(product: ProductResponse): ProductFormState {
   return {
     slug: product.slug,
-    sku: product.sku ?? '',
-    scope: product.scope === 'moto' ? 'moto' : 'auto',
-    storefront: product.storefront ?? 'main',
-    brand: product.brand ?? '',
-    vendor: product.vendor ?? '',
-    productType: product.productType ?? '',
-    productCategory: product.productCategory ?? '',
-    categoryId: product.categoryId ?? '',
+    sku: product.sku ?? "",
+    scope: product.scope === "moto" ? "moto" : "auto",
+    storefront: product.storefront ?? "main",
+    brand: product.brand ?? "",
+    vendor: product.vendor ?? "",
+    productType: product.productType ?? "",
+    productCategory: product.productCategory ?? "",
+    categoryId: product.categoryId ?? "",
     tagsText: commaList(stripStorefrontTags(product.tags)),
     collectionIds: product.collectionIds ?? product.collections.map((collection) => collection.id),
     status: product.status,
     titleUa: product.titleUa,
     titleEn: product.titleEn,
-    categoryUa: product.categoryUa ?? '',
-    categoryEn: product.categoryEn ?? '',
-    shortDescUa: product.shortDescUa ?? '',
-    shortDescEn: product.shortDescEn ?? '',
-    longDescUa: product.longDescUa ?? '',
-    longDescEn: product.longDescEn ?? '',
-    bodyHtmlUa: product.bodyHtmlUa ?? '',
-    bodyHtmlEn: product.bodyHtmlEn ?? '',
-    leadTimeUa: product.leadTimeUa ?? '',
-    leadTimeEn: product.leadTimeEn ?? '',
+    categoryUa: product.categoryUa ?? "",
+    categoryEn: product.categoryEn ?? "",
+    shortDescUa: product.shortDescUa ?? "",
+    shortDescEn: product.shortDescEn ?? "",
+    longDescUa: product.longDescUa ?? "",
+    longDescEn: product.longDescEn ?? "",
+    bodyHtmlUa: product.bodyHtmlUa ?? "",
+    bodyHtmlEn: product.bodyHtmlEn ?? "",
+    leadTimeUa: product.leadTimeUa ?? "",
+    leadTimeEn: product.leadTimeEn ?? "",
     stock: product.stock,
-    collectionUa: product.collectionUa ?? '',
-    collectionEn: product.collectionEn ?? '',
+    collectionUa: product.collectionUa ?? "",
+    collectionEn: product.collectionEn ?? "",
     priceEur: stringNumber(product.priceEur),
     priceUsd: stringNumber(product.priceUsd),
     priceUah: stringNumber(product.priceUah),
@@ -563,20 +578,20 @@ function productToForm(product: ProductResponse): ProductFormState {
     width: stringNumber(product.width),
     height: stringNumber(product.height),
     isDimensionsEstimated: Boolean(product.isDimensionsEstimated),
-    image: product.image ?? '',
-    seoTitleUa: product.seoTitleUa ?? '',
-    seoTitleEn: product.seoTitleEn ?? '',
-    seoDescriptionUa: product.seoDescriptionUa ?? '',
-    seoDescriptionEn: product.seoDescriptionEn ?? '',
+    image: product.image ?? "",
+    seoTitleUa: product.seoTitleUa ?? "",
+    seoTitleEn: product.seoTitleEn ?? "",
+    seoDescriptionUa: product.seoDescriptionUa ?? "",
+    seoDescriptionEn: product.seoDescriptionEn ?? "",
     isPublished: product.isPublished,
-    publishedAt: product.publishedAt ?? '',
+    publishedAt: product.publishedAt ?? "",
     gallery: product.gallery,
     highlights: product.highlights,
     media: product.media.length
       ? product.media.map((item) => ({
           id: item.id,
           src: item.src,
-          altText: item.altText ?? '',
+          altText: item.altText ?? "",
           position: String(item.position),
           mediaType: item.mediaType,
         }))
@@ -590,20 +605,20 @@ function productToForm(product: ProductResponse): ProductFormState {
     variants: product.variants.length
       ? product.variants.map((item) => ({
           id: item.id,
-          title: item.title ?? '',
-          sku: item.sku ?? '',
+          title: item.title ?? "",
+          sku: item.sku ?? "",
           position: String(item.position),
-          option1Value: item.option1Value ?? '',
-          option1LinkedTo: item.option1LinkedTo ?? '',
-          option2Value: item.option2Value ?? '',
-          option2LinkedTo: item.option2LinkedTo ?? '',
-          option3Value: item.option3Value ?? '',
-          option3LinkedTo: item.option3LinkedTo ?? '',
+          option1Value: item.option1Value ?? "",
+          option1LinkedTo: item.option1LinkedTo ?? "",
+          option2Value: item.option2Value ?? "",
+          option2LinkedTo: item.option2LinkedTo ?? "",
+          option3Value: item.option3Value ?? "",
+          option3LinkedTo: item.option3LinkedTo ?? "",
           grams: stringNumber(item.grams),
-          inventoryTracker: item.inventoryTracker ?? '',
+          inventoryTracker: item.inventoryTracker ?? "",
           inventoryQty: String(item.inventoryQty ?? 0),
           inventoryPolicy: item.inventoryPolicy,
-          fulfillmentService: item.fulfillmentService ?? '',
+          fulfillmentService: item.fulfillmentService ?? "",
           priceEur: stringNumber(item.priceEur),
           priceUsd: stringNumber(item.priceUsd),
           priceUah: stringNumber(item.priceUah),
@@ -623,10 +638,10 @@ function productToForm(product: ProductResponse): ProductFormState {
           width: stringNumber(item.width),
           height: stringNumber(item.height),
           isDimensionsEstimated: Boolean(item.isDimensionsEstimated),
-          barcode: item.barcode ?? '',
-          image: item.image ?? '',
-          weightUnit: item.weightUnit ?? '',
-          taxCode: item.taxCode ?? '',
+          barcode: item.barcode ?? "",
+          image: item.image ?? "",
+          weightUnit: item.weightUnit ?? "",
+          taxCode: item.taxCode ?? "",
           costPerItem: stringNumber(item.costPerItem),
           isDefault: item.isDefault,
         }))
@@ -783,7 +798,7 @@ function buildPayload(form: ProductFormState) {
         namespace: item.namespace.trim(),
         key: item.key.trim(),
         value: item.value,
-        valueType: item.valueType.trim() || 'single_line_text_field',
+        valueType: item.valueType.trim() || "single_line_text_field",
       })),
   };
 }
@@ -799,8 +814,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const isEditing = Boolean(productId);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [slugTouched, setSlugTouched] = useState(isEditing);
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
@@ -814,10 +829,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
     async function loadCategories() {
       try {
-        const response = await fetch('/api/admin/shop/categories');
+        const response = await fetch("/api/admin/shop/categories");
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load categories');
+          throw new Error((data as { error?: string }).error || "Failed to load categories");
         }
         if (!cancelled) {
           setAvailableCategories(Array.isArray(data) ? (data as CategoryOption[]) : []);
@@ -831,10 +846,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
     async function loadCollections() {
       try {
-        const response = await fetch('/api/admin/shop/collections');
+        const response = await fetch("/api/admin/shop/collections");
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load collections');
+          throw new Error((data as { error?: string }).error || "Failed to load collections");
         }
         if (!cancelled) {
           setAvailableCollections(Array.isArray(data) ? (data as CollectionOption[]) : []);
@@ -864,12 +879,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
     async function loadProduct() {
       setLoading(true);
-      setError('');
+      setError("");
       try {
         const response = await fetch(`/api/admin/shop/products/${productId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to load product');
+          throw new Error(data.error || "Failed to load product");
         }
         if (!cancelled) {
           setForm(productToForm(data as ProductResponse));
@@ -896,23 +911,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const updateField = <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((current) => {
       const next = { ...current, [key]: value };
-      if ((key === 'titleEn' || key === 'titleUa') && !slugTouched) {
+      if ((key === "titleEn" || key === "titleUa") && !slugTouched) {
         const base =
-          key === 'titleEn'
-            ? String(value || current.titleUa)
-            : String(current.titleEn || value);
+          key === "titleEn" ? String(value || current.titleUa) : String(current.titleEn || value);
         next.slug = slugify(base);
       }
       return next;
     });
-    if (key === 'slug') {
+    if (key === "slug") {
       setSlugTouched(true);
     }
   };
 
   const updateListItem = <
-    K extends 'media' | 'options' | 'variants' | 'metafields',
-    T extends ProductFormState[K][number]
+    K extends "media" | "options" | "variants" | "metafields",
+    T extends ProductFormState[K][number],
   >(
     key: K,
     index: number,
@@ -926,9 +939,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     }));
   };
 
-  const removeListItem = (key: 'media' | 'options' | 'variants' | 'metafields', index: number) => {
+  const removeListItem = (key: "media" | "options" | "variants" | "metafields", index: number) => {
     setForm((current) => {
-      if (key === 'variants') {
+      if (key === "variants") {
         const nextItems = current.variants.filter((_, itemIndex) => itemIndex !== index);
         if (nextItems.length === 0) {
           return { ...current, variants: [emptyVariant()] };
@@ -943,16 +956,16 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           })),
         };
       }
-      if (key === 'media') {
+      if (key === "media") {
         const removedItem = current.media[index];
-        const removedSource = removedItem?.src.trim() ?? '';
+        const removedSource = removedItem?.src.trim() ?? "";
         const nextItems = current.media.filter((_, itemIndex) => itemIndex !== index);
         const nextPrimaryImage =
           removedSource && current.image.trim() === removedSource
-            ? nextItems.find((item) => item.src.trim())?.src ?? ''
+            ? (nextItems.find((item) => item.src.trim())?.src ?? "")
             : current.image;
         const nextVariants = current.variants.map((item) =>
-          removedSource && item.image.trim() === removedSource ? { ...item, image: '' } : item
+          removedSource && item.image.trim() === removedSource ? { ...item, image: "" } : item
         );
 
         if (nextItems.length === 0) {
@@ -970,7 +983,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           variants: nextVariants,
         };
       }
-      if (key === 'options') {
+      if (key === "options") {
         return {
           ...current,
           options: current.options.filter((_, itemIndex) => itemIndex !== index),
@@ -984,17 +997,26 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   };
 
   const addMedia = () => {
-    setForm((current) => ({ ...current, media: [...current.media, emptyMedia(current.media.length + 1)] }));
+    setForm((current) => ({
+      ...current,
+      media: [...current.media, emptyMedia(current.media.length + 1)],
+    }));
   };
 
   const addOption = () => {
-    setForm((current) => ({ ...current, options: [...current.options, emptyOption(current.options.length + 1)] }));
+    setForm((current) => ({
+      ...current,
+      options: [...current.options, emptyOption(current.options.length + 1)],
+    }));
   };
 
   const addVariant = () => {
     setForm((current) => ({
       ...current,
-      variants: [...current.variants.map((item) => ({ ...item })), emptyVariant(current.variants.length + 1)],
+      variants: [
+        ...current.variants.map((item) => ({ ...item })),
+        emptyVariant(current.variants.length + 1),
+      ],
     }));
   };
 
@@ -1005,7 +1027,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const setDefaultVariant = (index: number) => {
     setForm((current) => ({
       ...current,
-      variants: current.variants.map((item, itemIndex) => ({ ...item, isDefault: itemIndex === index })),
+      variants: current.variants.map((item, itemIndex) => ({
+        ...item,
+        isDefault: itemIndex === index,
+      })),
     }));
   };
 
@@ -1042,9 +1067,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           itemIndex === index ? { ...item, src: value } : item
         ),
         variants: current.variants.map((variant) =>
-          variant.image.trim() === previousSource
-            ? { ...variant, image: nextSource }
-            : variant
+          variant.image.trim() === previousSource ? { ...variant, image: nextSource } : variant
         ),
       };
     });
@@ -1053,27 +1076,28 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const handleHardDelete = async () => {
     if (!productId) return;
     const ok = await confirm({
-      tone: 'warning',
-      title: 'Архівувати цей товар?',
-      description: 'Товар буде знято з публікації та переведено в ARCHIVED. Це безпечніше за безповоротне видалення — товар можна відновити пізніше.',
-      confirmLabel: 'Архівувати товар',
+      tone: "warning",
+      title: "Архівувати цей товар?",
+      description:
+        "Товар буде знято з публікації та переведено в ARCHIVED. Це безпечніше за безповоротне видалення — товар можна відновити пізніше.",
+      confirmLabel: "Архівувати товар",
     });
     if (!ok) return;
 
     setHardDeleting(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
-      const response = await fetch(`/api/admin/shop/products/${productId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/admin/shop/products/${productId}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = data.error || 'Не вдалося архівувати товар';
-        toast.error('Не вдалося архівувати товар', msg);
+        const msg = data.error || "Не вдалося архівувати товар";
+        toast.error("Не вдалося архівувати товар", msg);
         throw new Error(msg);
       }
-      setSuccess('Товар архівовано.');
-      toast.success('Товар архівовано');
-      router.push('/admin/shop');
+      setSuccess("Товар архівовано.");
+      toast.success("Товар архівовано");
+      router.push("/admin/shop");
     } catch (deleteError) {
       setError((deleteError as Error).message);
     } finally {
@@ -1090,7 +1114,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       ...current,
       image: item.src.trim(),
     }));
-    setSuccess('Primary image updated from media.');
+    setSuccess("Primary image updated from media.");
   };
 
   const toggleCollection = (collectionId: string) => {
@@ -1105,12 +1129,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const applyBulkVariantFields = () => {
     const hasPayload = Object.values(variantBulk).some((value) => value.trim());
     if (!hasPayload) {
-      setError('Fill at least one bulk field before applying it to variants.');
+      setError("Fill at least one bulk field before applying it to variants.");
       return;
     }
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setForm((current) => ({
       ...current,
       variants: current.variants.map((item) => ({
@@ -1131,7 +1155,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         image: variantBulk.image.trim() || item.image,
       })),
     }));
-    setSuccess('Bulk variant fields applied.');
+    setSuccess("Bulk variant fields applied.");
   };
 
   const applyProductPricingToVariants = () => {
@@ -1153,7 +1177,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
       })),
     }));
-    setSuccess('Top-level pricing copied to variants.');
+    setSuccess("Top-level pricing copied to variants.");
   };
 
   const copyDefaultVariantSettings = () => {
@@ -1182,39 +1206,42 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             }
       ),
     }));
-    setSuccess('Default variant operational settings copied to all variants.');
+    setSuccess("Default variant operational settings copied to all variants.");
   };
 
   const generateVariantsFromOptions = () => {
     const definitions = optionDefinitions(form.options);
     if (!definitions.length) {
-      setError('Add at least one option with values before generating variants.');
+      setError("Add at least one option with values before generating variants.");
       return;
     }
     if (definitions.length > 3) {
-      setError('Up to 3 option groups are supported in this editor.');
+      setError("Up to 3 option groups are supported in this editor.");
       return;
     }
     if (definitions.some((definition) => definition.values.length === 0)) {
-      setError('Each option must have at least one value before generating variants.');
+      setError("Each option must have at least one value before generating variants.");
       return;
     }
 
     const combinations = cartesianProduct(definitions.map((definition) => definition.values));
     if (!combinations.length) {
-      setError('No option combinations were produced.');
+      setError("No option combinations were produced.");
       return;
     }
     if (combinations.length > 200) {
-      setError('This option set would create more than 200 variants. Narrow the values first.');
+      setError("This option set would create more than 200 variants. Narrow the values first.");
       return;
     }
 
     const currentDefault = form.variants.find((item) => item.isDefault) ?? form.variants[0];
     const existingByKey = new Map(
-      form.variants.map((variant) => [variantKey(variantOptionValues(variant, definitions.length)), variant])
+      form.variants.map((variant) => [
+        variantKey(variantOptionValues(variant, definitions.length)),
+        variant,
+      ])
     );
-    const baseSku = form.sku.trim() || currentDefault?.sku.trim() || '';
+    const baseSku = form.sku.trim() || currentDefault?.sku.trim() || "";
 
     const nextVariants = combinations.map((values, index) => {
       const existing = existingByKey.get(variantKey(values));
@@ -1222,15 +1249,15 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         ? { ...existing }
         : {
             ...emptyVariant(index + 1),
-            inventoryPolicy: currentDefault?.inventoryPolicy ?? 'CONTINUE',
-            inventoryTracker: currentDefault?.inventoryTracker ?? '',
-            fulfillmentService: currentDefault?.fulfillmentService ?? '',
+            inventoryPolicy: currentDefault?.inventoryPolicy ?? "CONTINUE",
+            inventoryTracker: currentDefault?.inventoryTracker ?? "",
+            fulfillmentService: currentDefault?.fulfillmentService ?? "",
             requiresShipping: currentDefault?.requiresShipping ?? true,
             taxable: currentDefault?.taxable ?? true,
-            weightUnit: currentDefault?.weightUnit ?? '',
-            grams: currentDefault?.grams ?? '',
-            taxCode: currentDefault?.taxCode ?? '',
-            costPerItem: currentDefault?.costPerItem ?? '',
+            weightUnit: currentDefault?.weightUnit ?? "",
+            grams: currentDefault?.grams ?? "",
+            taxCode: currentDefault?.taxCode ?? "",
+            costPerItem: currentDefault?.costPerItem ?? "",
             priceEur: currentDefault?.priceEur ?? form.priceEur,
             priceUsd: currentDefault?.priceUsd ?? form.priceUsd,
             priceUah: currentDefault?.priceUah ?? form.priceUah,
@@ -1243,23 +1270,23 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             compareAtEurB2b: currentDefault?.compareAtEurB2b ?? form.compareAtEurB2b,
             compareAtUsdB2b: currentDefault?.compareAtUsdB2b ?? form.compareAtUsdB2b,
             compareAtUahB2b: currentDefault?.compareAtUahB2b ?? form.compareAtUahB2b,
-            image: currentDefault?.image ?? '',
+            image: currentDefault?.image ?? "",
             sku:
               baseSku && values.length
-                ? `${baseSku}-${values.map(skuSegment).filter(Boolean).join('-')}`
-                : currentDefault?.sku ?? '',
+                ? `${baseSku}-${values.map(skuSegment).filter(Boolean).join("-")}`
+                : (currentDefault?.sku ?? ""),
           };
 
       return {
         ...baseVariant,
-        title: values.join(' / '),
+        title: values.join(" / "),
         position: String(index + 1),
-        option1Value: values[0] ?? '',
-        option1LinkedTo: definitions[0]?.name ?? '',
-        option2Value: values[1] ?? '',
-        option2LinkedTo: definitions[1]?.name ?? '',
-        option3Value: values[2] ?? '',
-        option3LinkedTo: definitions[2]?.name ?? '',
+        option1Value: values[0] ?? "",
+        option1LinkedTo: definitions[0]?.name ?? "",
+        option2Value: values[1] ?? "",
+        option2LinkedTo: definitions[1]?.name ?? "",
+        option3Value: values[2] ?? "",
+        option3LinkedTo: definitions[2]?.name ?? "",
         isDefault: existing?.isDefault ?? index === 0,
       };
     });
@@ -1272,46 +1299,48 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       ...current,
       variants: nextVariants,
     }));
-    setError('');
-    setSuccess(`Generated ${nextVariants.length} variants from ${definitions.length} option groups.`);
+    setError("");
+    setSuccess(
+      `Generated ${nextVariants.length} variants from ${definitions.length} option groups.`
+    );
   };
 
   const handleEstimateDimensionsAI = async () => {
     try {
       const targetTitle = form.titleEn || form.titleUa;
       if (!targetTitle) {
-        setError('Необхідно вказати хоча б одну назву товару (En/Ua) для ШІ');
+        setError("Необхідно вказати хоча б одну назву товару (En/Ua) для ШІ");
         return;
       }
       setSaving(true);
-      setError('');
-      setSuccess('Генерація габаритів через ШІ...');
-      const res = await fetch('/api/admin/shop/ai/estimate-dimensions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      setError("");
+      setSuccess("Генерація габаритів через ШІ...");
+      const res = await fetch("/api/admin/shop/ai/estimate-dimensions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: targetTitle,
           brand: form.brand,
           sku: form.sku,
-          categoryName: availableCategories.find(c => c.id === form.categoryId)?.titleEn
-        })
+          categoryName: availableCategories.find((c) => c.id === form.categoryId)?.titleEn,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Помилка при генерації габаритів');
+        throw new Error(data.error || "Помилка при генерації габаритів");
       }
       const e = data.estimate;
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         weight: e.weight != null ? String(e.weight) : prev.weight,
         length: e.length != null ? String(e.length) : prev.length,
         width: e.width != null ? String(e.width) : prev.width,
         height: e.height != null ? String(e.height) : prev.height,
-        isDimensionsEstimated: true
+        isDimensionsEstimated: true,
       }));
-      setSuccess(`Габарити успішно згенеровано! (Модель: ${e.model || 'AI'})`);
-      setTimeout(() => setSuccess(''), 4000);
-    } catch(err: any) {
+      setSuccess(`Габарити успішно згенеровано! (Модель: ${e.model || "AI"})`);
+      setTimeout(() => setSuccess(""), 4000);
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setSaving(false);
@@ -1321,33 +1350,33 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(
-        productId ? `/api/admin/shop/products/${productId}` : '/api/admin/shop/products',
+        productId ? `/api/admin/shop/products/${productId}` : "/api/admin/shop/products",
         {
-          method: productId ? 'PATCH' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: productId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(buildPayload(form)),
         }
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = data.error || 'Save failed';
-        toast.error('Could not save product', msg);
+        const msg = data.error || "Save failed";
+        toast.error("Could not save product", msg);
         throw new Error(msg);
       }
       if (!productId && data.id) {
-        toast.success('Product created', form.titleEn || form.titleUa || form.slug);
+        toast.success("Product created", form.titleEn || form.titleUa || form.slug);
         router.push(`/admin/shop/${data.id}`);
         return;
       }
       if (productId) {
         setForm(productToForm(data as ProductResponse));
-        setSuccess('Saved');
-        toast.success('Product saved');
+        setSuccess("Saved");
+        toast.success("Product saved");
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -1364,7 +1393,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     );
   }
 
-  const productDisplayTitle = form.titleEn || form.titleUa || form.slug || (isEditing ? 'Без назви' : 'Новий товар');
+  const productDisplayTitle =
+    form.titleEn || form.titleUa || form.slug || (isEditing ? "Без назви" : "Новий товар");
 
   return (
     <AdminPage wide>
@@ -1372,781 +1402,1133 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         <AdminEditorTopBar
           backHref="/admin/shop"
           backLabel="Каталог"
-          eyebrow={isEditing ? 'Редагування товару' : 'Новий товар'}
+          eyebrow={isEditing ? "Редагування товару" : "Новий товар"}
           title={productDisplayTitle}
           status={
             <div className="hidden sm:flex flex-wrap items-center gap-1.5">
-              <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+              <AdminStatusBadge
+                tone={
+                  form.status === "ACTIVE"
+                    ? "success"
+                    : form.status === "ARCHIVED"
+                      ? "danger"
+                      : "warning"
+                }
+              >
                 {form.status}
               </AdminStatusBadge>
-              {form.isPublished ? null : <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>}
+              {form.isPublished ? null : (
+                <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>
+              )}
             </div>
           }
           actions={
             <>
               <Link
                 href="/admin/shop"
-                className="hidden sm:inline-flex items-center gap-2 border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                className="hidden sm:inline-flex items-center gap-2 border border-white/10 bg-white/3 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/6"
               >
                 Скасувати
               </Link>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                className="inline-flex items-center gap-2 bg-linear-to-b from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
-                {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти' : 'Створити'}
+                {saving ? "Зберігаємо…" : isEditing ? "Зберегти" : "Створити"}
               </button>
             </>
           }
         />
 
-        {error ? <div className="mb-4"><AdminInlineAlert tone="error">{error}</AdminInlineAlert></div> : null}
-        {success ? <div className="mb-4"><AdminInlineAlert tone="success">{success}</AdminInlineAlert></div> : null}
+        {error ? (
+          <div className="mb-4">
+            <AdminInlineAlert tone="error">{error}</AdminInlineAlert>
+          </div>
+        ) : null}
+        {success ? (
+          <div className="mb-4">
+            <AdminInlineAlert tone="success">{success}</AdminInlineAlert>
+          </div>
+        ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0 space-y-5">
-          <AdminEditorSection
-            id="overview"
-            title="Огляд"
-            description="Основна ідентичність товару в каталозі, стан публікації та привʼязка до колекцій."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              <InputField label="Slug *" value={form.slug} onChange={(value) => updateField('slug', value)} mono />
-              <SelectField
-                label="Сфера (auto / moto)"
-                value={form.scope}
-                onChange={(value) => updateField('scope', value as ProductFormState['scope'])}
-                options={[
-                  { label: 'Auto', value: 'auto' },
-                  { label: 'Moto', value: 'moto' },
-                ]}
-              />
-              <SelectField
-                label="Статус у каталозі"
-                value={form.status}
-                onChange={(value) => updateField('status', value as ProductStatus)}
-                options={[
-                  { label: 'Active', value: 'ACTIVE' },
-                  { label: 'Draft', value: 'DRAFT' },
-                  { label: 'Archived', value: 'ARCHIVED' },
-                ]}
-              />
-              <InputField label="Назва (EN) *" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Назва (UA) *" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-              <InputField label="Базовий SKU" value={form.sku} onChange={(value) => updateField('sku', value)} />
-              <InputField label="Бренд" value={form.brand} onChange={(value) => updateField('brand', value)} />
-              <InputField label="Постачальник" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
-              <SelectField
-                label="Storefront"
-                value={form.storefront}
-                onChange={(value) => updateField('storefront', value as ProductStorefront)}
-                options={[
-                  { label: 'Main', value: 'main' },
-                  { label: 'Urban', value: 'urban' },
-                  { label: 'Brabus', value: 'brabus' },
-                ]}
-              />
-              <InputField label="Тип товару" value={form.productType} onChange={(value) => updateField('productType', value)} />
-              <SelectField
-                label="Structured category"
-                value={form.categoryId}
-                onChange={(value) => updateField('categoryId', value)}
-                options={[
-                  { label: 'No category', value: '' },
-                  ...availableCategories.map((category) => ({
-                    label: `${category.titleEn || category.titleUa || category.slug}${category.parent ? ` · ${category.parent.titleEn || category.parent.titleUa}` : ''}`,
-                    value: category.id,
-                  })),
-                ]}
-              />
-              <InputField label="Категорія товару" value={form.productCategory} onChange={(value) => updateField('productCategory', value)} />
-              <InputField label="Категорія (EN)" value={form.categoryEn} onChange={(value) => updateField('categoryEn', value)} />
-              <InputField label="Категорія (UA)" value={form.categoryUa} onChange={(value) => updateField('categoryUa', value)} />
-              <SelectField
-                label="Storefront stock state"
-                value={form.stock}
-                onChange={(value) => updateField('stock', value as ProductFormState['stock'])}
-                options={[
-                  { label: 'In stock', value: 'inStock' },
-                  { label: 'Pre-order', value: 'preOrder' },
-                ]}
-              />
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <InputField
-                label="Tags (без store:*)"
-                value={form.tagsText}
-                onChange={(value) => updateField('tagsText', value)}
-                placeholder="urban, defender, widetrack"
-              />
-              <InputField
-                label="Main image URL"
-                value={form.image}
-                onChange={(value) => updateField('image', value)}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-medium text-white">Структурна категорія</div>
-                  <p className="mt-1 text-xs text-white/45">
-                    Використовуйте сутності категорій для фільтрів в адмінці та майбутньої навігації на сайті. Текстові поля категорій залишені для сумісності з імпортом.
-                  </p>
-                </div>
-                <Link href="/admin/shop/categories" className="text-xs text-white/60 hover:text-white">
-                  Керувати категоріями
-                </Link>
-              </div>
-              <div className="mt-3 text-sm text-white/70">
-                {form.categoryId
-                  ? availableCategories.find((category) => category.id === form.categoryId)?.titleEn ||
-                    availableCategories.find((category) => category.id === form.categoryId)?.titleUa ||
-                    'Обрана категорія'
-                  : 'Структурна категорія ще не обрана'}
-              </div>
-            </div>
-            <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-medium text-white">Привʼязані колекції</div>
-                  <p className="mt-1 text-xs text-white/45">
-                    Явні привʼязки до колекцій керують відображенням на сторінках URBAN‑колекцій та в каталозі.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Link href="/admin/shop/collections" className="text-xs text-white/60 hover:text-white">
-                    Керувати колекціями
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setCollectionsExpanded((v) => !v)}
-                    aria-expanded={collectionsExpanded}
-                    className="inline-flex items-center gap-1.5 rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
-                  >
-                    {collectionsExpanded ? 'Сховати' : 'Показати привʼязки'}
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform ${collectionsExpanded ? 'rotate-180' : ''}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                </div>
-              </div>
-              {collectionsExpanded ? (
-                <>
-                  {availableCollections.length ? (
-                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {availableCollections.map((collection) => {
-                        const selected = form.collectionIds.includes(collection.id);
-                        const collectionTitle = collection.titleEn || collection.titleUa || collection.handle;
-                        return (
-                          <button
-                            key={collection.id}
-                            type="button"
-                            onClick={() => toggleCollection(collection.id)}
-                            className={`rounded-none border p-4 text-left transition ${
-                              selected
-                                ? 'border-white/30 bg-white/10'
-                                : 'border-white/10 bg-zinc-950/70 hover:bg-white/5'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <div className="text-sm font-medium text-white">{collectionTitle}</div>
-                                <div className="mt-1 font-mono text-[11px] text-white/40">{collection.handle}</div>
-                              </div>
-                              <div
-                                className={`mt-0.5 h-4 w-4 rounded-none border ${
-                                  selected ? 'border-white bg-white' : 'border-white/20 bg-transparent'
-                                }`}
-                              />
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/45">
-                              <span>{collection.brand || 'Без бренду'}</span>
-                              <span>{collection.isUrban ? 'Urban' : 'Custom'}</span>
-                              <span>{collection.isPublished ? 'Опублікована' : 'Прихована'}</span>
-                              <span>{collection.productsCount ?? 0} товарів</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="mt-4 rounded-none border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
-                      Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
-                    </div>
-                  )}
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <InputField
-                      label="Старий handle колекції (EN)"
-                      value={form.collectionEn}
-                      onChange={(value) => updateField('collectionEn', value)}
-                    />
-                    <InputField
-                      label="Старий handle колекції (UA)"
-                      value={form.collectionUa}
-                      onChange={(value) => updateField('collectionUa', value)}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="mt-3 text-xs text-white/55">
-                  Прив&apos;язано: {form.collectionIds.length} з {availableCollections.length} колекцій
-                </div>
-              )}
-            </div>
-            <div className="mt-4 flex flex-wrap items-center gap-6">
-              <CheckboxField
-                label="Опублікований у вітрині"
-                checked={form.isPublished}
-                onChange={(checked) => updateField('isPublished', checked)}
-              />
-              <div className="text-xs text-white/45">
-                Опубліковано: {form.publishedAt ? new Date(form.publishedAt).toLocaleString() : 'ще не встановлено'}
-              </div>
-            </div>
-          </AdminEditorSection>
-
-          <AdminEditorSection
-            id="content"
-            title="Опис і контент"
-            description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Short description (EN)" value={form.shortDescEn} onChange={(value) => updateField('shortDescEn', value)} rows={3} />
-              <TextareaField label="Short description (UA)" value={form.shortDescUa} onChange={(value) => updateField('shortDescUa', value)} rows={3} />
-              <TextareaField label="Long description (EN)" value={form.longDescEn} onChange={(value) => updateField('longDescEn', value)} rows={6} />
-              <TextareaField label="Long description (UA)" value={form.longDescUa} onChange={(value) => updateField('longDescUa', value)} rows={6} />
-              <TextareaField label="Body HTML (EN)" value={form.bodyHtmlEn} onChange={(value) => updateField('bodyHtmlEn', value)} rows={10} mono />
-              <TextareaField label="Body HTML (UA)" value={form.bodyHtmlUa} onChange={(value) => updateField('bodyHtmlUa', value)} rows={10} mono />
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <InputField label="Термін постачання (EN)" value={form.leadTimeEn} onChange={(value) => updateField('leadTimeEn', value)} />
-              <InputField label="Термін постачання (UA)" value={form.leadTimeUa} onChange={(value) => updateField('leadTimeUa', value)} />
-            </div>
-          </AdminEditorSection>
-
-          <AdminEditorSection
-            id="pricing"
-            title="Ціни"
-            description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              <InputField label="Ціна EUR" type="number" step="0.01" value={form.priceEur} onChange={(value) => updateField('priceEur', value)} />
-              <InputField label="Ціна USD" type="number" step="0.01" value={form.priceUsd} onChange={(value) => updateField('priceUsd', value)} />
-              <InputField label="Ціна UAH" type="number" step="0.01" value={form.priceUah} onChange={(value) => updateField('priceUah', value)} />
-              <InputField label="Порівн. ціна EUR" type="number" step="0.01" value={form.compareAtEur} onChange={(value) => updateField('compareAtEur', value)} />
-              <InputField label="Порівн. ціна USD" type="number" step="0.01" value={form.compareAtUsd} onChange={(value) => updateField('compareAtUsd', value)} />
-              <InputField label="Порівн. ціна UAH" type="number" step="0.01" value={form.compareAtUah} onChange={(value) => updateField('compareAtUah', value)} />
-            </div>
-            <div className="mt-5 border-t border-white/10 pt-5">
-              <div className="mb-3 text-sm font-medium text-white">B2B ціни</div>
+            <AdminEditorSection
+              id="overview"
+              title="Огляд"
+              description="Основна ідентичність товару в каталозі, стан публікації та привʼязка до колекцій."
+            >
               <div className="grid gap-4 md:grid-cols-3">
-                <InputField label="B2B (опт) EUR" type="number" step="0.01" value={form.priceEurB2b} onChange={(value) => updateField('priceEurB2b', value)} />
-                <InputField label="B2B (опт) USD" type="number" step="0.01" value={form.priceUsdB2b} onChange={(value) => updateField('priceUsdB2b', value)} />
-                <InputField label="B2B (опт) UAH" type="number" step="0.01" value={form.priceUahB2b} onChange={(value) => updateField('priceUahB2b', value)} />
-                <InputField label="B2B порівн. EUR" type="number" step="0.01" value={form.compareAtEurB2b} onChange={(value) => updateField('compareAtEurB2b', value)} />
-                <InputField label="B2B порівн. USD" type="number" step="0.01" value={form.compareAtUsdB2b} onChange={(value) => updateField('compareAtUsdB2b', value)} />
-                <InputField label="B2B порівн. UAH" type="number" step="0.01" value={form.compareAtUahB2b} onChange={(value) => updateField('compareAtUahB2b', value)} />
+                <InputField
+                  label="Slug *"
+                  value={form.slug}
+                  onChange={(value) => updateField("slug", value)}
+                  mono
+                />
+                <SelectField
+                  label="Сфера (auto / moto)"
+                  value={form.scope}
+                  onChange={(value) => updateField("scope", value as ProductFormState["scope"])}
+                  options={[
+                    { label: "Auto", value: "auto" },
+                    { label: "Moto", value: "moto" },
+                  ]}
+                />
+                <SelectField
+                  label="Статус у каталозі"
+                  value={form.status}
+                  onChange={(value) => updateField("status", value as ProductStatus)}
+                  options={[
+                    { label: "Active", value: "ACTIVE" },
+                    { label: "Draft", value: "DRAFT" },
+                    { label: "Archived", value: "ARCHIVED" },
+                  ]}
+                />
+                <InputField
+                  label="Назва (EN) *"
+                  value={form.titleEn}
+                  onChange={(value) => updateField("titleEn", value)}
+                />
+                <InputField
+                  label="Назва (UA) *"
+                  value={form.titleUa}
+                  onChange={(value) => updateField("titleUa", value)}
+                />
+                <InputField
+                  label="Базовий SKU"
+                  value={form.sku}
+                  onChange={(value) => updateField("sku", value)}
+                />
+                <InputField
+                  label="Бренд"
+                  value={form.brand}
+                  onChange={(value) => updateField("brand", value)}
+                />
+                <InputField
+                  label="Постачальник"
+                  value={form.vendor}
+                  onChange={(value) => updateField("vendor", value)}
+                />
+                <SelectField
+                  label="Storefront"
+                  value={form.storefront}
+                  onChange={(value) => updateField("storefront", value as ProductStorefront)}
+                  options={[
+                    { label: "Main", value: "main" },
+                    { label: "Urban", value: "urban" },
+                    { label: "Brabus", value: "brabus" },
+                  ]}
+                />
+                <InputField
+                  label="Тип товару"
+                  value={form.productType}
+                  onChange={(value) => updateField("productType", value)}
+                />
+                <SelectField
+                  label="Structured category"
+                  value={form.categoryId}
+                  onChange={(value) => updateField("categoryId", value)}
+                  options={[
+                    { label: "No category", value: "" },
+                    ...availableCategories.map((category) => ({
+                      label: `${category.titleEn || category.titleUa || category.slug}${category.parent ? ` · ${category.parent.titleEn || category.parent.titleUa}` : ""}`,
+                      value: category.id,
+                    })),
+                  ]}
+                />
+                <InputField
+                  label="Категорія товару"
+                  value={form.productCategory}
+                  onChange={(value) => updateField("productCategory", value)}
+                />
+                <InputField
+                  label="Категорія (EN)"
+                  value={form.categoryEn}
+                  onChange={(value) => updateField("categoryEn", value)}
+                />
+                <InputField
+                  label="Категорія (UA)"
+                  value={form.categoryUa}
+                  onChange={(value) => updateField("categoryUa", value)}
+                />
+                <SelectField
+                  label="Storefront stock state"
+                  value={form.stock}
+                  onChange={(value) => updateField("stock", value as ProductFormState["stock"])}
+                  options={[
+                    { label: "In stock", value: "inStock" },
+                    { label: "Pre-order", value: "preOrder" },
+                  ]}
+                />
               </div>
-            </div>
-          </AdminEditorSection>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <InputField
+                  label="Tags (без store:*)"
+                  value={form.tagsText}
+                  onChange={(value) => updateField("tagsText", value)}
+                  placeholder="urban, defender, widetrack"
+                />
+                <InputField
+                  label="Main image URL"
+                  value={form.image}
+                  onChange={(value) => updateField("image", value)}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-white">Структурна категорія</div>
+                    <p className="mt-1 text-xs text-white/45">
+                      Використовуйте сутності категорій для фільтрів в адмінці та майбутньої
+                      навігації на сайті. Текстові поля категорій залишені для сумісності з
+                      імпортом.
+                    </p>
+                  </div>
+                  <Link
+                    href="/admin/shop/categories"
+                    className="text-xs text-white/60 hover:text-white"
+                  >
+                    Керувати категоріями
+                  </Link>
+                </div>
+                <div className="mt-3 text-sm text-white/70">
+                  {form.categoryId
+                    ? availableCategories.find((category) => category.id === form.categoryId)
+                        ?.titleEn ||
+                      availableCategories.find((category) => category.id === form.categoryId)
+                        ?.titleUa ||
+                      "Обрана категорія"
+                    : "Структурна категорія ще не обрана"}
+                </div>
+              </div>
+              <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-white">Привʼязані колекції</div>
+                    <p className="mt-1 text-xs text-white/45">
+                      Явні привʼязки до колекцій керують відображенням на сторінках URBAN‑колекцій
+                      та в каталозі.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href="/admin/shop/collections"
+                      className="text-xs text-white/60 hover:text-white"
+                    >
+                      Керувати колекціями
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setCollectionsExpanded((v) => !v)}
+                      aria-expanded={collectionsExpanded}
+                      className="inline-flex items-center gap-1.5 rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                    >
+                      {collectionsExpanded ? "Сховати" : "Показати привʼязки"}
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${collectionsExpanded ? "rotate-180" : ""}`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
+                </div>
+                {collectionsExpanded ? (
+                  <>
+                    {availableCollections.length ? (
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {availableCollections.map((collection) => {
+                          const selected = form.collectionIds.includes(collection.id);
+                          const collectionTitle =
+                            collection.titleEn || collection.titleUa || collection.handle;
+                          return (
+                            <button
+                              key={collection.id}
+                              type="button"
+                              onClick={() => toggleCollection(collection.id)}
+                              className={`rounded-none border p-4 text-left transition ${
+                                selected
+                                  ? "border-white/30 bg-white/10"
+                                  : "border-white/10 bg-zinc-950/70 hover:bg-white/5"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm font-medium text-white">
+                                    {collectionTitle}
+                                  </div>
+                                  <div className="mt-1 font-mono text-[11px] text-white/40">
+                                    {collection.handle}
+                                  </div>
+                                </div>
+                                <div
+                                  className={`mt-0.5 h-4 w-4 rounded-none border ${
+                                    selected
+                                      ? "border-white bg-white"
+                                      : "border-white/20 bg-transparent"
+                                  }`}
+                                />
+                              </div>
+                              <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/45">
+                                <span>{collection.brand || "Без бренду"}</span>
+                                <span>{collection.isUrban ? "Urban" : "Custom"}</span>
+                                <span>{collection.isPublished ? "Опублікована" : "Прихована"}</span>
+                                <span>{collection.productsCount ?? 0} товарів</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-none border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
+                        Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
+                      </div>
+                    )}
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <InputField
+                        label="Старий handle колекції (EN)"
+                        value={form.collectionEn}
+                        onChange={(value) => updateField("collectionEn", value)}
+                      />
+                      <InputField
+                        label="Старий handle колекції (UA)"
+                        value={form.collectionUa}
+                        onChange={(value) => updateField("collectionUa", value)}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-3 text-xs text-white/55">
+                    Прив&apos;язано: {form.collectionIds.length} з {availableCollections.length}{" "}
+                    колекцій
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-6">
+                <CheckboxField
+                  label="Опублікований у вітрині"
+                  checked={form.isPublished}
+                  onChange={(checked) => updateField("isPublished", checked)}
+                />
+                <div className="text-xs text-white/45">
+                  Опубліковано:{" "}
+                  {form.publishedAt
+                    ? new Date(form.publishedAt).toLocaleString()
+                    : "ще не встановлено"}
+                </div>
+              </div>
+            </AdminEditorSection>
 
-          <AdminCollapsibleSection
-            id="dimensions"
-            title="Габарити та вага"
-            description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
-          >
-            <div className="mb-4">
-              <button
-                type="button"
-                onClick={handleEstimateDimensionsAI}
-                disabled={saving}
-                className="flex items-center gap-2 rounded-none bg-zinc-800/40 px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-              >
-                <Wand2 className="size-4" /> 🪄 Згенерувати габарити через ШІ
-              </button>
-            </div>
-            <div className="grid gap-4 md:grid-cols-4">
-              <InputField label="Вага (кг)" type="number" step="0.01" value={form.weight} onChange={(value) => updateField('weight', value)} />
-              <InputField label="Довжина (см)" type="number" step="0.1" value={form.length} onChange={(value) => updateField('length', value)} />
-              <InputField label="Ширина (см)" type="number" step="0.1" value={form.width} onChange={(value) => updateField('width', value)} />
-              <InputField label="Висота (см)" type="number" step="0.1" value={form.height} onChange={(value) => updateField('height', value)} />
-            </div>
-            <div className="mt-4 flex items-center">
-              <CheckboxField label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)" checked={form.isDimensionsEstimated} onChange={(value) => updateField('isDimensionsEstimated', value)} />
-            </div>
-          </AdminCollapsibleSection>
+            <AdminEditorSection
+              id="content"
+              title="Опис і контент"
+              description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextareaField
+                  label="Short description (EN)"
+                  value={form.shortDescEn}
+                  onChange={(value) => updateField("shortDescEn", value)}
+                  rows={3}
+                />
+                <TextareaField
+                  label="Short description (UA)"
+                  value={form.shortDescUa}
+                  onChange={(value) => updateField("shortDescUa", value)}
+                  rows={3}
+                />
+                <TextareaField
+                  label="Long description (EN)"
+                  value={form.longDescEn}
+                  onChange={(value) => updateField("longDescEn", value)}
+                  rows={6}
+                />
+                <TextareaField
+                  label="Long description (UA)"
+                  value={form.longDescUa}
+                  onChange={(value) => updateField("longDescUa", value)}
+                  rows={6}
+                />
+                <TextareaField
+                  label="Body HTML (EN)"
+                  value={form.bodyHtmlEn}
+                  onChange={(value) => updateField("bodyHtmlEn", value)}
+                  rows={10}
+                  mono
+                />
+                <TextareaField
+                  label="Body HTML (UA)"
+                  value={form.bodyHtmlUa}
+                  onChange={(value) => updateField("bodyHtmlUa", value)}
+                  rows={10}
+                  mono
+                />
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <InputField
+                  label="Термін постачання (EN)"
+                  value={form.leadTimeEn}
+                  onChange={(value) => updateField("leadTimeEn", value)}
+                />
+                <InputField
+                  label="Термін постачання (UA)"
+                  value={form.leadTimeUa}
+                  onChange={(value) => updateField("leadTimeUa", value)}
+                />
+              </div>
+            </AdminEditorSection>
 
-          <AdminCollapsibleSection
-            id="seo"
-            title="SEO та пошук"
-            description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="SEO заголовок (EN)" value={form.seoTitleEn} onChange={(value) => updateField('seoTitleEn', value)} />
-              <InputField label="SEO заголовок (UA)" value={form.seoTitleUa} onChange={(value) => updateField('seoTitleUa', value)} />
-              <TextareaField label="SEO description (EN)" value={form.seoDescriptionEn} onChange={(value) => updateField('seoDescriptionEn', value)} rows={3} />
-              <TextareaField label="SEO description (UA)" value={form.seoDescriptionUa} onChange={(value) => updateField('seoDescriptionUa', value)} rows={3} />
-            </div>
-          </AdminCollapsibleSection>
+            <AdminEditorSection
+              id="pricing"
+              title="Ціни"
+              description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <InputField
+                  label="Ціна EUR"
+                  type="number"
+                  step="0.01"
+                  value={form.priceEur}
+                  onChange={(value) => updateField("priceEur", value)}
+                />
+                <InputField
+                  label="Ціна USD"
+                  type="number"
+                  step="0.01"
+                  value={form.priceUsd}
+                  onChange={(value) => updateField("priceUsd", value)}
+                />
+                <InputField
+                  label="Ціна UAH"
+                  type="number"
+                  step="0.01"
+                  value={form.priceUah}
+                  onChange={(value) => updateField("priceUah", value)}
+                />
+                <InputField
+                  label="Порівн. ціна EUR"
+                  type="number"
+                  step="0.01"
+                  value={form.compareAtEur}
+                  onChange={(value) => updateField("compareAtEur", value)}
+                />
+                <InputField
+                  label="Порівн. ціна USD"
+                  type="number"
+                  step="0.01"
+                  value={form.compareAtUsd}
+                  onChange={(value) => updateField("compareAtUsd", value)}
+                />
+                <InputField
+                  label="Порівн. ціна UAH"
+                  type="number"
+                  step="0.01"
+                  value={form.compareAtUah}
+                  onChange={(value) => updateField("compareAtUah", value)}
+                />
+              </div>
+              <div className="mt-5 border-t border-white/10 pt-5">
+                <div className="mb-3 text-sm font-medium text-white">B2B ціни</div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <InputField
+                    label="B2B (опт) EUR"
+                    type="number"
+                    step="0.01"
+                    value={form.priceEurB2b}
+                    onChange={(value) => updateField("priceEurB2b", value)}
+                  />
+                  <InputField
+                    label="B2B (опт) USD"
+                    type="number"
+                    step="0.01"
+                    value={form.priceUsdB2b}
+                    onChange={(value) => updateField("priceUsdB2b", value)}
+                  />
+                  <InputField
+                    label="B2B (опт) UAH"
+                    type="number"
+                    step="0.01"
+                    value={form.priceUahB2b}
+                    onChange={(value) => updateField("priceUahB2b", value)}
+                  />
+                  <InputField
+                    label="B2B порівн. EUR"
+                    type="number"
+                    step="0.01"
+                    value={form.compareAtEurB2b}
+                    onChange={(value) => updateField("compareAtEurB2b", value)}
+                  />
+                  <InputField
+                    label="B2B порівн. USD"
+                    type="number"
+                    step="0.01"
+                    value={form.compareAtUsdB2b}
+                    onChange={(value) => updateField("compareAtUsdB2b", value)}
+                  />
+                  <InputField
+                    label="B2B порівн. UAH"
+                    type="number"
+                    step="0.01"
+                    value={form.compareAtUahB2b}
+                    onChange={(value) => updateField("compareAtUahB2b", value)}
+                  />
+                </div>
+              </div>
+            </AdminEditorSection>
 
-          <AdminEditorSection
-            id="media"
-            title="Медіа"
-            description="Порядок зображень та відео у вітрині для цього товару."
-          >
-            <div className="space-y-4">
-              {form.media.map((item, index) => (
-                <div key={item.id ?? `media-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="text-sm font-medium text-white">Media #{index + 1}</div>
-                    <div className="flex items-center gap-2">
+            <AdminCollapsibleSection
+              id="dimensions"
+              title="Габарити та вага"
+              description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
+            >
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={handleEstimateDimensionsAI}
+                  disabled={saving}
+                  className="flex items-center gap-2 rounded-none bg-zinc-800/40 px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+                >
+                  <Wand2 className="size-4" /> 🪄 Згенерувати габарити через ШІ
+                </button>
+              </div>
+              <div className="grid gap-4 md:grid-cols-4">
+                <InputField
+                  label="Вага (кг)"
+                  type="number"
+                  step="0.01"
+                  value={form.weight}
+                  onChange={(value) => updateField("weight", value)}
+                />
+                <InputField
+                  label="Довжина (см)"
+                  type="number"
+                  step="0.1"
+                  value={form.length}
+                  onChange={(value) => updateField("length", value)}
+                />
+                <InputField
+                  label="Ширина (см)"
+                  type="number"
+                  step="0.1"
+                  value={form.width}
+                  onChange={(value) => updateField("width", value)}
+                />
+                <InputField
+                  label="Висота (см)"
+                  type="number"
+                  step="0.1"
+                  value={form.height}
+                  onChange={(value) => updateField("height", value)}
+                />
+              </div>
+              <div className="mt-4 flex items-center">
+                <CheckboxField
+                  label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)"
+                  checked={form.isDimensionsEstimated}
+                  onChange={(value) => updateField("isDimensionsEstimated", value)}
+                />
+              </div>
+            </AdminCollapsibleSection>
+
+            <AdminCollapsibleSection
+              id="seo"
+              title="SEO та пошук"
+              description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <InputField
+                  label="SEO заголовок (EN)"
+                  value={form.seoTitleEn}
+                  onChange={(value) => updateField("seoTitleEn", value)}
+                />
+                <InputField
+                  label="SEO заголовок (UA)"
+                  value={form.seoTitleUa}
+                  onChange={(value) => updateField("seoTitleUa", value)}
+                />
+                <TextareaField
+                  label="SEO description (EN)"
+                  value={form.seoDescriptionEn}
+                  onChange={(value) => updateField("seoDescriptionEn", value)}
+                  rows={3}
+                />
+                <TextareaField
+                  label="SEO description (UA)"
+                  value={form.seoDescriptionUa}
+                  onChange={(value) => updateField("seoDescriptionUa", value)}
+                  rows={3}
+                />
+              </div>
+            </AdminCollapsibleSection>
+
+            <AdminEditorSection
+              id="media"
+              title="Медіа"
+              description="Порядок зображень та відео у вітрині для цього товару."
+            >
+              <div className="space-y-4">
+                {form.media.map((item, index) => (
+                  <div
+                    key={item.id ?? `media-${index}`}
+                    className="rounded-none border border-white/10 bg-black/40 p-4"
+                  >
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="text-sm font-medium text-white">Media #{index + 1}</div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => moveMedia(index, -1)}
+                          disabled={index === 0}
+                          className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveMedia(index, 1)}
+                          disabled={index === form.media.length - 1}
+                          className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPrimaryImageFromMedia(index)}
+                          disabled={!item.src.trim()}
+                          className="rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5 disabled:opacity-40"
+                        >
+                          Use as main
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeListItem("media", index)}
+                          className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+                      <div className="overflow-hidden rounded-none border border-white/10 bg-zinc-950/80">
+                        {mediaPreviewable(item) ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={item.src}
+                            alt={item.altText || `Media ${index + 1}`}
+                            className="h-44 w-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="flex h-44 items-center justify-center px-4 text-center text-xs text-white/35">
+                            {item.src.trim()
+                              ? "Превʼю доступне лише для зображень"
+                              : "Додайте URL медіа, щоб побачити превʼю"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-4">
+                        <div className="md:col-span-2">
+                          <InputField
+                            label="URL джерела"
+                            value={item.src}
+                            onChange={(value) => updateMediaSource(index, value)}
+                          />
+                        </div>
+                        <InputField
+                          label="Альт текст"
+                          value={item.altText}
+                          onChange={(value) => updateListItem("media", index, { altText: value })}
+                        />
+                        <InputField
+                          label="Позиція"
+                          type="number"
+                          value={item.position}
+                          onChange={(value) => updateListItem("media", index, { position: value })}
+                        />
+                        <SelectField
+                          label="Type"
+                          value={item.mediaType}
+                          onChange={(value) =>
+                            updateListItem("media", index, { mediaType: value as ProductMediaType })
+                          }
+                          options={[
+                            { label: "Image", value: "IMAGE" },
+                            { label: "Hosted video", value: "VIDEO" },
+                            { label: "External video", value: "EXTERNAL_VIDEO" },
+                          ]}
+                        />
+                        <div className="md:col-span-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
+                          {isLibraryBackedAssetReference(item.src)
+                            ? "Library-backed asset. Variants using this source stay in sync if you change the URL here."
+                            : "Custom external source. Variants can still link to this media item by matching the same URL."}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addMedia}
+                  className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Додати медіа
+                </button>
+              </div>
+            </AdminEditorSection>
+
+            <AdminEditorSection
+              id="options"
+              title="Опції"
+              description="Набори опцій (наприклад, колір / розмір), з яких формуються варіанти."
+            >
+              <div className="space-y-4">
+                {form.options.map((item, index) => (
+                  <div
+                    key={item.id ?? `option-${index}`}
+                    className="grid gap-4 rounded-none border border-white/10 bg-black/40 p-4 md:grid-cols-4"
+                  >
+                    <InputField
+                      label="Назва"
+                      value={item.name}
+                      onChange={(value) => updateListItem("options", index, { name: value })}
+                    />
+                    <InputField
+                      label="Позиція"
+                      type="number"
+                      value={item.position}
+                      onChange={(value) => updateListItem("options", index, { position: value })}
+                    />
+                    <div className="md:col-span-2">
+                      <InputField
+                        label="Values"
+                        value={item.valuesText}
+                        onChange={(value) =>
+                          updateListItem("options", index, { valuesText: value })
+                        }
+                        placeholder="Front, Rear, Full Kit"
+                      />
+                    </div>
+                    <div className="md:col-span-4 flex justify-end">
                       <button
                         type="button"
-                        onClick={() => moveMedia(index, -1)}
-                        disabled={index === 0}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
+                        onClick={() => removeListItem("options", index)}
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                       >
-                        <ChevronUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveMedia(index, 1)}
-                        disabled={index === form.media.length - 1}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPrimaryImageFromMedia(index)}
-                        disabled={!item.src.trim()}
-                        className="rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5 disabled:opacity-40"
-                      >
-                        Use as main
-                      </button>
-                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-                    <div className="overflow-hidden rounded-none border border-white/10 bg-zinc-950/80">
-                      {mediaPreviewable(item) ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={item.src}
-                          alt={item.altText || `Media ${index + 1}`}
-                          className="h-44 w-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="flex h-44 items-center justify-center px-4 text-center text-xs text-white/35">
-                          {item.src.trim() ? 'Превʼю доступне лише для зображень' : 'Додайте URL медіа, щоб побачити превʼю'}
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-4">
-                    <div className="md:col-span-2">
-                      <InputField label="URL джерела" value={item.src} onChange={(value) => updateMediaSource(index, value)} />
-                    </div>
-                    <InputField label="Альт текст" value={item.altText} onChange={(value) => updateListItem('media', index, { altText: value })} />
-                    <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('media', index, { position: value })} />
-                    <SelectField
-                      label="Type"
-                      value={item.mediaType}
-                      onChange={(value) => updateListItem('media', index, { mediaType: value as ProductMediaType })}
-                      options={[
-                        { label: 'Image', value: 'IMAGE' },
-                        { label: 'Hosted video', value: 'VIDEO' },
-                        { label: 'External video', value: 'EXTERNAL_VIDEO' },
-                      ]}
-                    />
-                    <div className="md:col-span-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
-                      {isLibraryBackedAssetReference(item.src)
-                        ? 'Library-backed asset. Variants using this source stay in sync if you change the URL here.'
-                        : 'Custom external source. Variants can still link to this media item by matching the same URL.'}
-                    </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addMedia}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати медіа
-              </button>
-            </div>
-          </AdminEditorSection>
-
-          <AdminEditorSection
-            id="options"
-            title="Опції"
-            description="Набори опцій (наприклад, колір / розмір), з яких формуються варіанти."
-          >
-            <div className="space-y-4">
-              {form.options.map((item, index) => (
-                <div key={item.id ?? `option-${index}`} className="grid gap-4 rounded-none border border-white/10 bg-black/40 p-4 md:grid-cols-4">
-                  <InputField label="Назва" value={item.name} onChange={(value) => updateListItem('options', index, { name: value })} />
-                  <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('options', index, { position: value })} />
-                  <div className="md:col-span-2">
-                    <InputField
-                      label="Values"
-                      value={item.valuesText}
-                      onChange={(value) => updateListItem('options', index, { valuesText: value })}
-                      placeholder="Front, Rear, Full Kit"
-                    />
-                  </div>
-                  <div className="md:col-span-4 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removeListItem('options', index)}
-                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addOption}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати опцію
-              </button>
-            </div>
-          </AdminEditorSection>
-
-          <AdminEditorSection
-            id="variants"
-            title="Варіанти"
-            description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
-          >
-            <div className="space-y-4">
-              <div className="rounded-none border border-white/[0.07] bg-gradient-to-b from-[#141B33] to-[#0E1325] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-zinc-50">Variant tools</div>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500">
-                      Generate combinations from options and apply shared pricing or stock to all variants.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={generateVariantsFromOptions}
-                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
-                    >
-                      <Wand2 className="h-3.5 w-3.5" />
-                      Generate from options
-                    </button>
-                    <button
-                      type="button"
-                      onClick={applyProductPricingToVariants}
-                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Copy product pricing
-                    </button>
-                    <button
-                      type="button"
-                      onClick={copyDefaultVariantSettings}
-                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Copy default settings
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-4 md:grid-cols-4">
-                  <InputField
-                    label="Bulk inventory qty"
-                    type="number"
-                    value={variantBulk.inventoryQty}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, inventoryQty: value }))}
-                  />
-                  <InputField
-                    label="Bulk price EUR"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceEur}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceEur: value }))}
-                  />
-                  <InputField
-                    label="Bulk price USD"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceUsd}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceUsd: value }))}
-                  />
-                  <InputField
-                    label="Bulk price UAH"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceUah}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceUah: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B EUR"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceEurB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceEurB2b: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B USD"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceUsdB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceUsdB2b: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B UAH"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.priceUahB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, priceUahB2b: value }))}
-                  />
-                  <InputField
-                    label="Bulk compare-at EUR"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtEur}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtEur: value }))}
-                  />
-                  <InputField
-                    label="Bulk compare-at USD"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtUsd}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUsd: value }))}
-                  />
-                  <InputField
-                    label="Bulk compare-at UAH"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtUah}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUah: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B порівн. EUR"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtEurB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtEurB2b: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B порівн. USD"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtUsdB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUsdB2b: value }))}
-                  />
-                  <InputField
-                    label="Масово B2B порівн. UAH"
-                    type="number"
-                    step="0.01"
-                    value={variantBulk.compareAtUahB2b}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUahB2b: value }))}
-                  />
-                  <InputField
-                    label="Bulk image URL"
-                    value={variantBulk.image}
-                    onChange={(value) => setVariantBulk((current) => ({ ...current, image: value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
-                  <div className="text-xs text-zinc-500">
-                    <span className="font-semibold text-zinc-300">
-                      {optionDefinitions(form.options).reduce(
-                        (count, definition) => count * Math.max(definition.values.length, 1),
-                        1
-                      )}
-                    </span>{' '}
-                    possible combinations from current options
-                  </div>
-                  <button
-                    type="button"
-                    onClick={applyBulkVariantFields}
-                    className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Apply bulk fields
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {form.variants.map((item, index) => (
-                  <AdminProductVariantCard
-                    key={item.id ?? `variant-${index}`}
-                    variant={item}
-                    index={index}
-                    totalVariants={form.variants.length}
-                    defaultOpen={form.variants.length === 1 || item.isDefault}
-                    mediaOptions={form.media
-                      .filter((mediaItem) => mediaItem.src.trim())
-                      .map((mediaItem) => ({
-                        src: mediaItem.src,
-                        label: mediaItem.altText || mediaItem.src,
-                      }))}
-                    onUpdate={(patch) => updateListItem('variants', index, patch)}
-                    onRemove={() => removeListItem('variants', index)}
-                    onSetDefault={() => setDefaultVariant(index)}
-                  />
                 ))}
-              </div>
-              <button
-                type="button"
-                onClick={addVariant}
-                className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
-              >
-                <Plus className="h-4 w-4" />
-                Add variant
-              </button>
-            </div>
-          </AdminEditorSection>
-
-          <AdminCollapsibleSection
-            id="metafields"
-            title="Мета‑поля"
-            description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
-          >
-            <div className="space-y-4">
-              {form.metafields.map((item, index) => (
-                <div key={item.id ?? `metafield-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
-                  <div className="mb-4 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removeListItem('metafields', index)}
-                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <InputField label="Namespace" value={item.namespace} onChange={(value) => updateListItem('metafields', index, { namespace: value })} />
-                    <InputField label="Key" value={item.key} onChange={(value) => updateListItem('metafields', index, { key: value })} />
-                    <InputField label="Value type" value={item.valueType} onChange={(value) => updateListItem('metafields', index, { valueType: value })} />
-                  </div>
-                  <div className="mt-4">
-                    <TextareaField label="Value" value={item.value} onChange={(value) => updateListItem('metafields', index, { value })} rows={4} />
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addMetafield}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати мета‑поле
-              </button>
-            </div>
-          </AdminCollapsibleSection>
-
-          {isEditing && productId && (
-            <AdminCollapsibleSection
-              id="activity"
-              title="Активність та нотатки"
-              description="Внутрішні нотатки адміна, теги та аудит-трейл змін цього товару."
-            >
-              <div className="space-y-5">
-                <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Tags</h3>
-                  <AdminTagInput
-                    entityType="shop.product"
-                    entityId={productId}
-                    suggestions={['featured', 'new-arrival', 'clearance', 'discontinued', 'staff-pick', 'bestseller']}
-                  />
-                </div>
-                <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Notes</h3>
-                  <AdminNotes entityType="shop.product" entityId={productId} />
-                </div>
-                <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Audit timeline</h3>
-                  <AdminActivityTimeline
-                    entityType="shop.product"
-                    entityId={productId}
-                    emptyTitle="No activity logged yet"
-                    emptyDescription="Edits to fields, status changes and bulk updates will appear here."
-                  />
-                </div>
-              </div>
-            </AdminCollapsibleSection>
-          )}
-
-          {isEditing && (
-            <AdminCollapsibleSection
-              id="danger-zone"
-              title="Небезпечні дії"
-              description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
-            >
-              <div className="rounded-none border border-blue-500/40 bg-red-900/10 p-4 space-y-2">
-                <p className="text-xs text-red-200">
-                  Архівація залишає товар у базі, але прибирає його з публікації. Це зберігає історію варіантів, цін і привʼязок
-                  до колекцій та дозволяє повернути товар без відновлення з бекапу.
-                </p>
                 <button
                   type="button"
-                  onClick={() => void handleHardDelete()}
-                  disabled={hardDeleting}
-                  className="inline-flex items-center gap-2 rounded-none border border-blue-500/40 bg-blue-950/40 px-4 py-2 text-sm font-medium text-white hover:bg-blue-950/40 disabled:opacity-50"
+                  onClick={addOption}
+                  className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
                 >
-                  <Trash2 className="h-4 w-4" />
-                  {hardDeleting ? 'Архівуємо…' : 'Архівувати товар'}
+                  <Plus className="h-4 w-4" />
+                  Додати опцію
+                </button>
+              </div>
+            </AdminEditorSection>
+
+            <AdminEditorSection
+              id="variants"
+              title="Варіанти"
+              description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
+            >
+              <div className="space-y-4">
+                <div className="rounded-none border border-white/[0.07] bg-linear-to-b from-[#141B33] to-[#0E1325] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-zinc-50">Variant tools</div>
+                      <p className="mt-1 text-xs leading-5 text-zinc-500">
+                        Generate combinations from options and apply shared pricing or stock to all
+                        variants.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={generateVariantsFromOptions}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/6 hover:text-blue-300"
+                      >
+                        <Wand2 className="h-3.5 w-3.5" />
+                        Generate from options
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyProductPricingToVariants}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/6"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy product pricing
+                      </button>
+                      <button
+                        type="button"
+                        onClick={copyDefaultVariantSettings}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/6"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy default settings
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-4">
+                    <InputField
+                      label="Bulk inventory qty"
+                      type="number"
+                      value={variantBulk.inventoryQty}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, inventoryQty: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk price EUR"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceEur}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceEur: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk price USD"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceUsd}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceUsd: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk price UAH"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceUah}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceUah: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B EUR"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceEurB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceEurB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B USD"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceUsdB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceUsdB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B UAH"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceUahB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, priceUahB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk compare-at EUR"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtEur}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtEur: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk compare-at USD"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtUsd}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtUsd: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk compare-at UAH"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtUah}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtUah: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B порівн. EUR"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtEurB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtEurB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B порівн. USD"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtUsdB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtUsdB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Масово B2B порівн. UAH"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.compareAtUahB2b}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, compareAtUahB2b: value }))
+                      }
+                    />
+                    <InputField
+                      label="Bulk image URL"
+                      value={variantBulk.image}
+                      onChange={(value) =>
+                        setVariantBulk((current) => ({ ...current, image: value }))
+                      }
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/6 pt-4">
+                    <div className="text-xs text-zinc-500">
+                      <span className="font-semibold text-zinc-300">
+                        {optionDefinitions(form.options).reduce(
+                          (count, definition) => count * Math.max(definition.values.length, 1),
+                          1
+                        )}
+                      </span>{" "}
+                      possible combinations from current options
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyBulkVariantFields}
+                      className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Apply bulk fields
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {form.variants.map((item, index) => (
+                    <AdminProductVariantCard
+                      key={item.id ?? `variant-${index}`}
+                      variant={item}
+                      index={index}
+                      totalVariants={form.variants.length}
+                      defaultOpen={form.variants.length === 1 || item.isDefault}
+                      mediaOptions={form.media
+                        .filter((mediaItem) => mediaItem.src.trim())
+                        .map((mediaItem) => ({
+                          src: mediaItem.src,
+                          label: mediaItem.altText || mediaItem.src,
+                        }))}
+                      onUpdate={(patch) => updateListItem("variants", index, patch)}
+                      onRemove={() => removeListItem("variants", index)}
+                      onSetDefault={() => setDefaultVariant(index)}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="inline-flex items-center gap-2 rounded-none border border-white/8 bg-white/3 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/6 hover:text-blue-300"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add variant
+                </button>
+              </div>
+            </AdminEditorSection>
+
+            <AdminCollapsibleSection
+              id="metafields"
+              title="Мета‑поля"
+              description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
+            >
+              <div className="space-y-4">
+                {form.metafields.map((item, index) => (
+                  <div
+                    key={item.id ?? `metafield-${index}`}
+                    className="rounded-none border border-white/10 bg-black/40 p-4"
+                  >
+                    <div className="mb-4 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeListItem("metafields", index)}
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <InputField
+                        label="Namespace"
+                        value={item.namespace}
+                        onChange={(value) =>
+                          updateListItem("metafields", index, { namespace: value })
+                        }
+                      />
+                      <InputField
+                        label="Key"
+                        value={item.key}
+                        onChange={(value) => updateListItem("metafields", index, { key: value })}
+                      />
+                      <InputField
+                        label="Value type"
+                        value={item.valueType}
+                        onChange={(value) =>
+                          updateListItem("metafields", index, { valueType: value })
+                        }
+                      />
+                    </div>
+                    <div className="mt-4">
+                      <TextareaField
+                        label="Value"
+                        value={item.value}
+                        onChange={(value) => updateListItem("metafields", index, { value })}
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addMetafield}
+                  className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Додати мета‑поле
                 </button>
               </div>
             </AdminCollapsibleSection>
-          )}
+
+            {isEditing && productId && (
+              <AdminCollapsibleSection
+                id="activity"
+                title="Активність та нотатки"
+                description="Внутрішні нотатки адміна, теги та аудит-трейл змін цього товару."
+              >
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Tags
+                    </h3>
+                    <AdminTagInput
+                      entityType="shop.product"
+                      entityId={productId}
+                      suggestions={[
+                        "featured",
+                        "new-arrival",
+                        "clearance",
+                        "discontinued",
+                        "staff-pick",
+                        "bestseller",
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Notes
+                    </h3>
+                    <AdminNotes entityType="shop.product" entityId={productId} />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Audit timeline
+                    </h3>
+                    <AdminActivityTimeline
+                      entityType="shop.product"
+                      entityId={productId}
+                      emptyTitle="No activity logged yet"
+                      emptyDescription="Edits to fields, status changes and bulk updates will appear here."
+                    />
+                  </div>
+                </div>
+              </AdminCollapsibleSection>
+            )}
+
+            {isEditing && (
+              <AdminCollapsibleSection
+                id="danger-zone"
+                title="Небезпечні дії"
+                description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
+              >
+                <div className="rounded-none border border-blue-500/40 bg-red-900/10 p-4 space-y-2">
+                  <p className="text-xs text-red-200">
+                    Архівація залишає товар у базі, але прибирає його з публікації. Це зберігає
+                    історію варіантів, цін і привʼязок до колекцій та дозволяє повернути товар без
+                    відновлення з бекапу.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void handleHardDelete()}
+                    disabled={hardDeleting}
+                    className="inline-flex items-center gap-2 rounded-none border border-blue-500/40 bg-blue-950/40 px-4 py-2 text-sm font-medium text-white hover:bg-blue-950/40 disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {hardDeleting ? "Архівуємо…" : "Архівувати товар"}
+                  </button>
+                </div>
+              </AdminCollapsibleSection>
+            )}
           </div>
 
           {/* Right sidebar — Shopify-style organization & quick actions */}
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-            <div className="border border-white/[0.05] bg-[#171717] p-5">
+            <div className="border border-white/5 bg-[#171717] p-5">
               <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                 Стан каталогу
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+                <AdminStatusBadge
+                  tone={
+                    form.status === "ACTIVE"
+                      ? "success"
+                      : form.status === "ARCHIVED"
+                        ? "danger"
+                        : "warning"
+                  }
+                >
                   {form.status}
                 </AdminStatusBadge>
-                <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
-                  {form.isPublished ? 'Опубліковано' : 'Прихований'}
+                <AdminStatusBadge tone={form.isPublished ? "success" : "warning"}>
+                  {form.isPublished ? "Опубліковано" : "Прихований"}
                 </AdminStatusBadge>
                 <AdminStatusBadge>{form.variants.length} варіантів</AdminStatusBadge>
                 <AdminStatusBadge>{form.media.length} медіа</AdminStatusBadge>
               </div>
-              <div className="mt-5 space-y-3 border-t border-white/[0.05] pt-4">
+              <div className="mt-5 space-y-3 border-t border-white/5 pt-4">
                 <SelectField
                   label="Статус"
                   value={form.status}
-                  onChange={(value) => updateField('status', value as ProductStatus)}
+                  onChange={(value) => updateField("status", value as ProductStatus)}
                   options={[
-                    { label: 'Active', value: 'ACTIVE' },
-                    { label: 'Draft', value: 'DRAFT' },
-                    { label: 'Archived', value: 'ARCHIVED' },
+                    { label: "Active", value: "ACTIVE" },
+                    { label: "Draft", value: "DRAFT" },
+                    { label: "Archived", value: "ARCHIVED" },
                   ]}
                 />
                 <CheckboxField
                   label="Опубліковано на storefront"
                   checked={form.isPublished}
-                  onChange={(value) => updateField('isPublished', value)}
+                  onChange={(value) => updateField("isPublished", value)}
                 />
               </div>
             </div>
 
             {isEditing && productId ? (
-              <div className="border border-white/[0.05] bg-[#171717] p-5">
+              <div className="border border-white/5 bg-[#171717] p-5">
                 <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                   Теги
                 </div>
@@ -2154,7 +2536,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <AdminTagInput
                     entityType="shop.product"
                     entityId={productId}
-                    suggestions={['featured', 'new-arrival', 'clearance', 'discontinued', 'staff-pick', 'bestseller']}
+                    suggestions={[
+                      "featured",
+                      "new-arrival",
+                      "clearance",
+                      "discontinued",
+                      "staff-pick",
+                      "bestseller",
+                    ]}
                   />
                 </div>
               </div>
@@ -2162,12 +2551,19 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           </aside>
         </div>
         <div className="h-20 md:hidden" aria-hidden />
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
-          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
+        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-xs safe-area-pb md:hidden">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+          >
             <Save className="h-4 w-4" />
-            {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти' : 'Створити'}
+            {saving ? "Зберігаємо…" : isEditing ? "Зберегти" : "Створити"}
           </button>
-          <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+          <Link
+            href="/admin/shop"
+            className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
+          >
             Скасувати
           </Link>
         </div>

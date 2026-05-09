@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ExternalLink, PackageX, RefreshCcw, RotateCw, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ExternalLink, PackageX, RefreshCcw, RotateCw, Search } from "lucide-react";
 
 import {
   AdminEmptyState,
@@ -14,10 +14,17 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
-import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
+} from "@/components/admin/AdminPrimitives";
+import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
 
-type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'IN_TRANSIT' | 'RECEIVED' | 'INSPECTED' | 'REFUNDED' | 'REJECTED';
+type ReturnStatus =
+  | "REQUESTED"
+  | "APPROVED"
+  | "IN_TRANSIT"
+  | "RECEIVED"
+  | "INSPECTED"
+  | "REFUNDED"
+  | "REJECTED";
 
 type ReturnRow = {
   id: string;
@@ -45,49 +52,55 @@ type ReturnRow = {
   };
 };
 
-function statusTone(status: ReturnStatus): 'default' | 'success' | 'warning' | 'danger' {
+function statusTone(status: ReturnStatus): "default" | "success" | "warning" | "danger" {
   switch (status) {
-    case 'REQUESTED':
-      return 'warning';
-    case 'APPROVED':
-    case 'IN_TRANSIT':
-    case 'RECEIVED':
-    case 'INSPECTED':
-      return 'warning';
-    case 'REFUNDED':
-      return 'success';
-    case 'REJECTED':
-      return 'danger';
+    case "REQUESTED":
+      return "warning";
+    case "APPROVED":
+    case "IN_TRANSIT":
+    case "RECEIVED":
+    case "INSPECTED":
+      return "warning";
+    case "REFUNDED":
+      return "success";
+    case "REJECTED":
+      return "danger";
     default:
-      return 'default';
+      return "default";
   }
 }
 
 function formatMoney(value: number, currency: string) {
-  return new Intl.NumberFormat('uk-UA', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat("uk-UA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 export default function AdminReturnsPage() {
   const [returns, setReturns] = useState<ReturnRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      setError('');
+      setError("");
       try {
         const params = new URLSearchParams();
-        if (search) params.set('search', search);
-        if (statusFilter) params.set('status', statusFilter);
+        if (search) params.set("search", search);
+        if (statusFilter) params.set("status", statusFilter);
 
-        const response = await fetch(`/api/admin/shop/returns?${params.toString()}`, { cache: 'no-store' });
+        const response = await fetch(`/api/admin/shop/returns?${params.toString()}`, {
+          cache: "no-store",
+        });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          setError(data.error || 'Failed to load returns');
+          setError(data.error || "Failed to load returns");
           return;
         }
         setReturns(data.returns || []);
@@ -101,11 +114,12 @@ export default function AdminReturnsPage() {
   const stats = useMemo(() => {
     return {
       total: returns.length,
-      pending: returns.filter((r) => ['REQUESTED', 'APPROVED', 'IN_TRANSIT'].includes(r.status)).length,
-      atWarehouse: returns.filter((r) => ['RECEIVED', 'INSPECTED'].includes(r.status)).length,
-      refunded: returns.filter((r) => r.status === 'REFUNDED').length,
+      pending: returns.filter((r) => ["REQUESTED", "APPROVED", "IN_TRANSIT"].includes(r.status))
+        .length,
+      atWarehouse: returns.filter((r) => ["RECEIVED", "INSPECTED"].includes(r.status)).length,
+      refunded: returns.filter((r) => r.status === "REFUNDED").length,
       totalRefundValue: returns
-        .filter((r) => r.status === 'REFUNDED')
+        .filter((r) => r.status === "REFUNDED")
         .reduce((sum, r) => sum + r.refundAmount, 0),
     };
   }, [returns]);
@@ -117,11 +131,11 @@ export default function AdminReturnsPage() {
           <span className="sr-only">Завантаження повернень…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
-              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/6" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/6" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/4" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/4" />
           </div>
           <AdminSkeletonKpiGrid count={4} />
           <AdminSkeletonTable rows={6} cols={6} />
@@ -149,12 +163,21 @@ export default function AdminReturnsPage() {
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Активні RMA" value={stats.pending} meta="Чекають отримання або огляду" tone="accent" />
+        <AdminMetricCard
+          label="Активні RMA"
+          value={stats.pending}
+          meta="Чекають отримання або огляду"
+          tone="accent"
+        />
         <AdminMetricCard label="На складі" value={stats.atWarehouse} meta="Отримані / на огляді" />
         <AdminMetricCard label="Повернено" value={stats.refunded} meta="Закриті кейси" />
         <AdminMetricCard
           label="Всього повернень"
-          value={returns.length > 0 ? formatMoney(stats.totalRefundValue, returns[0]?.currency || 'EUR') : '—'}
+          value={
+            returns.length > 0
+              ? formatMoney(stats.totalRefundValue, returns[0]?.currency || "EUR")
+              : "—"
+          }
           meta="По всіх валютах (валюта першого рядка для показу)"
         />
       </AdminMetricGrid>
@@ -166,14 +189,14 @@ export default function AdminReturnsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Пошук за RMA-номером, номером замовлення або email"
-            className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
           />
         </label>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+          className="rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
         >
           <option value="">Усі статуси</option>
           <option value="REQUESTED">Запит</option>
@@ -198,7 +221,7 @@ export default function AdminReturnsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1080px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                   <th className="px-4 py-4 font-medium">RMA</th>
                   <th className="px-4 py-4 font-medium">Замовлення</th>
                   <th className="px-4 py-4 font-medium">Статус</th>
@@ -211,15 +234,17 @@ export default function AdminReturnsPage() {
               </thead>
               <tbody className="divide-y divide-white/6">
                 {returns.map((r) => (
-                  <tr key={r.id} className="align-top transition hover:bg-white/[0.03]">
+                  <tr key={r.id} className="align-top transition hover:bg-white/3">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         <PackageX className="h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
-                        <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">{r.rmaNumber}</span>
+                        <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
+                          {r.rmaNumber}
+                        </span>
                       </div>
-                      {r.refundMethod !== 'NONE' ? (
+                      {r.refundMethod !== "NONE" ? (
                         <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-600">
-                          {r.refundMethod.replace(/_/g, ' ')}
+                          {r.refundMethod.replace(/_/g, " ")}
                         </div>
                       ) : null}
                     </td>
@@ -234,20 +259,28 @@ export default function AdminReturnsPage() {
                       <div className="mt-0.5 text-xs text-zinc-500">{r.order.email}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <AdminStatusBadge tone={statusTone(r.status)}>{r.status.replace(/_/g, ' ')}</AdminStatusBadge>
+                      <AdminStatusBadge tone={statusTone(r.status)}>
+                        {r.status.replace(/_/g, " ")}
+                      </AdminStatusBadge>
                     </td>
-                    <td className="px-4 py-4 text-xs text-zinc-300">{r.reason.replace(/_/g, ' ').toLowerCase()}</td>
+                    <td className="px-4 py-4 text-xs text-zinc-300">
+                      {r.reason.replace(/_/g, " ").toLowerCase()}
+                    </td>
                     <td className="px-4 py-4">
-                      <div className={`font-medium tabular-nums ${r.status === 'REFUNDED' ? 'text-emerald-300' : 'text-zinc-100'}`}>
+                      <div
+                        className={`font-medium tabular-nums ${r.status === "REFUNDED" ? "text-emerald-300" : "text-zinc-100"}`}
+                      >
                         {formatMoney(r.refundAmount, r.currency)}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-zinc-300">{r.itemsCount}</td>
-                    <td className="px-4 py-4 text-xs text-zinc-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-4 text-xs text-zinc-500">
+                      {new Date(r.createdAt).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-4">
                       <Link
                         href={`/admin/shop/returns/${r.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
                       >
                         Керувати
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />

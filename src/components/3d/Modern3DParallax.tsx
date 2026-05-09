@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Float, Center, OrbitControls, MeshTransmissionMaterial } from '@react-three/drei';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
-import * as THREE from 'three';
+import { useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  Environment,
+  Float,
+  Center,
+  OrbitControls,
+  MeshTransmissionMaterial,
+} from "@react-three/drei";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { EffectComposer, Bloom, ChromaticAberration } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
+import * as THREE from "three";
 
 // 3D Logo Component
 function Logo3D({ scrollProgress }: { scrollProgress: number }) {
@@ -79,7 +85,7 @@ export default function Modern3DParallax() {
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start start', 'end end'],
+    offset: ["start start", "end end"],
   });
 
   // Smooth spring animation
@@ -93,7 +99,7 @@ export default function Modern3DParallax() {
   const opacity = useTransform(smoothProgress, [0, 0.5, 1], [1, 0.5, 0]);
 
   // Update 3D scroll progress
-  smoothProgress.on('change', (latest) => setScrollProgress(latest));
+  smoothProgress.on("change", (latest) => setScrollProgress(latest));
 
   return (
     <div ref={containerRef} className="relative bg-black">
@@ -110,13 +116,13 @@ export default function Modern3DParallax() {
         >
           <motion.h1
             className="text-8xl font-bold text-white mb-4"
-            style={{ y: useTransform(smoothProgress, [0, 1], ['0%', '-200%']) }}
+            style={{ y: useTransform(smoothProgress, [0, 1], ["0%", "-200%"]) }}
           >
             onecompany
           </motion.h1>
           <motion.p
             className="text-2xl text-slate-400"
-            style={{ y: useTransform(smoothProgress, [0, 1], ['0%', '-150%']) }}
+            style={{ y: useTransform(smoothProgress, [0, 1], ["0%", "-150%"]) }}
           >
             3D Scroll Parallax Experience
           </motion.p>
@@ -133,36 +139,41 @@ export default function Modern3DParallax() {
             className="text-amber-400"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
           </motion.div>
         </motion.div>
       </div>
 
       {/* Content Sections */}
-      <div className="relative z-10 bg-gradient-to-b from-transparent via-black to-slate-900">
+      <div className="relative z-10 bg-linear-to-b from-transparent via-black to-slate-900">
         {/* Section 1 */}
         <section className="min-h-screen flex items-center justify-center px-8">
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            viewport={{ once: true, margin: '-100px' }}
+            viewport={{ once: true, margin: "-100px" }}
             className="max-w-4xl"
           >
-            <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+            <h2 className="text-6xl font-bold mb-6 bg-linear-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               Найновіші технології 2025
             </h2>
             <p className="text-2xl text-slate-300 mb-8">
               React Three Fiber • Framer Motion • GSAP • Lenis
             </p>
             <div className="grid grid-cols-2 gap-6">
-              <div className="p-6 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10">
+              <div className="p-6 bg-white/5 rounded-xl backdrop-blur-xs border border-white/10">
                 <div className="text-3xl mb-2">🎨</div>
                 <h3 className="text-xl font-bold text-white mb-2">Glass Morphism</h3>
                 <p className="text-sm text-white/60">Сучасний UI дизайн з прозорістю</p>
               </div>
-              <div className="p-6 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10">
+              <div className="p-6 bg-white/5 rounded-xl backdrop-blur-xs border border-white/10">
                 <div className="text-3xl mb-2">⚡</div>
                 <h3 className="text-xl font-bold text-white mb-2">60 FPS</h3>
                 <p className="text-sm text-white/60">Плавні анімації на всіх пристроях</p>
@@ -180,14 +191,15 @@ export default function Modern3DParallax() {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent">
+            <h2 className="text-6xl font-bold mb-6 bg-linear-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent">
               3D WebGL Magic
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12">
-              Використовуємо Three.js та React Three Fiber для створення інтерактивних 3D сцен прямо у браузері
+              Використовуємо Three.js та React Three Fiber для створення інтерактивних 3D сцен прямо
+              у браузері
             </p>
             <div className="grid grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {['Bloom Effects', 'Transmission', 'Chromatic Aberration'].map((tech, i) => (
+              {["Bloom Effects", "Transmission", "Chromatic Aberration"].map((tech, i) => (
                 <motion.div
                   key={tech}
                   initial={{ opacity: 0, y: 50 }}
@@ -195,7 +207,7 @@ export default function Modern3DParallax() {
                   transition={{ duration: 0.5, delay: i * 0.2 }}
                   viewport={{ once: true }}
                   whileHover={{ scale: 1.05 }}
-                  className="p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 cursor-pointer"
+                  className="p-8 bg-white/5 rounded-2xl backdrop-blur-xs border border-white/10 cursor-pointer"
                 >
                   <div className="text-4xl mb-4">✨</div>
                   <h3 className="text-lg font-bold text-white">{tech}</h3>
@@ -224,7 +236,7 @@ export default function Modern3DParallax() {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xl font-bold rounded-full shadow-2xl shadow-amber-500/50"
+              className="px-12 py-4 bg-linear-to-r from-amber-500 to-orange-500 text-white text-xl font-bold rounded-full shadow-2xl shadow-amber-500/50"
             >
               Почати проект
             </motion.button>

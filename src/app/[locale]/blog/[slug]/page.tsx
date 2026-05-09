@@ -15,7 +15,7 @@ import { BlogCarousel } from "./BlogCarousel";
 import { ArticleSchema, BreadcrumbSchema, ProductSchema } from "@/components/seo/StructuredData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 interface Props {
@@ -75,7 +75,9 @@ const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) =
       if (!avoidNorm) return true;
       const lineNorm = normalizeSnippet(line);
       return lineNorm && lineNorm !== avoidNorm && !lineNorm.startsWith(avoidNorm);
-    }) ?? lines ?? fallback;
+    }) ??
+    lines ??
+    fallback;
 
   const normalized = (candidate || fallback).replace(/\s+/g, " ").trim();
   if (normalized.length <= max) {
@@ -84,11 +86,7 @@ const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) =
   return `${normalized.slice(0, max - 1).trimEnd()}…`;
 };
 
-const buildCommercialSnippet = (
-  locale: SupportedLocale,
-  caption: string,
-  title: string
-) => {
+const buildCommercialSnippet = (locale: SupportedLocale, caption: string, title: string) => {
   const base = toExcerpt(caption, title, 138, title);
   return locale === "ua"
     ? `${base} Офіційні поставки та підбір під замовлення від OneCompany.`
@@ -131,9 +129,7 @@ export default async function BlogPostPage({ params }: Props) {
   const l = resolveLocale(locale);
   const t = await getTranslations("blog");
   const content = await readSiteContent();
-  const post = content.blog.posts.find(
-    (item) => item.slug === slug && item.status === "published"
-  );
+  const post = content.blog.posts.find((item) => item.slug === slug && item.status === "published");
 
   if (!post) {
     notFound();
@@ -154,7 +150,9 @@ export default async function BlogPostPage({ params }: Props) {
     mediaItems.find((item) => item.type === "image")?.src ??
     mediaItems.find((item) => item.type === "video" && item.poster)?.poster;
   const coverImage = coverPath
-    ? (coverPath.startsWith("http") ? coverPath : absoluteUrl(coverPath))
+    ? coverPath.startsWith("http")
+      ? coverPath
+      : absoluteUrl(coverPath)
     : undefined;
   const breadcrumbs = [
     { name: l === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(l)) },
@@ -162,9 +160,7 @@ export default async function BlogPostPage({ params }: Props) {
     { name: localizedTitle, url: postUrl },
   ];
   const lowerSignal = `${localizedTitle} ${articleDescription}`.toLowerCase();
-  const shouldRenderProductSchema = productSignals.some((signal) =>
-    lowerSignal.includes(signal)
-  );
+  const shouldRenderProductSchema = productSignals.some((signal) => lowerSignal.includes(signal));
   const productImage = coverImage ?? absoluteUrl("/branding/og-image.png");
 
   return (
@@ -192,8 +188,8 @@ export default async function BlogPostPage({ params }: Props) {
       )}
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-40 top-0 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.06),_transparent_65%)] blur-[120px]" />
-        <div className="absolute right-0 top-60 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,_rgba(92,188,255,0.04),_transparent_60%)] blur-[120px]" />
+        <div className="absolute -left-40 top-0 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,rgba(255,179,71,0.06),transparent_65%)] blur-[120px]" />
+        <div className="absolute right-0 top-60 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(92,188,255,0.04),transparent_60%)] blur-[120px]" />
       </div>
 
       {/* ── Back button ── */}
@@ -210,7 +206,6 @@ export default async function BlogPostPage({ params }: Props) {
       {/* ── Two-column layout ── */}
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:pt-10">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-
           {/* ── LEFT: Image carousel ── */}
           <div className="w-full lg:w-[55%] xl:w-[58%]">
             {mediaItems.length > 0 && (
@@ -225,7 +220,7 @@ export default async function BlogPostPage({ params }: Props) {
                     }))}
                   />
                 ) : (
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] sm:aspect-[3/4] lg:rounded-3xl">
+                  <div className="relative aspect-4/5 overflow-hidden rounded-2xl border border-white/10 bg-white/2 sm:aspect-3/4 lg:rounded-3xl">
                     {mediaItems[0].type === "image" ? (
                       <Image
                         src={mediaItems[0].src}
@@ -272,7 +267,7 @@ export default async function BlogPostPage({ params }: Props) {
               </h1>
 
               {/* Divider */}
-              <div className="my-6 h-px bg-gradient-to-r from-white/20 via-white/10 to-transparent" />
+              <div className="my-6 h-px bg-linear-to-r from-white/20 via-white/10 to-transparent" />
 
               {/* Body text */}
               <div className="space-y-4">
@@ -299,7 +294,7 @@ export default async function BlogPostPage({ params }: Props) {
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/35 transition-colors hover:border-white/15 hover:text-white/55"
+                      className="rounded-full border border-white/8 bg-white/3 px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/35 transition-colors hover:border-white/15 hover:text-white/55"
                     >
                       #{tag}
                     </span>
@@ -308,7 +303,7 @@ export default async function BlogPostPage({ params }: Props) {
               ) : null}
 
               {/* CTA / Instagram */}
-              <div className="mt-10 rounded-2xl border border-white/8 bg-white/[0.02] p-6 text-center">
+              <div className="mt-10 rounded-2xl border border-white/8 bg-white/2 p-6 text-center">
                 <p className="text-[10px] uppercase tracking-[0.5em] text-white/25">
                   {l === "ua" ? "Стежте за нами" : "Follow us"}
                 </p>
@@ -316,7 +311,9 @@ export default async function BlogPostPage({ params }: Props) {
                   href={content.blog.instagramUrl}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label={l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"}
+                  aria-label={
+                    l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"
+                  }
                   className="group mt-4 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] text-white/70 transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">

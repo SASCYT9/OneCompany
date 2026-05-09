@@ -1,41 +1,41 @@
-import Link from 'next/link';
-import clsx from 'clsx';
+import Link from "next/link";
+import clsx from "clsx";
 
-type LogoSize = 'default' | 'compact';
+type LogoSize = "default" | "compact";
 
 type LogoProps = {
   className?: string;
   asLink?: boolean;
   priority?: boolean;
-  tone?: 'dark' | 'light';
+  tone?: "dark" | "light";
   size?: LogoSize;
 };
 
-const LOGO_DARK = '/branding/logo-dark.svg';
-const LOGO_LIGHT = '/branding/logo-light.svg';
+const LOGO_DARK = "/branding/logo-dark.svg";
+const LOGO_LIGHT = "/branding/logo-light.svg";
 const LOGO_DIMENSIONS: Record<LogoSize, { width: number; height: number }> = {
   default: { width: 212, height: 78 },
   compact: { width: 168, height: 62 },
 };
 
 export function Logo({
-  className = '',
+  className = "",
   asLink = false,
   priority = false,
-  tone = 'dark',
-  size = 'default',
+  tone = "dark",
+  size = "default",
 }: LogoProps) {
   const { width, height } = LOGO_DIMENSIONS[size];
-  const logoSrc = tone === 'light' ? LOGO_LIGHT : LOGO_DARK;
+  const logoSrc = tone === "light" ? LOGO_LIGHT : LOGO_DARK;
 
   const image = (
-    <span className={clsx('inline-flex items-center', className)}>
+    <span className={clsx("inline-flex items-center", className)}>
       <img
         src={logoSrc}
         alt="OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory"
         width={width}
         height={height}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority ? "eager" : "lazy"}
         className="h-auto w-full"
       />
     </span>
@@ -45,7 +45,7 @@ export function Logo({
     return (
       <Link
         href="/"
-        className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="inline-flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
         aria-label="ONE COMPANY home"
       >
         {image}

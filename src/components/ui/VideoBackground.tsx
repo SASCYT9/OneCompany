@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect } from "react";
 
 interface VideoBackgroundProps {
   videoSrc: string;
@@ -8,17 +8,17 @@ interface VideoBackgroundProps {
   className?: string;
 }
 
-export default function VideoBackground({ 
-  videoSrc, 
+export default function VideoBackground({
+  videoSrc,
   opacity = 0.3,
-  className = '' 
+  className = "",
 }: VideoBackgroundProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(err => {
-        console.log('Video autoplay prevented:', err);
+      videoRef.current.play().catch((err) => {
+        console.log("Video autoplay prevented:", err);
       });
     }
   }, []);
@@ -38,7 +38,7 @@ export default function VideoBackground({
         <source src={videoSrc} type="video/mp4" />
       </video>
       {/* Gradient overlay - lighter */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/20 to-transparent" />
     </div>
   );
 }

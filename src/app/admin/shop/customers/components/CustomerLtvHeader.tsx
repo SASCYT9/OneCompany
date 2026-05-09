@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { Calendar, Coins, Loader2, ShoppingBag, TrendingDown, TrendingUp } from 'lucide-react';
+import { Calendar, Coins, Loader2, ShoppingBag, TrendingDown, TrendingUp } from "lucide-react";
 
 /**
  * KPI strip for a customer detail page.
@@ -23,7 +23,11 @@ type LtvStats = {
 };
 
 function formatMoney(value: number, currency: string) {
-  return new Intl.NumberFormat('uk-UA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("uk-UA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function CustomerLtvHeader({ customerId }: { customerId: string }) {
@@ -35,7 +39,9 @@ export function CustomerLtvHeader({ customerId }: { customerId: string }) {
     async function load() {
       setLoading(true);
       try {
-        const response = await fetch(`/api/admin/customers/${customerId}/ltv`, { cache: 'no-store' });
+        const response = await fetch(`/api/admin/customers/${customerId}/ltv`, {
+          cache: "no-store",
+        });
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setStats(data);
@@ -51,7 +57,7 @@ export function CustomerLtvHeader({ customerId }: { customerId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 rounded-none border border-white/[0.05] bg-[#171717] px-4 py-3 text-sm text-zinc-500">
+      <div className="flex items-center gap-2 rounded-none border border-white/5 bg-[#171717] px-4 py-3 text-sm text-zinc-500">
         <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
         Обчислення LTV…
       </div>
@@ -80,23 +86,23 @@ export function CustomerLtvHeader({ customerId }: { customerId: string }) {
       <KpiCard
         icon={<Calendar className="h-4 w-4" />}
         label="Останнє замовлення"
-        value={stats.daysSinceLastOrder != null ? `${stats.daysSinceLastOrder}д тому` : 'Ніколи'}
-        sub={stats.lastOrderAt ? new Date(stats.lastOrderAt).toLocaleDateString() : '—'}
-        accent={churnRisk ? 'red' : undefined}
+        value={stats.daysSinceLastOrder != null ? `${stats.daysSinceLastOrder}д тому` : "Ніколи"}
+        sub={stats.lastOrderAt ? new Date(stats.lastOrderAt).toLocaleDateString() : "—"}
+        accent={churnRisk ? "red" : undefined}
       />
       <KpiCard
         icon={churnRisk ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
         label="Утримання"
         value={`${stats.retentionScore}%`}
-        sub={churnRisk ? 'Ризик відтоку' : stats.retentionScore > 70 ? 'Чудово' : 'Середньо'}
-        accent={churnRisk ? 'red' : stats.retentionScore > 70 ? 'emerald' : undefined}
+        sub={churnRisk ? "Ризик відтоку" : stats.retentionScore > 70 ? "Чудово" : "Середньо"}
+        accent={churnRisk ? "red" : stats.retentionScore > 70 ? "emerald" : undefined}
       />
       <KpiCard
         icon={<Coins className="h-4 w-4" />}
         label="Баланс кредиту"
         value={formatMoney(stats.creditBalance, stats.currency)}
         sub="Доступно для наступного замовлення"
-        accent={stats.creditBalance > 0 ? 'blue' : undefined}
+        accent={stats.creditBalance > 0 ? "blue" : undefined}
       />
     </div>
   );
@@ -113,25 +119,25 @@ function KpiCard({
   label: string;
   value: string;
   sub?: string;
-  accent?: 'emerald' | 'blue' | 'red';
+  accent?: "emerald" | "blue" | "red";
 }) {
   const accentClass =
-    accent === 'emerald'
-      ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
-      : accent === 'blue'
-        ? 'border-blue-500/25 bg-blue-500/[0.06]'
-        : accent === 'red'
-          ? 'border-red-500/25 bg-red-500/[0.04]'
-          : 'border-white/[0.05] bg-[#171717]';
+    accent === "emerald"
+      ? "border-emerald-500/20 bg-emerald-500/4"
+      : accent === "blue"
+        ? "border-blue-500/25 bg-blue-500/6"
+        : accent === "red"
+          ? "border-red-500/25 bg-red-500/4"
+          : "border-white/5 bg-[#171717]";
 
   const valueClass =
-    accent === 'emerald'
-      ? 'text-emerald-200'
-      : accent === 'blue'
-        ? 'text-blue-200'
-        : accent === 'red'
-          ? 'text-red-300'
-          : 'text-zinc-50';
+    accent === "emerald"
+      ? "text-emerald-200"
+      : accent === "blue"
+        ? "text-blue-200"
+        : accent === "red"
+          ? "text-red-300"
+          : "text-zinc-50";
 
   return (
     <div className={`rounded-none border ${accentClass} p-3`}>

@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
 export function FiTechnology() {
   return (
-    <section className="relative py-24 px-6 bg-gradient-to-b from-black via-rose-950/10 to-black">
+    <section className="relative py-24 px-6 bg-linear-to-b from-black via-rose-950/10 to-black">
       <div className="max-w-7xl mx-auto text-center">
         <h2 className="text-5xl font-bold text-white mb-12">
-          <span className="text-white/90 font-light">Технології</span>{' '}
-          <span className="bg-gradient-to-r from-red-200 to-rose-400 bg-clip-text text-transparent">Fi</span>
+          <span className="text-white/90 font-light">Технології</span>{" "}
+          <span className="bg-linear-to-r from-red-200 to-rose-400 bg-clip-text text-transparent">
+            Fi
+          </span>
         </h2>
         <p className="text-xl text-white/60 mb-16">Японська якість. Титанові інновації.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

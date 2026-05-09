@@ -62,7 +62,7 @@ export const GIRODISC_MATERIALS: GirodiscMaterial[] = [
     title: 'CNC Machined Precision',
     titleUk: 'Точність ЧПК Обробки',
     description:
-      'Every rotor ring and aluminum hat is machined in-house on 5-axis CNC equipment. Tolerances are held to thousandths of an inch, ensuring perfect concentricity and zero-runout performance on every unit shipped.',
+      'Every rotor ring-3 and aluminum hat is machined in-house on 5-axis CNC equipment. Tolerances are held to thousandths of an inch, ensuring perfect concentricity and zero-runout performance on every unit shipped.',
     descriptionUk:
       'Кожне кільце ротора та алюмінієвий хаб обробляються на власних 5-осьових верстатах з ЧПК. Допуски витримуються до тисячних долей дюйма, забезпечуючи ідеальну концентричність та нульове биття.',
     spec: '0.001"',
@@ -74,7 +74,7 @@ export const GIRODISC_MATERIALS: GirodiscMaterial[] = [
     title: 'Floating Rotor Assembly',
     titleUk: 'Плаваюча Конструкція Ротора',
     description:
-      'The 2-piece floating design allows the iron ring to expand independently from the lightweight aluminum hat during heating. This eliminates warping, reduces unsprung weight, and enables replacement of only the friction surface.',
+      'The 2-piece floating design allows the iron ring-3 to expand independently from the lightweight aluminum hat during heating. This eliminates warping, reduces unsprung weight, and enables replacement of only the friction surface.',
     descriptionUk:
       'Двоскладова плаваюча конструкція дозволяє чавунному кільцю розширюватися незалежно від легкого алюмінієвого хаба під час нагріву. Це усуває деформацію, зменшує непідресорену масу та дозволяє замінювати лише фрикційну поверхню.',
     spec: '−40%',

@@ -10,10 +10,10 @@ import {
   resolveLocale,
   type SupportedLocale,
 } from "@/lib/seo";
-import { BreadcrumbSchema } from '@/components/seo/StructuredData';
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 interface Props {
@@ -23,11 +23,13 @@ interface Props {
 const metaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   ua: {
     title: "Блог тюнінгу авто та мото | Кейси OneCompany",
-    description: "Кейси та поставки з авто і мото тюнінгу: вихлоп, OEM, підвіска, електроніка. Реальні проєкти OneCompany та консультація під замовлення.",
+    description:
+      "Кейси та поставки з авто і мото тюнінгу: вихлоп, OEM, підвіска, електроніка. Реальні проєкти OneCompany та консультація під замовлення.",
   },
   en: {
     title: "Auto & Moto Tuning Blog | OneCompany Cases",
-    description: "Auto and moto tuning cases: exhaust, OEM, suspension, electronics and delivery insights. Real projects with official sourcing support.",
+    description:
+      "Auto and moto tuning cases: exhaust, OEM, suspension, electronics and delivery insights. Real projects with official sourcing support.",
   },
 };
 
@@ -63,7 +65,9 @@ const getPreviewText = (caption: string, title: string, max = 180) => {
     lines.find((line) => {
       const lineNorm = normalizeSnippet(line);
       return lineNorm && lineNorm !== titleNorm && !lineNorm.startsWith(titleNorm);
-    }) ?? lines[1] ?? lines[0];
+    }) ??
+    lines[1] ??
+    lines[0];
 
   const normalized = candidate.replace(/\s+/g, " ").trim();
   if (normalized.length <= max) {
@@ -91,8 +95,8 @@ export default async function BlogPage({ params }: Props) {
   const [featured, ...rest] = posts;
 
   const breadcrumbs = [
-    { name: l === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(l)) },
-    { name: l === 'ua' ? 'Блог' : 'Blog', url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
+    { name: l === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(l)) },
+    { name: l === "ua" ? "Блог" : "Blog", url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
   ];
 
   return (
@@ -100,8 +104,8 @@ export default async function BlogPage({ params }: Props) {
       <BreadcrumbSchema items={breadcrumbs} />
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-40 -top-20 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.12),_transparent_65%)] blur-[100px]" />
-        <div className="absolute right-0 top-60 h-[400px] w-[400px] rounded-full bg-[radial-gradient(circle,_rgba(92,188,255,0.10),_transparent_60%)] blur-[100px]" />
+        <div className="absolute -left-40 -top-20 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,179,71,0.12),transparent_65%)] blur-[100px]" />
+        <div className="absolute right-0 top-60 h-[400px] w-[400px] rounded-full bg-[radial-gradient(circle,rgba(92,188,255,0.10),transparent_60%)] blur-[100px]" />
       </div>
 
       {/* ── Header ── */}
@@ -119,7 +123,7 @@ export default async function BlogPage({ params }: Props) {
             target="_blank"
             rel="noreferrer"
             aria-label={l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"}
-            className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-xs uppercase tracking-[0.3em] text-white backdrop-blur transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+            className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-xs uppercase tracking-[0.3em] text-white backdrop-blur-sm transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
@@ -136,11 +140,11 @@ export default async function BlogPage({ params }: Props) {
           <Link
             href={`/blog/${featured.slug}`}
             aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(featured.title, l)}`}
-            className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+            className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/3 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
           >
             <div className="flex flex-col md:flex-row">
               {/* Image */}
-              <div className="relative aspect-[4/3] w-full md:aspect-auto md:w-1/2 lg:w-[55%]">
+              <div className="relative aspect-4/3 w-full md:aspect-auto md:w-1/2 lg:w-[55%]">
                 {featured.media[0] ? (
                   featured.media[0].type === "image" ? (
                     <Image
@@ -151,7 +155,9 @@ export default async function BlogPage({ params }: Props) {
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                       priority
                       unoptimized={featured.media[0].src.startsWith("http")}
-                      loader={featured.media[0].src.startsWith("http") ? ({ src }) => src : undefined}
+                      loader={
+                        featured.media[0].src.startsWith("http") ? ({ src }) => src : undefined
+                      }
                     />
                   ) : (
                     <video
@@ -166,15 +172,15 @@ export default async function BlogPage({ params }: Props) {
                     />
                   )
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-white/5 via-black to-black" />
+                  <div className="h-full w-full bg-linear-to-br from-white/5 via-black to-black" />
                 )}
                 {featured.media[0]?.type === "video" && (
                   <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/80 backdrop-blur-md">
                     Reel
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/80 hidden md:block" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:hidden" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-black/80 hidden md:block" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent md:hidden" />
               </div>
 
               {/* Content */}
@@ -213,7 +219,9 @@ export default async function BlogPage({ params }: Props) {
                 <div className="mt-auto pt-4">
                   <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50 transition-colors duration-300 group-hover:text-white">
                     {l === "ua" ? "Читати далі" : "Read more"}
-                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                      →
+                    </span>
                   </span>
                 </div>
               </div>
@@ -228,17 +236,16 @@ export default async function BlogPage({ params }: Props) {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((post) => {
               const media = post.media[0];
-              const isExternalImage =
-                media?.type === "image" && media.src.startsWith("http");
+              const isExternalImage = media?.type === "image" && media.src.startsWith("http");
               return (
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
                   aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(post.title, l)}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all duration-500 hover:border-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/3 transition-all duration-500 hover:border-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
                 >
                   {/* Thumbnail */}
-                  <div className="relative aspect-[16/10] w-full overflow-hidden">
+                  <div className="relative aspect-16/10 w-full overflow-hidden">
                     {media ? (
                       media.type === "image" ? (
                         <Image
@@ -263,14 +270,14 @@ export default async function BlogPage({ params }: Props) {
                         />
                       )
                     ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-white/5 via-black to-black" />
+                      <div className="h-full w-full bg-linear-to-br from-white/5 via-black to-black" />
                     )}
                     {media?.type === "video" && (
                       <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur-md">
                         Reel
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                   </div>
 
                   {/* Card body */}
@@ -309,10 +316,20 @@ export default async function BlogPage({ params }: Props) {
       {/* ── Empty state ── */}
       {posts.length === 0 && (
         <section className="relative mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-16 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-white/3 p-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
-              <svg className="h-7 w-7 text-white/30" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
+              <svg
+                className="h-7 w-7 text-white/30"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
+                />
               </svg>
             </div>
             <p className="text-white/50">{t("empty")}</p>

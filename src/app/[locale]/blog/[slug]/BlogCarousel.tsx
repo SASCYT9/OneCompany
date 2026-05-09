@@ -51,7 +51,7 @@ export function BlogCarousel({ media }: BlogCarouselProps) {
     <div className="group relative">
       {/* Main media */}
       <div
-        className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] sm:aspect-[3/4] lg:rounded-3xl"
+        className="relative aspect-4/5 overflow-hidden rounded-2xl border border-white/10 bg-white/2 sm:aspect-3/4 lg:rounded-3xl"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -89,8 +89,8 @@ export function BlogCarousel({ media }: BlogCarouselProps) {
         )}
 
         {/* Gradient overlays for buttons */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-linear-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-linear-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
         {/* Nav arrows */}
         {total > 1 && (
@@ -129,7 +129,7 @@ export function BlogCarousel({ media }: BlogCarouselProps) {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border transition-all sm:h-[72px] sm:w-[72px] ${
+              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border transition-all sm:h-[72px] sm:w-[72px] ${
                 i === current
                   ? "border-white/40 ring-1 ring-white/20"
                   : "border-white/8 opacity-50 hover:opacity-80"
@@ -143,8 +143,17 @@ export function BlogCarousel({ media }: BlogCarouselProps) {
                   fill
                   sizes="72px"
                   className="object-cover"
-                  unoptimized={(item.type === "image" ? item.src : (item.poster ?? item.src)).startsWith("http")}
-                  loader={(item.type === "image" ? item.src : (item.poster ?? item.src)).startsWith("http") ? ({ src }) => src : undefined}
+                  unoptimized={(item.type === "image"
+                    ? item.src
+                    : (item.poster ?? item.src)
+                  ).startsWith("http")}
+                  loader={
+                    (item.type === "image" ? item.src : (item.poster ?? item.src)).startsWith(
+                      "http"
+                    )
+                      ? ({ src }) => src
+                      : undefined
+                  }
                 />
               ) : (
                 <video
