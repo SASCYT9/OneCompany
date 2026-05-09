@@ -210,45 +210,50 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Strong veil at top + bottom of card so the label pill and
-                      stats both have darkened backing. Middle stays clear so
-                      the car silhouette shows. */}
-                  <div className="absolute inset-0 bg-linear-to-b from-foreground/35 via-transparent to-foreground/55 dark:from-black/40 dark:to-black/70 transition-colors duration-500" />
+                  {/* Bottom-only gradient veil — keeps photo unobstructed in
+                      the upper 2/3, darkens the lower 1/3 so the description,
+                      stats and arrow CTA all read as light text on dark.
+                      Photo composition (car middle, ground bottom) means the
+                      gradient lands on the floor area, not the car. */}
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/85 via-black/55 to-transparent" />
 
-                  <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
-                    <div className="rounded-2xl bg-black/55 backdrop-blur-md px-6 py-5 max-w-xs mx-auto shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-                      <span
-                        className={`inline-block font-display rounded-full border border-white/40 bg-white/10 px-6 py-2 tracking-[0.3em] text-white transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-7 sm:py-2.5 sm:tracking-[0.35em] ${typography.label}`}
-                      >
-                        {experience.label}
-                      </span>
-                      <p
-                        className={`leading-relaxed text-white/90 text-pretty tracking-wide mt-3 ${typography.bodySmall}`}
-                      >
-                        {experience.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
-                      {experience.stats.map((stat) => (
-                        <div key={stat.note}>
-                          <p
-                            className={`font-display tracking-tight text-white [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)] ${typography.statValue}`}
-                          >
-                            {stat.value}
-                          </p>
-                          <p
-                            className={`uppercase tracking-[0.2em] text-white/70 sm:tracking-[0.3em] [text-shadow:_0_1px_4px_rgba(0,0,0,0.6)] ${typography.statLabel}`}
-                          >
-                            {stat.note}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-black/40 backdrop-blur-md text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-12 sm:w-12">
-                      →
+                  {/* Top — small label pill, stays out of photo focus */}
+                  <div className="relative flex justify-start">
+                    <span
+                      className={`inline-block font-display rounded-full border border-white/40 bg-black/40 backdrop-blur-md px-5 py-2 tracking-[0.3em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-6 sm:py-2.5 sm:tracking-[0.35em] ${typography.label}`}
+                    >
+                      {experience.label}
                     </span>
+                  </div>
+
+                  {/* Bottom — description + stats + arrow stacked over the dark veil */}
+                  <div className="relative flex flex-col gap-4 mt-auto">
+                    <p
+                      className={`leading-relaxed text-white/90 text-pretty tracking-wide max-w-md ${typography.bodySmall}`}
+                    >
+                      {experience.description}
+                    </p>
+                    <div className="flex w-full items-end justify-between gap-2 sm:gap-4">
+                      <div className="flex flex-wrap gap-3 sm:gap-5">
+                        {experience.stats.map((stat) => (
+                          <div key={stat.note}>
+                            <p
+                              className={`font-display tracking-tight text-white ${typography.statValue}`}
+                            >
+                              {stat.value}
+                            </p>
+                            <p
+                              className={`uppercase tracking-[0.2em] text-white/65 sm:tracking-[0.3em] ${typography.statLabel}`}
+                            >
+                              {stat.note}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-black/40 backdrop-blur-md text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-12 sm:w-12">
+                        →
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}
