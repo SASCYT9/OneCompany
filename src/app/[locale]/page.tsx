@@ -182,8 +182,9 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     index === 0 ? "md:mr-2" : "md:ml-2"
                   )}
                 >
-                  {/* Both photos render simultaneously; opacity flips with
-                      the theme so they cross-fade instead of snapping. */}
+                  {/* Photos swap per theme. Tailwind v4's dark:opacity-X
+                      variant doesn't apply consistently with this version
+                      of @custom-variant, so we use display swap instead. */}
                   <Image
                     src={experience.bgImageDark}
                     alt={
@@ -192,7 +193,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 opacity-0 dark:opacity-100"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 hidden dark:block"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
@@ -203,7 +204,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     alt=""
                     aria-hidden="true"
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 opacity-100 dark:opacity-0"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 dark:hidden"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
