@@ -148,8 +148,11 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   return (
     <>
-      <main className="dark text-white bg-background">
-        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
+      <main className="text-foreground bg-background">
+        {/* Hero — photo cards have a black gradient overlay so they're always
+            visually dark; force .dark scope so text/borders read correctly
+            regardless of the active site theme. */}
+        <section className="dark relative flex min-h-[70vh] flex-col justify-center pt-8 text-white">
           <div
             className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
           >
@@ -274,21 +277,21 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       </section>
       */}
 
-        <section className="relative overflow-hidden px-6 py-20 text-white">
+        <section className="relative overflow-hidden px-6 py-20 text-foreground">
           <div className="relative mx-auto max-w-6xl">
             <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
               <div>
-                <p className={`uppercase tracking-[0.4em] text-white/50 ${typography.badge}`}>
+                <p className={`uppercase tracking-[0.4em] text-foreground/50 ${typography.badge}`}>
                   {t("b2bPrograms")}
                 </p>
                 <h3 className={`mt-3 text-balance ${typography.h2}`}>{t("partnerWithLeading")}</h3>
-                <p className={`mt-3 text-white/60 text-pretty ${typography.body}`}>
+                <p className={`mt-3 text-foreground/60 text-pretty ${typography.body}`}>
                   {t("partnerTypes")}
                 </p>
               </div>
               <Link
                 href={`/${locale}/contact`}
-                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-black"
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-foreground/30 bg-foreground/5 px-6 py-3 text-xs uppercase tracking-[0.35em] text-foreground transition-colors duration-200 hover:border-foreground hover:bg-foreground hover:text-background"
               >
                 {t("arrangeConsult")} ↗
               </Link>
@@ -297,13 +300,15 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
               {b2bServices.map((service) => (
                 <div
                   key={service.title}
-                  className="rounded-3xl border border-white/10 bg-black/60 shadow-lg p-6 hover:bg-black/50 hover:border-white/20 transition-colors duration-200"
+                  className="rounded-3xl border border-foreground/10 bg-card/60 dark:bg-black/60 shadow-lg p-6 hover:bg-card/80 dark:hover:bg-black/50 hover:border-foreground/20 transition-colors duration-200"
                 >
-                  <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>
+                  <p
+                    className={`uppercase tracking-[0.3em] text-foreground/50 ${typography.badge}`}
+                  >
                     {heroBadgeCopy}
                   </p>
-                  <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>
-                  <p className={`mt-3 text-white/70 ${typography.body}`}>{service.copy}</p>
+                  <h4 className={`mt-4 text-foreground ${typography.h3}`}>{service.title}</h4>
+                  <p className={`mt-3 text-foreground/70 ${typography.body}`}>{service.copy}</p>
                 </div>
               ))}
             </div>

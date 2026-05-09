@@ -6,7 +6,5 @@ type Props = {
 };
 
 export default function ShopAkrapovicLayout({ children }: Props) {
-  // Force .dark scope: Akrapovic is a luxury brand showroom with custom dark
-  // CSS (titanium + carbon). Light theme would dilute the brand identity.
-  return <div className="dark ak-shop-page bg-background">{children}</div>;
+  return <div className="ak-shop-page">{children}</div>;
 }
