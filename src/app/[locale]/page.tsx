@@ -209,16 +209,18 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Gradient overlay for text readability. Dark theme: black
-                      veil over the obsidian photo. Light theme: dark veil
-                      (foreground at 40-15%) over the cream photo so the
-                      dark text/pill reads with proper contrast. */}
-                  <div className="absolute inset-0 bg-linear-to-t from-foreground/40 via-foreground/15 to-transparent dark:from-black/70 dark:via-black/20" />
+                  {/* Gradient overlay for text readability. The light photos
+                      have a soft cream backdrop with the car in the lower
+                      half — without a stronger veil the text + pill blend
+                      into the cream. We use TWO gradients in light theme
+                      (top-down + bottom-up) so the label area at top and
+                      stats area at bottom both get darkening. */}
+                  <div className="absolute inset-0 bg-linear-to-t from-foreground/55 via-foreground/15 to-foreground/35 dark:from-black/70 dark:via-black/20 dark:to-transparent" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
                       <span
-                        className={`inline-block font-display rounded-full border border-foreground/50 bg-foreground/10 px-6 py-2.5 tracking-[0.3em] text-foreground shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:shadow-[0_0_40px_rgba(0,0,0,0.25)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                        className={`inline-block font-display rounded-full border border-foreground/40 bg-background/30 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-foreground shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:border-foreground sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
                       >
                         {experience.label}
                       </span>
