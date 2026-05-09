@@ -176,13 +176,20 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   key={experience.label}
                   href={experience.href}
                   className={clsx(
-                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5",
-                    "border border-foreground/10 shadow-[0_10px_30px_rgba(0,0,0,0.15)] transition-all duration-500 hover:border-foreground/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)]",
+                    // .dark scope: the card photo is always the obsidian
+                    // variant, so text + borders inside read in dark-mode
+                    // colors regardless of the site theme.
+                    "dark group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
+                    "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
                     "rounded-2xl",
                     index === 0 ? "md:mr-2" : "md:ml-2"
                   )}
                 >
-                  {/* Dark theme photo (obsidian backdrop) */}
+                  {/* Always use the obsidian-backdrop photo: hero cards are
+                      treated as dark luxury elements regardless of site
+                      theme (Porsche editorial pattern — cream page with
+                      black inset cards). Card content keeps its dark
+                      scope so text + pill read against the photo. */}
                   <Image
                     src={experience.bgImageDark}
                     alt={
@@ -191,64 +198,48 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 hidden dark:block"
+                    className="object-cover group-hover:scale-105 transition-all duration-700"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Light theme photo (cream backdrop) */}
-                  <Image
-                    src={experience.bgImageLight}
-                    alt=""
-                    aria-hidden="true"
-                    fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 dark:hidden"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    priority
-                    fetchPriority="high"
-                    quality={85}
-                  />
-                  {/* Gradient overlay for text readability. The light photos
-                      have a soft cream backdrop with the car in the lower
-                      half — without a stronger veil the text + pill blend
-                      into the cream. We use TWO gradients in light theme
-                      (top-down + bottom-up) so the label area at top and
-                      stats area at bottom both get darkening. */}
-                  <div className="absolute inset-0 bg-linear-to-t from-foreground/55 via-foreground/15 to-foreground/35 dark:from-black/70 dark:via-black/20 dark:to-transparent" />
+                  {/* Black gradient overlay — same in both themes since the
+                      photo is always dark. */}
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
                       <span
-                        className={`inline-block font-display rounded-full border border-foreground/40 bg-background/30 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-foreground shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:border-foreground sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                        className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
                       >
                         {experience.label}
                       </span>
                     </div>
                     <p
-                      className={`leading-relaxed text-foreground/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
+                      className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
                     >
                       {experience.description}
                     </p>
                   </div>
                   <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                    <div className="flex flex-wrap gap-2 text-foreground/80 sm:gap-4">
+                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
                       {experience.stats.map((stat) => (
                         <div key={stat.note}>
                           <p
-                            className={`font-display tracking-tight text-foreground ${typography.statValue}`}
+                            className={`font-display tracking-tight text-white ${typography.statValue}`}
                           >
                             {stat.value}
                           </p>
                           <p
-                            className={`uppercase tracking-[0.2em] text-foreground/55 sm:tracking-[0.3em] ${typography.statLabel}`}
+                            className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}
                           >
                             {stat.note}
                           </p>
                         </div>
                       ))}
                     </div>
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/30 bg-foreground/5 text-sm text-foreground transition-all duration-500 group-hover:scale-110 group-hover:border-foreground group-hover:bg-foreground group-hover:text-background group-hover:shadow-[0_0_20px_rgba(0,0,0,0.2)] sm:h-12 sm:w-12">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
                       →
                     </span>
                   </div>
