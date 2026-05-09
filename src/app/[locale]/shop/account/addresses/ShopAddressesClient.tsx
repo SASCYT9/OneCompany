@@ -197,7 +197,7 @@ export default function ShopAddressesClient({
         </header>
 
         {showForm ? (
-          <section className="mb-10 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+          <section className="mb-10 rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <h2 className="text-lg font-medium text-white">
               {editingId ? (isUa ? 'Редагувати адресу' : 'Edit address') : isUa ? 'Нова адреса' : 'New address'}
             </h2>
@@ -305,7 +305,7 @@ export default function ShopAddressesClient({
 
         <section className="space-y-4">
           {addresses.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-white/15 bg-white/[0.02] p-10 text-center text-white/55">
+            <div className="rounded-[28px] border border-dashed border-white/15 bg-white/2 p-10 text-center text-white/55">
               <MapPin className="mx-auto mb-4 h-8 w-8 text-white/25" />
               <p>
                 {isUa
@@ -317,7 +317,7 @@ export default function ShopAddressesClient({
             addresses.map((address) => (
               <article
                 key={address.id}
-                className="flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.22)] sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/4 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.22)] sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

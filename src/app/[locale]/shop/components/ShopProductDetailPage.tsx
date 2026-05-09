@@ -155,7 +155,7 @@ function DetailSpecPanel({
         {specs.map((spec) => (
           <div
             key={`${spec.label}:${spec.value}`}
-            className="grid gap-1 rounded-xl border border-white/8 bg-white/[0.02] p-3"
+            className="grid gap-1 rounded-xl border border-white/8 bg-white/2 p-3"
           >
             <dt className="text-[10px] uppercase tracking-[0.18em] text-white/38">{spec.label}</dt>
             <dd className="text-pretty text-white/82">{spec.value}</dd>
@@ -674,7 +674,7 @@ export default async function ShopProductDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+    <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-white">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -717,7 +717,7 @@ export default async function ShopProductDetailPage({
           {contextLinkHref && contextLinkLabel ? (
             <Link
               href={contextLinkHref}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-white/72 transition hover:border-white/35 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/4 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-white/72 transition hover:border-white/35 hover:text-white"
             >
               {contextLinkLabel}
             </Link>
@@ -726,7 +726,7 @@ export default async function ShopProductDetailPage({
           {isUrbanMode ? (
             <Link
               href={`/${resolvedLocale}/shop/urban`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/60 transition hover:border-white/40 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/4 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/60 transition hover:border-white/40 hover:text-white"
             >
               {isUa ? 'Urban Home' : 'Urban home'}
             </Link>
@@ -735,13 +735,13 @@ export default async function ShopProductDetailPage({
           {isDo88Mode ? (
             <Link
               href={`/${resolvedLocale}/shop/do88`}
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-900/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-400 transition hover:border-cyan-400/40 hover:text-cyan-300"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-900/4 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-400 transition hover:border-cyan-400/40 hover:text-cyan-300"
             >
               {isUa ? 'DO88 Home' : 'DO88 home'}
             </Link>
           ) : null}
 
-          <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/65">
+          <span className="rounded-full border border-white/20 bg-white/4 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/65">
             {product.scope === 'auto' ? (isUa ? 'Авто' : 'Auto') : (isUa ? 'Мото' : 'Moto')}
           </span>
         </div>
@@ -757,9 +757,9 @@ export default async function ShopProductDetailPage({
             />
           </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-7">
+          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/3 p-6 backdrop-blur-xl sm:p-7">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/[0.06] p-1.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/6 p-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getBrandLogo(product.brand)} alt={product.brand} className="h-full w-full object-contain" />
               </div>
@@ -776,7 +776,7 @@ export default async function ShopProductDetailPage({
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
             {primaryPartNumber ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/12 bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                <span className="rounded-full border border-white/12 bg-white/3 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
                   {isUa ? 'Артикул' : 'Part number'}
                 </span>
                 <span className="min-w-0 break-all rounded-full border border-[#c29d59]/25 bg-[#c29d59]/10 px-3 py-1 font-mono text-xs tracking-[0.04em] text-[#f1d8a5]">
@@ -836,12 +836,12 @@ export default async function ShopProductDetailPage({
             {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
 
             {product.bundle ? (
-              <div className="space-y-3 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
+              <div className="space-y-3 rounded-2xl border border-white/15 bg-white/3 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
                     {isUa ? 'Склад комплекту' : 'Bundle contents'}
                   </p>
-                  <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/70">
+                  <span className="rounded-full border border-white/20 bg-white/4 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/70">
                     {isUa
                       ? `Доступно комплектів: ${product.bundle.availableQuantity}`
                       : `Available bundles: ${product.bundle.availableQuantity}`}
@@ -880,7 +880,7 @@ export default async function ShopProductDetailPage({
               />
               <Link
                 href={`/${resolvedLocale}/contact`}
-                className="group relative overflow-hidden rounded-full border border-white/10 bg-white/[0.02] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
+                className="group relative overflow-hidden rounded-full border border-white/10 bg-white/2 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/8 hover:text-white"
               >
                 {pricing.requestQuote ? (isUa ? 'Запитати B2B ціну' : 'Request B2B pricing') : (isUa ? 'Запит по товару' : 'Request product')}
               </Link>

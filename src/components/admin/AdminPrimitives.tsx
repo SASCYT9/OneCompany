@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from "react";
 
-import Link from 'next/link';
-import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import Link from "next/link";
+import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import { AdminSlideOver } from './AdminSlideOver';
+import { cn } from "@/lib/utils";
+import { AdminSlideOver } from "./AdminSlideOver";
 
 /**
  * "OneCompany Blue" — premium dark with single blue accent.
@@ -16,10 +16,10 @@ import { AdminSlideOver } from './AdminSlideOver';
  * Backgrounds are pure warm-black surfaces; no carbon weave.
  */
 
-const SURFACE = 'bg-[#171717]';
-const SURFACE_HOVER = 'hover:bg-[#1F1F1F]';
-const BORDER = 'border-white/[0.05]';
-const BORDER_HOVER = 'hover:border-white/[0.10]';
+const SURFACE = "bg-[#171717]";
+const SURFACE_HOVER = "hover:bg-[#1F1F1F]";
+const BORDER = "border-white/5";
+const BORDER_HOVER = "hover:border-white/10";
 
 export function AdminPage({
   children,
@@ -34,8 +34,8 @@ export function AdminPage({
   return (
     <div
       className={cn(
-        'mx-auto w-full px-4 py-6 md:px-8 xl:px-10',
-        wide ? 'max-w-none' : 'max-w-[1640px]',
+        "mx-auto w-full px-4 py-6 md:px-8 xl:px-10",
+        wide ? "max-w-none" : "max-w-[1640px]",
         className
       )}
     >
@@ -58,14 +58,22 @@ export function AdminPageHeader({
   className?: string;
 }) {
   return (
-    <section className={cn('flex flex-wrap items-start justify-between gap-4 pb-2 sm:gap-6', className)}>
+    <section
+      className={cn("flex flex-wrap items-start justify-between gap-4 pb-2 sm:gap-6", className)}
+    >
       <div className="min-w-0 max-w-3xl flex-1 space-y-2">
         {eyebrow ? (
-          <div className="text-[11px] font-medium uppercase tracking-wider text-blue-400 sm:text-xs">{eyebrow}</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-blue-400 sm:text-xs">
+            {eyebrow}
+          </div>
         ) : null}
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl md:text-[32px]">{title}</h1>
-          {description ? <p className="max-w-2xl text-sm leading-6 text-zinc-400">{description}</p> : null}
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl md:text-[32px]">
+            {title}
+          </h1>
+          {description ? (
+            <p className="max-w-2xl text-sm leading-6 text-zinc-400">{description}</p>
+          ) : null}
         </div>
       </div>
       {actions ? (
@@ -77,19 +85,31 @@ export function AdminPageHeader({
   );
 }
 
-export function AdminActionBar({ children, className }: { children: ReactNode; className?: string }) {
+export function AdminActionBar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <section className={cn('rounded-none border bg-[#171717] px-4 py-3.5', BORDER, className)}>
+    <section className={cn("rounded-none border bg-[#171717] px-4 py-3.5", BORDER, className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
     </section>
   );
 }
 
-export function AdminEntityToolbar({ children, className }: { children: ReactNode; className?: string }) {
+export function AdminEntityToolbar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <section
       className={cn(
-        'sticky top-4 z-20 rounded-none border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         className
       )}
     >
@@ -98,8 +118,18 @@ export function AdminEntityToolbar({ children, className }: { children: ReactNod
   );
 }
 
-export function AdminMetricGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>;
+export function AdminMetricGrid({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-2 xl:grid-cols-4", className)}>
+      {children}
+    </div>
+  );
 }
 
 /**
@@ -114,24 +144,24 @@ export function AdminMetricCard({
   label,
   value,
   meta,
-  tone = 'default',
+  tone = "default",
   spark,
   icon,
 }: {
   label: string;
   value: ReactNode;
   meta?: ReactNode;
-  tone?: 'default' | 'accent';
+  tone?: "default" | "accent";
   spark?: number[];
   icon?: ReactNode;
 }) {
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-none border bg-[#171717] px-5 pt-5 transition-all duration-200',
-        tone === 'accent' ? 'border-blue-500/25' : BORDER,
-        'hover:border-white/[0.12]',
-        spark && spark.length > 0 ? 'pb-0' : 'pb-5'
+        "group relative overflow-hidden rounded-none border bg-[#171717] px-5 pt-5 transition-all duration-200",
+        tone === "accent" ? "border-blue-500/25" : BORDER,
+        "hover:border-white/12",
+        spark && spark.length > 0 ? "pb-0" : "pb-5"
       )}
     >
       <div className="flex items-start gap-3">
@@ -177,7 +207,9 @@ function SparkLine({ data }: { data: number[] }) {
     return { x, y };
   });
 
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const linePath = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(" ");
   const areaPath = `${linePath} L ${w} ${h} L 0 ${h} Z`;
 
   return (
@@ -195,7 +227,14 @@ function SparkLine({ data }: { data: number[] }) {
         </linearGradient>
       </defs>
       <path d={areaPath} fill="url(#oc-spark-fill)" />
-      <path d={linePath} fill="none" stroke="rgb(96 165 250)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={linePath}
+        fill="none"
+        stroke="rgb(96 165 250)"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -204,7 +243,7 @@ export function AdminFilterBar({
   children,
   className,
   collapsible,
-  collapsibleLabel = 'Фільтри',
+  collapsibleLabel = "Фільтри",
   collapsibleCount,
   primary,
 }: {
@@ -222,7 +261,7 @@ export function AdminFilterBar({
 
   if (!collapsible) {
     return (
-      <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
+      <section className={cn("rounded-none border bg-[#171717] px-4 py-3", BORDER, className)}>
         <div className="flex flex-wrap items-center gap-3">{children}</div>
       </section>
     );
@@ -230,18 +269,18 @@ export function AdminFilterBar({
 
   return (
     <>
-      <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
+      <section className={cn("rounded-none border bg-[#171717] px-4 py-3", BORDER, className)}>
         {/* ≤md layout: primary slot + Filter button */}
         <div className="flex flex-col gap-2 md:hidden">
           {primary ? <div className="flex flex-wrap items-center gap-2">{primary}</div> : null}
           <button
             type="button"
             onClick={() => setSheetOpen(true)}
-            className="flex h-11 items-center justify-center gap-2 rounded-none border border-white/[0.08] bg-black/30 px-3 text-sm font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
+            className="flex h-11 items-center justify-center gap-2 rounded-none border border-white/8 bg-black/30 px-3 text-sm font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
           >
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
             <span>{collapsibleLabel}</span>
-            {typeof collapsibleCount === 'number' && collapsibleCount > 0 ? (
+            {typeof collapsibleCount === "number" && collapsibleCount > 0 ? (
               <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
                 {collapsibleCount}
               </span>
@@ -258,7 +297,7 @@ export function AdminFilterBar({
         position="bottom"
         title={collapsibleLabel}
         subtitle={
-          typeof collapsibleCount === 'number' && collapsibleCount > 0
+          typeof collapsibleCount === "number" && collapsibleCount > 0
             ? `Активних: ${collapsibleCount}`
             : undefined
         }
@@ -269,11 +308,15 @@ export function AdminFilterBar({
   );
 }
 
-export function AdminTableShell({ children, className }: { children: ReactNode; className?: string }) {
+export function AdminTableShell({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={cn('overflow-x-auto border bg-[#171717]', BORDER, className)}>
-      {children}
-    </div>
+    <div className={cn("overflow-x-auto border bg-[#171717]", BORDER, className)}>{children}</div>
   );
 }
 
@@ -300,19 +343,23 @@ export function AdminTableShell({ children, className }: { children: ReactNode; 
 export function AdminResponsiveTable({
   desktop,
   mobile,
-  breakpoint = 'lg',
+  breakpoint = "lg",
   className,
 }: {
   desktop: ReactNode;
   mobile: ReactNode;
   /** Where to switch from cards (mobile) to table (desktop). Defaults to `lg`. */
-  breakpoint?: 'md' | 'lg' | 'xl';
+  breakpoint?: "md" | "lg" | "xl";
   className?: string;
 }) {
   const desktopClass =
-    breakpoint === 'md' ? 'hidden md:block' : breakpoint === 'xl' ? 'hidden xl:block' : 'hidden lg:block';
+    breakpoint === "md"
+      ? "hidden md:block"
+      : breakpoint === "xl"
+        ? "hidden xl:block"
+        : "hidden lg:block";
   const mobileClass =
-    breakpoint === 'md' ? 'md:hidden' : breakpoint === 'xl' ? 'xl:hidden' : 'lg:hidden';
+    breakpoint === "md" ? "md:hidden" : breakpoint === "xl" ? "xl:hidden" : "lg:hidden";
 
   return (
     <div className={className}>
@@ -336,7 +383,7 @@ export function AdminDashboardSection({
   className?: string;
 }) {
   return (
-    <section className={cn('space-y-4', className)}>
+    <section className={cn("space-y-4", className)}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
@@ -352,25 +399,25 @@ export function AdminDashboardSection({
 export function AdminInsightPanel({
   title,
   description,
-  tone = 'default',
+  tone = "default",
   children,
   className,
 }: {
   title: string;
   description?: string;
-  tone?: 'default' | 'warning' | 'success';
+  tone?: "default" | "warning" | "success";
   children: ReactNode;
   className?: string;
 }) {
   const toneBorder =
-    tone === 'warning'
-      ? 'border-amber-500/25'
-      : tone === 'success'
-        ? 'border-green-500/25'
+    tone === "warning"
+      ? "border-amber-500/25"
+      : tone === "success"
+        ? "border-green-500/25"
         : BORDER;
 
   return (
-    <section className={cn('rounded-none border bg-[#171717] p-5 md:p-6', toneBorder, className)}>
+    <section className={cn("rounded-none border bg-[#171717] p-5 md:p-6", toneBorder, className)}>
       <div className="space-y-1">
         <h3 className="text-sm font-semibold tracking-tight text-zinc-100">{title}</h3>
         {description ? <p className="text-xs leading-5 text-zinc-500">{description}</p> : null}
@@ -386,8 +433,8 @@ function clampChartValue(value: number) {
 }
 
 function formatCompactNumber(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    notation: Math.abs(value) >= 10000 ? 'compact' : 'standard',
+  return new Intl.NumberFormat("en-US", {
+    notation: Math.abs(value) >= 10000 ? "compact" : "standard",
     maximumFractionDigits: Math.abs(value) >= 1000 ? 1 : 0,
   }).format(value);
 }
@@ -398,7 +445,7 @@ function formatCompactNumber(value: number) {
  */
 export function AdminTrendChart({
   data,
-  valueLabel = 'Revenue',
+  valueLabel = "Revenue",
   secondaryLabel,
   className,
 }: {
@@ -410,7 +457,8 @@ export function AdminTrendChart({
   const chartData = data.map((entry) => ({
     ...entry,
     value: clampChartValue(entry.value),
-    secondaryValue: entry.secondaryValue == null ? undefined : clampChartValue(entry.secondaryValue),
+    secondaryValue:
+      entry.secondaryValue == null ? undefined : clampChartValue(entry.secondaryValue),
   }));
   const width = 640;
   const height = 220;
@@ -418,11 +466,19 @@ export function AdminTrendChart({
   const paddingTop = 16;
   const paddingBottom = 38;
   const plotHeight = height - paddingTop - paddingBottom;
-  const maxValue = Math.max(1, ...chartData.flatMap((entry) => [entry.value, entry.secondaryValue ?? 0]));
+  const maxValue = Math.max(
+    1,
+    ...chartData.flatMap((entry) => [entry.value, entry.secondaryValue ?? 0])
+  );
 
   if (!chartData.length) {
     return (
-      <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-black/20 px-4 py-12 text-sm text-zinc-500', className)}>
+      <div
+        className={cn(
+          "rounded-none border border-dashed border-white/8 bg-black/20 px-4 py-12 text-sm text-zinc-500",
+          className
+        )}
+      >
         No chart data available.
       </div>
     );
@@ -436,19 +492,19 @@ export function AdminTrendChart({
     chartData
       .map((entry, index) => {
         const value = selector(entry);
-        if (value == null) return '';
+        if (value == null) return "";
         const x = paddingX + index * slotWidth + slotWidth / 2;
         const y = paddingTop + plotHeight - (value / maxValue) * plotHeight;
-        return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+        return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
       })
       .filter(Boolean)
-      .join(' ');
+      .join(" ");
 
   const secondaryPath = linePath((entry) => entry.secondaryValue);
   const hasSecondary = chartData.some((d) => d.secondaryValue != null);
 
   return (
-    <div className={cn('rounded-none border border-white/[0.05] bg-[#171717] p-4', className)}>
+    <div className={cn("rounded-none border border-white/5 bg-[#171717] p-4", className)}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
           <span className="inline-flex items-center gap-2">
@@ -462,9 +518,16 @@ export function AdminTrendChart({
             </span>
           ) : null}
         </div>
-        <div className="text-xs text-zinc-500 tabular-nums">Peak {formatCompactNumber(maxValue)}</div>
+        <div className="text-xs text-zinc-500 tabular-nums">
+          Peak {formatCompactNumber(maxValue)}
+        </div>
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${valueLabel} trend`} className="h-[220px] w-full">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`${valueLabel} trend`}
+        className="h-[220px] w-full"
+      >
         <defs>
           <linearGradient id="oc-bar" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="rgb(96 165 250)" stopOpacity="1" />
@@ -500,12 +563,30 @@ export function AdminTrendChart({
           const x = paddingX + index * slotWidth + barGap;
           const barH = (entry.value / maxValue) * plotHeight;
           const y = paddingTop + plotHeight - barH;
-          const showLabel = index === 0 || index === chartData.length - 1 || chartData.length <= 6 || index % Math.ceil(chartData.length / 4) === 0;
+          const showLabel =
+            index === 0 ||
+            index === chartData.length - 1 ||
+            chartData.length <= 6 ||
+            index % Math.ceil(chartData.length / 4) === 0;
           return (
             <g key={`${entry.label}-${index}`}>
-              <rect x={x} y={y} width={barWidth} height={Math.max(2, barH)} fill="url(#oc-bar)" rx="2" />
+              <rect
+                x={x}
+                y={y}
+                width={barWidth}
+                height={Math.max(2, barH)}
+                fill="url(#oc-bar)"
+                rx="2"
+              />
               {showLabel ? (
-                <text x={x + barWidth / 2} y={height - 14} textAnchor="middle" fill="rgb(113 113 122)" fontSize="10" fontWeight="500">
+                <text
+                  x={x + barWidth / 2}
+                  y={height - 14}
+                  textAnchor="middle"
+                  fill="rgb(113 113 122)"
+                  fontSize="10"
+                  fontWeight="500"
+                >
                   {entry.label}
                 </text>
               ) : null}
@@ -514,7 +595,15 @@ export function AdminTrendChart({
         })}
 
         {secondaryPath ? (
-          <path d={secondaryPath} fill="none" stroke="rgb(161 161 170)" strokeDasharray="4 4" strokeLinecap="round" strokeWidth="1.5" opacity="0.7" />
+          <path
+            d={secondaryPath}
+            fill="none"
+            stroke="rgb(161 161 170)"
+            strokeDasharray="4 4"
+            strokeLinecap="round"
+            strokeWidth="1.5"
+            opacity="0.7"
+          />
         ) : null}
       </svg>
     </div>
@@ -526,33 +615,47 @@ export function AdminBarList({
   valueFormatter = formatCompactNumber,
   className,
 }: {
-  data: Array<{ label: ReactNode; value: number; meta?: ReactNode; tone?: 'default' | 'accent' | 'success' | 'warning' | 'danger' }>;
+  data: Array<{
+    label: ReactNode;
+    value: number;
+    meta?: ReactNode;
+    tone?: "default" | "accent" | "success" | "warning" | "danger";
+  }>;
   valueFormatter?: (value: number) => ReactNode;
   className?: string;
 }) {
   const normalized = data.map((entry) => ({ ...entry, value: clampChartValue(entry.value) }));
   const maxValue = Math.max(1, ...normalized.map((entry) => entry.value));
-  const toneClass = (tone?: 'default' | 'accent' | 'success' | 'warning' | 'danger') => {
+  const toneClass = (tone?: "default" | "accent" | "success" | "warning" | "danger") => {
     switch (tone) {
-      case 'accent':
-        return 'bg-blue-500';
-      case 'success':
-        return 'bg-green-500';
-      case 'warning':
-        return 'bg-amber-500';
-      case 'danger':
-        return 'bg-red-500';
+      case "accent":
+        return "bg-blue-500";
+      case "success":
+        return "bg-green-500";
+      case "warning":
+        return "bg-amber-500";
+      case "danger":
+        return "bg-red-500";
       default:
-        return 'bg-zinc-500';
+        return "bg-zinc-500";
     }
   };
 
   if (!normalized.length) {
-    return <div className={cn('rounded-none border border-dashed border-white/[0.08] px-4 py-10 text-sm text-zinc-500', className)}>No data available.</div>;
+    return (
+      <div
+        className={cn(
+          "rounded-none border border-dashed border-white/8 px-4 py-10 text-sm text-zinc-500",
+          className
+        )}
+      >
+        No data available.
+      </div>
+    );
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn("space-y-3", className)}>
       {normalized.map((entry, index) => {
         const width = `${Math.max(4, (entry.value / maxValue) * 100)}%`;
         return (
@@ -560,12 +663,22 @@ export function AdminBarList({
             <div className="flex items-center justify-between gap-3 text-sm">
               <div className="min-w-0">
                 <div className="truncate font-medium text-zinc-100">{entry.label}</div>
-                {entry.meta ? <div className="mt-0.5 truncate text-xs text-zinc-500">{entry.meta}</div> : null}
+                {entry.meta ? (
+                  <div className="mt-0.5 truncate text-xs text-zinc-500">{entry.meta}</div>
+                ) : null}
               </div>
-              <div className="shrink-0 text-sm font-semibold tabular-nums text-zinc-50">{valueFormatter(entry.value)}</div>
+              <div className="shrink-0 text-sm font-semibold tabular-nums text-zinc-50">
+                {valueFormatter(entry.value)}
+              </div>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-              <div className={cn('h-full rounded-full transition-all duration-500', toneClass(entry.tone))} style={{ width }} />
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  toneClass(entry.tone)
+                )}
+                style={{ width }}
+              />
             </div>
           </div>
         );
@@ -578,7 +691,11 @@ export function AdminFunnelChart({
   data,
   className,
 }: {
-  data: Array<{ label: string; value: number; tone?: 'default' | 'success' | 'warning' | 'danger' }>;
+  data: Array<{
+    label: string;
+    value: number;
+    tone?: "default" | "success" | "warning" | "danger";
+  }>;
   className?: string;
 }) {
   return (
@@ -587,15 +704,23 @@ export function AdminFunnelChart({
       data={data.map((entry) => ({
         label: entry.label,
         value: entry.value,
-        meta: 'orders',
-        tone: entry.tone ?? 'default',
+        meta: "orders",
+        tone: entry.tone ?? "default",
       }))}
     />
   );
 }
 
-export function AdminQuickActionGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-3', className)}>{children}</div>;
+export function AdminQuickActionGrid({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("grid gap-3 md:grid-cols-2 xl:grid-cols-3", className)}>{children}</div>
+  );
 }
 
 export function AdminQuickActionCard({
@@ -615,21 +740,28 @@ export function AdminQuickActionCard({
     <Link
       href={href}
       className={cn(
-        'group relative overflow-hidden rounded-none border bg-[#171717] px-5 py-5 transition-all duration-200',
+        "group relative overflow-hidden rounded-none border bg-[#171717] px-5 py-5 transition-all duration-200",
         BORDER,
-        'hover:border-blue-500/30 hover:bg-[#1A1A1A]',
+        "hover:border-blue-500/30 hover:bg-[#1A1A1A]",
         className
       )}
     >
       <div className="space-y-2">
-        {eyebrow ? <div className="text-xs font-medium uppercase tracking-wider text-blue-400">{eyebrow}</div> : null}
+        {eyebrow ? (
+          <div className="text-xs font-medium uppercase tracking-wider text-blue-400">
+            {eyebrow}
+          </div>
+        ) : null}
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-base font-semibold tracking-tight text-zinc-50">{title}</div>
             <p className="mt-1 text-sm leading-6 text-zinc-400">{description}</p>
           </div>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-zinc-400 transition-all group-hover:bg-blue-600/15 group-hover:text-blue-400">
-            <ArrowLeft className="h-4 w-4 rotate-180 transition-all motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/4 text-zinc-400 transition-all group-hover:bg-blue-600/15 group-hover:text-blue-400">
+            <ArrowLeft
+              className="h-4 w-4 rotate-180 transition-all motion-safe:group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>
@@ -649,10 +781,12 @@ export function AdminSettingsShell({
   className?: string;
 }) {
   return (
-    <div className={cn('grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_300px]', className)}>
+    <div className={cn("grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_300px]", className)}>
       <aside className="xl:sticky xl:top-24 xl:self-start">{navigation}</aside>
       <div className="min-w-0 space-y-6">{content}</div>
-      {sidebar ? <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside> : null}
+      {sidebar ? (
+        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside>
+      ) : null}
     </div>
   );
 }
@@ -669,7 +803,7 @@ export function AdminSettingsNav({
   className?: string;
 }) {
   return (
-    <nav className={cn('rounded-none border bg-[#171717] p-2', BORDER, className)}>
+    <nav className={cn("rounded-none border bg-[#171717] p-2", BORDER, className)}>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = item.id === activeId;
@@ -679,15 +813,19 @@ export function AdminSettingsNav({
               type="button"
               onClick={() => onChange(item.id)}
               className={cn(
-                'w-full rounded-none px-3.5 py-2.5 text-left transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]',
+                "w-full rounded-none px-3.5 py-2.5 text-left transition-all duration-150",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]",
                 active
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100'
+                  ? "bg-blue-600 text-white"
+                  : "text-zinc-400 hover:bg-white/4 hover:text-zinc-100"
               )}
             >
               <span className="block text-sm font-medium">{item.label}</span>
-              {item.description ? <span className="mt-0.5 block text-xs leading-5 opacity-75">{item.description}</span> : null}
+              {item.description ? (
+                <span className="mt-0.5 block text-xs leading-5 opacity-75">
+                  {item.description}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -696,11 +834,17 @@ export function AdminSettingsNav({
   );
 }
 
-export function AdminStickyActionBar({ children, className }: { children: ReactNode; className?: string }) {
+export function AdminStickyActionBar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <section
       className={cn(
-        'sticky top-4 z-20 rounded-none border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         className
       )}
     >
@@ -721,7 +865,9 @@ export function AdminDangerZone({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-none border border-red-500/25 bg-red-950/20 p-5 md:p-6', className)}>
+    <section
+      className={cn("rounded-none border border-red-500/25 bg-red-950/20 p-5 md:p-6", className)}
+    >
       <div className="space-y-2">
         <h3 className="text-lg font-semibold tracking-tight text-red-100">{title}</h3>
         <p className="text-sm leading-6 text-red-200/80">{description}</p>
@@ -741,7 +887,7 @@ export function AdminSplitDetailShell({
   className?: string;
 }) {
   return (
-    <div className={cn('grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]', className)}>
+    <div className={cn("grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <div className="min-w-0 space-y-6">{main}</div>
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">{sidebar}</aside>
     </div>
@@ -760,7 +906,7 @@ export function AdminInspectorCard({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-none border bg-[#171717] p-5', BORDER, className)}>
+    <section className={cn("rounded-none border bg-[#171717] p-5", BORDER, className)}>
       <div className="space-y-1">
         <h2 className="text-sm font-semibold tracking-tight text-zinc-100">{title}</h2>
         {description ? <p className="text-xs leading-5 text-zinc-500">{description}</p> : null}
@@ -778,11 +924,14 @@ export function AdminKeyValueGrid({
   className?: string;
 }) {
   return (
-    <dl className={cn('grid gap-1', className)}>
+    <dl className={cn("grid gap-1", className)}>
       {rows.map((row) => (
-        <div key={row.label} className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-3 rounded-none bg-black/20 px-3 py-2">
+        <div
+          key={row.label}
+          className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-3 rounded-none bg-black/20 px-3 py-2"
+        >
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">{row.label}</dt>
-          <dd className="text-sm font-medium text-zinc-100 [&_*]:tabular-nums">{row.value}</dd>
+          <dd className="text-sm font-medium text-zinc-100 **:tabular-nums">{row.value}</dd>
         </div>
       ))}
     </dl>
@@ -799,42 +948,51 @@ export function AdminTimelineList({
     title: ReactNode;
     meta?: ReactNode;
     body?: ReactNode;
-    tone?: 'default' | 'success' | 'warning' | 'danger';
+    tone?: "default" | "success" | "warning" | "danger";
   }>;
   empty: ReactNode;
   className?: string;
 }) {
-  const toneClass = (tone?: 'default' | 'success' | 'warning' | 'danger') => {
+  const toneClass = (tone?: "default" | "success" | "warning" | "danger") => {
     switch (tone) {
-      case 'success':
-        return 'bg-green-500';
-      case 'warning':
-        return 'bg-amber-500';
-      case 'danger':
-        return 'bg-red-500';
+      case "success":
+        return "bg-green-500";
+      case "warning":
+        return "bg-amber-500";
+      case "danger":
+        return "bg-red-500";
       default:
-        return 'bg-blue-500';
+        return "bg-blue-500";
     }
   };
 
   if (!items.length) {
     return (
-      <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-[#171717] px-4 py-10 text-sm text-zinc-500', className)}>
+      <div
+        className={cn(
+          "rounded-none border border-dashed border-white/8 bg-[#171717] px-4 py-10 text-sm text-zinc-500",
+          className
+        )}
+      >
         {empty}
       </div>
     );
   }
 
   return (
-    <ul className={cn('space-y-1.5 list-none', className)}>
+    <ul className={cn("space-y-1.5 list-none", className)}>
       {items.map((item) => (
         <li
           key={item.id}
-          className={cn('rounded-none border bg-[#171717] px-4 py-3 transition-colors', BORDER, BORDER_HOVER)}
+          className={cn(
+            "rounded-none border bg-[#171717] px-4 py-3 transition-colors",
+            BORDER,
+            BORDER_HOVER
+          )}
         >
           <div className="flex items-start gap-3">
             <div className="mt-1.5 h-2 w-2 rounded-full" aria-hidden="true">
-              <div className={cn('h-full w-full rounded-full', toneClass(item.tone))} />
+              <div className={cn("h-full w-full rounded-full", toneClass(item.tone))} />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
               <div className="text-sm font-medium text-zinc-100">{item.title}</div>
@@ -853,23 +1011,28 @@ export function AdminInlineAlert({
   children,
   className,
 }: {
-  tone: 'error' | 'success' | 'warning';
+  tone: "error" | "success" | "warning";
   children: ReactNode;
   className?: string;
 }) {
   const toneClass =
-    tone === 'error'
-      ? 'border-red-500/30 bg-red-950/30 text-red-100'
-      : tone === 'success'
-        ? 'border-green-500/30 bg-green-950/30 text-green-100'
-        : 'border-amber-500/30 bg-amber-950/20 text-blue-300';
+    tone === "error"
+      ? "border-red-500/30 bg-red-950/30 text-red-100"
+      : tone === "success"
+        ? "border-green-500/30 bg-green-950/30 text-green-100"
+        : "border-amber-500/30 bg-amber-950/20 text-blue-300";
 
-  const ariaLive = tone === 'error' ? 'assertive' : 'polite';
-  const ariaRole = tone === 'error' ? 'alert' : 'status';
-  const tonePrefix = tone === 'error' ? 'Error: ' : tone === 'success' ? 'Success: ' : 'Warning: ';
+  const ariaLive = tone === "error" ? "assertive" : "polite";
+  const ariaRole = tone === "error" ? "alert" : "status";
+  const tonePrefix = tone === "error" ? "Error: " : tone === "success" ? "Success: " : "Warning: ";
 
   return (
-    <div role={ariaRole} aria-live={ariaLive} aria-atomic="true" className={cn('rounded-none border px-4 py-3 text-sm', toneClass, className)}>
+    <div
+      role={ariaRole}
+      aria-live={ariaLive}
+      aria-atomic="true"
+      className={cn("rounded-none border px-4 py-3 text-sm", toneClass, className)}
+    >
       <span className="sr-only">{tonePrefix}</span>
       {children}
     </div>
@@ -880,23 +1043,28 @@ export function AdminInlineAlert({
  * Pill-shaped status badge matching the reference (Shipped/Processing/Delivered).
  */
 export function AdminStatusBadge({
-  tone = 'default',
+  tone = "default",
   children,
 }: {
-  tone?: 'default' | 'success' | 'warning' | 'danger';
+  tone?: "default" | "success" | "warning" | "danger";
   children: ReactNode;
 }) {
   const toneClass =
-    tone === 'success'
-      ? 'border-green-500/25 bg-green-500/10 text-green-300'
-      : tone === 'warning'
-        ? 'border-amber-500/25 bg-amber-500/10 text-amber-300'
-        : tone === 'danger'
-          ? 'border-red-500/25 bg-red-500/10 text-red-300'
-          : 'border-white/[0.08] bg-white/[0.04] text-zinc-300';
+    tone === "success"
+      ? "border-green-500/25 bg-green-500/10 text-green-300"
+      : tone === "warning"
+        ? "border-amber-500/25 bg-amber-500/10 text-amber-300"
+        : tone === "danger"
+          ? "border-red-500/25 bg-red-500/10 text-red-300"
+          : "border-white/8 bg-white/4 text-zinc-300";
 
   return (
-    <span className={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium', toneClass)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+        toneClass
+      )}
+    >
       {children}
     </span>
   );
@@ -917,9 +1085,14 @@ export function AdminEmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-[#141414] px-6 py-20 text-center', className)}>
+    <div
+      className={cn(
+        "rounded-none border border-dashed border-white/8 bg-[#141414] px-6 py-20 text-center",
+        className
+      )}
+    >
       <div className="mx-auto max-w-lg space-y-4">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-none bg-gradient-to-b from-blue-500/[0.08] to-transparent">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-none bg-linear-to-b from-blue-500/8 to-transparent">
           {illustration ?? <AdminEmptyStateIllustration />}
         </div>
         <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
@@ -1004,7 +1177,10 @@ export function AdminEditorShell({
     <AdminPage className={className}>
       <div className="space-y-6">
         <div className="space-y-4">
-          <Link href={backHref} className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-blue-400">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-blue-400"
+          >
             <ArrowLeft className="h-4 w-4" />
             {backLabel}
           </Link>
@@ -1015,21 +1191,27 @@ export function AdminEditorShell({
           <div className="min-w-0 space-y-6">{children}</div>
           <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
             {summary}
-            <div className={cn('rounded-none border bg-[#171717] p-4', BORDER)}>
-              <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">Editor map</div>
+            <div className={cn("rounded-none border bg-[#171717] p-4", BORDER)}>
+              <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                Editor map
+              </div>
               <nav className="mt-3 space-y-0.5">
                 {sections.map((section, index) => (
                   <a
                     key={section.id}
                     href={`#${section.id}`}
-                    className="group flex items-start gap-3 rounded-none px-3 py-2 text-sm text-zinc-400 transition-all hover:bg-white/[0.04] hover:text-zinc-50"
+                    className="group flex items-start gap-3 rounded-none px-3 py-2 text-sm text-zinc-400 transition-all hover:bg-white/4 hover:text-zinc-50"
                   >
                     <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-none bg-blue-600/15 text-[10px] font-semibold tabular-nums text-blue-400 transition-colors group-hover:bg-blue-600/25 group-hover:text-blue-300">
-                      {String(index + 1).padStart(2, '0')}
+                      {String(index + 1).padStart(2, "0")}
                     </span>
                     <span className="space-y-0.5">
                       <span className="block font-medium">{section.label}</span>
-                      {section.description ? <span className="block text-xs leading-5 text-zinc-500">{section.description}</span> : null}
+                      {section.description ? (
+                        <span className="block text-xs leading-5 text-zinc-500">
+                          {section.description}
+                        </span>
+                      ) : null}
                     </span>
                   </a>
                 ))}
@@ -1056,7 +1238,10 @@ export function AdminEditorSection({
   className?: string;
 }) {
   return (
-    <section id={id} className={cn('scroll-mt-24 rounded-none border bg-[#171717] p-5 md:p-6', BORDER, className)}>
+    <section
+      id={id}
+      className={cn("scroll-mt-24 rounded-none border bg-[#171717] p-5 md:p-6", BORDER, className)}
+    >
       <div className="mb-5 max-w-2xl space-y-1.5">
         <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
         <p className="text-sm leading-6 text-zinc-400">{description}</p>
@@ -1066,14 +1251,14 @@ export function AdminEditorSection({
   );
 }
 
-type AdminButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type AdminButtonSize = 'sm' | 'md' | 'lg';
+type AdminButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type AdminButtonSize = "sm" | "md" | "lg";
 
 export function AdminButton({
   children,
-  variant = 'secondary',
-  size = 'md',
-  type = 'button',
+  variant = "secondary",
+  size = "md",
+  type = "button",
   href,
   onClick,
   disabled,
@@ -1084,7 +1269,7 @@ export function AdminButton({
   children: ReactNode;
   variant?: AdminButtonVariant;
   size?: AdminButtonSize;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
   href?: string;
   onClick?: (event: React.MouseEvent) => void;
   disabled?: boolean;
@@ -1093,25 +1278,25 @@ export function AdminButton({
   className?: string;
 }) {
   const sizeClass =
-    size === 'sm'
-      ? 'h-8 px-3 text-xs'
-      : size === 'lg'
-        ? 'h-11 px-5 text-sm'
-        : 'h-9 px-4 text-[13px]';
+    size === "sm"
+      ? "h-8 px-3 text-xs"
+      : size === "lg"
+        ? "h-11 px-5 text-sm"
+        : "h-9 px-4 text-[13px]";
 
   const variantClass =
-    variant === 'primary'
-      ? 'bg-blue-600 text-white shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-blue-500 motion-safe:active:translate-y-px'
-      : variant === 'danger'
-        ? 'border border-blue-500/30 bg-blue-950/30 text-red-100 hover:border-blue-500/50 hover:bg-red-950/50'
-        : variant === 'ghost'
-          ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-zinc-50'
-          : 'border border-white/[0.1] bg-white/[0.03] text-zinc-100 hover:border-white/20 hover:bg-white/[0.06]';
+    variant === "primary"
+      ? "bg-blue-600 text-white shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-blue-500 motion-safe:active:translate-y-px"
+      : variant === "danger"
+        ? "border border-blue-500/30 bg-blue-950/30 text-red-100 hover:border-blue-500/50 hover:bg-red-950/50"
+        : variant === "ghost"
+          ? "text-zinc-300 hover:bg-white/4 hover:text-zinc-50"
+          : "border border-white/10 bg-white/3 text-zinc-100 hover:border-white/20 hover:bg-white/6";
 
   const baseClass = cn(
-    'inline-flex items-center justify-center gap-2 rounded-none font-medium tracking-tight transition-all duration-150',
-    'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]',
-    'disabled:cursor-not-allowed disabled:opacity-50',
+    "inline-flex items-center justify-center gap-2 rounded-none font-medium tracking-tight transition-all duration-150",
+    "focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]",
+    "disabled:cursor-not-allowed disabled:opacity-50",
     sizeClass,
     variantClass,
     className
@@ -1120,9 +1305,15 @@ export function AdminButton({
   const content = (
     <>
       {loading ? (
-        <span className="h-3.5 w-3.5 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+        <span
+          className="h-3.5 w-3.5 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent"
+          aria-hidden="true"
+        />
       ) : icon ? (
-        <span className="flex items-center justify-center [&>svg]:h-4 [&>svg]:w-4" aria-hidden="true">
+        <span
+          className="flex items-center justify-center [&>svg]:h-4 [&>svg]:w-4"
+          aria-hidden="true"
+        >
           {icon}
         </span>
       ) : null}
@@ -1159,7 +1350,7 @@ export function AdminCardSection({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-none border bg-[#171717] p-5 md:p-6', BORDER, className)}>
+    <section className={cn("rounded-none border bg-[#171717] p-5 md:p-6", BORDER, className)}>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <h3 className="text-base font-semibold tracking-tight text-zinc-50">{title}</h3>
@@ -1188,7 +1379,7 @@ export function AdminSwitch({
   className?: string;
 }) {
   return (
-    <label className={cn('flex items-start gap-3', disabled && 'opacity-50', className)}>
+    <label className={cn("flex items-start gap-3", disabled && "opacity-50", className)}>
       <button
         type="button"
         role="switch"
@@ -1196,22 +1387,24 @@ export function AdminSwitch({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]',
-          checked ? 'border-blue-500/50 bg-blue-600' : 'border-white/[0.1] bg-white/[0.05]'
+          "relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors",
+          "focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]",
+          checked ? "border-blue-500/50 bg-blue-600" : "border-white/10 bg-white/5"
         )}
       >
         <span
           className={cn(
-            'inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform',
-            checked ? 'translate-x-[18px]' : 'translate-x-0.5'
+            "inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-0.5"
           )}
         />
       </button>
       {label || description ? (
         <span className="space-y-0.5 text-sm">
           {label ? <span className="block font-medium text-zinc-100">{label}</span> : null}
-          {description ? <span className="block text-xs leading-5 text-zinc-500">{description}</span> : null}
+          {description ? (
+            <span className="block text-xs leading-5 text-zinc-500">{description}</span>
+          ) : null}
         </span>
       ) : null}
     </label>

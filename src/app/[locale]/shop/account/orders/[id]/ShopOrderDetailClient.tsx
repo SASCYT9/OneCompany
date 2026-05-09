@@ -94,7 +94,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
             <a
               href={`/api/shop/account/orders/${order.orderNumber}/invoice`}
               download={`invoice-${order.orderNumber}.pdf`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/85 transition hover:border-white/30 hover:bg-white/[0.1]"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/85 transition hover:border-white/30 hover:bg-white/10"
             >
               <Download className="h-3.5 w-3.5" />
               {isUa ? 'PDF-інвойс' : 'PDF invoice'}
@@ -105,7 +105,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
         <div className="grid gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-4">
             <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Товари' : 'Items'}</h2>
-            <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
               <ul className="space-y-4">
                 {order.items.map((item) => (
                   <li key={item.id} className="flex items-center gap-4">
@@ -138,7 +138,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
           <aside className="space-y-6">
             <section>
               <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Підсумок замовлення' : 'Order Summary'}</h2>
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm">
                 <div className="flex justify-between text-white/60 mb-3">
                   <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
                   <span>{formatShopMoney(locale, order.subtotal, order.currency as ShopCurrencyCode)}</span>
@@ -160,7 +160,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
 
             <section>
               <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">{isUa ? 'Інформація про доставку' : 'Shipping Info'}</h2>
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
                 {order.shippingAddress && order.shippingAddress.line1 ? (
                   <>
                     <p className="text-white/80 font-medium mb-1">{order.shippingAddress.name}</p>
@@ -181,7 +181,7 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
                 <h2 className="text-sm uppercase tracking-widest text-white/40 mb-2">
                   {isUa ? 'Відстеження' : 'Tracking'}
                 </h2>
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
+                <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] text-sm text-white/60">
                   <p className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-2">
                     {isUa ? 'Номер ТТН' : 'Tracking number'}
                   </p>

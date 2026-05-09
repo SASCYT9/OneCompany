@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   ExternalLink,
@@ -13,7 +13,7 @@ import {
   Save,
   Trash2,
   Upload,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   AdminActionBar,
@@ -26,13 +26,13 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
-import { useConfirm } from '@/components/admin/AdminConfirmDialog';
-import { useToast } from '@/components/admin/AdminToast';
+} from "@/components/admin/AdminPrimitives";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
 
-type ImportConflictMode = 'SKIP' | 'UPDATE' | 'CREATE';
-type ImportAction = 'DRY_RUN' | 'COMMIT';
-type ImportStatus = 'COMPLETED' | 'FAILED';
+type ImportConflictMode = "SKIP" | "UPDATE" | "CREATE";
+type ImportAction = "DRY_RUN" | "COMMIT";
+type ImportStatus = "COMPLETED" | "FAILED";
 
 type ImportTemplate = {
   id: string;
@@ -83,9 +83,9 @@ type TemplateDraft = {
 };
 
 const CONFLICT_MODE_COPY: Record<ImportConflictMode, string> = {
-  UPDATE: 'Оновлювати існуючі товари',
-  SKIP: 'Пропускати існуючі товари',
-  CREATE: 'Конфлікт як помилка',
+  UPDATE: "Оновлювати існуючі товари",
+  SKIP: "Пропускати існуючі товари",
+  CREATE: "Конфлікт як помилка",
 };
 
 function buildMappingRows(fieldMapping: Record<string, string> | null | undefined): MappingRow[] {
@@ -94,26 +94,26 @@ function buildMappingRows(fieldMapping: Record<string, string> | null | undefine
     source,
     target,
   }));
-  return rows.length ? rows : [{ id: crypto.randomUUID(), source: '', target: '' }];
+  return rows.length ? rows : [{ id: crypto.randomUUID(), source: "", target: "" }];
 }
 
 function buildTemplateDraft(template?: ImportTemplate | null): TemplateDraft {
   if (!template) {
     return {
       id: null,
-      name: '',
-      supplierName: '',
-      notes: '',
-      defaultConflictMode: 'UPDATE',
-      mappingRows: [{ id: crypto.randomUUID(), source: '', target: '' }],
+      name: "",
+      supplierName: "",
+      notes: "",
+      defaultConflictMode: "UPDATE",
+      mappingRows: [{ id: crypto.randomUUID(), source: "", target: "" }],
     };
   }
 
   return {
     id: template.id,
     name: template.name,
-    supplierName: template.supplierName ?? '',
-    notes: template.notes ?? '',
+    supplierName: template.supplierName ?? "",
+    notes: template.notes ?? "",
     defaultConflictMode: template.defaultConflictMode,
     mappingRows: buildMappingRows(template.fieldMapping),
   };
@@ -132,22 +132,22 @@ function mappingRowsToObject(rows: MappingRow[]) {
 }
 
 function formatAction(action: ImportAction) {
-  return action === 'DRY_RUN' ? 'Dry run' : 'Commit';
+  return action === "DRY_RUN" ? "Dry run" : "Commit";
 }
 
 export default function AdminShopImportPage() {
   const confirm = useConfirm();
   const toast = useToast();
   const router = useRouter();
-  const [csvText, setCsvText] = useState('');
-  const [sourceFilename, setSourceFilename] = useState('');
-  const [supplierName, setSupplierName] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState('');
-  const [conflictMode, setConflictMode] = useState<ImportConflictMode>('UPDATE');
+  const [csvText, setCsvText] = useState("");
+  const [sourceFilename, setSourceFilename] = useState("");
+  const [supplierName, setSupplierName] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [conflictMode, setConflictMode] = useState<ImportConflictMode>("UPDATE");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [templates, setTemplates] = useState<ImportTemplate[]>([]);
   const [jobs, setJobs] = useState<ImportJobSummary[]>([]);
   const [templateDraft, setTemplateDraft] = useState<TemplateDraft>(() => buildTemplateDraft());
@@ -161,17 +161,17 @@ export default function AdminShopImportPage() {
 
   useEffect(() => {
     if (!selectedTemplate) return;
-    setSupplierName((current) => current || selectedTemplate.supplierName || '');
+    setSupplierName((current) => current || selectedTemplate.supplierName || "");
     setConflictMode(selectedTemplate.defaultConflictMode);
   }, [selectedTemplate]);
 
   const refreshCenter = useCallback(async () => {
     setRefreshing(true);
-    setError('');
+    setError("");
     try {
       const [templatesResponse, jobsResponse] = await Promise.all([
-        fetch('/api/admin/shop/imports/templates'),
-        fetch('/api/admin/shop/imports'),
+        fetch("/api/admin/shop/imports/templates"),
+        fetch("/api/admin/shop/imports"),
       ]);
       const [templatesData, jobsData] = await Promise.all([
         templatesResponse.json().catch(() => []),
@@ -179,10 +179,10 @@ export default function AdminShopImportPage() {
       ]);
 
       if (!templatesResponse.ok) {
-        throw new Error(templatesData.error || 'Не вдалося завантажити шаблони імпорту');
+        throw new Error(templatesData.error || "Не вдалося завантажити шаблони імпорту");
       }
       if (!jobsResponse.ok) {
-        throw new Error(jobsData.error || 'Не вдалося завантажити історію імпортів');
+        throw new Error(jobsData.error || "Не вдалося завантажити історію імпортів");
       }
 
       setTemplates(templatesData as ImportTemplate[]);
@@ -198,15 +198,15 @@ export default function AdminShopImportPage() {
     void refreshCenter();
   }, [refreshCenter]);
 
-  async function runImport(action: 'dry-run' | 'commit') {
+  async function runImport(action: "dry-run" | "commit") {
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`/api/admin/shop/imports/csv/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           csvText,
           sourceFilename: sourceFilename || null,
@@ -217,11 +217,11 @@ export default function AdminShopImportPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Запит імпорту не виконано');
+        throw new Error(data.error || "Запит імпорту не виконано");
       }
 
       await refreshCenter();
-      setSuccess(action === 'dry-run' ? 'Пробний прогон завершено.' : 'Імпорт виконано.');
+      setSuccess(action === "dry-run" ? "Пробний прогон завершено." : "Імпорт виконано.");
 
       if (data.job?.id) {
         router.push(`/admin/shop/import/jobs/${data.job.id}`);
@@ -238,7 +238,7 @@ export default function AdminShopImportPage() {
     if (!file) return;
     setSourceFilename(file.name);
     const reader = new FileReader();
-    reader.onload = () => setCsvText(String(reader.result ?? ''));
+    reader.onload = () => setCsvText(String(reader.result ?? ""));
     reader.readAsText(file);
   }
 
@@ -250,21 +250,26 @@ export default function AdminShopImportPage() {
     setTemplateDraft(buildTemplateDraft(template));
   }
 
-  function setTemplateDraftField<Key extends keyof TemplateDraft>(key: Key, value: TemplateDraft[Key]) {
+  function setTemplateDraftField<Key extends keyof TemplateDraft>(
+    key: Key,
+    value: TemplateDraft[Key]
+  ) {
     setTemplateDraft((current) => ({ ...current, [key]: value }));
   }
 
   function updateMappingRow(rowId: string, patch: Partial<MappingRow>) {
     setTemplateDraft((current) => ({
       ...current,
-      mappingRows: current.mappingRows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)),
+      mappingRows: current.mappingRows.map((row) =>
+        row.id === rowId ? { ...row, ...patch } : row
+      ),
     }));
   }
 
   function addMappingRow() {
     setTemplateDraft((current) => ({
       ...current,
-      mappingRows: [...current.mappingRows, { id: crypto.randomUUID(), source: '', target: '' }],
+      mappingRows: [...current.mappingRows, { id: crypto.randomUUID(), source: "", target: "" }],
     }));
   }
 
@@ -273,40 +278,44 @@ export default function AdminShopImportPage() {
       const nextRows = current.mappingRows.filter((row) => row.id !== rowId);
       return {
         ...current,
-        mappingRows: nextRows.length ? nextRows : [{ id: crypto.randomUUID(), source: '', target: '' }],
+        mappingRows: nextRows.length
+          ? nextRows
+          : [{ id: crypto.randomUUID(), source: "", target: "" }],
       };
     });
   }
 
   async function saveTemplate() {
     setSavingTemplate(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const payload = {
         name: templateDraft.name,
         supplierName: templateDraft.supplierName || null,
         notes: templateDraft.notes || null,
-        sourceType: 'shopify_csv',
+        sourceType: "shopify_csv",
         defaultConflictMode: templateDraft.defaultConflictMode,
         fieldMapping: mappingRowsToObject(templateDraft.mappingRows),
       };
 
       const response = await fetch(
-        templateDraft.id ? `/api/admin/shop/imports/templates/${templateDraft.id}` : '/api/admin/shop/imports/templates',
+        templateDraft.id
+          ? `/api/admin/shop/imports/templates/${templateDraft.id}`
+          : "/api/admin/shop/imports/templates",
         {
-          method: templateDraft.id ? 'PATCH' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: templateDraft.id ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося зберегти шаблон');
+        throw new Error(data.error || "Не вдалося зберегти шаблон");
       }
 
-      setSuccess(templateDraft.id ? 'Шаблон оновлено.' : 'Шаблон створено.');
+      setSuccess(templateDraft.id ? "Шаблон оновлено." : "Шаблон створено.");
       resetTemplateDraft();
       await refreshCenter();
     } catch (saveError) {
@@ -318,37 +327,38 @@ export default function AdminShopImportPage() {
 
   async function deleteTemplate(templateId: string) {
     const ok = await confirm({
-      tone: 'danger',
-      title: 'Видалити цей шаблон імпорту?',
-      description: 'Шаблон з налаштуваннями колонок і правил буде видалено. Дію не можна скасувати.',
-      confirmLabel: 'Видалити шаблон',
+      tone: "danger",
+      title: "Видалити цей шаблон імпорту?",
+      description:
+        "Шаблон з налаштуваннями колонок і правил буде видалено. Дію не можна скасувати.",
+      confirmLabel: "Видалити шаблон",
     });
     if (!ok) return;
     setDeletingTemplateId(templateId);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`/api/admin/shop/imports/templates/${templateId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = data.error || 'Не вдалося видалити шаблон';
-        toast.error('Не вдалося видалити шаблон', msg);
+        const msg = data.error || "Не вдалося видалити шаблон";
+        toast.error("Не вдалося видалити шаблон", msg);
         throw new Error(msg);
       }
 
-      toast.success('Шаблон імпорту видалено');
+      toast.success("Шаблон імпорту видалено");
 
       if (selectedTemplateId === templateId) {
-        setSelectedTemplateId('');
+        setSelectedTemplateId("");
       }
       if (templateDraft.id === templateId) {
         resetTemplateDraft();
       }
 
-      setSuccess('Шаблон видалено.');
+      setSuccess("Шаблон видалено.");
       await refreshCenter();
     } catch (deleteError) {
       setError((deleteError as Error).message);
@@ -357,7 +367,7 @@ export default function AdminShopImportPage() {
     }
   }
 
-  const failedJobs = jobs.filter((job) => job.status === 'FAILED').length;
+  const failedJobs = jobs.filter((job) => job.status === "FAILED").length;
   const lastJob = jobs[0] ?? null;
   const templateCount = templates.length;
 
@@ -381,7 +391,7 @@ export default function AdminShopImportPage() {
               onClick={() => void refreshCenter()}
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "motion-safe:animate-spin" : ""}`} />
               Refresh
             </button>
           </>
@@ -389,32 +399,44 @@ export default function AdminShopImportPage() {
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Templates" value={templateCount} meta="Збережені supplier mappings" />
+        <AdminMetricCard
+          label="Templates"
+          value={templateCount}
+          meta="Збережені supplier mappings"
+        />
         <AdminMetricCard label="Import jobs" value={jobs.length} meta="Останні прогони з журналу" />
-        <AdminMetricCard label="Failed jobs" value={failedJobs} meta="Потребують review" tone={failedJobs ? 'accent' : 'default'} />
+        <AdminMetricCard
+          label="Failed jobs"
+          value={failedJobs}
+          meta="Потребують review"
+          tone={failedJobs ? "accent" : "default"}
+        />
         <AdminMetricCard
           label="Last run"
-          value={lastJob ? formatAction(lastJob.action) : '—'}
-          meta={lastJob ? new Date(lastJob.createdAt).toLocaleString() : 'Запусків ще не було'}
+          value={lastJob ? formatAction(lastJob.action) : "—"}
+          meta={lastJob ? new Date(lastJob.createdAt).toLocaleString() : "Запусків ще не було"}
         />
       </AdminMetricGrid>
 
       <AdminActionBar>
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">Ops flow</div>
+          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+            Ops flow
+          </div>
           <div className="text-sm text-zinc-300">
-            1. Завантажити CSV. 2. Вибрати шаблон і conflict policy. 3. Зробити dry-run. 4. Відкрити job review. 5. Commit після перевірки.
+            1. Завантажити CSV. 2. Вибрати шаблон і conflict policy. 3. Зробити dry-run. 4. Відкрити
+            job review. 5. Commit після перевірки.
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <AdminStatusBadge tone={csvText.trim() ? 'success' : 'warning'}>
-            {csvText.trim() ? 'CSV loaded' : 'CSV required'}
+          <AdminStatusBadge tone={csvText.trim() ? "success" : "warning"}>
+            {csvText.trim() ? "CSV loaded" : "CSV required"}
           </AdminStatusBadge>
-          <AdminStatusBadge tone={selectedTemplateId ? 'default' : 'warning'}>
-            {selectedTemplate ? selectedTemplate.name : 'Template optional'}
+          <AdminStatusBadge tone={selectedTemplateId ? "default" : "warning"}>
+            {selectedTemplate ? selectedTemplate.name : "Template optional"}
           </AdminStatusBadge>
-          <AdminStatusBadge tone={failedJobs ? 'warning' : 'success'}>
-            {failedJobs ? `${failedJobs} failed` : 'No failed jobs'}
+          <AdminStatusBadge tone={failedJobs ? "warning" : "success"}>
+            {failedJobs ? `${failedJobs} failed` : "No failed jobs"}
           </AdminStatusBadge>
         </div>
       </AdminActionBar>
@@ -434,9 +456,16 @@ export default function AdminShopImportPage() {
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm text-zinc-200 transition hover:border-white/25">
                   <Upload className="h-4 w-4" />
                   Upload CSV
-                  <input type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" />
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={handleFile}
+                    className="hidden"
+                  />
                 </label>
-                <span className="text-sm text-zinc-400">{sourceFilename || 'Файл ще не вибраний'}</span>
+                <span className="text-sm text-zinc-400">
+                  {sourceFilename || "Файл ще не вибраний"}
+                </span>
               </div>
             </Field>
 
@@ -445,7 +474,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={selectedTemplateId}
                   onChange={(event) => setSelectedTemplateId(event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
                 >
                   <option value="">Без шаблону</option>
                   {templates.map((template) => (
@@ -460,7 +489,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={conflictMode}
                   onChange={(event) => setConflictMode(event.target.value as ImportConflictMode)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -476,7 +505,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={supplierName}
                   onChange={(event) => setSupplierName(event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                   placeholder="Urban, GP Portal, supplier alias..."
                 />
               </Field>
@@ -485,7 +514,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={sourceFilename}
                   onChange={(event) => setSourceFilename(event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                   placeholder="catalog.csv"
                 />
               </Field>
@@ -496,7 +525,7 @@ export default function AdminShopImportPage() {
                 value={csvText}
                 onChange={(event) => setCsvText(event.target.value)}
                 rows={16}
-                className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-4 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-4 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                 placeholder="Вставте CSV тут або завантажте файл вище."
               />
             </Field>
@@ -504,21 +533,21 @@ export default function AdminShopImportPage() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => void runImport('dry-run')}
+                onClick={() => void runImport("dry-run")}
                 disabled={loading || !csvText.trim()}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm font-medium text-zinc-100 transition hover:border-white/25 disabled:opacity-50"
               >
                 <FileCheck className="h-4 w-4" />
-                {loading ? 'Запуск...' : 'Dry run'}
+                {loading ? "Запуск..." : "Dry run"}
               </button>
               <button
                 type="button"
-                onClick={() => void runImport('commit')}
+                onClick={() => void runImport("commit")}
                 disabled={loading || !csvText.trim()}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {loading ? 'Запуск...' : 'Commit import'}
+                {loading ? "Запуск..." : "Commit import"}
               </button>
             </div>
           </div>
@@ -534,8 +563,8 @@ export default function AdminShopImportPage() {
               <Field label="Template name">
                 <input
                   value={templateDraft.name}
-                  onChange={(event) => setTemplateDraftField('name', event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  onChange={(event) => setTemplateDraftField("name", event.target.value)}
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                   placeholder="Urban supplier feed"
                 />
               </Field>
@@ -543,9 +572,12 @@ export default function AdminShopImportPage() {
                 <select
                   value={templateDraft.defaultConflictMode}
                   onChange={(event) =>
-                    setTemplateDraftField('defaultConflictMode', event.target.value as ImportConflictMode)
+                    setTemplateDraftField(
+                      "defaultConflictMode",
+                      event.target.value as ImportConflictMode
+                    )
                   }
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -560,16 +592,16 @@ export default function AdminShopImportPage() {
               <Field label="Supplier name">
                 <input
                   value={templateDraft.supplierName}
-                  onChange={(event) => setTemplateDraftField('supplierName', event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  onChange={(event) => setTemplateDraftField("supplierName", event.target.value)}
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                   placeholder="Optional supplier alias"
                 />
               </Field>
               <Field label="Notes">
                 <input
                   value={templateDraft.notes}
-                  onChange={(event) => setTemplateDraftField('notes', event.target.value)}
-                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  onChange={(event) => setTemplateDraftField("notes", event.target.value)}
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                   placeholder="Коли застосовувати цей mapping"
                 />
               </Field>
@@ -590,17 +622,20 @@ export default function AdminShopImportPage() {
 
               <div className="space-y-3">
                 {templateDraft.mappingRows.map((row) => (
-                  <div key={row.id} className="grid gap-3 rounded-none border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]">
+                  <div
+                    key={row.id}
+                    className="grid gap-3 rounded-none border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]"
+                  >
                     <input
                       value={row.source}
                       onChange={(event) => updateMappingRow(row.id, { source: event.target.value })}
-                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                       placeholder="supplier_column"
                     />
                     <input
                       value={row.target}
                       onChange={(event) => updateMappingRow(row.id, { target: event.target.value })}
-                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-hidden"
                       placeholder="shop_field"
                     />
                     <button
@@ -620,10 +655,14 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void saveTemplate()}
                 disabled={savingTemplate || !templateDraft.name.trim()}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
-                {savingTemplate ? 'Збереження...' : templateDraft.id ? 'Оновити шаблон' : 'Створити шаблон'}
+                {savingTemplate
+                  ? "Збереження..."
+                  : templateDraft.id
+                    ? "Оновити шаблон"
+                    : "Створити шаблон"}
               </button>
               <button
                 type="button"
@@ -637,7 +676,7 @@ export default function AdminShopImportPage() {
             {templates.length ? (
               <AdminTableShell>
                 <table className="min-w-full text-left text-sm text-zinc-200">
-                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-4 py-3 font-medium">Template</th>
                       <th className="px-4 py-3 font-medium">Supplier</th>
@@ -650,9 +689,11 @@ export default function AdminShopImportPage() {
                       <tr key={template.id} className="border-t border-white/8">
                         <td className="px-4 py-4">
                           <div className="font-medium text-zinc-100">{template.name}</div>
-                          <div className="mt-1 text-xs text-zinc-500">{CONFLICT_MODE_COPY[template.defaultConflictMode]}</div>
+                          <div className="mt-1 text-xs text-zinc-500">
+                            {CONFLICT_MODE_COPY[template.defaultConflictMode]}
+                          </div>
                         </td>
-                        <td className="px-4 py-4 text-zinc-400">{template.supplierName || '—'}</td>
+                        <td className="px-4 py-4 text-zinc-400">{template.supplierName || "—"}</td>
                         <td className="px-4 py-4 text-zinc-300">{template.jobsCount}</td>
                         <td className="px-4 py-4">
                           <div className="flex justify-end gap-2">
@@ -696,7 +737,7 @@ export default function AdminShopImportPage() {
         {jobs.length ? (
           <AdminTableShell>
             <table className="min-w-full text-left text-sm text-zinc-200">
-              <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+              <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Run</th>
                   <th className="px-4 py-3 font-medium">Template</th>
@@ -710,24 +751,41 @@ export default function AdminShopImportPage() {
                   <tr key={job.id} className="border-t border-white/8">
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap items-center gap-2">
-                        <AdminStatusBadge tone={job.status === 'FAILED' ? 'danger' : job.action === 'COMMIT' ? 'success' : 'default'}>
+                        <AdminStatusBadge
+                          tone={
+                            job.status === "FAILED"
+                              ? "danger"
+                              : job.action === "COMMIT"
+                                ? "success"
+                                : "default"
+                          }
+                        >
                           {formatAction(job.action)}
                         </AdminStatusBadge>
-                        <AdminStatusBadge tone={job.status === 'FAILED' ? 'danger' : 'success'}>{job.status}</AdminStatusBadge>
+                        <AdminStatusBadge tone={job.status === "FAILED" ? "danger" : "success"}>
+                          {job.status}
+                        </AdminStatusBadge>
                       </div>
-                      <div className="mt-2 font-medium text-zinc-100">{job.sourceFilename || 'Імпорт без назви'}</div>
-                      <div className="mt-1 text-xs text-zinc-500">{new Date(job.createdAt).toLocaleString()}</div>
+                      <div className="mt-2 font-medium text-zinc-100">
+                        {job.sourceFilename || "Імпорт без назви"}
+                      </div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        {new Date(job.createdAt).toLocaleString()}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-zinc-300">
-                      <div>{job.template?.name ?? 'Без шаблону'}</div>
-                      <div className="mt-1 text-xs text-zinc-500">{job.supplierName ?? 'Supplier not set'}</div>
+                      <div>{job.template?.name ?? "Без шаблону"}</div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        {job.supplierName ?? "Supplier not set"}
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-zinc-100">
                         {job.createdCount} created · {job.updatedCount} updated
                       </div>
                       <div className="mt-1 text-xs text-zinc-500">
-                        {job.validProducts} valid · {job.skippedCount} skipped · {job.errorCount} errors
+                        {job.validProducts} valid · {job.skippedCount} skipped · {job.errorCount}{" "}
+                        errors
                       </div>
                     </td>
                     <td className="px-4 py-4 text-zinc-400">{job.actorName || job.actorEmail}</td>
@@ -761,7 +819,9 @@ export default function AdminShopImportPage() {
 function Field(props: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-2">
-      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">{props.label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+        {props.label}
+      </span>
       {props.children}
     </label>
   );

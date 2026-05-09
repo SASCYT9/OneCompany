@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGesture } from '@use-gesture/react';
-import { useSpring, animated, config } from '@react-spring/three';
-import { Environment, ContactShadows, Text, MeshDistortMaterial, Float } from '@react-three/drei';
-import { motion } from 'framer-motion';
-import * as THREE from 'three';
-import { createSeededRandom } from '@/lib/random';
+import { useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useGesture } from "@use-gesture/react";
+import { useSpring, animated, config } from "@react-spring/three";
+import { Environment, ContactShadows, Text, MeshDistortMaterial, Float } from "@react-three/drei";
+import { motion } from "framer-motion";
+import * as THREE from "three";
+import { createSeededRandom } from "@/lib/random";
 
 // Interactive 3D Card with Gestures
 type Vector3Tuple = [number, number, number];
@@ -24,7 +24,11 @@ function InteractiveCard({ position, color, text, onTap }: InteractiveCardProps)
   const [active, setActive] = useState(false);
 
   // Spring animation
-  const [spring, api] = useSpring<{ scale: number; rotation: Vector3Tuple; position: Vector3Tuple }>(() => ({
+  const [spring, api] = useSpring<{
+    scale: number;
+    rotation: Vector3Tuple;
+    position: Vector3Tuple;
+  }>(() => ({
     scale: 1,
     rotation: [0, 0, 0],
     position: position,
@@ -144,18 +148,8 @@ function Scene({ onCardTap }: { onCardTap: (card: string) => void }) {
         text="KW Suspension"
         onTap={onCardTap}
       />
-      <InteractiveCard
-        position={[0, 0, 0]}
-        color="#ef4444"
-        text="Fi Exhaust"
-        onTap={onCardTap}
-      />
-      <InteractiveCard
-        position={[3, 0, 0]}
-        color="#3b82f6"
-        text="Eventuri"
-        onTap={onCardTap}
-      />
+      <InteractiveCard position={[0, 0, 0]} color="#ef4444" text="Fi Exhaust" onTap={onCardTap} />
+      <InteractiveCard position={[3, 0, 0]} color="#3b82f6" text="Eventuri" onTap={onCardTap} />
 
       <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={15} blur={2} far={3} />
       <Environment preset="sunset" />
@@ -168,26 +162,19 @@ export default function GestureInteractive() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-b from-black via-slate-900 to-black">
+    <div className="relative w-full h-screen bg-linear-to-b from-black via-slate-900 to-black">
       {/* 3D Canvas */}
-      <Canvas
-        shadows
-        camera={{ position: [0, 0, 10], fov: 50 }}
-      >
+      <Canvas shadows camera={{ position: [0, 0, 10], fov: 50 }}>
         <Scene onCardTap={setSelectedCard} />
       </Canvas>
 
       {/* UI Overlay */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-8"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="p-8">
           <h1 className="text-6xl font-bold text-white mb-2">
-            <span className="bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent">
               Gesture
-            </span>{' '}
+            </span>{" "}
             Controls
           </h1>
           <p className="text-xl text-slate-400">
@@ -210,16 +197,16 @@ export default function GestureInteractive() {
         {/* Controls Info */}
         <div className="absolute top-1/2 right-8 -translate-y-1/2 space-y-4">
           {[
-            { icon: '🖱️', text: 'Drag cards' },
-            { icon: '👆', text: 'Click to select' },
-            { icon: '✨', text: 'Hover to scale' },
+            { icon: "🖱️", text: "Drag cards" },
+            { icon: "👆", text: "Click to select" },
+            { icon: "✨", text: "Hover to scale" },
           ].map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-4 py-3 rounded-lg border border-white/10"
+              className="flex items-center gap-3 bg-white/5 backdrop-blur-xs px-4 py-3 rounded-lg border border-white/10"
             >
               <span className="text-2xl">{item.icon}</span>
               <span className="text-white/80">{item.text}</span>

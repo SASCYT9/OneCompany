@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import { Suspense, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
-import { Environment, ContactShadows, OrbitControls, Text, Float, MeshDistortMaterial } from '@react-three/drei';
-import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing';
-import { motion } from 'framer-motion';
-import * as THREE from 'three';
+import { Suspense, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
+import {
+  Environment,
+  ContactShadows,
+  OrbitControls,
+  Text,
+  Float,
+  MeshDistortMaterial,
+} from "@react-three/drei";
+import { EffectComposer, Bloom, DepthOfField } from "@react-three/postprocessing";
+import { motion } from "framer-motion";
+import * as THREE from "three";
 
 // Interactive 3D Product Card
 type ProductSphereProps = {
@@ -48,13 +55,7 @@ function ProductSphere({ position, color, label, onClick }: ProductSphereProps) 
           />
         </mesh>
       </Float>
-      <Text
-        position={[0, -1.5, 0]}
-        fontSize={0.3}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Text position={[0, -1.5, 0]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
         {label}
       </Text>
     </RigidBody>
@@ -94,35 +95,35 @@ function Scene({ onProductClick }: { onProductClick: (product: string) => void }
       <ambientLight intensity={0.5} />
       <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={2} castShadow />
       <pointLight position={[-10, -10, -10]} intensity={0.5} color="#3b82f6" />
-      
+
       <Physics gravity={[0, -9.81, 0]}>
         <Ground />
         <Walls />
-        
+
         {/* 3 Product Spheres */}
         <ProductSphere
           position={[-3, 5, 0]}
           color="#ff6b35"
           label="KW Suspension"
-          onClick={() => onProductClick('KW')}
+          onClick={() => onProductClick("KW")}
         />
         <ProductSphere
           position={[0, 8, 0]}
           color="#ef4444"
           label="Fi Exhaust"
-          onClick={() => onProductClick('Fi')}
+          onClick={() => onProductClick("Fi")}
         />
         <ProductSphere
           position={[3, 6, 0]}
           color="#3b82f6"
           label="Eventuri"
-          onClick={() => onProductClick('Eventuri')}
+          onClick={() => onProductClick("Eventuri")}
         />
       </Physics>
 
       <ContactShadows position={[0, -3.9, 0]} opacity={0.5} scale={20} blur={2} far={4} />
       <Environment preset="city" />
-      
+
       <EffectComposer>
         <Bloom intensity={1.2} luminanceThreshold={0.3} />
         <DepthOfField focusDistance={0.01} focalLength={0.05} bokehScale={3} />
@@ -160,9 +161,9 @@ export default function PhysicsShowcase() {
             animate={{ opacity: 1, y: 0 }}
             className="text-6xl font-bold text-white mb-4"
           >
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               Physics
-            </span>{' '}
+            </span>{" "}
             Showcase
           </motion.h1>
           <motion.p
@@ -191,11 +192,11 @@ export default function PhysicsShowcase() {
             </button>
             <h2 className="text-3xl font-bold text-white mb-4">{selectedProduct}</h2>
             <p className="text-white/80 mb-4">
-              {selectedProduct === 'KW' && 'Професійні системи підвіски з Німеччини'}
-              {selectedProduct === 'Fi' && 'Титанові витяжні системи з Японії'}
-              {selectedProduct === 'Eventuri' && 'Карбонові впускні системи з UK'}
+              {selectedProduct === "KW" && "Професійні системи підвіски з Німеччини"}
+              {selectedProduct === "Fi" && "Титанові витяжні системи з Японії"}
+              {selectedProduct === "Eventuri" && "Карбонові впускні системи з UK"}
             </p>
-            <button className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-lg hover:shadow-2xl hover:shadow-amber-500/50 transition-all">
+            <button className="w-full py-3 bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold rounded-lg hover:shadow-2xl hover:shadow-amber-500/50 transition-all">
               View Products
             </button>
           </motion.div>
@@ -204,15 +205,21 @@ export default function PhysicsShowcase() {
         {/* Instructions */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-8 text-white/60 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">🖱️</div>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+              🖱️
+            </div>
             <span>Drag to rotate</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">🖐️</div>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+              🖐️
+            </div>
             <span>Click spheres</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">⚡</div>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+              ⚡
+            </div>
             <span>Physics enabled</span>
           </div>
         </div>

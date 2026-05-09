@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Archive,
   ArrowRight,
@@ -44,7 +44,7 @@ import {
   Boxes,
   FileText,
   Mail,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   ADMIN_NAV_SECTIONS,
@@ -55,9 +55,9 @@ import {
   type AdminNavIconKey,
   type AdminNavItemDefinition,
   type AdminNavSectionDefinition,
-} from '@/lib/admin/adminNavigation';
-import { useAdminCurrency, type AdminCurrency } from '@/lib/admin/currencyContext';
-import { cn } from '@/lib/utils';
+} from "@/lib/admin/adminNavigation";
+import { useAdminCurrency, type AdminCurrency } from "@/lib/admin/currencyContext";
+import { cn } from "@/lib/utils";
 
 const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string }>> = {
   dashboard: LayoutDashboard,
@@ -93,9 +93,9 @@ const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string 
 };
 
 const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string }[] = [
-  { value: 'EUR', label: 'EUR', symbol: '€' },
-  { value: 'USD', label: 'USD', symbol: '$' },
-  { value: 'UAH', label: 'UAH', symbol: '₴' },
+  { value: "EUR", label: "EUR", symbol: "€" },
+  { value: "USD", label: "USD", symbol: "$" },
+  { value: "UAH", label: "UAH", symbol: "₴" },
 ];
 
 type GlobalSearchResponse = {
@@ -151,27 +151,27 @@ const EMPTY_SEARCH: GlobalSearchResponse = {
 
 const COMMAND_ACTIONS = [
   {
-    href: '/admin/shop/orders/create',
-    label: 'Створити B2B замовлення',
-    description: 'Ручне замовлення з місцевого або Turn14 складу',
+    href: "/admin/shop/orders/create",
+    label: "Створити B2B замовлення",
+    description: "Ручне замовлення з місцевого або Turn14 складу",
     icon: PackagePlus,
   },
   {
-    href: '/admin/shop/feed',
-    label: 'Відкрити фіди',
-    description: 'Експорт-посилання дистриб’юторів та попередній перегляд',
+    href: "/admin/shop/feed",
+    label: "Відкрити фіди",
+    description: "Експорт-посилання дистриб’юторів та попередній перегляд",
     icon: Archive,
   },
   {
-    href: '/admin/shop/turn14',
-    label: 'Перевірка залишків Turn14',
-    description: 'Каталог постачальника та робочий процес залишків',
+    href: "/admin/shop/turn14",
+    label: "Перевірка залишків Turn14",
+    description: "Каталог постачальника та робочий процес залишків",
     icon: Truck,
   },
   {
-    href: '/admin/shop/import',
-    label: 'Імпорт CSV',
-    description: 'Інструменти імпорту каталогу та валідації',
+    href: "/admin/shop/import",
+    label: "Імпорт CSV",
+    description: "Інструменти імпорту каталогу та валідації",
     icon: FileInput,
   },
 ];
@@ -187,34 +187,49 @@ export default function AdminShell({
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [globalSearch, setGlobalSearch] = useState<GlobalSearchResponse>(EMPTY_SEARCH);
   const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Array<{ id: string; tone: 'red' | 'amber' | 'green'; label: string; detail: string; href: string }>>([]);
-  const notifCount = notifications.filter((n) => n.tone === 'red' || n.tone === 'amber').length;
+  const [notifications, setNotifications] = useState<
+    Array<{
+      id: string;
+      tone: "red" | "amber" | "green";
+      label: string;
+      detail: string;
+      href: string;
+    }>
+  >([]);
+  const notifCount = notifications.filter((n) => n.tone === "red" || n.tone === "amber").length;
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('adminSidebarCollapsed');
-    if (saved === 'true') setCollapsed(true);
+    const saved = window.localStorage.getItem("adminSidebarCollapsed");
+    if (saved === "true") setCollapsed(true);
   }, []);
 
   // Fetch notifications from dashboard API
   useEffect(() => {
-    fetch('/api/admin/dashboard?period=monthly', { cache: 'no-store' })
+    fetch("/api/admin/dashboard?period=monthly", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!data) return;
-        const items: Array<{ id: string; tone: 'red' | 'amber' | 'green'; label: string; detail: string; href: string }> = [];
+        const items: Array<{
+          id: string;
+          tone: "red" | "amber" | "green";
+          label: string;
+          detail: string;
+          href: string;
+        }> = [];
         for (const risk of data.system?.operationalRisks ?? []) {
           if (!risk.count) continue;
           items.push({
             id: risk.id,
-            tone: risk.severity === 'danger' ? 'red' : risk.severity === 'warning' ? 'amber' : 'green',
+            tone:
+              risk.severity === "danger" ? "red" : risk.severity === "warning" ? "amber" : "green",
             label: risk.label,
-            detail: `${risk.count} item${risk.count === 1 ? '' : 's'} · ${risk.description}`,
+            detail: `${risk.count} item${risk.count === 1 ? "" : "s"} · ${risk.description}`,
             href: risk.href,
           });
         }
@@ -229,43 +244,44 @@ export default function AdminShell({
     function handler(event: KeyboardEvent) {
       // Skip when typing in inputs
       const target = event.target as HTMLElement;
-      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      const isInput =
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
 
-      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
-        const input = document.getElementById('admin-global-search') as HTMLInputElement | null;
+        const input = document.getElementById("admin-global-search") as HTMLInputElement | null;
         input?.focus();
         return;
       }
 
       if (isInput) return;
 
-      if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+      if (event.key === "?" || (event.shiftKey && event.key === "/")) {
         event.preventDefault();
         setShortcutsOpen((v) => !v);
         return;
       }
 
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setShortcutsOpen(false);
         setBellOpen(false);
         return;
       }
 
       // Linear-style chord shortcuts: g + letter within 1500ms
-      if (event.key === 'g') {
+      if (event.key === "g") {
         lastG = Date.now();
         return;
       }
       if (Date.now() - lastG < 1500 && !event.metaKey && !event.ctrlKey && !event.altKey) {
         const map: Record<string, string> = {
-          d: '/admin',
-          o: '/admin/shop/orders',
-          p: '/admin/shop',
-          c: '/admin/shop/customers',
-          i: '/admin/shop/inventory',
-          s: '/admin/settings',
-          t: '/admin/shop/turn14',
+          d: "/admin",
+          o: "/admin/shop/orders",
+          p: "/admin/shop",
+          c: "/admin/shop/customers",
+          i: "/admin/shop/inventory",
+          s: "/admin/settings",
+          t: "/admin/shop/turn14",
         };
         const route = map[event.key.toLowerCase()];
         if (route) {
@@ -275,20 +291,20 @@ export default function AdminShell({
         }
       }
     }
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [router]);
 
   // Close popovers on outside click
   useEffect(() => {
     function onClick(e: MouseEvent) {
       const t = e.target as HTMLElement;
-      if (!t.closest('[data-bell-popover]') && !t.closest('[data-bell-trigger]')) {
+      if (!t.closest("[data-bell-popover]") && !t.closest("[data-bell-trigger]")) {
         setBellOpen(false);
       }
     }
-    if (bellOpen) document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    if (bellOpen) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, [bellOpen]);
 
   const activeItem = useMemo(() => getActiveAdminNavItem(pathname), [pathname]);
@@ -298,7 +314,9 @@ export default function AdminShell({
     const needle = query.trim().toLowerCase();
     if (!needle) return quickLinks.slice(0, 12);
     return quickLinks.filter((item) =>
-      [item.label, item.description, item.sectionLabel, item.href].some((value) => value.toLowerCase().includes(needle))
+      [item.label, item.description, item.sectionLabel, item.href].some((value) =>
+        value.toLowerCase().includes(needle)
+      )
     );
   }, [quickLinks, query]);
 
@@ -313,14 +331,17 @@ export default function AdminShell({
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
       setGlobalSearchLoading(true);
-      fetch(`/api/admin/search?q=${encodeURIComponent(needle)}`, { cache: 'no-store', signal: controller.signal })
+      fetch(`/api/admin/search?q=${encodeURIComponent(needle)}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      })
         .then(async (response) => {
           if (!response.ok) return EMPTY_SEARCH;
           return (await response.json()) as GlobalSearchResponse;
         })
         .then((data) => setGlobalSearch(data))
         .catch((error) => {
-          if ((error as Error).name !== 'AbortError') setGlobalSearch(EMPTY_SEARCH);
+          if ((error as Error).name !== "AbortError") setGlobalSearch(EMPTY_SEARCH);
         })
         .finally(() => setGlobalSearchLoading(false));
     }, 180);
@@ -334,7 +355,7 @@ export default function AdminShell({
   function toggleCollapsed() {
     setCollapsed((current) => {
       const next = !current;
-      window.localStorage.setItem('adminSidebarCollapsed', String(next));
+      window.localStorage.setItem("adminSidebarCollapsed", String(next));
       return next;
     });
   }
@@ -348,7 +369,7 @@ export default function AdminShell({
   useEffect(() => {
     if (!mobileDrawerOpen) return;
     const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = original;
     };
@@ -358,10 +379,10 @@ export default function AdminShell({
   useEffect(() => {
     if (!mobileDrawerOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMobileDrawerOpen(false);
+      if (e.key === "Escape") setMobileDrawerOpen(false);
     }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [mobileDrawerOpen]);
 
   function submitQuickLink() {
@@ -369,16 +390,16 @@ export default function AdminShell({
     const match = filteredQuickLinks[0]?.href;
     const href = entityHref ?? match;
     if (!href) return;
-    setQuery('');
+    setQuery("");
     router.push(href);
   }
 
   return (
-    <div className="flex h-[100dvh] bg-[#0A0A0A] text-zinc-100">
+    <div className="flex h-dvh bg-[#0A0A0A] text-zinc-100">
       {/* Skip link */}
       <a
         href="#admin-main-content"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-none focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-none"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-100 focus-visible:rounded-none focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-hidden"
       >
         Перейти до основного вмісту
       </a>
@@ -387,20 +408,20 @@ export default function AdminShell({
       {mobileDrawerOpen ? (
         <div
           onClick={() => setMobileDrawerOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
           aria-hidden="true"
         />
       ) : null}
 
       <aside
         className={cn(
-          'flex h-full flex-none flex-col border-r border-white/[0.05] bg-[#0F0F0F] transition-all duration-200',
+          "flex h-full flex-none flex-col border-r border-white/5 bg-[#0F0F0F] transition-all duration-200",
           // Desktop: always visible, width changes based on collapsed
-          'lg:relative lg:translate-x-0',
-          collapsed ? 'lg:w-[80px]' : 'lg:w-[240px]',
+          "lg:relative lg:translate-x-0",
+          collapsed ? "lg:w-[80px]" : "lg:w-[240px]",
           // Mobile: fixed drawer, slide in from left
-          'fixed inset-y-0 left-0 z-50 w-[280px]',
-          mobileDrawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+          "fixed inset-y-0 left-0 z-50 w-[280px]",
+          mobileDrawerOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         )}
         aria-label="Primary navigation"
       >
@@ -409,7 +430,7 @@ export default function AdminShell({
           {/* Full logo: always visible on mobile, only when not collapsed on desktop */}
           <Link
             href="/admin"
-            className={cn('block', collapsed ? 'lg:hidden' : 'lg:block')}
+            className={cn("block", collapsed ? "lg:hidden" : "lg:block")}
             aria-label="OneCompany Admin home"
           >
             <Image
@@ -437,7 +458,7 @@ export default function AdminShell({
               type="button"
               onClick={() => setMobileDrawerOpen(false)}
               aria-label="Закрити навігацію"
-              className="flex h-9 w-9 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200 lg:hidden"
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -447,7 +468,7 @@ export default function AdminShell({
                 type="button"
                 onClick={toggleCollapsed}
                 aria-label="Згорнути навігацію"
-                className="hidden h-7 w-7 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:flex"
+                className="hidden h-7 w-7 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200 lg:flex"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -461,22 +482,27 @@ export default function AdminShell({
               type="button"
               onClick={toggleCollapsed}
               aria-label="Розгорнути навігацію"
-              className="flex h-7 w-full items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
+              className="flex h-7 w-full items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         ) : null}
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10">
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2 scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10">
           {ADMIN_NAV_SECTIONS.map((section) => (
-            <AdminSidebarSection key={section.key} collapsed={collapsed} pathname={pathname} section={section} />
+            <AdminSidebarSection
+              key={section.key}
+              collapsed={collapsed}
+              pathname={pathname}
+              section={section}
+            />
           ))}
         </nav>
 
         {/* Hero card — real Mansory photo (matches reference) */}
         {!collapsed ? (
-          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-none border border-white/[0.05] bg-[#0F0F0F]">
+          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-none border border-white/5 bg-[#0F0F0F]">
             <div className="relative h-32 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -485,9 +511,9 @@ export default function AdminShell({
                 loading="lazy"
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F0F] via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-[#0F0F0F] via-transparent to-transparent" />
             </div>
-            <div className="border-t border-white/[0.04] px-4 py-3">
+            <div className="border-t border-white/4 px-4 py-3">
               <div className="flex items-center gap-2 text-[11px] font-medium text-blue-400">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.7)] motion-safe:animate-pulse" />
                 onecompany.global
@@ -499,14 +525,14 @@ export default function AdminShell({
           </div>
         ) : null}
 
-        <div className="border-t border-white/[0.05] px-3 py-3">
+        <div className="border-t border-white/5 px-3 py-3">
           <AdminCurrencySwitcher collapsed={collapsed} />
           <button
             type="button"
             onClick={() => void onLogout()}
             className={cn(
-              'mt-2 flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/[0.06] hover:text-red-300',
-              collapsed && 'justify-center px-0'
+              "mt-2 flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/6 hover:text-red-300",
+              collapsed && "justify-center px-0"
             )}
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -516,13 +542,13 @@ export default function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 border-b border-white/[0.05] bg-[#0A0A0A]/85 px-3 py-3 backdrop-blur-xl sm:px-6 sm:py-3.5">
+        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-3 py-3 backdrop-blur-xl sm:px-6 sm:py-3.5">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
               aria-label="Відкрити навігацію"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 lg:hidden"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -534,8 +560,10 @@ export default function AdminShell({
                   submitQuickLink();
                 }}
                 className={cn(
-                  'flex items-center gap-2 rounded-none border bg-[#171717] px-3.5 py-2 transition-all',
-                  searchFocused ? 'border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]' : 'border-white/[0.06] hover:border-white/15'
+                  "flex items-center gap-2 rounded-none border bg-[#171717] px-3.5 py-2 transition-all",
+                  searchFocused
+                    ? "border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
+                    : "border-white/6 hover:border-white/15"
                 )}
               >
                 <Search className="h-4 w-4 text-zinc-500" aria-hidden="true" />
@@ -546,9 +574,9 @@ export default function AdminShell({
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                   placeholder="Пошук…"
-                  className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                  className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
                 />
-                <kbd className="hidden items-center gap-0.5 rounded-none border border-white/[0.08] bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
+                <kbd className="hidden items-center gap-0.5 rounded-none border border-white/8 bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
                   ⌘K
                 </kbd>
               </form>
@@ -558,7 +586,7 @@ export default function AdminShell({
                 search={globalSearch}
                 quickLinks={filteredQuickLinks}
                 onNavigate={(href) => {
-                  setQuery('');
+                  setQuery("");
                   router.push(href);
                 }}
               />
@@ -571,7 +599,7 @@ export default function AdminShell({
                 onClick={() => setShortcutsOpen(true)}
                 aria-label="Гарячі клавіші"
                 title="Натисніть ? щоб показати гарячі клавіші"
-                className="hidden h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 md:flex"
+                className="hidden h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 md:flex"
               >
                 <Keyboard className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
@@ -582,14 +610,14 @@ export default function AdminShell({
                   type="button"
                   data-bell-trigger
                   onClick={() => setBellOpen((v) => !v)}
-                  aria-label={`${notifCount} notification${notifCount === 1 ? '' : 's'}`}
+                  aria-label={`${notifCount} notification${notifCount === 1 ? "" : "s"}`}
                   aria-expanded={bellOpen}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
                 >
                   <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
                   {notifCount > 0 ? (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                      {notifCount > 9 ? '9+' : notifCount}
+                      {notifCount > 9 ? "9+" : notifCount}
                     </span>
                   ) : null}
                 </button>
@@ -597,9 +625,9 @@ export default function AdminShell({
                 {bellOpen ? (
                   <div
                     data-bell-popover
-                    className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+                    className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
                   >
-                    <div className="flex items-center justify-between border-b border-white/[0.04] px-4 py-3">
+                    <div className="flex items-center justify-between border-b border-white/4 px-4 py-3">
                       <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
                       {notifCount > 0 ? (
                         <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
@@ -609,27 +637,33 @@ export default function AdminShell({
                     </div>
                     <ul className="max-h-[420px] overflow-y-auto">
                       {notifications.length === 0 ? (
-                        <li className="px-4 py-8 text-center text-sm text-zinc-500">Все спокійно. Активних проблем немає.</li>
+                        <li className="px-4 py-8 text-center text-sm text-zinc-500">
+                          Все спокійно. Активних проблем немає.
+                        </li>
                       ) : (
                         notifications.map((n) => (
                           <li key={n.id}>
                             <Link
                               href={n.href}
                               onClick={() => setBellOpen(false)}
-                              className="flex items-start gap-3 border-b border-white/[0.03] px-4 py-3 transition last:border-0 hover:bg-white/[0.02]"
+                              className="flex items-start gap-3 border-b border-white/3 px-4 py-3 transition last:border-0 hover:bg-white/2"
                             >
                               <span
                                 className={cn(
-                                  'mt-1.5 h-2 w-2 shrink-0 rounded-full',
-                                  n.tone === 'red' && 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]',
-                                  n.tone === 'amber' && 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]',
-                                  n.tone === 'green' && 'bg-green-500'
+                                  "mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                                  n.tone === "red" &&
+                                    "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",
+                                  n.tone === "amber" &&
+                                    "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]",
+                                  n.tone === "green" && "bg-green-500"
                                 )}
                                 aria-hidden="true"
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="text-sm font-medium text-zinc-100">{n.label}</div>
-                                <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">{n.detail}</div>
+                                <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">
+                                  {n.detail}
+                                </div>
                               </div>
                             </Link>
                           </li>
@@ -637,7 +671,7 @@ export default function AdminShell({
                       )}
                     </ul>
                     {notifications.length > 0 ? (
-                      <div className="border-t border-white/[0.04] px-4 py-2.5">
+                      <div className="border-t border-white/4 px-4 py-2.5">
                         <Link
                           href="/admin"
                           onClick={() => setBellOpen(false)}
@@ -655,16 +689,21 @@ export default function AdminShell({
               <button
                 type="button"
                 aria-label="Меню користувача"
-                className="ml-1 flex items-center gap-2.5 rounded-none border border-white/[0.05] bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
+                className="ml-1 flex items-center gap-2.5 rounded-none border border-white/5 bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
                   OC
                 </div>
                 <div className="hidden flex-col items-start leading-tight md:flex">
-                  <span className="whitespace-nowrap text-[12px] font-semibold text-zinc-100">Адмін</span>
+                  <span className="whitespace-nowrap text-[12px] font-semibold text-zinc-100">
+                    Адмін
+                  </span>
                   <span className="whitespace-nowrap text-[10px] text-zinc-500">Керівник</span>
                 </div>
-                <ChevronDown className="hidden h-3.5 w-3.5 text-zinc-500 md:block" aria-hidden="true" />
+                <ChevronDown
+                  className="hidden h-3.5 w-3.5 text-zinc-500 md:block"
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
@@ -673,7 +712,7 @@ export default function AdminShell({
         <main
           id="admin-main-content"
           tabIndex={-1}
-          className="relative min-h-0 flex-1 overflow-auto bg-[#0A0A0A] focus-visible:outline-none"
+          className="relative min-h-0 flex-1 overflow-auto bg-[#0A0A0A] focus-visible:outline-hidden"
         >
           {children}
         </main>
@@ -682,17 +721,17 @@ export default function AdminShell({
       {/* Keyboard shortcuts help overlay */}
       {shortcutsOpen ? (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-80 flex items-center justify-center bg-black/60 backdrop-blur-xs"
           onClick={() => setShortcutsOpen(false)}
           role="dialog"
           aria-modal="true"
           aria-label="Keyboard shortcuts"
         >
           <div
-            className="w-full max-w-[520px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+            className="w-full max-w-[520px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-3.5">
+            <div className="flex items-center justify-between border-b border-white/5 px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <Keyboard className="h-4 w-4 text-blue-400" aria-hidden="true" />
                 <span className="text-sm font-semibold text-zinc-100">Гарячі клавіші</span>
@@ -700,7 +739,7 @@ export default function AdminShell({
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(false)}
-                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-100"
+                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/4 hover:text-zinc-100"
                 aria-label="Закрити"
               >
                 <ChevronDown className="h-4 w-4 rotate-180" aria-hidden="true" />
@@ -708,23 +747,25 @@ export default function AdminShell({
             </div>
             <div className="grid grid-cols-1 gap-x-8 gap-y-3 p-5 sm:grid-cols-2">
               <ShortcutGroup title="Пошук">
-                <ShortcutRow keys={['⌘', 'K']} label="Командний центр" />
-                <ShortcutRow keys={['?']} label="Ця довідка" />
-                <ShortcutRow keys={['Esc']} label="Закрити попап" />
+                <ShortcutRow keys={["⌘", "K"]} label="Командний центр" />
+                <ShortcutRow keys={["?"]} label="Ця довідка" />
+                <ShortcutRow keys={["Esc"]} label="Закрити попап" />
               </ShortcutGroup>
               <ShortcutGroup title="Навігація">
-                <ShortcutRow keys={['G', 'D']} label="Дашборд" />
-                <ShortcutRow keys={['G', 'O']} label="Замовлення" />
-                <ShortcutRow keys={['G', 'P']} label="Товари" />
-                <ShortcutRow keys={['G', 'C']} label="Клієнти" />
-                <ShortcutRow keys={['G', 'I']} label="Склад" />
-                <ShortcutRow keys={['G', 'T']} label="Turn14" />
-                <ShortcutRow keys={['G', 'S']} label="Налаштування" />
+                <ShortcutRow keys={["G", "D"]} label="Дашборд" />
+                <ShortcutRow keys={["G", "O"]} label="Замовлення" />
+                <ShortcutRow keys={["G", "P"]} label="Товари" />
+                <ShortcutRow keys={["G", "C"]} label="Клієнти" />
+                <ShortcutRow keys={["G", "I"]} label="Склад" />
+                <ShortcutRow keys={["G", "T"]} label="Turn14" />
+                <ShortcutRow keys={["G", "S"]} label="Налаштування" />
               </ShortcutGroup>
             </div>
-            <div className="border-t border-white/[0.05] bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
-              Натисніть{' '}
-              <kbd className="rounded-none border border-white/[0.1] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px]">G</kbd>{' '}
+            <div className="border-t border-white/5 bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
+              Натисніть{" "}
+              <kbd className="rounded-none border border-white/10 bg-white/4 px-1.5 py-0.5 font-mono text-[10px]">
+                G
+              </kbd>{" "}
               а потім літеру протягом 1.5 секунди.
             </div>
           </div>
@@ -737,7 +778,9 @@ export default function AdminShell({
 function ShortcutGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="space-y-1">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{title}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        {title}
+      </div>
       <div className="space-y-1">{children}</div>
     </div>
   );
@@ -751,7 +794,7 @@ function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
         {keys.map((k, i) => (
           <kbd
             key={i}
-            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-none border border-white/[0.1] bg-white/[0.04] px-1.5 font-mono text-[10px] font-medium text-zinc-300"
+            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-none border border-white/10 bg-white/4 px-1.5 font-mono text-[10px] font-medium text-zinc-300"
           >
             {k}
           </kbd>
@@ -768,13 +811,13 @@ function getFirstSearchHref(search: GlobalSearchResponse) {
   if (product) return `/admin/shop/${product.id}`;
   const customer = search.results.customers[0];
   if (customer) return `/admin/shop/customers/${customer.id}`;
-  if (search.results.turn14[0]) return '/admin/shop/turn14';
+  if (search.results.turn14[0]) return "/admin/shop/turn14";
   return null;
 }
 
 function commandMoney(value: number, currency: string) {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
+  return new Intl.NumberFormat("uk-UA", {
+    style: "currency",
     currency,
     maximumFractionDigits: 0,
   }).format(value);
@@ -801,23 +844,23 @@ function CommandCenterResults({
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.15 }}
-      className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-none border border-white/[0.08] bg-[#171717]/95 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+      className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-none border border-white/8 bg-[#171717]/95 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="border-b border-white/[0.05] p-3 lg:border-b-0 lg:border-r">
+        <div className="border-b border-white/5 p-3 lg:border-b-0 lg:border-r">
           <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             <span className="text-blue-400">Командний центр</span>
-            <span>{loading ? 'Пошук…' : `Результатів: ${search.total}`}</span>
+            <span>{loading ? "Пошук…" : `Результатів: ${search.total}`}</span>
           </div>
 
-          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1 [scrollbar-width:thin]">
+          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
             <SearchGroup title="Замовлення">
               {search.results.orders.map((order) => (
                 <SearchResultButton
                   key={order.id}
                   title={`${order.orderNumber} · ${order.customerName}`}
                   meta={`${order.paymentStatus} · Заборгованість ${commandMoney(order.outstandingAmount, order.currency)}`}
-                  badge={order.status.replace(/_/g, ' ')}
+                  badge={order.status.replace(/_/g, " ")}
                   onClick={() => onNavigate(`/admin/shop/orders/${order.id}`)}
                 />
               ))}
@@ -828,7 +871,9 @@ function CommandCenterResults({
                 <SearchResultButton
                   key={product.id}
                   title={product.titleEn || product.titleUa}
-                  meta={[product.brand, product.sku || product.slug, product.stock].filter(Boolean).join(' · ')}
+                  meta={[product.brand, product.sku || product.slug, product.stock]
+                    .filter(Boolean)
+                    .join(" · ")}
                   badge={product.status}
                   onClick={() => onNavigate(`/admin/shop/${product.id}`)}
                 />
@@ -840,8 +885,8 @@ function CommandCenterResults({
                 <SearchResultButton
                   key={customer.id}
                   title={`${customer.firstName} ${customer.lastName}`.trim() || customer.email}
-                  meta={[customer.companyName, customer.email].filter(Boolean).join(' · ')}
-                  badge={customer.group.replace(/_/g, ' ')}
+                  meta={[customer.companyName, customer.email].filter(Boolean).join(" · ")}
+                  badge={customer.group.replace(/_/g, " ")}
                   onClick={() => onNavigate(`/admin/shop/customers/${customer.id}`)}
                 />
               ))}
@@ -852,15 +897,17 @@ function CommandCenterResults({
                 <SearchResultButton
                   key={item.id}
                   title={item.productName}
-                  meta={[item.brand, item.partNumber, item.mfrPartNumber].filter(Boolean).join(' · ')}
-                  badge={item.weight != null ? `${item.weight} lb` : 'каталог'}
-                  onClick={() => onNavigate('/admin/shop/turn14')}
+                  meta={[item.brand, item.partNumber, item.mfrPartNumber]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  badge={item.weight != null ? `${item.weight} lb` : "каталог"}
+                  onClick={() => onNavigate("/admin/shop/turn14")}
                 />
               ))}
             </SearchGroup>
 
             {!loading && search.total === 0 ? (
-              <div className="rounded-none border border-white/[0.05] bg-white/[0.02] px-3 py-4 text-sm text-zinc-500">
+              <div className="rounded-none border border-white/5 bg-white/2 px-3 py-4 text-sm text-zinc-500">
                 Збігів не знайдено. Спробуйте швидкі дії або сторінки нижче.
               </div>
             ) : null}
@@ -869,7 +916,9 @@ function CommandCenterResults({
 
         <div className="space-y-3 p-3">
           <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-blue-400">Швидкі дії</div>
+            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-blue-400">
+              Швидкі дії
+            </div>
             <div className="grid gap-2">
               {COMMAND_ACTIONS.map((action) => {
                 const Icon = action.icon;
@@ -878,14 +927,18 @@ function CommandCenterResults({
                     key={action.href}
                     type="button"
                     onClick={() => onNavigate(action.href)}
-                    className="group flex items-center gap-3 rounded-none border border-white/[0.05] bg-white/[0.02] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
+                    className="group flex items-center gap-3 rounded-none border border-white/5 bg-white/2 px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/4"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/15 transition group-hover:bg-blue-600/25">
                       <Icon className="h-4 w-4 text-blue-400" aria-hidden="true" />
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-zinc-100">{action.label}</span>
-                      <span className="block truncate text-xs text-zinc-500">{action.description}</span>
+                      <span className="block truncate text-sm font-medium text-zinc-100">
+                        {action.label}
+                      </span>
+                      <span className="block truncate text-xs text-zinc-500">
+                        {action.description}
+                      </span>
                     </span>
                   </button>
                 );
@@ -894,14 +947,16 @@ function CommandCenterResults({
           </div>
 
           <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Швидкі переходи</div>
+            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              Швидкі переходи
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {quickLinks.slice(0, 8).map((item) => (
                 <button
                   key={item.href}
                   type="button"
                   onClick={() => onNavigate(item.href)}
-                  className="rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-blue-500/25 hover:bg-blue-500/[0.04] hover:text-blue-300"
+                  className="rounded-full border border-white/6 bg-white/2 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-blue-500/25 hover:bg-blue-500/4 hover:text-blue-300"
                 >
                   {item.label}
                 </button>
@@ -917,7 +972,9 @@ function CommandCenterResults({
 function SearchGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-1.5">
-      <div className="px-1 text-[10px] font-medium uppercase tracking-wider text-zinc-600">{title}</div>
+      <div className="px-1 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+        {title}
+      </div>
       <div className="space-y-1">{children}</div>
     </section>
   );
@@ -938,13 +995,15 @@ function SearchResultButton({
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full items-center justify-between gap-3 rounded-none border border-white/[0.05] bg-white/[0.015] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
+      className="group flex w-full items-center justify-between gap-3 rounded-none border border-white/5 bg-white/1.5 px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/4"
     >
       <span className="min-w-0">
-        <span className="block truncate text-sm font-medium text-zinc-100 group-hover:text-blue-300">{title}</span>
+        <span className="block truncate text-sm font-medium text-zinc-100 group-hover:text-blue-300">
+          {title}
+        </span>
         <span className="mt-0.5 block truncate text-xs text-zinc-500">{meta}</span>
       </span>
-      <span className="shrink-0 rounded-full border border-white/[0.08] bg-black/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-400">
+      <span className="shrink-0 rounded-full border border-white/8 bg-black/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-400">
         {badge}
       </span>
     </button>
@@ -964,10 +1023,12 @@ function AdminSidebarSection({
     <section className="space-y-1">
       {!collapsed ? (
         <div className="px-3 pt-2">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">{section.label}</div>
+          <div className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+            {section.label}
+          </div>
         </div>
       ) : (
-        <div className="mx-4 my-2 h-px bg-white/[0.05]" />
+        <div className="mx-4 my-2 h-px bg-white/5" />
       )}
 
       <div className="space-y-0.5">
@@ -995,15 +1056,15 @@ function AdminSidebarItem({
     <Link
       href={item.href}
       title={collapsed ? item.label : undefined}
-      aria-current={active ? 'page' : undefined}
+      aria-current={active ? "page" : undefined}
       aria-label={collapsed ? item.label : undefined}
       className={cn(
-        'group relative flex items-center gap-3 rounded-none px-3 py-2 transition-all duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]',
-        collapsed && 'justify-center px-2',
+        "group relative flex items-center gap-3 rounded-none px-3 py-2 transition-all duration-150",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]",
+        collapsed && "justify-center px-2",
         active
-          ? 'bg-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_1px_2px_rgba(0,0,0,0.3)]'
-          : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100'
+          ? "bg-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_1px_2px_rgba(0,0,0,0.3)]"
+          : "text-zinc-400 hover:bg-white/4 hover:text-zinc-100"
       )}
     >
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -1018,10 +1079,15 @@ function SidebarHeroCar() {
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(circle at 50% 100%, rgba(59,130,246,0.22), transparent 60%)',
+          background: "radial-gradient(circle at 50% 100%, rgba(59,130,246,0.22), transparent 60%)",
         }}
       />
-      <svg viewBox="0 0 200 110" className="absolute bottom-0 h-full w-full" preserveAspectRatio="xMidYEnd meet" aria-hidden="true">
+      <svg
+        viewBox="0 0 200 110"
+        className="absolute bottom-0 h-full w-full"
+        preserveAspectRatio="xMidYEnd meet"
+        aria-hidden="true"
+      >
         <defs>
           <linearGradient id="oc-sidebar-car-body" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#27272A" />
@@ -1046,9 +1112,23 @@ function SidebarHeroCar() {
         />
         <ellipse cx="55" cy="93" rx="14" ry="6" fill="#000" />
         <ellipse cx="148" cy="93" rx="14" ry="6" fill="#000" />
-        <circle cx="55" cy="92" r="9" fill="#0A0A0A" stroke="rgba(96,165,250,0.45)" strokeWidth="1" />
+        <circle
+          cx="55"
+          cy="92"
+          r="9"
+          fill="#0A0A0A"
+          stroke="rgba(96,165,250,0.45)"
+          strokeWidth="1"
+        />
         <circle cx="55" cy="92" r="4.5" fill="#1F1F1F" />
-        <circle cx="148" cy="92" r="9" fill="#0A0A0A" stroke="rgba(96,165,250,0.45)" strokeWidth="1" />
+        <circle
+          cx="148"
+          cy="92"
+          r="9"
+          fill="#0A0A0A"
+          stroke="rgba(96,165,250,0.45)"
+          strokeWidth="1"
+        />
         <circle cx="148" cy="92" r="4.5" fill="#1F1F1F" />
         <circle cx="174" cy="76" r="3" fill="rgb(96 165 250)" opacity="0.85" />
         <circle cx="174" cy="76" r="7" fill="rgb(96 165 250)" opacity="0.18" />
@@ -1079,7 +1159,7 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="rounded-none border border-white/[0.05] bg-black/30 p-1">
+    <div className="rounded-none border border-white/5 bg-black/30 p-1">
       <div className="grid grid-cols-3 gap-1">
         {CURRENCY_OPTIONS.map((option) => (
           <button
@@ -1087,10 +1167,10 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
             type="button"
             onClick={() => setCurrency(option.value)}
             className={cn(
-              'rounded-none px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all',
+              "rounded-none px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all",
               currency === option.value
-                ? 'bg-blue-600 text-white'
-                : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-200'
+                ? "bg-blue-600 text-white"
+                : "text-zinc-500 hover:bg-white/4 hover:text-zinc-200"
             )}
           >
             {option.label}

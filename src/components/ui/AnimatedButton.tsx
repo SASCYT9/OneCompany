@@ -8,7 +8,7 @@ function ButtonContent({ children }: { children: ReactNode }) {
   return (
     <>
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+        className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
         initial={{ x: "-200%" }}
         whileHover={{ x: "200%" }}
         transition={{ duration: 0.6 }}
@@ -35,11 +35,14 @@ export default function AnimatedButton({
   size = "md",
   className = "",
 }: AnimatedButtonProps) {
-  const baseStyles = "inline-block uppercase tracking-widest font-light transition-all duration-300 relative overflow-hidden group";
-  
+  const baseStyles =
+    "inline-block uppercase tracking-widest font-light transition-all duration-300 relative overflow-hidden group";
+
   const variants = {
-    primary: "bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-white/90",
-    outline: "border border-zinc-400 dark:border-white/30 hover:border-zinc-900 dark:hover:border-white text-zinc-900 dark:text-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black",
+    primary:
+      "bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-white/90",
+    outline:
+      "border border-zinc-400 dark:border-white/30 hover:border-zinc-900 dark:hover:border-white text-zinc-900 dark:text-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black",
     ghost: "text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-white/70",
   };
 

@@ -215,7 +215,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
             </ul>
             <div className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
               <div className="flex justify-between items-center text-xl font-light text-white">
-                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-xs font-normal">{isUa ? 'Підсумок' : 'Subtotal'}</span>
+                <span className="text-[#c29d59] uppercase tracking-widest text-xs font-normal">{isUa ? 'Підсумок' : 'Subtotal'}</span>
                 <span>{formatPrice(locale, subtotal, currency)}</span>
               </div>
               <Link

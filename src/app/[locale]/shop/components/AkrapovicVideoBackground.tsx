@@ -110,7 +110,7 @@ export default function AkrapovicVideoBackground({
           {/* Bottom vignette */}
           <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(13,13,11,0.9)_0%,transparent_30%)]" />
           {/* Top warm accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3)_20%,rgba(255,255,255,0.3)_80%,transparent)]" />
+          <div className="absolute top-0 left-0 right-0 h-px z-20 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3)_20%,rgba(255,255,255,0.3)_80%,transparent)]" />
         </>
       )}
 

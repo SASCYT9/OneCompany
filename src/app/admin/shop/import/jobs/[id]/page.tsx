@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ExternalLink, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { ExternalLink, RefreshCw } from "lucide-react";
 
 import {
   AdminEmptyState,
@@ -18,11 +18,11 @@ import {
   AdminStatusBadge,
   AdminTableShell,
   AdminTimelineList,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 
-type ImportConflictMode = 'SKIP' | 'UPDATE' | 'CREATE';
-type ImportAction = 'DRY_RUN' | 'COMMIT';
-type ImportStatus = 'COMPLETED' | 'FAILED';
+type ImportConflictMode = "SKIP" | "UPDATE" | "CREATE";
+type ImportAction = "DRY_RUN" | "COMMIT";
+type ImportStatus = "COMPLETED" | "FAILED";
 
 type ImportJobDetail = {
   id: string;
@@ -60,26 +60,26 @@ type ImportJobDetail = {
 };
 
 function formatAction(action: ImportAction) {
-  return action === 'DRY_RUN' ? 'Dry run' : 'Commit';
+  return action === "DRY_RUN" ? "Dry run" : "Commit";
 }
 
 export default function AdminImportJobDetailPage() {
   const params = useParams<{ id: string }>();
-  const jobId = String(params?.id ?? '');
+  const jobId = String(params?.id ?? "");
 
   const [job, setJob] = useState<ImportJobDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const loadJob = useCallback(async () => {
     if (!jobId) return;
     setLoading(true);
-    setError('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/imports/${jobId}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося завантажити import job');
+        throw new Error(data.error || "Не вдалося завантажити import job");
       }
       setJob(data as ImportJobDetail);
     } catch (loadError) {
@@ -100,7 +100,7 @@ export default function AdminImportJobDetailPage() {
       title: string;
       meta: string;
       body: string;
-      tone: 'default' | 'success' | 'warning' | 'danger';
+      tone: "default" | "success" | "warning" | "danger";
     }>
   >(() => {
     if (!job) return [];
@@ -110,31 +110,31 @@ export default function AdminImportJobDetailPage() {
       title: string;
       meta: string;
       body: string;
-      tone: 'default' | 'success' | 'warning' | 'danger';
+      tone: "default" | "success" | "warning" | "danger";
     }> = [
       {
         id: `${job.id}-created`,
         title: `${formatAction(job.action)} started`,
         meta: new Date(job.createdAt).toLocaleString(),
         body: `${job.totalRows} rows · ${job.validProducts} valid products · ${job.productsCount} products`,
-        tone: job.status === 'FAILED' ? 'warning' : 'default',
+        tone: job.status === "FAILED" ? "warning" : "default",
       },
       {
         id: `${job.id}-result`,
-        title: job.status === 'FAILED' ? 'Job finished with failures' : 'Job completed',
+        title: job.status === "FAILED" ? "Job finished with failures" : "Job completed",
         meta: new Date(job.updatedAt).toLocaleString(),
         body: `${job.createdCount} created · ${job.updatedCount} updated · ${job.skippedCount} skipped · ${job.errorCount} errors`,
-        tone: job.status === 'FAILED' ? 'danger' : 'success',
+        tone: job.status === "FAILED" ? "danger" : "success",
       },
     ];
 
     return items.concat(
       job.rowErrors.slice(0, 10).map((rowError) => ({
         id: rowError.id,
-        title: `Row ${rowError.rowNumber}${rowError.handle ? ` · ${rowError.handle}` : ''}`,
-        meta: rowError.createdAt ? new Date(rowError.createdAt).toLocaleString() : 'Row error',
+        title: `Row ${rowError.rowNumber}${rowError.handle ? ` · ${rowError.handle}` : ""}`,
+        meta: rowError.createdAt ? new Date(rowError.createdAt).toLocaleString() : "Row error",
         body: rowError.message,
-        tone: 'danger' as const,
+        tone: "danger" as const,
       }))
     );
   }, [job]);
@@ -143,7 +143,7 @@ export default function AdminImportJobDetailPage() {
     <AdminPage className="space-y-6">
       <AdminPageHeader
         eyebrow="Imports & Integrations"
-        title={job ? job.sourceFilename || 'Import job review' : 'Import job review'}
+        title={job ? job.sourceFilename || "Import job review" : "Import job review"}
         description="Job-level review для dry-run або commit: summary metrics, template snapshot, source metadata і row errors в окремій detail surface."
         actions={
           <>
@@ -158,7 +158,7 @@ export default function AdminImportJobDetailPage() {
               onClick={() => void loadJob()}
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'motion-safe:animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? "motion-safe:animate-spin" : ""}`} />
               Refresh
             </button>
           </>
@@ -189,9 +189,22 @@ export default function AdminImportJobDetailPage() {
         <>
           <AdminMetricGrid>
             <AdminMetricCard label="Rows" value={job.totalRows} meta="Усі отримані рядки" />
-            <AdminMetricCard label="Valid products" value={job.validProducts} meta={`${job.productsCount} products · ${job.variantsCount} variants`} />
-            <AdminMetricCard label="Created / Updated" value={`${job.createdCount} / ${job.updatedCount}`} meta={`${job.skippedCount} skipped`} />
-            <AdminMetricCard label="Errors" value={job.errorCount} meta={job.status} tone={job.errorCount ? 'accent' : 'default'} />
+            <AdminMetricCard
+              label="Valid products"
+              value={job.validProducts}
+              meta={`${job.productsCount} products · ${job.variantsCount} variants`}
+            />
+            <AdminMetricCard
+              label="Created / Updated"
+              value={`${job.createdCount} / ${job.updatedCount}`}
+              meta={`${job.skippedCount} skipped`}
+            />
+            <AdminMetricCard
+              label="Errors"
+              value={job.errorCount}
+              meta={job.status}
+              tone={job.errorCount ? "accent" : "default"}
+            />
           </AdminMetricGrid>
 
           <AdminSplitDetailShell
@@ -203,20 +216,26 @@ export default function AdminImportJobDetailPage() {
                 >
                   <AdminKeyValueGrid
                     rows={[
-                      { label: 'Action', value: formatAction(job.action) },
+                      { label: "Action", value: formatAction(job.action) },
                       {
-                        label: 'Status',
+                        label: "Status",
                         value: (
                           <div className="flex flex-wrap gap-2">
-                            <AdminStatusBadge tone={job.status === 'FAILED' ? 'danger' : 'success'}>{job.status}</AdminStatusBadge>
-                            <AdminStatusBadge tone={job.action === 'COMMIT' ? 'success' : 'default'}>{job.action}</AdminStatusBadge>
+                            <AdminStatusBadge tone={job.status === "FAILED" ? "danger" : "success"}>
+                              {job.status}
+                            </AdminStatusBadge>
+                            <AdminStatusBadge
+                              tone={job.action === "COMMIT" ? "success" : "default"}
+                            >
+                              {job.action}
+                            </AdminStatusBadge>
                           </div>
                         ),
                       },
-                      { label: 'Conflict mode', value: job.conflictMode },
-                      { label: 'Template', value: job.template?.name ?? 'Без шаблону' },
-                      { label: 'Supplier', value: job.supplierName ?? '—' },
-                      { label: 'Actor', value: job.actorName || job.actorEmail },
+                      { label: "Conflict mode", value: job.conflictMode },
+                      { label: "Template", value: job.template?.name ?? "Без шаблону" },
+                      { label: "Supplier", value: job.supplierName ?? "—" },
+                      { label: "Actor", value: job.actorName || job.actorEmail },
                     ]}
                   />
                 </AdminInspectorCard>
@@ -230,7 +249,10 @@ export default function AdminImportJobDetailPage() {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {job.columns.map((column) => (
-                        <span key={column} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-zinc-300">
+                        <span
+                          key={column}
+                          className="rounded-full border border-white/10 bg-white/4 px-3 py-1 text-xs text-zinc-300"
+                        >
                           {column}
                         </span>
                       ))}
@@ -253,11 +275,13 @@ export default function AdminImportJobDetailPage() {
                   description="Сирі повідомлення і payload snapshot для тих випадків, коли dry-run виявив mapping або validation проблему."
                 >
                   {!job.rowErrors.length ? (
-                    <div className="text-sm text-emerald-200">Помилок по рядках для цього імпорту не збережено.</div>
+                    <div className="text-sm text-emerald-200">
+                      Помилок по рядках для цього імпорту не збережено.
+                    </div>
                   ) : (
                     <AdminTableShell>
                       <table className="min-w-full text-left text-sm text-zinc-200">
-                        <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                        <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                           <tr>
                             <th className="px-4 py-3 font-medium">Row</th>
                             <th className="px-4 py-3 font-medium">Handle</th>
@@ -269,7 +293,7 @@ export default function AdminImportJobDetailPage() {
                           {job.rowErrors.map((rowError) => (
                             <tr key={rowError.id} className="border-t border-white/8 align-top">
                               <td className="px-4 py-4 text-zinc-300">{rowError.rowNumber}</td>
-                              <td className="px-4 py-4 text-zinc-400">{rowError.handle || '—'}</td>
+                              <td className="px-4 py-4 text-zinc-400">{rowError.handle || "—"}</td>
                               <td className="px-4 py-4 text-zinc-200">{rowError.message}</td>
                               <td className="px-4 py-4">
                                 {rowError.payload ? (
@@ -297,11 +321,11 @@ export default function AdminImportJobDetailPage() {
                 >
                   <AdminKeyValueGrid
                     rows={[
-                      { label: 'Job ID', value: job.id },
-                      { label: 'Source type', value: job.sourceType },
-                      { label: 'Source filename', value: job.sourceFilename ?? '—' },
-                      { label: 'Created at', value: new Date(job.createdAt).toLocaleString() },
-                      { label: 'Updated at', value: new Date(job.updatedAt).toLocaleString() },
+                      { label: "Job ID", value: job.id },
+                      { label: "Source type", value: job.sourceType },
+                      { label: "Source filename", value: job.sourceFilename ?? "—" },
+                      { label: "Created at", value: new Date(job.createdAt).toLocaleString() },
+                      { label: "Updated at", value: new Date(job.updatedAt).toLocaleString() },
                     ]}
                   />
                 </AdminInspectorCard>

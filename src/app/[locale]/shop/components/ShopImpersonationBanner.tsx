@@ -27,7 +27,7 @@ export default function ShopImpersonationBanner({
   }
 
   return (
-    <div className="sticky top-0 z-[100] w-full bg-amber-500/95 text-black shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
+    <div className="sticky top-0 z-100 w-full bg-amber-500/95 text-black shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-2 text-sm">
         <Eye className="h-4 w-4 shrink-0" />
         <div className="min-w-0 flex-1">

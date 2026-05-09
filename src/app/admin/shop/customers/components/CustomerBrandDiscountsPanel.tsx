@@ -183,7 +183,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
               type="button"
               onClick={() => void add()}
               disabled={saving || !newBrand.trim() || !newPct}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
               <Plus className="h-4 w-4" />
               Додати
@@ -208,7 +208,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                   <th className="px-4 py-3 font-medium">Бренд</th>
                   <th className="px-4 py-3 font-medium text-right">Знижка</th>
                   <th className="px-4 py-3 font-medium">Нотатка</th>
@@ -218,7 +218,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
               </thead>
               <tbody className="divide-y divide-white/6">
                 {discounts.map((d) => (
-                  <tr key={d.id} className="transition hover:bg-white/[0.02]">
+                  <tr key={d.id} className="transition hover:bg-white/2">
                     <td className="px-4 py-3 text-zinc-100 font-medium">{d.brand}</td>
                     <td className="px-4 py-3 text-emerald-300 font-semibold text-right tabular-nums">
                       −{d.discountPct.toFixed(2)}%

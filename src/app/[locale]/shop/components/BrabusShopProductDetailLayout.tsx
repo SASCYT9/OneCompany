@@ -73,12 +73,9 @@ export function BrabusShopProductDetailLayout({
       }
     });
   }
-  if (product.sku)
-    specItems.push({ label: isUa ? "Артикул" : "SKU", value: product.sku });
-  if (collection)
-    specItems.push({ label: isUa ? "Колекція" : "Collection", value: collection });
-  if (leadTime)
-    specItems.push({ label: isUa ? "Термін" : "Lead Time", value: leadTime });
+  if (product.sku) specItems.push({ label: isUa ? "Артикул" : "SKU", value: product.sku });
+  if (collection) specItems.push({ label: isUa ? "Колекція" : "Collection", value: collection });
+  if (leadTime) specItems.push({ label: isUa ? "Термін" : "Lead Time", value: leadTime });
 
   const [openAccordion, setOpenAccordion] = useState<string | null>("desc");
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -96,14 +93,14 @@ export function BrabusShopProductDetailLayout({
     e?.stopPropagation();
     setCurrentIdx((prev) => (prev - 1 + cleanImages.length) % cleanImages.length);
   };
-  
+
   // Close fullscreen and navigate via keyboard
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsFullscreen(false);
       if (isFullscreen) {
-         if (e.key === "ArrowRight") handleNext();
-         if (e.key === "ArrowLeft") handlePrev();
+        if (e.key === "ArrowRight") handleNext();
+        if (e.key === "ArrowLeft") handlePrev();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -117,11 +114,11 @@ export function BrabusShopProductDetailLayout({
           --b-bg: transparent;
           --b-card: #0f0f0f;
           --b-red: #c29d59;
-          --b-muted: rgba(255,255,255,.5);
-          --b-border: rgba(255,255,255,.08);
+          --b-muted: rgba(255, 255, 255, 0.5);
+          --b-border: rgba(255, 255, 255, 0.08);
           background: var(--b-bg);
           color: #fff;
-          font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+          font-family: var(--font-body, "Inter", system-ui, sans-serif);
           min-height: 100dvh;
           position: relative;
         }
@@ -138,197 +135,413 @@ export function BrabusShopProductDetailLayout({
         @media (max-width: 1024px) {
           .b-pdp__container {
             grid-template-columns: 1fr;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
           }
         }
 
         /* ── Left: Media Carousel ──────────────── */
         .b-pdp__media {
-          display: flex; flex-direction: column;
+          display: flex;
+          flex-direction: column;
           padding: 4rem clamp(2rem, 4vw, 6rem);
           background: transparent;
         }
         .b-carousel {
-          position: sticky; top: 120px;
-          display: flex; flex-direction: column; gap: 1.5rem;
+          position: sticky;
+          top: 120px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
           width: 100%;
         }
         .b-carousel__main {
-          position: relative; width: 100%; aspect-ratio: 4/3;
-          background: #f8f8f8; border-radius: 16px; overflow: hidden;
-          box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8);
-          border: 1px solid rgba(255,255,255,.1); cursor: zoom-in;
+          position: relative;
+          width: 100%;
+          aspect-ratio: 4/3;
+          background: #f8f8f8;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          cursor: zoom-in;
         }
         .b-carousel__main img {
-          object-fit: contain; width: 100%; height: 100%; padding: 2.5rem;
-          mix-blend-mode: multiply; transition: transform .5s cubic-bezier(0.2, 0.8, 0.2, 1);
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+          padding: 2.5rem;
+          mix-blend-mode: multiply;
+          transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        .b-carousel__main:hover img { transform: scale(1.03); }
-        
+        .b-carousel__main:hover img {
+          transform: scale(1.03);
+        }
+
         .b-carousel__arrow {
-          position: absolute; top: 50%; transform: translateY(-50%);
-          width: 48px; height: 48px; border-radius: 50%;
-          background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
-          color: #000; display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all .3s; opacity: 0; z-index: 10;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          color: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s;
+          opacity: 0;
+          z-index: 10;
         }
-        .b-carousel__main:hover .b-carousel__arrow { opacity: 1; }
-        .b-carousel__arrow:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); scale: 1.1; }
-        .b-carousel__arrow--prev { left: 1.5rem; }
-        .b-carousel__arrow--next { right: 1.5rem; }
-        
+        .b-carousel__main:hover .b-carousel__arrow {
+          opacity: 1;
+        }
+        .b-carousel__arrow:hover {
+          background: #fff;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          scale: 1.1;
+        }
+        .b-carousel__arrow--prev {
+          left: 1.5rem;
+        }
+        .b-carousel__arrow--next {
+          right: 1.5rem;
+        }
+
         .b-carousel__expand {
-          position: absolute; top: 1.5rem; right: 1.5rem;
-          width: 44px; height: 44px; border-radius: 50%;
-          background: rgba(0,0,0,0.04); color: #000;
-          display: flex; align-items: center; justify-content: center;
-          pointer-events: none; opacity: 0; transition: opacity .3s, background .3s;
+          position: absolute;
+          top: 1.5rem;
+          right: 1.5rem;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.04);
+          color: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          opacity: 0;
+          transition:
+            opacity 0.3s,
+            background 0.3s;
         }
-        .b-carousel__main:hover .b-carousel__expand { opacity: 1; }
-        
+        .b-carousel__main:hover .b-carousel__expand {
+          opacity: 1;
+        }
+
         .b-carousel__thumbs {
-          display: flex; gap: 1rem; overflow-x: auto; padding-bottom: .5rem;
+          display: flex;
+          gap: 1rem;
+          overflow-x: auto;
+          padding-bottom: 0.5rem;
         }
-        .b-carousel__thumbs::-webkit-scrollbar { height: 4px; }
-        .b-carousel__thumbs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-        
+        .b-carousel__thumbs::-webkit-scrollbar {
+          height: 4px;
+        }
+        .b-carousel__thumbs::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+        }
+
         .b-carousel__thumb {
-          position: relative; width: 100px; height: 75px; flex-shrink: 0;
-          background: #f8f8f8; border-radius: 8px; overflow: hidden; cursor: pointer;
-          border: 2px solid transparent; transition: border-color .3s, opacity .3s;
+          position: relative;
+          width: 100px;
+          height: 75px;
+          flex-shrink: 0;
+          background: #f8f8f8;
+          border-radius: 8px;
+          overflow: hidden;
+          cursor: pointer;
+          border: 2px solid transparent;
+          transition:
+            border-color 0.3s,
+            opacity 0.3s;
           opacity: 0.5;
         }
         .b-carousel__thumb img {
-          object-fit: contain; width: 100%; height: 100%; padding: .5rem;
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+          padding: 0.5rem;
           mix-blend-mode: multiply;
         }
-        .b-carousel__thumb:hover { opacity: 0.8; }
-        .b-carousel__thumb.is-active { border-color: var(--b-red); opacity: 1; }
-        
+        .b-carousel__thumb:hover {
+          opacity: 0.8;
+        }
+        .b-carousel__thumb.is-active {
+          border-color: var(--b-red);
+          opacity: 1;
+        }
+
         @media (max-width: 1024px) {
-          .b-pdp__media { padding: 2rem 1.5rem; }
-          .b-carousel { position: static; }
+          .b-pdp__media {
+            padding: 2rem 1.5rem;
+          }
+          .b-carousel {
+            position: static;
+          }
         }
 
         /* ── Fullscreen Overlay ─────────────── */
         .b-fs {
-          position: fixed; inset: 0; z-index: 99999;
-          background: rgba(5,5,5,0.95); backdrop-filter: blur(20px);
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          opacity: 0; pointer-events: none; transition: opacity .4s ease;
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: rgba(5, 5, 5, 0.95);
+          backdrop-filter: blur(20px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.4s ease;
         }
-        .b-fs.is-open { opacity: 1; pointer-events: auto; }
-        
+        .b-fs.is-open {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
         .b-fs__header {
-          position: absolute; top: 0; left: 0; right: 0;
-          padding: 2rem; display: flex; justify-content: flex-end; z-index: 100000;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          padding: 2rem;
+          display: flex;
+          justify-content: flex-end;
+          z-index: 100000;
           pointer-events: none;
         }
         .b-fs__close {
-          width: 50px; height: 50px; border-radius: 50%;
-          background: rgba(255,255,255,0.1); color: #fff;
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: background .3s; border: none;
-          pointer-events: auto; z-index: 100001;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.3s;
+          border: none;
+          pointer-events: auto;
+          z-index: 100001;
         }
-        .b-fs__close:hover { background: var(--b-red); }
-        
+        .b-fs__close:hover {
+          background: var(--b-red);
+        }
+
         .b-fs__stage {
-          position: relative; width: 90vw; height: 85vh;
-          background: #f8f8f8; border-radius: 20px; box-shadow: 0 40px 100px rgba(0,0,0,0.9);
-          overflow: hidden; display: flex; align-items: center; justify-content: center;
+          position: relative;
+          width: 90vw;
+          height: 85vh;
+          background: #f8f8f8;
+          border-radius: 20px;
+          box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9);
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .b-fs__stage img {
-          object-fit: contain; width: 100%; height: 100%; padding: 4rem;
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+          padding: 4rem;
           mix-blend-mode: multiply;
         }
         .b-fs__arrow {
-          position: absolute; top: 50%; transform: translateY(-50%);
-          width: 60px; height: 60px; border-radius: 50%;
-          background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); color: #000;
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all .3s; z-index: 10;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          color: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s;
+          z-index: 10;
         }
-        .b-fs__arrow:hover { background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2); scale: 1.1; }
-        .b-fs__arrow--prev { left: 2rem; }
-        .b-fs__arrow--next { right: 2rem; }
+        .b-fs__arrow:hover {
+          background: #fff;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          scale: 1.1;
+        }
+        .b-fs__arrow--prev {
+          left: 2rem;
+        }
+        .b-fs__arrow--next {
+          right: 2rem;
+        }
 
         /* ── Right: Sticky Info Panel ─────────── */
         .b-pdp__info {
           padding: 4rem 3rem 8rem 4rem;
-          background: rgba(5,5,5,0.7);
+          background: rgba(5, 5, 5, 0.7);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-left: 1px solid rgba(255,255,255,.04);
+          border-left: 1px solid rgba(255, 255, 255, 0.04);
         }
         .b-pdp__info-inner {
-          position: sticky; top: 120px; /* header offset */
+          position: sticky;
+          top: 120px; /* header offset */
           max-width: 580px;
         }
         @media (max-width: 1200px) {
-          .b-pdp__info { padding: 3rem; }
+          .b-pdp__info {
+            padding: 3rem;
+          }
         }
         @media (max-width: 1024px) {
-          .b-pdp__info { padding: 3rem 1.5rem; }
-          .b-pdp__info-inner { position: static; max-width: 100%; }
+          .b-pdp__info {
+            padding: 3rem 1.5rem;
+          }
+          .b-pdp__info-inner {
+            position: static;
+            max-width: 100%;
+          }
         }
 
         /* Breadcrumbs */
         .b-bc {
-          font-size: .6rem; text-transform: uppercase; letter-spacing: .25em;
-          color: var(--b-muted); margin-bottom: 2rem;
-          display: flex; align-items: center; flex-wrap: wrap; gap: .75rem;
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.25em;
+          color: var(--b-muted);
+          margin-bottom: 2rem;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.75rem;
         }
-        .b-bc a { color: var(--b-muted); text-decoration: none; transition: color .3s; }
-        .b-bc a:hover { color: #fff; }
-        .b-bc span { color: var(--b-border); }
+        .b-bc a {
+          color: var(--b-muted);
+          text-decoration: none;
+          transition: color 0.3s;
+        }
+        .b-bc a:hover {
+          color: #fff;
+        }
+        .b-bc span {
+          color: var(--b-border);
+        }
 
         /* Titles */
         .b-brand {
-          font-size: .65rem; font-weight: 600; text-transform: uppercase;
-          letter-spacing: .25em; color: var(--b-red); margin-bottom: 1rem;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.25em;
+          color: var(--b-red);
+          margin-bottom: 1rem;
         }
         .b-title {
-          font-size: clamp(1.4rem, 2vw, 1.8rem); font-weight: 300;
-          text-transform: uppercase; letter-spacing: .08em;
-          line-height: 1.2; margin: 0 0 1.25rem; color: #fff;
+          font-size: clamp(1.4rem, 2vw, 1.8rem);
+          font-weight: 300;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          line-height: 1.2;
+          margin: 0 0 1.25rem;
+          color: #fff;
         }
 
         /* Mini specs inline */
         .b-mini-specs {
-          display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2.5rem;
-          padding-bottom: 2.5rem; border-bottom: 1px solid var(--b-border);
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1.5rem;
+          margin-bottom: 2.5rem;
+          padding-bottom: 2.5rem;
+          border-bottom: 1px solid var(--b-border);
         }
-        .b-ms-item { display: flex; flex-direction: column; gap: .4rem; }
-        .b-ms-label { font-size: .55rem; text-transform: uppercase; letter-spacing: .2em; color: var(--b-muted); }
-        .b-ms-val { font-size: .75rem; color: #fff; font-weight: 400; text-transform: uppercase; letter-spacing: .1em; }
-        .b-ms-val--ok { color: #4ade80; }
-        .b-ms-val--wait { color: #fbbf24; }
+        .b-ms-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+        }
+        .b-ms-label {
+          font-size: 0.55rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: var(--b-muted);
+        }
+        .b-ms-val {
+          font-size: 0.75rem;
+          color: #fff;
+          font-weight: 400;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        .b-ms-val--ok {
+          color: #4ade80;
+        }
+        .b-ms-val--wait {
+          color: #fbbf24;
+        }
 
         /* Price */
-        .b-price-box { margin-bottom: 2.5rem; }
+        .b-price-box {
+          margin-bottom: 2.5rem;
+        }
 
         /* Boxed CTA */
         .b-action {
-          display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          margin-bottom: 3.5rem;
         }
         .b-btn-custom {
-          width: 100%; background: rgba(194,157,89,0.1) !important; color: #fff !important;
-          border: 1px solid rgba(194,157,89,0.4) !important;
+          width: 100%;
+          background: rgba(194, 157, 89, 0.1) !important;
+          color: #fff !important;
+          border: 1px solid rgba(194, 157, 89, 0.4) !important;
           backdrop-filter: blur(12px);
-          padding: 1.25rem !important; text-align: center;
-          font-size: .75rem !important; font-weight: 600 !important;
-          text-transform: uppercase !important; letter-spacing: .25em !important;
-          transition: all .3s; cursor: pointer; border-radius: 0;
+          padding: 1.25rem !important;
+          text-align: center;
+          font-size: 0.75rem !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.25em !important;
+          transition: all 0.3s;
+          cursor: pointer;
+          border-radius: 0;
         }
-        .b-btn-custom:hover { background: rgba(194,157,89,0.25) !important; border-color: rgba(194,157,89,0.7) !important; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(194,157,89,0.15); }
-        
+        .b-btn-custom:hover {
+          background: rgba(194, 157, 89, 0.25) !important;
+          border-color: rgba(194, 157, 89, 0.7) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 30px rgba(194, 157, 89, 0.15);
+        }
+
         .b-action-links {
-          display: flex; justify-content: space-between;
-          font-size: .6rem; text-transform: uppercase; letter-spacing: .18em;
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
         }
-        .b-action-links a { color: var(--b-muted); transition: color .3s; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
-        .b-action-links a:hover { color: #fff; border-bottom-color: var(--b-red); }
+        .b-action-links a {
+          color: var(--b-muted);
+          transition: color 0.3s;
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+          padding-bottom: 2px;
+        }
+        .b-action-links a:hover {
+          color: #fff;
+          border-bottom-color: var(--b-red);
+        }
 
         /* Accordions */
         .b-accordion {
@@ -338,82 +551,189 @@ export function BrabusShopProductDetailLayout({
           border-bottom: 1px solid var(--b-border);
         }
         .b-acc-btn {
-          width: 100%; display: flex; justify-content: space-between; align-items: center;
-          padding: 1.75rem 0; background: transparent; border: none; color: #fff;
-          font-size: .7rem; text-transform: uppercase; letter-spacing: .2em; font-weight: 500;
-          cursor: pointer; text-align: left; transition: color .3s;
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.75rem 0;
+          background: transparent;
+          border: none;
+          color: #fff;
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          font-weight: 500;
+          cursor: pointer;
+          text-align: left;
+          transition: color 0.3s;
         }
-        .b-acc-btn:hover { color: var(--b-red); }
+        .b-acc-btn:hover {
+          color: var(--b-red);
+        }
         .b-acc-icon {
-          width: 16px; height: 16px; position: relative;
+          width: 16px;
+          height: 16px;
+          position: relative;
         }
-        .b-acc-icon::before, .b-acc-icon::after {
-          content: ""; position: absolute; background: currentColor; top: 50%; left: 50%;
-          transform: translate(-50%, -50%); transition: transform .4s ease;
+        .b-acc-icon::before,
+        .b-acc-icon::after {
+          content: "";
+          position: absolute;
+          background: currentColor;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          transition: transform 0.4s ease;
         }
-        .b-acc-icon::before { width: 12px; height: 1px; }
-        .b-acc-icon::after { width: 1px; height: 12px; }
-        .b-acc-item.is-open .b-acc-icon::after { transform: translate(-50%, -50%) rotate(90deg); opacity: 0; }
+        .b-acc-icon::before {
+          width: 12px;
+          height: 1px;
+        }
+        .b-acc-icon::after {
+          width: 1px;
+          height: 12px;
+        }
+        .b-acc-item.is-open .b-acc-icon::after {
+          transform: translate(-50%, -50%) rotate(90deg);
+          opacity: 0;
+        }
 
         .b-acc-content {
-          overflow: hidden; max-height: 0; transition: max-height .5s cubic-bezier(0, 1, 0, 1);
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
         }
-        .b-acc-item.is-open .b-acc-content { max-height: 2000px; transition: max-height 1s ease-in-out; }
-        
-        .b-acc-inner { 
-          padding: 0 0 2rem 0; font-size: .88rem; color: var(--b-muted); 
-          line-height: 1.8; font-weight: 300; 
+        .b-acc-item.is-open .b-acc-content {
+          max-height: 2000px;
+          transition: max-height 1s ease-in-out;
         }
-        .b-acc-inner p { margin: 0 0 1rem; }
-        .b-acc-inner p:last-child { margin: 0; }
 
-        .b-spec-table { width: 100%; border-collapse: collapse; }
-        .b-spec-table td { padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,.04); }
-        .b-spec-table td:first-child { width: 45%; color: rgba(255,255,255,.4); font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; }
-        .b-spec-table td:last-child { color: #fff; font-size: .8rem; }
-        .b-spec-table tr:last-child td { border-bottom: none; }
+        .b-acc-inner {
+          padding: 0 0 2rem 0;
+          font-size: 0.88rem;
+          color: var(--b-muted);
+          line-height: 1.8;
+          font-weight: 300;
+        }
+        .b-acc-inner p {
+          margin: 0 0 1rem;
+        }
+        .b-acc-inner p:last-child {
+          margin: 0;
+        }
+
+        .b-spec-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .b-spec-table td {
+          padding: 1rem 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .b-spec-table td:first-child {
+          width: 45%;
+          color: rgba(255, 255, 255, 0.4);
+          font-size: 0.65rem;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
+        }
+        .b-spec-table td:last-child {
+          color: #fff;
+          font-size: 0.8rem;
+        }
+        .b-spec-table tr:last-child td {
+          border-bottom: none;
+        }
 
         /* Related Products (Bottom Full Width) */
         .b-related {
           position: relative;
           z-index: 10;
           padding: 6rem clamp(2rem, 5vw, 6rem);
-          background: rgba(5,5,5,0.9);
+          background: rgba(5, 5, 5, 0.9);
           backdrop-filter: blur(20px);
           border-top: 1px solid var(--b-border);
         }
         .b-related-title {
-          font-size: 1.25rem; font-weight: 200; text-transform: uppercase; letter-spacing: .2em;
-          margin: 0 0 3.5rem; text-align: center; color: #fff;
+          font-size: 1.25rem;
+          font-weight: 200;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          margin: 0 0 3.5rem;
+          text-align: center;
+          color: #fff;
         }
         .b-rg {
-          display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1px;
-          background: var(--b-border); border: 1px solid var(--b-border); border-radius: 8px; overflow: hidden;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1px;
+          background: var(--b-border);
+          border: 1px solid var(--b-border);
+          border-radius: 8px;
+          overflow: hidden;
         }
-        .b-rc { background: #080808; text-decoration: none; display: flex; flex-direction: column; transition: background .3s; }
-        .b-rc:hover { background: #0f0f0f; }
-        .b-rc-img { aspect-ratio: 4/3; position: relative; padding: 1.5rem; background: #0a0a0a; }
-        .b-rc-img img { object-fit: contain; width: 100%; height: 100%; transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .b-rc:hover .b-rc-img img { transform: scale(1.08); }
-        .b-rc-body { padding: 2rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .b-rc-name { font-size: .85rem; font-weight: 300; color: #fff; margin: 0 0 1rem; line-height: 1.4; }
-        .b-rc-link { font-size: .6rem; text-transform: uppercase; letter-spacing: .2em; color: var(--b-red); font-weight: 600; }
+        .b-rc {
+          background: #080808;
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          transition: background 0.3s;
+        }
+        .b-rc:hover {
+          background: #0f0f0f;
+        }
+        .b-rc-img {
+          aspect-ratio: 4/3;
+          position: relative;
+          padding: 1.5rem;
+          background: #0a0a0a;
+        }
+        .b-rc-img img {
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .b-rc:hover .b-rc-img img {
+          transform: scale(1.08);
+        }
+        .b-rc-body {
+          padding: 2rem;
+          text-align: center;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .b-rc-name {
+          font-size: 0.85rem;
+          font-weight: 300;
+          color: #fff;
+          margin: 0 0 1rem;
+          line-height: 1.4;
+        }
+        .b-rc-link {
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: var(--b-red);
+          font-weight: 600;
+        }
       `}</style>
 
       <div className="b-pdp">
         {/* Background Video */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-          <BrabusVideoBackground 
+          <BrabusVideoBackground
             videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
-            fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg" 
+            fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg"
           />
           {/* Blend Masking / Blur */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/80 to-transparent backdrop-blur-[6px]" />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[12px]" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/85 via-black/80 to-transparent backdrop-blur-[6px]" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
         </div>
 
         <div className="b-pdp__container">
-          
           {/* L: MEDIA GALLERY (CAROUSEL) */}
           <div className="b-pdp__media">
             {cleanImages.length > 0 && (
@@ -430,10 +750,16 @@ export function BrabusShopProductDetailLayout({
                   />
                   {cleanImages.length > 1 && (
                     <>
-                      <button className="b-carousel__arrow b-carousel__arrow--prev" onClick={handlePrev}>
+                      <button
+                        className="b-carousel__arrow b-carousel__arrow--prev"
+                        onClick={handlePrev}
+                      >
                         <ChevronLeft size={24} />
                       </button>
-                      <button className="b-carousel__arrow b-carousel__arrow--next" onClick={handleNext}>
+                      <button
+                        className="b-carousel__arrow b-carousel__arrow--next"
+                        onClick={handleNext}
+                      >
                         <ChevronRight size={24} />
                       </button>
                     </>
@@ -447,13 +773,19 @@ export function BrabusShopProductDetailLayout({
                 {cleanImages.length > 1 && (
                   <div className="b-carousel__thumbs">
                     {cleanImages.map((img, i) => (
-                      <button 
-                        key={i} 
-                        className={`b-carousel__thumb ${i === currentIdx ? 'is-active' : ''}`}
+                      <button
+                        key={i}
+                        className={`b-carousel__thumb ${i === currentIdx ? "is-active" : ""}`}
                         onClick={() => setCurrentIdx(i)}
                         aria-label={`View image ${i + 1}`}
                       >
-                        <ShopProductImage src={img} fallbackSrc={productFallbackImage} alt="" fill sizes="120px" />
+                        <ShopProductImage
+                          src={img}
+                          fallbackSrc={productFallbackImage}
+                          alt=""
+                          fill
+                          sizes="120px"
+                        />
                       </button>
                     ))}
                   </div>
@@ -465,14 +797,15 @@ export function BrabusShopProductDetailLayout({
           {/* R: STICKY INFO PANEL */}
           <div className="b-pdp__info">
             <div className="b-pdp__info-inner">
-
               {/* Breadcrumbs */}
               <div className="b-bc">
                 <Link href={`/${resolvedLocale}/shop`}>{isUa ? "Головна" : "Home"}</Link>
                 <span>/</span>
                 <Link href={`/${resolvedLocale}/shop/brabus`}>Brabus</Link>
                 <span>/</span>
-                <Link href={`/${resolvedLocale}/shop/brabus/products`}>{isUa ? "Каталог" : "Catalog"}</Link>
+                <Link href={`/${resolvedLocale}/shop/brabus/products`}>
+                  {isUa ? "Каталог" : "Catalog"}
+                </Link>
                 <span>/</span>
                 <span style={{ color: "var(--b-muted)" }}>{product.sku || "Product"}</span>
               </div>
@@ -493,7 +826,13 @@ export function BrabusShopProductDetailLayout({
                   <div className="b-ms-item">
                     <span className="b-ms-label">{isUa ? "Статус" : "Status"}</span>
                     <span className={`b-ms-val ${isInStock ? "b-ms-val--ok" : "b-ms-val--wait"}`}>
-                      {isInStock ? (isUa ? "В наявності" : "In Stock") : (isUa ? "Під замовлення" : "Pre-order")}
+                      {isInStock
+                        ? isUa
+                          ? "В наявності"
+                          : "In Stock"
+                        : isUa
+                          ? "Під замовлення"
+                          : "Pre-order"}
                     </span>
                   </div>
                 ) : null}
@@ -552,9 +891,11 @@ export function BrabusShopProductDetailLayout({
                       <div className="b-acc-icon" />
                     </button>
                     <div className="b-acc-content">
-                      <div 
-                        className="b-acc-inner prospect-article" 
-                        dangerouslySetInnerHTML={{ __html: longDescription || sanitizeRichTextHtml(shortDescription || "") }} 
+                      <div
+                        className="b-acc-inner prospect-article"
+                        dangerouslySetInnerHTML={{
+                          __html: longDescription || sanitizeRichTextHtml(shortDescription || ""),
+                        }}
                       />
                     </div>
                   </div>
@@ -582,7 +923,7 @@ export function BrabusShopProductDetailLayout({
                     </div>
                   </div>
                 )}
-                
+
                 <div className={`b-acc-item ${openAccordion === "delivery" ? "is-open" : ""}`}>
                   <button className="b-acc-btn" onClick={() => toggleAccordion("delivery")}>
                     {isUa ? "Доставка і Повернення" : "Shipping & Returns"}
@@ -591,12 +932,12 @@ export function BrabusShopProductDetailLayout({
                   <div className="b-acc-content">
                     <div className="b-acc-inner">
                       <p>
-                        {isUa 
+                        {isUa
                           ? "Доставка по всьому світу. Регулярні відправлення з нашого центрального складу або напряму від виробника."
                           : "Worldwide shipping available. Regular dispatches from our central warehouse or directly from the manufacturer."}
                       </p>
                       <p>
-                        {isUa 
+                        {isUa
                           ? "Час виготовлення та доставки залежить від обраного артикулу та вказаний у статусі 'Термін'. Товари, що виготовляються під індивідуальне шасі (Custom VIN), поверненню не підлягають."
                           : "Lead time depends on the specific SKU and is indicated in the item status. Made-to-order items built for specific VINS are strictly non-refundable."}
                       </p>
@@ -604,7 +945,6 @@ export function BrabusShopProductDetailLayout({
                   </div>
                 </div>
               </MobileProductDisclosure>
-
             </div>
           </div>
         </div>
@@ -612,10 +952,16 @@ export function BrabusShopProductDetailLayout({
         {/* ── Related Products ────────────────── */}
         {relatedProducts.length > 0 && (
           <div className="b-related">
-            <h2 className="b-related-title">{isUa ? "Рекомендовані Доповнення" : "Recommended Combinations"}</h2>
+            <h2 className="b-related-title">
+              {isUa ? "Рекомендовані Доповнення" : "Recommended Combinations"}
+            </h2>
             <div className="b-rg">
               {relatedProducts.map((rp) => (
-                <Link key={rp.slug} href={`/${resolvedLocale}/shop/brabus/products/${rp.slug}`} className="b-rc">
+                <Link
+                  key={rp.slug}
+                  href={`/${resolvedLocale}/shop/brabus/products/${rp.slug}`}
+                  className="b-rc"
+                >
                   <div className="b-rc-img">
                     <ShopProductImage
                       src={rp.image?.replace(/^["']|["']$/g, "").trim() || ""}
@@ -636,13 +982,22 @@ export function BrabusShopProductDetailLayout({
       </div>
 
       {/* FULLSCREEN LIGHTBOX PORTAL */}
-      <div className={`b-fs ${isFullscreen ? 'is-open' : ''}`} onClick={() => setIsFullscreen(false)}>
+      <div
+        className={`b-fs ${isFullscreen ? "is-open" : ""}`}
+        onClick={() => setIsFullscreen(false)}
+      >
         <div className="b-fs__header">
-          <button className="b-fs__close" onClick={(e) => { e.stopPropagation(); setIsFullscreen(false); }}>
+          <button
+            className="b-fs__close"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsFullscreen(false);
+            }}
+          >
             <X size={24} />
           </button>
         </div>
-        
+
         {isFullscreen && cleanImages.length > 0 && (
           <div className="b-fs__stage" onClick={(e) => e.stopPropagation()}>
             <ShopProductImage
@@ -655,10 +1010,22 @@ export function BrabusShopProductDetailLayout({
             />
             {cleanImages.length > 1 && (
               <>
-                <button className="b-fs__arrow b-fs__arrow--prev" onClick={(e) => { e.stopPropagation(); handlePrev(e); }}>
+                <button
+                  className="b-fs__arrow b-fs__arrow--prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrev(e);
+                  }}
+                >
                   <ChevronLeft size={32} />
                 </button>
-                <button className="b-fs__arrow b-fs__arrow--next" onClick={(e) => { e.stopPropagation(); handleNext(e); }}>
+                <button
+                  className="b-fs__arrow b-fs__arrow--next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNext(e);
+                  }}
+                >
                   <ChevronRight size={32} />
                 </button>
               </>

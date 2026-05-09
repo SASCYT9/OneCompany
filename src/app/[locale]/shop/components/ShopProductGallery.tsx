@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag } from 'lucide-react';
-import { ShopProductImage } from '@/components/shop/ShopProductImage';
-import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingBag } from "lucide-react";
+import { ShopProductImage } from "@/components/shop/ShopProductImage";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
 type Props = {
   images: string[];
@@ -16,7 +16,7 @@ type Props = {
 
 export function ShopProductGallery({ images, productTitle, category, isInStock, isUa }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const imageKey = useMemo(() => images.join('|'), [images]);
+  const imageKey = useMemo(() => images.join("|"), [images]);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -28,7 +28,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="group relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl">
+      <div className="group relative aspect-4/5 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${imageKey}-${safeActiveIndex}`}
@@ -55,9 +55,9 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
           </motion.div>
         </AnimatePresence>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/15 to-black/80" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-black/15 to-black/80" />
         <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/5 mix-blend-overlay" />
-        
+
         {/* Badges */}
         {(category || (SHOW_STOCK_BADGE && isInStock !== undefined)) && (
           <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3 z-10 pointer-events-none">
@@ -65,16 +65,24 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
               <span className="rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
                 {category}
               </span>
-            ) : <div />}
+            ) : (
+              <div />
+            )}
             {SHOW_STOCK_BADGE && isInStock !== undefined && (
               <span
                 className={`rounded-full border px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur-md shadow-lg ${
                   isInStock
-                    ? 'border-emerald-300/30 bg-emerald-500/10 text-emerald-300 shadow-emerald-500/10'
-                    : 'border-[#c29d59]/30 bg-[#c29d59]/10 text-[#c29d59] shadow-[#c29d59]/10'
+                    ? "border-emerald-300/30 bg-emerald-500/10 text-emerald-300 shadow-emerald-500/10"
+                    : "border-[#c29d59]/30 bg-[#c29d59]/10 text-[#c29d59] shadow-[#c29d59]/10"
                 }`}
               >
-                {isInStock ? (isUa ? 'В наявності' : 'In stock') : (isUa ? 'Під замовлення' : 'Pre-order')}
+                {isInStock
+                  ? isUa
+                    ? "В наявності"
+                    : "In stock"
+                  : isUa
+                    ? "Під замовлення"
+                    : "Pre-order"}
               </span>
             )}
           </div>
@@ -83,7 +91,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]">
+        <div className="flex gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] scrollbar-thin">
           {images.map((image, index) => {
             const isActive = index === safeActiveIndex;
             return (
@@ -92,8 +100,8 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
                 onClick={() => setActiveIndex(index)}
                 className={`relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-black/60 transition-all duration-300 sm:h-28 sm:w-28 ${
                   isActive
-                    ? 'border-[#c29d59]/50 shadow-[0_0_15px_-3px_rgba(194,157,89,0.2)]'
-                    : 'border-white/10 hover:border-white/30'
+                    ? "border-[#c29d59]/50 shadow-[0_0_15px_-3px_rgba(194,157,89,0.2)]"
+                    : "border-white/10 hover:border-white/30"
                 }`}
               >
                 {image && image.length > 0 && (
@@ -103,7 +111,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
                     fill
                     sizes="15vw"
                     className={`object-cover p-2 transition-transform duration-700 ${
-                      isActive ? 'scale-110' : 'hover:scale-105'
+                      isActive ? "scale-110" : "hover:scale-105"
                     }`}
                   />
                 )}

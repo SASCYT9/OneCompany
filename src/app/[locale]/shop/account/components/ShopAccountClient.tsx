@@ -210,7 +210,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
             <p className="mt-2 text-sm text-white/55 truncate">{profile.email}</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70">
+            <span className="rounded-full border border-white/15 bg-white/4 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70">
               {groupLabel(locale, profileGroup)}
             </span>
             <button
@@ -224,7 +224,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
         </div>
 
         {claimedOrdersCount && claimedOrdersCount > 0 ? (
-          <div className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.06] px-5 py-4 flex flex-wrap items-center gap-3">
+          <div className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/6 px-5 py-4 flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[200px]">
               <p className="text-sm text-emerald-100">
                 {isUa
@@ -248,7 +248,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="space-y-6 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+          <section className="space-y-6 rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div>
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-medium text-white">{isUa ? 'Профіль' : 'Profile'}</h2>
@@ -326,7 +326,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                 </div>
 
                 {/* CRM (Airtable) card */}
-                <div className="rounded-2xl border border-indigo-500/15 bg-indigo-500/[0.04] p-5">
+                <div className="rounded-2xl border border-indigo-500/15 bg-indigo-500/4 p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 bg-indigo-400 rounded-full" />
                     <p className="text-[10px] uppercase tracking-[0.22em] text-indigo-200/55">
@@ -395,7 +395,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+          <section className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-medium text-white">{isUa ? 'Замовлення' : 'Orders'}</h2>
@@ -412,7 +412,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                 {profile.orders.map((order) => (
                   <li
                     key={order.orderNumber}
-                    className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:border-white/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]"
+                    className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-px hover:border-white/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]"
                   >
                     <Link
                       href={`/${locale}/shop/account/orders/${order.orderNumber}`}
@@ -503,7 +503,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                     const statusLabel = formatAirtableOrderStatus(statusKind, locale, o.orderStatus);
                     const statusBadgeClass = airtableOrderStatusBadgeClass(statusKind);
                     return (
-                    <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.03] p-4 cursor-pointer transition hover:bg-indigo-500/[0.06]" onClick={() => setExpandedCrmOrder(expandedCrmOrder === o.id ? null : o.id)}>
+                    <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/3 p-4 cursor-pointer transition hover:bg-indigo-500/6" onClick={() => setExpandedCrmOrder(expandedCrmOrder === o.id ? null : o.id)}>
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">

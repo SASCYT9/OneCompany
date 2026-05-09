@@ -22,7 +22,7 @@ export function MobileProductDisclosure({
     <section className={className}>
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/78 transition hover:border-white/22 hover:bg-white/[0.07] sm:hidden"
+        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/4 px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/78 transition hover:border-white/22 hover:bg-white/[0.07] sm:hidden"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >

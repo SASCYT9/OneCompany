@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useRef, useState, type DragEvent } from "react";
 
-import { Image as ImageIcon, Loader2, Upload, X } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * AdminFileUpload — drag-drop file uploader with previews + progress.
@@ -31,20 +31,20 @@ type QueuedFile = {
   id: string;
   file: File;
   previewUrl: string;
-  status: 'pending' | 'uploading' | 'done' | 'error';
+  status: "pending" | "uploading" | "done" | "error";
   error?: string;
   uploadedUrl?: string;
 };
 
 export function AdminFileUpload({
   uploadUrl,
-  accept = 'image/*',
+  accept = "image/*",
   multiple = true,
   maxBytes = 25 * 1024 * 1024,
   onUploaded,
   className,
-  fieldName = 'file',
-  responseUrlKey = 'url',
+  fieldName = "file",
+  responseUrlKey = "url",
   hint,
 }: {
   uploadUrl: string;
@@ -63,14 +63,14 @@ export function AdminFileUpload({
   const inputRef = useRef<HTMLInputElement>(null);
 
   function pickResponseUrl(json: unknown): string | null {
-    if (!json || typeof json !== 'object') return null;
-    const parts = responseUrlKey.split('.');
+    if (!json || typeof json !== "object") return null;
+    const parts = responseUrlKey.split(".");
     let cur: unknown = json;
     for (const p of parts) {
-      if (!cur || typeof cur !== 'object') return null;
+      if (!cur || typeof cur !== "object") return null;
       cur = (cur as Record<string, unknown>)[p];
     }
-    return typeof cur === 'string' ? cur : null;
+    return typeof cur === "string" ? cur : null;
   }
 
   const onFiles = useCallback(
@@ -82,25 +82,25 @@ export function AdminFileUpload({
           queued.push({
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             file,
-            previewUrl: '',
-            status: 'error',
+            previewUrl: "",
+            status: "error",
             error: `Too large (${formatBytes(file.size)} > ${formatBytes(maxBytes)})`,
           });
           continue;
         }
-        const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : '';
+        const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : "";
         queued.push({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           file,
           previewUrl,
-          status: 'pending',
+          status: "pending",
         });
       }
       setQueue((current) => [...current, ...queued]);
 
       // Auto-upload pending items
       queued
-        .filter((q) => q.status === 'pending')
+        .filter((q) => q.status === "pending")
         .forEach((q) => {
           void uploadOne(q.id, q.file);
         });
@@ -109,24 +109,28 @@ export function AdminFileUpload({
   );
 
   async function uploadOne(id: string, file: File) {
-    setQueue((current) => current.map((q) => (q.id === id ? { ...q, status: 'uploading' } : q)));
+    setQueue((current) => current.map((q) => (q.id === id ? { ...q, status: "uploading" } : q)));
     try {
       const fd = new FormData();
       fd.append(fieldName, file);
-      const response = await fetch(uploadUrl, { method: 'POST', body: fd });
+      const response = await fetch(uploadUrl, { method: "POST", body: fd });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${response.status}`);
       }
       const data = await response.json().catch(() => ({}));
       const url = pickResponseUrl(data);
-      if (!url) throw new Error('Server did not return a URL');
+      if (!url) throw new Error("Server did not return a URL");
 
-      setQueue((current) => current.map((q) => (q.id === id ? { ...q, status: 'done', uploadedUrl: url } : q)));
+      setQueue((current) =>
+        current.map((q) => (q.id === id ? { ...q, status: "done", uploadedUrl: url } : q))
+      );
       if (onUploaded) onUploaded([url]);
     } catch (e) {
       setQueue((current) =>
-        current.map((q) => (q.id === id ? { ...q, status: 'error', error: (e as Error).message } : q))
+        current.map((q) =>
+          q.id === id ? { ...q, status: "error", error: (e as Error).message } : q
+        )
       );
     }
   }
@@ -158,7 +162,7 @@ export function AdminFileUpload({
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn("space-y-3", className)}>
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -167,21 +171,21 @@ export function AdminFileUpload({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             inputRef.current?.click();
           }
         }}
         className={cn(
-          'cursor-pointer rounded-none border-2 border-dashed p-6 text-center transition',
+          "cursor-pointer rounded-none border-2 border-dashed p-6 text-center transition",
           dragOver
-            ? 'border-blue-500/60 bg-blue-500/[0.06]'
-            : 'border-white/[0.1] bg-black/20 hover:border-blue-500/40 hover:bg-blue-500/[0.04]'
+            ? "border-blue-500/60 bg-blue-500/6"
+            : "border-white/10 bg-black/20 hover:border-blue-500/40 hover:bg-blue-500/4"
         )}
       >
         <Upload className="mx-auto h-6 w-6 text-zinc-500" aria-hidden="true" />
         <div className="mt-2 text-sm font-medium text-zinc-200">
-          {dragOver ? 'Drop files here' : 'Drag files here or click to browse'}
+          {dragOver ? "Drop files here" : "Drag files here or click to browse"}
         </div>
         <div className="mt-1 text-[11px] text-zinc-500">
           {hint ?? `${accept} · up to ${formatBytes(maxBytes)} per file`}
@@ -193,7 +197,7 @@ export function AdminFileUpload({
           multiple={multiple}
           onChange={(e) => {
             if (e.target.files) onFiles(e.target.files);
-            e.target.value = '';
+            e.target.value = "";
           }}
           className="hidden"
         />
@@ -205,39 +209,54 @@ export function AdminFileUpload({
             <div
               key={q.id}
               className={cn(
-                'flex items-center gap-3 rounded-none border bg-[#171717] p-2 transition',
-                q.status === 'error' ? 'border-red-500/25' : q.status === 'done' ? 'border-emerald-500/20' : 'border-white/[0.05]'
+                "flex items-center gap-3 rounded-none border bg-[#171717] p-2 transition",
+                q.status === "error"
+                  ? "border-red-500/25"
+                  : q.status === "done"
+                    ? "border-emerald-500/20"
+                    : "border-white/5"
               )}
             >
               {q.previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={q.previewUrl} alt="" className="h-12 w-12 shrink-0 rounded-none border border-white/[0.05] object-cover" />
+                <img
+                  src={q.previewUrl}
+                  alt=""
+                  className="h-12 w-12 shrink-0 rounded-none border border-white/5 object-cover"
+                />
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border border-white/[0.05] bg-black/30">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border border-white/5 bg-black/30">
                   <ImageIcon className="h-5 w-5 text-zinc-600" />
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-xs font-medium text-zinc-100">{q.file.name}</span>
-                  {q.status === 'uploading' ? (
-                    <Loader2 className="h-3 w-3 motion-safe:animate-spin text-blue-400" aria-hidden="true" />
-                  ) : q.status === 'done' ? (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-1.5 py-0 text-[10px] font-bold uppercase text-emerald-300">Uploaded</span>
-                  ) : q.status === 'error' ? (
-                    <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-1.5 py-0 text-[10px] font-bold uppercase text-red-300">Failed</span>
+                  {q.status === "uploading" ? (
+                    <Loader2
+                      className="h-3 w-3 motion-safe:animate-spin text-blue-400"
+                      aria-hidden="true"
+                    />
+                  ) : q.status === "done" ? (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/8 px-1.5 py-0 text-[10px] font-bold uppercase text-emerald-300">
+                      Uploaded
+                    </span>
+                  ) : q.status === "error" ? (
+                    <span className="rounded-full border border-red-500/25 bg-red-500/8 px-1.5 py-0 text-[10px] font-bold uppercase text-red-300">
+                      Failed
+                    </span>
                   ) : null}
                 </div>
                 <div className="mt-0.5 truncate text-[10px] text-zinc-500">
                   {formatBytes(q.file.size)}
-                  {q.error ? ` · ${q.error}` : ''}
+                  {q.error ? ` · ${q.error}` : ""}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => removeFromQueue(q.id)}
                 aria-label="Remove"
-                className="rounded-none p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                className="rounded-none p-1 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
               >
                 <X className="h-3 w-3" />
               </button>

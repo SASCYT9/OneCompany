@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { type ReactNode } from 'react';
+import { type ReactNode } from "react";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export type BulkAction = {
   id: string;
   label: string;
   icon?: ReactNode;
   /** danger renders red; primary blue; default neutral */
-  tone?: 'default' | 'primary' | 'danger';
+  tone?: "default" | "primary" | "danger";
   onClick: () => void;
   disabled?: boolean;
   /** When set, replaces the action with a custom rendered element (advanced) */
@@ -37,7 +37,7 @@ export function AdminBulkActionBar({
   count,
   onClear,
   actions,
-  label = 'selected',
+  label = "selected",
   centerSlot,
   className,
 }: {
@@ -57,15 +57,15 @@ export function AdminBulkActionBar({
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
           className={cn(
-            'fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-[920px] -translate-x-1/2',
+            "fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-[920px] -translate-x-1/2",
             className
           )}
           role="region"
           aria-label="Bulk actions"
         >
-          <div className="flex flex-wrap items-center gap-3 rounded-none border border-white/[0.1] bg-[#171717]/95 px-3 py-2.5 shadow-[0_30px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+          <div className="flex flex-wrap items-center gap-3 rounded-none border border-white/10 bg-[#171717]/95 px-3 py-2.5 shadow-[0_30px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
             {/* Counter */}
             <div className="flex items-center gap-2 pl-1">
               <span className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-blue-600 px-2 text-[11px] font-bold text-white tabular-nums">
@@ -76,7 +76,7 @@ export function AdminBulkActionBar({
                 type="button"
                 onClick={onClear}
                 aria-label="Clear selection"
-                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
+                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
@@ -84,7 +84,9 @@ export function AdminBulkActionBar({
 
             {/* Optional center slot (e.g. status select) */}
             {centerSlot ? (
-              <div className="flex flex-1 items-center gap-2 border-l border-white/[0.06] pl-3">{centerSlot}</div>
+              <div className="flex flex-1 items-center gap-2 border-l border-white/6 pl-3">
+                {centerSlot}
+              </div>
             ) : (
               <div className="flex-1" />
             )}
@@ -95,13 +97,13 @@ export function AdminBulkActionBar({
                 if (action.render) {
                   return <span key={action.id}>{action.render()}</span>;
                 }
-                const tone = action.tone ?? 'default';
+                const tone = action.tone ?? "default";
                 const cls =
-                  tone === 'primary'
-                    ? 'bg-blue-600 text-white hover:bg-blue-500 disabled:bg-blue-600/40'
-                    : tone === 'danger'
-                      ? 'border border-red-500/30 bg-red-500/[0.08] text-red-300 hover:border-red-500/50 hover:bg-red-500/[0.15]'
-                      : 'border border-white/[0.1] bg-white/[0.03] text-zinc-100 hover:border-white/20 hover:bg-white/[0.06]';
+                  tone === "primary"
+                    ? "bg-blue-600 text-white hover:bg-blue-500 disabled:bg-blue-600/40"
+                    : tone === "danger"
+                      ? "border border-red-500/30 bg-red-500/8 text-red-300 hover:border-red-500/50 hover:bg-red-500/15"
+                      : "border border-white/10 bg-white/3 text-zinc-100 hover:border-white/20 hover:bg-white/6";
                 return (
                   <button
                     key={action.id}
@@ -109,14 +111,17 @@ export function AdminBulkActionBar({
                     onClick={action.onClick}
                     disabled={action.disabled}
                     className={cn(
-                      'inline-flex h-8 items-center gap-1.5 rounded-none px-3 text-xs font-semibold transition',
-                      'focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-2 focus:ring-offset-[#171717]',
-                      'disabled:cursor-not-allowed disabled:opacity-50',
+                      "inline-flex h-8 items-center gap-1.5 rounded-none px-3 text-xs font-semibold transition",
+                      "focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-2 focus:ring-offset-[#171717]",
+                      "disabled:cursor-not-allowed disabled:opacity-50",
                       cls
                     )}
                   >
                     {action.icon ? (
-                      <span className="flex items-center [&>svg]:h-3.5 [&>svg]:w-3.5" aria-hidden="true">
+                      <span
+                        className="flex items-center [&>svg]:h-3.5 [&>svg]:w-3.5"
+                        aria-hidden="true"
+                      >
                         {action.icon}
                       </span>
                     ) : null}

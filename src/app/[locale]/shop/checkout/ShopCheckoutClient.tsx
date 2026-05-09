@@ -432,7 +432,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               {isUa ? 'Спосіб оплати' : 'Payment method'}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                 <div className="flex items-center gap-4 relative z-10">
                   <input
                     type="radio"
@@ -453,7 +453,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </div>
               </label>
               {paymentOptions?.methods.includes('WHITEBIT') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                   <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
@@ -534,7 +534,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4 text-lg font-light text-white">
-                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
+                <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
                 <span className="tabular-nums">{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
             </div>

@@ -467,7 +467,7 @@ export default function AdminShopCustomerDetailPage() {
           type="button"
           onClick={() => void save()}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
           {saving ? 'Зберігаю…' : 'Зберегти'}
@@ -556,7 +556,7 @@ export default function AdminShopCustomerDetailPage() {
                 </div>
                 <Link
                   href={`/admin/shop/orders/create?customerId=${customer.id}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                 >
                   Нове замовлення
                 </Link>
@@ -566,7 +566,7 @@ export default function AdminShopCustomerDetailPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[720px] text-left text-sm">
                       <thead>
-                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                        <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                           <th className="px-4 py-4 font-medium">Замовлення</th>
                           <th className="px-4 py-4 font-medium">Статус</th>
                           <th className="px-4 py-4 font-medium">Позицій</th>
@@ -576,7 +576,7 @@ export default function AdminShopCustomerDetailPage() {
                       </thead>
                       <tbody className="divide-y divide-white/6">
                         {customer.orders.map((order) => (
-                          <tr key={order.id} className="transition hover:bg-white/[0.03]">
+                          <tr key={order.id} className="transition hover:bg-white/3">
                             <td className="px-4 py-4">
                               <div className="font-medium text-zinc-100">{order.orderNumber}</div>
                               <div className="mt-1 text-xs text-zinc-500">{new Date(order.createdAt).toLocaleString()}</div>

@@ -10,12 +10,20 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
+import {
+  computeShopDisplayPrices,
+  hasAnyShopPrice,
+  pickShopSortableAmount,
+} from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { detectMakesForModel, enrichAdroCatalogProduct, type EnrichedAdroCatalogProduct } from "@/lib/adroCatalog";
+import {
+  detectMakesForModel,
+  enrichAdroCatalogProduct,
+  type EnrichedAdroCatalogProduct,
+} from "@/lib/adroCatalog";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
@@ -71,7 +79,11 @@ function pickPrimaryPriceLabel(
   return null;
 }
 
-export default function AdroCatalogGrid({ locale, products, viewerContext: ssrViewerContext }: Props) {
+export default function AdroCatalogGrid({
+  locale,
+  products,
+  viewerContext: ssrViewerContext,
+}: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const t = useTranslations("adroCatalog");
   const { currency, rates } = useShopCurrency();
@@ -85,7 +97,9 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
   const [activeModel, setActiveModel] = useState(searchParams?.get("model") || "all");
   const [activeCategory, setActiveCategory] = useState(searchParams?.get("category") || "all");
   const [searchQuery, setSearchQuery] = useState(searchParams?.get("q") || "");
-  const [sortOrder, setSortOrder] = useState<SortOrder>((searchParams?.get("sort") as SortOrder) || "default");
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    (searchParams?.get("sort") as SortOrder) || "default"
+  );
   const [visibleCount, setVisibleCount] = useState(30);
   const previousMakeRef = useRef(activeMake);
 
@@ -192,25 +206,51 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
     });
 
     return [...result].sort((left, right) => {
-      const leftPricing = viewerContext ? resolveShopProductPricing(left.product, viewerContext) : null;
-      const rightPricing = viewerContext ? resolveShopProductPricing(right.product, viewerContext) : null;
-      const leftPrice = pickShopSortableAmount(leftPricing?.effectivePrice ?? left.product.price, currency, displayRates);
-      const rightPrice = pickShopSortableAmount(rightPricing?.effectivePrice ?? right.product.price, currency, displayRates);
+      const leftPricing = viewerContext
+        ? resolveShopProductPricing(left.product, viewerContext)
+        : null;
+      const rightPricing = viewerContext
+        ? resolveShopProductPricing(right.product, viewerContext)
+        : null;
+      const leftPrice = pickShopSortableAmount(
+        leftPricing?.effectivePrice ?? left.product.price,
+        currency,
+        displayRates
+      );
+      const rightPrice = pickShopSortableAmount(
+        rightPricing?.effectivePrice ?? right.product.price,
+        currency,
+        displayRates
+      );
 
       if (sortOrder === "price_desc") return rightPrice - leftPrice;
       if (sortOrder === "price_asc") return leftPrice - rightPrice;
       if (sortOrder === "title_asc") {
-        return localizeShopProductTitle(locale, left.product).localeCompare(localizeShopProductTitle(locale, right.product));
+        return localizeShopProductTitle(locale, left.product).localeCompare(
+          localizeShopProductTitle(locale, right.product)
+        );
       }
 
       return (
         left.makes[0].localeCompare(right.makes[0]) ||
         left.models[0].localeCompare(right.models[0]) ||
         left.category.key.localeCompare(right.category.key) ||
-        localizeShopProductTitle(locale, left.product).localeCompare(localizeShopProductTitle(locale, right.product))
+        localizeShopProductTitle(locale, left.product).localeCompare(
+          localizeShopProductTitle(locale, right.product)
+        )
       );
     });
-  }, [activeCategory, activeMake, activeModel, currency, locale, queryFilteredProducts, rates, sortOrder, viewerContext]);
+  }, [
+    activeCategory,
+    activeMake,
+    activeModel,
+    currency,
+    locale,
+    queryFilteredProducts,
+    rates,
+    sortOrder,
+    viewerContext,
+  ]);
 
   const displayedProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -241,7 +281,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="w-full rounded-[2px] border border-white/10 bg-black/55 py-3 pl-11 pr-10 text-sm text-white outline-none transition-colors placeholder:text-white/28 focus:border-white/35"
+          className="w-full rounded-[2px] border border-white/10 bg-black/55 py-3 pl-11 pr-10 text-sm text-white outline-hidden transition-colors placeholder:text-white/28 focus:border-white/35"
         />
         {searchQuery ? (
           <button
@@ -256,11 +296,13 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">{t("make")}</span>
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+          {t("make")}
+        </span>
         <select
           value={activeMake}
           onChange={(event) => setActiveMake(event.target.value)}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-white/35"
+          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35"
         >
           <option value="all">{t("allMakes")}</option>
           {makeOptions.map((option) => (
@@ -272,12 +314,14 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">{t("model")}</span>
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+          {t("model")}
+        </span>
         <select
           value={activeModel}
           onChange={(event) => setActiveModel(event.target.value)}
           disabled={modelOptions.length === 0}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-white/35 disabled:cursor-not-allowed disabled:opacity-45"
+          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <option value="all">{t("allModels")}</option>
           {modelOptions.map((option) => (
@@ -289,11 +333,13 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">{t("category")}</span>
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+          {t("category")}
+        </span>
         <select
           value={activeCategory}
           onChange={(event) => setActiveCategory(event.target.value)}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-white/35"
+          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35"
         >
           <option value="all">{t("allCategories")}</option>
           {categoryOptions.map((option) => (
@@ -307,7 +353,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
       <button
         type="button"
         onClick={resetFilters}
-        className="w-full rounded-[2px] border border-white/12 bg-white/[0.04] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/75 transition-colors hover:border-white/30 hover:bg-white/[0.08]"
+        className="w-full rounded-[2px] border border-white/12 bg-white/4 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/75 transition-colors hover:border-white/30 hover:bg-white/8"
       >
         {t("resetFilters")}
       </button>
@@ -319,7 +365,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
   return (
     <section className="relative z-20 min-h-screen bg-transparent py-8 text-white">
       <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
-        <div className="mb-10 grid gap-8 border-y border-white/[0.06] py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
+        <div className="mb-10 grid gap-8 border-y border-white/6 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/42">
               {t("eyebrow")}
@@ -339,7 +385,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
             onClick={toggleMobileFilter}
             aria-expanded={mobileFilterOpen}
             aria-controls="adro-mobile-filters"
-            className="flex items-center gap-2.5 rounded-[2px] border border-white/[0.12] bg-[#060606]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-white/28"
+            className="flex items-center gap-2.5 rounded-[2px] border border-white/12 bg-[#060606]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-white/28"
           >
             <SlidersHorizontal size={13} />
             {t("filters")}
@@ -353,7 +399,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
         <div className="flex flex-col gap-12 lg:flex-row lg:gap-16">
           <aside
             id="adro-mobile-filters"
-            className={`flex-shrink-0 transition-transform duration-300 ${
+            className={`shrink-0 transition-transform duration-300 ${
               mobileFilterOpen
                 ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
                 : "hidden w-full lg:block lg:w-[280px]"
@@ -362,8 +408,8 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
             <div
               className={`${
                 mobileFilterOpen
-                  ? "flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
-                  : "flex flex-col gap-6 rounded-[2px] border border-white/[0.06] bg-[#050505]/90 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[112px]"
+                  ? "flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/8 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
+                  : "flex flex-col gap-6 rounded-[2px] border border-white/6 bg-[#050505]/90 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[112px]"
               }`}
             >
               <button
@@ -387,7 +433,9 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
             </div>
           </aside>
 
-          {mobileFilterOpen ? <div className="fixed inset-0 z-40 bg-black/70 lg:hidden" onClick={closeMobileFilter} /> : null}
+          {mobileFilterOpen ? (
+            <div className="fixed inset-0 z-40 bg-black/70 lg:hidden" onClick={closeMobileFilter} />
+          ) : null}
 
           <main className="min-w-0 flex-1">
             <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -408,7 +456,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
                 <select
                   value={sortOrder}
                   onChange={(event) => setSortOrder(event.target.value as SortOrder)}
-                  className="appearance-none rounded-[2px] border border-white/10 bg-[#050505]/90 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-xl outline-none transition-colors focus:border-white/35"
+                  className="appearance-none rounded-[2px] border border-white/10 bg-[#050505]/90 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-xl outline-hidden transition-colors focus:border-white/35"
                 >
                   <option value="default">{t("sortDefault")}</option>
                   <option value="price_desc">{t("sortPriceDesc")}</option>
@@ -422,12 +470,14 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center border border-white/5 bg-black/45 py-28 text-center backdrop-blur-sm">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.04]">
+              <div className="flex flex-col items-center border border-white/5 bg-black/45 py-28 text-center backdrop-blur-xs">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/4">
                   <Search className="h-6 w-6 text-white/20" />
                 </div>
                 <h3 className="text-xl font-light text-white">{t("noResultsTitle")}</h3>
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-white/48">{t("noResultsBody")}</p>
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-white/48">
+                  {t("noResultsBody")}
+                </p>
                 <button
                   type="button"
                   onClick={resetFilters}
@@ -443,21 +493,38 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
                   const productTitle = localizeShopProductTitle(locale, product);
                   const pricing = viewerContext
                     ? resolveShopProductPricing(product, viewerContext)
-                    : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: "b2c", b2bVisible: false };
+                    : {
+                        effectivePrice: product.price,
+                        effectiveCompareAt: product.compareAt,
+                        audience: "b2c",
+                        b2bVisible: false,
+                      };
                   const displayRates = rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH };
                   const computed = computeShopDisplayPrices(pricing.effectivePrice, displayRates);
                   const hasPrice = hasAnyShopPrice(pricing.effectivePrice, displayRates);
                   const primaryPrice = pickPrimaryPriceLabel(locale, currency, computed);
-                  const defaultVariant = product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0] ?? null;
-                  const facetLabel = [entry.makes[0], entry.models[0], getCategoryLabel(locale, entry.category)].filter(Boolean).join(" · ");
+                  const defaultVariant =
+                    product.variants?.find((variant) => variant.isDefault) ??
+                    product.variants?.[0] ??
+                    null;
+                  const facetLabel = [
+                    entry.makes[0],
+                    entry.models[0],
+                    getCategoryLabel(locale, entry.category),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
 
                   return (
                     <article
                       key={product.slug}
-                      className="group relative flex flex-col overflow-hidden border border-white/[0.06] bg-[#070707] transition-all duration-500 hover:border-white/[0.18] hover:bg-[#0b0b0b]"
+                      className="group relative flex flex-col overflow-hidden border border-white/6 bg-[#070707] transition-all duration-500 hover:border-white/18 hover:bg-[#0b0b0b]"
                     >
-                      <Link href={`/${locale}/shop/adro/products/${product.slug}`} className="z-10 flex flex-grow flex-col">
-                        <div className="relative aspect-square overflow-hidden border-b border-white/[0.04] bg-[#050505]">
+                      <Link
+                        href={`/${locale}/shop/adro/products/${product.slug}`}
+                        className="z-10 flex grow flex-col"
+                      >
+                        <div className="relative aspect-square overflow-hidden border-b border-white/4 bg-[#050505]">
                           <ShopProductImage
                             src={product.image || "/images/shop/adro/adro-hero-m4.jpg"}
                             alt={productTitle}
@@ -466,20 +533,22 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
                             fallbackSrc="/images/shop/adro/adro-hero-m4.jpg"
                             className="object-contain p-10 opacity-[0.82] transition-all duration-700 group-hover:scale-[1.05] group-hover:opacity-100"
                           />
-                          <div className="absolute left-4 top-4 z-20 border border-white/[0.08] bg-black/65 px-2.5 py-1 text-[8px] uppercase tracking-[0.18em] text-white/50 backdrop-blur-sm">
+                          <div className="absolute left-4 top-4 z-20 border border-white/8 bg-black/65 px-2.5 py-1 text-[8px] uppercase tracking-[0.18em] text-white/50 backdrop-blur-xs">
                             {getCategoryLabel(locale, entry.category)}
                           </div>
                         </div>
 
-                        <div className="flex flex-grow flex-col px-5 pb-5 pt-4">
-                          <p className="text-[8px] uppercase tracking-[0.2em] text-white/28">{product.sku}</p>
+                        <div className="flex grow flex-col px-5 pb-5 pt-4">
+                          <p className="text-[8px] uppercase tracking-[0.2em] text-white/28">
+                            {product.sku}
+                          </p>
                           <h3 className="mt-2 line-clamp-2 min-h-10 text-pretty text-sm leading-snug text-white/88 transition-colors group-hover:text-white">
                             {productTitle}
                           </h3>
                           <p className="mt-3 line-clamp-2 min-h-10 text-[10px] uppercase tracking-[0.12em] text-white/38">
                             {facetLabel}
                           </p>
-                          <div className="mt-auto border-t border-white/[0.04] pt-3">
+                          <div className="mt-auto border-t border-white/4 pt-3">
                             {hasPrice && primaryPrice ? (
                               <span className="tabular-nums text-sm font-medium tracking-wide text-white">
                                 {primaryPrice}
@@ -513,7 +582,7 @@ export default function AdroCatalogGrid({ locale, products, viewerContext: ssrVi
                           variant="inline"
                         />
                       </div>
-                      <div className="absolute left-0 top-0 h-[1px] w-full origin-left scale-x-0 bg-white transition-transform duration-500 group-hover:scale-x-100" />
+                      <div className="absolute left-0 top-0 h-px w-full origin-left scale-x-0 bg-white transition-transform duration-500 group-hover:scale-x-100" />
                     </article>
                   );
                 })}

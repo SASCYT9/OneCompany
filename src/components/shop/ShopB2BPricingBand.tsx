@@ -101,7 +101,7 @@ export function ShopB2BPricingBand({ pricing, locale, className }: Props) {
       ) : null}
 
       {pricing.requestQuote ? (
-        <p className="pl-7 text-[11px] text-cyan-200/50 leading-relaxed uppercase tracking-[0.1em]">
+        <p className="pl-7 text-[11px] text-cyan-200/50 leading-relaxed uppercase tracking-widest">
           {isUa ? "Очікує верифікації акаунта" : "Pending account verification"}
         </p>
       ) : null}

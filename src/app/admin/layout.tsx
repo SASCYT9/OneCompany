@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from "react";
 
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { ArrowRight, Lock, Mail, ShieldCheck } from 'lucide-react';
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { ArrowRight, Lock, Mail, ShieldCheck } from "lucide-react";
 
-import AdminShell from '@/components/admin/AdminShell';
-import { AdminConfirmProvider } from '@/components/admin/AdminConfirmDialog';
-import { AdminToastProvider } from '@/components/admin/AdminToast';
-import { AdminCurrencyProvider } from '@/lib/admin/currencyContext';
+import AdminShell from "@/components/admin/AdminShell";
+import { AdminConfirmProvider } from "@/components/admin/AdminConfirmDialog";
+import { AdminToastProvider } from "@/components/admin/AdminToast";
+import { AdminCurrencyProvider } from "@/lib/admin/currencyContext";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authReady, setAuthReady] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     async function loadAuthState() {
       try {
-        const response = await fetch('/api/admin/auth', { cache: 'no-store' });
+        const response = await fetch("/api/admin/auth", { cache: "no-store" });
         const data = await response.json().catch(() => ({ authenticated: false }));
         if (!isMounted) return;
         setIsAuthenticated(Boolean(data.authenticated));
@@ -45,24 +45,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/admin/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Invalid password');
+        setError((data as { error?: string }).error || "Invalid password");
         return;
       }
 
       setIsAuthenticated(true);
     } catch {
-      setError('Failed to authenticate. Please try again.');
+      setError("Failed to authenticate. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -70,12 +70,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   async function handleLogout() {
     try {
-      await fetch('/api/admin/auth', { method: 'DELETE' });
+      await fetch("/api/admin/auth", { method: "DELETE" });
     } catch {
       // resilient logout
     }
     setIsAuthenticated(false);
-    setPassword('');
+    setPassword("");
   }
 
   if (!authReady) {
@@ -86,7 +86,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="absolute inset-0 motion-safe:animate-ping rounded-full border border-blue-500/40" />
             <div className="relative h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_14px_rgba(59,130,246,0.9)]" />
           </div>
-          <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">Authenticating</div>
+          <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+            Authenticating
+          </div>
         </div>
       </div>
     );
@@ -97,8 +99,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="relative min-h-screen overflow-hidden bg-[#0A0A0A]">
         {/* Subtle blue ambient glow */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/[0.10] blur-[140px]" />
-          <div className="absolute -right-32 bottom-1/4 h-[450px] w-[450px] rounded-full bg-blue-500/[0.06] blur-[120px]" />
+          <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-[140px]" />
+          <div className="absolute -right-32 bottom-1/4 h-[450px] w-[450px] rounded-full bg-blue-500/6 blur-[120px]" />
         </div>
 
         {/* Hairline grid */}
@@ -106,8 +108,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           className="pointer-events-none absolute inset-0 opacity-[0.018]"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
+              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
           }}
         />
 
@@ -132,7 +134,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             <div className="relative overflow-hidden rounded-none border border-white/[0.07] bg-[#121212] shadow-[0_50px_120px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.04)]">
               {/* Top blue accent line */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-500 to-transparent" />
 
               <div className="p-6 sm:p-9">
                 <div className="mb-8 text-center">
@@ -165,7 +167,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="admin@onecompany.local"
                       autoComplete="email"
-                      className="w-full rounded-none border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full rounded-none border border-white/8 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-hidden focus:ring-2 focus:ring-blue-500/15"
                       required
                     />
                   </div>
@@ -181,7 +183,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="••••••••••••"
                       autoComplete="current-password"
-                      className="w-full rounded-none border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full rounded-none border border-white/8 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-hidden focus:ring-2 focus:ring-blue-500/15"
                       required
                     />
                   </div>
@@ -205,13 +207,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   >
                     {loading ? (
                       <>
-                        <span className="h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+                        <span
+                          className="h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent"
+                          aria-hidden="true"
+                        />
                         <span>Authenticating</span>
                       </>
                     ) : (
                       <>
                         <span>Sign in</span>
-                        <ArrowRight className="h-4 w-4 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+                        <ArrowRight
+                          className="h-4 w-4 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
                       </>
                     )}
                   </button>

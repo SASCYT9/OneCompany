@@ -1,20 +1,13 @@
-'use client';
+"use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
-import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle2, Info, X, AlertTriangle } from 'lucide-react';
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, CheckCircle2, Info, X, AlertTriangle } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
-type ToastTone = 'success' | 'error' | 'warning' | 'info';
+type ToastTone = "success" | "error" | "warning" | "info";
 
 type Toast = {
   id: string;
@@ -26,7 +19,7 @@ type Toast = {
 };
 
 type ToastContextValue = {
-  toast: (t: Omit<Toast, 'id'>) => string;
+  toast: (t: Omit<Toast, "id">) => string;
   dismiss: (id: string) => void;
   success: (title: string, description?: string) => string;
   error: (title: string, description?: string) => string;
@@ -44,7 +37,7 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toast = useCallback(
-    (t: Omit<Toast, 'id'>) => {
+    (t: Omit<Toast, "id">) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const duration = t.duration ?? 4000;
       setToasts((current) => [...current, { ...t, id }]);
@@ -59,10 +52,13 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
   const helpers = {
     toast,
     dismiss,
-    success: (title: string, description?: string) => toast({ tone: 'success', title, description }),
-    error: (title: string, description?: string) => toast({ tone: 'error', title, description, duration: 6000 }),
-    warning: (title: string, description?: string) => toast({ tone: 'warning', title, description }),
-    info: (title: string, description?: string) => toast({ tone: 'info', title, description }),
+    success: (title: string, description?: string) =>
+      toast({ tone: "success", title, description }),
+    error: (title: string, description?: string) =>
+      toast({ tone: "error", title, description, duration: 6000 }),
+    warning: (title: string, description?: string) =>
+      toast({ tone: "warning", title, description }),
+    info: (title: string, description?: string) => toast({ tone: "info", title, description }),
   };
 
   return (
@@ -78,23 +74,29 @@ export function useToast(): ToastContextValue {
   if (!ctx) {
     // Safe no-op fallback so hook can be called outside provider during SSR
     return {
-      toast: () => '',
+      toast: () => "",
       dismiss: () => undefined,
-      success: () => '',
-      error: () => '',
-      warning: () => '',
-      info: () => '',
+      success: () => "",
+      error: () => "",
+      warning: () => "",
+      info: () => "",
     };
   }
   return ctx;
 }
 
-function ToastViewport({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+function ToastViewport({
+  toasts,
+  onDismiss,
+}: {
+  toasts: Toast[];
+  onDismiss: (id: string) => void;
+}) {
   return (
     <div
       aria-live="polite"
       aria-atomic="false"
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"
+      className="pointer-events-none fixed bottom-4 right-4 z-100 flex w-full max-w-sm flex-col gap-2"
     >
       <AnimatePresence initial={false}>
         {toasts.map((t) => (
@@ -107,25 +109,25 @@ function ToastViewport({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id:
 
 function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const Icon =
-    toast.tone === 'success'
+    toast.tone === "success"
       ? CheckCircle2
-      : toast.tone === 'error'
+      : toast.tone === "error"
         ? AlertCircle
-        : toast.tone === 'warning'
+        : toast.tone === "warning"
           ? AlertTriangle
           : Info;
 
   const accentClass =
-    toast.tone === 'success'
-      ? 'border-green-500/30 bg-green-500/[0.05] [&_.toast-icon]:text-green-400 [&_.toast-stripe]:bg-green-500'
-      : toast.tone === 'error'
-        ? 'border-red-500/30 bg-red-500/[0.05] [&_.toast-icon]:text-red-400 [&_.toast-stripe]:bg-red-500'
-        : toast.tone === 'warning'
-          ? 'border-amber-500/30 bg-amber-500/[0.05] [&_.toast-icon]:text-amber-400 [&_.toast-stripe]:bg-amber-500'
-          : 'border-blue-500/30 bg-blue-500/[0.05] [&_.toast-icon]:text-blue-400 [&_.toast-stripe]:bg-blue-500';
+    toast.tone === "success"
+      ? "border-green-500/30 bg-green-500/5 [&_.toast-icon]:text-green-400 [&_.toast-stripe]:bg-green-500"
+      : toast.tone === "error"
+        ? "border-red-500/30 bg-red-500/5 [&_.toast-icon]:text-red-400 [&_.toast-stripe]:bg-red-500"
+        : toast.tone === "warning"
+          ? "border-amber-500/30 bg-amber-500/5 [&_.toast-icon]:text-amber-400 [&_.toast-stripe]:bg-amber-500"
+          : "border-blue-500/30 bg-blue-500/5 [&_.toast-icon]:text-blue-400 [&_.toast-stripe]:bg-blue-500";
 
-  const role = toast.tone === 'error' ? 'alert' : 'status';
-  const ariaLive = toast.tone === 'error' ? 'assertive' : 'polite';
+  const role = toast.tone === "error" ? "alert" : "status";
+  const ariaLive = toast.tone === "error" ? "assertive" : "polite";
 
   return (
     <motion.div
@@ -133,20 +135,25 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       initial={{ opacity: 0, x: 40, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 20, scale: 0.95, transition: { duration: 0.15 } }}
-      transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+      transition={{ type: "spring", stiffness: 300, damping: 26 }}
       role={role}
       aria-live={ariaLive}
       className={cn(
-        'pointer-events-auto relative overflow-hidden rounded-none border bg-[#171717] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        "pointer-events-auto relative overflow-hidden rounded-none border bg-[#171717] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         accentClass
       )}
     >
-      <span className="toast-stripe pointer-events-none absolute left-0 top-0 h-full w-[3px]" aria-hidden="true" />
+      <span
+        className="toast-stripe pointer-events-none absolute left-0 top-0 h-full w-[3px]"
+        aria-hidden="true"
+      />
       <div className="flex items-start gap-3 px-4 py-3.5 pl-5">
         <Icon className="toast-icon mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-zinc-50">{toast.title}</div>
-          {toast.description ? <div className="mt-0.5 text-xs leading-5 text-zinc-400">{toast.description}</div> : null}
+          {toast.description ? (
+            <div className="mt-0.5 text-xs leading-5 text-zinc-400">{toast.description}</div>
+          ) : null}
           {toast.action ? (
             <button
               type="button"
@@ -164,7 +171,7 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss notification"
-          className="-mr-1 -mt-1 rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
+          className="-mr-1 -mt-1 rounded-none p-1 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
@@ -184,11 +191,11 @@ export function useAdminToastBridge() {
   const { toast } = useToast();
   useEffect(() => {
     function handler(e: Event) {
-      const detail = (e as CustomEvent).detail as Omit<Toast, 'id'> | undefined;
+      const detail = (e as CustomEvent).detail as Omit<Toast, "id"> | undefined;
       if (!detail) return;
       toast(detail);
     }
-    window.addEventListener('admin-toast', handler);
-    return () => window.removeEventListener('admin-toast', handler);
+    window.addEventListener("admin-toast", handler);
+    return () => window.removeEventListener("admin-toast", handler);
   }, [toast]);
 }
