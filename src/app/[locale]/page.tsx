@@ -182,7 +182,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     index === 0 ? "md:mr-2" : "md:ml-2"
                   )}
                 >
-                  {/* Dark theme photo (obsidian backdrop) */}
+                  {/* Both photos render simultaneously; opacity flips with
+                      the theme so they cross-fade instead of snapping. */}
                   <Image
                     src={experience.bgImageDark}
                     alt={
@@ -191,61 +192,60 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 hidden dark:block"
+                    className="object-cover group-hover:scale-105 transition-all duration-700 opacity-0 dark:opacity-100"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Light theme photo (cream backdrop) */}
                   <Image
                     src={experience.bgImageLight}
                     alt=""
                     aria-hidden="true"
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 dark:hidden"
+                    className="object-cover group-hover:scale-105 transition-all duration-700 opacity-100 dark:opacity-0"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Bottom gradient overlay so the stats area always reads.
-                      Light theme uses dark veil over cream photo, dark theme
-                      uses black veil over obsidian photo. */}
-                  <div className="absolute inset-0 bg-linear-to-t from-foreground/55 via-foreground/15 to-transparent dark:from-black/70 dark:via-black/20" />
+                  {/* Strong veil at top + bottom of card so the label pill and
+                      stats both have darkened backing. Middle stays clear so
+                      the car silhouette shows. */}
+                  <div className="absolute inset-0 bg-linear-to-b from-foreground/35 via-transparent to-foreground/55 dark:from-black/40 dark:to-black/70 transition-colors duration-500" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
                       <span
-                        className={`inline-block font-display rounded-full border border-foreground/50 bg-background/40 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-foreground shadow-[0_8px_24px_rgba(0,0,0,0.2)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:border-foreground sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                        className={`inline-block font-display rounded-full border border-white/40 bg-black/40 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
                       >
                         {experience.label}
                       </span>
                     </div>
                     <p
-                      className={`leading-relaxed text-foreground/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
+                      className={`leading-relaxed text-white text-pretty tracking-wide max-w-xs mx-auto [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)] ${typography.bodySmall}`}
                     >
                       {experience.description}
                     </p>
                   </div>
                   <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                    <div className="flex flex-wrap gap-2 text-foreground/80 sm:gap-4">
+                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
                       {experience.stats.map((stat) => (
                         <div key={stat.note}>
                           <p
-                            className={`font-display tracking-tight text-foreground ${typography.statValue}`}
+                            className={`font-display tracking-tight text-white [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)] ${typography.statValue}`}
                           >
                             {stat.value}
                           </p>
                           <p
-                            className={`uppercase tracking-[0.2em] text-foreground/55 sm:tracking-[0.3em] ${typography.statLabel}`}
+                            className={`uppercase tracking-[0.2em] text-white/70 sm:tracking-[0.3em] [text-shadow:_0_1px_4px_rgba(0,0,0,0.6)] ${typography.statLabel}`}
                           >
                             {stat.note}
                           </p>
                         </div>
                       ))}
                     </div>
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/30 bg-background/40 backdrop-blur-md text-sm text-foreground transition-all duration-500 group-hover:scale-110 group-hover:border-foreground group-hover:bg-foreground group-hover:text-background sm:h-12 sm:w-12">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-black/40 backdrop-blur-md text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-12 sm:w-12">
                       →
                     </span>
                   </div>

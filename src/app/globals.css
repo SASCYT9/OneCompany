@@ -191,6 +191,38 @@
     background-color: hsl(var(--background));
   }
 
+  /* Smooth theme transitions: when the .dark class flips, animate the
+     core color tokens that drive the page (bg, text, borders) so the
+     whole site cross-fades instead of snapping. Limited to specific
+     properties so it doesn't slow down hover interactions. */
+  html,
+  body,
+  header,
+  footer,
+  main,
+  section,
+  article,
+  aside,
+  nav {
+    transition:
+      background-color 350ms ease,
+      border-color 350ms ease,
+      color 350ms ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html,
+    body,
+    header,
+    footer,
+    main,
+    section,
+    article,
+    aside,
+    nav {
+      transition: none;
+    }
+  }
+
   /* Respect user's motion preferences */
   @media (prefers-reduced-motion: reduce) {
     *,
