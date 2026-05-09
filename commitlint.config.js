@@ -28,5 +28,11 @@ module.exports = {
     "header-max-length": [2, "always", 100],
     "body-leading-blank": [1, "always"],
     "footer-leading-blank": [1, "always"],
+    // Body and footer often contain unwrappable URLs, stack traces, or
+    // shell snippets — wrapping them at 100 cols hurts readability and
+    // breaks copy-paste. Disable the line-length checks; keep the
+    // header limit, which is the part that shows in `git log --oneline`.
+    "body-max-line-length": [0],
+    "footer-max-line-length": [0],
   },
 };
