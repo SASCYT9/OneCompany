@@ -85,7 +85,7 @@ Create `.env.local` (never committed) with at minimum:
 | `TELEGRAM_AUTO_CHAT_ID`        | Chat ID for auto team inquiries                                   |
 | `TELEGRAM_MOTO_CHAT_ID`        | Chat ID for moto team inquiries                                   |
 | `RESEND_API_KEY`               | Email API key — see [docs/google-workspace-setup.md](docs/google-workspace-setup.md) |
-| `EMAIL_FROM`                   | Sender address (e.g., `contact@onecompany.global`)                |
+| `EMAIL_FROM`                   | Sender address (e.g., `info@onecompany.global`)                   |
 | `EMAIL_AUTO`                   | Recipient for auto inquiries                                      |
 | `EMAIL_MOTO`                   | Recipient for moto inquiries                                      |
 | `ADMIN_SECRET`                 | Shared secret for `/admin` media UI                               |
@@ -176,4 +176,4 @@ channels and response timeline.
 Proprietary — All Rights Reserved. See [`LICENSE`](./LICENSE) for the full
 terms. Public visibility on GitHub does not grant any usage rights.
 
-For licensing inquiries: `contact@onecompany.global`.
+For licensing inquiries: `info@onecompany.global`.

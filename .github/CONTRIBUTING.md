@@ -110,4 +110,4 @@ BREAKING CHANGE: API consumers using `slug` must migrate to `handle`.
 ## Questions?
 
 Open a [Discussion](https://github.com/SASCYT9/OneCompany/discussions) or email
-`contact@onecompany.global`.
+`info@onecompany.global`.
