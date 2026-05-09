@@ -129,7 +129,7 @@ OneCompany/
 - **Media admin** — `/admin` UI gated by `ADMIN_SECRET`; uploads to Vercel Blob
 - **3D scenes** — interactive product showcases via `@react-three/fiber`
 - **SEO-first** — sitemap, structured data, per-locale metadata, OG images
-- **Turn14 sync** — read-only inventory sync (weights/dimensions only — never titles/descriptions/images, see [memory rules](memory))
+- **Turn14 sync** — read-only inventory sync (weights/dimensions only — never titles, descriptions, or images)
 
 ## Scripts
 
