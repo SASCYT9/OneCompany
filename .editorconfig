@@ -1,0 +1,37 @@
+# EditorConfig — https://editorconfig.org/
+# Top-most config; editor-agnostic baseline so contributors don't fight whitespace.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Markdown — preserve trailing whitespace (used for hard line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefiles require tabs
+[Makefile]
+indent_style = tab
+
+# Go uses tabs by convention (none in repo today, but future-proof)
+[*.go]
+indent_style = tab
+
+# YAML files — keep 2-space indent, never tabs (YAML is sensitive)
+[*.{yml,yaml}]
+indent_size = 2
+indent_style = space
+
+# Python (Blender scripts in archive/) — PEP 8 default
+[*.py]
+indent_size = 4
+
+# package.json / lock files — leave alone
+[package-lock.json]
+insert_final_newline = false

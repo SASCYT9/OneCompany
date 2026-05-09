@@ -1,0 +1,60 @@
+# Build artifacts
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+.pnp
+.yarn/
+
+# Generated
+src/generated/
+prisma/migrations/
+public/sw.js
+public/workbox-*.js
+
+# Lockfiles & manifests (let the package manager own these)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Vendored / archived code — exempt from formatting churn
+archive/
+reference/
+wordpress/
+wp-content/
+
+# Generated catalog data
+data/
+public/media/
+public/logos/
+
+# Env files
+.env*
+
+# Editor
+.vscode/
+.cursor/
+.idea/
+
+# OS
+.DS_Store
+
+# Misc binary / non-text
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.avif
+*.ico
+*.svg
+*.pdf
+*.mp4
+*.mov
+*.zip
+*.gz

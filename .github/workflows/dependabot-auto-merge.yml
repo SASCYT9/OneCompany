@@ -1,0 +1,69 @@
+# Auto-merge Dependabot PRs that pass CI.
+#
+# Strategy:
+#   - patch updates       → auto-merge on green CI
+#   - minor updates       → auto-merge on green CI
+#   - dev-only deps       → auto-merge on green CI (any semver level)
+#   - security updates    → auto-merge on green CI (any semver level)
+#   - major prod updates  → never auto-merge; comment for manual review
+#
+# How it works:
+#   1. Dependabot opens a PR.
+#   2. CI runs (Lint, Typecheck, Prisma validate, Commitlint, CodeQL).
+#   3. This workflow inspects the dependency-update metadata.
+#   4. For eligible updates it approves the PR and enables squash auto-merge.
+#   5. GitHub merges automatically once required status checks pass.
+#
+# Permissions are scoped — strictly less than what Dependabot has.
+# Reference: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#enable-auto-merge-on-a-pull-request
+
+name: Dependabot auto-merge
+
+on: pull_request_target
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Approve and enable auto-merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    timeout-minutes: 5
+    steps:
+      - name: Read Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve PR
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          steps.meta.outputs.dependency-type == 'direct:development' ||
+          contains(steps.meta.outputs.dependency-type, 'security')
+        run: gh pr review --approve "$PR_URL" --body "Auto-approving Dependabot ${{ steps.meta.outputs.update-type }} update for ${{ steps.meta.outputs.dependency-names }}."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable squash auto-merge
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          steps.meta.outputs.dependency-type == 'direct:development' ||
+          contains(steps.meta.outputs.dependency-type, 'security')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on majors that need manual review
+        if: steps.meta.outputs.update-type == 'version-update:semver-major' && steps.meta.outputs.dependency-type == 'direct:production'
+        run: |
+          gh pr comment "$PR_URL" --body "Major version bump for **${{ steps.meta.outputs.dependency-names }}** (production dep). Auto-merge intentionally skipped — please review the upstream changelog for breaking changes and merge manually."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
