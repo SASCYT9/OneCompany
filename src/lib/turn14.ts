@@ -5,9 +5,12 @@
 
 const TURN14_API_BASE = 'https://api.turn14.com/v1';
 
-// We use the provided credentials or fallback to env for security.
-const CLIENT_ID = process.env.TURN14_CLIENT_ID || 'f7a47aba33fa6f87a218de26e824d32e499d58e9';
-const CLIENT_SECRET = process.env.TURN14_CLIENT_SECRET || 'efc5ff7645b09faa8c9b5c602a6c8fec2937f89f';
+const CLIENT_ID = process.env.TURN14_CLIENT_ID;
+const CLIENT_SECRET = process.env.TURN14_CLIENT_SECRET;
+
+if (process.env.NODE_ENV === 'production' && (!CLIENT_ID || !CLIENT_SECRET)) {
+  throw new Error('TURN14_CLIENT_ID and TURN14_CLIENT_SECRET are required in production');
+}
 
 // Simple in-memory token cache for the Node process
 let cachedToken: string | null = null;
@@ -18,8 +21,12 @@ export async function getTurn14AccessToken(): Promise<string> {
     return cachedToken;
   }
 
+  if (!CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error('Turn14 API credentials are not configured (TURN14_CLIENT_ID / TURN14_CLIENT_SECRET)');
+  }
+
   console.log('[Turn14] Fetching new OAuth token...');
-  
+
   const response = await fetch(`${TURN14_API_BASE}/token`, {
     method: 'POST',
     headers: {
