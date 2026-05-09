@@ -277,7 +277,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       </section>
       */}
 
-        <section className="relative overflow-hidden px-6 py-20 text-foreground">
+        <section className="relative overflow-hidden px-6 py-20 text-foreground bg-background">
           <div className="relative mx-auto max-w-6xl">
             <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
               <div>
