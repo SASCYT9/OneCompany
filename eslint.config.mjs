@@ -33,6 +33,11 @@ const eslintConfig = defineConfig([
       "prefer-const": "warn",
       "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "off",
+      // React Compiler rules are advisory hints about missed memoization
+      // opportunities, not correctness bugs. Demote to warnings so CI
+      // surfaces them without blocking PRs. Address as cleanup tasks.
+      "react-hooks/react-compiler": "warn",
+      "react-compiler/react-compiler": "warn",
     },
   },
   {

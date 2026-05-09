@@ -345,7 +345,7 @@ export default function AdminShopCustomersPage() {
                       {customer.notes?.includes('[Airtable:') ? (
                         <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
                           <Database className="h-3.5 w-3.5" />
-                          Зв'язано
+                          Зв&apos;язано
                         </span>
                       ) : (
                         <span className="text-xs text-zinc-600">—</span>
@@ -496,7 +496,7 @@ function CustomerQuickView({
               <div className="rounded-none border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2.5 text-xs">
                 <div className="flex items-center gap-2 text-emerald-300">
                   <Database className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span className="font-semibold uppercase tracking-wider">Пов'язано з Airtable CRM</span>
+                  <span className="font-semibold uppercase tracking-wider">Пов&apos;язано з Airtable CRM</span>
                 </div>
                 <div className="mt-1 text-zinc-500">Запис клієнта синхронізовано з базою CRM.</div>
               </div>
