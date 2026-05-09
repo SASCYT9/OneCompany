@@ -118,7 +118,7 @@
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
     "@google/gemini-cli": "^0.35.1",
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19",
