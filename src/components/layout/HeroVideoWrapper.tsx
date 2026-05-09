@@ -70,20 +70,34 @@ export function HeroVideoWrapper({
         )}
 
         {/* Video. Higher opacity in light because the white veil + light bg
-            otherwise wash the video out to ~12% visibility (math: 30% video
-            blended with 60% white overlay). */}
+            otherwise wash the video out. We also listen on multiple events
+            because onCanPlay doesn't always fire reliably across browsers
+            and the video can land at readyState=4 with opacity stuck at 0. */}
         {enabled && (
           <video
             autoPlay
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             className={`h-full w-full object-cover transition-opacity duration-700 ${
               videoReady ? "opacity-65 dark:opacity-30" : "opacity-0"
             }`}
             poster={poster}
             onCanPlay={() => setVideoReady(true)}
+            onLoadedData={() => setVideoReady(true)}
+            onPlaying={() => setVideoReady(true)}
+            ref={(el) => {
+              if (el && el.readyState >= 2 && !videoReady) {
+                // Already loaded by the time React attaches — set ready immediately
+                setVideoReady(true);
+              }
+              if (el && el.paused) {
+                el.play().catch(() => {
+                  /* autoplay blocked; poster will remain visible */
+                });
+              }
+            }}
           >
             {mobileSrc && (
               <source
