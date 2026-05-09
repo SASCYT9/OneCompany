@@ -58,15 +58,20 @@ export function HeroVideoWrapper({
         {/* Base background — theme-aware so we don't paint black on cream */}
         <div className="absolute inset-0 bg-background" />
 
-        {/* Poster image as fallback */}
+        {/* Poster image as fallback. On light theme we want it more visible
+            so the underlying car imagery reads through the white-tint overlay. */}
         {poster && (
           <div
-            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${videoReady ? "opacity-20" : "opacity-35"}`}
+            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+              videoReady ? "opacity-40 dark:opacity-20" : "opacity-55 dark:opacity-35"
+            }`}
             style={{ backgroundImage: `url(${poster})` }}
           />
         )}
 
-        {/* Video */}
+        {/* Video. Higher opacity in light because the white veil + light bg
+            otherwise wash the video out to ~12% visibility (math: 30% video
+            blended with 60% white overlay). */}
         {enabled && (
           <video
             autoPlay
@@ -74,7 +79,9 @@ export function HeroVideoWrapper({
             muted
             playsInline
             preload="metadata"
-            className={`h-full w-full object-cover transition-opacity duration-700 ${videoReady ? "opacity-30" : "opacity-0"}`}
+            className={`h-full w-full object-cover transition-opacity duration-700 ${
+              videoReady ? "opacity-65 dark:opacity-30" : "opacity-0"
+            }`}
             poster={poster}
             onCanPlay={() => setVideoReady(true)}
           >
@@ -90,8 +97,10 @@ export function HeroVideoWrapper({
           </video>
         )}
 
-        {/* Overlay — strong dark veil on dark theme, soft cream veil on light */}
-        <div className="absolute inset-0 bg-background/60 dark:bg-black/60 pointer-events-none" />
+        {/* Overlay. Soft cream veil on light (25%) keeps page readable but
+            lets the video show through. Strong dark veil on dark (60%)
+            preserves the original luxury ambient feel. */}
+        <div className="absolute inset-0 bg-background/25 dark:bg-black/60 pointer-events-none" />
       </div>
       {!serverEnabled && (
         <div className="fixed top-4 right-4 z-40 rounded-md bg-zinc-900/80 text-white px-3 py-1 text-xs">
