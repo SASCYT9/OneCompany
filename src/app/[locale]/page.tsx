@@ -17,7 +17,8 @@ type ExperienceSplit = {
   description: string;
   href: string;
   accent: string;
-  bgImage: string;
+  bgImageDark: string;
+  bgImageLight: string;
   stats: { value: string; note: string }[];
 };
 
@@ -39,7 +40,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("hypercarDescription"),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
-      bgImage: "/images/hero-auto.png",
+      bgImageDark: "/images/hero-auto-dark.png",
+      bgImageLight: "/images/hero-auto-light.png",
       stats: [
         { value: "160+", note: t("autoBrands") },
         { value: "11", note: t("autoCategories") },
@@ -51,7 +53,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("factoryRaceDescription"),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
-      bgImage: "/images/hero-moto.png",
+      bgImageDark: "/images/hero-moto-dark.png",
+      bgImageLight: "/images/hero-moto-light.png",
       stats: [
         { value: "60+", note: t("motoPartners") },
         { value: "6", note: t("motoSeries") },
@@ -149,12 +152,12 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
   return (
     <>
       <main className="text-foreground">
-        {/* Hero — photo cards have a black gradient overlay so they're always
-            visually dark; force .dark scope so text/borders read correctly
-            regardless of the active site theme. */}
-        <section className="dark relative flex min-h-[70vh] flex-col justify-center pt-8 text-white">
+        {/* Hero — photo cards swap dark/light variants per theme. Each variant
+            has matching gradient overlay so the label pill + stats read
+            correctly. Text uses semantic tokens so it inverts with theme. */}
+        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8 text-foreground">
           <div
-            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
+            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
           >
             <p>{heroBadgeCopy}</p>
           </div>
@@ -173,62 +176,75 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   key={experience.label}
                   href={experience.href}
                   className={clsx(
-                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
-                    "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
+                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5",
+                    "border border-foreground/10 shadow-[0_10px_30px_rgba(0,0,0,0.15)] transition-all duration-500 hover:border-foreground/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)]",
                     "rounded-2xl",
                     index === 0 ? "md:mr-2" : "md:ml-2"
                   )}
                 >
-                  {/* Background Image - raw photo */}
+                  {/* Dark theme photo (obsidian backdrop) */}
                   <Image
-                    src={experience.bgImage}
+                    src={experience.bgImageDark}
                     alt={
                       experience.label === "AUTO" || experience.label === "АВТО"
                         ? "Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна"
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
+                    className="object-cover group-hover:scale-105 transition-all duration-700 hidden dark:block"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
-                    quality={75}
+                    quality={85}
                   />
-                  {/* Subtle gradient for text readability */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                  {/* Light theme photo (cream backdrop) */}
+                  <Image
+                    src={experience.bgImageLight}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-all duration-700 dark:hidden"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority
+                    fetchPriority="high"
+                    quality={85}
+                  />
+                  {/* Gradient overlay for text readability — black veil on dark
+                      photos, soft cream veil on light photos */}
+                  <div className="absolute inset-0 bg-linear-to-t from-card/70 via-card/20 to-transparent dark:from-black/70 dark:via-black/20" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
                       <span
-                        className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                        className={`inline-block font-display rounded-full border border-foreground/50 bg-foreground/10 px-6 py-2.5 tracking-[0.3em] text-foreground shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:shadow-[0_0_40px_rgba(0,0,0,0.25)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
                       >
                         {experience.label}
                       </span>
                     </div>
                     <p
-                      className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
+                      className={`leading-relaxed text-foreground/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
                     >
                       {experience.description}
                     </p>
                   </div>
                   <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
+                    <div className="flex flex-wrap gap-2 text-foreground/80 sm:gap-4">
                       {experience.stats.map((stat) => (
                         <div key={stat.note}>
                           <p
-                            className={`font-display tracking-tight text-white ${typography.statValue}`}
+                            className={`font-display tracking-tight text-foreground ${typography.statValue}`}
                           >
                             {stat.value}
                           </p>
                           <p
-                            className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}
+                            className={`uppercase tracking-[0.2em] text-foreground/55 sm:tracking-[0.3em] ${typography.statLabel}`}
                           >
                             {stat.note}
                           </p>
                         </div>
                       ))}
                     </div>
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/30 bg-foreground/5 text-sm text-foreground transition-all duration-500 group-hover:scale-110 group-hover:border-foreground group-hover:bg-foreground group-hover:text-background group-hover:shadow-[0_0_20px_rgba(0,0,0,0.2)] sm:h-12 sm:w-12">
                       →
                     </span>
                   </div>
