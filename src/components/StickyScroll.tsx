@@ -77,10 +77,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
   useMotionValueEvent(scrollYProgress, "change", updateActiveCard);
 
   return (
-    <section
-      ref={ref}
-      className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-24 bg-background"
-    >
+    <section ref={ref} className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-24">
       <div className="flex flex-col items-center">
         {/* Centered Text Content */}
         <div className="w-full max-w-4xl relative z-10">
