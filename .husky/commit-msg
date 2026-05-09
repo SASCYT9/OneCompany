@@ -1,0 +1,4 @@
+# Validate the commit message against Conventional Commits, mirroring the
+# CI job in .github/workflows/commitlint.yml so failures surface locally
+# instead of waiting for PR feedback.
+npx --no-install commitlint --edit "$1"
