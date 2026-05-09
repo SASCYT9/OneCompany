@@ -6,6 +6,7 @@ import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
+import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -511,6 +512,10 @@ export function BrabusShopProductDetailLayout({
                   isUa={isUa}
                   price={pricing.effectivePrice}
                 />
+              </div>
+
+              <div className="b-price-box" style={{ marginTop: 12 }}>
+                <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} />
               </div>
 
               {/* Action (Add to Cart) */}

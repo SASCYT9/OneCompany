@@ -49,10 +49,14 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   const nextHref = sanitizeNextPath(searchParams.get('next'), `/${locale}/shop/account`);
   const [submitting, setSubmitting] = useState(false);
 
-  /* If NextAuth redirected here with ?error=auth, show a message immediately */
+  /* If NextAuth redirected here with ?error=..., show a message immediately */
   const errorParam = searchParams.get('error');
   const initialError = errorParam
-    ? (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
+    ? errorParam === 'ACCOUNT_DISABLED'
+      ? (isUa
+          ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
+          : 'This account has been disabled. Please contact support.')
+      : (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
     : '';
   const [error, setError] = useState(initialError);
   const [form, setForm] = useState({
@@ -77,6 +81,13 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     }
 
     if (!result?.ok) {
+      if (result?.error === 'ACCOUNT_DISABLED') {
+        throw new Error(
+          isUa
+            ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
+            : 'This account has been disabled. Please contact support.',
+        );
+      }
       throw new Error(isUa ? 'Невірний email або пароль' : 'Invalid email or password');
     }
 
@@ -105,6 +116,18 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     const registerData = await registerResponse.json().catch(() => ({}));
     if (!registerResponse.ok) {
       throw new Error(registerData.error || (isUa ? 'Не вдалося створити акаунт' : 'Failed to create account'));
+    }
+
+    // Cabinet reads this on first mount to show "We linked X past orders" banner.
+    if (typeof window !== 'undefined' && Number(registerData?.linkedOrdersCount) > 0) {
+      try {
+        sessionStorage.setItem(
+          'shop.account.claimedOrdersCount',
+          String(registerData.linkedOrdersCount),
+        );
+      } catch {
+        // Storage might be disabled (private mode) — banner just won't show.
+      }
     }
 
     await handleLogin();
@@ -192,6 +215,17 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
               {submitting ? (isUa ? 'Зачекайте…' : 'Please wait…') : copy.submit}
             </button>
           </form>
+
+          {mode === 'login' ? (
+            <div className="mt-4 text-right">
+              <Link
+                href={`/${locale}/shop/account/forgot-password`}
+                className="text-xs uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
+              >
+                {isUa ? 'Забули пароль?' : 'Forgot password?'}
+              </Link>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex items-center justify-between gap-4 text-sm text-white/50">
             <Link href={`/${locale}/shop/urban/collections`} className="hover:text-white">

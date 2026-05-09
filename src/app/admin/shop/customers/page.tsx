@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Building2, Database, Download, ExternalLink, Eye, Mail, Phone, RefreshCcw, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Building2, Check, Database, Download, ExternalLink, Eye, Mail, Phone, Power, PowerOff, RefreshCcw, RotateCcw, Search, X } from 'lucide-react';
 
 import {
   AdminActionBar,
@@ -69,6 +69,76 @@ export default function AdminShopCustomersPage() {
   const [status, setStatus] = useState('ALL');
   const [exporting, setExporting] = useState(false);
 
+  type SortKey = 'name' | 'group' | 'status' | 'orders' | 'updatedAt';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey>('updatedAt');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+
+  function toggleRow(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllVisible(visibleIds: string[]) {
+    setSelectedIds((prev) => {
+      const allSelected = visibleIds.every((id) => prev.has(id));
+      const next = new Set(prev);
+      if (allSelected) {
+        for (const id of visibleIds) next.delete(id);
+      } else {
+        for (const id of visibleIds) next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function runBulk(action: 'approve_b2b' | 'revert_b2c' | 'activate' | 'deactivate') {
+    if (selectedIds.size === 0) return;
+    setBulkRunning(true);
+    try {
+      const response = await fetch('/api/admin/shop/customers/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast.error('Bulk action failed', (data as { error?: string }).error || 'Unknown error');
+        return;
+      }
+      const { updated = 0, skipped = [] as string[] } = data as { updated: number; skipped: string[] };
+      toast.success(
+        `Оновлено ${updated} клієнтів`,
+        skipped.length ? `${skipped.length} пропущено (вже у потрібному стані або помилка)` : undefined,
+      );
+      clearSelection();
+      await refresh();
+    } finally {
+      setBulkRunning(false);
+    }
+  }
+
+  function toggleSort(nextKey: SortKey) {
+    if (nextKey === sortKey) {
+      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(nextKey);
+      setSortDir(nextKey === 'updatedAt' ? 'desc' : 'asc');
+    }
+  }
+
   // Saved views — filter combinations stored in localStorage
   const savedViews = useSavedViews({
     scope: 'customers',
@@ -120,7 +190,7 @@ export default function AdminShopCustomersPage() {
 
   const filteredCustomers = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return customers.filter((customer) => {
+    const filtered = customers.filter((customer) => {
       if (group !== 'ALL' && customer.group !== group) return false;
       if (status === 'active' && !customer.isActive) return false;
       if (status === 'inactive' && customer.isActive) return false;
@@ -129,7 +199,38 @@ export default function AdminShopCustomersPage() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle));
     });
-  }, [customers, group, query, status]);
+
+    const direction = sortDir === 'asc' ? 1 : -1;
+    const groupRank: Record<CustomerGroup, number> = {
+      B2C: 0,
+      B2B_PENDING: 1,
+      B2B_APPROVED: 2,
+    };
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortKey) {
+        case 'name': {
+          const an = (a.fullName || a.email).toLowerCase();
+          const bn = (b.fullName || b.email).toLowerCase();
+          if (an < bn) return -1 * direction;
+          if (an > bn) return 1 * direction;
+          return 0;
+        }
+        case 'group':
+          return (groupRank[a.group] - groupRank[b.group]) * direction;
+        case 'status':
+          return ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0)) * direction;
+        case 'orders':
+          return (a.counts.orders - b.counts.orders) * direction;
+        case 'updatedAt':
+          return (
+            (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()) * direction
+          );
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [customers, group, query, sortDir, sortKey, status]);
 
   async function load() {
     setError('');
@@ -227,6 +328,60 @@ export default function AdminShopCustomersPage() {
         </button>
       </AdminActionBar>
 
+      {selectedIds.size > 0 ? (
+        <div className="rounded-none border border-blue-500/30 bg-blue-500/[0.04] px-4 py-3 flex flex-wrap items-center gap-3">
+          <span className="text-sm text-zinc-200">
+            Обрано <span className="font-semibold text-white">{selectedIds.size}</span> клієнтів
+          </span>
+          <div className="flex flex-wrap items-center gap-2 ml-auto">
+            <button
+              type="button"
+              disabled={bulkRunning}
+              onClick={() => void runBulk('approve_b2b')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-100 transition hover:bg-emerald-500/15 disabled:opacity-50"
+            >
+              <Check className="h-3.5 w-3.5" />
+              Затвердити B2B
+            </button>
+            <button
+              type="button"
+              disabled={bulkRunning}
+              onClick={() => void runBulk('revert_b2c')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Повернути B2C
+            </button>
+            <button
+              type="button"
+              disabled={bulkRunning}
+              onClick={() => void runBulk('activate')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.05] px-3 py-1.5 text-xs text-emerald-200 transition hover:bg-emerald-500/[0.1] disabled:opacity-50"
+            >
+              <Power className="h-3.5 w-3.5" />
+              Активувати
+            </button>
+            <button
+              type="button"
+              disabled={bulkRunning}
+              onClick={() => void runBulk('deactivate')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/[0.05] px-3 py-1.5 text-xs text-amber-200 transition hover:bg-amber-500/[0.1] disabled:opacity-50"
+            >
+              <PowerOff className="h-3.5 w-3.5" />
+              Деактивувати
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-zinc-400 transition hover:bg-white/[0.05]"
+            >
+              <X className="h-3.5 w-3.5" />
+              Скинути
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <AdminFilterBar>
         <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 md:min-w-[280px]">
           <Search className="h-4 w-4 text-zinc-500" />
@@ -312,18 +467,51 @@ export default function AdminShopCustomersPage() {
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-4 font-medium">Клієнт</th>
-                  <th className="px-4 py-4 font-medium">Група</th>
-                  <th className="px-4 py-4 font-medium">Статус</th>
+                  <th className="px-4 py-4 font-medium w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Виділити всіх видимих"
+                      checked={
+                        filteredCustomers.length > 0 &&
+                        filteredCustomers.every((customer) => selectedIds.has(customer.id))
+                      }
+                      ref={(el) => {
+                        if (el) {
+                          const visibleSelected = filteredCustomers.filter((c) => selectedIds.has(c.id)).length;
+                          el.indeterminate =
+                            visibleSelected > 0 && visibleSelected < filteredCustomers.length;
+                        }
+                      }}
+                      onChange={() => toggleAllVisible(filteredCustomers.map((c) => c.id))}
+                      className="h-4 w-4 accent-[#3b82f6]"
+                    />
+                  </th>
+                  <SortableTh label="Клієнт" sortKey="name" currentKey={sortKey} direction={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Група" sortKey="group" currentKey={sortKey} direction={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Статус" sortKey="status" currentKey={sortKey} direction={sortDir} onClick={toggleSort} />
                   <th className="px-4 py-4 font-medium">CRM</th>
-                  <th className="px-4 py-4 font-medium">Активність</th>
-                  <th className="px-4 py-4 font-medium">Оновлено</th>
+                  <SortableTh label="Активність" sortKey="orders" currentKey={sortKey} direction={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Оновлено" sortKey="updatedAt" currentKey={sortKey} direction={sortDir} onClick={toggleSort} />
                   <th className="px-4 py-4 font-medium">Відкрити</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/6">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="align-top transition hover:bg-white/[0.03]">
+                  <tr
+                    key={customer.id}
+                    className={`align-top transition hover:bg-white/[0.03] ${
+                      selectedIds.has(customer.id) ? 'bg-blue-500/[0.05]' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-4 w-10">
+                      <input
+                        type="checkbox"
+                        aria-label={`Виділити ${customer.fullName || customer.email}`}
+                        checked={selectedIds.has(customer.id)}
+                        onChange={() => toggleRow(customer.id)}
+                        className="h-4 w-4 accent-[#3b82f6]"
+                      />
+                    </td>
                     <td className="px-4 py-4">
                       <div className="font-medium text-zinc-100">{customer.fullName}</div>
                       <div className="mt-1 text-xs text-zinc-500">{customer.email}</div>
@@ -568,5 +756,31 @@ function FilterSelect({
         ))}
       </select>
     </label>
+  );
+}
+
+type SortableThProps<K extends string> = {
+  label: string;
+  sortKey: K;
+  currentKey: K;
+  direction: 'asc' | 'desc';
+  onClick: (key: K) => void;
+};
+
+function SortableTh<K extends string>({ label, sortKey, currentKey, direction, onClick }: SortableThProps<K>) {
+  const active = sortKey === currentKey;
+  const Icon = !active ? ArrowUpDown : direction === 'asc' ? ArrowUp : ArrowDown;
+  return (
+    <th className="px-4 py-4 font-medium">
+      <button
+        type="button"
+        onClick={() => onClick(sortKey)}
+        className={`inline-flex items-center gap-1.5 transition hover:text-white ${active ? 'text-zinc-100' : 'text-zinc-500'}`}
+        aria-label={`Сортувати за ${label}`}
+      >
+        {label}
+        <Icon className="h-3 w-3" />
+      </button>
+    </th>
   );
 }

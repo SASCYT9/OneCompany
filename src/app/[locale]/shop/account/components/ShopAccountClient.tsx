@@ -8,6 +8,12 @@ import { useState, useEffect } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
+import {
+  airtableOrderStatusBadgeClass,
+  classifyCrmBalance,
+  formatAirtableOrderStatus,
+  normalizeAirtableOrderStatus,
+} from '@/lib/airtableCrmStatus';
 
 type Props = {
   locale: SupportedLocale;
@@ -57,17 +63,69 @@ function groupLabel(locale: SupportedLocale, group: Props['profile']['group']) {
   return 'B2C';
 }
 
-export default function ShopAccountClient({ locale, profile }: Props) {
+export default function ShopAccountClient({ locale, profile: initialProfile }: Props) {
   const isUa = locale === 'ua';
+  const [profile, setProfile] = useState(initialProfile);
   const [submittingB2B, setSubmittingB2B] = useState(false);
   const [b2bMessage, setB2BMessage] = useState('');
-  const [profileGroup, setProfileGroup] = useState<Props['profile']['group']>(profile.group);
+  const [profileGroup, setProfileGroup] = useState<Props['profile']['group']>(initialProfile.group);
+
+  // Profile edit modal state
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    firstName: initialProfile.firstName,
+    lastName: initialProfile.lastName,
+    phone: initialProfile.phone ?? '',
+    companyName: initialProfile.companyName ?? '',
+    vatNumber: initialProfile.vatNumber ?? '',
+    preferredLocale: initialProfile.preferredLocale,
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
+
+  function openProfileEditor() {
+    setProfileForm({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      phone: profile.phone ?? '',
+      companyName: profile.companyName ?? '',
+      vatNumber: profile.vatNumber ?? '',
+      preferredLocale: profile.preferredLocale,
+    });
+    setProfileError('');
+    setEditingProfile(true);
+  }
+
+  async function saveProfile() {
+    setSavingProfile(true);
+    setProfileError('');
+    try {
+      const response = await fetch('/api/shop/account', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setProfileError(
+          (data as { error?: string }).error ||
+            (isUa ? 'Не вдалося зберегти профіль' : 'Failed to save profile'),
+        );
+        return;
+      }
+      const updated = data as Props['profile'];
+      setProfile(updated);
+      setProfileGroup(updated.group);
+      setEditingProfile(false);
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   // CRM orders from Airtable
   type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number; items: Array<{ productName: string; brand: string; quantity: number; price: number; total: number }> };
   const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
   const [crmBalance, setCrmBalance] = useState<number>(0);
-  const [crmWhoOwes, setCrmWhoOwes] = useState<string>('');
   const [crmLoading, setCrmLoading] = useState(true);
   const [expandedCrmOrder, setExpandedCrmOrder] = useState<string | null>(null);
 
@@ -77,11 +135,41 @@ export default function ShopAccountClient({ locale, profile }: Props) {
       .then(d => {
         setCrmOrders(d.data || []);
         setCrmBalance(d.balance || 0);
-        setCrmWhoOwes(d.whoOwes || '');
       })
       .catch(() => {})
       .finally(() => setCrmLoading(false));
   }, []);
+
+  const balanceWho = classifyCrmBalance(crmBalance);
+  const balanceLabel =
+    balanceWho === 'balanced'
+      ? (isUa ? 'Розрахунки збігаються' : 'Balanced')
+      : balanceWho === 'client_owes'
+        ? (isUa ? 'Клієнт винен' : 'Customer owes')
+        : (isUa ? 'Ми винні' : 'We owe');
+
+  // First-cabinet-visit banner: when register API reports past guest orders
+  // that auto-link to this email, surface the count so the customer knows
+  // why their order history isn't empty.
+  const [claimedOrdersCount, setClaimedOrdersCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('shop.account.claimedOrdersCount');
+      const parsed = raw ? Number(raw) : 0;
+      if (Number.isFinite(parsed) && parsed > 0) setClaimedOrdersCount(parsed);
+    } catch {
+      // ignore
+    }
+  }, []);
+  function dismissClaimedOrdersBanner() {
+    setClaimedOrdersCount(null);
+    try {
+      sessionStorage.removeItem('shop.account.claimedOrdersCount');
+    } catch {
+      // ignore
+    }
+  }
   const signOutCallbackUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/${locale}/shop/account/login`
@@ -135,10 +223,43 @@ export default function ShopAccountClient({ locale, profile }: Props) {
           </div>
         </div>
 
+        {claimedOrdersCount && claimedOrdersCount > 0 ? (
+          <div className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.06] px-5 py-4 flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-sm text-emerald-100">
+                {isUa
+                  ? `Ми знайшли ${claimedOrdersCount} попередніх замовлень на цей email і прив'язали їх до акаунта.`
+                  : `We linked ${claimedOrdersCount} past orders on this email to your account.`}
+              </p>
+              <p className="mt-1 text-[11px] text-emerald-100/55">
+                {isUa
+                  ? 'Тепер ви можете бачити їх історію в розділі «Замовлення».'
+                  : 'You can now see them in the Orders section.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={dismissClaimedOrdersBanner}
+              className="rounded-full border border-emerald-300/25 bg-emerald-500/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-emerald-100 transition hover:bg-emerald-500/15"
+            >
+              {isUa ? 'Зрозуміло' : 'Got it'}
+            </button>
+          </div>
+        ) : null}
+
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="space-y-6 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div>
-              <h2 className="text-lg font-medium text-white">{isUa ? 'Профіль' : 'Profile'}</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-medium text-white">{isUa ? 'Профіль' : 'Profile'}</h2>
+                <button
+                  type="button"
+                  onClick={openProfileEditor}
+                  className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-white/75 transition hover:border-white/30 hover:text-white"
+                >
+                  {isUa ? 'Редагувати' : 'Edit'}
+                </button>
+              </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <InfoCard label="Email" value={profile.email} />
                 <InfoCard label={isUa ? 'Телефон' : 'Phone'} value={profile.phone || '—'} />
@@ -177,32 +298,73 @@ export default function ShopAccountClient({ locale, profile }: Props) {
             </div>
 
             <div>
-              <h2 className="text-lg font-medium text-white">{isUa ? 'Баланс (Airtable)' : 'Balance (Airtable)'}</h2>
-              <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-5 mb-8">
-                {crmLoading ? (
-                  <div className="text-xs text-white/40 uppercase tracking-widest">{isUa ? 'Завантаження...' : 'Loading...'}</div>
-                ) : (
-                  <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 mb-1">
-                        {isUa ? 'Поточний стан балансу' : 'Current balance state'}
-                      </p>
-                      <p className={`text-2xl font-light ${crmBalance < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <h2 className="text-lg font-medium text-white">{isUa ? 'Баланс' : 'Balance'}</h2>
+              <p className="mt-1 text-xs text-white/40">
+                {isUa
+                  ? 'Замовлення з сайту та з CRM (sales-команда) обліковуються окремо.'
+                  : 'Web orders and CRM (sales-team) orders are tracked separately.'}
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 mb-8">
+                {/* Web orders card */}
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-white/50 rounded-full" />
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                      {isUa ? 'З сайту' : 'Web orders'}
+                    </p>
+                  </div>
+                  <p className="text-2xl font-light text-white/85">
+                    {profile.orders.length}
+                  </p>
+                  <p className="text-[11px] text-white/45 mt-1">
+                    {profile.orders.length === 0
+                      ? (isUa ? 'Замовлень ще немає' : 'No orders yet')
+                      : isUa
+                        ? `Замовлень в історії`
+                        : `Orders in history`}
+                  </p>
+                </div>
+
+                {/* CRM (Airtable) card */}
+                <div className="rounded-2xl border border-indigo-500/15 bg-indigo-500/[0.04] p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-indigo-200/55">
+                      {isUa ? 'CRM (Sales)' : 'CRM (Sales)'}
+                    </p>
+                  </div>
+                  {crmLoading ? (
+                    <p className="text-2xl font-light text-white/40">…</p>
+                  ) : (
+                    <>
+                      <p className={`text-2xl font-light ${balanceWho === 'client_owes' ? 'text-red-400' : balanceWho === 'we_owe' ? 'text-emerald-400' : 'text-white/70'}`}>
                         {crmBalance === 0 ? '$0' : crmBalance > 0 ? `+$${crmBalance.toLocaleString()}` : `-$${Math.abs(crmBalance).toLocaleString()}`}
                       </p>
-                    </div>
-                    {crmWhoOwes && (
-                      <div className="text-right">
-                        <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full border ${crmWhoOwes.toLowerCase().includes('клиент') || crmWhoOwes.toLowerCase().includes('клієнт') || crmWhoOwes.toLowerCase().includes('должен') ? 'border-red-500/20 text-red-400 bg-red-500/5' : 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'}`}>
-                          {crmWhoOwes}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <span
+                        className={`mt-2 inline-block text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                          balanceWho === 'client_owes'
+                            ? 'border-red-500/20 text-red-400 bg-red-500/5'
+                            : balanceWho === 'we_owe'
+                              ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'
+                              : 'border-white/15 text-white/55 bg-white/5'
+                        }`}
+                      >
+                        {balanceLabel}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
 
-              <h2 className="text-lg font-medium text-white">{isUa ? 'Адреса доставки' : 'Shipping address'}</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-medium text-white">{isUa ? 'Адреса доставки' : 'Shipping address'}</h2>
+                <Link
+                  href={`/${locale}/shop/account/addresses`}
+                  className="text-xs uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
+                >
+                  {isUa ? 'Усі адреси →' : 'All addresses →'}
+                </Link>
+              </div>
               {profile.defaultShippingAddress ? (
                 <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/75">
                   <p>{profile.defaultShippingAddress.label}</p>
@@ -216,9 +378,19 @@ export default function ShopAccountClient({ locale, profile }: Props) {
                   <p>{profile.defaultShippingAddress.country}</p>
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-white/55">
-                  {isUa ? 'Поки що немає збереженої адреси. Вона збережеться після оформлення замовлення.' : 'No saved shipping address yet. It will be stored after your first checkout.'}
-                </p>
+                <div className="mt-3 rounded-2xl border border-dashed border-white/15 bg-black/25 p-4 text-sm text-white/55">
+                  <p>
+                    {isUa
+                      ? 'Поки що немає збереженої адреси.'
+                      : 'No saved shipping address yet.'}
+                  </p>
+                  <Link
+                    href={`/${locale}/shop/account/addresses`}
+                    className="mt-2 inline-block text-xs uppercase tracking-[0.18em] text-[#c29d59] hover:text-white transition"
+                  >
+                    {isUa ? 'Додати адресу →' : 'Add address →'}
+                  </Link>
+                </div>
               )}
             </div>
           </section>
@@ -313,7 +485,9 @@ export default function ShopAccountClient({ locale, profile }: Props) {
 
             {/* CRM Orders Section */}
             {crmLoading ? (
-              <div className="mt-6 text-xs text-white/30 uppercase tracking-widest">Завантажую CRM замовлення...</div>
+              <div className="mt-6 text-xs text-white/30 uppercase tracking-widest">
+                {isUa ? 'Завантажую CRM замовлення…' : 'Loading CRM orders…'}
+              </div>
             ) : crmOrders.length > 0 ? (
               <div className="mt-8">
                 <div className="flex items-center gap-2 mb-4">
@@ -324,17 +498,17 @@ export default function ShopAccountClient({ locale, profile }: Props) {
                   <span className="text-[9px] text-white/20">{crmOrders.length}</span>
                 </div>
                 <ul className="space-y-2">
-                  {crmOrders.map(o => (
+                  {crmOrders.map(o => {
+                    const statusKind = normalizeAirtableOrderStatus(o.orderStatus);
+                    const statusLabel = formatAirtableOrderStatus(statusKind, locale, o.orderStatus);
+                    const statusBadgeClass = airtableOrderStatusBadgeClass(statusKind);
+                    return (
                     <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.03] p-4 cursor-pointer transition hover:bg-indigo-500/[0.06]" onClick={() => setExpandedCrmOrder(expandedCrmOrder === o.id ? null : o.id)}>
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-sm text-white">#{o.number}</span>
-                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
-                              o.orderStatus === 'Выполнен' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
-                              o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-500/5' :
-                              'border-amber-500/20 text-amber-400 bg-amber-500/5'
-                            }`}>{o.orderStatus}</span>
+                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${statusBadgeClass}`}>{statusLabel}</span>
                           </div>
                           <p className="mt-1 text-xs text-white/40 truncate">{o.name}</p>
                           {o.orderDate && <p className="text-[10px] text-white/20 mt-1">{new Date(o.orderDate).toLocaleDateString('uk-UA')}</p>}
@@ -360,14 +534,141 @@ export default function ShopAccountClient({ locale, profile }: Props) {
                         </div>
                       )}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             ) : null}
           </section>
         </div>
       </div>
+
+      {editingProfile ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          onClick={() => !savingProfile && setEditingProfile(false)}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-lg rounded-[28px] border border-white/10 bg-[#0a0a0a] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+          >
+            <h3 className="text-xl font-light tracking-tight">
+              {isUa ? 'Редагувати профіль' : 'Edit profile'}
+            </h3>
+            <p className="mt-1 text-xs text-white/45">
+              {isUa
+                ? 'Email не редагується — для зміни email зверніться у підтримку.'
+                : 'Email cannot be edited here — contact support to change it.'}
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <ProfileField
+                label={isUa ? 'Імʼя' : 'First name'}
+                value={profileForm.firstName}
+                onChange={(v) => setProfileForm((f) => ({ ...f, firstName: v }))}
+                required
+              />
+              <ProfileField
+                label={isUa ? 'Прізвище' : 'Last name'}
+                value={profileForm.lastName}
+                onChange={(v) => setProfileForm((f) => ({ ...f, lastName: v }))}
+                required
+              />
+              <ProfileField
+                label={isUa ? 'Телефон' : 'Phone'}
+                value={profileForm.phone}
+                onChange={(v) => setProfileForm((f) => ({ ...f, phone: v }))}
+              />
+              <ProfileField
+                label={isUa ? 'Компанія' : 'Company'}
+                value={profileForm.companyName}
+                onChange={(v) => setProfileForm((f) => ({ ...f, companyName: v }))}
+              />
+              <ProfileField
+                label="VAT"
+                value={profileForm.vatNumber}
+                onChange={(v) => setProfileForm((f) => ({ ...f, vatNumber: v }))}
+              />
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] uppercase tracking-[0.18em] text-white/45">
+                  {isUa ? 'Бажана мова' : 'Preferred language'}
+                </span>
+                <select
+                  value={profileForm.preferredLocale}
+                  onChange={(e) =>
+                    setProfileForm((f) => ({ ...f, preferredLocale: e.target.value }))
+                  }
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                >
+                  <option value="ua">UA · Українська</option>
+                  <option value="en">EN · English</option>
+                </select>
+              </label>
+            </div>
+
+            {profileError ? (
+              <p className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {profileError}
+              </p>
+            ) : null}
+
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={savingProfile}
+                onClick={() => setEditingProfile(false)}
+                className="rounded-full border border-white/15 px-5 py-2 text-xs uppercase tracking-[0.18em] text-white/70 transition hover:border-white/30 hover:text-white disabled:opacity-50"
+              >
+                {isUa ? 'Скасувати' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                disabled={savingProfile}
+                onClick={() => void saveProfile()}
+                className="rounded-full border border-white bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-white/90 disabled:opacity-50"
+              >
+                {savingProfile
+                  ? isUa
+                    ? 'Збереження…'
+                    : 'Saving…'
+                  : isUa
+                    ? 'Зберегти'
+                    : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
+  );
+}
+
+function ProfileField({
+  label,
+  value,
+  onChange,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[11px] uppercase tracking-[0.18em] text-white/45">
+        {label}
+        {required ? <span className="text-red-400"> *</span> : null}
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+      />
+    </label>
   );
 }
 

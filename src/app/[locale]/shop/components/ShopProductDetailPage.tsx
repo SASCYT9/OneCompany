@@ -5,6 +5,7 @@ import { ShoppingBag } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
+import { ShopB2BPricingBand } from '@/components/shop/ShopB2BPricingBand';
 import { ShopInlinePriceText } from '@/components/shop/ShopInlinePriceText';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
@@ -829,60 +830,7 @@ export default async function ShopProductDetailPage({
                 ) : null}
               </div>
 
-              {pricing.b2bVisible ? (
-                <div className="rounded-xl bg-cyan-950/30 border border-cyan-500/20 p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-[10px] text-cyan-300">✓</span>
-                    <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">
-                      {isUa ? 'B2B Ціноутворення' : 'B2B Pricing'}
-                    </p>
-                  </div>
-                  
-                  {pricing.bands.b2b?.price ? (
-                    (() => {
-                      const b2bPrices = computeCrossPrices(pricing.bands.b2b.price);
-                      return (
-                        <div className="pl-7">
-                          <p className="text-2xl font-light text-white">
-                            <ShopInlinePriceText
-                              locale={resolvedLocale}
-                              price={b2bPrices}
-                              requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
-                            />
-                          </p>
-                          <p className="text-[11px] text-cyan-100/50 mt-1">
-                            {formatPrice(resolvedLocale, b2bPrices.usd, 'USD')} / {formatPrice(resolvedLocale, b2bPrices.uah, 'UAH')}
-                          </p>
-                        </div>
-                      );
-                    })()
-                  ) : null}
-
-                  {pricing.audience === 'b2b' && pricing.source === 'b2b-discount' && pricing.discountPercent != null ? (
-                    <div className="pl-7">
-                       <span className="inline-block px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] uppercase text-emerald-300 tracking-wider">
-                         {isUa
-                          ? `Знижка -${pricing.discountPercent}%`
-                          : `Discount -${pricing.discountPercent}%`}
-                       </span>
-                    </div>
-                  ) : pricing.bands.b2b?.source === 'b2b-discount' && pricing.bands.b2b.discountPercent != null ? (
-                    <div className="pl-7">
-                       <span className="inline-block px-2 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[10px] uppercase text-cyan-300 tracking-wider">
-                         {isUa
-                          ? `Базова B2B знижка -${pricing.bands.b2b.discountPercent}%`
-                          : `Base B2B discount -${pricing.bands.b2b.discountPercent}%`}
-                       </span>
-                    </div>
-                  ) : null}
-
-                  {pricing.requestQuote ? (
-                    <p className="pl-7 text-[11px] text-cyan-200/50 leading-relaxed uppercase tracking-[0.1em]">
-                      {isUa ? 'Очікує верифікації акаунта' : 'Pending account verification'}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
+              <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} />
             </div>
 
             {/* Додатковий блок опису прибрано, щоб текст не дублювався */}

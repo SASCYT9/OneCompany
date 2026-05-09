@@ -606,12 +606,12 @@ export default function AkrapovicVehicleFilter({
                   </Link>
                   <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
                     <Link href={`${productPathPrefix}/${product.slug}`}
-                      className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#e50000]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#e50000] hover:text-white hover:bg-[#e50000] hover:border-[#e50000] transition-all duration-300">
+                      className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-white/15 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white/85 hover:text-white hover:border-white/40 hover:bg-white/[0.06] transition-all duration-300">
                       {isUa ? "Деталі" : "View"} <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                     </Link>
                     <AddToCartButton slug={product.slug} variantId={null} locale={locale} redirect={true} productName={productTitle}
-                      label={isUa ? "КОШИК" : "CART"} labelAdded={isUa ? "✓" : "✓"}
-                      className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                      label={isUa ? "В кошик" : "Add to cart"} labelAdded={isUa ? "У кошику ✓" : "In cart ✓"}
+                      className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-[#e50000] text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white bg-[#e50000]/90 hover:bg-[#e50000] transition-all duration-300"
                       variant="inline" />
                   </div>
                 </article>

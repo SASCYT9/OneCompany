@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
+import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import { localizeShopText, localizeShopProductTitle, localizeShopDescription } from "@/lib/shopText";
 import { getBrandLogo } from "@/lib/brandLogos";
 import type { SupportedLocale } from "@/lib/seo";
@@ -323,6 +324,9 @@ export function BurgerShopProductDetailLayout({
                         {formatPrice(resolvedLocale, computeCrossPrices(pricing.effectiveCompareAt).usd, "USD")}
                       </div>
                     )}
+                  </div>
+                  <div style={{ marginTop: 16 }}>
+                    <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} />
                   </div>
                   {SHOW_STOCK_BADGE ? (
                     <div style={{

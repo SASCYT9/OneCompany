@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { CheckCircle2, Copy, Database, RotateCcw, Save, UserRound } from 'lucide-react';
+import { CheckCircle2, Copy, Database, Eye, KeyRound, Mail, RotateCcw, Save, UserRound } from 'lucide-react';
 
 import {
   AdminEntityToolbar,
@@ -29,6 +29,7 @@ import { AdminNotes } from '@/components/admin/AdminNotes';
 import { AdminTagInput } from '@/components/admin/AdminTagInput';
 import { CustomerCreditPanel } from '@/app/admin/shop/customers/components/CustomerCreditPanel';
 import { CustomerLtvHeader } from '@/app/admin/shop/customers/components/CustomerLtvHeader';
+import { CustomerBrandDiscountsPanel } from '@/app/admin/shop/customers/components/CustomerBrandDiscountsPanel';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -195,7 +196,7 @@ export default function AdminShopCustomerDetailPage() {
       const response = await fetch(`/api/admin/shop/customers/${id}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to load customer');
+        setError((data as { error?: string }).error || 'Не вдалося завантажити клієнта');
         return;
       }
       const nextCustomer = data as CustomerDetail;
@@ -267,22 +268,22 @@ export default function AdminShopCustomerDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Failed to update customer';
+        const msg = (data as { error?: string }).error || 'Не вдалося оновити клієнта';
         setError(msg);
-        toast.error('Could not update customer', msg);
+        toast.error('Не вдалося оновити клієнта', msg);
         return;
       }
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
-      setSuccess('Customer updated.');
-      toast.success('Customer updated');
+      setSuccess('Клієнта оновлено.');
+      toast.success('Клієнта оновлено');
     } finally {
       setSaving(false);
     }
   }
 
-  async function runAction(action: 'approve_b2b' | 'revert_b2c' | 'create_setup_link') {
+  async function runAction(action: 'approve_b2b' | 'revert_b2c' | 'create_setup_link' | 'send_password_reset') {
     if (!customer) return;
     setSaving(true);
     setError('');
@@ -295,9 +296,9 @@ export default function AdminShopCustomerDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Customer action failed';
+        const msg = (data as { error?: string }).error || 'Дія не виконалась';
         setError(msg);
-        toast.error('Action failed', msg);
+        toast.error('Дія не виконалась', msg);
         return;
       }
       const nextCustomer = data as CustomerDetail;
@@ -306,13 +307,47 @@ export default function AdminShopCustomerDetailPage() {
       if ((data as { setupLinkUrl?: string }).setupLinkUrl) {
         setSetupLinkUrl((data as { setupLinkUrl?: string }).setupLinkUrl ?? null);
         setSetupLinkExpiresAt((data as { setupLinkExpiresAt?: string }).setupLinkExpiresAt ?? null);
-        setSuccess('Password setup link generated.');
-        toast.success('Setup link generated', 'Share with the customer to set their password');
+        setSuccess('Посилання для встановлення пароля згенеровано.');
+        toast.success('Setup link generated', 'Поділіться з клієнтом для встановлення пароля');
+      } else if (action === 'send_password_reset') {
+        const target = (data as { passwordResetTo?: string }).passwordResetTo ?? '';
+        const sent = (data as { passwordResetSent?: boolean }).passwordResetSent !== false;
+        if (sent) {
+          setSuccess(`Лист зі скиданням пароля надіслано${target ? ` на ${target}` : ''}.`);
+          toast.success('Email надіслано', target ? `Лист пішов на ${target}` : undefined);
+        } else {
+          setSuccess('Токен скидання пароля створено, але email не надіслався — перевірте логи Resend.');
+          toast.error('Email не вдалось надіслати', 'Токен створено, але доставка не пройшла. Дивіться логи.');
+        }
       } else {
-        const msg = action === 'approve_b2b' ? 'Customer approved for B2B' : 'Customer reverted to B2C';
+        const msg = action === 'approve_b2b' ? 'Клієнта затверджено для B2B' : 'Клієнта повернуто до B2C';
         setSuccess(msg + '.');
         toast.success(msg);
       }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function startImpersonation() {
+    if (!customer) return;
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/customers/${customer.id}/impersonate`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const msg = (data as { error?: string }).error || 'Не вдалось запустити імперсонацію';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      toast.success('Імперсонацію запущено', 'Ви будете перенаправлені у кабінет клієнта');
+      // Open in same tab so the cookie applies for the navigation.
+      window.location.href = `/${customer.preferredLocale === 'ua' ? 'ua' : 'en'}/shop/account`;
     } finally {
       setSaving(false);
     }
@@ -334,7 +369,7 @@ export default function AdminShopCustomerDetailPage() {
       <AdminPage>
         <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <UserRound className="h-4 w-4 animate-pulse" />
-          Loading customer…
+          Завантажую клієнта…
         </div>
       </AdminPage>
     );
@@ -344,10 +379,10 @@ export default function AdminShopCustomerDetailPage() {
     return (
       <AdminPage className="space-y-4">
         <div className="rounded-none border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
-          {error || 'Customer not found'}
+          {error || 'Клієнта не знайдено'}
         </div>
         <Link href="/admin/shop/customers" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
-          Back to customers
+          Назад до клієнтів
         </Link>
       </AdminPage>
     );
@@ -356,13 +391,13 @@ export default function AdminShopCustomerDetailPage() {
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
-        eyebrow="Customer Detail"
+        eyebrow="Картка клієнта"
         title={customer.fullName}
         description={`${customer.email}${customer.companyName ? ` · ${customer.companyName}` : ''}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <AdminStatusBadge tone={customerGroupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>
-            {customer.isActive ? <AdminStatusBadge tone="success">Active</AdminStatusBadge> : <AdminStatusBadge tone="default">Inactive</AdminStatusBadge>}
+            {customer.isActive ? <AdminStatusBadge tone="success">Активний</AdminStatusBadge> : <AdminStatusBadge tone="default">Неактивний</AdminStatusBadge>}
           </div>
         }
       />
@@ -379,7 +414,7 @@ export default function AdminShopCustomerDetailPage() {
               className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 transition hover:bg-emerald-500/15 disabled:opacity-50"
             >
               <CheckCircle2 className="h-4 w-4" />
-              Approve B2B
+              Затвердити B2B
             </button>
           ) : null}
           {customer.group !== 'B2C' ? (
@@ -390,16 +425,42 @@ export default function AdminShopCustomerDetailPage() {
               className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
             >
               <RotateCcw className="h-4 w-4" />
-              Revert to B2C
+              Повернути до B2C
             </button>
           ) : null}
           <button
             type="button"
+            onClick={() => void startImpersonation()}
+            disabled={saving || !customer.isActive}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/15 disabled:opacity-50"
+            title={
+              customer.isActive
+                ? 'Зайти у кабінет як цей клієнт (1 година)'
+                : 'Деактивованих клієнтів імперсонувати не можна'
+            }
+          >
+            <Eye className="h-4 w-4" />
+            Зайти як клієнт
+          </button>
+          <button
+            type="button"
+            onClick={() => void runAction('send_password_reset')}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/10 px-4 py-2 text-sm text-blue-200 transition hover:bg-blue-500/15 disabled:opacity-50"
+            title="Надіслати клієнту лист зі скиданням пароля"
+          >
+            <Mail className="h-4 w-4" />
+            Скинути пароль (email)
+          </button>
+          <button
+            type="button"
             onClick={() => void runAction('create_setup_link')}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-blue-300 transition hover:bg-amber-500/15 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-50"
+            title="Згенерувати одноразове посилання, яке можна скопіювати"
           >
-            Access setup
+            <KeyRound className="h-4 w-4" />
+            Setup-лінк
           </button>
         </div>
         <button
@@ -409,15 +470,15 @@ export default function AdminShopCustomerDetailPage() {
           className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? 'Зберігаю…' : 'Зберегти'}
         </button>
       </AdminEntityToolbar>
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Orders" value={customer.orders.length} meta="Commerce history" />
-        <AdminMetricCard label="Addresses" value={customer.addresses.length} meta="Shipping + billing records" />
-        <AdminMetricCard label="Carts" value={customer.carts.length} meta="Open storefront activity" />
-        <AdminMetricCard label="Order value" value={totalOrderValue.toFixed(2)} meta={customer.currencyPref || 'EUR'} />
+        <AdminMetricCard label="Замовлень" value={customer.orders.length} meta="Історія покупок" />
+        <AdminMetricCard label="Адрес" value={customer.addresses.length} meta="Доставка + білінг" />
+        <AdminMetricCard label="Кошиків" value={customer.carts.length} meta="Активність на сайті" />
+        <AdminMetricCard label="Сума замовлень" value={totalOrderValue.toFixed(2)} meta={customer.currencyPref || 'EUR'} />
       </AdminMetricGrid>
 
       <AdminSplitDetailShell
@@ -431,21 +492,21 @@ export default function AdminShopCustomerDetailPage() {
 
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Profile and commercial context</h2>
-                <p className="mt-1 text-sm text-zinc-500">Редагування account profile, B2B terms, балансів і локалі.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Профіль та комерційні умови</h2>
+                <p className="mt-1 text-sm text-zinc-500">Редагування профілю, B2B-умов, балансу та локалі.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <AdminInputField label="First name" value={form.firstName} onChange={(value) => updateForm('firstName', value)} />
-                <AdminInputField label="Last name" value={form.lastName} onChange={(value) => updateForm('lastName', value)} />
-                <AdminInputField label="Phone" value={form.phone} onChange={(value) => updateForm('phone', value)} />
-                <AdminInputField label="Company" value={form.companyName} onChange={(value) => updateForm('companyName', value)} />
-                <AdminInputField label="VAT number" value={form.vatNumber} onChange={(value) => updateForm('vatNumber', value)} />
-                <AdminInputField label="Discount %" value={form.b2bDiscountPercent} onChange={(value) => updateForm('b2bDiscountPercent', value)} type="number" />
-                <AdminInputField label="Discount tier" value={form.discountTier} onChange={(value) => updateForm('discountTier', value)} />
-                <AdminInputField label="Balance" value={form.balance} onChange={(value) => updateForm('balance', value)} type="number" step="0.01" />
-                <AdminInputField label="Region" value={form.region} onChange={(value) => updateForm('region', value)} />
+                <AdminInputField label="Ім'я" value={form.firstName} onChange={(value) => updateForm('firstName', value)} />
+                <AdminInputField label="Прізвище" value={form.lastName} onChange={(value) => updateForm('lastName', value)} />
+                <AdminInputField label="Телефон" value={form.phone} onChange={(value) => updateForm('phone', value)} />
+                <AdminInputField label="Компанія" value={form.companyName} onChange={(value) => updateForm('companyName', value)} />
+                <AdminInputField label="VAT-номер" value={form.vatNumber} onChange={(value) => updateForm('vatNumber', value)} />
+                <AdminInputField label="Знижка %" value={form.b2bDiscountPercent} onChange={(value) => updateForm('b2bDiscountPercent', value)} type="number" />
+                <AdminInputField label="Тариф знижки" value={form.discountTier} onChange={(value) => updateForm('discountTier', value)} />
+                <AdminInputField label="Баланс" value={form.balance} onChange={(value) => updateForm('balance', value)} type="number" step="0.01" />
+                <AdminInputField label="Регіон" value={form.region} onChange={(value) => updateForm('region', value)} />
                 <AdminSelectField
-                  label="Preferred currency"
+                  label="Бажана валюта"
                   value={form.currencyPref}
                   onChange={(value) => updateForm('currencyPref', value)}
                   options={[
@@ -455,7 +516,7 @@ export default function AdminShopCustomerDetailPage() {
                   ]}
                 />
                 <AdminSelectField
-                  label="Preferred locale"
+                  label="Бажана мова"
                   value={form.preferredLocale}
                   onChange={(value) => updateForm('preferredLocale', value)}
                   options={[
@@ -464,25 +525,25 @@ export default function AdminShopCustomerDetailPage() {
                   ]}
                 />
                 <AdminSelectField
-                  label="Customer group"
+                  label="Група клієнта"
                   value={form.group}
                   onChange={(value) => updateForm('group', value as CustomerGroup)}
                   options={[
                     { value: 'B2C', label: 'B2C' },
-                    { value: 'B2B_PENDING', label: 'B2B pending' },
-                    { value: 'B2B_APPROVED', label: 'B2B approved' },
+                    { value: 'B2B_PENDING', label: 'B2B на розгляді' },
+                    { value: 'B2B_APPROVED', label: 'B2B затверджено' },
                   ]}
                 />
                 <div className="md:col-span-2">
                   <AdminCheckboxField
-                    label="Active customer account"
+                    label="Активний акаунт клієнта"
                     checked={form.isActive}
                     onChange={(checked) => updateForm('isActive', checked)}
-                    helper="Inactive customers keep their history but should not be treated as live accounts."
+                    helper="Неактивні клієнти зберігають історію, але не вважаються активними акаунтами."
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <AdminTextareaField label="Internal notes" value={form.notes} onChange={(value) => updateForm('notes', value)} rows={5} />
+                  <AdminTextareaField label="Внутрішні нотатки" value={form.notes} onChange={(value) => updateForm('notes', value)} rows={5} />
                 </div>
               </div>
             </section>
@@ -490,14 +551,14 @@ export default function AdminShopCustomerDetailPage() {
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-zinc-100">Orders</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Storefront orders and the fastest route to open the full order detail.</p>
+                  <h2 className="text-xl font-semibold text-zinc-100">Замовлення</h2>
+                  <p className="mt-1 text-sm text-zinc-500">Замовлення з storefront і швидкий перехід до деталі.</p>
                 </div>
                 <Link
                   href={`/admin/shop/orders/create?customerId=${customer.id}`}
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                 >
-                  New order
+                  Нове замовлення
                 </Link>
               </div>
               {customer.orders.length ? (
@@ -506,11 +567,11 @@ export default function AdminShopCustomerDetailPage() {
                     <table className="w-full min-w-[720px] text-left text-sm">
                       <thead>
                         <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                          <th className="px-4 py-4 font-medium">Order</th>
-                          <th className="px-4 py-4 font-medium">Status</th>
-                          <th className="px-4 py-4 font-medium">Items</th>
-                          <th className="px-4 py-4 font-medium">Total</th>
-                          <th className="px-4 py-4 font-medium">Open</th>
+                          <th className="px-4 py-4 font-medium">Замовлення</th>
+                          <th className="px-4 py-4 font-medium">Статус</th>
+                          <th className="px-4 py-4 font-medium">Позицій</th>
+                          <th className="px-4 py-4 font-medium">Сума</th>
+                          <th className="px-4 py-4 font-medium">Відкрити</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/6">
@@ -531,7 +592,7 @@ export default function AdminShopCustomerDetailPage() {
                             </td>
                             <td className="px-4 py-4">
                               <Link href={`/admin/shop/orders/${order.id}`} className="text-sm text-zinc-300 transition hover:text-zinc-100">
-                                Open →
+                                Відкрити →
                               </Link>
                             </td>
                           </tr>
@@ -541,18 +602,18 @@ export default function AdminShopCustomerDetailPage() {
                   </div>
                 </AdminTableShell>
               ) : (
-                <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">No orders yet.</div>
+                <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">Замовлень ще немає.</div>
               )}
             </section>
 
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Addresses and carts</h2>
-                <p className="mt-1 text-sm text-zinc-500">Stored shipping data and current storefront activity.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Адреси та кошики</h2>
+                <p className="mt-1 text-sm text-zinc-500">Збережені дані доставки та поточна активність на сайті.</p>
               </div>
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Addresses</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Адреси</h3>
                   {customer.addresses.length ? (
                     customer.addresses.map((address) => (
                       <div key={address.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
@@ -564,17 +625,17 @@ export default function AdminShopCustomerDetailPage() {
                           <div>{address.country}</div>
                         </div>
                         <div className="mt-3 text-xs text-zinc-500">
-                          {address.isDefaultShipping ? 'Default shipping' : '—'}
-                          {address.isDefaultBilling ? ' · Default billing' : ''}
+                          {address.isDefaultShipping ? 'Дефолт для доставки' : '—'}
+                          {address.isDefaultBilling ? ' · Дефолт для білінгу' : ''}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No saved addresses.</div>
+                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">Адрес не збережено.</div>
                   )}
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Carts</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Кошики</h3>
                   {customer.carts.length ? (
                     customer.carts.map((cart) => (
                       <div key={cart.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
@@ -582,43 +643,48 @@ export default function AdminShopCustomerDetailPage() {
                           {cart.currency} · {cart.locale}
                         </div>
                         <div className="mt-2 text-xs text-zinc-500">
-                          {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
+                          {cart.itemCount} позицій · оновлено {new Date(cart.updatedAt).toLocaleString()}
                         </div>
                         <div className="mt-2 font-mono text-[11px] text-zinc-500">{cart.token}</div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No active carts.</div>
+                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">Активних кошиків немає.</div>
                   )}
                 </div>
               </div>
             </section>
 
+            <CustomerBrandDiscountsPanel
+              customerId={customer.id}
+              globalDiscountPct={customer.b2bDiscountPercent}
+            />
+
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center gap-2">
                 <Database className="h-4 w-4 text-blue-300/60" />
                 <div>
-                  <h2 className="text-xl font-semibold text-zinc-100">CRM and pricing context</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Airtable-linked orders and customer-specific markup signals.</p>
+                  <h2 className="text-xl font-semibold text-zinc-100">CRM та ціноутворення</h2>
+                  <p className="mt-1 text-sm text-zinc-500">Замовлення з Airtable та персональні правила націнки.</p>
                 </div>
               </div>
               <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
                 <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer markup</div>
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Націнка клієнта</div>
                   {customerMarkup ? (
                     <div className="mt-3 space-y-2">
                       <div className="text-2xl font-semibold text-emerald-300">{customerMarkup.markupPct}%</div>
                       <div className="text-sm text-zinc-400">
-                        Custom pricing override{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
+                        Персональне ціноутворення{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-3 text-sm text-zinc-500">Uses default pricing rules.</div>
+                    <div className="mt-3 text-sm text-zinc-500">Використовуються дефолтні правила ціни.</div>
                   )}
                 </div>
                 <div className="space-y-3">
                   {crmLoading ? (
-                    <div className="rounded-none border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Loading CRM orders…</div>
+                    <div className="rounded-none border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Завантажую CRM замовлення…</div>
                   ) : crmOrders.length ? (
                     crmOrders.map((order) => (
                       <div key={order.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
@@ -629,14 +695,14 @@ export default function AdminShopCustomerDetailPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-sm text-zinc-100">${order.clientTotal.toLocaleString()}</div>
-                            <div className="mt-1 text-xs text-zinc-500">{order.itemCount} items</div>
+                            <div className="mt-1 text-xs text-zinc-500">{order.itemCount} позицій</div>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
-                      No linked CRM orders or Airtable reference was not found in notes.
+                      Звʼязаних CRM замовлень не знайдено або в нотатках відсутнє посилання на Airtable.
                     </div>
                   )}
                 </div>
@@ -647,33 +713,33 @@ export default function AdminShopCustomerDetailPage() {
         sidebar={
           <>
             <AdminInspectorCard
-              title="Account state"
-              description="Identity, activation, locale and password readiness."
+              title="Стан акаунта"
+              description="Ідентифікація, активність, локаль та готовність пароля."
             >
               <AdminKeyValueGrid
                 rows={[
                   { label: 'Email', value: customer.email },
-                  { label: 'Locale', value: customer.preferredLocale.toUpperCase() },
-                  { label: 'Last login', value: customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : 'Never' },
-                  { label: 'Email verified', value: customer.account?.emailVerifiedAt ? new Date(customer.account.emailVerifiedAt).toLocaleString() : 'No' },
-                  { label: 'Created', value: new Date(customer.createdAt).toLocaleString() },
+                  { label: 'Мова', value: customer.preferredLocale.toUpperCase() },
+                  { label: 'Останній вхід', value: customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : 'Ніколи' },
+                  { label: 'Email підтверджено', value: customer.account?.emailVerifiedAt ? new Date(customer.account.emailVerifiedAt).toLocaleString() : 'Ні' },
+                  { label: 'Створено', value: new Date(customer.createdAt).toLocaleString() },
                 ]}
               />
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Password setup"
-              description="One-time access link for first login or password reset."
+              title="Пароль"
+              description="Одноразове посилання для першого входу або скидання пароля."
             >
               <div className="space-y-3 text-sm text-zinc-300">
                 <div>
                   {customer.account?.hasPassword
-                    ? 'Password already exists. You can still issue a fresh setup link.'
-                    : 'Password is not configured yet.'}
+                    ? 'Пароль уже встановлено. Можна згенерувати свіже посилання.'
+                    : 'Пароль ще не налаштовано.'}
                 </div>
                 {setupLinkExpiresAt ? (
                   <div className="text-xs text-zinc-500">
-                    Active setup link expires at {new Date(setupLinkExpiresAt).toLocaleString()}
+                    Активне посилання дійсне до {new Date(setupLinkExpiresAt).toLocaleString()}
                   </div>
                 ) : null}
                 {setupLinkUrl ? (
@@ -685,7 +751,7 @@ export default function AdminShopCustomerDetailPage() {
                       className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/10"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      {copiedSetupLink ? 'Copied' : 'Copy link'}
+                      {copiedSetupLink ? 'Скопійовано' : 'Скопіювати посилання'}
                     </button>
                   </div>
                 ) : null}
@@ -693,23 +759,23 @@ export default function AdminShopCustomerDetailPage() {
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Default shipping"
-              description="Primary shipping address snapshot used for customer context."
+              title="Дефолтна адреса доставки"
+              description="Знімок основної адреси доставки клієнта."
             >
               <AdminKeyValueGrid
                 rows={[
-                  { label: 'Line 1', value: customer.defaultShippingAddress?.line1 || '—' },
-                  { label: 'Line 2', value: customer.defaultShippingAddress?.line2 || '—' },
-                  { label: 'City', value: customer.defaultShippingAddress?.city || '—' },
-                  { label: 'Region', value: customer.defaultShippingAddress?.region || '—' },
-                  { label: 'Country', value: customer.defaultShippingAddress?.country || '—' },
+                  { label: 'Адреса', value: customer.defaultShippingAddress?.line1 || '—' },
+                  { label: 'Кв./офіс', value: customer.defaultShippingAddress?.line2 || '—' },
+                  { label: 'Місто', value: customer.defaultShippingAddress?.city || '—' },
+                  { label: 'Регіон', value: customer.defaultShippingAddress?.region || '—' },
+                  { label: 'Країна', value: customer.defaultShippingAddress?.country || '—' },
                 ]}
               />
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Tags"
-              description="Internal labels for filtering and segmentation."
+              title="Теги"
+              description="Внутрішні мітки для фільтрації та сегментації."
             >
               <AdminTagInput
                 entityType="shop.customer"
@@ -719,8 +785,8 @@ export default function AdminShopCustomerDetailPage() {
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Notes"
-              description="Internal admin notes (visible to all admins, not the customer)."
+              title="Нотатки"
+              description="Внутрішні нотатки для адмінів (клієнт не бачить)."
             >
               <AdminNotes entityType="shop.customer" entityId={customer.id} />
             </AdminInspectorCard>
@@ -728,14 +794,14 @@ export default function AdminShopCustomerDetailPage() {
             <CustomerCreditPanel customerId={customer.id} preferredCurrency="EUR" />
 
             <AdminInspectorCard
-              title="Activity"
-              description="Recent admin actions affecting this customer."
+              title="Активність"
+              description="Останні дії адмінів над цим клієнтом."
             >
               <AdminActivityTimeline
                 entityType="shop.customer"
                 entityId={customer.id}
-                emptyTitle="No activity yet"
-                emptyDescription="Profile edits, group changes and approvals will appear here."
+                emptyTitle="Поки немає активності"
+                emptyDescription="Тут зʼявляться редагування профілю, зміни груп і затвердження."
               />
             </AdminInspectorCard>
           </>
