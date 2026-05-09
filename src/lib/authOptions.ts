@@ -114,6 +114,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        if (account.customer.archivedAt) {
+          // Archived/soft-deleted accounts are treated the same as deactivated
+          // ones from the customer's perspective.
+          throw new Error('ACCOUNT_DISABLED');
+        }
+        if (!account.customer.isActive) {
+          // Distinct error code so the login UI can show a clear message instead
+          // of the generic "invalid credentials" copy.
+          throw new Error('ACCOUNT_DISABLED');
+        }
+
         await markCustomerLogin(prisma, account.customer.id);
 
         // Assuming account.customer now has 'role' instead of 'group'

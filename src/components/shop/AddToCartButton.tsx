@@ -66,14 +66,20 @@ export function AddToCartButton({
   };
 
   if (variant === 'minimal' || variant === 'inline') {
+    const adding_label = isUa ? 'Додаємо…' : 'Adding…';
     return (
       <button
         type="button"
         onClick={handleClick}
-        disabled={adding}
+        disabled={adding || added}
+        aria-busy={adding}
         className={className}
       >
-        {adding ? '…' : added ? (labelAdded ?? defaultAdded) : (label ?? defaultLabel)}
+        {adding
+          ? adding_label
+          : added
+            ? (labelAdded ?? defaultAdded)
+            : (label ?? defaultLabel)}
       </button>
     );
   }

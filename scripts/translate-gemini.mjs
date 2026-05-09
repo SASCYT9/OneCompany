@@ -22,7 +22,11 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // ── Config ──────────────────────────────────────────────────
 const GEMINI_API_KEY = process.argv.includes('--key')
   ? process.argv[process.argv.indexOf('--key') + 1]
-  : 'AIzaSyAWXpyYjsJ7ERbc4zalxnmk5ij6YPH2zkk';
+  : process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  console.error('Missing GEMINI_API_KEY: set env var or pass --key <value>.');
+  process.exit(1);
+}
 
 const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
