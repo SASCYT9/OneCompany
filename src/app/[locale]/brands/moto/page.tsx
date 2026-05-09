@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { allMotoBrands, getBrandSlug, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
-import { getBrandLogo } from '@/lib/brandLogos';
-import ProductCard from '@/components/products/ProductCard';
-import Link from 'next/link';
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  allMotoBrands,
+  getBrandSlug,
+  brandMetadata,
+  countryNames,
+  subcategoryNames,
+} from "@/lib/brands";
+import { getBrandLogo } from "@/lib/brandLogos";
+import ProductCard from "@/components/products/ProductCard";
+import Link from "next/link";
 import { absoluteUrl, buildLocalizedPath, resolveLocale } from "@/lib/seo";
 import { buildBrandsSegmentMetadata } from "../segmentMetadata";
 import { BreadcrumbSchema, CollectionPageSchema } from "@/components/seo/StructuredData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 interface MotoBrandsPageProps {
@@ -18,9 +24,7 @@ interface MotoBrandsPageProps {
   }>;
 }
 
-export async function generateMetadata({
-  params,
-}: MotoBrandsPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: MotoBrandsPageProps): Promise<Metadata> {
   const { locale } = await params;
   return buildBrandsSegmentMetadata(resolveLocale(locale), "moto");
 }
@@ -29,9 +33,9 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
-  
-  const motoItems = allMotoBrands.map(b => {
+  const lang = (locale === "ua" ? "ua" : "en") as "ua" | "en";
+
+  const motoItems = allMotoBrands.map((b) => {
     const meta = brandMetadata[b.name];
     return {
       name: b.name,
@@ -43,49 +47,70 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
   });
   const resolvedLocale = resolveLocale(locale);
   const breadcrumbs = [
-    { name: resolvedLocale === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
-    { name: resolvedLocale === "ua" ? "Бренди" : "Brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands")) },
-    { name: resolvedLocale === "ua" ? "Мото бренди" : "Moto brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/moto")) },
+    {
+      name: resolvedLocale === "ua" ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: resolvedLocale === "ua" ? "Бренди" : "Brands",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands")),
+    },
+    {
+      name: resolvedLocale === "ua" ? "Мото бренди" : "Moto brands",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/moto")),
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-background">
       <BreadcrumbSchema items={breadcrumbs} />
       <CollectionPageSchema
         name={resolvedLocale === "ua" ? "Мото бренди" : "Moto brands"}
-        description={resolvedLocale === "ua" ? "Каталог мото брендів для тюнінгу." : "Catalog of motorcycle tuning brands."}
+        description={
+          resolvedLocale === "ua"
+            ? "Каталог мото брендів для тюнінгу."
+            : "Catalog of motorcycle tuning brands."
+        }
         url={absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/moto"))}
       />
       {/* Hero Section */}
       <div className="px-6 md:px-10 py-32 md:py-40">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-8 leading-tight">
-            {t('moto.title')}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extralight tracking-tight text-zinc-900 dark:text-foreground mb-8 leading-tight">
+            {t("moto.title")}
           </h1>
           <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto mb-10" />
-          <p className="text-xl md:text-2xl font-light text-zinc-600 dark:text-white/50 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl font-light text-zinc-600 dark:text-foreground/65 dark:text-foreground/50 max-w-3xl mx-auto">
             Premium motorcycle performance brands and accessories
           </p>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="border-t border-b border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950">
+      <div className="border-t border-b border-zinc-200 dark:border-foreground/10 bg-zinc-50 dark:bg-zinc-950">
         <div className="max-w-7xl mx-auto px-6 md:px-10">
           <div className="flex justify-center space-x-16 py-6">
-            <Link 
-              href={`/${locale}/brands`} 
-              aria-label={resolvedLocale === "ua" ? "Перейти до брендів авто тюнінгу" : "Go to auto tuning brands"}
-              className="text-base font-light pb-2 text-zinc-400 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-widest"
+            <Link
+              href={`/${locale}/brands`}
+              aria-label={
+                resolvedLocale === "ua"
+                  ? "Перейти до брендів авто тюнінгу"
+                  : "Go to auto tuning brands"
+              }
+              className="text-base font-light pb-2 text-zinc-400 dark:text-foreground/60 dark:text-foreground/40 hover:text-zinc-900 dark:hover:text-foreground transition-colors uppercase tracking-widest"
             >
-              {t('auto.title')}
+              {t("auto.title")}
             </Link>
-            <Link 
-              href={`/${locale}/brands/moto`} 
-              aria-label={resolvedLocale === "ua" ? "Поточний розділ мото брендів" : "Current moto brands section"}
-              className="text-base font-light pb-2 border-b-2 border-zinc-900 dark:border-white text-zinc-900 dark:text-white uppercase tracking-widest"
+            <Link
+              href={`/${locale}/brands/moto`}
+              aria-label={
+                resolvedLocale === "ua"
+                  ? "Поточний розділ мото брендів"
+                  : "Current moto brands section"
+              }
+              className="text-base font-light pb-2 border-b-2 border-zinc-900 dark:border-white text-zinc-900 dark:text-foreground uppercase tracking-widest"
             >
-              {t('moto.title')}
+              {t("moto.title")}
             </Link>
           </div>
         </div>
@@ -111,7 +136,9 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
       {/* Footer Note */}
       <div className="px-6 md:px-10 pb-16">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-xs text-zinc-400 dark:text-white/30 font-light">{t('brandsPage.logoDisclaimer')}</p>
+          <p className="text-xs text-zinc-400 dark:text-foreground/55 dark:text-foreground/30 font-light">
+            {t("brandsPage.logoDisclaimer")}
+          </p>
         </div>
       </div>
     </div>

@@ -89,26 +89,27 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                 key={item.id}
                 className={clsx(
                   "flex flex-col justify-center items-center text-center",
-                  // Mobile: Card Style
-                  "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 relative overflow-hidden",
-                  // Desktop: Clean style
-                  "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:overflow-visible",
-                  // GPU-optimized transition: ONLY opacity (fastest)
+                  // Mobile: explicit card surface so text reads against the video bg
+                  "min-h-[50vh] mb-8 sm:mb-16 p-6 sm:p-8 relative overflow-hidden",
+                  "rounded-2xl border border-foreground/10 bg-card/55 dark:bg-black/45 backdrop-blur-md",
+                  // Desktop: stacked clean style with cross-fade based on scroll
+                  "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
+                  // Opacity dim only on desktop where items stack; mobile keeps full readability
                   "transition-opacity duration-300 ease-out",
-                  isActive ? "opacity-100" : "opacity-20"
+                  isActive ? "opacity-100" : "opacity-100 lg:opacity-20"
                 )}
                 style={{
-                  // Force GPU compositing layer
                   transform: "translateZ(0)",
                   willChange: "opacity",
                 }}
               >
                 {/* Mobile Watermark */}
-                <div className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.05] pointer-events-none rotate-[-15deg] lg:hidden">
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.06] pointer-events-none rotate-[-15deg] lg:hidden">
                   <img
                     src="/branding/one-company-logo.svg"
-                    alt="Watermark"
-                    className="h-full w-full object-contain invert"
+                    alt=""
+                    aria-hidden
+                    className="h-full w-full object-contain dark:invert"
                     loading="lazy"
                   />
                 </div>
@@ -133,6 +134,13 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                   {item.description}
                 </p>
                 <div className="mt-6 pt-6 sm:mt-10 sm:pt-10 border-t border-foreground/10 w-full max-w-xs mx-auto relative z-10">
+                  <span
+                    aria-hidden
+                    className={clsx(
+                      "absolute left-1/2 -translate-x-1/2 -top-px h-px bg-primary transition-all duration-500",
+                      isActive ? "w-12" : "w-0"
+                    )}
+                  />
                   <span className="text-xs sm:text-sm lg:text-[10.5px] text-foreground/60 uppercase tracking-widest">
                     {item.meta}
                   </span>

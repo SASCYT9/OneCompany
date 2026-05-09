@@ -108,7 +108,7 @@ export default async function ShopProductPage({ params }: Props) {
   const relatedProducts = findRelatedProducts(product, allProducts, 3);
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-white">
+    <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -119,7 +119,7 @@ export default async function ShopProductPage({ params }: Props) {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
         <Link
           href={`/${resolvedLocale}/shop`}
-          className="inline-flex w-fit items-center gap-2.5 rounded-full border-2 border-[#c29d59]/50 bg-[#c29d59]/12 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/20 hover:text-white"
+          className="inline-flex w-fit items-center gap-2.5 rounded-full border-2 border-primary/50 bg-primary/12 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-primary/70 hover:bg-primary/20 hover:text-foreground"
         >
           ← {isUa ? "Назад до магазину" : "Back to shop"}
         </Link>
@@ -135,8 +135,10 @@ export default async function ShopProductPage({ params }: Props) {
             />
           </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/3 p-6 backdrop-blur-xl sm:p-7">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/60">{product.brand}</p>
+          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/15 bg-foreground/5 p-6 backdrop-blur-xl sm:p-7">
+            <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
+              {product.brand}
+            </p>
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
               {productTitle}
             </h1>
@@ -145,18 +147,18 @@ export default async function ShopProductPage({ params }: Props) {
               <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>
                 {descriptionSections.introHtml ? (
                   <div
-                    className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]"
+                    className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]"
                     dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
                   />
                 ) : shortDescription ? (
-                  <p className="text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]">
+                  <p className="text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]">
                     {shortDescription}
                   </p>
                 ) : null}
               </MobileProductDisclosure>
             ) : null}
 
-            <div className="rounded-2xl border border-white/15 bg-black/40 p-5">
+            <div className="rounded-2xl border border-foreground/15 bg-card/70 dark:bg-background/40 p-5">
               <ShopPrimaryPriceBox
                 locale={resolvedLocale}
                 isUa={isUa}
@@ -165,14 +167,14 @@ export default async function ShopProductPage({ params }: Props) {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-white/10 bg-white/2 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50">
+              <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
                 SKU {product.sku}
               </span>
-              <span className="rounded-full border border-[#c29d59]/20 bg-[#c29d59]/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-[#c29d59]/80">
+              <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
                 {localizeShopText(resolvedLocale, product.collection)}
               </span>
               {product.productType ? (
-                <span className="rounded-full border border-white/10 bg-white/2 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50">
+                <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
                   {product.productType}
                 </span>
               ) : null}
@@ -185,11 +187,11 @@ export default async function ShopProductPage({ params }: Props) {
                 variantId={defaultVariant?.id ?? null}
                 productName={productTitle}
                 variant="minimal"
-                className="group relative overflow-hidden rounded-full border border-white/10 bg-black px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#c29d59] transition-all duration-500 hover:border-[#c29d59]/50 disabled:opacity-50"
+                className="group relative overflow-hidden rounded-full border border-foreground/10 bg-background px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-primary transition-all duration-500 hover:border-primary/50 disabled:opacity-50"
               />
               <Link
                 href={`/${resolvedLocale}/contact`}
-                className="rounded-full border border-white/10 bg-white/2 px-8 py-3.5 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/8 hover:text-white"
+                className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-8 py-3.5 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 dark:text-foreground/80 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/10 hover:text-foreground"
               >
                 {isUa ? "Запит по товару" : "Request product"}
               </Link>
@@ -207,7 +209,7 @@ export default async function ShopProductPage({ params }: Props) {
                   <Link
                     key={item.slug}
                     href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
-                    className="group overflow-hidden rounded-2xl border border-white/15 bg-white/3 transition hover:border-white/35"
+                    className="group overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/5 transition hover:border-primary/35"
                   >
                     <div className="relative aspect-4/3 overflow-hidden">
                       {image ? (
@@ -220,19 +222,19 @@ export default async function ShopProductPage({ params }: Props) {
                           className="object-cover transition duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-black/40 text-white/10">
+                        <div className="flex h-full w-full items-center justify-center bg-card/70 dark:bg-background/40 text-foreground/10">
                           <ShoppingBag className="h-12 w-12 opacity-30" />
                         </div>
                       )}
                     </div>
                     <div className="space-y-2 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+                      <p className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
                         {item.brand}
                       </p>
                       <h3 className="text-lg font-light leading-snug">
                         {localizeShopProductTitle(resolvedLocale, item)}
                       </h3>
-                      <p className="text-sm text-white/65">
+                      <p className="text-sm text-foreground/80 dark:text-foreground/65">
                         <ShopInlinePriceText
                           locale={resolvedLocale}
                           price={resolveShopProductPricing(item, viewerContext).effectivePrice}

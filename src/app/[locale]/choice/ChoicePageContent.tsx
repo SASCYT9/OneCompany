@@ -160,8 +160,10 @@ export default function ChoicePageContent() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white/60 text-sm tracking-widest uppercase">{t.choice.loading}</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground/60 text-sm tracking-widest uppercase">
+          {t.choice.loading}
+        </div>
       </div>
     );
   }
@@ -169,12 +171,8 @@ export default function ChoicePageContent() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 text-white relative overflow-hidden"
+      className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 text-foreground relative overflow-hidden bg-background"
       onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
-      style={{
-        background:
-          "radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.06), transparent 60%), linear-gradient(180deg, #0b0b0d, #0d0d10)",
-      }}
     >
       {/* SEO H1 - visually hidden but accessible */}
       <h1 className="sr-only">OneCompany — Оберіть напрям тюнінгу: Авто чи Мото</h1>
@@ -184,7 +182,7 @@ export default function ChoicePageContent() {
         {floatingParticles.map((particle, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
+            className="absolute w-1 h-1 bg-foreground/20 rounded-full"
             style={{
               left: particle.left,
               top: particle.top,
@@ -256,7 +254,7 @@ export default function ChoicePageContent() {
           y={pos.y}
           accent="from-orange-400/30 via-rose-400/25 to-amber-300/20"
         />
-        <div className="relative z-10 text-center select-none">
+        <div className="relative z-10 text-center select-none text-white">
           <p className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-3">
             {t.choice.tagline}
           </p>
@@ -309,7 +307,7 @@ export default function ChoicePageContent() {
           y={pos.y}
           accent="from-cyan-400/30 via-sky-400/25 to-indigo-300/20"
         />
-        <div className="relative z-10 text-center select-none">
+        <div className="relative z-10 text-center select-none text-white">
           <p className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-3">
             {t.choice.tagline}
           </p>

@@ -32,20 +32,20 @@ export default function NotFound() {
       <div className="text-center max-w-lg">
         {/* Large 404 */}
         <div className="mb-6">
-          <h1 className="text-[150px] sm:text-[200px] font-bold leading-none text-transparent bg-clip-text bg-linear-to-b from-zinc-600 to-zinc-900 select-none">
+          <h1 className="text-[150px] sm:text-[200px] font-bold leading-none text-transparent bg-clip-text bg-linear-to-b from-foreground/40 to-foreground select-none">
             {t.title}
           </h1>
         </div>
 
         {/* Text */}
-        <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-3">{t.subtitle}</h2>
-        <p className="text-zinc-400 mb-8 leading-relaxed">{t.description}</p>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">{t.subtitle}</h2>
+        <p className="text-foreground/65 mb-8 leading-relaxed">{t.description}</p>
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href={`/${locale}`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-zinc-200 text-black font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             <Home className="w-4 h-4" />
             {t.home}
@@ -53,7 +53,7 @@ export default function NotFound() {
 
           <Link
             href={`/${locale}/auto`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl border border-zinc-700 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-foreground/5 hover:bg-foreground/10 text-foreground font-medium rounded-xl border border-foreground/15 transition-all duration-200"
           >
             <Search className="w-4 h-4" />
             {t.search}

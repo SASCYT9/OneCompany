@@ -159,7 +159,11 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
           <div
             className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
           >
-            <p>{heroBadgeCopy}</p>
+            <p className="inline-flex items-center gap-3">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {heroBadgeCopy}
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
+            </p>
           </div>
 
           {/* SEO H1 - visually hidden but accessible */}
@@ -238,7 +242,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         {experience.stats.map((stat) => (
                           <div key={stat.note}>
                             <p
-                              className={`font-display tracking-tight text-white ${typography.statValue}`}
+                              className={`font-display tracking-tight text-primary ${typography.statValue}`}
                             >
                               {stat.value}
                             </p>
@@ -304,7 +308,10 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
           <div className="relative mx-auto max-w-6xl">
             <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
               <div>
-                <p className={`uppercase tracking-[0.4em] text-foreground/50 ${typography.badge}`}>
+                <p
+                  className={`inline-flex items-center gap-3 uppercase tracking-[0.4em] text-primary ${typography.badge}`}
+                >
+                  <span aria-hidden className="h-px w-8 bg-primary" />
                   {t("b2bPrograms")}
                 </p>
                 <h3 className={`mt-3 text-balance ${typography.h2}`}>{t("partnerWithLeading")}</h3>
@@ -314,7 +321,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
               </div>
               <Link
                 href={`/${locale}/contact`}
-                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-foreground/30 bg-foreground/5 px-6 py-3 text-xs uppercase tracking-[0.35em] text-foreground transition-colors duration-200 hover:border-foreground hover:bg-foreground hover:text-background"
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-primary bg-primary/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-primary transition-colors duration-200 hover:bg-primary hover:text-primary-foreground"
               >
                 {t("arrangeConsult")} ↗
               </Link>

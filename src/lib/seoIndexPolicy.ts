@@ -57,7 +57,7 @@ export const localizedStaticSlugs = [
   "/categories",
 ] as const;
 
-export const noindexPrefixes = ["/admin", "/api", "/telegram-app", "/figma", "/dev"] as const;
+export const noindexPrefixes = ["/admin", "/api", "/quote"] as const;
 
 export const removedBlogSlugs = ["one-company-dtskmdmjfgf"] as const;
 
@@ -69,9 +69,7 @@ export const indexablePatterns = [
 export const noindexPatterns = [
   /^\/admin(?:\/.*)?$/,
   /^\/api(?:\/.*)?$/,
-  /^\/telegram-app(?:\/.*)?$/,
-  /^\/figma(?:\/.*)?$/,
-  /^\/dev(?:\/.*)?$/,
+  /^\/quote(?:\/.*)?$/,
 ] as const;
 
 export type RedirectPattern = {

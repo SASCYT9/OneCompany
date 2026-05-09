@@ -40,10 +40,11 @@ export default function AnimatedButton({
 
   const variants = {
     primary:
-      "bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-white/90",
+      "bg-zinc-900 dark:bg-card text-foreground dark:text-primary-foreground hover:bg-zinc-800 dark:hover:bg-card/90",
     outline:
-      "border border-zinc-400 dark:border-white/30 hover:border-zinc-900 dark:hover:border-white text-zinc-900 dark:text-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black",
-    ghost: "text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-white/70",
+      "border border-zinc-400 dark:border-primary/30 hover:border-zinc-900 dark:hover:border-primary text-zinc-900 dark:text-foreground hover:bg-zinc-900 dark:hover:bg-card hover:text-foreground dark:hover:text-primary-foreground",
+    ghost:
+      "text-zinc-900 dark:text-foreground hover:text-zinc-600 dark:hover:text-foreground/85 dark:text-foreground/70",
   };
 
   const sizes = {

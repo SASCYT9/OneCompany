@@ -73,16 +73,16 @@ export default function ShopAccountSetupPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black bg-[radial-gradient(circle_at_top,rgba(194,157,89,0.14),transparent_55%)] px-6 py-24 text-white">
-      <div className="mx-auto max-w-md rounded-none border border-white/10 bg-white/3 p-8 backdrop-blur-2xl">
+    <div className="min-h-screen bg-background dark:bg-black dark:bg-[radial-gradient(circle_at_top,rgba(194,157,89,0.14),transparent_55%)] px-6 py-24 text-foreground">
+      <div className="mx-auto max-w-md rounded-none border border-foreground/10 bg-foreground/5 p-8 backdrop-blur-2xl">
         <div className="mb-8">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-white/40">
+          <div className="text-[11px] uppercase tracking-[0.25em] text-foreground/60 dark:text-foreground/40">
             {isUa ? "Акаунт клієнта" : "Customer account"}
           </div>
           <h1 className="mt-3 text-3xl font-light tracking-tight">
             {isUa ? "Встановіть пароль" : "Set your password"}
           </h1>
-          <p className="mt-3 text-sm leading-6 text-white/60">
+          <p className="mt-3 text-sm leading-6 text-foreground/75 dark:text-foreground/60">
             {isUa
               ? "Завершіть активацію акаунта, щоб увійти до кабінету й переглядати замовлення."
               : "Complete your account activation to sign in and view your orders."}
@@ -91,28 +91,28 @@ export default function ShopAccountSetupPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/45">
+            <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
               {isUa ? "Новий пароль" : "New password"}
             </span>
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-none border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white focus:border-white/30 focus:outline-hidden"
+              className="w-full rounded-none border border-foreground/10 bg-card dark:bg-zinc-950 px-4 py-3 text-sm text-foreground focus:border-foreground/30 focus:outline-hidden"
               autoComplete="new-password"
               required
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/45">
+            <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
               {isUa ? "Підтвердіть пароль" : "Confirm password"}
             </span>
             <input
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full rounded-none border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white focus:border-white/30 focus:outline-hidden"
+              className="w-full rounded-none border border-foreground/10 bg-card dark:bg-zinc-950 px-4 py-3 text-sm text-foreground focus:border-foreground/30 focus:outline-hidden"
               autoComplete="new-password"
               required
             />
@@ -132,7 +132,7 @@ export default function ShopAccountSetupPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-none bg-white px-4 py-3 text-sm font-medium uppercase tracking-[0.18em] text-black transition hover:bg-white/90 disabled:opacity-50"
+            className="w-full rounded-none bg-primary px-4 py-3 text-sm font-medium uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
           >
             {loading
               ? isUa
@@ -144,8 +144,8 @@ export default function ShopAccountSetupPasswordPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-white/45">
-          <Link href={`/${locale}/shop/account`} className="hover:text-white">
+        <div className="mt-6 text-center text-xs text-foreground/65 dark:text-foreground/45">
+          <Link href={`/${locale}/shop/account`} className="hover:text-foreground">
             {isUa ? "Повернутися до входу" : "Back to sign in"}
           </Link>
         </div>

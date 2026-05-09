@@ -259,13 +259,13 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
       >
         {/* Page title */}
         <header className="relative">
-          <p className="text-[11px] uppercase tracking-[0.32em] text-black/50">
+          <p className="text-[11px] uppercase tracking-[0.32em] text-foreground/65 dark:text-foreground/50">
             {isUa ? "One Company" : "One Company"}
           </p>
           <h1 className="mt-2 text-4xl font-light tracking-tight text-[#171511] sm:text-5xl">
             {isUa ? "Магазин" : "Shop"}
           </h1>
-          <p className="mt-3 max-w-xl text-base text-black/65">
+          <p className="mt-3 max-w-xl text-base text-foreground/80 dark:text-foreground/65">
             {isUa
               ? "Преміальні запчастини та тюнінг для авто та мото. Оберіть бренд, категорію та перегляньте товари."
               : "Premium parts and tuning for auto and moto. Choose a brand, category, and browse products."}
@@ -273,15 +273,15 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
         </header>
 
         {/* Entry to Urban Automotive experience */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm sm:px-5">
-          <p className="text-sm text-black/70">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-foreground/10 bg-card/80 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm sm:px-5">
+          <p className="text-sm text-foreground/80 dark:text-foreground/70">
             {isUa
               ? "Преміальні обвіси Urban Automotive на нашому сайті."
               : "Premium Urban Automotive body kits on our site."}
           </p>
           <Link
             href={`/${locale}/shop/urban`}
-            className="inline-flex items-center gap-2 rounded-full border border-black/20 bg-black px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-white transition hover:border-black hover:bg-[#222]"
+            className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-background transition hover:border-foreground hover:bg-foreground/90"
           >
             {isUa ? "Досвід Urban" : "Urban experience"}
             <span aria-hidden>→</span>
@@ -292,7 +292,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
           className={
             isUrban
               ? "rounded-2xl border border-white/10 bg-[#141414] p-4"
-              : "rounded-2xl border border-black/10 bg-white p-4 shadow-[0_12px_26px_rgba(0,0,0,0.06)]"
+              : "rounded-2xl border border-foreground/10 bg-card p-4 shadow-[0_12px_26px_rgba(0,0,0,0.06)]"
           }
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -312,8 +312,8 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                         ? "border-white bg-white text-black"
                         : "border-white/30 bg-white/10 text-white/90 hover:border-white/50 hover:bg-white/15"
                       : scope === item
-                        ? "border-black bg-black text-white"
-                        : "border-black/20 bg-white text-black/70 hover:border-black/35 hover:text-black"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-foreground/20 bg-card text-foreground/80 dark:text-foreground/70 hover:border-foreground/35 hover:text-foreground"
                   }`}
                 >
                   {getScopeLabel(locale, item)}
@@ -326,7 +326,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                 className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
                   isUrban
                     ? "border-white/25 bg-white/10 text-white/80"
-                    : "border-black/15 bg-[#f8f6f2] text-black/65"
+                    : "border-foreground/15 bg-muted text-foreground/80 dark:text-foreground/65"
                 }`}
               >
                 {isUa ? `Товари: ${stats.products}` : `Products: ${stats.products}`}
@@ -335,7 +335,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                 className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
                   isUrban
                     ? "border-white/25 bg-white/10 text-white/80"
-                    : "border-black/15 bg-[#f8f6f2] text-black/65"
+                    : "border-foreground/15 bg-muted text-foreground/80 dark:text-foreground/65"
                 }`}
               >
                 {isUa ? `Бренди: ${stats.brands}` : `Brands: ${stats.brands}`}
@@ -344,7 +344,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                 className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
                   isUrban
                     ? "border-white/25 bg-white/10 text-white/80"
-                    : "border-black/15 bg-[#f8f6f2] text-black/65"
+                    : "border-foreground/15 bg-muted text-foreground/80 dark:text-foreground/65"
                 }`}
               >
                 {isUa ? `Категорії: ${stats.categories}` : `Categories: ${stats.categories}`}
@@ -356,7 +356,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
         <section className="space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.32em] text-black/45">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-foreground/60 dark:text-foreground/45">
                 {isUa ? "Крок 1" : "Step 1"}
               </p>
               <h2 className="mt-2 text-3xl font-light text-[#171511]">
@@ -365,7 +365,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
             </div>
             <button
               onClick={() => setSelectedBrand("all")}
-              className="rounded-full border border-black/20 bg-white px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-black/70 transition hover:border-black/35 hover:text-black"
+              className="rounded-full border border-foreground/20 bg-card px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/70 transition hover:border-foreground/35 hover:text-foreground"
             >
               {isUa ? "Показати всі" : "Show all"}
             </button>
@@ -376,8 +376,8 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
               onClick={() => setSelectedBrand("all")}
               className={`rounded-2xl border p-5 text-left transition ${
                 selectedBrand === "all"
-                  ? "border-black/80 bg-[#11110f] text-white"
-                  : "border-black/15 bg-white text-black hover:border-black/35"
+                  ? "border-foreground/80 bg-foreground text-background"
+                  : "border-foreground/15 bg-card text-foreground hover:border-foreground/35"
               }`}
             >
               <p className="text-[11px] uppercase tracking-[0.28em] opacity-75">
@@ -393,10 +393,10 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
               <button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand.name)}
-                className={`group relative overflow-hidden rounded-2xl border bg-white text-left transition ${
+                className={`group relative overflow-hidden rounded-2xl border bg-card text-left transition ${
                   selectedBrand === brand.name
-                    ? "border-black/80 shadow-[0_14px_30px_rgba(0,0,0,0.13)]"
-                    : "border-black/15 hover:border-black/35 hover:shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
+                    ? "border-foreground/80 shadow-[0_14px_30px_rgba(0,0,0,0.13)]"
+                    : "border-foreground/15 hover:border-foreground/35 hover:shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
                 }`}
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl">
@@ -407,16 +407,16 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                     sizes="(max-width: 1280px) 50vw, 25vw"
                     className="object-cover opacity-22 transition duration-500 group-hover:scale-105 group-hover:opacity-30"
                   />
-                  <div className="absolute inset-0 bg-linear-to-b from-white/30 via-white/80 to-white" />
+                  <div className="absolute inset-0 bg-linear-to-b from-card/30 via-card/80 to-card" />
                 </div>
 
                 <div className="relative flex h-full min-h-[170px] flex-col justify-between p-5">
-                  <div className="inline-flex w-fit items-center rounded-full border border-black/20 bg-white/80 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-black/70">
+                  <div className="inline-flex w-fit items-center rounded-full border border-foreground/20 bg-card/80 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-foreground/80 dark:text-foreground/70">
                     {brand.count} {isUa ? "товари" : "items"}
                   </div>
 
                   <div>
-                    <div className="mb-3 flex h-16 items-center justify-center rounded-xl border border-black/10 bg-white px-3 shadow-[0_10px_18px_rgba(0,0,0,0.1)]">
+                    <div className="mb-3 flex h-16 items-center justify-center rounded-xl border border-foreground/10 bg-card px-3 shadow-[0_10px_18px_rgba(0,0,0,0.1)]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={getBrandLogo(brand.name)}
@@ -435,7 +435,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
         <section className="space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.32em] text-black/45">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-foreground/60 dark:text-foreground/45">
                 {isUa ? "Крок 2" : "Step 2"}
               </p>
               <h2 className="mt-2 text-3xl font-light text-[#171511]">
@@ -444,7 +444,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
             </div>
             <button
               onClick={() => setSelectedCategory("all")}
-              className="rounded-full border border-black/20 bg-white px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-black/70 transition hover:border-black/35 hover:text-black"
+              className="rounded-full border border-foreground/20 bg-card px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/70 transition hover:border-foreground/35 hover:text-foreground"
             >
               {isUa ? "Скинути категорію" : "Reset category"}
             </button>
@@ -455,8 +455,8 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
               onClick={() => setSelectedCategory("all")}
               className={`rounded-2xl border p-4 text-left transition ${
                 selectedCategory === "all"
-                  ? "border-black/80 bg-[#11110f] text-white"
-                  : "border-black/15 bg-white text-black hover:border-black/35"
+                  ? "border-foreground/80 bg-foreground text-background"
+                  : "border-foreground/15 bg-card text-foreground hover:border-foreground/35"
               }`}
             >
               <p className="text-[11px] uppercase tracking-[0.24em] opacity-75">
@@ -471,8 +471,8 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                 onClick={() => setSelectedCategory(category.label)}
                 className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition ${
                   selectedCategory === category.label
-                    ? "border-black/80 bg-white"
-                    : "border-black/15 bg-white hover:border-black/35"
+                    ? "border-foreground/80 bg-card"
+                    : "border-foreground/15 bg-card hover:border-foreground/35"
                 }`}
               >
                 <div className="absolute inset-0">
@@ -483,12 +483,12 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                     sizes="(max-width: 1280px) 50vw, 25vw"
                     className="object-cover opacity-18 transition duration-500 group-hover:scale-105 group-hover:opacity-30"
                   />
-                  <div className="absolute inset-0 bg-linear-to-b from-white/30 via-white/80 to-white" />
+                  <div className="absolute inset-0 bg-linear-to-b from-card/30 via-card/80 to-card" />
                 </div>
 
                 <div className="relative">
                   <p className="text-sm font-medium text-[#171511]">{category.label}</p>
-                  <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-black/60">
+                  <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-foreground/75 dark:text-foreground/60">
                     {category.count} {isUa ? "позицій" : "products"}
                   </p>
                 </div>
@@ -500,22 +500,22 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
         <section className="space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.32em] text-black/45">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-foreground/60 dark:text-foreground/45">
                 {isUa ? "Крок 3" : "Step 3"}
               </p>
               <h2 className="mt-2 text-3xl font-light text-[#171511]">
                 {isUa ? "Товари каталогу" : "Catalog products"}
               </h2>
             </div>
-            <p className="rounded-full border border-black/20 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-black/70">
+            <p className="rounded-full border border-foreground/20 bg-card px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-foreground/80 dark:text-foreground/70">
               {filteredProducts.length} {isUa ? "результатів" : "results"}
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-[0_12px_26px_rgba(0,0,0,0.06)] sm:grid-cols-2 lg:grid-cols-[1.2fr_220px_220px]">
+          <div className="grid gap-3 rounded-2xl border border-foreground/10 bg-card p-4 shadow-[0_12px_26px_rgba(0,0,0,0.06)] sm:grid-cols-2 lg:grid-cols-[1.2fr_220px_220px]">
             <label className="relative">
               <span
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/40"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground/55 dark:text-foreground/40"
                 aria-hidden
               >
                 ⌕
@@ -528,7 +528,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                 aria-label={
                   isUa ? "Пошук за назвою товару або бренду" : "Search by product name or brand"
                 }
-                className="w-full rounded-xl border border-black/15 bg-[#fbfaf8] py-3 pl-8 pr-3 text-sm text-black placeholder:text-black/45 focus:border-black/35 focus:outline-hidden focus:ring-2 focus:ring-black/10"
+                className="w-full rounded-xl border border-foreground/15 bg-muted py-3 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground/60 dark:text-foreground/45 focus:border-foreground/35 focus:outline-hidden focus:ring-2 focus:ring-foreground/10"
               />
             </label>
 
@@ -536,7 +536,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
               <select
                 value={selectedBrand}
                 onChange={(event) => setSelectedBrand(event.target.value)}
-                className="w-full appearance-none rounded-xl border border-black/15 bg-[#fbfaf8] px-3 py-3 text-sm text-black focus:border-black/35 focus:outline-hidden"
+                className="w-full appearance-none rounded-xl border border-foreground/15 bg-muted px-3 py-3 text-sm text-foreground focus:border-foreground/35 focus:outline-hidden"
               >
                 <option value="all">{isUa ? "Усі бренди" : "All brands"}</option>
                 {brandCards.map((brand) => (
@@ -551,7 +551,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
               <select
                 value={sortMode}
                 onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="w-full appearance-none rounded-xl border border-black/15 bg-[#fbfaf8] px-3 py-3 text-sm text-black focus:border-black/35 focus:outline-hidden"
+                className="w-full appearance-none rounded-xl border border-foreground/15 bg-muted px-3 py-3 text-sm text-foreground focus:border-foreground/35 focus:outline-hidden"
               >
                 <option value="featured">{isUa ? "Рекомендовані" : "Featured"}</option>
                 <option value="priceLow">
@@ -565,7 +565,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-black/25 bg-white p-10 text-center text-black/60">
+            <div className="rounded-2xl border border-dashed border-foreground/25 bg-card p-10 text-center text-foreground/75 dark:text-foreground/60">
               {isUa
                 ? "За поточними фільтрами товари не знайдені. Спробуй змінити бренд або категорію."
                 : "No products found with current filters. Try another brand or category."}
@@ -584,7 +584,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                   <Link
                     key={product.slug}
                     href={buildShopStorefrontProductPathForProduct(locale, product)}
-                    className="group overflow-hidden rounded-[30px] border border-black/10 bg-white transition hover:-translate-y-0.5 hover:border-black/30 hover:shadow-[0_28px_50px_rgba(20,14,8,0.16)]"
+                    className="group overflow-hidden rounded-[30px] border border-foreground/10 bg-card transition hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-[0_28px_50px_rgba(20,14,8,0.16)]"
                   >
                     <div className="relative aspect-4/5 overflow-hidden">
                       <ShopProductImage
@@ -594,7 +594,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                         sizes="(max-width: 1280px) 100vw, 33vw"
                         className="object-cover transition duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/10 to-black/65" />
+                      <div className="absolute inset-0 bg-linear-to-b from-transparent via-foreground/10 to-foreground/65" />
 
                       <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-2">
                         <div className="rounded-full border border-white/45 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white">
@@ -619,8 +619,8 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                         ) : null}
                       </div>
 
-                      <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/30 bg-white/90 p-3 backdrop-blur-sm">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-black/50">
+                      <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/30 bg-card/90 p-3 backdrop-blur-sm">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-foreground/65 dark:text-foreground/50">
                           {isUa ? "Ціна від" : "Price from"}
                         </p>
                         {(() => {
@@ -643,7 +643,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                                 {currency === "EUR" && formatPrice(locale, primaryAmount, "EUR")}
                                 {currency === "UAH" && formatPrice(locale, primaryAmount, "UAH")}
                               </p>
-                              <p className="text-xs text-black/55">
+                              <p className="text-xs text-foreground/70 dark:text-foreground/55">
                                 {formatPrice(locale, computed.usd, "USD")} /{" "}
                                 {formatPrice(locale, computed.eur, "EUR")} /{" "}
                                 {formatPrice(locale, computed.uah, "UAH")}
@@ -656,7 +656,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
 
                     <div className="space-y-3 p-5">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-black/15 bg-[#fbfaf8] p-1.5">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/15 bg-muted p-1.5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={getBrandLogo(product.brand)}
@@ -664,7 +664,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                             className="h-full w-full object-contain"
                           />
                         </div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-black/60">
+                        <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
                           {product.brand}
                         </p>
                       </div>
@@ -672,17 +672,17 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                       <h3 className="text-lg font-light leading-snug text-[#161410]">
                         {productTitle}
                       </h3>
-                      <p className="line-clamp-2 text-sm leading-relaxed text-black/65">
+                      <p className="line-clamp-2 text-sm leading-relaxed text-foreground/80 dark:text-foreground/65">
                         {shortDescription}
                       </p>
 
                       <div className="flex flex-wrap gap-2">
                         {country ? (
-                          <span className="rounded-full border border-black/15 bg-[#f8f6f2] px-3 py-1 text-[11px] text-black/65">
+                          <span className="rounded-full border border-foreground/15 bg-muted px-3 py-1 text-[11px] text-foreground/80 dark:text-foreground/65">
                             {country}
                           </span>
                         ) : null}
-                        <span className="rounded-full border border-black/15 bg-[#f8f6f2] px-3 py-1 text-[11px] text-black/65">
+                        <span className="rounded-full border border-foreground/15 bg-muted px-3 py-1 text-[11px] text-foreground/80 dark:text-foreground/65">
                           {localizeShopText(locale, product.collection)}
                         </span>
                       </div>
@@ -694,9 +694,9 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                           variant="inline"
                           redirect={true}
                           productName={localizeShopProductTitle(locale, product)}
-                          className="rounded-full border border-black/20 bg-[#f8f6f2] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-black/80 hover:bg-black/10 transition"
+                          className="rounded-full border border-foreground/20 bg-muted px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-foreground/80 hover:bg-foreground/10 transition"
                         />
-                        <p className="text-xs uppercase tracking-[0.2em] text-black/50">
+                        <p className="text-xs uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/50">
                           {isUa ? "Детальніше" : "View details"} →
                         </p>
                       </div>

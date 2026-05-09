@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { useState } from 'react';
-import type { SupportedLocale } from '@/lib/seo';
-import { sanitizeNextPath } from '@/lib/safeRedirect';
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import type { SupportedLocale } from "@/lib/seo";
+import { sanitizeNextPath } from "@/lib/safeRedirect";
 
-type Mode = 'login' | 'register';
+type Mode = "login" | "register";
 
 type Props = {
   locale: SupportedLocale;
@@ -15,29 +15,29 @@ type Props = {
 };
 
 function baseCopy(locale: SupportedLocale, mode: Mode) {
-  const isUa = locale === 'ua';
-  if (mode === 'login') {
+  const isUa = locale === "ua";
+  if (mode === "login") {
     return {
-      eyebrow: isUa ? 'Акаунт клієнта' : 'Customer account',
-      title: isUa ? 'Вхід у shop account' : 'Shop account login',
+      eyebrow: isUa ? "Акаунт клієнта" : "Customer account",
+      title: isUa ? "Вхід у shop account" : "Shop account login",
       subtitle: isUa
-        ? 'Увійдіть, щоб бачити свій кошик, замовлення та B2B статус.'
-        : 'Sign in to access your cart, orders, and B2B status.',
-      submit: isUa ? 'Увійти' : 'Sign in',
+        ? "Увійдіть, щоб бачити свій кошик, замовлення та B2B статус."
+        : "Sign in to access your cart, orders, and B2B status.",
+      submit: isUa ? "Увійти" : "Sign in",
       altHref: `/${locale}/shop/account/register`,
-      altLabel: isUa ? 'Створити акаунт' : 'Create account',
+      altLabel: isUa ? "Створити акаунт" : "Create account",
     };
   }
 
   return {
-    eyebrow: isUa ? 'Новий акаунт' : 'New account',
-    title: isUa ? 'Створити shop account' : 'Create shop account',
+    eyebrow: isUa ? "Новий акаунт" : "New account",
+    title: isUa ? "Створити shop account" : "Create shop account",
     subtitle: isUa
-      ? 'Після реєстрації ви зможете подати B2B заявку з кабінету.'
-      : 'After registration you can apply for B2B access from your account.',
-    submit: isUa ? 'Зареєструватися' : 'Create account',
+      ? "Після реєстрації ви зможете подати B2B заявку з кабінету."
+      : "After registration you can apply for B2B access from your account.",
+    submit: isUa ? "Зареєструватися" : "Create account",
     altHref: `/${locale}/shop/account/login`,
-    altLabel: isUa ? 'У мене вже є акаунт' : 'I already have an account',
+    altLabel: isUa ? "У мене вже є акаунт" : "I already have an account",
   };
 }
 
@@ -45,65 +45,69 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const copy = baseCopy(locale, mode);
-  const isUa = locale === 'ua';
-  const nextHref = sanitizeNextPath(searchParams.get('next'), `/${locale}/shop/account`);
+  const isUa = locale === "ua";
+  const nextHref = sanitizeNextPath(searchParams.get("next"), `/${locale}/shop/account`);
   const [submitting, setSubmitting] = useState(false);
 
   /* If NextAuth redirected here with ?error=..., show a message immediately */
-  const errorParam = searchParams.get('error');
+  const errorParam = searchParams.get("error");
   const initialError = errorParam
-    ? errorParam === 'ACCOUNT_DISABLED'
-      ? (isUa
-          ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
-          : 'This account has been disabled. Please contact support.')
-      : (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
-    : '';
+    ? errorParam === "ACCOUNT_DISABLED"
+      ? isUa
+        ? "Цей акаунт деактивовано. Зверніться в підтримку."
+        : "This account has been disabled. Please contact support."
+      : isUa
+        ? "Невірний email або пароль"
+        : "Invalid email or password"
+    : "";
   const [error, setError] = useState(initialError);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   async function handleLogin() {
     let result;
     try {
-      result = await signIn('credentials', {
+      result = await signIn("credentials", {
         redirect: false,
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
     } catch {
-      throw new Error(isUa ? 'Помилка з\'єднання. Спробуйте ще раз.' : 'Connection error. Please try again.');
+      throw new Error(
+        isUa ? "Помилка з'єднання. Спробуйте ще раз." : "Connection error. Please try again."
+      );
     }
 
     if (!result?.ok) {
-      if (result?.error === 'ACCOUNT_DISABLED') {
+      if (result?.error === "ACCOUNT_DISABLED") {
         throw new Error(
           isUa
-            ? 'Цей акаунт деактивовано. Зверніться в підтримку.'
-            : 'This account has been disabled. Please contact support.',
+            ? "Цей акаунт деактивовано. Зверніться в підтримку."
+            : "This account has been disabled. Please contact support."
         );
       }
-      throw new Error(isUa ? 'Невірний email або пароль' : 'Invalid email or password');
+      throw new Error(isUa ? "Невірний email або пароль" : "Invalid email or password");
     }
 
-    await fetch('/api/shop/cart');
+    await fetch("/api/shop/cart");
     router.push(nextHref);
     router.refresh();
   }
 
   async function handleRegister() {
     if (form.password !== form.confirmPassword) {
-      throw new Error(isUa ? 'Паролі не співпадають' : 'Passwords do not match');
+      throw new Error(isUa ? "Паролі не співпадають" : "Passwords do not match");
     }
 
-    const registerResponse = await fetch('/api/shop/account/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const registerResponse = await fetch("/api/shop/account/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         firstName: form.firstName,
         lastName: form.lastName,
@@ -115,15 +119,17 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     });
     const registerData = await registerResponse.json().catch(() => ({}));
     if (!registerResponse.ok) {
-      throw new Error(registerData.error || (isUa ? 'Не вдалося створити акаунт' : 'Failed to create account'));
+      throw new Error(
+        registerData.error || (isUa ? "Не вдалося створити акаунт" : "Failed to create account")
+      );
     }
 
     // Cabinet reads this on first mount to show "We linked X past orders" banner.
-    if (typeof window !== 'undefined' && Number(registerData?.linkedOrdersCount) > 0) {
+    if (typeof window !== "undefined" && Number(registerData?.linkedOrdersCount) > 0) {
       try {
         sessionStorage.setItem(
-          'shop.account.claimedOrdersCount',
-          String(registerData.linkedOrdersCount),
+          "shop.account.claimedOrdersCount",
+          String(registerData.linkedOrdersCount)
         );
       } catch {
         // Storage might be disabled (private mode) — banner just won't show.
@@ -136,10 +142,10 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
-    setError('');
+    setError("");
 
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         await handleLogin();
       } else {
         await handleRegister();
@@ -151,23 +157,25 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white">
+    <main className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-28 sm:px-6">
-        <div className="w-full rounded-[30px] border border-white/10 bg-white/5 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
-          <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">{copy.eyebrow}</p>
+        <div className="w-full rounded-[30px] border border-foreground/10 bg-foreground/5 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
+          <p className="text-[11px] uppercase tracking-[0.35em] text-foreground/65 dark:text-foreground/45">
+            {copy.eyebrow}
+          </p>
           <h1 className="mt-4 text-3xl font-light tracking-tight sm:text-4xl">{copy.title}</h1>
-          <p className="mt-3 text-sm text-white/55">{copy.subtitle}</p>
+          <p className="mt-3 text-sm text-foreground/70 dark:text-foreground/55">{copy.subtitle}</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            {mode === 'register' ? (
+            {mode === "register" ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <InputField
-                  label={isUa ? 'Ім’я' : 'First name'}
+                  label={isUa ? "Ім’я" : "First name"}
                   value={form.firstName}
                   onChange={(value) => setForm((current) => ({ ...current, firstName: value }))}
                 />
                 <InputField
-                  label={isUa ? 'Прізвище' : 'Last name'}
+                  label={isUa ? "Прізвище" : "Last name"}
                   value={form.lastName}
                   onChange={(value) => setForm((current) => ({ ...current, lastName: value }))}
                 />
@@ -181,57 +189,59 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
               onChange={(value) => setForm((current) => ({ ...current, email: value }))}
             />
 
-            {mode === 'register' ? (
+            {mode === "register" ? (
               <InputField
-                label={isUa ? 'Телефон' : 'Phone'}
+                label={isUa ? "Телефон" : "Phone"}
                 value={form.phone}
                 onChange={(value) => setForm((current) => ({ ...current, phone: value }))}
               />
             ) : null}
 
             <InputField
-              label={isUa ? 'Пароль' : 'Password'}
+              label={isUa ? "Пароль" : "Password"}
               type="password"
               value={form.password}
               onChange={(value) => setForm((current) => ({ ...current, password: value }))}
             />
 
-            {mode === 'register' ? (
+            {mode === "register" ? (
               <InputField
-                label={isUa ? 'Підтвердіть пароль' : 'Confirm password'}
+                label={isUa ? "Підтвердіть пароль" : "Confirm password"}
                 type="password"
                 value={form.confirmPassword}
                 onChange={(value) => setForm((current) => ({ ...current, confirmPassword: value }))}
               />
             ) : null}
 
-            {error ? <div className="rounded-xl bg-red-900/20 px-4 py-3 text-sm text-red-200">{error}</div> : null}
+            {error ? (
+              <div className="rounded-xl bg-red-900/20 px-4 py-3 text-sm text-red-200">{error}</div>
+            ) : null}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-full bg-white px-5 py-3 text-sm font-medium uppercase tracking-[0.2em] text-black transition hover:bg-white/90 disabled:opacity-50"
+              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium uppercase tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
             >
-              {submitting ? (isUa ? 'Зачекайте…' : 'Please wait…') : copy.submit}
+              {submitting ? (isUa ? "Зачекайте…" : "Please wait…") : copy.submit}
             </button>
           </form>
 
-          {mode === 'login' ? (
+          {mode === "login" ? (
             <div className="mt-4 text-right">
               <Link
                 href={`/${locale}/shop/account/forgot-password`}
-                className="text-xs uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
+                className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55 transition hover:text-foreground"
               >
-                {isUa ? 'Забули пароль?' : 'Forgot password?'}
+                {isUa ? "Забули пароль?" : "Forgot password?"}
               </Link>
             </div>
           ) : null}
 
-          <div className="mt-6 flex items-center justify-between gap-4 text-sm text-white/50">
-            <Link href={`/${locale}/shop/urban/collections`} className="hover:text-white">
-              {isUa ? '← До колекцій Urban' : '← Back to Urban collections'}
+          <div className="mt-6 flex items-center justify-between gap-4 text-sm text-foreground/65 dark:text-foreground/50">
+            <Link href={`/${locale}/shop/urban/collections`} className="hover:text-foreground">
+              {isUa ? "← До колекцій Urban" : "← Back to Urban collections"}
             </Link>
-            <Link href={copy.altHref} className="hover:text-white">
+            <Link href={copy.altHref} className="hover:text-foreground">
               {copy.altLabel}
             </Link>
           </div>
@@ -249,12 +259,14 @@ function InputField(props: {
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-white/45">{props.label}</span>
+      <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-foreground/65 dark:text-foreground/45">
+        {props.label}
+      </span>
       <input
-        type={props.type ?? 'text'}
+        type={props.type ?? "text"}
         value={props.value}
         onChange={(event) => props.onChange(event.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white placeholder:text-white/25 focus:border-white/35 focus:outline-none"
+        className="w-full rounded-xl border border-foreground/10 bg-card/40 dark:bg-black/30 px-4 py-3 text-foreground placeholder:text-foreground/45 dark:placeholder:text-foreground/25 focus:border-foreground/35 focus:outline-none"
         required
       />
     </label>

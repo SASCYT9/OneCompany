@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
@@ -66,13 +66,14 @@ export const TiltedCard = ({
           transform: "translateZ(20px)",
           transformStyle: "preserve-3d",
         }}
-        className={`relative h-full w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/50 shadow-2xl backdrop-blur-xl transition-colors hover:bg-zinc-900/80 ${className}`}
+        className={`relative h-full w-full overflow-hidden rounded-2xl border border-foreground/10 bg-zinc-900/50 shadow-2xl backdrop-blur-xl transition-colors hover:bg-zinc-900/80 ${className}`}
       >
-        <div 
-            className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
-            style={{
-                background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.05) 25%, transparent 30%)'
-            }}
+        <div
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.05) 25%, transparent 30%)",
+          }}
         />
         {children}
       </div>

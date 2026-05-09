@@ -97,19 +97,21 @@
      Inspired by porsche.com / mclaren.com editorial styling.
      ================================================================ */
   :root {
-    --background: 0 0% 100%; /* #ffffff pure white */
-    --foreground: 0 0% 4%; /* #0a0a0a near-black */
+    /* Quiet warm off-white — barely-there saturation, just enough warmth
+       to avoid clinical glare. */
+    --background: 30 5% 91%; /* #e8e7e4 hushed stone */
+    --foreground: 0 0% 8%; /* #141414 deep ink */
     --font-body: var(--font-display);
 
-    --surface: 0 0% 100%;
-    --surface-elevated: 0 0% 100%;
-    --surface-muted: 0 0% 92%;
+    --surface: 30 5% 93%;
+    --surface-elevated: 30 5% 95%;
+    --surface-muted: 30 4% 87%;
 
-    --card: 0 0% 97%; /* #f7f7f7 subtle off-white card */
-    --card-foreground: 0 0% 4%;
+    --card: 30 5% 95%; /* subtle elevation above bg */
+    --card-foreground: 0 0% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
+    --popover: 30 5% 95%;
+    --popover-foreground: 0 0% 8%;
 
     /* Carmine red — Porsche signature accent as primary CTA */
     --primary: 354 100% 42%; /* #d5001c */
@@ -119,19 +121,24 @@
     --secondary: 0 0% 10%; /* #1a1a1a */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 92%; /* #ebebeb */
-    --muted-foreground: 0 0% 42%; /* #6b6b6b */
+    --muted: 30 4% 87%;
+    --muted-foreground: 0 0% 38%;
 
     /* Black accent for sharp editorial typography highlights */
-    --accent: 0 0% 4%; /* #0a0a0a */
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 8%;
+    --accent-foreground: 30 5% 95%;
 
     --destructive: 354 100% 42%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 30 5% 95%;
 
-    --border: 0 0% 83%; /* #d4d4d4 */
-    --input: 0 0% 83%;
+    --border: 30 4% 78%;
+    --input: 30 4% 78%;
     --ring: 354 100% 42%;
+
+    /* Logo inversion: in light, logos stay black (invert(0)); in dark they
+       flip to white via the .dark override below. Used by .module.css files
+       that show monochrome brand logos on theme-adaptive backgrounds. */
+    --logo-invert: invert(0);
 
     --radius: 4px; /* Sharp Porsche corners */
 
@@ -180,6 +187,33 @@
     /* Dark theme keeps the original pill-shape corners. Light (Porsche
        Editorial) uses sharp 4px corners defined in :root. */
     --radius: 999px;
+
+    /* Tailwind v4 quirk: @theme registers --color-* tokens via @property
+       at :root level; nested .dark scopes don't propagate the resolved
+       hsl() value to Tailwind utilities like text-foreground / bg-background
+       unless we explicitly override the --color-* tokens here too. */
+    --color-background: hsl(240 5% 2%);
+    --color-foreground: hsl(0 0% 98%);
+    --color-card: hsl(240 5% 4%);
+    --color-card-foreground: hsl(0 0% 96%);
+    --color-popover: hsl(240 5% 4%);
+    --color-popover-foreground: hsl(0 0% 96%);
+    --color-primary: hsl(43 45% 55%);
+    --color-primary-foreground: hsl(240 5% 2%);
+    --color-secondary: hsl(240 5% 15%);
+    --color-secondary-foreground: hsl(0 0% 98%);
+    --color-muted: hsl(240 5% 20%);
+    --color-muted-foreground: hsl(240 5% 65%);
+    --color-accent: hsl(43 45% 55%);
+    --color-accent-foreground: hsl(240 5% 2%);
+    --color-destructive: hsl(0 84% 60%);
+    --color-destructive-foreground: hsl(240 5% 2%);
+    --color-border: hsl(240 5% 12%);
+    --color-input: hsl(240 5% 12%);
+    --color-ring: hsl(43 45% 55%);
+
+    /* Logo inversion in dark: flip to white */
+    --logo-invert: invert(1);
   }
 
   * {
@@ -266,6 +300,24 @@
   ::selection {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
+  }
+
+  /* Suppress Chrome's autofill yellow/blue tint — paint our own bg via the
+     inset box-shadow trick (autofill cannot override box-shadow). */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--background)) inset !important;
+    box-shadow: 0 0 0 1000px hsl(var(--background)) inset !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    caret-color: hsl(var(--foreground));
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   body {

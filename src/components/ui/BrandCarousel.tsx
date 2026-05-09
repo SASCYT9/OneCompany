@@ -36,7 +36,7 @@ export default function BrandCarousel({
   return (
     <div className="w-full overflow-hidden">
       {title && (
-        <h3 className="text-xl font-light text-zinc-900 dark:text-white mb-8 uppercase tracking-widest">
+        <h3 className="text-xl font-light text-zinc-900 dark:text-foreground mb-8 uppercase tracking-widest">
           {title}
         </h3>
       )}
@@ -66,7 +66,7 @@ export default function BrandCarousel({
           {duplicatedBrands.map((brand, index) => (
             <motion.div
               key={`${brand.name}-${index}`}
-              className="shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-white/10 hover:border-zinc-900/30 dark:hover:border-white/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-xs relative overflow-hidden group/card"
+              className="shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-foreground/10 hover:border-zinc-900/30 dark:hover:border-primary/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-xs relative overflow-hidden group/card"
               whileHover={{
                 scale: 1.05,
                 transition: { duration: 0.2 },

@@ -83,7 +83,7 @@ export default function BrandsPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <CollectionPageSchema
         name={locale === "ua" ? "Всі бренди" : "All Brands"}
@@ -95,17 +95,17 @@ export default function BrandsPageContent() {
         url={absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands"))}
       />
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(255,255,255,0.05)_0%,transparent_70%)] rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,hsl(var(--foreground)/0.05)_0%,transparent_70%)] rounded-full blur-3xl" />
       </div>
 
       <main className="relative container mx-auto px-6 py-24">
         <header className="text-center mb-16">
           <p
-            className={`tracking-[0.35em] uppercase text-white/30 font-light mb-4 ${typography.badge}`}
+            className={`tracking-[0.35em] uppercase text-primary font-light mb-4 ${typography.badge}`}
           >
             {locale === "ua" ? "Партнери" : "Partners"}
           </p>
-          <h1 className="text-5xl md:text-6xl font-light tracking-tight mb-8 bg-clip-text text-transparent bg-linear-to-b from-white to-white/70 text-balance">
+          <h1 className="text-5xl md:text-6xl font-light tracking-tight mb-8 bg-clip-text text-transparent bg-linear-to-b from-foreground to-foreground/70 text-balance">
             {locale === "ua" ? "Всі бренди" : "All Brands"}
           </h1>
 
@@ -115,12 +115,12 @@ export default function BrandsPageContent() {
               placeholder={locale === "ua" ? "Пошук бренду..." : "Search brands..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-6 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder:text-white/30 focus:outline-hidden focus:border-white/30 focus:bg-white/8 transition-all text-center font-light"
+              className="w-full px-6 py-3 bg-foreground/5 border border-foreground/15 rounded-full text-foreground placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground/30 focus:bg-foreground/8 transition-all text-center font-light"
             />
           </div>
         </header>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+        <div className="dark grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 rounded-3xl bg-[#0a0a0a] p-4 sm:p-6">
           {filteredBrands.map(([name, logo]) => (
             <div
               key={name}
@@ -173,7 +173,7 @@ export default function BrandsPageContent() {
         </div>
 
         {filteredBrands.length === 0 && (
-          <div className="text-center py-20 text-white/30 font-light">
+          <div className="text-center py-20 text-foreground/45 font-light">
             {locale === "ua" ? "Нічого не знайдено" : "No brands found"}
           </div>
         )}

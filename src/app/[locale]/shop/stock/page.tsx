@@ -62,7 +62,7 @@ function DealerDashboardHeader({ data, isUa }: { data: DealerData; isUa: boolean
       animate={{ opacity: 1, y: 0 }}
       className="max-w-360 mx-auto px-6 mb-8"
     >
-      <div className="relative group overflow-hidden rounded-[32px] border border-white/8 bg-white/2 backdrop-blur-3xl p-8 shadow-2xl">
+      <div className="relative group overflow-hidden rounded-[32px] border border-foreground/10 bg-foreground/[0.03] backdrop-blur-3xl p-8 shadow-2xl">
         {/* Decorative background glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] pointer-events-none group-hover:bg-indigo-500/10 transition-all duration-700" />
 
@@ -75,7 +75,7 @@ function DealerDashboardHeader({ data, isUa }: { data: DealerData; isUa: boolean
               <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
               Dealer Tier: {data.tier}
             </div>
-            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-white">
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-foreground">
               {isUa ? "Вітаємо," : "Welcome,"} <span className="font-medium">{data.name}</span>
             </h2>
             <p className="text-zinc-500 text-sm font-light">
@@ -86,7 +86,7 @@ function DealerDashboardHeader({ data, isUa }: { data: DealerData; isUa: boolean
           </div>
 
           {/* Financial Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 border-t lg:border-t-0 lg:border-l border-white/5 pt-8 lg:pt-0 lg:pl-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 border-t lg:border-t-0 lg:border-l border-foreground/5 pt-8 lg:pt-0 lg:pl-12">
             <div>
               <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">
                 {isUa ? "Ваша знижка" : "Your Discount"}
@@ -97,7 +97,7 @@ function DealerDashboardHeader({ data, isUa }: { data: DealerData; isUa: boolean
               <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">
                 {isUa ? "Кредитний ліміт" : "Credit Limit"}
               </div>
-              <div className="text-2xl font-light text-white">
+              <div className="text-2xl font-light text-foreground">
                 ${data.creditLimit.toLocaleString()}
               </div>
             </div>
@@ -167,12 +167,12 @@ function Combobox({
       <div
         className={`flex items-center border transition-all h-10 ${
           disabled
-            ? "bg-transparent border-white/5 cursor-not-allowed opacity-30 text-white/30"
+            ? "bg-transparent border-foreground/5 cursor-not-allowed opacity-30 text-foreground/55 dark:text-foreground/30"
             : open
-              ? "bg-[#111] border-white/30"
+              ? "bg-[#111] border-foreground/30"
               : isSelected
-                ? "bg-[#111] border-red-500/40 text-white"
-                : "bg-transparent border-white/10 hover:border-white/20 cursor-pointer text-white/70"
+                ? "bg-[#111] border-red-500/40 text-foreground"
+                : "bg-transparent border-foreground/10 hover:border-foreground/20 cursor-pointer text-foreground/85 dark:text-foreground/70"
         }`}
         onClick={() => {
           if (disabled) return;
@@ -192,28 +192,28 @@ function Combobox({
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-transparent text-xs text-white placeholder-white/30 focus:outline-hidden py-1.5 px-2.5 tracking-wide cursor-pointer disabled:cursor-not-allowed"
+          className="w-full bg-transparent text-xs text-foreground placeholder-white/30 focus:outline-hidden py-1.5 px-2.5 tracking-wide cursor-pointer disabled:cursor-not-allowed"
           readOnly={!open}
         />
         {loading ? (
-          <Loader2 className="w-3.5 h-3.5 text-white/30 mr-3 shrink-0 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 text-foreground/55 dark:text-foreground/30 mr-3 shrink-0 animate-spin" />
         ) : (
           <ChevronDown
-            className={`w-3.5 h-3.5 text-white/30 mr-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`w-3.5 h-3.5 text-foreground/55 dark:text-foreground/30 mr-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
           />
         )}
       </div>
 
       {open && !disabled && filtered.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0a0a0c] border border-white/10 max-h-64 overflow-y-auto shadow-2xl">
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0a0a0c] border border-foreground/10 max-h-64 overflow-y-auto shadow-2xl">
           {filtered.map((opt) => (
             <button
               key={opt}
               type="button"
               className={`w-full text-left text-sm px-4 py-2.5 transition-colors ${
                 value === opt
-                  ? "bg-white/10 text-white font-medium"
-                  : "text-white/70 hover:bg-white/6 hover:text-white"
+                  ? "bg-foreground/10 text-foreground font-medium"
+                  : "text-foreground/85 dark:text-foreground/70 hover:bg-card/6 hover:text-foreground"
               }`}
               onClick={() => {
                 onChange(opt);
@@ -463,7 +463,7 @@ function StockPageContent() {
   const vehicleText = [year, make, model, submodel].filter(Boolean).join(" · ");
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-red-500/30">
+    <div className="min-h-screen bg-[#050505] text-foreground selection:bg-red-500/30">
       {/* ════ B2B DEALER HUB ════ */}
       <div className="pt-32 pb-6 relative overflow-hidden">
         {/* Background glow effects */}
@@ -475,7 +475,7 @@ function StockPageContent() {
 
       {/* ════ MY GARAGE (FITMENT) ════ */}
       <div className="max-w-360 mx-auto px-6 mb-12">
-        <div className="relative group overflow-hidden rounded-[40px] border border-white/10 bg-black/40 backdrop-blur-3xl p-10">
+        <div className="relative group overflow-hidden rounded-[40px] border border-foreground/10 bg-card/70 dark:bg-background/40 backdrop-blur-3xl p-10">
           <div className="absolute top-0 left-0 w-full h-full bg-linear-to-br from-indigo-500/3 to-transparent pointer-events-none" />
 
           <div className="relative z-10">
@@ -484,7 +484,7 @@ function StockPageContent() {
                 <Car className="w-6 h-6 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-xl font-light tracking-tight text-white">
+                <h3 className="text-xl font-light tracking-tight text-foreground">
                   {isUa ? "Мій Гараж" : "My Garage"}
                 </h3>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">
@@ -561,7 +561,7 @@ function StockPageContent() {
               <button
                 onClick={handleSearch}
                 disabled={!year || !make}
-                className="w-full md:w-auto h-10 px-10 rounded-xl bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
+                className="w-full md:w-auto h-10 px-10 rounded-xl bg-card text-primary-foreground text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
               >
                 <Search className="w-4 h-4" />
                 {isUa ? "Застосувати" : "Filter Items"}
@@ -569,14 +569,14 @@ function StockPageContent() {
             </div>
 
             {vehicleLocked && (
-              <div className="mt-6 flex items-center justify-between pt-6 border-t border-white/5">
+              <div className="mt-6 flex items-center justify-between pt-6 border-t border-foreground/5">
                 <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
                   <Check className="w-4 h-4" />
                   Active Fitment: {vehicleText}
                 </div>
                 <button
                   onClick={handleResetVehicle}
-                  className="text-[10px] text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold underline decoration-indigo-500/30 underline-offset-4"
+                  className="text-[10px] text-zinc-500 hover:text-foreground transition-colors uppercase tracking-widest font-bold underline decoration-indigo-500/30 underline-offset-4"
                 >
                   Reset Vehicle
                 </button>
@@ -628,8 +628,8 @@ function StockPageContent() {
                 }}
                 className={`relative px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border shrink-0 rounded-xl flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                    : "bg-white/2 text-zinc-500 border-white/5 hover:border-white/20 hover:text-white"
+                    ? "bg-card text-primary-foreground border-primary shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                    : "bg-foreground/[0.03] text-zinc-500 border-foreground/5 hover:border-foreground/20 hover:text-foreground"
                 }`}
               >
                 {tab.label}
@@ -637,8 +637,8 @@ function StockPageContent() {
                   <span
                     className={`px-1.5 py-0.5 rounded-md text-[9px] ${
                       activeTab === tab.id
-                        ? "bg-black/10 text-black/60"
-                        : "bg-white/5 text-zinc-600"
+                        ? "bg-card/30 dark:bg-background/10 text-primary-foreground/60"
+                        : "bg-foreground/5 text-zinc-600"
                     }`}
                   >
                     {tab.count}
@@ -659,7 +659,7 @@ function StockPageContent() {
             onSubmit={handleSearch}
             className="flex-1 w-full flex flex-col sm:flex-row items-center gap-3"
           >
-            <div className="flex-1 w-full flex items-center rounded-2xl border border-white/10 bg-white/2 focus-within:border-indigo-500/50 focus-within:bg-white/4 transition-all h-11 px-4">
+            <div className="flex-1 w-full flex items-center rounded-2xl border border-foreground/10 bg-foreground/[0.03] focus-within:border-indigo-500/50 focus-within:bg-foreground/5 transition-all h-11 px-4">
               <Search className="w-4 h-4 text-zinc-500 shrink-0" />
               <input
                 type="text"
@@ -668,7 +668,7 @@ function StockPageContent() {
                 placeholder={
                   isUa ? "Пошук за артикулом або назвою..." : "Search by Part Number or name..."
                 }
-                className="w-full bg-transparent text-sm text-white placeholder-zinc-600 focus:outline-hidden px-3 tracking-wide"
+                className="w-full bg-transparent text-sm text-foreground placeholder-zinc-600 focus:outline-hidden px-3 tracking-wide"
               />
               {query && (
                 <button
@@ -676,7 +676,7 @@ function StockPageContent() {
                   onClick={() => {
                     setQuery("");
                   }}
-                  className="p-1 text-zinc-500 hover:text-white transition-colors"
+                  className="p-1 text-zinc-500 hover:text-foreground transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -687,7 +687,7 @@ function StockPageContent() {
               <select
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                className="flex-1 sm:flex-none bg-white/2 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden focus:border-indigo-500/50 min-w-[140px]"
+                className="flex-1 sm:flex-none bg-foreground/[0.03] border border-foreground/10 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden focus:border-indigo-500/50 min-w-[140px]"
               >
                 <option value="" className="bg-[#121216]">
                   {isUa ? "Бренд" : "Brand"}
@@ -702,7 +702,7 @@ function StockPageContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="h-11 px-6 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] uppercase font-bold tracking-[0.2em] text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-30 flex items-center gap-2 shrink-0"
+                className="h-11 px-6 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] uppercase font-bold tracking-[0.2em] text-indigo-400 hover:bg-indigo-500 hover:text-foreground transition-all disabled:opacity-30 flex items-center gap-2 shrink-0"
               >
                 {loading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -719,37 +719,37 @@ function StockPageContent() {
         {(year || make || brand || query) && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {year && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {year}
               </span>
             )}
             {make && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {make}
               </span>
             )}
             {model && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {model}
               </span>
             )}
             {submodel && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {submodel}
               </span>
             )}
             {brand && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {brand}
               </span>
             )}
             {localCategory && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 {localCategory}
               </span>
             )}
             {query && (
-              <span className="text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 px-2.5 py-1 text-white/60">
+              <span className="text-[9px] uppercase tracking-widest bg-foreground/5 border border-foreground/10 px-2.5 py-1 text-foreground/75 dark:text-foreground/60">
                 &quot;{query}&quot;
               </span>
             )}
@@ -772,30 +772,30 @@ function StockPageContent() {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-px bg-white/5 border border-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-px bg-foreground/5 border border-foreground/5">
             {Array.from({ length: 15 }).map((_, i) => (
               <div key={i} className="bg-[#0a0a0c] p-5 flex flex-col h-[300px]">
-                <div className="aspect-square bg-white/3 mb-3 animate-pulse rounded" />
-                <div className="h-2 bg-white/5 animate-pulse w-10 mb-2" />
-                <div className="h-4 bg-white/5 animate-pulse w-full mb-1" />
-                <div className="h-4 bg-white/5 animate-pulse w-2/3 mb-3" />
-                <div className="mt-auto flex items-center justify-between pt-3 border-t border-white/5">
-                  <div className="h-5 bg-white/5 animate-pulse w-16" />
-                  <div className="h-7 bg-white/5 animate-pulse w-20" />
+                <div className="aspect-square bg-foreground/5 mb-3 animate-pulse rounded" />
+                <div className="h-2 bg-foreground/5 animate-pulse w-10 mb-2" />
+                <div className="h-4 bg-foreground/5 animate-pulse w-full mb-1" />
+                <div className="h-4 bg-foreground/5 animate-pulse w-2/3 mb-3" />
+                <div className="mt-auto flex items-center justify-between pt-3 border-t border-foreground/5">
+                  <div className="h-5 bg-foreground/5 animate-pulse w-16" />
+                  <div className="h-7 bg-foreground/5 animate-pulse w-20" />
                 </div>
               </div>
             ))}
           </div>
         ) : !hasSearched ? (
-          <div className="text-center py-32 bg-linear-to-b from-transparent to-white/2 border border-white/5 rounded-2xl">
-            <div className="w-20 h-20 mx-auto bg-white/2 rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
+          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-2xl">
+            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
               {source === "local" ? (
                 <Package className="w-8 h-8 text-blue-400/50" />
               ) : (
                 <Search className="w-8 h-8 text-red-500/50" />
               )}
             </div>
-            <h3 className="text-xl font-light text-white mb-3 tracking-wide">
+            <h3 className="text-xl font-light text-foreground mb-3 tracking-wide">
               {source === "local"
                 ? isUa
                   ? "Каталог IND Distribution"
@@ -804,7 +804,7 @@ function StockPageContent() {
                   ? "Преміум дистриб'юторський каталог"
                   : "Premium Distributor Catalog"}
             </h3>
-            <p className="text-white/40 text-sm font-light max-w-md mx-auto leading-relaxed">
+            <p className="text-foreground/60 dark:text-foreground/40 text-sm font-light max-w-md mx-auto leading-relaxed">
               {source === "local"
                 ? isUa
                   ? `Введіть назву товару або артикул для пошуку.${displayCount ? ` ${displayCount} товарів у базі.` : ""}`
@@ -815,21 +815,21 @@ function StockPageContent() {
             </p>
           </div>
         ) : hasSearched && items.length === 0 ? (
-          <div className="text-center py-32 bg-linear-to-b from-transparent to-white/2 border border-white/5 rounded-2xl">
-            <div className="w-20 h-20 mx-auto bg-white/2 rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10">
-              <Package className="w-8 h-8 text-white/30" />
+          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-2xl">
+            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10">
+              <Package className="w-8 h-8 text-foreground/55 dark:text-foreground/30" />
             </div>
-            <h3 className="text-xl font-light text-white mb-3 tracking-wide">
+            <h3 className="text-xl font-light text-foreground mb-3 tracking-wide">
               {isUa ? "За вашим запитом нічого не знайдено" : "No results found"}
             </h3>
-            <p className="text-white/40 text-sm font-light mb-6">
+            <p className="text-foreground/60 dark:text-foreground/40 text-sm font-light mb-6">
               {isUa
                 ? "Спробуйте змінити параметри або обрати інший автомобіль."
                 : "Try different filters or another vehicle."}
             </p>
             <button
               onClick={handleResetVehicle}
-              className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-zinc-200 transition-colors"
+              className="inline-flex items-center gap-2 bg-card text-primary-foreground px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-zinc-200 transition-colors"
             >
               <X className="w-3 h-3" /> {isUa ? "Скинути фільтри" : "Clear filters"}
             </button>
@@ -838,7 +838,7 @@ function StockPageContent() {
           <>
             {/* Results count */}
             <div className="flex justify-between items-center mb-4">
-              <p className="text-[10px] uppercase tracking-widest text-white/30">
+              <p className="text-[10px] uppercase tracking-widest text-foreground/55 dark:text-foreground/30">
                 {items.length} {isUa ? "результатів" : "results"}{" "}
                 {totalPages > 1 && `• ${isUa ? "Сторінка" : "Page"} ${page}/${totalPages}`}
               </p>
@@ -855,7 +855,7 @@ function StockPageContent() {
                   <motion.div
                     layout
                     key={item.id}
-                    className="group relative flex flex-col rounded-[32px] border border-white/6 bg-zinc-900/20 backdrop-blur-xs p-6 hover:bg-zinc-900/40 hover:border-white/10 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,0,0,0.3)]"
+                    className="group relative flex flex-col rounded-[32px] border border-primary/6 bg-zinc-900/20 backdrop-blur-xs p-6 hover:bg-zinc-900/40 hover:border-foreground/10 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,0,0,0.3)]"
                   >
                     {/* Status Badges */}
                     <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
@@ -878,7 +878,7 @@ function StockPageContent() {
                     </div>
 
                     {/* Image Container */}
-                    <div className="aspect-square rounded-2xl bg-white/2 mb-6 flex items-center justify-center overflow-hidden relative group-hover:bg-white/4 transition-colors">
+                    <div className="aspect-square rounded-2xl bg-foreground/[0.03] mb-6 flex items-center justify-center overflow-hidden relative group-hover:bg-foreground/5 transition-colors">
                       {item.thumbnail ? (
                         <img
                           src={item.thumbnail}
@@ -886,7 +886,7 @@ function StockPageContent() {
                           className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out"
                         />
                       ) : (
-                        <Package className="w-16 h-16 text-white/5 opacity-20" />
+                        <Package className="w-16 h-16 text-foreground/5 opacity-20" />
                       )}
                     </div>
 
@@ -900,13 +900,13 @@ function StockPageContent() {
                           #{item.partNumber}
                         </span>
                       </div>
-                      <h3 className="text-sm font-medium text-white leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
+                      <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
                         {item.name}
                       </h3>
                     </div>
 
                     {/* B2B Pricing Block */}
-                    <div className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="space-y-4 pt-4 border-t border-foreground/5">
                       <div className="flex items-end justify-between">
                         <div className="space-y-1">
                           <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
@@ -920,7 +920,7 @@ function StockPageContent() {
                           <div className="text-[9px] uppercase tracking-widest text-emerald-500 font-bold">
                             {isUa ? "Ваша Ціна" : "Dealer Price"}
                           </div>
-                          <div className="text-2xl font-light text-white tracking-tight font-mono">
+                          <div className="text-2xl font-light text-foreground tracking-tight font-mono">
                             ${dealerPrice?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </div>
                         </div>
@@ -947,7 +947,7 @@ function StockPageContent() {
                         variant="minimal"
                         label={isUa ? "Додати до замовлення" : "Add to Order"}
                         labelAdded={isUa ? "В замовленні ✓" : "In Order ✓"}
-                        className="w-full h-12 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full h-12 rounded-xl bg-card text-primary-foreground text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                       />
                     </div>
                   </motion.div>
@@ -961,17 +961,17 @@ function StockPageContent() {
                 <button
                   disabled={page <= 1}
                   onClick={() => doSearch(page - 1)}
-                  className="text-[10px] uppercase tracking-widest text-white/40 border border-white/10 px-4 py-2 hover:bg-white/5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  className="text-[10px] uppercase tracking-widest text-foreground/60 dark:text-foreground/40 border border-foreground/10 px-4 py-2 hover:bg-foreground/5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
                 >
                   ← {isUa ? "Назад" : "Prev"}
                 </button>
-                <span className="text-[10px] text-white/30 uppercase tracking-widest px-4">
+                <span className="text-[10px] text-foreground/55 dark:text-foreground/30 uppercase tracking-widest px-4">
                   {page} / {totalPages}
                 </span>
                 <button
                   disabled={page >= totalPages}
                   onClick={() => doSearch(page + 1)}
-                  className="text-[10px] uppercase tracking-widest text-white/40 border border-white/10 px-4 py-2 hover:bg-white/5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  className="text-[10px] uppercase tracking-widest text-foreground/60 dark:text-foreground/40 border border-foreground/10 px-4 py-2 hover:bg-foreground/5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
                 >
                   {isUa ? "Далі" : "Next"} →
                 </button>

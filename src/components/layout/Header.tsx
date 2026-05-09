@@ -130,10 +130,10 @@ export function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 px-3 pt-2 sm:px-4 sm:pt-4">
         <div
           className={cn(
-            "relative mx-auto flex w-full items-center rounded-2xl border backdrop-blur-3xl px-3 py-2.5 sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
-            isShopRoute
-              ? "max-w-7xl border-obsidian-border bg-obsidian-panel/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
-              : "max-w-6xl border-obsidian-border bg-obsidian/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            "relative mx-auto flex w-full items-center rounded-2xl border backdrop-blur-xl md:backdrop-blur-3xl px-3 py-2.5 sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
+            "border-foreground/10 bg-card/65 shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+            "dark:border-obsidian-border dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]",
+            isShopRoute ? "max-w-7xl dark:bg-obsidian-panel/80" : "max-w-6xl dark:bg-obsidian/80"
           )}
         >
           <Link
@@ -162,7 +162,7 @@ export function Header() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute -bottom-2 left-0 block h-px w-full bg-linear-to-r from-foreground to-transparent"
+                      className="absolute -bottom-2 left-0 block h-px w-full bg-linear-to-r from-primary via-primary/60 to-transparent"
                     />
                   )}
                 </Link>
@@ -262,7 +262,7 @@ export function Header() {
                       >
                         {item.label}
                         {isActive && (
-                          <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-foreground to-transparent" />
+                          <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-primary to-transparent" />
                         )}
                       </Link>
                     );
