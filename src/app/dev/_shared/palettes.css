@@ -1,0 +1,232 @@
+/* =========================================================
+   Shared palette tokens for /dev/* sandbox pages.
+   Apply to a wrapper element with [data-palette="…"].
+   The wrapper itself sets a baseline; each [data-palette]
+   overrides the relevant tokens.
+
+   Tokens (per palette):
+     --bg, --fg
+     --card, --card-fg, --elevated
+     --muted, --muted-fg
+     --primary, --primary-fg
+     --secondary, --secondary-fg
+     --accent, --accent-fg
+     --border, --ring, --destructive
+     --shadow-sm/md/lg, --radius
+   ========================================================= */
+
+[data-palette] {
+  /* fallback baseline = warm-cream */
+  --bg: #faf7f2;
+  --fg: #1a1814;
+  --card: #ffffff;
+  --card-fg: #1a1814;
+  --elevated: #fdfcf9;
+  --muted: #ede8df;
+  --muted-fg: #6b6357;
+  --primary: #8a6d3a;
+  --primary-fg: #faf7f2;
+  --secondary: #e0d9cc;
+  --secondary-fg: #1a1814;
+  --accent: #c29d59;
+  --accent-fg: #1a1814;
+  --border: #ddd5c4;
+  --ring: #c29d59;
+  --destructive: #b3261e;
+  --shadow-sm: 0 1px 2px rgba(20, 16, 8, 0.04), 0 1px 1px rgba(20, 16, 8, 0.03);
+  --shadow-md: 0 4px 12px rgba(20, 16, 8, 0.08), 0 2px 4px rgba(20, 16, 8, 0.04);
+  --shadow-lg: 0 16px 40px rgba(20, 16, 8, 0.1), 0 4px 12px rgba(20, 16, 8, 0.05);
+  --radius: 14px;
+}
+
+/* 1. WARM CREAM */
+[data-palette="warm-cream"] {
+  --bg: #faf7f2;
+  --fg: #1a1814;
+  --card: #ffffff;
+  --card-fg: #1a1814;
+  --elevated: #fdfcf9;
+  --muted: #ede8df;
+  --muted-fg: #6b6357;
+  --primary: #8a6d3a;
+  --primary-fg: #faf7f2;
+  --secondary: #e0d9cc;
+  --secondary-fg: #1a1814;
+  --accent: #c29d59;
+  --accent-fg: #1a1814;
+  --border: #ddd5c4;
+  --ring: #c29d59;
+}
+
+/* 2. APPLE MINIMAL */
+[data-palette="apple-minimal"] {
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --card: #fafafa;
+  --card-fg: #0a0a0a;
+  --elevated: #ffffff;
+  --muted: #f4f4f5;
+  --muted-fg: #71717a;
+  --primary: #18181b;
+  --primary-fg: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-fg: #18181b;
+  --accent: #1d4ed8;
+  --accent-fg: #ffffff;
+  --border: #e4e4e7;
+  --ring: #18181b;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.06);
+  --radius: 12px;
+}
+
+/* 3. SOFT BRONZE */
+[data-palette="soft-bronze"] {
+  --bg: #fbfaf8;
+  --fg: #1c1a17;
+  --card: #ffffff;
+  --card-fg: #1c1a17;
+  --elevated: #ffffff;
+  --muted: #f0ede8;
+  --muted-fg: #6f6a62;
+  --primary: #a08454;
+  --primary-fg: #ffffff;
+  --secondary: #ebe7e0;
+  --secondary-fg: #1c1a17;
+  --accent: #c29d59;
+  --accent-fg: #1c1a17;
+  --border: #e8e4dc;
+  --ring: #a08454;
+}
+
+/* 4. PORSCHE EDITORIAL */
+[data-palette="porsche-editorial"] {
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --card: #f7f7f7;
+  --card-fg: #0a0a0a;
+  --elevated: #ffffff;
+  --muted: #ebebeb;
+  --muted-fg: #6b6b6b;
+  --primary: #d5001c;
+  --primary-fg: #ffffff;
+  --secondary: #1a1a1a;
+  --secondary-fg: #ffffff;
+  --accent: #0a0a0a;
+  --accent-fg: #ffffff;
+  --border: #d4d4d4;
+  --ring: #d5001c;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.12), 0 6px 12px rgba(0, 0, 0, 0.06);
+  --radius: 4px; /* sharp Porsche corners */
+}
+
+/* 5. HERMÈS CREAM */
+[data-palette="hermes-cream"] {
+  --bg: #f5ede0;
+  --fg: #1a1410;
+  --card: #faf3e6;
+  --card-fg: #1a1410;
+  --elevated: #fdf8ec;
+  --muted: #ece1cc;
+  --muted-fg: #6e5a45;
+  --primary: #ee7c2a;
+  --primary-fg: #ffffff;
+  --secondary: #e2d4ba;
+  --secondary-fg: #1a1410;
+  --accent: #c84817;
+  --accent-fg: #f5ede0;
+  --border: #d4c4a8;
+  --ring: #ee7c2a;
+}
+
+/* 6. STEALTH WEALTH */
+[data-palette="stealth-wealth"] {
+  --bg: #f4f4f5;
+  --fg: #18181b;
+  --card: #fafafa;
+  --card-fg: #18181b;
+  --elevated: #ffffff;
+  --muted: #e4e4e7;
+  --muted-fg: #52525b;
+  --primary: #18181b;
+  --primary-fg: #fafafa;
+  --secondary: #d4d4d8;
+  --secondary-fg: #18181b;
+  --accent: #c29d59;
+  --accent-fg: #18181b;
+  --border: #d4d4d8;
+  --ring: #18181b;
+  --radius: 8px;
+}
+
+/* 7. EDITORIAL BONE */
+[data-palette="editorial-bone"] {
+  --bg: #f3eee5;
+  --fg: #0c1c2e;
+  --card: #fbf7ee;
+  --card-fg: #0c1c2e;
+  --elevated: #fdfaf2;
+  --muted: #e8dfcf;
+  --muted-fg: #524a3d;
+  --primary: #0c1c2e;
+  --primary-fg: #f3eee5;
+  --secondary: #d8cdb8;
+  --secondary-fg: #0c1c2e;
+  --accent: #b8472f;
+  --accent-fg: #f3eee5;
+  --border: #d4c9b3;
+  --ring: #0c1c2e;
+}
+
+/* =========================================================
+   PALETTE SWITCHER (shared UI)
+   ========================================================= */
+.palette-switcher {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--muted);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  max-width: 100%;
+}
+.palette-switcher__btn {
+  padding: 0.5rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--muted-fg);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  white-space: nowrap;
+}
+.palette-switcher__btn:hover {
+  color: var(--fg);
+}
+.palette-switcher__btn[data-active="true"] {
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Hover swatch in switcher */
+.palette-switcher__btn::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: currentColor;
+  opacity: 0.5;
+}
