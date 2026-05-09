@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/SASCYT9/OneCompany/security/advisories/new
+    about: Report security issues privately. Do NOT open a public issue.
+  - name: Discussions
+    url: https://github.com/SASCYT9/OneCompany/discussions
+    about: Questions, ideas, and general feedback.
+  - name: Email
+    url: mailto:contact@onecompany.global
+    about: Business or licensing inquiries.

@@ -1,0 +1,96 @@
+name: Bug report
+description: Report something broken in production or development.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees:
+  - SASCYT9
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in as much detail as you can.
+
+        **Security issues should be reported privately** — see [SECURITY.md](https://github.com/SASCYT9/OneCompany/security/policy).
+  - type: input
+    id: summary
+    attributes:
+      label: One-line summary
+      description: What's broken, in one sentence.
+      placeholder: "Cart total shows NaN when discount code is applied"
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Production (onecompany.global)
+        - Vercel preview deploy
+        - Local development
+        - Staging
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      multiple: true
+      options:
+        - Shop / catalog
+        - Cart / checkout
+        - Brand pages
+        - Admin
+        - Telegram bot
+        - Email / Resend
+        - 3D / Three.js scenes
+        - Auth / sessions
+        - SEO / metadata
+        - i18n (UA / EN)
+        - Build / deploy
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps. Include URLs, product slugs, or input values.
+      placeholder: |
+        1. Go to /ua/shop/brabus
+        2. Add product X to cart
+        3. Apply code SAVE10
+        4. See "NaN €" in total
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / errors
+      description: Browser console, server logs, Sentry link. Wrap in code fences.
+      render: shell
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & version
+      placeholder: "Chrome 131, Safari 17.2, Firefox 132"
+  - type: input
+    id: commit
+    attributes:
+      label: Commit / deployment ID
+      description: If known. From `git rev-parse HEAD` or the Vercel deploy URL.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?

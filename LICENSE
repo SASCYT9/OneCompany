@@ -1,0 +1,50 @@
+Copyright (c) 2026 OneCompany. All Rights Reserved.
+
+PROPRIETARY SOFTWARE LICENSE
+
+This software and associated documentation files (the "Software") are the
+proprietary and confidential property of OneCompany ("the Owner").
+
+NO LICENSE GRANTED. The Software is made available for viewing on this
+public repository solely for transparency, portfolio, and reference
+purposes. Publication on a public source-code host does NOT constitute a
+grant of any license, express or implied, to use, copy, modify, merge,
+publish, distribute, sublicense, sell, or create derivative works of the
+Software, in whole or in part, for any purpose.
+
+PROHIBITED ACTIONS without prior written permission from the Owner:
+
+  1. Using the Software, or any portion thereof, in any production,
+     commercial, internal, or personal product, service, or system.
+  2. Copying, reproducing, or redistributing the Software or any portion
+     thereof, in source or compiled form.
+  3. Modifying, adapting, translating, or creating derivative works
+     based on the Software.
+  4. Reverse-engineering, decompiling, or disassembling the Software,
+     except to the extent such restriction is prohibited by applicable
+     law.
+  5. Removing or altering any proprietary notices, labels, or marks on
+     or in the Software.
+  6. Using the Software's branding, trademarks, trade dress, or visual
+     design.
+
+PERMITTED ACTIONS:
+
+  1. Viewing the source code via the public repository interface.
+  2. Forking the repository through GitHub's interface for the sole
+     purpose of submitting pull requests back to the original
+     repository, provided no other use is made of the forked code.
+
+THIRD-PARTY COMPONENTS. The Software incorporates third-party open-source
+components, each of which is licensed under its own terms. Nothing in
+this license modifies or supersedes the licenses of those components.
+
+NO WARRANTY. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+LIMITATION OF LIABILITY. IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For licensing inquiries, contact: contact@onecompany.global

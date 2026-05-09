@@ -1,0 +1,63 @@
+name: Feature request
+description: Suggest a new feature or improvement.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees:
+  - SASCYT9
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. The clearer the problem statement,
+        the easier it is to design a solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the current pain point or missing capability. Avoid jumping to a solution.
+      placeholder: "Customers can't filter products by power output, so they have to scroll the entire catalog."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Your idea, if you have one. Otherwise leave blank.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      multiple: true
+      options:
+        - Shop / catalog
+        - Cart / checkout
+        - Brand pages
+        - Admin
+        - Telegram bot
+        - Email / Resend
+        - 3D / Three.js scenes
+        - SEO / metadata
+        - i18n (UA / EN)
+        - Build / deploy
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (your view)
+      options:
+        - Nice to have
+        - Should have
+        - Must have
+        - Blocking a customer / partner
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
