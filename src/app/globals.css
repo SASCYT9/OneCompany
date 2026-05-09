@@ -92,45 +92,48 @@
 
 @layer base {
   /* ================================================================
-     LIGHT (default) — WARM CREAM with bronze accent
+     LIGHT (default) — PORSCHE EDITORIAL
+     Pure white + near-black + carmine red. Sharp 4px corners.
+     Inspired by porsche.com / mclaren.com editorial styling.
      ================================================================ */
   :root {
-    --background: 36 33% 97%; /* #faf7f2 warm off-white */
-    --foreground: 30 14% 9%; /* #1a1814 warm near-black */
+    --background: 0 0% 100%; /* #ffffff pure white */
+    --foreground: 0 0% 4%; /* #0a0a0a near-black */
     --font-body: var(--font-display);
 
-    --surface: 36 30% 99%;
+    --surface: 0 0% 100%;
     --surface-elevated: 0 0% 100%;
-    --surface-muted: 36 27% 90%;
+    --surface-muted: 0 0% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 30 14% 9%;
+    --card: 0 0% 97%; /* #f7f7f7 subtle off-white card */
+    --card-foreground: 0 0% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 14% 9%;
+    --popover-foreground: 0 0% 4%;
 
-    /* Deeper bronze for AA contrast on light */
-    --primary: 36 41% 38%; /* #8a6d3a */
-    --primary-foreground: 36 33% 97%;
+    /* Carmine red — Porsche signature accent as primary CTA */
+    --primary: 354 100% 42%; /* #d5001c */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 27% 84%;
-    --secondary-foreground: 30 14% 9%;
+    /* Near-black secondary for inverse buttons / strong CTAs */
+    --secondary: 0 0% 10%; /* #1a1a1a */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 36 27% 90%;
-    --muted-foreground: 30 10% 38%;
+    --muted: 0 0% 92%; /* #ebebeb */
+    --muted-foreground: 0 0% 42%; /* #6b6b6b */
 
-    /* Same bronze as dark — brand-consistent accent */
-    --accent: 36 47% 56%; /* #c29d59 */
-    --accent-foreground: 30 14% 9%;
+    /* Black accent for sharp editorial typography highlights */
+    --accent: 0 0% 4%; /* #0a0a0a */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 41%;
-    --destructive-foreground: 36 33% 97%;
+    --destructive: 354 100% 42%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 35 25% 81%;
-    --input: 35 25% 81%;
-    --ring: 36 47% 56%;
+    --border: 0 0% 83%; /* #d4d4d4 */
+    --input: 0 0% 83%;
+    --ring: 354 100% 42%;
 
-    --radius: 999px;
+    --radius: 4px; /* Sharp Porsche corners */
 
     --font-stack-sans:
       var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -173,6 +176,10 @@
     --border: 240 5% 12%;
     --input: 240 5% 12%;
     --ring: 43 45% 55%;
+
+    /* Dark theme keeps the original pill-shape corners. Light (Porsche
+       Editorial) uses sharp 4px corners defined in :root. */
+    --radius: 999px;
   }
 
   * {
