@@ -148,7 +148,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   return (
     <>
-      <main className="text-foreground bg-background">
+      <main className="text-foreground">
         {/* Hero — photo cards have a black gradient overlay so they're always
             visually dark; force .dark scope so text/borders read correctly
             regardless of the active site theme. */}
