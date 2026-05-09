@@ -1,16 +1,16 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
-import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getProductsForDo88Collection } from '@/lib/do88CollectionMatcher';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { DO88_COLLECTION_CARDS } from '../../../data/do88CollectionsList';
-import Do88CollectionProductGrid from '../../../components/Do88CollectionProductGrid';
-import Do88VehicleFilter from '../../Do88VehicleFilter';
-import Do88CategoryFilter from '../../Do88CategoryFilter';
-import { CAR_DATA } from '../../do88FitmentData';
-import { Suspense } from 'react';
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getProductsForDo88Collection } from "@/lib/do88CollectionMatcher";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { DO88_COLLECTION_CARDS } from "../../../data/do88CollectionsList";
+import Do88CollectionProductGrid from "../../../components/Do88CollectionProductGrid";
+import Do88VehicleFilter from "../../Do88VehicleFilter";
+import Do88CategoryFilter from "../../Do88CategoryFilter";
+import { CAR_DATA } from "../../do88FitmentData";
+import { Suspense } from "react";
 
 // Anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // NOTE: cannot be `force-static` — that forces searchParams empty, breaking ?brand=&keyword= filtering.
@@ -23,23 +23,35 @@ type Props = {
 
 export async function generateStaticParams() {
   return [
-    { handle: 'all' },
-    ...DO88_COLLECTION_CARDS.map((card) => ({ handle: card.categoryHandle }))
+    { handle: "all" },
+    ...DO88_COLLECTION_CARDS.map((card) => ({ handle: card.categoryHandle })),
   ];
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; handle: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; handle: string }>;
+}) {
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   let card = DO88_COLLECTION_CARDS.find((c) => c.categoryHandle === handle);
-  if (handle === 'all') {
-    card = { categoryHandle: 'all', title: 'All Parts', titleUk: 'Всі деталі', externalImageUrl: '' };
+  if (handle === "all") {
+    card = {
+      categoryHandle: "all",
+      title: "All Parts",
+      titleUk: "Всі деталі",
+      externalImageUrl: "",
+    };
   }
-  const title = card ? `${card.title} | DO88 | One Company` : 'DO88 | One Company';
+  const title = card ? `${card.title} | DO88 | One Company` : "DO88 | One Company";
   return buildPageMetadata(resolvedLocale, `shop/do88/collections/${handle}`, {
-    title: resolvedLocale === 'ua' ? `${card?.titleUk ?? card?.title ?? handle} | DO88 | One Company` : title,
+    title:
+      resolvedLocale === "ua"
+        ? `${card?.titleUk ?? card?.title ?? handle} | DO88 | One Company`
+        : title,
     description:
-      resolvedLocale === 'ua'
+      resolvedLocale === "ua"
         ? `Високопродуктивні ${card?.titleUk ?? card?.title ?? handle} DO88 зі Швеції. Інтеркулери, радіатори та компоненти для стабільного охолодження.`
         : `High-performance DO88 ${card?.title ?? handle} from Sweden. Intercoolers, radiators, and cooling components built for stable temperatures.`,
   });
@@ -52,11 +64,16 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
   const model = paramsResolved.model;
   const chassis = paramsResolved.chassis;
   const resolvedLocale = resolveLocale(locale);
-  const isUa = resolvedLocale === 'ua';
-  
+  const isUa = resolvedLocale === "ua";
+
   let card = DO88_COLLECTION_CARDS.find((item) => item.categoryHandle === handle);
-  if (handle === 'all') {
-    card = { categoryHandle: 'all', title: 'All Parts', titleUk: 'Всі деталі', externalImageUrl: '' };
+  if (handle === "all") {
+    card = {
+      categoryHandle: "all",
+      title: "All Parts",
+      titleUk: "Всі деталі",
+      externalImageUrl: "",
+    };
   }
 
   if (!card) {
@@ -64,25 +81,47 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
       <>
         <div className="urban-back-to-stores">
           <Link href={`/${locale}/shop/do88/collections`} className="urban-back-to-stores__link">
-            ← {isUa ? 'Всі категорії' : 'All categories'}
+            ← {isUa ? "Всі категорії" : "All categories"}
           </Link>
         </div>
-        <section className="ucg" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
-          <h1 className="ucg__card-title" style={{ position: 'static', marginBottom: 16 }}>
+        <section
+          className="ucg"
+          style={{
+            minHeight: "60vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 48,
+          }}
+        >
+          <h1 className="ucg__card-title" style={{ position: "static", marginBottom: 16 }}>
             {handle}
           </h1>
           <p className="ucg__hero-sub" style={{ marginTop: 0 }}>
-            {isUa ? 'Категорію не знайдено.' : 'Category not found.'}
+            {isUa ? "Категорію не знайдено." : "Category not found."}
           </p>
-          <Link href={`/${locale}/shop/do88/collections`} className="urban-bp__cta" style={{ marginTop: 24, padding: '12px 24px', backgroundColor: '#0ea5e9', color: '#000', borderRadius: '4px', fontWeight: 'bold' }}>
-            {isUa ? 'До всіх категорій' : 'Go to all categories'}
+          <Link
+            href={`/${locale}/shop/do88/collections`}
+            className="urban-bp__cta"
+            style={{
+              marginTop: 24,
+              padding: "12px 24px",
+              backgroundColor: "#0ea5e9",
+              color: "#000",
+              borderRadius: "4px",
+              fontWeight: "bold",
+            }}
+          >
+            {isUa ? "До всіх категорій" : "Go to all categories"}
           </Link>
         </section>
       </>
     );
   }
 
-  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([
+    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
@@ -101,16 +140,13 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
     // — we match by exact category-suffix instead of substring on title to
     // avoid the Turbo/Carrera mix-up where supplier marketing copy ("Turbo /
     // Carrera") in titles bled into the wrong filter result.
-    const brandEntries = brand
-      ? (CAR_DATA[brand] ?? [])
-      : Object.values(CAR_DATA).flat();
-    const matchedEntry = brandEntries.find((entry) =>
-      (!model || entry.model === model) &&
-      (!chassis || entry.chassis === chassis)
+    const brandEntries = brand ? (CAR_DATA[brand] ?? []) : Object.values(CAR_DATA).flat();
+    const matchedEntry = brandEntries.find(
+      (entry) => (!model || entry.model === model) && (!chassis || entry.chassis === chassis)
     );
 
     collectionProducts = collectionProducts.filter((product) => {
-      const cat = product.category?.en ?? '';
+      const cat = product.category?.en ?? "";
 
       // Brand-only filter: match any product under "Vehicle Specific > {brand} >"
       // (case-insensitive — the JSON has e.g. "TOYOTA" while CAR_DATA has "Toyota").
@@ -120,8 +156,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
 
       // Model/chassis filter: require an exact CAR_DATA entry and a category-token match.
       if (!matchedEntry) return false;
-      const tokenMatches = (token: string) =>
-        cat.endsWith(token) || cat.includes(`> ${token}`);
+      const tokenMatches = (token: string) => cat.endsWith(token) || cat.includes(`> ${token}`);
       if (matchedEntry.categoryTokens.some(tokenMatches)) return true;
 
       // Shared-parts fallback: a few products fit two trims (e.g. 992 "Turbo /
@@ -132,23 +167,21 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
       const sharedTitles = matchedEntry.sharedTitleMustInclude ?? [];
       if (sharedCats.length === 0 || sharedTitles.length === 0) return false;
       if (!sharedCats.some(tokenMatches)) return false;
-      const titleEn = product.title?.en ?? '';
-      const titleUa = product.title?.ua ?? '';
-      return sharedTitles.some(
-        (phrase) => titleEn.includes(phrase) || titleUa.includes(phrase)
-      );
+      const titleEn = product.title?.en ?? "";
+      const titleUa = product.title?.ua ?? "";
+      return sharedTitles.some((phrase) => titleEn.includes(phrase) || titleUa.includes(phrase));
     });
   }
 
   const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
     name: card.title,
     url: absoluteUrl(`/${resolvedLocale}/shop/do88/collections/${handle}`),
     mainEntity: {
-      '@type': 'ItemList',
+      "@type": "ItemList",
       itemListElement: collectionProducts.map((product, index) => ({
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: index + 1,
         url: absoluteUrl(`/${resolvedLocale}/shop/do88/products/${product.slug}`),
         name: product.title.en,
@@ -167,23 +200,26 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
       />
 
       {/* Background Banner */}
-      <div 
+      <div
         className="absolute top-0 left-0 w-full h-[350px] md:h-[450px] z-0 pointer-events-none"
         style={{
           backgroundImage: `url('${bannerImage}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           opacity: 0.35,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-transparent to-[#050505]" />
+        <div className="absolute inset-0 bg-linear-to-b from-[#050505]/40 via-transparent to-[#050505]" />
       </div>
 
       <div className="relative z-10 w-full max-w-[1600px] mx-auto px-4 md:px-8 pt-32 lg:pt-40 pb-20">
         <div className="mb-6">
-          <Link href={`/${locale}/shop/do88/collections`} className="text-[10px] uppercase tracking-[0.2em] text-white/50 hover:text-white transition inline-flex items-center gap-2">
-            ← {isUa ? 'Всі категорії DO88' : 'All DO88 categories'}
+          <Link
+            href={`/${locale}/shop/do88/collections`}
+            className="text-[10px] uppercase tracking-[0.2em] text-white/50 hover:text-white transition inline-flex items-center gap-2"
+          >
+            ← {isUa ? "Всі категорії DO88" : "All DO88 categories"}
           </Link>
         </div>
 
@@ -201,7 +237,11 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
           <aside className="w-full lg:w-[280px] shrink-0 flex flex-col gap-6">
             <div className="sticky top-20 lg:top-40 z-20 hidden lg:block">
               <Suspense fallback={<div className="h-32 bg-white/5 rounded-xl animate-pulse" />}>
-                <Do88CategoryFilter locale={resolvedLocale} currentHandle={handle} variant="sidebar" />
+                <Do88CategoryFilter
+                  locale={resolvedLocale}
+                  currentHandle={handle}
+                  variant="sidebar"
+                />
               </Suspense>
             </div>
           </aside>

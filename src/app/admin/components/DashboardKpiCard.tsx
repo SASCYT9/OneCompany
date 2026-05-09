@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * KPI card matching the OneCompany reference:
@@ -23,7 +23,7 @@ export function DashboardKpiCard({
   meta,
   pills,
   spark,
-  tone = 'default',
+  tone = "default",
   invertDelta = false,
   icon,
 }: {
@@ -32,9 +32,9 @@ export function DashboardKpiCard({
   current?: number;
   previous?: number;
   meta?: ReactNode;
-  pills?: Array<{ label: string; value: ReactNode; tone?: 'green' | 'amber' | 'red' | 'neutral' }>;
+  pills?: Array<{ label: string; value: ReactNode; tone?: "green" | "amber" | "red" | "neutral" }>;
   spark?: number[];
-  tone?: 'default' | 'accent';
+  tone?: "default" | "accent";
   invertDelta?: boolean;
   icon?: ReactNode;
 }) {
@@ -44,19 +44,19 @@ export function DashboardKpiCard({
   const deltaFlat = deltaPct != null && Math.abs(deltaPct) < 0.5;
   const deltaIsGood = invertDelta ? !deltaUp : deltaUp;
 
-  const deltaColor = deltaFlat ? 'text-zinc-500' : deltaIsGood ? 'text-green-400' : 'text-red-400';
+  const deltaColor = deltaFlat ? "text-zinc-500" : deltaIsGood ? "text-green-400" : "text-red-400";
 
   const hasSpark = spark && spark.length > 0;
 
   return (
     <div
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-none border bg-[#171717] transition-all duration-200',
-        tone === 'accent' ? 'border-blue-500/25' : 'border-white/[0.05]',
-        'hover:border-white/[0.12]'
+        "group relative flex h-full flex-col overflow-hidden rounded-none border bg-[#171717] transition-all duration-200",
+        tone === "accent" ? "border-blue-500/25" : "border-white/5",
+        "hover:border-white/12"
       )}
     >
-      <div className={cn('flex flex-1 flex-col px-5 pt-5', hasSpark ? 'pb-3' : 'pb-5')}>
+      <div className={cn("flex flex-1 flex-col px-5 pt-5", hasSpark ? "pb-3" : "pb-5")}>
         <div className="flex items-start gap-3">
           {icon ? (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600/15 text-blue-400 [&>svg]:h-4 [&>svg]:w-4">
@@ -70,7 +70,12 @@ export function DashboardKpiCard({
             </div>
 
             {hasDelta ? (
-              <div className={cn('mt-1.5 flex items-center gap-1 truncate text-[11px] font-medium tabular-nums', deltaColor)}>
+              <div
+                className={cn(
+                  "mt-1.5 flex items-center gap-1 truncate text-[11px] font-medium tabular-nums",
+                  deltaColor
+                )}
+              >
                 {deltaFlat ? (
                   <Minus className="h-3 w-3 shrink-0" aria-hidden="true" />
                 ) : deltaUp ? (
@@ -78,13 +83,20 @@ export function DashboardKpiCard({
                 ) : (
                   <ArrowDown className="h-3 w-3 shrink-0" aria-hidden="true" />
                 )}
-                <span>{deltaFlat ? '~0%' : `${deltaPct! > 0 ? '+' : ''}${deltaPct!.toFixed(1)}%`}</span>
+                <span>
+                  {deltaFlat ? "~0%" : `${deltaPct! > 0 ? "+" : ""}${deltaPct!.toFixed(1)}%`}
+                </span>
                 <span className="truncate text-[11px] font-normal text-zinc-500">vs prev</span>
               </div>
             ) : null}
 
             {meta ? (
-              <div className={cn('line-clamp-2 text-[11px] leading-[16px] text-zinc-500', hasDelta ? 'mt-1' : 'mt-1.5')}>
+              <div
+                className={cn(
+                  "line-clamp-2 text-[11px] leading-[16px] text-zinc-500",
+                  hasDelta ? "mt-1" : "mt-1.5"
+                )}
+              >
                 {meta}
               </div>
             ) : null}
@@ -95,11 +107,11 @@ export function DashboardKpiCard({
                   <span
                     key={i}
                     className={cn(
-                      'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium tabular-nums',
-                      p.tone === 'green' && 'border-green-500/25 bg-green-500/10 text-green-300',
-                      p.tone === 'amber' && 'border-amber-500/25 bg-amber-500/10 text-amber-300',
-                      p.tone === 'red' && 'border-red-500/25 bg-red-500/10 text-red-300',
-                      (!p.tone || p.tone === 'neutral') && 'border-white/[0.08] bg-white/[0.04] text-zinc-300'
+                      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium tabular-nums",
+                      p.tone === "green" && "border-green-500/25 bg-green-500/10 text-green-300",
+                      p.tone === "amber" && "border-amber-500/25 bg-amber-500/10 text-amber-300",
+                      p.tone === "red" && "border-red-500/25 bg-red-500/10 text-red-300",
+                      (!p.tone || p.tone === "neutral") && "border-white/8 bg-white/4 text-zinc-300"
                     )}
                   >
                     <span className="text-zinc-500">{p.label}</span>
@@ -137,7 +149,9 @@ function SparkLine({ data }: { data: number[] }) {
     return { x, y };
   });
 
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const linePath = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(" ");
   const areaPath = `${linePath} L ${w} ${h} L 0 ${h} Z`;
 
   return (
@@ -155,7 +169,14 @@ function SparkLine({ data }: { data: number[] }) {
         </linearGradient>
       </defs>
       <path d={areaPath} fill="url(#oc-kpi-spark)" />
-      <path d={linePath} fill="none" stroke="rgb(96 165 250)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={linePath}
+        fill="none"
+        stroke="rgb(96 165 250)"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

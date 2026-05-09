@@ -21,19 +21,17 @@ export default function AnimatedCard({
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Gradient border effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-100/10 via-transparent to-zinc-100/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 dark:from-white/10 dark:to-white/5" />
-      
+      <div className="absolute inset-0 bg-linear-to-br from-zinc-100/10 via-transparent to-zinc-100/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 dark:from-white/10 dark:to-white/5" />
+
       {/* Shine effect */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-zinc-500/10 to-transparent -translate-x-full dark:via-white/10"
+        className="absolute inset-0 bg-linear-to-r from-transparent via-zinc-500/10 to-transparent -translate-x-full dark:via-white/10"
         whileHover={{ x: "200%" }}
         transition={{ duration: 0.8 }}
       />
-      
+
       {/* Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </motion.div>
   );
 }

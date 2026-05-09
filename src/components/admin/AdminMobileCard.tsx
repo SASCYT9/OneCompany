@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * AdminMobileCard — replaces table rows on mobile (≤md breakpoint).
@@ -50,7 +50,7 @@ type Props = {
   href?: string;
   onClick?: () => void;
   className?: string;
-  tone?: 'default' | 'accent' | 'warning' | 'danger';
+  tone?: "default" | "accent" | "warning" | "danger";
 };
 
 export function AdminMobileCard({
@@ -63,26 +63,28 @@ export function AdminMobileCard({
   href,
   onClick,
   className,
-  tone = 'default',
+  tone = "default",
 }: Props) {
   const toneClass =
-    tone === 'accent'
-      ? 'border-blue-500/25 bg-blue-500/[0.04]'
-      : tone === 'warning'
-        ? 'border-amber-500/25 bg-amber-500/[0.04]'
-        : tone === 'danger'
-          ? 'border-red-500/25 bg-red-500/[0.04]'
-          : 'border-white/[0.05] bg-[#171717]';
+    tone === "accent"
+      ? "border-blue-500/25 bg-blue-500/4"
+      : tone === "warning"
+        ? "border-amber-500/25 bg-amber-500/4"
+        : tone === "danger"
+          ? "border-red-500/25 bg-red-500/4"
+          : "border-white/5 bg-[#171717]";
 
   const content = (
     <>
-      {(title || badge || leading) ? (
+      {title || badge || leading ? (
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             {leading ? <div className="shrink-0">{leading}</div> : null}
             <div className="min-w-0 flex-1">
               {title ? <div className="font-semibold text-zinc-50">{title}</div> : null}
-              {subtitle ? <div className="mt-0.5 truncate text-xs text-zinc-500">{subtitle}</div> : null}
+              {subtitle ? (
+                <div className="mt-0.5 truncate text-xs text-zinc-500">{subtitle}</div>
+              ) : null}
             </div>
           </div>
           {badge ? <div className="shrink-0">{badge}</div> : null}
@@ -92,15 +94,20 @@ export function AdminMobileCard({
       {rows && rows.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
           {rows.map((row, idx) => (
-            <div key={idx} className="flex items-baseline justify-between gap-2 border-b border-white/[0.04] pb-1.5 last:border-b-0 last:pb-0">
+            <div
+              key={idx}
+              className="flex items-baseline justify-between gap-2 border-b border-white/4 pb-1.5 last:border-b-0 last:pb-0"
+            >
               <span className="text-zinc-500">{row.label}</span>
-              <span className="truncate text-right font-medium text-zinc-200 tabular-nums">{row.value}</span>
+              <span className="truncate text-right font-medium text-zinc-200 tabular-nums">
+                {row.value}
+              </span>
             </div>
           ))}
         </div>
       ) : null}
 
-      {footer ? <div className="mt-3 border-t border-white/[0.04] pt-3">{footer}</div> : null}
+      {footer ? <div className="mt-3 border-t border-white/4 pt-3">{footer}</div> : null}
 
       {href || onClick ? (
         <ChevronRight
@@ -112,9 +119,9 @@ export function AdminMobileCard({
   );
 
   const baseClass = cn(
-    'group relative block rounded-none border p-3 transition active:scale-[0.99]',
+    "group relative block rounded-none border p-3 transition active:scale-[0.99]",
     toneClass,
-    (href || onClick) && 'cursor-pointer hover:border-blue-500/30 hover:bg-blue-500/[0.06] pr-9',
+    (href || onClick) && "cursor-pointer hover:border-blue-500/30 hover:bg-blue-500/6 pr-9",
     className
   );
 
@@ -129,7 +136,7 @@ export function AdminMobileCard({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={cn(baseClass, 'w-full text-left')}>
+      <button type="button" onClick={onClick} className={cn(baseClass, "w-full text-left")}>
         {content}
       </button>
     );
@@ -163,8 +170,8 @@ export function AdminMobileBottomBar({
   return (
     <div
       className={cn(
-        'fixed inset-x-0 bottom-0 z-30 border-t border-white/[0.08] bg-[#0F0F0F]/95 backdrop-blur-xl lg:hidden',
-        'px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+        "fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-[#0F0F0F]/95 backdrop-blur-xl lg:hidden",
+        "px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]",
         className
       )}
     >

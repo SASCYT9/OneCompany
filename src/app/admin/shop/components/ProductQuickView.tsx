@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import { ExternalLink, ImageOff, Package, Tag } from 'lucide-react';
+import { ExternalLink, ImageOff, Package, Tag } from "lucide-react";
 
-import { AdminSlideOver } from '@/components/admin/AdminSlideOver';
-import { AdminStatusBadge } from '@/components/admin/AdminPrimitives';
+import { AdminSlideOver } from "@/components/admin/AdminSlideOver";
+import { AdminStatusBadge } from "@/components/admin/AdminPrimitives";
 
 /**
  * Slide-over preview of a shop product. Loads detail on open.
@@ -20,7 +20,7 @@ type ProductDetail = {
   sku: string | null;
   brand: string | null;
   vendor: string | null;
-  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+  status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   isPublished: boolean;
   titleEn: string;
   titleUa: string;
@@ -72,13 +72,13 @@ export function ProductQuickView({
 }) {
   const [detail, setDetail] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     if (!open || !productId) {
       setDetail(null);
-      setError('');
+      setError("");
       setActiveImageIndex(0);
       return;
     }
@@ -86,11 +86,15 @@ export function ProductQuickView({
     let cancelled = false;
     async function load() {
       setLoading(true);
-      setError('');
+      setError("");
       try {
-        const response = await fetch(`/api/admin/shop/products/${productId}`, { cache: 'no-store' });
-        const data = (await response.json().catch(() => ({}))) as ProductDetail & { error?: string };
-        if (!response.ok) throw new Error(data.error || 'Failed to load product');
+        const response = await fetch(`/api/admin/shop/products/${productId}`, {
+          cache: "no-store",
+        });
+        const data = (await response.json().catch(() => ({}))) as ProductDetail & {
+          error?: string;
+        };
+        if (!response.ok) throw new Error(data.error || "Failed to load product");
         if (!cancelled) {
           setDetail(data);
         }
@@ -106,7 +110,11 @@ export function ProductQuickView({
     };
   }, [open, productId]);
 
-  const allImages = [detail?.image, ...(detail?.media?.map((m) => m.src) ?? []), ...(detail?.gallery ?? [])]
+  const allImages = [
+    detail?.image,
+    ...(detail?.media?.map((m) => m.src) ?? []),
+    ...(detail?.gallery ?? []),
+  ]
     .filter((src): src is string => Boolean(src))
     .filter((src, idx, arr) => arr.indexOf(src) === idx); // dedupe
 
@@ -115,8 +123,8 @@ export function ProductQuickView({
       open={open}
       onClose={onClose}
       width="lg"
-      title={detail ? detail.titleEn || detail.titleUa : 'Товар'}
-      subtitle={detail ? `${detail.brand ?? '—'} · ${detail.sku ?? detail.slug}` : undefined}
+      title={detail ? detail.titleEn || detail.titleUa : "Товар"}
+      subtitle={detail ? `${detail.brand ?? "—"} · ${detail.sku ?? detail.slug}` : undefined}
       footer={
         detail ? (
           <div className="flex items-center justify-between gap-3">
@@ -131,7 +139,7 @@ export function ProductQuickView({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-none border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
+              className="rounded-none border border-white/10 bg-white/3 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/6"
             >
               Закрити
             </button>
@@ -141,20 +149,22 @@ export function ProductQuickView({
     >
       {loading ? (
         <div className="space-y-4">
-          <div className="aspect-video rounded-none border border-white/[0.05] bg-white/[0.03] motion-safe:animate-pulse" />
-          <div className="h-3 w-32 rounded-none bg-white/[0.06] motion-safe:animate-pulse" />
-          <div className="h-12 w-full rounded-none bg-white/[0.04] motion-safe:animate-pulse" />
-          <div className="h-32 w-full rounded-none bg-white/[0.04] motion-safe:animate-pulse" />
+          <div className="aspect-video rounded-none border border-white/5 bg-white/3 motion-safe:animate-pulse" />
+          <div className="h-3 w-32 rounded-none bg-white/6 motion-safe:animate-pulse" />
+          <div className="h-12 w-full rounded-none bg-white/4 motion-safe:animate-pulse" />
+          <div className="h-32 w-full rounded-none bg-white/4 motion-safe:animate-pulse" />
         </div>
       ) : error ? (
-        <div className="rounded-none border border-red-500/20 bg-red-500/[0.05] p-4 text-sm text-red-300">{error}</div>
+        <div className="rounded-none border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
+          {error}
+        </div>
       ) : detail ? (
         <div className="space-y-5">
           {/* Image gallery */}
           <section>
             {allImages.length > 0 ? (
               <div className="space-y-2">
-                <div className="relative aspect-video overflow-hidden rounded-none border border-white/[0.05] bg-[#0F0F0F]">
+                <div className="relative aspect-video overflow-hidden rounded-none border border-white/5 bg-[#0F0F0F]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={allImages[activeImageIndex]}
@@ -171,8 +181,8 @@ export function ProductQuickView({
                         onClick={() => setActiveImageIndex(idx)}
                         className={`h-14 w-14 shrink-0 overflow-hidden rounded-none border bg-[#0F0F0F] transition ${
                           activeImageIndex === idx
-                            ? 'border-blue-500/60 ring-2 ring-blue-500/20'
-                            : 'border-white/[0.05] hover:border-white/20'
+                            ? "border-blue-500/60 ring-2 ring-blue-500/20"
+                            : "border-white/5 hover:border-white/20"
                         }`}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -183,7 +193,7 @@ export function ProductQuickView({
                 ) : null}
               </div>
             ) : (
-              <div className="flex aspect-video items-center justify-center rounded-none border border-white/[0.05] bg-[#0F0F0F] text-zinc-600">
+              <div className="flex aspect-video items-center justify-center rounded-none border border-white/5 bg-[#0F0F0F] text-zinc-600">
                 <ImageOff className="h-10 w-10" aria-hidden="true" />
               </div>
             )}
@@ -191,19 +201,27 @@ export function ProductQuickView({
 
           {/* Status row */}
           <section className="flex flex-wrap items-center gap-2">
-            <AdminStatusBadge tone={detail.status === 'ACTIVE' ? 'success' : detail.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+            <AdminStatusBadge
+              tone={
+                detail.status === "ACTIVE"
+                  ? "success"
+                  : detail.status === "ARCHIVED"
+                    ? "danger"
+                    : "warning"
+              }
+            >
               {detail.status}
             </AdminStatusBadge>
-            <AdminStatusBadge tone={detail.isPublished ? 'success' : 'warning'}>
-              {detail.isPublished ? 'Опубліковано' : 'Прихований'}
+            <AdminStatusBadge tone={detail.isPublished ? "success" : "warning"}>
+              {detail.isPublished ? "Опубліковано" : "Прихований"}
             </AdminStatusBadge>
             {detail.productType ? (
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <span className="rounded-full border border-white/8 bg-white/4 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                 {detail.productType}
               </span>
             ) : null}
             {detail.brand ? (
-              <span className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300">
+              <span className="rounded-full border border-blue-500/25 bg-blue-500/8 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300">
                 {detail.brand}
               </span>
             ) : null}
@@ -211,7 +229,9 @@ export function ProductQuickView({
 
           {/* Pricing */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Ціни</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              Ціни
+            </div>
             <div className="grid grid-cols-3 gap-2">
               <PriceCell label="EUR" b2c={detail.priceEur} b2b={detail.priceEurB2b} symbol="€" />
               <PriceCell label="USD" b2c={detail.priceUsd} b2b={detail.priceUsdB2b} symbol="$" />
@@ -234,23 +254,31 @@ export function ProductQuickView({
                 {detail.variants.slice(0, 6).map((v) => (
                   <div
                     key={v.id}
-                    className="flex items-center justify-between gap-3 rounded-none border border-white/[0.05] bg-[#171717] px-3 py-2"
+                    className="flex items-center justify-between gap-3 rounded-none border border-white/5 bg-[#171717] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium text-zinc-100">{v.title}</span>
+                        <span className="truncate text-sm font-medium text-zinc-100">
+                          {v.title}
+                        </span>
                         {v.isDefault ? (
                           <span className="rounded-full bg-blue-500/15 px-1.5 py-0 text-[9px] font-bold uppercase text-blue-300">
                             основний
                           </span>
                         ) : null}
                       </div>
-                      <div className="mt-0.5 truncate font-mono text-[11px] text-zinc-500">{v.sku ?? '—'}</div>
+                      <div className="mt-0.5 truncate font-mono text-[11px] text-zinc-500">
+                        {v.sku ?? "—"}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 text-xs">
                       <span
                         className={`tabular-nums ${
-                          v.inventoryQty <= 0 ? 'text-red-400' : v.inventoryQty <= 5 ? 'text-amber-300' : 'text-emerald-300'
+                          v.inventoryQty <= 0
+                            ? "text-red-400"
+                            : v.inventoryQty <= 5
+                              ? "text-amber-300"
+                              : "text-emerald-300"
                         }`}
                       >
                         {v.inventoryQty} шт
@@ -273,12 +301,14 @@ export function ProductQuickView({
           {/* Collections */}
           {detail.collections.length > 0 ? (
             <section className="space-y-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Колекції</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Колекції
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {detail.collections.map((c) => (
                   <span
                     key={c.id}
-                    className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-0.5 text-[11px] text-zinc-300"
+                    className="inline-flex items-center gap-1 rounded-full border border-white/8 bg-white/4 px-2.5 py-0.5 text-[11px] text-zinc-300"
                   >
                     <Tag className="h-2.5 w-2.5 text-zinc-500" aria-hidden="true" />
                     {c.titleEn || c.handle}
@@ -290,17 +320,21 @@ export function ProductQuickView({
 
           {/* Stock + Lead time */}
           <section className="grid grid-cols-2 gap-3">
-            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Залишок</div>
+            <div className="rounded-none border border-white/5 bg-[#171717] p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Залишок
+              </div>
               <div className="mt-1 flex items-center gap-2">
                 <Package className="h-4 w-4 text-zinc-500" aria-hidden="true" />
-                <span className="text-sm font-medium text-zinc-100">{detail.stock || '—'}</span>
+                <span className="text-sm font-medium text-zinc-100">{detail.stock || "—"}</span>
               </div>
             </div>
-            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Термін поставки</div>
+            <div className="rounded-none border border-white/5 bg-[#171717] p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Термін поставки
+              </div>
               <div className="mt-1 truncate text-sm font-medium text-zinc-100">
-                {detail.leadTimeEn || detail.leadTimeUa || '—'}
+                {detail.leadTimeEn || detail.leadTimeUa || "—"}
               </div>
             </div>
           </section>
@@ -308,20 +342,28 @@ export function ProductQuickView({
           {/* Dimensions */}
           {detail.weight != null || detail.length != null ? (
             <section className="space-y-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Розміри</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Розміри
+              </div>
               <div className="grid grid-cols-4 gap-2 text-xs">
-                <DimCell label="Вага" value={detail.weight != null ? `${detail.weight} г` : '—'} />
-                <DimCell label="Довжина" value={detail.length != null ? `${detail.length} см` : '—'} />
-                <DimCell label="Ширина" value={detail.width != null ? `${detail.width} см` : '—'} />
-                <DimCell label="Висота" value={detail.height != null ? `${detail.height} см` : '—'} />
+                <DimCell label="Вага" value={detail.weight != null ? `${detail.weight} г` : "—"} />
+                <DimCell
+                  label="Довжина"
+                  value={detail.length != null ? `${detail.length} см` : "—"}
+                />
+                <DimCell label="Ширина" value={detail.width != null ? `${detail.width} см` : "—"} />
+                <DimCell
+                  label="Висота"
+                  value={detail.height != null ? `${detail.height} см` : "—"}
+                />
               </div>
             </section>
           ) : null}
 
           {/* Meta */}
-          <section className="border-t border-white/[0.05] pt-3 text-xs text-zinc-500">
-            <div>Оновлено {new Date(detail.updatedAt).toLocaleString('uk-UA')}</div>
-            <div>Створено {new Date(detail.createdAt).toLocaleString('uk-UA')}</div>
+          <section className="border-t border-white/5 pt-3 text-xs text-zinc-500">
+            <div>Оновлено {new Date(detail.updatedAt).toLocaleString("uk-UA")}</div>
+            <div>Створено {new Date(detail.createdAt).toLocaleString("uk-UA")}</div>
           </section>
         </div>
       ) : null}
@@ -341,10 +383,12 @@ function PriceCell({
   symbol: string;
 }) {
   return (
-    <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
+    <div className="rounded-none border border-white/5 bg-[#171717] p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        {label}
+      </div>
       <div className="mt-1 text-base font-semibold tabular-nums text-zinc-50">
-        {b2c != null ? `${symbol}${b2c}` : '—'}
+        {b2c != null ? `${symbol}${b2c}` : "—"}
       </div>
       {b2b != null ? (
         <div className="mt-0.5 text-[11px] text-blue-300">
@@ -358,8 +402,10 @@ function PriceCell({
 
 function DimCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-none border border-white/[0.05] bg-black/25 p-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
+    <div className="rounded-none border border-white/5 bg-black/25 p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        {label}
+      </div>
       <div className="mt-0.5 truncate text-sm font-medium text-zinc-100">{value}</div>
     </div>
   );

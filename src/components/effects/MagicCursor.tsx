@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function MagicCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -8,7 +8,7 @@ export default function MagicCursor() {
 
   useEffect(() => {
     // Only run this effect on the client
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -48,11 +48,11 @@ export default function MagicCursor() {
       requestAnimationFrame(animate);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
     const animationFrameId = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -62,7 +62,7 @@ export default function MagicCursor() {
       {/* Main cursor */}
       <div
         ref={cursorRef}
-        className="fixed w-6 h-6 pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed w-6 h-6 pointer-events-none z-9999 mix-blend-difference"
         style={{
           left: -12,
           top: -12,
@@ -78,7 +78,7 @@ export default function MagicCursor() {
           ref={(el) => {
             if (el) trailRefs.current[i] = el;
           }}
-          className="fixed w-6 h-6 pointer-events-none z-[9998] mix-blend-difference"
+          className="fixed w-6 h-6 pointer-events-none z-9998 mix-blend-difference"
           style={{
             left: -12,
             top: -12,

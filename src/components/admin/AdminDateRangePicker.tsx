@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * AdminDateRangePicker — interactive date range with presets + custom calendar.
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
  */
 
 export type DateRange = {
-  from: string | null;  // ISO YYYY-MM-DD or null = open-ended
+  from: string | null; // ISO YYYY-MM-DD or null = open-ended
   to: string | null;
   preset?: string | null;
 };
@@ -32,8 +32,8 @@ type Preset = {
 
 const PRESETS: Preset[] = [
   {
-    key: 'today',
-    label: 'Today',
+    key: "today",
+    label: "Today",
     compute: () => {
       const t = new Date();
       const iso = isoDate(t);
@@ -41,8 +41,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'yesterday',
-    label: 'Yesterday',
+    key: "yesterday",
+    label: "Yesterday",
     compute: () => {
       const t = new Date(Date.now() - 86_400_000);
       const iso = isoDate(t);
@@ -50,8 +50,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'last7',
-    label: 'Last 7 days',
+    key: "last7",
+    label: "Last 7 days",
     compute: () => {
       const to = new Date();
       const from = new Date(Date.now() - 6 * 86_400_000);
@@ -59,8 +59,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'last30',
-    label: 'Last 30 days',
+    key: "last30",
+    label: "Last 30 days",
     compute: () => {
       const to = new Date();
       const from = new Date(Date.now() - 29 * 86_400_000);
@@ -68,8 +68,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'thisMonth',
-    label: 'This month',
+    key: "thisMonth",
+    label: "This month",
     compute: () => {
       const now = new Date();
       const from = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -77,8 +77,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'lastMonth',
-    label: 'Last month',
+    key: "lastMonth",
+    label: "Last month",
     compute: () => {
       const now = new Date();
       const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -87,8 +87,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'thisYear',
-    label: 'This year',
+    key: "thisYear",
+    label: "This year",
     compute: () => {
       const now = new Date();
       const from = new Date(now.getFullYear(), 0, 1);
@@ -96,8 +96,8 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    key: 'last12mo',
-    label: 'Last 12 months',
+    key: "last12mo",
+    label: "Last 12 months",
     compute: () => {
       const to = new Date();
       const from = new Date(to);
@@ -109,14 +109,14 @@ const PRESETS: Preset[] = [
 
 function isoDate(d: Date): string {
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
 function parseIso(iso: string | null): Date | null {
   if (!iso) return null;
-  const [y, m, d] = iso.split('-').map((p) => parseInt(p, 10));
+  const [y, m, d] = iso.split("-").map((p) => parseInt(p, 10));
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 }
@@ -126,28 +126,28 @@ function formatRange(range: DateRange): string {
     const preset = PRESETS.find((p) => p.key === range.preset);
     if (preset) return preset.label;
   }
-  if (!range.from && !range.to) return 'All time';
+  if (!range.from && !range.to) return "All time";
   const fromD = parseIso(range.from);
   const toD = parseIso(range.to);
   if (fromD && toD) {
     if (range.from === range.to) {
-      return fromD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return fromD.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     }
-    return `${fromD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${toD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    return `${fromD.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${toD.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
   }
-  return 'Custom range';
+  return "Custom range";
 }
 
 export function AdminDateRangePicker({
   value,
   onChange,
   className,
-  align = 'left',
+  align = "left",
 }: {
   value: DateRange;
   onChange: (range: DateRange) => void;
   className?: string;
-  align?: 'left' | 'right';
+  align?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
   const [activeMonth, setActiveMonth] = useState(() => {
@@ -163,8 +163,8 @@ export function AdminDateRangePicker({
     function onClick(e: MouseEvent) {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
   function applyPreset(preset: Preset) {
@@ -199,38 +199,41 @@ export function AdminDateRangePicker({
   }
 
   return (
-    <div ref={ref} className={cn('relative inline-block', className)}>
+    <div ref={ref} className={cn("relative inline-block", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 items-center gap-2 rounded-none border border-white/[0.08] bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
+        className="inline-flex h-9 items-center gap-2 rounded-none border border-white/8 bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
         aria-haspopup="dialog"
         aria-expanded={open}
       >
         <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
         {formatRange(value)}
-        <ChevronDown className={cn('h-3 w-3 text-zinc-500 transition', open && 'rotate-180')} aria-hidden="true" />
+        <ChevronDown
+          className={cn("h-3 w-3 text-zinc-500 transition", open && "rotate-180")}
+          aria-hidden="true"
+        />
       </button>
 
       {open ? (
         <div
           className={cn(
-            'absolute z-30 mt-2 flex flex-col gap-0 overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:flex-row',
-            align === 'right' ? 'right-0' : 'left-0'
+            "absolute z-30 mt-2 flex flex-col gap-0 overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:flex-row",
+            align === "right" ? "right-0" : "left-0"
           )}
         >
           {/* Presets */}
-          <div className="flex w-full flex-col gap-0.5 border-b border-white/[0.05] p-2 sm:w-44 sm:border-b-0 sm:border-r">
+          <div className="flex w-full flex-col gap-0.5 border-b border-white/5 p-2 sm:w-44 sm:border-b-0 sm:border-r">
             {PRESETS.map((p) => (
               <button
                 key={p.key}
                 type="button"
                 onClick={() => applyPreset(p)}
                 className={cn(
-                  'rounded-none px-3 py-1.5 text-left text-xs font-medium transition',
+                  "rounded-none px-3 py-1.5 text-left text-xs font-medium transition",
                   value.preset === p.key
-                    ? 'bg-blue-500/[0.15] text-blue-300'
-                    : 'text-zinc-300 hover:bg-white/[0.04]'
+                    ? "bg-blue-500/15 text-blue-300"
+                    : "text-zinc-300 hover:bg-white/4"
                 )}
               >
                 {p.label}
@@ -244,7 +247,7 @@ export function AdminDateRangePicker({
                 setPendingTo(null);
                 setOpen(false);
               }}
-              className="mt-1 rounded-none border-t border-white/[0.04] px-3 py-1.5 text-left text-xs text-zinc-500 transition hover:bg-white/[0.04]"
+              className="mt-1 rounded-none border-t border-white/4 px-3 py-1.5 text-left text-xs text-zinc-500 transition hover:bg-white/4"
             >
               All time
             </button>
@@ -255,19 +258,23 @@ export function AdminDateRangePicker({
             <div className="mb-2 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-                className="rounded-none p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                onClick={() =>
+                  setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
+                }
+                className="rounded-none p-1 text-zinc-400 hover:bg-white/4 hover:text-zinc-100"
                 aria-label="Previous month"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
               <div className="text-xs font-semibold text-zinc-200">
-                {activeMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {activeMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               </div>
               <button
                 type="button"
-                onClick={() => setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-                className="rounded-none p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                onClick={() =>
+                  setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
+                }
+                className="rounded-none p-1 text-zinc-400 hover:bg-white/4 hover:text-zinc-100"
                 aria-label="Next month"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -281,19 +288,19 @@ export function AdminDateRangePicker({
               onDayClick={handleDayClick}
             />
 
-            <div className="mt-3 flex items-center gap-2 border-t border-white/[0.05] pt-3">
+            <div className="mt-3 flex items-center gap-2 border-t border-white/5 pt-3">
               <input
                 type="date"
-                value={pendingFrom ?? ''}
+                value={pendingFrom ?? ""}
                 onChange={(e) => setPendingFrom(e.target.value || null)}
-                className="flex-1 rounded-none border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
+                className="flex-1 rounded-none border border-white/8 bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-hidden"
               />
               <span className="text-xs text-zinc-500">→</span>
               <input
                 type="date"
-                value={pendingTo ?? ''}
+                value={pendingTo ?? ""}
                 onChange={(e) => setPendingTo(e.target.value || null)}
-                className="flex-1 rounded-none border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
+                className="flex-1 rounded-none border border-white/8 bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-hidden"
               />
             </div>
 
@@ -301,7 +308,7 @@ export function AdminDateRangePicker({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-none px-3 py-1.5 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                className="rounded-none px-3 py-1.5 text-xs text-zinc-400 hover:bg-white/4 hover:text-zinc-200"
               >
                 Cancel
               </button>
@@ -351,7 +358,7 @@ function CalendarGrid({
 
   return (
     <div className="grid w-[224px] grid-cols-7 gap-0.5">
-      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, i) => (
+      {["M", "T", "W", "T", "F", "S", "S"].map((label, i) => (
         <div key={i} className="py-1 text-center text-[10px] font-bold uppercase text-zinc-600">
           {label}
         </div>
@@ -369,13 +376,13 @@ function CalendarGrid({
             type="button"
             onClick={() => onDayClick(day)}
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-none text-xs tabular-nums transition',
+              "flex h-8 w-8 items-center justify-center rounded-none text-xs tabular-nums transition",
               isFrom || isTo
-                ? 'bg-blue-600 font-bold text-white'
+                ? "bg-blue-600 font-bold text-white"
                 : inRange
-                  ? 'bg-blue-500/[0.15] text-blue-200'
-                  : 'text-zinc-300 hover:bg-white/[0.06]',
-              isToday && !isFrom && !isTo && 'ring-1 ring-blue-500/30'
+                  ? "bg-blue-500/15 text-blue-200"
+                  : "text-zinc-300 hover:bg-white/6",
+              isToday && !isFrom && !isTo && "ring-1 ring-blue-500/30"
             )}
           >
             {day.getDate()}

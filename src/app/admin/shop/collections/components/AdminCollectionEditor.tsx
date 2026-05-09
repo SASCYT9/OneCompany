@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Save } from 'lucide-react';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Save } from "lucide-react";
 
 import {
   AdminEditorSection,
@@ -13,12 +13,12 @@ import {
   AdminPage,
   AdminStatusBadge,
   type AdminEditorNavSection,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 import {
   AdminCheckboxField,
   AdminInputField,
   AdminTextareaField,
-} from '@/components/admin/AdminFormFields';
+} from "@/components/admin/AdminFormFields";
 
 type CollectionFormState = {
   handle: string;
@@ -59,33 +59,41 @@ type CollectionResponse = {
 };
 
 const COLLECTION_EDITOR_SECTIONS: AdminEditorNavSection[] = [
-  { id: 'overview', label: 'Overview', description: 'Identity, brand scope, and hero media.' },
-  { id: 'descriptions', label: 'Descriptions', description: 'Localized copy for collection landing pages.' },
-  { id: 'products', label: 'Assigned products', description: 'Products currently mapped to this collection.' },
+  { id: "overview", label: "Overview", description: "Identity, brand scope, and hero media." },
+  {
+    id: "descriptions",
+    label: "Descriptions",
+    description: "Localized copy for collection landing pages.",
+  },
+  {
+    id: "products",
+    label: "Assigned products",
+    description: "Products currently mapped to this collection.",
+  },
 ];
 
 function slugify(value: string) {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function createEmptyForm(): CollectionFormState {
   return {
-    handle: '',
-    titleUa: '',
-    titleEn: '',
-    brand: '',
-    descriptionUa: '',
-    descriptionEn: '',
-    heroImage: '',
+    handle: "",
+    titleUa: "",
+    titleEn: "",
+    brand: "",
+    descriptionUa: "",
+    descriptionEn: "",
+    heroImage: "",
     isPublished: true,
     isUrban: false,
-    sortOrder: '0',
+    sortOrder: "0",
   };
 }
 
@@ -94,10 +102,10 @@ function collectionToForm(collection: CollectionResponse): CollectionFormState {
     handle: collection.handle,
     titleUa: collection.titleUa,
     titleEn: collection.titleEn,
-    brand: collection.brand ?? '',
-    descriptionUa: collection.descriptionUa ?? '',
-    descriptionEn: collection.descriptionEn ?? '',
-    heroImage: collection.heroImage ?? '',
+    brand: collection.brand ?? "",
+    descriptionUa: collection.descriptionUa ?? "",
+    descriptionEn: collection.descriptionEn ?? "",
+    heroImage: collection.heroImage ?? "",
     isPublished: collection.isPublished,
     isUrban: collection.isUrban,
     sortOrder: String(collection.sortOrder),
@@ -113,11 +121,11 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
   const isEditing = Boolean(collectionId);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [handleTouched, setHandleTouched] = useState(isEditing);
   const [form, setForm] = useState<CollectionFormState>(createEmptyForm());
-  const [linkedProducts, setLinkedProducts] = useState<CollectionResponse['products']>([]);
+  const [linkedProducts, setLinkedProducts] = useState<CollectionResponse["products"]>([]);
 
   useEffect(() => {
     if (!collectionId) {
@@ -129,12 +137,12 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
     async function loadCollection() {
       setLoading(true);
-      setError('');
+      setError("");
       try {
         const response = await fetch(`/api/admin/shop/collections/${collectionId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити колекцію');
+          throw new Error((data as { error?: string }).error || "Не вдалося завантажити колекцію");
         }
         if (!cancelled) {
           const collection = data as CollectionResponse;
@@ -163,14 +171,15 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
   function updateField<K extends keyof CollectionFormState>(key: K, value: CollectionFormState[K]) {
     setForm((current) => {
       const next = { ...current, [key]: value };
-      if ((key === 'titleEn' || key === 'titleUa') && !handleTouched) {
-        const base = key === 'titleEn' ? String(value || current.titleUa) : String(current.titleEn || value);
+      if ((key === "titleEn" || key === "titleUa") && !handleTouched) {
+        const base =
+          key === "titleEn" ? String(value || current.titleUa) : String(current.titleEn || value);
         next.handle = slugify(base);
       }
       return next;
     });
 
-    if (key === 'handle') {
+    if (key === "handle") {
       setHandleTouched(true);
     }
   }
@@ -178,15 +187,15 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(
-        isEditing ? `/api/admin/shop/collections/${collectionId}` : '/api/admin/shop/collections',
+        isEditing ? `/api/admin/shop/collections/${collectionId}` : "/api/admin/shop/collections",
         {
-          method: isEditing ? 'PATCH' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: isEditing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             handle: form.handle,
             titleUa: form.titleUa,
@@ -204,15 +213,18 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error((data as { error?: string }).error || 'Не вдалося зберегти колекцію');
+        throw new Error((data as { error?: string }).error || "Не вдалося зберегти колекцію");
       }
 
-      setSuccess(isEditing ? 'Колекцію оновлено.' : 'Колекцію створено.');
+      setSuccess(isEditing ? "Колекцію оновлено." : "Колекцію створено.");
       if (!isEditing) {
-        router.push('/admin/shop/collections');
+        router.push("/admin/shop/collections");
         router.refresh();
       } else {
-        setLinkedProducts(((data as { products?: CollectionResponse['products'] }).products ?? []) as CollectionResponse['products']);
+        setLinkedProducts(
+          ((data as { products?: CollectionResponse["products"] }).products ??
+            []) as CollectionResponse["products"]
+        );
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -233,15 +245,17 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
     <AdminEditorShell
       backHref="/admin/shop/collections"
       backLabel="Back to collections"
-      title={isEditing ? 'Edit collection' : 'New collection'}
+      title={isEditing ? "Edit collection" : "New collection"}
       description="Collection editor for merchandising groups, hero assets, Urban scope, and landing page copy."
       sections={COLLECTION_EDITOR_SECTIONS}
       summary={
         <div className="rounded-none border border-white/10 bg-[#171717] p-5">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Collection state</div>
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+            Collection state
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
-              {form.isPublished ? 'Published' : 'Hidden'}
+            <AdminStatusBadge tone={form.isPublished ? "success" : "warning"}>
+              {form.isPublished ? "Published" : "Hidden"}
             </AdminStatusBadge>
             {form.isUrban ? <AdminStatusBadge>Urban</AdminStatusBadge> : null}
             <AdminStatusBadge>{linkedProducts.length} mapped products</AdminStatusBadge>
@@ -259,16 +273,49 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           description="Collection identity, brand labeling, hero image source, sort order, and publication flags."
         >
           <div className="grid gap-4 md:grid-cols-2">
-            <AdminInputField label="Title (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-            <AdminInputField label="Title (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-            <AdminInputField label="Handle" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
-            <AdminInputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
-            <AdminInputField label="Sort order" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
-            <AdminInputField label="Hero image URL" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
+            <AdminInputField
+              label="Title (EN)"
+              value={form.titleEn}
+              onChange={(value) => updateField("titleEn", value)}
+            />
+            <AdminInputField
+              label="Title (UA)"
+              value={form.titleUa}
+              onChange={(value) => updateField("titleUa", value)}
+            />
+            <AdminInputField
+              label="Handle"
+              value={form.handle}
+              onChange={(value) => updateField("handle", slugify(value))}
+            />
+            <AdminInputField
+              label="Brand"
+              value={form.brand}
+              onChange={(value) => updateField("brand", value)}
+            />
+            <AdminInputField
+              label="Sort order"
+              type="number"
+              value={form.sortOrder}
+              onChange={(value) => updateField("sortOrder", value)}
+            />
+            <AdminInputField
+              label="Hero image URL"
+              value={form.heroImage}
+              onChange={(value) => updateField("heroImage", value)}
+            />
           </div>
           <div className="mt-4 flex flex-wrap gap-6">
-            <AdminCheckboxField label="Published" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
-            <AdminCheckboxField label="Urban collection" checked={form.isUrban} onChange={(checked) => updateField('isUrban', checked)} />
+            <AdminCheckboxField
+              label="Published"
+              checked={form.isPublished}
+              onChange={(checked) => updateField("isPublished", checked)}
+            />
+            <AdminCheckboxField
+              label="Urban collection"
+              checked={form.isUrban}
+              onChange={(checked) => updateField("isUrban", checked)}
+            />
           </div>
         </AdminEditorSection>
 
@@ -278,8 +325,18 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           description="Optional localized editorial copy for collection landing pages and search metadata reuse."
         >
           <div className="grid gap-4 md:grid-cols-2">
-            <AdminTextareaField label="Description (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
-            <AdminTextareaField label="Description (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
+            <AdminTextareaField
+              label="Description (EN)"
+              value={form.descriptionEn}
+              onChange={(value) => updateField("descriptionEn", value)}
+              rows={6}
+            />
+            <AdminTextareaField
+              label="Description (UA)"
+              value={form.descriptionUa}
+              onChange={(value) => updateField("descriptionUa", value)}
+              rows={6}
+            />
           </div>
         </AdminEditorSection>
 
@@ -295,11 +352,13 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
                   <Link
                     key={product.id}
                     href={`/admin/shop/${product.id}`}
-                    className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-zinc-200 transition hover:bg-white/[0.04]"
+                    className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-zinc-200 transition hover:bg-white/4"
                   >
-                    <div className="font-medium text-zinc-50">{product.titleEn || product.titleUa}</div>
+                    <div className="font-medium text-zinc-50">
+                      {product.titleEn || product.titleUa}
+                    </div>
                     <div className="mt-1 font-mono text-xs text-zinc-500">{product.slug}</div>
-                    <div className="mt-2 text-xs text-zinc-500">{product.brand || '—'}</div>
+                    <div className="mt-2 text-xs text-zinc-500">{product.brand || "—"}</div>
                   </Link>
                 ))}
               </div>
@@ -315,14 +374,14 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Saving…' : isEditing ? 'Save collection' : 'Create collection'}
+            {saving ? "Saving…" : isEditing ? "Save collection" : "Create collection"}
           </button>
           <Link
             href="/admin/shop/collections"
-            className="rounded-none border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/3 px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6"
           >
             Cancel
           </Link>

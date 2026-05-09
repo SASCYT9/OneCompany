@@ -1,48 +1,54 @@
-'use client';
+"use client";
 
 export function KWTechnology() {
   const technologies = [
     {
-      title: 'TVD Technology',
-      subtitle: 'Top Valve Design',
-      description: 'Патентована технологія клапана верхнього монтажу для максимальної точності налаштувань',
-      icon: '⚙️',
-      features: ['16 позицій регулювання', 'Точність ±2%', 'Температурна стабільність'],
+      title: "TVD Technology",
+      subtitle: "Top Valve Design",
+      description:
+        "Патентована технологія клапана верхнього монтажу для максимальної точності налаштувань",
+      icon: "⚙️",
+      features: ["16 позицій регулювання", "Точність ±2%", "Температурна стабільність"],
     },
     {
-      title: 'Inox-Line',
-      subtitle: 'Нержавіюча сталь',
-      description: 'Корпуси з нержавіючої сталі для максимальної довговічності та захисту від корозії',
-      icon: '🛡️',
-      features: ['10 років гарантії', 'Стійкість до солі', 'Преміум якість'],
+      title: "Inox-Line",
+      subtitle: "Нержавіюча сталь",
+      description:
+        "Корпуси з нержавіючої сталі для максимальної довговічності та захисту від корозії",
+      icon: "🛡️",
+      features: ["10 років гарантії", "Стійкість до солі", "Преміум якість"],
     },
     {
-      title: 'HLS System',
-      subtitle: 'Hydraulic Lift System',
-      description: 'Гідравлічна система підйому для подолання лежачих поліцейських та підземних паркінгів',
-      icon: '📐',
-      features: ['Підйом до 45мм', 'Одна кнопка', 'Збереження налаштувань'],
+      title: "HLS System",
+      subtitle: "Hydraulic Lift System",
+      description:
+        "Гідравлічна система підйому для подолання лежачих поліцейських та підземних паркінгів",
+      icon: "📐",
+      features: ["Підйом до 45мм", "Одна кнопка", "Збереження налаштувань"],
     },
     {
-      title: 'DDC ECU',
-      subtitle: 'Dynamic Damping Control',
-      description: 'Електронне керування демпфуванням з адаптацією до стилю водіння',
-      icon: '🖥️',
-      features: ['3 режими руху', 'Авто-адаптація', 'GPS трекінг'],
+      title: "DDC ECU",
+      subtitle: "Dynamic Damping Control",
+      description: "Електронне керування демпфуванням з адаптацією до стилю водіння",
+      icon: "🖥️",
+      features: ["3 режими руху", "Авто-адаптація", "GPS трекінг"],
     },
   ];
 
   return (
-    <section id="technology" className="relative py-24 px-6 bg-gradient-to-b from-black via-orange-950/10 to-black">
+    <section
+      id="technology"
+      className="relative py-24 px-6 bg-linear-to-b from-black via-orange-950/10 to-black"
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-block px-6 py-2 bg-amber-500/20 border border-amber-400/40 rounded-full text-amber-300 text-sm font-medium tracking-widest backdrop-blur-sm mb-6">
+          <div className="inline-block px-6 py-2 bg-amber-500/20 border border-amber-400/40 rounded-full text-amber-300 text-sm font-medium tracking-widest backdrop-blur-xs mb-6">
             ІННОВАЦІЇ
           </div>
           <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            <span className="text-white/90 font-light">Технології</span>{' '}
-            <span className="bg-gradient-to-r from-amber-200 to-orange-400 bg-clip-text text-transparent">
+            <span className="text-white/90 font-light">Технології</span>{" "}
+            <span className="bg-linear-to-r from-amber-200 to-orange-400 bg-clip-text text-transparent">
               KW
             </span>
           </h2>
@@ -56,7 +62,7 @@ export function KWTechnology() {
           {technologies.map((tech, idx) => (
             <div
               key={idx}
-              className="group relative p-8 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border border-white/10 hover:border-amber-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/20"
+              className="group relative p-8 bg-linear-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border border-white/10 hover:border-amber-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/20"
             >
               {/* Icon */}
               <div className="text-6xl mb-4 opacity-80 group-hover:scale-110 transition-transform duration-300">
@@ -81,7 +87,7 @@ export function KWTechnology() {
               </div>
 
               {/* Hover effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-orange-500/0 group-hover:from-amber-500/5 group-hover:to-orange-500/5 rounded-2xl transition-all duration-500" />
+              <div className="absolute inset-0 bg-linear-to-br from-amber-500/0 to-orange-500/0 group-hover:from-amber-500/5 group-hover:to-orange-500/5 rounded-2xl transition-all duration-500" />
             </div>
           ))}
         </div>
@@ -97,7 +103,7 @@ export function KWTechnology() {
               allowFullScreen
             />
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-8">
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/90 to-transparent p-8">
             <h3 className="text-2xl font-bold text-white mb-2">
               Як працює технологія KW Variant 3
             </h3>

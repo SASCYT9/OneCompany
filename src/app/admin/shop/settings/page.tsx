@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowDown,
   ArrowUp,
@@ -13,7 +13,7 @@ import {
   Save,
   Settings2,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   AdminActionBar,
@@ -23,17 +23,17 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
-} from '@/components/admin/AdminPrimitives';
+} from "@/components/admin/AdminPrimitives";
 import {
   AdminCheckboxField as CheckboxField,
   AdminInputField as InputField,
   AdminSelectField as SelectField,
   AdminTextareaField as TextareaField,
-} from '@/components/admin/AdminFormFields';
-import { useConfirm } from '@/components/admin/AdminConfirmDialog';
-import { useToast } from '@/components/admin/AdminToast';
+} from "@/components/admin/AdminFormFields";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
 
-type ShopCurrencyCode = 'EUR' | 'USD' | 'UAH';
+type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
 type ShopShippingZone = {
   id: string;
@@ -49,7 +49,7 @@ type ShopShippingZone = {
   fallbackLength: number;
   fallbackWidth: number;
   fallbackHeight: number;
-  calcMode: 'flat' | 'volumetric';
+  calcMode: "flat" | "volumetric";
   freeOver: number | null;
   minimumSubtotal: number | null;
   currency: ShopCurrencyCode;
@@ -59,7 +59,7 @@ type ShopShippingZone = {
 type ShopBrandShippingRule = {
   id: string;
   brandName: string;
-  mode: 'fixed' | 'multiplier' | 'free' | 'tiered' | 'percent' | 'manual_quote';
+  mode: "fixed" | "multiplier" | "free" | "tiered" | "percent" | "manual_quote";
   value: number;
   warehouseRatePerKg: number;
   currency: ShopCurrencyCode;
@@ -82,7 +82,7 @@ type ShopRegionalPricingRule = {
   name: string;
   countries: string[];
   regions: string[];
-  mode: 'percent' | 'fixed';
+  mode: "percent" | "fixed";
   value: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
@@ -126,7 +126,7 @@ type ShippingZoneForm = {
   fallbackLength: string;
   fallbackWidth: string;
   fallbackHeight: string;
-  calcMode: 'flat' | 'volumetric';
+  calcMode: "flat" | "volumetric";
   freeOver: string;
   minimumSubtotal: string;
   currency: ShopCurrencyCode;
@@ -139,7 +139,13 @@ type BrandShippingBracketForm = {
   fee: string;
 };
 
-type BrandShippingRuleMode = 'fixed' | 'multiplier' | 'free' | 'tiered' | 'percent' | 'manual_quote';
+type BrandShippingRuleMode =
+  | "fixed"
+  | "multiplier"
+  | "free"
+  | "tiered"
+  | "percent"
+  | "manual_quote";
 
 type BrandShippingRuleForm = {
   id: string;
@@ -215,7 +221,7 @@ type PreviewResponse = {
     id: string;
     name: string;
     value?: number;
-    mode?: 'percent' | 'fixed';
+    mode?: "percent" | "fixed";
     currency?: ShopCurrencyCode;
   };
   showTaxesIncludedNotice: boolean;
@@ -224,7 +230,7 @@ type PreviewResponse = {
 type NbuRefreshResponse = {
   settings: ShopSettingsResponse;
   nbu: {
-    source: 'nbu';
+    source: "nbu";
     exchangedAt: string;
     eurToUah: number;
     usdToUah: number;
@@ -238,33 +244,33 @@ type RegionalPricingRuleForm = {
   name: string;
   countriesText: string;
   regionsText: string;
-  mode: 'percent' | 'fixed';
+  mode: "percent" | "fixed";
   value: string;
   currency: ShopCurrencyCode;
   enabled: boolean;
 };
 
-const SHOP_CURRENCIES: ShopCurrencyCode[] = ['EUR', 'USD', 'UAH'];
+const SHOP_CURRENCIES: ShopCurrencyCode[] = ["EUR", "USD", "UAH"];
 
 const B2B_OPTIONS = [
-  { value: 'approved_only', label: 'Тільки схвалені B2B (оптові ціни приховані)' },
-  { value: 'public_dual', label: 'Публічно B2C і B2B (обидва цінові канали видимі)' },
-  { value: 'request_quote', label: 'Запит комерційної пропозиції (B2B через запит)' },
+  { value: "approved_only", label: "Тільки схвалені B2B (оптові ціни приховані)" },
+  { value: "public_dual", label: "Публічно B2C і B2B (обидва цінові канали видимі)" },
+  { value: "request_quote", label: "Запит комерційної пропозиції (B2B через запит)" },
 ] as const;
 
 function formatNumber(value: number | null | undefined) {
-  return value == null ? '' : String(value);
+  return value == null ? "" : String(value);
 }
 
 function splitCommaList(value: string) {
   return value
-    .split(',')
+    .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
 
 function joinCommaList(values: string[]) {
-  return values.join(', ');
+  return values.join(", ");
 }
 
 function parseNumber(value: string, fallback = 0) {
@@ -283,21 +289,21 @@ function createShippingZoneForm(seed: number): ShippingZoneForm {
   return {
     id: `zone-${seed}`,
     name: `Зона доставки ${seed}`,
-    countriesText: '*',
-    regionsText: '',
-    baseRate: '0',
-    perItemRate: '0',
-    ratePerKg: '1.5',
-    volSurchargePerKg: '0.5',
-    volumetricDivisor: '5000',
-    fallbackWeightKg: '2',
-    fallbackLength: '30',
-    fallbackWidth: '20',
-    fallbackHeight: '15',
-    calcMode: 'volumetric',
-    freeOver: '',
-    minimumSubtotal: '',
-    currency: 'EUR',
+    countriesText: "*",
+    regionsText: "",
+    baseRate: "0",
+    perItemRate: "0",
+    ratePerKg: "1.5",
+    volSurchargePerKg: "0.5",
+    volumetricDivisor: "5000",
+    fallbackWeightKg: "2",
+    fallbackLength: "30",
+    fallbackWidth: "20",
+    fallbackHeight: "15",
+    calcMode: "volumetric",
+    freeOver: "",
+    minimumSubtotal: "",
+    currency: "EUR",
     enabled: true,
   };
 }
@@ -305,11 +311,11 @@ function createShippingZoneForm(seed: number): ShippingZoneForm {
 function createBrandShippingRuleForm(seed: number): BrandShippingRuleForm {
   return {
     id: `brand-rule-${seed}`,
-    brandName: '',
-    mode: 'free',
-    value: '0',
-    warehouseRatePerKg: '0',
-    currency: 'EUR',
+    brandName: "",
+    mode: "free",
+    value: "0",
+    warehouseRatePerKg: "0",
+    currency: "EUR",
     enabled: true,
     brackets: [],
   };
@@ -319,9 +325,9 @@ function createTaxRegionForm(seed: number): TaxRegionForm {
   return {
     id: `tax-${seed}`,
     name: `Tax rule ${seed}`,
-    countriesText: '*',
-    regionsText: '',
-    rate: '0',
+    countriesText: "*",
+    regionsText: "",
+    rate: "0",
     appliesToShipping: true,
     enabled: false,
   };
@@ -331,38 +337,38 @@ function createRegionalPricingRuleForm(seed: number): RegionalPricingRuleForm {
   return {
     id: `regional-rule-${seed}`,
     name: `Регіональна корекція ${seed}`,
-    countriesText: '*',
-    regionsText: '',
-    mode: 'percent',
-    value: '0',
-    currency: 'EUR',
+    countriesText: "*",
+    regionsText: "",
+    mode: "percent",
+    value: "0",
+    currency: "EUR",
     enabled: false,
   };
 }
 
 function createEmptyForm(): ShopSettingsFormState {
   return {
-    b2bVisibilityMode: 'approved_only',
-    defaultB2bDiscountPercent: '',
-    defaultCurrency: 'EUR',
-    enabledCurrencies: ['EUR', 'USD', 'UAH'],
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: "",
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
     currencyRates: {
-      EUR: '1',
-      USD: '1.08',
-      UAH: '45',
+      EUR: "1",
+      USD: "1.08",
+      UAH: "45",
     },
     shippingZones: [createShippingZoneForm(1)],
     brandShippingRules: [],
     taxRegions: [createTaxRegionForm(1)],
     regionalPricingRules: [],
-    orderNotificationEmail: '',
-    b2bNotes: '',
+    orderNotificationEmail: "",
+    b2bNotes: "",
     showTaxesIncludedNotice: false,
-    fopCompanyName: '',
-    fopIban: '',
-    fopBankName: '',
-    fopEdrpou: '',
-    fopDetails: '',
+    fopCompanyName: "",
+    fopIban: "",
+    fopBankName: "",
+    fopEdrpou: "",
+    fopDetails: "",
     whiteBitEnabled: false,
   };
 }
@@ -370,12 +376,12 @@ function createEmptyForm(): ShopSettingsFormState {
 function createPreviewState(currency: ShopCurrencyCode): PreviewFormState {
   return {
     currency,
-    subtotal: '1200',
-    itemCount: '2',
-    country: 'Germany',
-    region: '',
-    city: 'Berlin',
-    postcode: '10115',
+    subtotal: "1200",
+    itemCount: "2",
+    country: "Germany",
+    region: "",
+    city: "Berlin",
+    postcode: "10115",
   };
 }
 
@@ -410,19 +416,20 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       currency: zone.currency,
       enabled: zone.enabled,
     })),
-    brandShippingRules: settings.brandShippingRules?.map((rule) => ({
-      id: rule.id,
-      brandName: rule.brandName,
-      mode: rule.mode,
-      value: formatNumber(rule.value),
-      warehouseRatePerKg: formatNumber(rule.warehouseRatePerKg),
-      currency: rule.currency,
-      enabled: rule.enabled,
-      brackets: (rule.brackets ?? []).map((b) => ({
-        maxAmount: b.maxAmount === null ? '' : formatNumber(b.maxAmount),
-        fee: formatNumber(b.fee),
-      })),
-    })) || [],
+    brandShippingRules:
+      settings.brandShippingRules?.map((rule) => ({
+        id: rule.id,
+        brandName: rule.brandName,
+        mode: rule.mode,
+        value: formatNumber(rule.value),
+        warehouseRatePerKg: formatNumber(rule.warehouseRatePerKg),
+        currency: rule.currency,
+        enabled: rule.enabled,
+        brackets: (rule.brackets ?? []).map((b) => ({
+          maxAmount: b.maxAmount === null ? "" : formatNumber(b.maxAmount),
+          fee: formatNumber(b.fee),
+        })),
+      })) || [],
     taxRegions: settings.taxRegions.map((region) => ({
       id: region.id,
       name: region.name,
@@ -442,14 +449,14 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       currency: rule.currency,
       enabled: rule.enabled,
     })),
-    orderNotificationEmail: settings.orderNotificationEmail ?? '',
-    b2bNotes: settings.b2bNotes ?? '',
+    orderNotificationEmail: settings.orderNotificationEmail ?? "",
+    b2bNotes: settings.b2bNotes ?? "",
     showTaxesIncludedNotice: settings.showTaxesIncludedNotice ?? false,
-    fopCompanyName: settings.fopCompanyName ?? '',
-    fopIban: settings.fopIban ?? '',
-    fopBankName: settings.fopBankName ?? '',
-    fopEdrpou: settings.fopEdrpou ?? '',
-    fopDetails: settings.fopDetails ?? '',
+    fopCompanyName: settings.fopCompanyName ?? "",
+    fopIban: settings.fopIban ?? "",
+    fopBankName: settings.fopBankName ?? "",
+    fopEdrpou: settings.fopEdrpou ?? "",
+    fopDetails: settings.fopDetails ?? "",
     whiteBitEnabled: settings.whiteBitEnabled ?? false,
   };
 }
@@ -494,9 +501,9 @@ function formToPayload(form: ShopSettingsFormState) {
       currency: rule.currency,
       enabled: rule.enabled,
       brackets:
-        rule.mode === 'tiered'
+        rule.mode === "tiered"
           ? rule.brackets.map((b) => ({
-              maxAmount: b.maxAmount.trim() === '' ? null : parseNumber(b.maxAmount, 0) || null,
+              maxAmount: b.maxAmount.trim() === "" ? null : parseNumber(b.maxAmount, 0) || null,
               fee: parseNumber(b.fee, 0),
             }))
           : undefined,
@@ -533,8 +540,8 @@ function formToPayload(form: ShopSettingsFormState) {
 }
 
 function formatMoney(value: number, currency: ShopCurrencyCode) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency,
     maximumFractionDigits: 2,
   }).format(value);
@@ -557,16 +564,16 @@ export default function AdminShopSettingsPage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [updatedAt, setUpdatedAt] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [updatedAt, setUpdatedAt] = useState("");
   const [form, setForm] = useState<ShopSettingsFormState>(createEmptyForm());
-  const [preview, setPreview] = useState<PreviewFormState>(createPreviewState('EUR'));
+  const [preview, setPreview] = useState<PreviewFormState>(createPreviewState("EUR"));
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState('');
+  const [previewError, setPreviewError] = useState("");
   const [previewResult, setPreviewResult] = useState<PreviewResponse | null>(null);
   const [currencySyncLoading, setCurrencySyncLoading] = useState(false);
-  const [currencySyncMeta, setCurrencySyncMeta] = useState<NbuRefreshResponse['nbu'] | null>(null);
+  const [currencySyncMeta, setCurrencySyncMeta] = useState<NbuRefreshResponse["nbu"] | null>(null);
 
   const settingsMetrics = useMemo(
     () => ({
@@ -575,7 +582,12 @@ export default function AdminShopSettingsPage() {
       taxRules: form.taxRegions.length,
       regionalRules: form.regionalPricingRules.filter((rule) => rule.enabled).length,
     }),
-    [form.enabledCurrencies.length, form.regionalPricingRules, form.shippingZones.length, form.taxRegions.length]
+    [
+      form.enabledCurrencies.length,
+      form.regionalPricingRules,
+      form.shippingZones.length,
+      form.taxRegions.length,
+    ]
   );
 
   useEffect(() => {
@@ -585,16 +597,16 @@ export default function AdminShopSettingsPage() {
   const exportSettings = () => {
     try {
       const dataStr = JSON.stringify(form, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
       const exportFileDefaultName = `shop-settings-${new Date().toISOString().slice(0, 10)}.json`;
 
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
+      const linkElement = document.createElement("a");
+      linkElement.setAttribute("href", dataUri);
+      linkElement.setAttribute("download", exportFileDefaultName);
       linkElement.click();
     } catch (e: any) {
-      console.error('Failed to export settings', e);
-      alert('Помилка при експорті налаштувань');
+      console.error("Failed to export settings", e);
+      alert("Помилка при експорті налаштувань");
     }
   };
 
@@ -607,7 +619,7 @@ export default function AdminShopSettingsPage() {
           subtotal: parseNumber(preview.subtotal),
           itemCount: parseNumber(preview.itemCount, 1),
           shippingAddress: {
-            line1: 'Preview line 1',
+            line1: "Preview line 1",
             city: preview.city,
             region: preview.region,
             postcode: preview.postcode,
@@ -624,22 +636,22 @@ export default function AdminShopSettingsPage() {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       setPreviewLoading(true);
-      setPreviewError('');
+      setPreviewError("");
 
       try {
-        const response = await fetch('/api/admin/shop/settings/preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/admin/shop/settings/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: previewPayload,
           signal: controller.signal,
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Не вдалося побудувати попередній перегляд');
+          throw new Error(data.error || "Не вдалося побудувати попередній перегляд");
         }
         setPreviewResult(data as PreviewResponse);
       } catch (previewRequestError) {
-        if ((previewRequestError as Error).name === 'AbortError') {
+        if ((previewRequestError as Error).name === "AbortError") {
           return;
         }
         setPreviewError((previewRequestError as Error).message);
@@ -669,13 +681,13 @@ export default function AdminShopSettingsPage() {
 
   async function load() {
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
-      const response = await fetch('/api/admin/shop/settings');
+      const response = await fetch("/api/admin/shop/settings");
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося завантажити налаштування магазину');
+        setError(data.error || "Не вдалося завантажити налаштування магазину");
         return;
       }
 
@@ -688,11 +700,17 @@ export default function AdminShopSettingsPage() {
     }
   }
 
-  function updateField<K extends keyof ShopSettingsFormState>(key: K, value: ShopSettingsFormState[K]) {
+  function updateField<K extends keyof ShopSettingsFormState>(
+    key: K,
+    value: ShopSettingsFormState[K]
+  ) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function updatePreviewField<K extends keyof PreviewFormState>(key: K, value: PreviewFormState[K]) {
+  function updatePreviewField<K extends keyof PreviewFormState>(
+    key: K,
+    value: PreviewFormState[K]
+  ) {
     setPreview((current) => ({ ...current, [key]: value }));
   }
 
@@ -728,7 +746,11 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
-  function updateShippingZone(index: number, field: keyof ShippingZoneForm, value: ShippingZoneForm[keyof ShippingZoneForm]) {
+  function updateShippingZone(
+    index: number,
+    field: keyof ShippingZoneForm,
+    value: ShippingZoneForm[keyof ShippingZoneForm]
+  ) {
     setForm((current) => ({
       ...current,
       shippingZones: current.shippingZones.map((zone, zoneIndex) =>
@@ -737,7 +759,11 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
-  function updateBrandShippingRule(index: number, field: keyof BrandShippingRuleForm, value: BrandShippingRuleForm[keyof BrandShippingRuleForm]) {
+  function updateBrandShippingRule(
+    index: number,
+    field: keyof BrandShippingRuleForm,
+    value: BrandShippingRuleForm[keyof BrandShippingRuleForm]
+  ) {
     setForm((current) => ({
       ...current,
       brandShippingRules: current.brandShippingRules.map((rule, ruleIndex) =>
@@ -746,7 +772,11 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
-  function updateTaxRegion(index: number, field: keyof TaxRegionForm, value: TaxRegionForm[keyof TaxRegionForm]) {
+  function updateTaxRegion(
+    index: number,
+    field: keyof TaxRegionForm,
+    value: TaxRegionForm[keyof TaxRegionForm]
+  ) {
     setForm((current) => ({
       ...current,
       taxRegions: current.taxRegions.map((region, regionIndex) =>
@@ -771,14 +801,20 @@ export default function AdminShopSettingsPage() {
   function addShippingZone() {
     setForm((current) => ({
       ...current,
-      shippingZones: [...current.shippingZones, createShippingZoneForm(current.shippingZones.length + 1)],
+      shippingZones: [
+        ...current.shippingZones,
+        createShippingZoneForm(current.shippingZones.length + 1),
+      ],
     }));
   }
 
   function addBrandShippingRule() {
     setForm((current) => ({
       ...current,
-      brandShippingRules: [...current.brandShippingRules, createBrandShippingRuleForm(current.brandShippingRules.length + 1)],
+      brandShippingRules: [
+        ...current.brandShippingRules,
+        createBrandShippingRuleForm(current.brandShippingRules.length + 1),
+      ],
     }));
   }
 
@@ -792,7 +828,10 @@ export default function AdminShopSettingsPage() {
   function addRegionalPricingRule() {
     setForm((current) => ({
       ...current,
-      regionalPricingRules: [...current.regionalPricingRules, createRegionalPricingRuleForm(current.regionalPricingRules.length + 1)],
+      regionalPricingRules: [
+        ...current.regionalPricingRules,
+        createRegionalPricingRuleForm(current.regionalPricingRules.length + 1),
+      ],
     }));
   }
 
@@ -820,7 +859,9 @@ export default function AdminShopSettingsPage() {
   function removeRegionalPricingRule(index: number) {
     setForm((current) => ({
       ...current,
-      regionalPricingRules: current.regionalPricingRules.filter((_, ruleIndex) => ruleIndex !== index),
+      regionalPricingRules: current.regionalPricingRules.filter(
+        (_, ruleIndex) => ruleIndex !== index
+      ),
     }));
   }
 
@@ -855,25 +896,25 @@ export default function AdminShopSettingsPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch('/api/admin/shop/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/shop/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formToPayload(form)),
       });
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося зберегти налаштування');
+        throw new Error(data.error || "Не вдалося зберегти налаштування");
       }
 
       const settings = data as ShopSettingsResponse;
       setForm(settingsToForm(settings));
       setUpdatedAt(settings.updatedAt);
-      setSuccess('Налаштування магазину збережено.');
+      setSuccess("Налаштування магазину збережено.");
     } catch (saveError) {
       setError((saveError as Error).message);
     } finally {
@@ -883,16 +924,18 @@ export default function AdminShopSettingsPage() {
 
   async function handleRefreshRatesFromNbu() {
     setCurrencySyncLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch('/api/admin/shop/settings/currency-rates/nbu', {
-        method: 'POST',
+      const response = await fetch("/api/admin/shop/settings/currency-rates/nbu", {
+        method: "POST",
       });
-      const data = (await response.json().catch(() => ({}))) as Partial<NbuRefreshResponse> & { error?: string };
+      const data = (await response.json().catch(() => ({}))) as Partial<NbuRefreshResponse> & {
+        error?: string;
+      };
       if (!response.ok || !data.settings || !data.nbu) {
-        throw new Error(data.error || 'Не вдалося оновити курси з НБУ');
+        throw new Error(data.error || "Не вдалося оновити курси з НБУ");
       }
       const settings = data.settings;
       const nbu = data.nbu;
@@ -931,7 +974,10 @@ export default function AdminShopSettingsPage() {
   return (
     <AdminPage className="space-y-6">
       <div className="space-y-4">
-        <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-zinc-100">
+        <Link
+          href="/admin/shop"
+          className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-zinc-100"
+        >
           Назад до каталогу
         </Link>
         <AdminPageHeader
@@ -940,18 +986,39 @@ export default function AdminShopSettingsPage() {
           description="Валюти вітрини, правила доставки та податків, видимість B2B, платіжні реквізити та операційні інтеграції каталогу. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило."
           actions={
             <div className="rounded-none border border-white/10 bg-[#171717] px-4 py-3 text-right">
-              <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Оновлено</div>
-              <div className="mt-2 text-sm text-zinc-200">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                Оновлено
+              </div>
+              <div className="mt-2 text-sm text-zinc-200">
+                {updatedAt ? new Date(updatedAt).toLocaleString() : "—"}
+              </div>
             </div>
           }
         />
       </div>
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Enabled currencies" value={settingsMetrics.currencies} meta="Storefront currencies available in checkout" tone="accent" />
-        <AdminMetricCard label="Shipping zones" value={settingsMetrics.shippingZones} meta="Ordered matching rules for delivery quotes" />
-        <AdminMetricCard label="Tax rules" value={settingsMetrics.taxRules} meta="Active tax rule stack for checkout pricing" />
-        <AdminMetricCard label="Regional pricing" value={settingsMetrics.regionalRules} meta="Enabled regional price adjustment rules" />
+        <AdminMetricCard
+          label="Enabled currencies"
+          value={settingsMetrics.currencies}
+          meta="Storefront currencies available in checkout"
+          tone="accent"
+        />
+        <AdminMetricCard
+          label="Shipping zones"
+          value={settingsMetrics.shippingZones}
+          meta="Ordered matching rules for delivery quotes"
+        />
+        <AdminMetricCard
+          label="Tax rules"
+          value={settingsMetrics.taxRules}
+          meta="Active tax rule stack for checkout pricing"
+        />
+        <AdminMetricCard
+          label="Regional pricing"
+          value={settingsMetrics.regionalRules}
+          meta="Enabled regional price adjustment rules"
+        />
       </AdminMetricGrid>
 
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
@@ -959,18 +1026,22 @@ export default function AdminShopSettingsPage() {
 
       <AdminActionBar className="sticky top-4 z-30 bg-[#171717]/95 backdrop-blur-xl">
         <div className="space-y-1">
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-400">Settings actions</div>
-          <div className="text-sm text-zinc-300">Save the operational catalog defaults, reload from API, or export the current draft.</div>
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-400">
+            Settings actions
+          </div>
+          <div className="text-sm text-zinc-300">
+            Save the operational catalog defaults, reload from API, or export the current draft.
+          </div>
         </div>
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
             form="admin-shop-settings-form"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Saving…' : 'Save settings'}
+            {saving ? "Saving…" : "Save settings"}
           </button>
           <button
             type="button"
@@ -991,753 +1062,839 @@ export default function AdminShopSettingsPage() {
       </AdminActionBar>
 
       <form id="admin-shop-settings-form" onSubmit={handleSubmit} className="space-y-6">
-          <AdminEditorSection
-            id="settings-core"
-            title="Core rules"
-            description="Storefront defaults, global B2B discount policy and operational notification settings."
-          >
-            <div className="mb-5">
-              <h3 className="text-lg font-medium text-white">Core rules</h3>
-              <p className="mt-1 text-sm text-white/45">Storefront defaults, global B2B discount policy and team notifications.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <SelectField
-                label="Режим видимості B2B"
-                value={form.b2bVisibilityMode}
-                onChange={(value) => updateField('b2bVisibilityMode', value)}
-                options={B2B_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
-              />
-              <InputField
-                label="Default B2B discount %"
-                value={form.defaultB2bDiscountPercent}
-                onChange={(value) => updateField('defaultB2bDiscountPercent', value)}
-                placeholder="8"
-              />
-              <SelectField
-                label="Валюта за замовч."
-                value={form.defaultCurrency}
-                onChange={(value) => {
-                  const nextCurrency = value as ShopCurrencyCode;
-                  setForm((current) => ({
-                    ...current,
-                    defaultCurrency: nextCurrency,
-                    enabledCurrencies: current.enabledCurrencies.includes(nextCurrency)
-                      ? current.enabledCurrencies
-                      : [...current.enabledCurrencies, nextCurrency],
-                  }));
-                  updatePreviewField('currency', nextCurrency);
-                }}
-                options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
-              />
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1.2fr_1fr]">
-              <InputField
-                label="Order notification email"
-                value={form.orderNotificationEmail}
-                onChange={(value) => updateField('orderNotificationEmail', value)}
-                placeholder="sales@onecompany.global"
-              />
-              <div>
-                <div className="mb-1.5 block text-xs text-white/50">Увімкнені валюти</div>
-                <div className="flex flex-wrap gap-3">
-                  {SHOP_CURRENCIES.map((currency) => (
-                    <label key={currency} className="inline-flex items-center gap-2 text-sm text-white/80">
-                      <input
-                        type="checkbox"
-                        checked={form.enabledCurrencies.includes(currency)}
-                        onChange={() => toggleCurrency(currency)}
-                        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-                      />
-                      {currency}
-                    </label>
-                  ))}
-                </div>
+        <AdminEditorSection
+          id="settings-core"
+          title="Core rules"
+          description="Storefront defaults, global B2B discount policy and operational notification settings."
+        >
+          <div className="mb-5">
+            <h3 className="text-lg font-medium text-white">Core rules</h3>
+            <p className="mt-1 text-sm text-white/45">
+              Storefront defaults, global B2B discount policy and team notifications.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <SelectField
+              label="Режим видимості B2B"
+              value={form.b2bVisibilityMode}
+              onChange={(value) => updateField("b2bVisibilityMode", value)}
+              options={B2B_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+            />
+            <InputField
+              label="Default B2B discount %"
+              value={form.defaultB2bDiscountPercent}
+              onChange={(value) => updateField("defaultB2bDiscountPercent", value)}
+              placeholder="8"
+            />
+            <SelectField
+              label="Валюта за замовч."
+              value={form.defaultCurrency}
+              onChange={(value) => {
+                const nextCurrency = value as ShopCurrencyCode;
+                setForm((current) => ({
+                  ...current,
+                  defaultCurrency: nextCurrency,
+                  enabledCurrencies: current.enabledCurrencies.includes(nextCurrency)
+                    ? current.enabledCurrencies
+                    : [...current.enabledCurrencies, nextCurrency],
+                }));
+                updatePreviewField("currency", nextCurrency);
+              }}
+              options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+            />
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1.2fr_1fr]">
+            <InputField
+              label="Order notification email"
+              value={form.orderNotificationEmail}
+              onChange={(value) => updateField("orderNotificationEmail", value)}
+              placeholder="sales@onecompany.global"
+            />
+            <div>
+              <div className="mb-1.5 block text-xs text-white/50">Увімкнені валюти</div>
+              <div className="flex flex-wrap gap-3">
+                {SHOP_CURRENCIES.map((currency) => (
+                  <label
+                    key={currency}
+                    className="inline-flex items-center gap-2 text-sm text-white/80"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.enabledCurrencies.includes(currency)}
+                      onChange={() => toggleCurrency(currency)}
+                      className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
+                    />
+                    {currency}
+                  </label>
+                ))}
               </div>
-              <TextareaField
-                label="Примітки B2B"
-                value={form.b2bNotes}
-                onChange={(value) => updateField('b2bNotes', value)}
-                rows={4}
-              />
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <CheckboxField
-                label="Показувати “Податки включено”, якщо окремий податок = 0"
-                checked={form.showTaxesIncludedNotice}
-                onChange={(checked) => updateField('showTaxesIncludedNotice', checked)}
-              />
-            </div>
-          </AdminEditorSection>
+            <TextareaField
+              label="Примітки B2B"
+              value={form.b2bNotes}
+              onChange={(value) => updateField("b2bNotes", value)}
+              rows={4}
+            />
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <CheckboxField
+              label="Показувати “Податки включено”, якщо окремий податок = 0"
+              checked={form.showTaxesIncludedNotice}
+              onChange={(checked) => updateField("showTaxesIncludedNotice", checked)}
+            />
+          </div>
+        </AdminEditorSection>
 
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5">
-              <h3 className="text-lg font-medium text-white">Оплата</h3>
-              <p className="mt-1 text-sm text-white/45">Оплата на ФОП (реквізити), Stripe (картка), White Bit (згодом).</p>
-            </div>
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <InputField
-                  label="ФОП — назва / ПІБ"
-                  value={form.fopCompanyName}
-                  onChange={(value) => updateField('fopCompanyName', value)}
-                  placeholder="ФОП Іваненко І. І."
-                />
-                <InputField
-                  label="ФОП — IBAN"
-                  value={form.fopIban}
-                  onChange={(value) => updateField('fopIban', value)}
-                  placeholder="UA123456789012345678901234567"
-                />
-                <InputField
-                  label="ФОП — банк"
-                  value={form.fopBankName}
-                  onChange={(value) => updateField('fopBankName', value)}
-                  placeholder="ПриватБанк"
-                />
-                <InputField
-                  label="ФОП — ЄДРПОУ"
-                  value={form.fopEdrpou}
-                  onChange={(value) => updateField('fopEdrpou', value)}
-                  placeholder="12345678"
-                />
-              </div>
-              <TextareaField
-                label="ФОП — додаткові реквізити (текст)"
-                value={form.fopDetails}
-                onChange={(value) => updateField('fopDetails', value)}
-                rows={3}
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5">
+            <h3 className="text-lg font-medium text-white">Оплата</h3>
+            <p className="mt-1 text-sm text-white/45">
+              Оплата на ФОП (реквізити), Stripe (картка), White Bit (згодом).
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <InputField
+                label="ФОП — назва / ПІБ"
+                value={form.fopCompanyName}
+                onChange={(value) => updateField("fopCompanyName", value)}
+                placeholder="ФОП Іваненко І. І."
               />
-              <div className="mt-8 flex flex-col gap-4">
-                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
-                  <input
-                    type="checkbox"
-                    checked={form.whiteBitEnabled}
-                    onChange={(e) => updateField('whiteBitEnabled', e.target.checked)}
-                    className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
+              <InputField
+                label="ФОП — IBAN"
+                value={form.fopIban}
+                onChange={(value) => updateField("fopIban", value)}
+                placeholder="UA123456789012345678901234567"
+              />
+              <InputField
+                label="ФОП — банк"
+                value={form.fopBankName}
+                onChange={(value) => updateField("fopBankName", value)}
+                placeholder="ПриватБанк"
+              />
+              <InputField
+                label="ФОП — ЄДРПОУ"
+                value={form.fopEdrpou}
+                onChange={(value) => updateField("fopEdrpou", value)}
+                placeholder="12345678"
+              />
+            </div>
+            <TextareaField
+              label="ФОП — додаткові реквізити (текст)"
+              value={form.fopDetails}
+              onChange={(value) => updateField("fopDetails", value)}
+              rows={3}
+            />
+            <div className="mt-8 flex flex-col gap-4">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
+                <input
+                  type="checkbox"
+                  checked={form.whiteBitEnabled}
+                  onChange={(e) => updateField("whiteBitEnabled", e.target.checked)}
+                  className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
+                />
+                Увімкнено White Bit (згодом)
+              </label>
+              <p className="text-xs text-white/45">
+                White Bit (незабаром): налаштуйте ключі доступу в середовищі.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Валюти</h3>
+              <p className="mt-1 text-sm text-white/45">
+                Опорні курси відносно EUR. Якщо у товару немає ціни в валюті, оформлення
+                використовує ці курси.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-start justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleRefreshRatesFromNbu}
+                disabled={currencySyncLoading}
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${currencySyncLoading ? "motion-safe:animate-spin" : ""}`}
+                />
+                Оновити з НБУ
+              </button>
+              <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
+                <div>Приклад: 1 EUR = {form.currencyRates.USD || "1.08"} USD</div>
+                {currencySyncMeta ? (
+                  <div className="mt-1 text-[11px] text-white/35">
+                    НБУ: {currencySyncMeta.exchangedAt}
+                    {currencySyncMeta.usdSpecial ? " · USD за особливих умов" : ""}
+                  </div>
+                ) : (
+                  <div className="mt-1 text-[11px] text-white/35">Джерело: офіційний курс НБУ</div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {SHOP_CURRENCIES.map((currency) => (
+              <div
+                key={currency}
+                className="rounded-none border border-white/10 bg-zinc-950/70 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-white">{currency}</div>
+                    <div className="mt-1 text-xs text-white/45">
+                      {form.defaultCurrency === currency
+                        ? "Валюта вітрини за замовч."
+                        : "Резервна валюта конвертації"}
+                    </div>
+                  </div>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[11px] ${
+                      form.enabledCurrencies.includes(currency)
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                        : "border-white/10 bg-white/5 text-white/40"
+                    }`}
+                  >
+                    {form.enabledCurrencies.includes(currency) ? "Увімкнено" : "Вимкнено"}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <InputField
+                    label="Курс до EUR"
+                    value={form.currencyRates[currency]}
+                    onChange={(value) => updateCurrencyRate(currency, value)}
+                    placeholder="0"
                   />
-                  Увімкнено White Bit (згодом)
-                </label>
-                <p className="text-xs text-white/45">
-                  White Bit (незабаром): налаштуйте ключі доступу в середовищі.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Валюти</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Опорні курси відносно EUR. Якщо у товару немає ціни в валюті, оформлення використовує ці курси.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-start justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleRefreshRatesFromNbu}
-                  disabled={currencySyncLoading}
-                  className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-4 w-4 ${currencySyncLoading ? 'motion-safe:animate-spin' : ''}`} />
-                  Оновити з НБУ
-                </button>
-                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
-                  <div>Приклад: 1 EUR = {form.currencyRates.USD || '1.08'} USD</div>
-                  {currencySyncMeta ? (
-                    <div className="mt-1 text-[11px] text-white/35">
-                      НБУ: {currencySyncMeta.exchangedAt}
-                      {currencySyncMeta.usdSpecial ? ' · USD за особливих умов' : ''}
-                    </div>
-                  ) : (
-                    <div className="mt-1 text-[11px] text-white/35">Джерело: офіційний курс НБУ</div>
-                  )}
                 </div>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Зони доставки</h3>
+              <p className="mt-1 text-sm text-white/45">
+                Правила доставки по регіонах. При оформленні замовлення застосовується перша збіжна
+                увімкнена зона.
+              </p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {SHOP_CURRENCIES.map((currency) => (
-                <div key={currency} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-medium text-white">{currency}</div>
-                      <div className="mt-1 text-xs text-white/45">
-                        {form.defaultCurrency === currency ? 'Валюта вітрини за замовч.' : 'Резервна валюта конвертації'}
-                      </div>
+            <button
+              type="button"
+              onClick={addShippingZone}
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+            >
+              <Plus className="h-4 w-4" />
+              Додати зону доставки
+            </button>
+          </div>
+          <div className="space-y-4">
+            {form.shippingZones.map((zone, index) => (
+              <div
+                key={`${zone.id}-${index}`}
+                className="rounded-none border border-white/10 bg-zinc-950/70 p-4"
+              >
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-white">
+                      <Globe2 className="h-4 w-4 text-white/55" />
+                      {zone.name || `Зона доставки ${index + 1}`}
                     </div>
-                    <span
-                      className={`rounded-full border px-2 py-0.5 text-[11px] ${
-                        form.enabledCurrencies.includes(currency)
-                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
-                          : 'border-white/10 bg-white/5 text-white/40'
-                      }`}
+                    <div className="mt-1 text-xs font-mono text-white/40">
+                      {zone.id || "missing-id"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveShippingZone(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вгору"
                     >
-                      {form.enabledCurrencies.includes(currency) ? 'Увімкнено' : 'Вимкнено'}
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    <InputField
-                      label="Курс до EUR"
-                      value={form.currencyRates[currency]}
-                      onChange={(value) => updateCurrencyRate(currency, value)}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Зони доставки</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Правила доставки по регіонах. При оформленні замовлення застосовується перша збіжна увімкнена зона.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addShippingZone}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати зону доставки
-              </button>
-            </div>
-            <div className="space-y-4">
-              {form.shippingZones.map((zone, index) => (
-                <div key={`${zone.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
-                  <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-white">
-                        <Globe2 className="h-4 w-4 text-white/55" />
-                        {zone.name || `Зона доставки ${index + 1}`}
-                      </div>
-                      <div className="mt-1 text-xs font-mono text-white/40">{zone.id || 'missing-id'}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => moveShippingZone(index, -1)}
-                        disabled={index === 0}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вгору"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveShippingZone(index, 1)}
-                        disabled={index === form.shippingZones.length - 1}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вниз"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeShippingZone(index)}
-                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                        title="Видалити зону"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <InputField
-                      label="ID зони"
-                      value={zone.id}
-                      onChange={(value) => updateShippingZone(index, 'id', value)}
-                      placeholder="worldwide-standard"
-                    />
-                    <InputField
-                      label="Назва зони"
-                      value={zone.name}
-                      onChange={(value) => updateShippingZone(index, 'name', value)}
-                      placeholder="Worldwide"
-                    />
-                    <InputField
-                      label="Країни"
-                      value={zone.countriesText}
-                      onChange={(value) => updateShippingZone(index, 'countriesText', value)}
-                      placeholder="DE, FR, IT or *"
-                    />
-                    <InputField
-                      label="Регіони"
-                      value={zone.regionsText}
-                      onChange={(value) => updateShippingZone(index, 'regionsText', value)}
-                      placeholder="Berlin, Bavaria"
-                    />
-                    <SelectField
-                      label="Валюта тарифу"
-                      value={zone.currency}
-                      onChange={(value) => updateShippingZone(index, 'currency', value as ShopCurrencyCode)}
-                      options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
-                    />
-                    <SelectField
-                      label="Модель розрахунку"
-                      value={zone.calcMode}
-                      onChange={(value) => updateShippingZone(index, 'calcMode', value as 'flat' | 'volumetric')}
-                      options={[
-                        { value: 'flat', label: 'За кількість (Flat)' },
-                        { value: 'volumetric', label: 'За вагою (Volumetric)' },
-                      ]}
-                    />
-                    <InputField
-                      label="Базовий тариф"
-                      value={zone.baseRate}
-                      onChange={(value) => updateShippingZone(index, 'baseRate', value)}
-                      placeholder="95"
-                    />
-                    <InputField
-                      label={zone.calcMode === 'volumetric' ? 'Тариф за одиницю (ігнорується)' : 'Тариф за одиницю'}
-                      value={zone.perItemRate}
-                      onChange={(value) => updateShippingZone(index, 'perItemRate', value)}
-                      placeholder="0"
-                      disabled={zone.calcMode === 'volumetric'}
-                    />
-                    <InputField
-                      label={zone.calcMode === 'flat' ? 'Тариф за КГ (ігнорується)' : 'Тариф за КГ'}
-                      value={zone.ratePerKg}
-                      onChange={(value) => updateShippingZone(index, 'ratePerKg', value)}
-                      placeholder="1.5"
-                      disabled={zone.calcMode === 'flat'}
-                    />
-                    <InputField
-                      label={zone.calcMode === 'flat' ? 'Об\'ємна вага за КГ (ігнорується)' : 'Об\'ємна вага за КГ'}
-                      value={zone.volSurchargePerKg}
-                      onChange={(value) => updateShippingZone(index, 'volSurchargePerKg', value)}
-                      placeholder="0.5"
-                      disabled={zone.calcMode === 'flat'}
-                    />
-                    <InputField
-                      label={zone.calcMode === 'flat' ? 'Ділитель (ігнорується)' : 'Ділитель габаритів (напр. 5000)'}
-                      value={zone.volumetricDivisor}
-                      onChange={(value) => updateShippingZone(index, 'volumetricDivisor', value)}
-                      placeholder="5000"
-                      disabled={zone.calcMode === 'flat'}
-                    />
-                    <InputField
-                      label={zone.calcMode === 'flat' ? 'Вага за замовч. (ігнорується)' : 'Вага за замовч. (КГ)'}
-                      value={zone.fallbackWeightKg}
-                      onChange={(value) => updateShippingZone(index, 'fallbackWeightKg', value)}
-                      placeholder="2"
-                      disabled={zone.calcMode === 'flat'}
-                    />
-                    <div className="flex gap-4 col-span-1 md:col-span-2">
-                       <InputField
-                         label={zone.calcMode === 'flat' ? 'Довжина замовч. (ігн)' : 'Довжина замовч. (см)'}
-                         value={zone.fallbackLength}
-                         onChange={(value) => updateShippingZone(index, 'fallbackLength', value)}
-                         placeholder="30"
-                         disabled={zone.calcMode === 'flat'}
-                       />
-                       <InputField
-                         label={zone.calcMode === 'flat' ? 'Ширина замовч. (ігн)' : 'Ширина замовч. (см)'}
-                         value={zone.fallbackWidth}
-                         onChange={(value) => updateShippingZone(index, 'fallbackWidth', value)}
-                         placeholder="20"
-                         disabled={zone.calcMode === 'flat'}
-                       />
-                       <InputField
-                         label={zone.calcMode === 'flat' ? 'Висота замовч. (ігн)' : 'Висота замовч. (см)'}
-                         value={zone.fallbackHeight}
-                         onChange={(value) => updateShippingZone(index, 'fallbackHeight', value)}
-                         placeholder="15"
-                         disabled={zone.calcMode === 'flat'}
-                       />
-                    </div>
-                    <InputField
-                      label="Безкоштовна доставка від"
-                      value={zone.freeOver}
-                      onChange={(value) => updateShippingZone(index, 'freeOver', value)}
-                      placeholder="2500"
-                    />
-                    <InputField
-                      label="Мінімальна сума замовлення"
-                      value={zone.minimumSubtotal}
-                      onChange={(value) => updateShippingZone(index, 'minimumSubtotal', value)}
-                      placeholder="Необов'язково"
-                    />
-                    <CheckboxField
-                      label="Увімкнено"
-                      checked={zone.enabled}
-                      onChange={(checked) => updateShippingZone(index, 'enabled', checked)}
-                    />
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveShippingZone(index, 1)}
+                      disabled={index === form.shippingZones.length - 1}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вниз"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeShippingZone(index)}
+                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      title="Видалити зону"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Правила доставки брендів</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Спеціальні умови для окремих брендів. Працюють тільки якщо Модель розрахунку обрана як &apos;Volumetric&apos; у зоні.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addBrandShippingRule}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати правило бренду
-              </button>
-            </div>
-            <div className="space-y-4">
-              {form.brandShippingRules.map((rule, index) => (
-                <div key={`${rule.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
-                  <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-white">
-                        <Globe2 className="h-4 w-4 text-white/55" />
-                        {rule.brandName || `Правило бренду ${index + 1}`}
-                      </div>
-                      <div className="mt-1 text-xs font-mono text-white/40">{rule.id || 'missing-id'}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => moveBrandShippingRule(index, -1)}
-                        disabled={index === 0}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вгору"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveBrandShippingRule(index, 1)}
-                        disabled={index === form.brandShippingRules.length - 1}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вниз"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeBrandShippingRule(index)}
-                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                        title="Видалити"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <InputField
+                    label="ID зони"
+                    value={zone.id}
+                    onChange={(value) => updateShippingZone(index, "id", value)}
+                    placeholder="worldwide-standard"
+                  />
+                  <InputField
+                    label="Назва зони"
+                    value={zone.name}
+                    onChange={(value) => updateShippingZone(index, "name", value)}
+                    placeholder="Worldwide"
+                  />
+                  <InputField
+                    label="Країни"
+                    value={zone.countriesText}
+                    onChange={(value) => updateShippingZone(index, "countriesText", value)}
+                    placeholder="DE, FR, IT or *"
+                  />
+                  <InputField
+                    label="Регіони"
+                    value={zone.regionsText}
+                    onChange={(value) => updateShippingZone(index, "regionsText", value)}
+                    placeholder="Berlin, Bavaria"
+                  />
+                  <SelectField
+                    label="Валюта тарифу"
+                    value={zone.currency}
+                    onChange={(value) =>
+                      updateShippingZone(index, "currency", value as ShopCurrencyCode)
+                    }
+                    options={SHOP_CURRENCIES.map((currency) => ({
+                      value: currency,
+                      label: currency,
+                    }))}
+                  />
+                  <SelectField
+                    label="Модель розрахунку"
+                    value={zone.calcMode}
+                    onChange={(value) =>
+                      updateShippingZone(index, "calcMode", value as "flat" | "volumetric")
+                    }
+                    options={[
+                      { value: "flat", label: "За кількість (Flat)" },
+                      { value: "volumetric", label: "За вагою (Volumetric)" },
+                    ]}
+                  />
+                  <InputField
+                    label="Базовий тариф"
+                    value={zone.baseRate}
+                    onChange={(value) => updateShippingZone(index, "baseRate", value)}
+                    placeholder="95"
+                  />
+                  <InputField
+                    label={
+                      zone.calcMode === "volumetric"
+                        ? "Тариф за одиницю (ігнорується)"
+                        : "Тариф за одиницю"
+                    }
+                    value={zone.perItemRate}
+                    onChange={(value) => updateShippingZone(index, "perItemRate", value)}
+                    placeholder="0"
+                    disabled={zone.calcMode === "volumetric"}
+                  />
+                  <InputField
+                    label={zone.calcMode === "flat" ? "Тариф за КГ (ігнорується)" : "Тариф за КГ"}
+                    value={zone.ratePerKg}
+                    onChange={(value) => updateShippingZone(index, "ratePerKg", value)}
+                    placeholder="1.5"
+                    disabled={zone.calcMode === "flat"}
+                  />
+                  <InputField
+                    label={
+                      zone.calcMode === "flat"
+                        ? "Об'ємна вага за КГ (ігнорується)"
+                        : "Об'ємна вага за КГ"
+                    }
+                    value={zone.volSurchargePerKg}
+                    onChange={(value) => updateShippingZone(index, "volSurchargePerKg", value)}
+                    placeholder="0.5"
+                    disabled={zone.calcMode === "flat"}
+                  />
+                  <InputField
+                    label={
+                      zone.calcMode === "flat"
+                        ? "Ділитель (ігнорується)"
+                        : "Ділитель габаритів (напр. 5000)"
+                    }
+                    value={zone.volumetricDivisor}
+                    onChange={(value) => updateShippingZone(index, "volumetricDivisor", value)}
+                    placeholder="5000"
+                    disabled={zone.calcMode === "flat"}
+                  />
+                  <InputField
+                    label={
+                      zone.calcMode === "flat"
+                        ? "Вага за замовч. (ігнорується)"
+                        : "Вага за замовч. (КГ)"
+                    }
+                    value={zone.fallbackWeightKg}
+                    onChange={(value) => updateShippingZone(index, "fallbackWeightKg", value)}
+                    placeholder="2"
+                    disabled={zone.calcMode === "flat"}
+                  />
+                  <div className="flex gap-4 col-span-1 md:col-span-2">
                     <InputField
-                      label="ID правила"
-                      value={rule.id}
-                      onChange={(value) => updateBrandShippingRule(index, 'id', value)}
-                      placeholder="do88-free"
-                    />
-                    <InputField
-                      label="Бренд"
-                      value={rule.brandName}
-                      onChange={(value) => updateBrandShippingRule(index, 'brandName', value)}
-                      placeholder="DO88"
-                    />
-                    <SelectField
-                      label="Тип правила"
-                      value={rule.mode}
-                      onChange={(value) => updateBrandShippingRule(index, 'mode', value as BrandShippingRuleMode)}
-                      options={[
-                        { value: 'free', label: 'Безкоштовно (Free)' },
-                        { value: 'multiplier', label: 'Множник ваги (Multiplier)' },
-                        { value: 'fixed', label: 'Фіксована ставка (Fixed)' },
-                        { value: 'tiered', label: 'Брекети суми (Tiered)' },
-                        { value: 'percent', label: 'Відсоток від кошика (Percent)' },
-                        { value: 'manual_quote', label: 'Ручний прорахунок (Запит)' },
-                      ]}
+                      label={
+                        zone.calcMode === "flat" ? "Довжина замовч. (ігн)" : "Довжина замовч. (см)"
+                      }
+                      value={zone.fallbackLength}
+                      onChange={(value) => updateShippingZone(index, "fallbackLength", value)}
+                      placeholder="30"
+                      disabled={zone.calcMode === "flat"}
                     />
                     <InputField
                       label={
-                        rule.mode === 'free' || rule.mode === 'tiered' || rule.mode === 'manual_quote'
-                          ? 'Значення (ігнорується)'
-                          : rule.mode === 'percent'
-                            ? 'Відсоток (%)'
-                            : 'Значення'
+                        zone.calcMode === "flat" ? "Ширина замовч. (ігн)" : "Ширина замовч. (см)"
                       }
-                      value={rule.value}
-                      onChange={(value) => updateBrandShippingRule(index, 'value', value)}
-                      placeholder={
-                        rule.mode === 'multiplier' ? '1.25' : rule.mode === 'percent' ? '5' : '150'
-                      }
-                      disabled={rule.mode === 'free' || rule.mode === 'tiered' || rule.mode === 'manual_quote'}
+                      value={zone.fallbackWidth}
+                      onChange={(value) => updateShippingZone(index, "fallbackWidth", value)}
+                      placeholder="20"
+                      disabled={zone.calcMode === "flat"}
                     />
                     <InputField
-                      label="Доставка: Виробник → Склад (за 1 КГ)"
-                      value={rule.warehouseRatePerKg}
-                      onChange={(value) => updateBrandShippingRule(index, 'warehouseRatePerKg', value)}
-                      placeholder="Напр. 5"
-                    />
-                    <SelectField
-                      label="Валюта (тільки Fixed)"
-                      value={rule.currency}
-                      onChange={(value) => updateBrandShippingRule(index, 'currency', value as ShopCurrencyCode)}
-                      options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
-                    />
-                    <CheckboxField
-                      label="Увімкнено"
-                      checked={rule.enabled}
-                      onChange={(checked) => updateBrandShippingRule(index, 'enabled', checked)}
+                      label={
+                        zone.calcMode === "flat" ? "Висота замовч. (ігн)" : "Висота замовч. (см)"
+                      }
+                      value={zone.fallbackHeight}
+                      onChange={(value) => updateShippingZone(index, "fallbackHeight", value)}
+                      placeholder="15"
+                      disabled={zone.calcMode === "flat"}
                     />
                   </div>
-
-                  {rule.mode === 'tiered' ? (
-                    <div className="mt-4 rounded-none border border-white/[0.08] bg-black/30 p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div>
-                          <div className="text-[11px] font-medium uppercase tracking-wider text-blue-300">
-                            Брекети тарифів
-                          </div>
-                          <div className="text-[11px] text-white/40">
-                            Тариф спрацьовує, якщо сума кошика бренду ≤ <code>maxAmount</code>. Останній брекет можна
-                            залишити з порожнім <code>maxAmount</code> для відкритої «верхньої» суми.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setForm((current) => ({
-                              ...current,
-                              brandShippingRules: current.brandShippingRules.map((r, i) =>
-                                i === index
-                                  ? { ...r, brackets: [...r.brackets, { maxAmount: '', fee: '0' }] }
-                                  : r,
-                              ),
-                            }))
-                          }
-                          className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-1.5 text-[11px] uppercase tracking-wider text-white hover:bg-white/5"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Брекет
-                        </button>
-                      </div>
-                      {rule.brackets.length === 0 ? (
-                        <p className="text-[11px] text-white/40">Немає брекетів. Додай хоча б один.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {rule.brackets.map((b, bIdx) => (
-                            <div key={bIdx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-                              <InputField
-                                label={`Сума до (${rule.currency})`}
-                                value={b.maxAmount}
-                                onChange={(value) =>
-                                  setForm((current) => ({
-                                    ...current,
-                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
-                                      i === index
-                                        ? {
-                                            ...r,
-                                            brackets: r.brackets.map((bb, bbi) =>
-                                              bbi === bIdx ? { ...bb, maxAmount: value } : bb,
-                                            ),
-                                          }
-                                        : r,
-                                    ),
-                                  }))
-                                }
-                                placeholder="300 (порожньо = відкритий брекет)"
-                              />
-                              <InputField
-                                label={`Доставка (${rule.currency})`}
-                                value={b.fee}
-                                onChange={(value) =>
-                                  setForm((current) => ({
-                                    ...current,
-                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
-                                      i === index
-                                        ? {
-                                            ...r,
-                                            brackets: r.brackets.map((bb, bbi) =>
-                                              bbi === bIdx ? { ...bb, fee: value } : bb,
-                                            ),
-                                          }
-                                        : r,
-                                    ),
-                                  }))
-                                }
-                                placeholder="70"
-                              />
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setForm((current) => ({
-                                    ...current,
-                                    brandShippingRules: current.brandShippingRules.map((r, i) =>
-                                      i === index
-                                        ? { ...r, brackets: r.brackets.filter((_, bbi) => bbi !== bIdx) }
-                                        : r,
-                                    ),
-                                  }))
-                                }
-                                className="self-end rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 hover:border-blue-500/50 hover:bg-blue-950/40"
-                                title="Видалити брекет"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
-
-                  {rule.mode === 'manual_quote' ? (
-                    <div className="mt-3 rounded-none border border-amber-500/25 bg-amber-950/15 p-3 text-[12px] text-amber-200">
-                      Цей бренд завжди йде через ручний прорахунок. Стандартний checkout буде заблоковано —
-                      покупець побачить кнопку «Запит на прорахунок».
-                    </div>
-                  ) : null}
-
-                  {rule.mode === 'percent' ? (
-                    <div className="mt-3 rounded-none border border-blue-500/20 bg-blue-950/15 p-3 text-[12px] text-blue-100">
-                      Доставка = <code>сума_кошика_цього_бренду × значення / 100</code>. Сума береться у валюті правила
-                      ({rule.currency}).
-                    </div>
-                  ) : null}
+                  <InputField
+                    label="Безкоштовна доставка від"
+                    value={zone.freeOver}
+                    onChange={(value) => updateShippingZone(index, "freeOver", value)}
+                    placeholder="2500"
+                  />
+                  <InputField
+                    label="Мінімальна сума замовлення"
+                    value={zone.minimumSubtotal}
+                    onChange={(value) => updateShippingZone(index, "minimumSubtotal", value)}
+                    placeholder="Необов'язково"
+                  />
+                  <CheckboxField
+                    label="Увімкнено"
+                    checked={zone.enabled}
+                    onChange={(checked) => updateShippingZone(index, "enabled", checked)}
+                  />
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Правила податку</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  До оформлення застосовується перше збіжне увімкнене правило. Включати доставку в базу оподаткування лише якщо це вимагає локальне правило.
-                </p>
               </div>
-              <button
-                type="button"
-                onClick={addTaxRegion}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати правило податку
-              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Правила доставки брендів</h3>
+              <p className="mt-1 text-sm text-white/45">
+                Спеціальні умови для окремих брендів. Працюють тільки якщо Модель розрахунку обрана
+                як &apos;Volumetric&apos; у зоні.
+              </p>
             </div>
-            <div className="space-y-4">
-              {form.taxRegions.map((region, index) => (
-                <div key={`${region.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
-                  <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-white">
-                        <Percent className="h-4 w-4 text-white/55" />
-                        {region.name || `Tax rule ${index + 1}`}
-                      </div>
-                      <div className="mt-1 text-xs font-mono text-white/40">{region.id || 'missing-id'}</div>
+            <button
+              type="button"
+              onClick={addBrandShippingRule}
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+            >
+              <Plus className="h-4 w-4" />
+              Додати правило бренду
+            </button>
+          </div>
+          <div className="space-y-4">
+            {form.brandShippingRules.map((rule, index) => (
+              <div
+                key={`${rule.id}-${index}`}
+                className="rounded-none border border-white/10 bg-zinc-950/70 p-4"
+              >
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-white">
+                      <Globe2 className="h-4 w-4 text-white/55" />
+                      {rule.brandName || `Правило бренду ${index + 1}`}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => moveTaxRegion(index, -1)}
-                        disabled={index === 0}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вгору"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveTaxRegion(index, 1)}
-                        disabled={index === form.taxRegions.length - 1}
-                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Вниз"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeTaxRegion(index)}
-                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                        title="Видалити правило податку"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <div className="mt-1 text-xs font-mono text-white/40">
+                      {rule.id || "missing-id"}
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <InputField
-                      label="ID правила"
-                      value={region.id}
-                      onChange={(value) => updateTaxRegion(index, 'id', value)}
-                      placeholder="eu-vat"
-                    />
-                    <InputField
-                      label="Назва правила"
-                      value={region.name}
-                      onChange={(value) => updateTaxRegion(index, 'name', value)}
-                      placeholder="EU VAT"
-                    />
-                    <InputField
-                      label="Країни"
-                      value={region.countriesText}
-                      onChange={(value) => updateTaxRegion(index, 'countriesText', value)}
-                      placeholder="DE, FR, IT or *"
-                    />
-                    <InputField
-                      label="Регіони"
-                      value={region.regionsText}
-                      onChange={(value) => updateTaxRegion(index, 'regionsText', value)}
-                      placeholder="Berlin, Bavaria"
-                    />
-                    <InputField
-                      label="Ставка податку"
-                      value={region.rate}
-                      onChange={(value) => updateTaxRegion(index, 'rate', value)}
-                      placeholder="0.2"
-                    />
-                    <CheckboxField
-                      label="Застосовувати до доставки"
-                      checked={region.appliesToShipping}
-                      onChange={(checked) => updateTaxRegion(index, 'appliesToShipping', checked)}
-                    />
-                    <CheckboxField
-                      label="Увімкнено"
-                      checked={region.enabled}
-                      onChange={(checked) => updateTaxRegion(index, 'enabled', checked)}
-                    />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveBrandShippingRule(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вгору"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveBrandShippingRule(index, 1)}
+                      disabled={index === form.brandShippingRules.length - 1}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вниз"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeBrandShippingRule(index)}
+                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      title="Видалити"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <InputField
+                    label="ID правила"
+                    value={rule.id}
+                    onChange={(value) => updateBrandShippingRule(index, "id", value)}
+                    placeholder="do88-free"
+                  />
+                  <InputField
+                    label="Бренд"
+                    value={rule.brandName}
+                    onChange={(value) => updateBrandShippingRule(index, "brandName", value)}
+                    placeholder="DO88"
+                  />
+                  <SelectField
+                    label="Тип правила"
+                    value={rule.mode}
+                    onChange={(value) =>
+                      updateBrandShippingRule(index, "mode", value as BrandShippingRuleMode)
+                    }
+                    options={[
+                      { value: "free", label: "Безкоштовно (Free)" },
+                      { value: "multiplier", label: "Множник ваги (Multiplier)" },
+                      { value: "fixed", label: "Фіксована ставка (Fixed)" },
+                      { value: "tiered", label: "Брекети суми (Tiered)" },
+                      { value: "percent", label: "Відсоток від кошика (Percent)" },
+                      { value: "manual_quote", label: "Ручний прорахунок (Запит)" },
+                    ]}
+                  />
+                  <InputField
+                    label={
+                      rule.mode === "free" || rule.mode === "tiered" || rule.mode === "manual_quote"
+                        ? "Значення (ігнорується)"
+                        : rule.mode === "percent"
+                          ? "Відсоток (%)"
+                          : "Значення"
+                    }
+                    value={rule.value}
+                    onChange={(value) => updateBrandShippingRule(index, "value", value)}
+                    placeholder={
+                      rule.mode === "multiplier" ? "1.25" : rule.mode === "percent" ? "5" : "150"
+                    }
+                    disabled={
+                      rule.mode === "free" || rule.mode === "tiered" || rule.mode === "manual_quote"
+                    }
+                  />
+                  <InputField
+                    label="Доставка: Виробник → Склад (за 1 КГ)"
+                    value={rule.warehouseRatePerKg}
+                    onChange={(value) =>
+                      updateBrandShippingRule(index, "warehouseRatePerKg", value)
+                    }
+                    placeholder="Напр. 5"
+                  />
+                  <SelectField
+                    label="Валюта (тільки Fixed)"
+                    value={rule.currency}
+                    onChange={(value) =>
+                      updateBrandShippingRule(index, "currency", value as ShopCurrencyCode)
+                    }
+                    options={SHOP_CURRENCIES.map((currency) => ({
+                      value: currency,
+                      label: currency,
+                    }))}
+                  />
+                  <CheckboxField
+                    label="Увімкнено"
+                    checked={rule.enabled}
+                    onChange={(checked) => updateBrandShippingRule(index, "enabled", checked)}
+                  />
+                </div>
 
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Регіональна корекція ціни</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Використовуйте для націнок або знижок по країнах і регіонах. Наприклад: США = -10%, UAE = +12%. Застосовується перше збіжне увімкнене правило.
-                </p>
+                {rule.mode === "tiered" ? (
+                  <div className="mt-4 rounded-none border border-white/8 bg-black/30 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-[11px] font-medium uppercase tracking-wider text-blue-300">
+                          Брекети тарифів
+                        </div>
+                        <div className="text-[11px] text-white/40">
+                          Тариф спрацьовує, якщо сума кошика бренду ≤ <code>maxAmount</code>.
+                          Останній брекет можна залишити з порожнім <code>maxAmount</code> для
+                          відкритої «верхньої» суми.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((current) => ({
+                            ...current,
+                            brandShippingRules: current.brandShippingRules.map((r, i) =>
+                              i === index
+                                ? { ...r, brackets: [...r.brackets, { maxAmount: "", fee: "0" }] }
+                                : r
+                            ),
+                          }))
+                        }
+                        className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-1.5 text-[11px] uppercase tracking-wider text-white hover:bg-white/5"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Брекет
+                      </button>
+                    </div>
+                    {rule.brackets.length === 0 ? (
+                      <p className="text-[11px] text-white/40">
+                        Немає брекетів. Додай хоча б один.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {rule.brackets.map((b, bIdx) => (
+                          <div key={bIdx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                            <InputField
+                              label={`Сума до (${rule.currency})`}
+                              value={b.maxAmount}
+                              onChange={(value) =>
+                                setForm((current) => ({
+                                  ...current,
+                                  brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                    i === index
+                                      ? {
+                                          ...r,
+                                          brackets: r.brackets.map((bb, bbi) =>
+                                            bbi === bIdx ? { ...bb, maxAmount: value } : bb
+                                          ),
+                                        }
+                                      : r
+                                  ),
+                                }))
+                              }
+                              placeholder="300 (порожньо = відкритий брекет)"
+                            />
+                            <InputField
+                              label={`Доставка (${rule.currency})`}
+                              value={b.fee}
+                              onChange={(value) =>
+                                setForm((current) => ({
+                                  ...current,
+                                  brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                    i === index
+                                      ? {
+                                          ...r,
+                                          brackets: r.brackets.map((bb, bbi) =>
+                                            bbi === bIdx ? { ...bb, fee: value } : bb
+                                          ),
+                                        }
+                                      : r
+                                  ),
+                                }))
+                              }
+                              placeholder="70"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((current) => ({
+                                  ...current,
+                                  brandShippingRules: current.brandShippingRules.map((r, i) =>
+                                    i === index
+                                      ? {
+                                          ...r,
+                                          brackets: r.brackets.filter((_, bbi) => bbi !== bIdx),
+                                        }
+                                      : r
+                                  ),
+                                }))
+                              }
+                              className="self-end rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 hover:border-blue-500/50 hover:bg-blue-950/40"
+                              title="Видалити брекет"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {rule.mode === "manual_quote" ? (
+                  <div className="mt-3 rounded-none border border-amber-500/25 bg-amber-950/15 p-3 text-[12px] text-amber-200">
+                    Цей бренд завжди йде через ручний прорахунок. Стандартний checkout буде
+                    заблоковано — покупець побачить кнопку «Запит на прорахунок».
+                  </div>
+                ) : null}
+
+                {rule.mode === "percent" ? (
+                  <div className="mt-3 rounded-none border border-blue-500/20 bg-blue-950/15 p-3 text-[12px] text-blue-100">
+                    Доставка = <code>сума_кошика_цього_бренду × значення / 100</code>. Сума береться
+                    у валюті правила ({rule.currency}).
+                  </div>
+                ) : null}
               </div>
-              <button
-                type="button"
-                onClick={addRegionalPricingRule}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-              >
-                <Plus className="h-4 w-4" />
-                Додати регіональне правило
-              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Правила податку</h3>
+              <p className="mt-1 text-sm text-white/45">
+                До оформлення застосовується перше збіжне увімкнене правило. Включати доставку в
+                базу оподаткування лише якщо це вимагає локальне правило.
+              </p>
             </div>
-            <div className="space-y-4">
-              {form.regionalPricingRules.length ? form.regionalPricingRules.map((rule, index) => (
-                <div key={`${rule.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
+            <button
+              type="button"
+              onClick={addTaxRegion}
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+            >
+              <Plus className="h-4 w-4" />
+              Додати правило податку
+            </button>
+          </div>
+          <div className="space-y-4">
+            {form.taxRegions.map((region, index) => (
+              <div
+                key={`${region.id}-${index}`}
+                className="rounded-none border border-white/10 bg-zinc-950/70 p-4"
+              >
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-white">
+                      <Percent className="h-4 w-4 text-white/55" />
+                      {region.name || `Tax rule ${index + 1}`}
+                    </div>
+                    <div className="mt-1 text-xs font-mono text-white/40">
+                      {region.id || "missing-id"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveTaxRegion(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вгору"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveTaxRegion(index, 1)}
+                      disabled={index === form.taxRegions.length - 1}
+                      className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                      title="Вниз"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeTaxRegion(index)}
+                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      title="Видалити правило податку"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <InputField
+                    label="ID правила"
+                    value={region.id}
+                    onChange={(value) => updateTaxRegion(index, "id", value)}
+                    placeholder="eu-vat"
+                  />
+                  <InputField
+                    label="Назва правила"
+                    value={region.name}
+                    onChange={(value) => updateTaxRegion(index, "name", value)}
+                    placeholder="EU VAT"
+                  />
+                  <InputField
+                    label="Країни"
+                    value={region.countriesText}
+                    onChange={(value) => updateTaxRegion(index, "countriesText", value)}
+                    placeholder="DE, FR, IT or *"
+                  />
+                  <InputField
+                    label="Регіони"
+                    value={region.regionsText}
+                    onChange={(value) => updateTaxRegion(index, "regionsText", value)}
+                    placeholder="Berlin, Bavaria"
+                  />
+                  <InputField
+                    label="Ставка податку"
+                    value={region.rate}
+                    onChange={(value) => updateTaxRegion(index, "rate", value)}
+                    placeholder="0.2"
+                  />
+                  <CheckboxField
+                    label="Застосовувати до доставки"
+                    checked={region.appliesToShipping}
+                    onChange={(checked) => updateTaxRegion(index, "appliesToShipping", checked)}
+                  />
+                  <CheckboxField
+                    label="Увімкнено"
+                    checked={region.enabled}
+                    onChange={(checked) => updateTaxRegion(index, "enabled", checked)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Регіональна корекція ціни</h3>
+              <p className="mt-1 text-sm text-white/45">
+                Використовуйте для націнок або знижок по країнах і регіонах. Наприклад: США = -10%,
+                UAE = +12%. Застосовується перше збіжне увімкнене правило.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addRegionalPricingRule}
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+            >
+              <Plus className="h-4 w-4" />
+              Додати регіональне правило
+            </button>
+          </div>
+          <div className="space-y-4">
+            {form.regionalPricingRules.length ? (
+              form.regionalPricingRules.map((rule, index) => (
+                <div
+                  key={`${rule.id}-${index}`}
+                  className="rounded-none border border-white/10 bg-zinc-950/70 p-4"
+                >
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
                         <Globe2 className="h-4 w-4 text-white/55" />
                         {rule.name || `Regional rule ${index + 1}`}
                       </div>
-                      <div className="mt-1 text-xs font-mono text-white/40">{rule.id || 'missing-id'}</div>
+                      <div className="mt-1 text-xs font-mono text-white/40">
+                        {rule.id || "missing-id"}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -1772,278 +1929,318 @@ export default function AdminShopSettingsPage() {
                     <InputField
                       label="ID правила"
                       value={rule.id}
-                      onChange={(value) => updateRegionalPricingRule(index, 'id', value)}
+                      onChange={(value) => updateRegionalPricingRule(index, "id", value)}
                       placeholder="us-minus-10"
                     />
                     <InputField
                       label="Назва правила"
                       value={rule.name}
-                      onChange={(value) => updateRegionalPricingRule(index, 'name', value)}
+                      onChange={(value) => updateRegionalPricingRule(index, "name", value)}
                       placeholder="USA -10%"
                     />
                     <InputField
                       label="Країни"
                       value={rule.countriesText}
-                      onChange={(value) => updateRegionalPricingRule(index, 'countriesText', value)}
+                      onChange={(value) => updateRegionalPricingRule(index, "countriesText", value)}
                       placeholder="US, USA"
                     />
                     <InputField
                       label="Регіони"
                       value={rule.regionsText}
-                      onChange={(value) => updateRegionalPricingRule(index, 'regionsText', value)}
+                      onChange={(value) => updateRegionalPricingRule(index, "regionsText", value)}
                       placeholder="California, Texas"
                     />
                     <SelectField
                       label="Тип корекції"
                       value={rule.mode}
-                      onChange={(value) => updateRegionalPricingRule(index, 'mode', value as 'percent' | 'fixed')}
+                      onChange={(value) =>
+                        updateRegionalPricingRule(index, "mode", value as "percent" | "fixed")
+                      }
                       options={[
-                        { value: 'percent', label: 'Відсоток' },
-                        { value: 'fixed', label: 'Фіксована сума' },
+                        { value: "percent", label: "Відсоток" },
+                        { value: "fixed", label: "Фіксована сума" },
                       ]}
                     />
                     <InputField
-                      label={rule.mode === 'percent' ? 'Значення %' : 'Сума корекції'}
+                      label={rule.mode === "percent" ? "Значення %" : "Сума корекції"}
                       value={rule.value}
-                      onChange={(value) => updateRegionalPricingRule(index, 'value', value)}
-                      placeholder={rule.mode === 'percent' ? '-10' : '-150'}
+                      onChange={(value) => updateRegionalPricingRule(index, "value", value)}
+                      placeholder={rule.mode === "percent" ? "-10" : "-150"}
                     />
                     <SelectField
                       label="Валюта суми"
                       value={rule.currency}
-                      onChange={(value) => updateRegionalPricingRule(index, 'currency', value as ShopCurrencyCode)}
-                      options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+                      onChange={(value) =>
+                        updateRegionalPricingRule(index, "currency", value as ShopCurrencyCode)
+                      }
+                      options={SHOP_CURRENCIES.map((currency) => ({
+                        value: currency,
+                        label: currency,
+                      }))}
                     />
                     <CheckboxField
                       label="Увімкнено"
                       checked={rule.enabled}
-                      onChange={(checked) => updateRegionalPricingRule(index, 'enabled', checked)}
+                      onChange={(checked) => updateRegionalPricingRule(index, "enabled", checked)}
                     />
                   </div>
                 </div>
-              )) : (
-                <div className="rounded-none border border-dashed border-white/10 bg-zinc-950/40 p-4 text-sm text-white/40">
-                  Наразі регіональних корекцій ціни немає. Додайте правило, якщо хочете окрему ціну для США, ОАЕ або іншого ринку.
+              ))
+            ) : (
+              <div className="rounded-none border border-dashed border-white/10 bg-zinc-950/40 p-4 text-sm text-white/40">
+                Наразі регіональних корекцій ціни немає. Додайте правило, якщо хочете окрему ціну
+                для США, ОАЕ або іншого ринку.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-none border border-white/10 bg-white/3 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-white">Попередній перегляд оформлення</h3>
+              <p className="mt-1 text-sm text-white/45">
+                Перегляд використовує той самий движок цін, що й оформлення замовлення, і показує
+                незбережені зміни до натискання «Зберегти».
+              </p>
+            </div>
+            {previewLoading ? (
+              <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
+                Refreshing preview…
+              </div>
+            ) : null}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                label="Preview currency"
+                value={preview.currency}
+                onChange={(value) => updatePreviewField("currency", value as ShopCurrencyCode)}
+                options={form.enabledCurrencies.map((currency) => ({
+                  value: currency,
+                  label: currency,
+                }))}
+              />
+              <InputField
+                label="Preview subtotal"
+                value={preview.subtotal}
+                onChange={(value) => updatePreviewField("subtotal", value)}
+                placeholder="1200"
+              />
+              <InputField
+                label="Item count"
+                value={preview.itemCount}
+                onChange={(value) => updatePreviewField("itemCount", value)}
+                placeholder="2"
+              />
+              <InputField
+                label="Country"
+                value={preview.country}
+                onChange={(value) => updatePreviewField("country", value)}
+                placeholder="Germany"
+              />
+              <InputField
+                label="Region / State"
+                value={preview.region}
+                onChange={(value) => updatePreviewField("region", value)}
+                placeholder="Bavaria"
+              />
+              <InputField
+                label="City"
+                value={preview.city}
+                onChange={(value) => updatePreviewField("city", value)}
+                placeholder="Berlin"
+              />
+              <InputField
+                label="Postcode"
+                value={preview.postcode}
+                onChange={(value) => updatePreviewField("postcode", value)}
+                placeholder="10115"
+              />
+            </div>
+            <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
+              {previewError ? (
+                <div className="rounded-none bg-red-900/20 p-3 text-sm text-blue-300">
+                  {previewError}
+                </div>
+              ) : previewResult ? (
+                <div className="space-y-4">
+                  <div className="grid gap-3 text-sm">
+                    <SummaryRow
+                      label="Subtotal"
+                      value={formatMoney(previewResult.subtotal, previewResult.currency)}
+                    />
+                    <SummaryRow
+                      label="Regional adjustment"
+                      value={formatMoney(
+                        previewResult.regionalAdjustmentAmount,
+                        previewResult.currency
+                      )}
+                    />
+                    <SummaryRow
+                      label="Shipping"
+                      value={formatMoney(previewResult.shippingCost, previewResult.currency)}
+                    />
+                    <SummaryRow
+                      label="Tax"
+                      value={
+                        previewResult.taxAmount > 0
+                          ? formatMoney(previewResult.taxAmount, previewResult.currency)
+                          : previewResult.showTaxesIncludedNotice
+                            ? "Taxes included"
+                            : formatMoney(previewResult.taxAmount, previewResult.currency)
+                      }
+                    />
+                    <SummaryRow
+                      label="Total"
+                      value={formatMoney(previewResult.total, previewResult.currency)}
+                      strong
+                    />
+                  </div>
+                  <div className="grid gap-3 rounded-none border border-white/10 bg-white/3 p-3 text-sm text-white/70">
+                    <SummaryRow
+                      label="Matched shipping zone"
+                      value={
+                        previewResult.shippingZone
+                          ? `${previewResult.shippingZone.name} (${previewResult.shippingZone.id})`
+                          : "No match"
+                      }
+                    />
+                    <SummaryRow
+                      label="Matched tax rule"
+                      value={
+                        previewResult.taxRegion
+                          ? `${previewResult.taxRegion.name} (${previewResult.taxRegion.id})`
+                          : "No match"
+                      }
+                    />
+                    <SummaryRow
+                      label="Matched regional rule"
+                      value={
+                        previewResult.regionalPricingRule
+                          ? `${previewResult.regionalPricingRule.name} (${previewResult.regionalPricingRule.id})`
+                          : "No match"
+                      }
+                    />
+                    <SummaryRow
+                      label="Preview item count"
+                      value={String(previewResult.itemCount)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-white/45">
+                  Preview will appear once the pricing engine responds.
                 </div>
               )}
             </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">Попередній перегляд оформлення</h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Перегляд використовує той самий движок цін, що й оформлення замовлення, і показує незбережені зміни до натискання «Зберегти».
-                </p>
-              </div>
-              {previewLoading ? (
-                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">Refreshing preview…</div>
-              ) : null}
-            </div>
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="grid gap-4 md:grid-cols-2">
-                <SelectField
-                  label="Preview currency"
-                  value={preview.currency}
-                  onChange={(value) => updatePreviewField('currency', value as ShopCurrencyCode)}
-                  options={form.enabledCurrencies.map((currency) => ({ value: currency, label: currency }))}
-                />
-                <InputField
-                  label="Preview subtotal"
-                  value={preview.subtotal}
-                  onChange={(value) => updatePreviewField('subtotal', value)}
-                  placeholder="1200"
-                />
-                <InputField
-                  label="Item count"
-                  value={preview.itemCount}
-                  onChange={(value) => updatePreviewField('itemCount', value)}
-                  placeholder="2"
-                />
-                <InputField
-                  label="Country"
-                  value={preview.country}
-                  onChange={(value) => updatePreviewField('country', value)}
-                  placeholder="Germany"
-                />
-                <InputField
-                  label="Region / State"
-                  value={preview.region}
-                  onChange={(value) => updatePreviewField('region', value)}
-                  placeholder="Bavaria"
-                />
-                <InputField
-                  label="City"
-                  value={preview.city}
-                  onChange={(value) => updatePreviewField('city', value)}
-                  placeholder="Berlin"
-                />
-                <InputField
-                  label="Postcode"
-                  value={preview.postcode}
-                  onChange={(value) => updatePreviewField('postcode', value)}
-                  placeholder="10115"
-                />
-              </div>
-              <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
-                {previewError ? (
-                  <div className="rounded-none bg-red-900/20 p-3 text-sm text-blue-300">{previewError}</div>
-                ) : previewResult ? (
-                  <div className="space-y-4">
-                    <div className="grid gap-3 text-sm">
-                      <SummaryRow
-                        label="Subtotal"
-                        value={formatMoney(previewResult.subtotal, previewResult.currency)}
-                      />
-                      <SummaryRow
-                        label="Regional adjustment"
-                        value={formatMoney(previewResult.regionalAdjustmentAmount, previewResult.currency)}
-                      />
-                      <SummaryRow
-                        label="Shipping"
-                        value={formatMoney(previewResult.shippingCost, previewResult.currency)}
-                      />
-                      <SummaryRow
-                        label="Tax"
-                        value={
-                          previewResult.taxAmount > 0
-                            ? formatMoney(previewResult.taxAmount, previewResult.currency)
-                            : previewResult.showTaxesIncludedNotice
-                              ? 'Taxes included'
-                              : formatMoney(previewResult.taxAmount, previewResult.currency)
-                        }
-                      />
-                      <SummaryRow
-                        label="Total"
-                        value={formatMoney(previewResult.total, previewResult.currency)}
-                        strong
-                      />
-                    </div>
-                    <div className="grid gap-3 rounded-none border border-white/10 bg-white/[0.03] p-3 text-sm text-white/70">
-                      <SummaryRow
-                        label="Matched shipping zone"
-                        value={previewResult.shippingZone ? `${previewResult.shippingZone.name} (${previewResult.shippingZone.id})` : 'No match'}
-                      />
-                      <SummaryRow
-                        label="Matched tax rule"
-                        value={
-                          previewResult.taxRegion
-                            ? `${previewResult.taxRegion.name} (${previewResult.taxRegion.id})`
-                            : 'No match'
-                        }
-                      />
-                      <SummaryRow
-                        label="Matched regional rule"
-                        value={
-                          previewResult.regionalPricingRule
-                            ? `${previewResult.regionalPricingRule.name} (${previewResult.regionalPricingRule.id})`
-                            : 'No match'
-                        }
-                      />
-                      <SummaryRow label="Preview item count" value={String(previewResult.itemCount)} />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-white/45">Preview will appear once the pricing engine responds.</div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          <div className="flex flex-wrap gap-3 pb-6">
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : 'Save settings'}
-            </button>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
-            >
-              Reload
-            </button>
-            <button
-              type="button"
-              onClick={exportSettings}
-              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
-            >
-              <Download className="h-4 w-4" />
-              Export
-            </button>
-          </div>
-        </form>
-
-        {/* Product Feed Links */}
-        <section className="mt-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
-          <h3 className="text-lg font-medium text-white mb-1">Product Feed (Google Merchant)</h3>
-          <p className="text-sm text-white/45 mb-4">
-            XML-фід для Google Merchant Center, Facebook та маркетплейсів.
-          </p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              { label: '🇺🇦 UA · EUR', url: '/api/shop/feed/products?locale=ua&currency=EUR' },
-              { label: '🇺🇦 UA · USD', url: '/api/shop/feed/products?locale=ua&currency=USD' },
-              { label: '🇬🇧 EN · EUR', url: '/api/shop/feed/products?locale=en&currency=EUR' },
-              { label: '🇬🇧 EN · USD', url: '/api/shop/feed/products?locale=en&currency=USD' },
-            ].map(feed => (
-              <div key={feed.url} className="flex items-center gap-3 rounded-none border border-white/10 bg-zinc-950/40 p-3">
-                <span className="text-xs text-white/60 shrink-0">{feed.label}</span>
-                <code className="flex-1 text-[10px] text-white/40 truncate font-mono">{feed.url}</code>
-                <button
-                  type="button"
-                  onClick={() => { navigator.clipboard.writeText(window.location.origin + feed.url).catch(() => {}); }}
-                  className="shrink-0 rounded-none border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:text-white hover:bg-white/5 transition-colors"
-                >
-                  Копіювати
-                </button>
-              </div>
-            ))}
           </div>
         </section>
-        
-        {/* Turn14 Dimensions Sync */}
-        <section className="mt-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
-          <div className="mb-5">
-            <h3 className="text-lg font-medium text-white mb-1">Синхронізація логістики з Turn14</h3>
-            <p className="text-sm text-white/45 max-w-2xl">
-              Автоматичне заповнення точних розмірів та ваги товару за допомогою Turn14 API. Скрипт знайде всі локальні товари без ваги, які відповідають Turn14-артикулам, і заповнить їх.
-            </p>
-          </div>
+
+        <div className="flex flex-wrap gap-3 pb-6">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? "Saving…" : "Save settings"}
+          </button>
           <button
             type="button"
-            disabled={saving} // using saving state to block multiple requests
-            onClick={async () => {
-              const ok = await confirm({
-                tone: 'warning',
-                title: 'Запустити масове оновлення розмірів?',
-                description: 'Розміри товарів будуть оновлені на основі даних Turn14. Процес може зайняти хвилину і не може бути скасований.',
-                confirmLabel: 'Запустити синхронізацію',
-              });
-              if (!ok) return;
-              try {
-                const res = await fetch('/api/admin/shop/turn14/sync-dimensions', { method: 'POST' });
-                const json = await res.json();
-                if (res.ok) {
-                  toast.success('Синхронізацію завершено', `Оновлено товарів: ${json.updatedCount || 0}`);
-                } else {
-                  toast.error('Помилка синхронізації', json.error);
-                }
-              } catch (e: any) {
-                toast.error('Помилка мережі', e.message);
-              }
-            }}
-            className="inline-flex items-center gap-2 rounded-none bg-blue-500/15 text-zinc-100 px-5 py-2.5 text-sm font-medium hover:bg-blue-500/15 text-zinc-100 disabled:opacity-50"
+            onClick={() => void load()}
+            className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
           >
-            <RefreshCw className="h-4 w-4" />
-            Запустити синхронізацію габаритів
+            Reload
           </button>
-        </section>
+          <button
+            type="button"
+            onClick={exportSettings}
+            className="inline-flex items-center gap-2 rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
+        </div>
+      </form>
 
+      {/* Product Feed Links */}
+      <section className="mt-6 rounded-none border border-white/10 bg-white/3 p-5">
+        <h3 className="text-lg font-medium text-white mb-1">Product Feed (Google Merchant)</h3>
+        <p className="text-sm text-white/45 mb-4">
+          XML-фід для Google Merchant Center, Facebook та маркетплейсів.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            { label: "🇺🇦 UA · EUR", url: "/api/shop/feed/products?locale=ua&currency=EUR" },
+            { label: "🇺🇦 UA · USD", url: "/api/shop/feed/products?locale=ua&currency=USD" },
+            { label: "🇬🇧 EN · EUR", url: "/api/shop/feed/products?locale=en&currency=EUR" },
+            { label: "🇬🇧 EN · USD", url: "/api/shop/feed/products?locale=en&currency=USD" },
+          ].map((feed) => (
+            <div
+              key={feed.url}
+              className="flex items-center gap-3 rounded-none border border-white/10 bg-zinc-950/40 p-3"
+            >
+              <span className="text-xs text-white/60 shrink-0">{feed.label}</span>
+              <code className="flex-1 text-[10px] text-white/40 truncate font-mono">
+                {feed.url}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin + feed.url).catch(() => {});
+                }}
+                className="shrink-0 rounded-none border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Копіювати
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Turn14 Dimensions Sync */}
+      <section className="mt-6 rounded-none border border-white/10 bg-white/3 p-5">
+        <div className="mb-5">
+          <h3 className="text-lg font-medium text-white mb-1">Синхронізація логістики з Turn14</h3>
+          <p className="text-sm text-white/45 max-w-2xl">
+            Автоматичне заповнення точних розмірів та ваги товару за допомогою Turn14 API. Скрипт
+            знайде всі локальні товари без ваги, які відповідають Turn14-артикулам, і заповнить їх.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={saving} // using saving state to block multiple requests
+          onClick={async () => {
+            const ok = await confirm({
+              tone: "warning",
+              title: "Запустити масове оновлення розмірів?",
+              description:
+                "Розміри товарів будуть оновлені на основі даних Turn14. Процес може зайняти хвилину і не може бути скасований.",
+              confirmLabel: "Запустити синхронізацію",
+            });
+            if (!ok) return;
+            try {
+              const res = await fetch("/api/admin/shop/turn14/sync-dimensions", { method: "POST" });
+              const json = await res.json();
+              if (res.ok) {
+                toast.success(
+                  "Синхронізацію завершено",
+                  `Оновлено товарів: ${json.updatedCount || 0}`
+                );
+              } else {
+                toast.error("Помилка синхронізації", json.error);
+              }
+            } catch (e: any) {
+              toast.error("Помилка мережі", e.message);
+            }
+          }}
+          className="inline-flex items-center gap-2 rounded-none bg-blue-500/15 text-zinc-100 px-5 py-2.5 text-sm font-medium hover:bg-blue-500/15 text-zinc-100 disabled:opacity-50"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Запустити синхронізацію габаритів
+        </button>
+      </section>
     </AdminPage>
   );
 }
@@ -2057,8 +2254,8 @@ type SummaryRowProps = {
 function SummaryRow({ label, value, strong = false }: SummaryRowProps) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className={`text-white/55 ${strong ? 'font-medium' : ''}`}>{label}</span>
-      <span className={strong ? 'font-semibold text-white' : 'text-white/80'}>{value}</span>
+      <span className={`text-white/55 ${strong ? "font-medium" : ""}`}>{label}</span>
+      <span className={strong ? "font-semibold text-white" : "text-white/80"}>{value}</span>
     </div>
   );
 }

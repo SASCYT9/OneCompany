@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
-import type { SupportedLocale } from '@/lib/seo';
-import { trackBeginCheckout } from '@/lib/analytics';
-import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
-import { ShoppingBag, Loader2 } from 'lucide-react';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import type { SupportedLocale } from "@/lib/seo";
+import { trackBeginCheckout } from "@/lib/analytics";
+import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
+import { ShoppingBag, Loader2 } from "lucide-react";
 
 type CartItem = {
   id: string;
@@ -35,7 +35,7 @@ type AccountProfile = {
 };
 type CheckoutQuote = {
   currency: string;
-  pricingAudience: 'b2c' | 'b2b';
+  pricingAudience: "b2c" | "b2b";
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
@@ -44,7 +44,13 @@ type CheckoutQuote = {
   itemCount: number;
   shippingZone: { id: string; name: string } | null;
   taxRegion: { id: string; name: string; rate?: number } | null;
-  regionalPricingRule: { id: string; name: string; value?: number; mode?: 'percent' | 'fixed'; currency?: string } | null;
+  regionalPricingRule: {
+    id: string;
+    name: string;
+    value?: number;
+    mode?: "percent" | "fixed";
+    currency?: string;
+  } | null;
   showTaxesIncludedNotice: boolean;
   /** True when at least one brand in the cart is `manual_quote`. Backend-driven flag. */
   requiresQuote?: boolean;
@@ -52,7 +58,7 @@ type CheckoutQuote = {
 };
 
 type PaymentOptions = {
-  methods: Array<'FOP' | 'WHITEBIT' | 'WHITEPAY_FIAT'>;
+  methods: Array<"FOP" | "WHITEBIT" | "WHITEPAY_FIAT">;
   fopDetails: {
     companyName: string | null;
     iban: string | null;
@@ -62,38 +68,35 @@ type PaymentOptions = {
   } | null;
 };
 
-function getPrice(
-  price: { eur: number; usd: number; uah: number },
-  currency: ShopCurrencyCode,
-) {
-  if (currency === 'USD') return price.usd;
-  if (currency === 'EUR') return price.eur;
+function getPrice(price: { eur: number; usd: number; uah: number }, currency: ShopCurrencyCode) {
+  if (currency === "USD") return price.usd;
+  if (currency === "EUR") return price.eur;
   return price.uah;
 }
 
 export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
   const router = useRouter();
-  const isUa = locale === 'ua';
+  const isUa = locale === "ua";
   const [cart, setCart] = useState<{ items: CartItem[] } | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
-  const [quoteError, setQuoteError] = useState('');
+  const [quoteError, setQuoteError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [accountLoaded, setAccountLoaded] = useState(false);
   const [form, setForm] = useState({
-    email: '',
-    name: '',
-    phone: '',
-    line1: '',
-    line2: '',
-    city: '',
-    region: '',
-    postcode: '',
-    country: isUa ? 'Ukraine' : '',
-    currency: isUa ? 'UAH' : 'EUR',
-    paymentMethod: 'FOP' as 'FOP' | 'WHITEBIT' | 'WHITEPAY_FIAT',
+    email: "",
+    name: "",
+    phone: "",
+    line1: "",
+    line2: "",
+    city: "",
+    region: "",
+    postcode: "",
+    country: isUa ? "Ukraine" : "",
+    currency: isUa ? "UAH" : "EUR",
+    paymentMethod: "FOP" as "FOP" | "WHITEBIT" | "WHITEPAY_FIAT",
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
 
@@ -101,15 +104,17 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
   const quoteRequestRef = useRef(0);
   useEffect(() => {
     Promise.all([
-      fetch('/api/shop/cart').then((r) => r.json()),
-      fetch('/api/shop/account')
+      fetch("/api/shop/cart").then((r) => r.json()),
+      fetch("/api/shop/account")
         .then(async (response) => {
           if (response.status === 401) return null;
           const data = await response.json().catch(() => null);
           return response.ok ? (data as AccountProfile) : null;
         })
         .catch(() => null),
-      fetch('/api/shop/checkout/payment-options').then((r) => r.json()).catch(() => ({ methods: ['FOP'], fopDetails: null })),
+      fetch("/api/shop/checkout/payment-options")
+        .then((r) => r.json())
+        .catch(() => ({ methods: ["FOP"], fopDetails: null })),
     ])
       .then(([cartData, accountData, paymentOpts]) => {
         setCart(cartData);
@@ -118,7 +123,9 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           setForm((current) => ({
             ...current,
             email: accountData.email || current.email,
-            name: [accountData.firstName, accountData.lastName].filter(Boolean).join(' ').trim() || current.name,
+            name:
+              [accountData.firstName, accountData.lastName].filter(Boolean).join(" ").trim() ||
+              current.name,
             phone: accountData.phone || current.phone,
             line1: accountData.defaultShippingAddress?.line1 || current.line1,
             line2: accountData.defaultShippingAddress?.line2 || current.line2,
@@ -128,18 +135,20 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             country: accountData.defaultShippingAddress?.country || current.country,
           }));
         }
-        if (!cartData.items?.length) setError(isUa ? 'Кошик порожній' : 'Cart is empty');
+        if (!cartData.items?.length) setError(isUa ? "Кошик порожній" : "Cart is empty");
         else if (!checkoutTrackedRef.current) {
           checkoutTrackedRef.current = true;
           const total = (cartData.items ?? []).reduce(
-            (s: number, i: { price?: { eur?: number; usd?: number; uah?: number }; quantity: number }) =>
-              s + (i.price?.eur ?? 0) * (i.quantity ?? 1),
+            (
+              s: number,
+              i: { price?: { eur?: number; usd?: number; uah?: number }; quantity: number }
+            ) => s + (i.price?.eur ?? 0) * (i.quantity ?? 1),
             0
           );
           trackBeginCheckout((cartData.items ?? []).length, total);
         }
       })
-      .catch(() => setError(isUa ? 'Помилка завантаження' : 'Failed to load'))
+      .catch(() => setError(isUa ? "Помилка завантаження" : "Failed to load"))
       .finally(() => {
         setLoading(false);
         setAccountLoaded(true);
@@ -155,13 +164,17 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     const requestId = quoteRequestRef.current + 1;
     quoteRequestRef.current = requestId;
     setQuoteLoading(true);
-    setQuoteError('');
+    setQuoteError("");
 
-    fetch('/api/shop/checkout/quote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/shop/checkout/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items: cart.items.map((item) => ({ slug: item.slug, quantity: item.quantity, variantId: item.variantId })),
+        items: cart.items.map((item) => ({
+          slug: item.slug,
+          quantity: item.quantity,
+          variantId: item.variantId,
+        })),
         shipping: {
           line1: form.line1,
           line2: form.line2 || undefined,
@@ -176,7 +189,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to quote checkout');
+          throw new Error(data.error || "Failed to quote checkout");
         }
         if (quoteRequestRef.current !== requestId) return;
         setQuote(data as CheckoutQuote);
@@ -190,19 +203,37 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           setQuoteLoading(false);
         }
       });
-  }, [accountLoaded, cart, form.city, form.country, form.currency, form.line1, form.line2, form.postcode, form.region]);
+  }, [
+    accountLoaded,
+    cart,
+    form.city,
+    form.country,
+    form.currency,
+    form.line1,
+    form.line2,
+    form.postcode,
+    form.region,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
-      const res = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/shop/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: (cart?.items ?? []).map((i) => ({ slug: i.slug, quantity: i.quantity, variantId: i.variantId })),
-          contact: { email: form.email.trim(), name: form.name.trim(), phone: form.phone.trim() || undefined },
+          items: (cart?.items ?? []).map((i) => ({
+            slug: i.slug,
+            quantity: i.quantity,
+            variantId: i.variantId,
+          })),
+          contact: {
+            email: form.email.trim(),
+            name: form.name.trim(),
+            phone: form.phone.trim() || undefined,
+          },
           shipping: {
             line1: form.line1.trim(),
             line2: form.line2.trim() || undefined,
@@ -218,14 +249,16 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || (isUa ? 'Помилка оформлення' : 'Checkout failed'));
+        setError(data.error || (isUa ? "Помилка оформлення" : "Checkout failed"));
         return;
       }
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
         return;
       }
-      router.push(`/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`);
+      router.push(
+        `/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`
+      );
     } finally {
       setSubmitting(false);
     }
@@ -234,7 +267,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
   if (loading) {
     return (
       <main className="min-h-screen bg-black px-4 py-24 text-center text-white/60">
-        {isUa ? 'Завантаження…' : 'Loading…'}
+        {isUa ? "Завантаження…" : "Loading…"}
       </main>
     );
   }
@@ -243,9 +276,11 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     return (
       <main className="min-h-screen bg-black px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
-          <p className="text-white/60">{error || (isUa ? 'Кошик порожній.' : 'Your cart is empty.')}</p>
+          <p className="text-white/60">
+            {error || (isUa ? "Кошик порожній." : "Your cart is empty.")}
+          </p>
           <Link href={`/${locale}/shop`} className="mt-4 inline-block text-white underline">
-            {isUa ? 'До магазину' : 'Back to shop'}
+            {isUa ? "До магазину" : "Back to shop"}
           </Link>
         </div>
       </main>
@@ -258,52 +293,60 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white"
     >
       <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
-        <Link href={`/${locale}/shop/cart`} className="mb-6 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white">
-          ← {isUa ? 'Кошик' : 'Cart'}
+        <Link
+          href={`/${locale}/shop/cart`}
+          className="mb-6 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white"
+        >
+          ← {isUa ? "Кошик" : "Cart"}
         </Link>
         <header>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
-            One Company Shop
-          </p>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">One Company Shop</p>
           <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">
-            {isUa ? 'Оформлення замовлення' : 'Checkout'}
+            {isUa ? "Оформлення замовлення" : "Checkout"}
           </h1>
           <p className="mt-2 text-sm text-white/55">
-            {isUa ? 'Контактні дані та адреса доставки' : 'Contact details and shipping address'}
+            {isUa ? "Контактні дані та адреса доставки" : "Contact details and shipping address"}
           </p>
         </header>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-10 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
-          {error && <p className="rounded-xl bg-red-950/30 p-4 border border-red-900/50 text-red-500 text-sm">{error}</p>}
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8 space-y-10 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl"
+        >
+          {error && (
+            <p className="rounded-xl bg-red-950/30 p-4 border border-red-900/50 text-red-500 text-sm">
+              {error}
+            </p>
+          )}
 
           <div>
             <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
-              {isUa ? 'Контакти' : 'Contact'}
+              {isUa ? "Контакти" : "Contact"}
             </h2>
             <div className="space-y-4">
               <input
                 type="email"
                 required
-                placeholder={isUa ? 'Email' : 'Email'}
+                placeholder={isUa ? "Email" : "Email"}
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="text"
                 required
-                placeholder={isUa ? 'ПІБ' : 'Full name'}
+                placeholder={isUa ? "ПІБ" : "Full name"}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="tel"
-                placeholder={isUa ? 'Телефон' : 'Phone'}
+                placeholder={isUa ? "Телефон" : "Phone"}
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
               />
             </div>
           </div>
@@ -311,56 +354,56 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <div>
             <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
-              {isUa ? 'Адреса доставки' : 'Shipping address'}
+              {isUa ? "Адреса доставки" : "Shipping address"}
             </h2>
             <div className="space-y-4">
               <input
                 type="text"
                 required
-                placeholder={isUa ? 'Адреса (вулиця, будинок)' : 'Address (street, number)'}
+                placeholder={isUa ? "Адреса (вулиця, будинок)" : "Address (street, number)"}
                 value={form.line1}
                 onChange={(e) => setForm((f) => ({ ...f, line1: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="text"
-                placeholder={isUa ? 'Квартира, офіс (не обов’язково)' : 'Apt, office (optional)'}
+                placeholder={isUa ? "Квартира, офіс (не обов’язково)" : "Apt, office (optional)"}
                 value={form.line2}
                 onChange={(e) => setForm((f) => ({ ...f, line2: e.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <div className="grid gap-4 sm:grid-cols-2">
                 <input
                   type="text"
                   required
-                  placeholder={isUa ? 'Місто' : 'City'}
+                  placeholder={isUa ? "Місто" : "City"}
                   value={form.city}
                   onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
                 />
                 <input
                   type="text"
-                  placeholder={isUa ? 'Область' : 'Region'}
+                  placeholder={isUa ? "Область" : "Region"}
                   value={form.region}
                   onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <input
                   type="text"
-                  placeholder={isUa ? 'Індекс' : 'Postcode'}
+                  placeholder={isUa ? "Індекс" : "Postcode"}
                   value={form.postcode}
                   onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
                 />
                 <input
                   type="text"
                   required
-                  placeholder={isUa ? 'Країна' : 'Country'}
+                  placeholder={isUa ? "Країна" : "Country"}
                   value={form.country}
                   onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
                 />
               </div>
             </div>
@@ -369,12 +412,12 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <div>
             <label className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
-              {isUa ? 'Валюта розрахунку' : 'Billing Currency'}
+              {isUa ? "Валюта розрахунку" : "Billing Currency"}
             </label>
             <select
               value={form.currency}
               onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white backdrop-blur-md transition-all hover:bg-black/60 focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white backdrop-blur-md transition-all hover:bg-black/60 focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-hidden focus:ring-1 focus:ring-[#c29d59]/50"
             >
               <option value="EUR">EUR (€)</option>
               <option value="USD">USD ($)</option>
@@ -385,53 +428,57 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <div>
             <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
-              {isUa ? 'Спосіб оплати' : 'Payment method'}
+              {isUa ? "Спосіб оплати" : "Payment method"}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                 <div className="flex items-center gap-4 relative z-10">
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="FOP"
-                    checked={form.paymentMethod === 'FOP'}
-                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'FOP' }))}
+                    checked={form.paymentMethod === "FOP"}
+                    onChange={() => setForm((f) => ({ ...f, paymentMethod: "FOP" }))}
                     className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                   />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">
-                      {isUa ? 'Оплата на ФОП' : 'Bank Transfer'}
+                      {isUa ? "Оплата на ФОП" : "Bank Transfer"}
                     </span>
                     <span className="text-[11px] text-white/40">
-                      {isUa ? 'За реквізитами (IBAN)' : 'Direct invoice payment'}
+                      {isUa ? "За реквізитами (IBAN)" : "Direct invoice payment"}
                     </span>
                   </div>
                 </div>
               </label>
-              {paymentOptions?.methods.includes('WHITEBIT') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+              {paymentOptions?.methods.includes("WHITEBIT") && (
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-checked:border-[#c29d59]/50 has-checked:bg-[#c29d59]/5 has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                   <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="WHITEBIT"
-                      checked={form.paymentMethod === 'WHITEBIT'}
-                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEBIT' }))}
+                      checked={form.paymentMethod === "WHITEBIT"}
+                      onChange={() => setForm((f) => ({ ...f, paymentMethod: "WHITEBIT" }))}
                       className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">WhiteBIT Crypto</span>
-                      <span className="text-[11px] text-white/40">{isUa ? 'USDT, BTC, ETH' : 'Crypto checkout'}</span>
+                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">
+                        WhiteBIT Crypto
+                      </span>
+                      <span className="text-[11px] text-white/40">
+                        {isUa ? "USDT, BTC, ETH" : "Crypto checkout"}
+                      </span>
                     </div>
                   </div>
                 </label>
               )}
             </div>
-            
+
             <p className="mt-4 text-[11px] text-white/30 leading-relaxed max-w-lg">
-              {isUa 
-                ? 'Вибір способу оплати формує тип інвойсу в кінці. Зверніть увагу: замовлення не буде відправлено без підтвердження оплати або зв\'язку з менеджером (Payment Security).'
-                : 'Payment choice determines the final invoice type. No items are shipped without payment clearance (Payment Security).'}
+              {isUa
+                ? "Вибір способу оплати формує тип інвойсу в кінці. Зверніть увагу: замовлення не буде відправлено без підтвердження оплати або зв'язку з менеджером (Payment Security)."
+                : "Payment choice determines the final invoice type. No items are shipped without payment clearance (Payment Security)."}
             </p>
           </div>
 
@@ -439,32 +486,48 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59]">
-                  {isUa ? 'Підсумок замовлення' : 'Order summary'}
+                  {isUa ? "Підсумок замовлення" : "Order summary"}
                 </h2>
                 <p className="mt-2 text-[11px] text-white/40">
                   {quote?.shippingZone
-                    ? `${isUa ? 'Доставка' : 'Shipping'}: ${quote.shippingZone.name}`
-                    : (isUa ? 'Розрахунок за поточними правилами' : 'Calculated from current shop rules')}
+                    ? `${isUa ? "Доставка" : "Shipping"}: ${quote.shippingZone.name}`
+                    : isUa
+                      ? "Розрахунок за поточними правилами"
+                      : "Calculated from current shop rules"}
                 </p>
               </div>
-              {quoteLoading ? <span className="text-[11px] uppercase tracking-wider text-white/45">{isUa ? 'Оновлення…' : 'Updating…'}</span> : null}
+              {quoteLoading ? (
+                <span className="text-[11px] uppercase tracking-wider text-white/45">
+                  {isUa ? "Оновлення…" : "Updating…"}
+                </span>
+              ) : null}
             </div>
 
             <ul className="mt-6 space-y-3 text-sm text-white/80">
               {(cart.items ?? []).map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-4 font-light">
                   <span className="truncate">
-                    {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} × {item.quantity}
-                    {item.variantTitle ? <span className="block text-[11px] text-[#c29d59]/70 uppercase tracking-widest mt-1">{item.variantTitle}</span> : ''}
+                    {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} ×{" "}
+                    {item.quantity}
+                    {item.variantTitle ? (
+                      <span className="block text-[11px] text-[#c29d59]/70 uppercase tracking-widest mt-1">
+                        {item.variantTitle}
+                      </span>
+                    ) : (
+                      ""
+                    )}
                   </span>
                   <span className="text-white/55 tabular-nums">
                     {item.price
                       ? formatShopMoney(
                           locale,
-                          getPrice(item.price, (quote?.currency || form.currency) as ShopCurrencyCode) * item.quantity,
-                          (quote?.currency || form.currency) as ShopCurrencyCode,
+                          getPrice(
+                            item.price,
+                            (quote?.currency || form.currency) as ShopCurrencyCode
+                          ) * item.quantity,
+                          (quote?.currency || form.currency) as ShopCurrencyCode
                         )
-                      : '—'}
+                      : "—"}
                   </span>
                 </li>
               ))}
@@ -474,34 +537,60 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
 
             <div className="mt-6 space-y-3 border-t border-white/10 pt-6 text-[13px] text-white/70">
               <div className="flex items-center justify-between font-light">
-                <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
-                <span className="tabular-nums">{formatShopMoney(locale, quote?.subtotal ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
-              </div>
-              <div className="flex items-center justify-between font-light">
-                <span>{isUa ? 'Регіональна корекція' : 'Regional adjustment'}</span>
-                <span className="tabular-nums">{formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
-              </div>
-              <div className="flex items-center justify-between font-light">
-                <span>{isUa ? 'Доставка' : 'Shipping'}</span>
+                <span>{isUa ? "Підсумок товарів" : "Subtotal"}</span>
                 <span className="tabular-nums">
-                  {quote?.shippingCost === 0 
-                    ? (isUa ? 'За тарифами перевізника' : 'Calculated by carrier')
-                    : formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
+                  {formatShopMoney(
+                    locale,
+                    quote?.subtotal ?? 0,
+                    (quote?.currency || form.currency) as ShopCurrencyCode
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between font-light">
+                <span>{isUa ? "Регіональна корекція" : "Regional adjustment"}</span>
+                <span className="tabular-nums">
+                  {formatShopMoney(
+                    locale,
+                    quote?.regionalAdjustmentAmount ?? 0,
+                    (quote?.currency || form.currency) as ShopCurrencyCode
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between font-light">
+                <span>{isUa ? "Доставка" : "Shipping"}</span>
+                <span className="tabular-nums">
+                  {quote?.shippingCost === 0
+                    ? isUa
+                      ? "За тарифами перевізника"
+                      : "Calculated by carrier"
+                    : formatShopMoney(
+                        locale,
+                        quote?.shippingCost ?? 0,
+                        (quote?.currency || form.currency) as ShopCurrencyCode
+                      )}
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4 text-lg font-light text-white">
-                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
-                <span className="tabular-nums">{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+                <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">
+                  {isUa ? "Разом" : "Total"}
+                </span>
+                <span className="tabular-nums">
+                  {formatShopMoney(
+                    locale,
+                    quote?.total ?? 0,
+                    (quote?.currency || form.currency) as ShopCurrencyCode
+                  )}
+                </span>
               </div>
             </div>
 
             <p className="mt-4 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
-              {quote?.pricingAudience === 'b2b' ? 'B2B pricing applied' : 'B2C pricing applied'}
+              {quote?.pricingAudience === "b2b" ? "B2B pricing applied" : "B2C pricing applied"}
             </p>
 
             {quote?.regionalPricingRule ? (
               <p className="mt-1 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
-                {isUa ? 'Корекція' : 'Adjustment'}: {quote.regionalPricingRule.name}
+                {isUa ? "Корекція" : "Adjustment"}: {quote.regionalPricingRule.name}
               </p>
             ) : null}
           </div>
@@ -509,12 +598,12 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           {quote?.requiresQuote ? (
             <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-950/20 p-4 text-amber-100">
               <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-300">
-                {isUa ? 'Потрібен ручний прорахунок' : 'Manual quote required'}
+                {isUa ? "Потрібен ручний прорахунок" : "Manual quote required"}
               </div>
               <p className="mt-2 text-[13px] leading-5 text-amber-100/85">
                 {isUa
-                  ? `У кошику є товари брендів${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(', ')})` : ''}, для яких доставка прораховується вручну. Менеджер зв'яжеться з вами для уточнення вартості.`
-                  : `Your cart contains items from brands${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(', ')})` : ''} that require manual quoting. A manager will reach out to confirm shipping.`}
+                  ? `У кошику є товари брендів${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(", ")})` : ""}, для яких доставка прораховується вручну. Менеджер зв'яжеться з вами для уточнення вартості.`
+                  : `Your cart contains items from brands${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(", ")})` : ""} that require manual quoting. A manager will reach out to confirm shipping.`}
               </p>
             </div>
           ) : null}
@@ -523,13 +612,25 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             type="submit"
             disabled={submitting || quote?.requiresQuote === true}
             className="w-full rounded-full border border-white/10 bg-zinc-950 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-[#c29d59] transition-all duration-300 hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.3)] shadow-2xl disabled:opacity-50"
-            title={quote?.requiresQuote ? (isUa ? 'Спочатку залиш заявку нижче' : 'Submit a quote request first') : undefined}
+            title={
+              quote?.requiresQuote
+                ? isUa
+                  ? "Спочатку залиш заявку нижче"
+                  : "Submit a quote request first"
+                : undefined
+            }
           >
             {submitting
-              ? (isUa ? 'Відправка…' : 'Submitting…')
+              ? isUa
+                ? "Відправка…"
+                : "Submitting…"
               : quote?.requiresQuote
-                ? (isUa ? 'Запит на прорахунок (скоро)' : 'Quote request (coming soon)')
-                : (isUa ? 'Підтвердити замовлення' : 'Place order')}
+                ? isUa
+                  ? "Запит на прорахунок (скоро)"
+                  : "Quote request (coming soon)"
+                : isUa
+                  ? "Підтвердити замовлення"
+                  : "Place order"}
           </button>
         </form>
       </div>

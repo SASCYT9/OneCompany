@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 
 interface KWSectionProps {
   isActive: boolean;
@@ -24,9 +24,10 @@ export function KWSection({ isActive }: KWSectionProps) {
   useEffect(() => {
     if (!isActive || !contentRef.current) return;
 
-    gsap.fromTo(contentRef.current,
+    gsap.fromTo(
+      contentRef.current,
       { opacity: 0, x: -100 },
-      { opacity: 1, x: 0, duration: 1.2, ease: 'power3.out', delay: 0.3 }
+      { opacity: 1, x: 0, duration: 1.2, ease: "power3.out", delay: 0.3 }
     );
   }, [isActive]);
 
@@ -43,31 +44,33 @@ export function KWSection({ isActive }: KWSectionProps) {
       />
 
       {/* Темний overlay для читабельності */}
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-r from-slate-900/90 via-slate-900/50 to-transparent" />
 
       {/* Контент */}
-      <div 
+      <div
         ref={contentRef}
         className="relative z-10 h-full flex flex-col justify-center px-12 md:px-24 max-w-3xl"
       >
         {/* Badge */}
         <div className="mb-6">
-          <span className="inline-block px-6 py-2 bg-amber-500/20 border border-amber-400/30 rounded-full text-amber-300 text-sm font-medium tracking-wide backdrop-blur-sm">
+          <span className="inline-block px-6 py-2 bg-amber-500/20 border border-amber-400/30 rounded-full text-amber-300 text-sm font-medium tracking-wide backdrop-blur-xs">
             НІМЕЦЬКА ЯКІСТЬ
           </span>
         </div>
 
         {/* Заголовок */}
         <h2 className="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6">
-          Тотальний<br />
-          <span className="bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent font-normal">
+          Тотальний
+          <br />
+          <span className="bg-linear-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent font-normal">
             контроль
           </span>
         </h2>
 
         {/* Опис */}
         <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed max-w-2xl">
-          Технології перемоги для вашого авто. Розроблено та виготовлено в Німеччині для безкомпромісної керованості.
+          Технології перемоги для вашого авто. Розроблено та виготовлено в Німеччині для
+          безкомпромісної керованості.
         </p>
 
         {/* Статистика */}
@@ -83,11 +86,21 @@ export function KWSection({ isActive }: KWSectionProps) {
         </div>
 
         {/* Кнопка */}
-        <button className="group w-fit px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-medium tracking-wide rounded-lg transition-all duration-300 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40">
+        <button className="group w-fit px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-medium tracking-wide rounded-lg transition-all duration-300 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40">
           <span className="flex items-center gap-2">
             ПІДІБРАТИ ПІДВІСКУ
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <svg
+              className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
             </svg>
           </span>
         </button>

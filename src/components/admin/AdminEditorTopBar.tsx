@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import Link from 'next/link';
+import Link from "next/link";
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * Shopify-style sticky save bar for editor pages.
@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
  */
 export function AdminEditorTopBar({
   backHref,
-  backLabel = 'Назад',
+  backLabel = "Назад",
   eyebrow,
   title,
   status,
@@ -45,7 +45,7 @@ export function AdminEditorTopBar({
   return (
     <div
       className={cn(
-        'sticky top-0 z-30 -mx-4 mb-6 border-b border-white/[0.06] bg-[#0F0F0F]/92 px-4 py-3 backdrop-blur-xl md:-mx-8 md:px-8 xl:-mx-10 xl:px-10',
+        "sticky top-0 z-30 -mx-4 mb-6 border-b border-white/6 bg-[#0F0F0F]/92 px-4 py-3 backdrop-blur-xl md:-mx-8 md:px-8 xl:-mx-10 xl:px-10",
         className
       )}
     >
@@ -53,7 +53,7 @@ export function AdminEditorTopBar({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <Link
             href={backHref}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center border border-white/[0.08] bg-white/[0.03] text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-zinc-50"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center border border-white/8 bg-white/3 text-zinc-300 transition hover:border-white/20 hover:bg-white/6 hover:text-zinc-50"
             aria-label={backLabel}
             title={backLabel}
           >

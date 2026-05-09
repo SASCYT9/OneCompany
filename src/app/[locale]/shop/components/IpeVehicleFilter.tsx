@@ -48,26 +48,26 @@ const BRAND_LABELS: Record<string, Record<string, string>> = {
   "Aston Martin": { en: "Aston Martin", ua: "Aston Martin" },
   Nissan: { en: "Nissan", ua: "Nissan" },
   Ford: { en: "Ford", ua: "Ford" },
-  Subaru: { en: "Subaru", ua: "Subaru" }
+  Subaru: { en: "Subaru", ua: "Subaru" },
 };
 
 const MATERIAL_LABELS: Record<string, Record<string, string>> = {
-  "Titanium": { en: "Titanium", ua: "Titanium" },
+  Titanium: { en: "Titanium", ua: "Titanium" },
   "Stainless Steel": { en: "Stainless Steel", ua: "Stainless Steel" },
   "Carbon Fiber": { en: "Carbon Fiber", ua: "Carbon Fiber" },
 };
 
 const SPEC_LABELS: Record<string, Record<string, string>> = {
-  "OPF": { en: "OPF", ua: "OPF" },
+  OPF: { en: "OPF", ua: "OPF" },
   "Non-OPF": { en: "Non-OPF", ua: "Без OPF" },
-  "Catted": { en: "Catted", ua: "Catted" },
-  "Catless": { en: "Catless", ua: "Catless" },
+  Catted: { en: "Catted", ua: "Catted" },
+  Catless: { en: "Catless", ua: "Catless" },
   "Remote Control": { en: "Remote Control", ua: "Remote Control" },
-  "OBDII": { en: "OBDII", ua: "OBDII" },
+  OBDII: { en: "OBDII", ua: "OBDII" },
 };
 
 const FILTER_LIST_SCROLL_CLASS =
-  "flex max-h-56 flex-col overflow-y-auto overscroll-contain pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]";
+  "flex max-h-56 flex-col overflow-y-auto overscroll-contain pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] scrollbar-thin";
 const PAGE_SIZE = 30;
 
 type FilterSectionKey = "brand" | "line" | "model" | "body" | "material" | "spec";
@@ -92,7 +92,7 @@ function FilterSection({ title, count, isOpen, children, onToggle }: FilterSecti
         <span>{title}</span>
         <span className="ml-auto flex items-center gap-3">
           {typeof count === "number" && (
-            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] tracking-normal text-white/38">
+            <span className="rounded-full border border-white/10 bg-white/3 px-2 py-0.5 text-[10px] tracking-normal text-white/38">
               {count}
             </span>
           )}
@@ -141,9 +141,9 @@ function computePricesFromUsd(
   const baseUsd = price.usd;
   const baseEur = price.eur;
   const baseUah = price.uah;
-  
+
   if (!rates) return { uah: baseUah, eur: baseEur, usd: baseUsd };
-  
+
   const eurToUah = rates.UAH ?? (rates.EUR ? rates.EUR : 0);
   const usdToUah = eurToUah / (rates.USD || 1);
 
@@ -175,7 +175,7 @@ export default function IpeVehicleFilter({
   locale,
   products,
   viewerContext: ssrViewerContext,
-  productPathPrefix
+  productPathPrefix,
 }: IpeVehicleFilterProps) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
@@ -196,11 +196,13 @@ export default function IpeVehicleFilter({
   const { base: initialModelBase, body: initialBodyFromModel } =
     initialModelRaw !== "all" ? splitIpeModelLabel(initialModelRaw) : { base: "all", body: null };
   const initialModel = initialModelBase || "all";
-  const initialBody = initialBodyParam !== "all" ? initialBodyParam : (initialBodyFromModel ?? "all");
+  const initialBody =
+    initialBodyParam !== "all" ? initialBodyParam : (initialBodyFromModel ?? "all");
   const initialMaterial = searchParams?.get("material") || "all";
   const initialSpec = searchParams?.get("spec") || "all";
   const initialSearch = searchParams?.get("q") || "";
-  const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+  const initialSort =
+    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
   const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
   const [activeLine, setActiveLine] = useState<string>(initialLine);
@@ -241,27 +243,58 @@ export default function IpeVehicleFilter({
     setSortOrder("default");
   }, []);
 
-  const syncToUrl = useCallback((brand: string, line: string, model: string, body: string, material: string, spec: string, sort: string, query: string) => {
-    const params = new URLSearchParams();
-    if (brand !== "all") params.set("brand", brand);
-    if (line !== "all") params.set("line", line);
-    if (model !== "all") params.set("model", model);
-    if (body !== "all") params.set("body", body);
-    if (material !== "all") params.set("material", material);
-    if (spec !== "all") params.set("spec", spec);
-    if (sort !== "default") params.set("sort", sort);
-    if (query.trim()) params.set("q", query);
-    const qs = params.toString();
-    const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
-    router.replace(nextPath, { scroll: false });
-  }, [pathname, router]);
+  const syncToUrl = useCallback(
+    (
+      brand: string,
+      line: string,
+      model: string,
+      body: string,
+      material: string,
+      spec: string,
+      sort: string,
+      query: string
+    ) => {
+      const params = new URLSearchParams();
+      if (brand !== "all") params.set("brand", brand);
+      if (line !== "all") params.set("line", line);
+      if (model !== "all") params.set("model", model);
+      if (body !== "all") params.set("body", body);
+      if (material !== "all") params.set("material", material);
+      if (spec !== "all") params.set("spec", spec);
+      if (sort !== "default") params.set("sort", sort);
+      if (query.trim()) params.set("q", query);
+      const qs = params.toString();
+      const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
+      router.replace(nextPath, { scroll: false });
+    },
+    [pathname, router]
+  );
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      syncToUrl(activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, sortOrder, searchQuery);
+      syncToUrl(
+        activeBrand,
+        activeLine,
+        activeModel,
+        activeBody,
+        activeMaterial,
+        activeSpec,
+        sortOrder,
+        searchQuery
+      );
     }, 250);
     return () => clearTimeout(timeout);
-  }, [activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, sortOrder, searchQuery, syncToUrl]);
+  }, [
+    activeBrand,
+    activeLine,
+    activeModel,
+    activeBody,
+    activeMaterial,
+    activeSpec,
+    sortOrder,
+    searchQuery,
+    syncToUrl,
+  ]);
 
   const enrichedProducts = useMemo(() => {
     return products.map((product) => {
@@ -287,12 +320,12 @@ export default function IpeVehicleFilter({
       const brand = entry.brand;
       if (brand) brands.set(brand, (brands.get(brand) || 0) + 1);
     }
-    const foundTags = [...brands.keys()].sort((a,b) => {
-        const iA = BRAND_ORDER.indexOf(a);
-        const iB = BRAND_ORDER.indexOf(b);
-        return (iA === -1 ? 99 : iA) - (iB === -1 ? 99 : iB);
+    const foundTags = [...brands.keys()].sort((a, b) => {
+      const iA = BRAND_ORDER.indexOf(a);
+      const iB = BRAND_ORDER.indexOf(b);
+      return (iA === -1 ? 99 : iA) - (iB === -1 ? 99 : iB);
     });
-    return foundTags.map(b => ({
+    return foundTags.map((b) => ({
       key: b,
       label: BRAND_LABELS[b]?.[locale] || b,
       count: brands.get(b) || 0,
@@ -348,11 +381,13 @@ export default function IpeVehicleFilter({
         lines.set(detectedLine, (lines.get(detectedLine) || 0) + 1);
       }
     }
-    const resolved = [...lines.entries()].sort((a,b) => b[1] - a[1]).map(([key, count]) => ({
-      key,
-      label: key,
-      count
-    }));
+    const resolved = [...lines.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => ({
+        key,
+        label: key,
+        count,
+      }));
     return resolved.length > 1 ? resolved : [];
   }, [activeBrand, enrichedProducts, products.length]);
 
@@ -451,7 +486,7 @@ export default function IpeVehicleFilter({
     }
 
     if (activeLine !== "all") {
-       result = result.filter((entry) => entry.line === activeLine);
+      result = result.filter((entry) => entry.line === activeLine);
     }
 
     if (activeModel !== "all") {
@@ -494,16 +529,27 @@ export default function IpeVehicleFilter({
 
       if (sortOrder === "price_desc") return priceB - priceA;
       if (sortOrder === "price_asc") return priceA - priceB;
-      
+
       const hasImgA = a.product.image && a.product.image.length > 5 ? 1 : 0;
       const hasImgB = b.product.image && b.product.image.length > 5 ? 1 : 0;
-      
+
       if (hasImgA !== hasImgB) return hasImgB - hasImgA; // prioritize with image
       return priceB - priceA;
     });
 
     return sorted.map((entry) => entry.product);
-  }, [activeBrand, activeLine, activeMaterial, activeModel, activeBody, activeSpec, enrichedProducts, searchQuery, sortOrder, locale]);
+  }, [
+    activeBrand,
+    activeLine,
+    activeMaterial,
+    activeModel,
+    activeBody,
+    activeSpec,
+    enrichedProducts,
+    searchQuery,
+    sortOrder,
+    locale,
+  ]);
 
   const displayedProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -512,12 +558,24 @@ export default function IpeVehicleFilter({
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, searchQuery, sortOrder]);
+  }, [
+    activeBrand,
+    activeLine,
+    activeModel,
+    activeBody,
+    activeMaterial,
+    activeSpec,
+    searchQuery,
+    sortOrder,
+  ]);
 
   const totalCount = products.length;
-  const activeBrandLabel = activeBrand !== "all" ? (BRAND_LABELS[activeBrand]?.[locale] || activeBrand) : null;
-  const activeMaterialLabel = activeMaterial !== "all" ? (MATERIAL_LABELS[activeMaterial]?.[locale] || activeMaterial) : null;
-  const activeSpecLabel = activeSpec !== "all" ? (SPEC_LABELS[activeSpec]?.[locale] || activeSpec) : null;
+  const activeBrandLabel =
+    activeBrand !== "all" ? BRAND_LABELS[activeBrand]?.[locale] || activeBrand : null;
+  const activeMaterialLabel =
+    activeMaterial !== "all" ? MATERIAL_LABELS[activeMaterial]?.[locale] || activeMaterial : null;
+  const activeSpecLabel =
+    activeSpec !== "all" ? SPEC_LABELS[activeSpec]?.[locale] || activeSpec : null;
   const hasActiveFilters =
     activeBrand !== "all" ||
     activeLine !== "all" ||
@@ -533,7 +591,6 @@ export default function IpeVehicleFilter({
   return (
     <section id="catalog" className="bg-black text-white min-h-screen relative z-30">
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 pt-16">
-        
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
             type="button"
@@ -544,9 +601,7 @@ export default function IpeVehicleFilter({
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
-            {hasActiveFilters && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59] ml-1" />
-            )}
+            {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59] ml-1" />}
           </button>
           <p className="text-white/40 text-xs tracking-wide">
             {filteredProducts.length} {isUa ? "з" : "of"} {totalCount}
@@ -556,7 +611,7 @@ export default function IpeVehicleFilter({
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           <aside
             id="ipe-mobile-filters"
-            className={`flex-shrink-0 transition-transform duration-300 ${
+            className={`shrink-0 transition-transform duration-300 ${
               mobileFilterOpen
                 ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
                 : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
@@ -566,7 +621,7 @@ export default function IpeVehicleFilter({
               className={`${
                 mobileFilterOpen
                   ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/10 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                  : "lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-124px)] lg:overflow-y-auto flex flex-col gap-5 bg-zinc-950/95 border border-white/[0.08] p-5 rounded-[2px] shadow-[0_18px_55px_rgba(0,0,0,0.38)] [scrollbar-color:rgba(194,157,89,0.35)_transparent] [scrollbar-width:thin]"
+                  : "lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-124px)] lg:overflow-y-auto flex flex-col gap-5 bg-zinc-950/95 border border-white/8 p-5 rounded-[2px] shadow-[0_18px_55px_rgba(0,0,0,0.38)] [scrollbar-color:rgba(194,157,89,0.35)_transparent] scrollbar-thin"
               }`}
             >
               <button
@@ -583,7 +638,8 @@ export default function IpeVehicleFilter({
                     {isUa ? "Каталог" : "Catalog"}
                   </h2>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                    {filteredProducts.length} {isUa ? "з" : "of"} {totalCount} {isUa ? "компонентів" : "components"}
+                    {filteredProducts.length} {isUa ? "з" : "of"} {totalCount}{" "}
+                    {isUa ? "компонентів" : "components"}
                   </p>
                 </div>
                 {hasActiveFilters && (
@@ -599,24 +655,53 @@ export default function IpeVehicleFilter({
 
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2">
-                  {activeBrandLabel && <ActiveFilterChip label={activeBrandLabel} onClear={() => setActiveBrand("all")} />}
-                  {activeLine !== "all" && <ActiveFilterChip label={activeLine} onClear={() => setActiveLine("all")} />}
-                  {activeModel !== "all" && <ActiveFilterChip label={activeModel} onClear={() => setActiveModel("all")} />}
-                  {activeBody !== "all" && <ActiveFilterChip label={activeBody} onClear={() => setActiveBody("all")} />}
-                  {activeMaterialLabel && <ActiveFilterChip label={activeMaterialLabel} onClear={() => setActiveMaterial("all")} />}
-                  {activeSpecLabel && <ActiveFilterChip label={activeSpecLabel} onClear={() => setActiveSpec("all")} />}
-                  {searchQuery.trim() && <ActiveFilterChip label={searchQuery.trim()} onClear={() => setSearchQuery("")} />}
+                  {activeBrandLabel && (
+                    <ActiveFilterChip
+                      label={activeBrandLabel}
+                      onClear={() => setActiveBrand("all")}
+                    />
+                  )}
+                  {activeLine !== "all" && (
+                    <ActiveFilterChip label={activeLine} onClear={() => setActiveLine("all")} />
+                  )}
+                  {activeModel !== "all" && (
+                    <ActiveFilterChip label={activeModel} onClear={() => setActiveModel("all")} />
+                  )}
+                  {activeBody !== "all" && (
+                    <ActiveFilterChip label={activeBody} onClear={() => setActiveBody("all")} />
+                  )}
+                  {activeMaterialLabel && (
+                    <ActiveFilterChip
+                      label={activeMaterialLabel}
+                      onClear={() => setActiveMaterial("all")}
+                    />
+                  )}
+                  {activeSpecLabel && (
+                    <ActiveFilterChip
+                      label={activeSpecLabel}
+                      onClear={() => setActiveSpec("all")}
+                    />
+                  )}
+                  {searchQuery.trim() && (
+                    <ActiveFilterChip
+                      label={searchQuery.trim()}
+                      onClear={() => setSearchQuery("")}
+                    />
+                  )}
                 </div>
               )}
 
               <div className="relative">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                <Search
+                  size={14}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
+                />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={isUa ? "Пошук систем..." : "Search exhausts..."}
-                  className="w-full rounded-[2px] border border-white/10 bg-black/80 py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 transition-colors focus:border-[#c29d59]/50 focus:outline-none"
+                  className="w-full rounded-[2px] border border-white/10 bg-black/80 py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 transition-colors focus:border-[#c29d59]/50 focus:outline-hidden"
                 />
                 {searchQuery && (
                   <button
@@ -641,11 +726,15 @@ export default function IpeVehicleFilter({
                       type="button"
                       onClick={() => setActiveBrand("all")}
                       className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                        activeBrand === "all" ? "bg-white/[0.06] text-white" : "text-white/50 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                        activeBrand === "all"
+                          ? "bg-white/6 text-white"
+                          : "text-white/50 hover:bg-white/3 hover:text-[#c29d59]"
                       }`}
                     >
                       <span>{isUa ? "Всі марки" : "All Brands"}</span>
-                      {activeBrand === "all" && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>}
+                      {activeBrand === "all" && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>
+                      )}
                     </button>
                   </li>
                   {availableBrands.map((brand) => (
@@ -654,13 +743,17 @@ export default function IpeVehicleFilter({
                         type="button"
                         onClick={() => setActiveBrand(brand.key)}
                         className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                          activeBrand === brand.key ? "bg-[#c29d59]/10 text-white" : "text-white/50 hover:bg-white/[0.03] hover:text-[#c29d59]"
-                          }`}
+                          activeBrand === brand.key
+                            ? "bg-[#c29d59]/10 text-white"
+                            : "text-white/50 hover:bg-white/3 hover:text-[#c29d59]"
+                        }`}
                       >
                         <span>{brand.label}</span>
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] font-bold text-zinc-600">{brand.count}</span>
-                          {activeBrand === brand.key && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>}
+                          {activeBrand === brand.key && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>
+                          )}
                         </div>
                       </button>
                     </li>
@@ -681,7 +774,9 @@ export default function IpeVehicleFilter({
                         type="button"
                         onClick={() => setActiveLine("all")}
                         className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                          activeLine === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          activeLine === "all"
+                            ? "bg-white/6 text-[#c29d59]"
+                            : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                         }`}
                       >
                         {isUa ? "Всі" : "All Lines"}
@@ -693,7 +788,9 @@ export default function IpeVehicleFilter({
                           type="button"
                           onClick={() => setActiveLine(line.key)}
                           className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                            activeLine === line.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                            activeLine === line.key
+                              ? "bg-[#c29d59]/10 text-[#c29d59]"
+                              : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{line.label}</span>
@@ -714,13 +811,16 @@ export default function IpeVehicleFilter({
                 >
                   {availableModels.length > 8 && (
                     <div className="relative mb-2">
-                      <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
+                      <Search
+                        size={12}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25"
+                      />
                       <input
                         type="text"
                         value={modelQuery}
                         onChange={(event) => setModelQuery(event.target.value)}
                         placeholder={isUa ? "Пошук моделі" : "Find model"}
-                        className="w-full rounded-[2px] border border-white/8 bg-black/55 py-2 pl-9 pr-3 text-xs text-white placeholder-white/25 transition-colors focus:border-[#c29d59]/45 focus:outline-none"
+                        className="w-full rounded-[2px] border border-white/8 bg-black/55 py-2 pl-9 pr-3 text-xs text-white placeholder-white/25 transition-colors focus:border-[#c29d59]/45 focus:outline-hidden"
                       />
                     </div>
                   )}
@@ -729,8 +829,10 @@ export default function IpeVehicleFilter({
                       <button
                         type="button"
                         onClick={() => setActiveModel("all")}
-                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                          activeModel === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest transition-colors ${
+                          activeModel === "all"
+                            ? "bg-white/6 text-[#c29d59]"
+                            : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Всі моделі" : "All Models"}</span>
@@ -742,11 +844,15 @@ export default function IpeVehicleFilter({
                           type="button"
                           onClick={() => setActiveModel(model.key)}
                           className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-medium tracking-[0.02em] transition-colors ${
-                            activeModel === model.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                            activeModel === model.key
+                              ? "bg-[#c29d59]/10 text-[#c29d59]"
+                              : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                           }`}
                         >
                           <span className="pr-3">{model.label}</span>
-                          <span className="text-[10px] opacity-60 text-zinc-500">{model.count}</span>
+                          <span className="text-[10px] opacity-60 text-zinc-500">
+                            {model.count}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -767,7 +873,9 @@ export default function IpeVehicleFilter({
                         type="button"
                         onClick={() => setActiveBody("all")}
                         className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                          activeBody === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          activeBody === "all"
+                            ? "bg-white/6 text-[#c29d59]"
+                            : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Усі кузови" : "All bodies"}</span>
@@ -778,8 +886,10 @@ export default function IpeVehicleFilter({
                         <button
                           type="button"
                           onClick={() => setActiveBody(body.key)}
-                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                            activeBody === body.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest transition-colors ${
+                            activeBody === body.key
+                              ? "bg-[#c29d59]/10 text-[#c29d59]"
+                              : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{body.label}</span>
@@ -804,7 +914,9 @@ export default function IpeVehicleFilter({
                         type="button"
                         onClick={() => setActiveMaterial("all")}
                         className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                          activeMaterial === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          activeMaterial === "all"
+                            ? "bg-white/6 text-[#c29d59]"
+                            : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Усі" : "All"}</span>
@@ -816,11 +928,15 @@ export default function IpeVehicleFilter({
                           type="button"
                           onClick={() => setActiveMaterial(material.key)}
                           className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                            activeMaterial === material.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                            activeMaterial === material.key
+                              ? "bg-[#c29d59]/10 text-[#c29d59]"
+                              : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{material.label}</span>
-                          <span className="text-[10px] opacity-60 text-zinc-500">{material.count}</span>
+                          <span className="text-[10px] opacity-60 text-zinc-500">
+                            {material.count}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -841,7 +957,9 @@ export default function IpeVehicleFilter({
                         type="button"
                         onClick={() => setActiveSpec("all")}
                         className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                          activeSpec === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          activeSpec === "all"
+                            ? "bg-white/6 text-[#c29d59]"
+                            : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Усі" : "All"}</span>
@@ -853,7 +971,9 @@ export default function IpeVehicleFilter({
                           type="button"
                           onClick={() => setActiveSpec(spec.key)}
                           className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                            activeSpec === spec.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                            activeSpec === spec.key
+                              ? "bg-[#c29d59]/10 text-[#c29d59]"
+                              : "text-white/42 hover:bg-white/3 hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{spec.label}</span>
@@ -868,10 +988,7 @@ export default function IpeVehicleFilter({
           </aside>
 
           {mobileFilterOpen && (
-            <div
-              className="lg:hidden fixed inset-0 z-40 bg-black/80"
-              onClick={closeMobileFilter}
-            />
+            <div className="lg:hidden fixed inset-0 z-40 bg-black/80" onClick={closeMobileFilter} />
           )}
 
           <main className="flex-1 min-w-0">
@@ -879,12 +996,18 @@ export default function IpeVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-                  className="appearance-none bg-zinc-900 border border-white/5 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-none outline-none focus:border-white/20 transition-colors shadow-none cursor-pointer"
+                  onChange={(e) =>
+                    setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
+                  }
+                  className="appearance-none bg-zinc-900 border border-white/5 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-none outline-hidden focus:border-white/20 transition-colors shadow-none cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
-                  <option value="price_desc">{isUa ? "Ціна: Від найбільшої" : "Price: High to Low"}</option>
-                  <option value="price_asc">{isUa ? "Ціна: Від найменшої" : "Price: Low to High"}</option>
+                  <option value="price_desc">
+                    {isUa ? "Ціна: Від найбільшої" : "Price: High to Low"}
+                  </option>
+                  <option value="price_asc">
+                    {isUa ? "Ціна: Від найменшої" : "Price: Low to High"}
+                  </option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
                   <ChevronDown size={12} />
@@ -902,8 +1025,12 @@ export default function IpeVehicleFilter({
                 </h3>
                 <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
                   {searchQuery
-                    ? (isUa ? `Нічого не знайдено за запитом "${searchQuery}"` : `No results for "${searchQuery}"`)
-                    : (isUa ? "Каталог iPE наразі оновлюється." : "The iPE catalog is currently being updated.")}
+                    ? isUa
+                      ? `Нічого не знайдено за запитом "${searchQuery}"`
+                      : `No results for "${searchQuery}"`
+                    : isUa
+                      ? "Каталог iPE наразі оновлюється."
+                      : "The iPE catalog is currently being updated."}
                 </p>
                 <button
                   type="button"
@@ -915,96 +1042,112 @@ export default function IpeVehicleFilter({
               </div>
             ) : (
               <>
-              <div className="grid grid-cols-2 xl:grid-cols-3 gap-1">
-                {displayedProducts.map((product) => {
-                  const pricing = viewerContext
-                    ? resolveShopProductPricing(product, viewerContext)
-                    : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: "b2c", b2bVisible: false };
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-1">
+                  {displayedProducts.map((product) => {
+                    const pricing = viewerContext
+                      ? resolveShopProductPricing(product, viewerContext)
+                      : {
+                          effectivePrice: product.price,
+                          effectiveCompareAt: product.compareAt,
+                          audience: "b2c",
+                          b2bVisible: false,
+                        };
 
-                  const computed = computePricesFromUsd(
-                    pricing.effectivePrice,
-                    rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
-                  );
+                    const computed = computePricesFromUsd(
+                      pricing.effectivePrice,
+                      rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+                    );
 
-                  const productTitle = localizeShopProductTitle(locale, product);
-                  const productImage = product.image || "/images/placeholders/product-fallback.jpg";
+                    const productTitle = localizeShopProductTitle(locale, product);
+                    const productImage =
+                      product.image || "/images/placeholders/product-fallback.jpg";
 
-                  return (
-                    <article key={product.slug} className="group relative bg-[#060606] overflow-hidden flex flex-col hover:bg-[#0a0a0a] transition-all duration-500 border border-white/5 hover:border-white/10">
-                      <Link
-                        href={`${productPathPrefix}/${product.slug}`}
-                        className="flex flex-col flex-grow z-10"
+                    return (
+                      <article
+                        key={product.slug}
+                        className="group relative bg-[#060606] overflow-hidden flex flex-col hover:bg-[#0a0a0a] transition-all duration-500 border border-white/5 hover:border-white/10"
                       >
-                        <div className="relative aspect-square sm:aspect-[4/3] bg-black overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-white/[0.02]">
-                          <ShopProductImage
-                            src={productImage}
-                            alt={productTitle}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            fallbackSrc="/images/placeholders/product-fallback.jpg"
-                            unoptimized={shouldBypassImageOptimization(productImage)}
-                            className="object-contain p-2 sm:p-6 md:p-8 opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105"
-                          />
-                        </div>
-
-                        <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col flex-grow">
-                          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-medium text-[#c29d59] mb-2">{product.brand}</p>
-                          <h3 className="text-[11px] sm:text-sm font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4">
-                            {productTitle}
-                          </h3>
-                          
-                          <div className="mt-auto">
-                            {computed.usd === 0 && computed.eur === 0 ? (
-                              <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-zinc-600">
-                                {isUa ? "Ціна за запитом" : "Price on Request"}
-                              </span>
-                            ) : (
-                              <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-medium text-white">
-                                {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
-                                {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
-                                {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-
-                      {/* Bottom Actions: View + Add To Cart */}
-                      <div className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6 z-20 relative flex gap-2 sm:gap-3">
                         <Link
                           href={`${productPathPrefix}/${product.slug}`}
-                          className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-[2px]"
+                          className="flex flex-col grow z-10"
                         >
-                          {isUa ? "Деталі" : "View"}
-                          <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
+                          <div className="relative aspect-square sm:aspect-4/3 bg-black overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-white/2">
+                            <ShopProductImage
+                              src={productImage}
+                              alt={productTitle}
+                              fill
+                              sizes="(max-width: 768px) 100vw, 33vw"
+                              fallbackSrc="/images/placeholders/product-fallback.jpg"
+                              unoptimized={shouldBypassImageOptimization(productImage)}
+                              className="object-contain p-2 sm:p-6 md:p-8 opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105"
+                            />
+                          </div>
+
+                          <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col grow">
+                            <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-medium text-[#c29d59] mb-2">
+                              {product.brand}
+                            </p>
+                            <h3 className="text-[11px] sm:text-sm font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4">
+                              {productTitle}
+                            </h3>
+
+                            <div className="mt-auto">
+                              {computed.usd === 0 && computed.eur === 0 ? (
+                                <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-zinc-600">
+                                  {isUa ? "Ціна за запитом" : "Price on Request"}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-medium text-white">
+                                  {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                                  {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                                  {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </Link>
-                        <AddToCartButton
-                          slug={product.slug}
-                          variantId={null}
-                          locale={locale}
-                          redirect={true}
-                          productName={productTitle}
-                          label={isUa ? "КОШИК" : "CART"}
-                          labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
-                          variant="inline"
-                        />
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-              {visibleCount < filteredProducts.length ? (
-                <div className="mt-8 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-                    className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
-                  >
-                    {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
-                  </button>
+
+                        {/* Bottom Actions: View + Add To Cart */}
+                        <div className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6 z-20 relative flex gap-2 sm:gap-3">
+                          <Link
+                            href={`${productPathPrefix}/${product.slug}`}
+                            className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-[2px]"
+                          >
+                            {isUa ? "Деталі" : "View"}
+                            <ArrowRight
+                              size={11}
+                              strokeWidth={2}
+                              className="hidden min-[390px]:block"
+                            />
+                          </Link>
+                          <AddToCartButton
+                            slug={product.slug}
+                            variantId={null}
+                            locale={locale}
+                            redirect={true}
+                            productName={productTitle}
+                            label={isUa ? "КОШИК" : "CART"}
+                            labelAdded={isUa ? "✓" : "✓"}
+                            className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-white/10 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                            variant="inline"
+                          />
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
-              ) : null}
+                {visibleCount < filteredProducts.length ? (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                      className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
+                    >
+                      {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount}
+                      )
+                    </button>
+                  </div>
+                ) : null}
               </>
             )}
           </main>

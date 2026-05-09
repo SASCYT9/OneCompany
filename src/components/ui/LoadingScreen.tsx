@@ -18,16 +18,16 @@ export default function LoadingScreen() {
     }
 
     // Prevent scrolling while loading
-    document.body.style.overflow = 'hidden';
-    
+    document.body.style.overflow = "hidden";
+
     const timer = setTimeout(() => {
       setIsLoading(false);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }, 2500);
 
     return () => {
       clearTimeout(timer);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isShopRoute]);
 
@@ -38,7 +38,7 @@ export default function LoadingScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
@@ -48,13 +48,13 @@ export default function LoadingScreen() {
             className="relative"
           >
             <Logo tone="light" className="w-48 sm:w-64" priority />
-            <motion.div 
+            <motion.div
               className="absolute -bottom-8 left-0 right-0 h-0.5 bg-white/20 rounded-full overflow-hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div 
+              <motion.div
                 className="h-full bg-white"
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useRef, useState, useEffect } from 'react';
-import clsx from 'clsx';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useState, useEffect } from "react";
+import clsx from "clsx";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type CarouselItem = {
   id: string;
@@ -28,14 +28,14 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
 
   useEffect(() => {
     checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
   }, []);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (containerRef.current) {
-      const scrollAmount = direction === 'left' ? -340 : 340;
-      containerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      const scrollAmount = direction === "left" ? -340 : 340;
+      containerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
@@ -43,8 +43,8 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-20">
       <div className="relative">
         {/* Navigation Buttons */}
-        <button 
-          onClick={() => scroll('left')}
+        <button
+          onClick={() => scroll("left")}
           disabled={!canScrollLeft}
           className={clsx(
             "absolute -left-4 top-1/2 -translate-y-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black disabled:opacity-0 disabled:pointer-events-none sm:-left-12",
@@ -55,8 +55,8 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        <button 
-          onClick={() => scroll('right')}
+        <button
+          onClick={() => scroll("right")}
           disabled={!canScrollRight}
           className={clsx(
             "absolute -right-4 top-1/2 -translate-y-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black disabled:opacity-0 disabled:pointer-events-none sm:-right-12",
@@ -68,21 +68,25 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
         </button>
 
         {/* Gradients to indicate scroll */}
-        <div className={clsx(
-            "pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-black to-transparent transition-opacity duration-300",
+        <div
+          className={clsx(
+            "pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-linear-to-r from-black to-transparent transition-opacity duration-300",
             canScrollLeft ? "opacity-100" : "opacity-0"
-        )} />
-        <div className={clsx(
-            "pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-black to-transparent transition-opacity duration-300",
+          )}
+        />
+        <div
+          className={clsx(
+            "pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-linear-to-l from-black to-transparent transition-opacity duration-300",
             canScrollRight ? "opacity-100" : "opacity-0"
-        )} />
+          )}
+        />
 
         {/* Scroll Container */}
-        <div 
+        <div
           ref={containerRef}
           onScroll={checkScroll}
           className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory sm:gap-6 no-scrollbar scroll-smooth"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           <style jsx>{`
             .no-scrollbar::-webkit-scrollbar {
@@ -93,14 +97,16 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
             <div
               key={item.id}
               className={clsx(
-                "relative flex h-[280px] w-[280px] flex-shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.04] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:h-[320px] sm:w-[320px] sm:p-8 snap-start"
+                "relative flex h-[280px] w-[280px] shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/2 p-6 transition-all duration-300 hover:border-white/20 hover:bg-white/4 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:h-[320px] sm:w-[320px] sm:p-8 snap-start"
               )}
             >
               <div>
-                <div className="text-[9px] uppercase tracking-[0.3em] text-white/50 sm:text-[10px] sm:tracking-[0.4em]">{item.eyebrow}</div>
+                <div className="text-[9px] uppercase tracking-[0.3em] text-white/50 sm:text-[10px] sm:tracking-[0.4em]">
+                  {item.eyebrow}
+                </div>
                 <h3 className="mt-4 text-2xl font-light text-white sm:text-3xl">{item.title}</h3>
               </div>
-              
+
               <div>
                 <p className="text-sm leading-relaxed text-white/60 transition-colors group-hover:text-white/80">
                   {item.description}

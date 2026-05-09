@@ -72,7 +72,8 @@ export default function RacechipVehicleFilter({
   }
   const initialMake = searchParams?.get("make") || "all";
   const initialEngine = searchParams?.get("engine") || "all";
-  const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+  const initialSort =
+    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
   const [activeMake, setActiveMake] = useState<string>(initialMake);
   const [activeModel, setActiveModel] = useState<string>(initialModel || "all");
@@ -88,17 +89,20 @@ export default function RacechipVehicleFilter({
   const [visibleCount, setVisibleCount] = useState(30);
 
   // Sync filter state to URL search params (shallow, no re-render of server component)
-  const syncToUrl = useCallback((make: string, model: string, chassis: string, engine: string, sort: string) => {
-    const params = new URLSearchParams();
-    if (make !== "all") params.set("make", make);
-    if (model !== "all") params.set("model", model);
-    if (chassis !== "all") params.set("chassis", chassis);
-    if (engine !== "all") params.set("engine", engine);
-    if (sort !== "default") params.set("sort", sort);
-    const qs = params.toString();
-    const newPath = qs ? `${pathname}?${qs}` : pathname || "";
-    router.replace(newPath, { scroll: false });
-  }, [pathname, router]);
+  const syncToUrl = useCallback(
+    (make: string, model: string, chassis: string, engine: string, sort: string) => {
+      const params = new URLSearchParams();
+      if (make !== "all") params.set("make", make);
+      if (model !== "all") params.set("model", model);
+      if (chassis !== "all") params.set("chassis", chassis);
+      if (engine !== "all") params.set("engine", engine);
+      if (sort !== "default") params.set("sort", sort);
+      const qs = params.toString();
+      const newPath = qs ? `${pathname}?${qs}` : pathname || "";
+      router.replace(newPath, { scroll: false });
+    },
+    [pathname, router]
+  );
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -272,21 +276,22 @@ export default function RacechipVehicleFilter({
     const priceUsd = ep?.usd ?? p.price.usd ?? 0;
     const priceEur = ep?.eur ?? p.price.eur ?? 0;
     const priceUah = ep?.uah ?? p.price.uah ?? 0;
-    
+
     if (priceEur <= 0) return null;
 
-    const usd = priceUsd > 0 ? priceUsd : (rates?.USD ? Math.round(priceEur * rates.USD) : 0);
-    const uah = priceUah > 0 ? priceUah : (rates?.UAH ? Math.round(priceEur * rates.UAH) : 0);
+    const usd = priceUsd > 0 ? priceUsd : rates?.USD ? Math.round(priceEur * rates.USD) : 0;
+    const uah = priceUah > 0 ? priceUah : rates?.UAH ? Math.round(priceEur * rates.UAH) : 0;
 
     return {
       eur: formatPrice(locale, priceEur, "EUR"),
       usd: usd > 0 ? formatPrice(locale, usd, "USD") : null,
       uah: uah > 0 ? formatPrice(locale, uah, "UAH") : null,
-      primary: currency === "USD" && usd > 0
-        ? formatPrice(locale, usd, "USD")
-        : currency === "UAH" && uah > 0
-          ? formatPrice(locale, uah, "UAH")
-          : formatPrice(locale, priceEur, "EUR"),
+      primary:
+        currency === "USD" && usd > 0
+          ? formatPrice(locale, usd, "USD")
+          : currency === "UAH" && uah > 0
+            ? formatPrice(locale, uah, "UAH")
+            : formatPrice(locale, priceEur, "EUR"),
     };
   };
 
@@ -320,8 +325,12 @@ export default function RacechipVehicleFilter({
           label={isUa ? "Модель" : "Model"}
           placeholder={
             activeMake === "all"
-              ? isUa ? "Спочатку марка" : "Pick make first"
-              : isUa ? "Виберіть модель" : "Select model"
+              ? isUa
+                ? "Спочатку марка"
+                : "Pick make first"
+              : isUa
+                ? "Виберіть модель"
+                : "Select model"
           }
           value={activeModel === "all" ? "" : activeModel}
           options={availableModels.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
@@ -333,8 +342,12 @@ export default function RacechipVehicleFilter({
           label={isUa ? "Кузов" : "Chassis"}
           placeholder={
             activeModel === "all"
-              ? isUa ? "Спочатку модель" : "Pick model first"
-              : isUa ? "Виберіть кузов" : "Select chassis"
+              ? isUa
+                ? "Спочатку модель"
+                : "Pick model first"
+              : isUa
+                ? "Виберіть кузов"
+                : "Select chassis"
           }
           value={activeChassis === "all" ? "" : activeChassis}
           options={availableChassis.map((c) => ({ value: c.key, label: c.label, count: c.count }))}
@@ -346,8 +359,12 @@ export default function RacechipVehicleFilter({
           label={isUa ? "Двигун" : "Engine"}
           placeholder={
             activeMake === "all" || activeModel === "all"
-              ? isUa ? "Спочатку модель" : "Pick model first"
-              : isUa ? "Виберіть двигун" : "Select engine"
+              ? isUa
+                ? "Спочатку модель"
+                : "Pick model first"
+              : isUa
+                ? "Виберіть двигун"
+                : "Select engine"
           }
           value={activeEngine === "all" ? "" : activeEngine}
           options={availableEngines.map((e) => ({ value: e.key, label: e.label, count: e.count }))}
@@ -362,7 +379,7 @@ export default function RacechipVehicleFilter({
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-            className="appearance-none w-full h-[2.875rem] rounded-none bg-[#080808] pl-12 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
+            className="appearance-none w-full h-11.5 rounded-none bg-[#080808] pl-12 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden"
           >
             <option value="default" className="bg-[#080808] text-white">
               {isUa ? "За замовчуванням" : "Default Sort"}
@@ -410,9 +427,8 @@ export default function RacechipVehicleFilter({
     <section className="bg-transparent text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[#ff4a00] selection:text-white font-sans overflow-hidden">
       {/* Top Right Orange Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,74,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
-      
+
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 relative z-20">
-        
         <div className="flex flex-col gap-10">
           <div className="mb-4 flex items-center gap-3 lg:hidden">
             <button
@@ -465,11 +481,11 @@ export default function RacechipVehicleFilter({
               </div>
             </>
           ) : null}
-          
+
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
           <div className="relative z-30 mb-8 hidden max-w-7xl mx-auto w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
-              <h2 className="text-2xl lg:text-3xl font-light tracking-[0.05em] uppercase text-white/90">
+              <h2 className="text-2xl lg:text-3xl font-light tracking-wider uppercase text-white/90">
                 {isUa ? "НАЛАШТУЙТЕ СВІЙ АВТОМОБІЛЬ" : "CONFIGURE YOUR VEHICLE"}
               </h2>
               <p className="mt-3 text-[10px] tracking-[0.3em] uppercase text-zinc-500 font-light flex items-center gap-2">
@@ -482,37 +498,43 @@ export default function RacechipVehicleFilter({
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
           <main className="w-full">
-
             {filtered.length === 0 ? (
-               <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
-                 <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">
-                   <Search className="w-8 h-8 text-[#ff4a00]/50" />
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
-                   {isUa ? "Нічого не знайдено" : "No Components Found"}
-                 </h3>
-                 <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                   {isUa ? "Компоненти для цієї комбінації відсутні." : "Components for this combination are currently unavailable."}
-                 </p>
-                 <button
-                   onClick={resetFilters}
-                   className="px-8 py-3.5 bg-white text-black text-[12px] uppercase tracking-widest hover:bg-[#ff4a00] hover:text-white transition-colors shadow-lg font-bold rounded-lg"
-                 >
-                   {isUa ? "Скинути фільтри" : "Reset Filters"}
-                 </button>
-               </div>
+              <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
+                <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">
+                  <Search className="w-8 h-8 text-[#ff4a00]/50" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                  {isUa ? "Нічого не знайдено" : "No Components Found"}
+                </h3>
+                <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                  {isUa
+                    ? "Компоненти для цієї комбінації відсутні."
+                    : "Components for this combination are currently unavailable."}
+                </p>
+                <button
+                  onClick={resetFilters}
+                  className="px-8 py-3.5 bg-white text-black text-[12px] uppercase tracking-widest hover:bg-[#ff4a00] hover:text-white transition-colors shadow-lg font-bold rounded-lg"
+                >
+                  {isUa ? "Скинути фільтри" : "Reset Filters"}
+                </button>
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                 {displayedProducts.map((product) => {
                   const productTitle = localizeShopProductTitle(locale, product);
                   const priceData = getDisplayPrice(product);
-                  const engineTag = product.tags?.find(t => t.startsWith("car_engine:"))?.slice(11);
+                  const engineTag = product.tags
+                    ?.find((t) => t.startsWith("car_engine:"))
+                    ?.slice(11);
 
                   return (
-                    <article key={product.slug} className="group relative bg-[#080808] rounded-none flex flex-col border border-white/[0.05] hover:border-white/20 transition-all duration-500 shadow-xl">
+                    <article
+                      key={product.slug}
+                      className="group relative bg-[#080808] rounded-none flex flex-col border border-white/5 hover:border-white/20 transition-all duration-500 shadow-xl"
+                    >
                       {/* Static GTS 5 Badge — all products are GTS 5 tier */}
                       <div className="absolute top-4 right-4 z-20">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[8px] uppercase tracking-[0.2em] font-bold bg-[#ff4a00]/15 text-[#ff4a00] border border-[#ff4a00]/20 rounded-sm backdrop-blur-sm">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[8px] uppercase tracking-[0.2em] font-bold bg-[#ff4a00]/15 text-[#ff4a00] border border-[#ff4a00]/20 rounded-sm backdrop-blur-xs">
                           <Zap size={10} strokeWidth={2.5} />
                           GTS 5
                         </span>
@@ -521,72 +543,96 @@ export default function RacechipVehicleFilter({
                       {/* MAIN CLICKABLE LINK */}
                       <Link
                         href={`/${locale}/shop/racechip/products/${product.slug}`}
-                        className="flex flex-col flex-grow z-10"
+                        className="flex flex-col grow z-10"
                       >
                         {/* Square Image Canvas */}
-                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-[#0a0a0a] border-b border-white/[0.05]">
+                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-[#0a0a0a] border-b border-white/5">
                           {product.image ? (
-                             <div className="absolute inset-0 p-8">
-                               <Image
-                                 src={product.image}
-                                 alt={productTitle}
-                                 fill
-                                 sizes="(max-width: 768px) 100vw, 33vw"
-                                 className="object-contain opacity-80 transition-transform group-hover:scale-105 group-hover:opacity-100 mix-blend-screen"
-                                 style={{ transitionDuration: '1s' }}
-                               />
-                             </div>
+                            <div className="absolute inset-0 p-8">
+                              <Image
+                                src={product.image}
+                                alt={productTitle}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                                className="object-contain opacity-80 transition-transform group-hover:scale-105 group-hover:opacity-100 mix-blend-screen"
+                                style={{ transitionDuration: "1s" }}
+                              />
+                            </div>
                           ) : (
-                             <div className="w-16 h-16 opacity-20 text-white">
-                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                                 <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                                 <rect x="9" y="9" width="6" height="6"></rect>
-                                 <line x1="9" y1="1" x2="9" y2="4"></line>
-                                 <line x1="15" y1="1" x2="15" y2="4"></line>
-                                 <line x1="9" y1="20" x2="9" y2="23"></line>
-                                 <line x1="15" y1="20" x2="15" y2="23"></line>
-                                 <line x1="20" y1="9" x2="23" y2="9"></line>
-                                 <line x1="20" y1="14" x2="23" y2="14"></line>
-                                 <line x1="1" y1="9" x2="4" y2="9"></line>
-                                 <line x1="1" y1="14" x2="4" y2="14"></line>
-                               </svg>
-                             </div>
+                            <div className="w-16 h-16 opacity-20 text-white">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                <rect x="9" y="9" width="6" height="6"></rect>
+                                <line x1="9" y1="1" x2="9" y2="4"></line>
+                                <line x1="15" y1="1" x2="15" y2="4"></line>
+                                <line x1="9" y1="20" x2="9" y2="23"></line>
+                                <line x1="15" y1="20" x2="15" y2="23"></line>
+                                <line x1="20" y1="9" x2="23" y2="9"></line>
+                                <line x1="20" y1="14" x2="23" y2="14"></line>
+                                <line x1="1" y1="9" x2="4" y2="9"></line>
+                                <line x1="1" y1="14" x2="4" y2="14"></line>
+                              </svg>
+                            </div>
                           )}
                         </div>
 
                         {/* Card Body */}
-                        <div className="px-6 pt-6 pb-2 flex flex-col flex-grow">
+                        <div className="px-6 pt-6 pb-2 flex flex-col grow">
                           {engineTag && (
-                             <p className="text-[9px] uppercase tracking-[0.2em] font-light text-zinc-500 mb-2 line-clamp-1">
-                               {formatRacechipEngine(engineTag)}
-                             </p>
+                            <p className="text-[9px] uppercase tracking-[0.2em] font-light text-zinc-500 mb-2 line-clamp-1">
+                              {formatRacechipEngine(engineTag)}
+                            </p>
                           )}
                           <h3 className="text-sm font-light leading-relaxed text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors h-10">
                             {productTitle}
                           </h3>
 
                           {/* Dynamic Engine Specs Card Preview */}
-                          {product.longDescription?.en && product.longDescription.en.includes('Original Power') && (
-                            <div className="mb-6 grid grid-cols-2 gap-4 border-t border-b border-white/5 py-3">
-                              <div>
-                                <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">Power</span>
-                                <span className="text-xs font-light text-zinc-400">
-                                  {product.longDescription.en.match(/Original Power:<\/strong> (.*?) ->/)?.[1] || "---"} 
-                                  <span className="text-[#ff4a00] mx-1">→</span> 
-                                  <span className="text-white">{product.longDescription.en.match(/Tuned Power:<\/strong> (.*?)<\/li>/)?.[1] || "---"}</span>
-                                </span>
+                          {product.longDescription?.en &&
+                            product.longDescription.en.includes("Original Power") && (
+                              <div className="mb-6 grid grid-cols-2 gap-4 border-t border-b border-white/5 py-3">
+                                <div>
+                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">
+                                    Power
+                                  </span>
+                                  <span className="text-xs font-light text-zinc-400">
+                                    {product.longDescription.en.match(
+                                      /Original Power:<\/strong> (.*?) ->/
+                                    )?.[1] || "---"}
+                                    <span className="text-[#ff4a00] mx-1">→</span>
+                                    <span className="text-white">
+                                      {product.longDescription.en.match(
+                                        /Tuned Power:<\/strong> (.*?)<\/li>/
+                                      )?.[1] || "---"}
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="border-l border-white/5 pl-4">
+                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">
+                                    Torque
+                                  </span>
+                                  <span className="text-xs font-light text-zinc-400">
+                                    {product.longDescription.en.match(
+                                      /Original Torque:<\/strong> (.*?) ->/
+                                    )?.[1] || "---"}
+                                    <span className="text-[#ff4a00] mx-1">→</span>
+                                    <span className="text-white">
+                                      {product.longDescription.en.match(
+                                        /Tuned Torque:<\/strong> (.*?)<\/li>/
+                                      )?.[1] || "---"}
+                                    </span>
+                                  </span>
+                                </div>
                               </div>
-                              <div className="border-l border-white/5 pl-4">
-                                <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">Torque</span>
-                                <span className="text-xs font-light text-zinc-400">
-                                  {product.longDescription.en.match(/Original Torque:<\/strong> (.*?) ->/)?.[1] || "---"} 
-                                  <span className="text-[#ff4a00] mx-1">→</span> 
-                                  <span className="text-white">{product.longDescription.en.match(/Tuned Torque:<\/strong> (.*?)<\/li>/)?.[1] || "---"}</span>
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
+                            )}
+
                           {/* Price — primary + all currencies */}
                           <div className="mt-auto pt-2 pb-4">
                             <span className="text-lg tracking-widest font-thin text-white">
@@ -594,9 +640,25 @@ export default function RacechipVehicleFilter({
                             </span>
                             {priceData && (
                               <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-zinc-600">
-                                <span className={currency === "EUR" ? "text-zinc-400" : ""}>{priceData.eur}</span>
-                                {priceData.usd && (<><span className="text-zinc-800">·</span><span className={currency === "USD" ? "text-zinc-400" : ""}>{priceData.usd}</span></>)}
-                                {priceData.uah && (<><span className="text-zinc-800">·</span><span className={currency === "UAH" ? "text-zinc-400" : ""}>{priceData.uah}</span></>)}
+                                <span className={currency === "EUR" ? "text-zinc-400" : ""}>
+                                  {priceData.eur}
+                                </span>
+                                {priceData.usd && (
+                                  <>
+                                    <span className="text-zinc-800">·</span>
+                                    <span className={currency === "USD" ? "text-zinc-400" : ""}>
+                                      {priceData.usd}
+                                    </span>
+                                  </>
+                                )}
+                                {priceData.uah && (
+                                  <>
+                                    <span className="text-zinc-800">·</span>
+                                    <span className={currency === "UAH" ? "text-zinc-400" : ""}>
+                                      {priceData.uah}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             )}
                           </div>
@@ -612,7 +674,7 @@ export default function RacechipVehicleFilter({
                           {isUa ? "ПЕРЕЙТИ" : "VIEW"}
                           <ArrowRight size={12} strokeWidth={2} />
                         </Link>
-                        <AddToCartButton 
+                        <AddToCartButton
                           slug={product.slug}
                           variantId={null}
                           locale={locale}
@@ -641,10 +703,8 @@ export default function RacechipVehicleFilter({
                 </button>
               </div>
             )}
-
           </main>
         </div>
-
       </div>
     </section>
   );

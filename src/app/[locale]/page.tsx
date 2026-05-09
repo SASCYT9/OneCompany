@@ -5,10 +5,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
-export { generateMetadata } from './metadata';
+export { generateMetadata } from "./metadata";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 type ExperienceSplit = {
@@ -25,9 +25,7 @@ type LocalizedHomePageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export default async function LocalizedHomePage({
-  params,
-}: LocalizedHomePageProps) {
+export default async function LocalizedHomePage({ params }: LocalizedHomePageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
@@ -36,84 +34,96 @@ export default async function LocalizedHomePage({
 
   const experiences: ExperienceSplit[] = [
     {
-      label: t('automotive'),
-      title: t('hypercarPrograms'),
-      description: t('hypercarDescription'),
+      label: t("automotive"),
+      title: t("hypercarPrograms"),
+      description: t("hypercarDescription"),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       bgImage: "/images/hero-auto.png",
       stats: [
-        { value: "160+", note: t('autoBrands') },
-        { value: "11", note: t('autoCategories') },
+        { value: "160+", note: t("autoBrands") },
+        { value: "11", note: t("autoCategories") },
       ],
     },
     {
-      label: t('moto'),
-      title: t('factoryRacePackages'),
-      description: t('factoryRaceDescription'),
+      label: t("moto"),
+      title: t("factoryRacePackages"),
+      description: t("factoryRaceDescription"),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       bgImage: "/images/hero-moto.png",
       stats: [
-        { value: "60+", note: t('motoPartners') },
-        { value: "6", note: t('motoSeries') },
+        { value: "60+", note: t("motoPartners") },
+        { value: "6", note: t("motoSeries") },
       ],
     },
   ];
 
-  const heroBadgeCopy = t('badge');
+  const heroBadgeCopy = t("badge");
 
   const carouselItems = [
     {
-      id: 'brands',
-      title: locale === 'ua' ? '200+ брендів' : '200+ brands',
-      description: locale === 'ua'
-        ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.'
-        : 'We work exclusively with leading manufacturers of auto and moto tuning.',
-      meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality and authenticity guarantee',
+      id: "brands",
+      title: locale === "ua" ? "200+ брендів" : "200+ brands",
+      description:
+        locale === "ua"
+          ? "Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу."
+          : "We work exclusively with leading manufacturers of auto and moto tuning.",
+      meta:
+        locale === "ua" ? "Гарантія якості та автентичності" : "Quality and authenticity guarantee",
     },
     {
-      id: 'sourcing',
-      title: locale === 'ua' ? 'Індивідуальний підбір' : 'Bespoke selection',
-      description: locale === 'ua'
-        ? 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.'
-        : 'We analyze the project, check compatibility and provide recommendations.',
-      meta: locale === 'ua' ? 'Перевірка VIN та підтвердження сумісності' : 'VIN check and compatibility confirmation',
+      id: "sourcing",
+      title: locale === "ua" ? "Індивідуальний підбір" : "Bespoke selection",
+      description:
+        locale === "ua"
+          ? "Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації."
+          : "We analyze the project, check compatibility and provide recommendations.",
+      meta:
+        locale === "ua"
+          ? "Перевірка VIN та підтвердження сумісності"
+          : "VIN check and compatibility confirmation",
     },
     {
-      id: 'logistics',
-      title: locale === 'ua' ? 'Глобальна доставка' : 'Global delivery',
-      description: locale === 'ua'
-        ? 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.'
-        : 'We deliver to clients worldwide. Optimal and flexible conditions.',
-      meta: locale === 'ua' ? 'One Company Global · Надійність та безпека' : 'One Company Global · Reliability and safety',
+      id: "logistics",
+      title: locale === "ua" ? "Глобальна доставка" : "Global delivery",
+      description:
+        locale === "ua"
+          ? "Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови."
+          : "We deliver to clients worldwide. Optimal and flexible conditions.",
+      meta:
+        locale === "ua"
+          ? "One Company Global · Надійність та безпека"
+          : "One Company Global · Reliability and safety",
     },
     {
-      id: 'experience',
-      title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
-      description: locale === 'ua'
-        ? 'Формуємо культуру преміум тюнінгу та забезпечуємо безкомпромісну підтримку.'
-        : 'We create the culture of premium tuning and provide uncompromising support.',
-      meta: locale === 'ua' ? 'Офіційні програми з 2007 року' : 'Official programs since 2007',
+      id: "experience",
+      title: locale === "ua" ? "18 років досвіду" : "18 years experience",
+      description:
+        locale === "ua"
+          ? "Формуємо культуру преміум тюнінгу та забезпечуємо безкомпромісну підтримку."
+          : "We create the culture of premium tuning and provide uncompromising support.",
+      meta: locale === "ua" ? "Офіційні програми з 2007 року" : "Official programs since 2007",
     },
     {
-      id: 'authenticity',
-      title: locale === 'ua' ? 'Автентичність' : 'Authenticity',
-      description: locale === 'ua'
-        ? 'Тільки оригінальна продукція з повною документацією та гарантією від виробника.'
-        : 'Only genuine products with full documentation and manufacturer warranty.',
-      meta: locale === 'ua' ? 'Без посередників' : 'No intermediaries',
+      id: "authenticity",
+      title: locale === "ua" ? "Автентичність" : "Authenticity",
+      description:
+        locale === "ua"
+          ? "Тільки оригінальна продукція з повною документацією та гарантією від виробника."
+          : "Only genuine products with full documentation and manufacturer warranty.",
+      meta: locale === "ua" ? "Без посередників" : "No intermediaries",
     },
   ];
 
   const b2bServices = [
     {
-      title: t('wholesaleTitle'),
-      copy: t('wholesaleDescription'),
+      title: t("wholesaleTitle"),
+      copy: t("wholesaleDescription"),
     },
     {
-      title: t('logisticsTitle'),
-      copy: t('logisticsDescription'),
+      title: t("logisticsTitle"),
+      copy: t("logisticsDescription"),
     },
   ];
 
@@ -140,19 +150,20 @@ export default async function LocalizedHomePage({
     <>
       <main className="text-white">
         <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
-          <div className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}>
+          <div
+            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
+          >
             <p>{heroBadgeCopy}</p>
           </div>
-          
+
           {/* SEO H1 - visually hidden but accessible */}
           <h1 className="sr-only">
-            {locale === 'ua' 
-              ? 'One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб\'ютор Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Преміум тюнінг Київ.'
-              : 'One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins in Kyiv.'}
+            {locale === "ua"
+              ? "One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб'ютор Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Преміум тюнінг Київ."
+              : "One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins in Kyiv."}
           </h1>
 
           <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
-
             <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
               {experiences.map((experience, index) => (
                 <Link
@@ -168,9 +179,11 @@ export default async function LocalizedHomePage({
                   {/* Background Image - raw photo */}
                   <Image
                     src={experience.bgImage}
-                    alt={experience.label === 'AUTO' || experience.label === 'АВТО' 
-                      ? 'Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна' 
-                      : 'Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ'}
+                    alt={
+                      experience.label === "AUTO" || experience.label === "АВТО"
+                        ? "Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна"
+                        : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
+                    }
                     fill
                     className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -179,15 +192,19 @@ export default async function LocalizedHomePage({
                     quality={75}
                   />
                   {/* Subtle gradient for text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
-                      <span className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}>
+                      <span
+                        className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                      >
                         {experience.label}
                       </span>
                     </div>
-                    <p className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}>
+                    <p
+                      className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
+                    >
                       {experience.description}
                     </p>
                   </div>
@@ -195,12 +212,20 @@ export default async function LocalizedHomePage({
                     <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
                       {experience.stats.map((stat) => (
                         <div key={stat.note}>
-                          <p className={`font-display tracking-tight text-white ${typography.statValue}`}>{stat.value}</p>
-                          <p className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}>{stat.note}</p>
+                          <p
+                            className={`font-display tracking-tight text-white ${typography.statValue}`}
+                          >
+                            {stat.value}
+                          </p>
+                          <p
+                            className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}
+                          >
+                            {stat.note}
+                          </p>
                         </div>
                       ))}
                     </div>
-                    <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
                       →
                     </span>
                   </div>
@@ -214,7 +239,7 @@ export default async function LocalizedHomePage({
 
         {/* Hidden for now - duplicates hero cards functionality
       <section id="expert-programs" className="relative overflow-hidden py-20 text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('ourSites')}</p>
           <h3 className="mt-3 text-4xl font-light text-balance">{t('automotiveMotoBrands')}</h3>
@@ -253,15 +278,19 @@ export default async function LocalizedHomePage({
           <div className="relative mx-auto max-w-6xl">
             <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
               <div>
-                <p className={`uppercase tracking-[0.4em] text-white/50 ${typography.badge}`}>{t('b2bPrograms')}</p>
-                <h3 className={`mt-3 text-balance ${typography.h2}`}>{t('partnerWithLeading')}</h3>
-                <p className={`mt-3 text-white/60 text-pretty ${typography.body}`}>{t('partnerTypes')}</p>
+                <p className={`uppercase tracking-[0.4em] text-white/50 ${typography.badge}`}>
+                  {t("b2bPrograms")}
+                </p>
+                <h3 className={`mt-3 text-balance ${typography.h2}`}>{t("partnerWithLeading")}</h3>
+                <p className={`mt-3 text-white/60 text-pretty ${typography.body}`}>
+                  {t("partnerTypes")}
+                </p>
               </div>
               <Link
                 href={`/${locale}/contact`}
                 className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-black"
               >
-                {t('arrangeConsult')} ↗
+                {t("arrangeConsult")} ↗
               </Link>
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -270,7 +299,9 @@ export default async function LocalizedHomePage({
                   key={service.title}
                   className="rounded-3xl border border-white/10 bg-black/60 shadow-lg p-6 hover:bg-black/50 hover:border-white/20 transition-colors duration-200"
                 >
-                  <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>{heroBadgeCopy}</p>
+                  <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>
+                    {heroBadgeCopy}
+                  </p>
                   <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>
                   <p className={`mt-3 text-white/70 ${typography.body}`}>{service.copy}</p>
                 </div>
@@ -279,20 +310,24 @@ export default async function LocalizedHomePage({
           </div>
         </section>
 
-        <nav className="sr-only" aria-label={locale === 'ua' ? 'Структурна навігація сайту' : 'Site structural navigation'}>
+        <nav
+          className="sr-only"
+          aria-label={locale === "ua" ? "Структурна навігація сайту" : "Site structural navigation"}
+        >
           <ul>
             {structureLinks.map((href) => (
               <li key={href}>
-                <Link href={href} aria-label={locale === 'ua' ? `Перейти до ${href}` : `Open ${href}`}>
+                <Link
+                  href={href}
+                  aria-label={locale === "ua" ? `Перейти до ${href}` : `Open ${href}`}
+                >
                   {href}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-
       </main>
-      
     </>
   );
 }

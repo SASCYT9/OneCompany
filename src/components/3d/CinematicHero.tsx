@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, MeshTransmissionMaterial, Text, OrbitControls, Sky } from '@react-three/drei';
-import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
-import { motion } from 'framer-motion';
-import * as THREE from 'three';
-import { createSeededRandom } from '@/lib/random';
+import { useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment, MeshTransmissionMaterial, Text, OrbitControls, Sky } from "@react-three/drei";
+import {
+  EffectComposer,
+  Bloom,
+  ChromaticAberration,
+  Vignette,
+  Noise,
+} from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
+import { motion } from "framer-motion";
+import * as THREE from "three";
+import { createSeededRandom } from "@/lib/random";
 
 // Animated 3D Logo/Object
 function AnimatedLogo() {
@@ -16,7 +22,7 @@ function AnimatedLogo() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    
+
     if (torusRef.current) {
       torusRef.current.rotation.x = t * 0.3;
       torusRef.current.rotation.y = t * 0.5;
@@ -101,8 +107,7 @@ function FloatingSpheres() {
       return {
         key: i,
         position: [x, y, z] as [number, number, number],
-        color:
-          i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#ef4444' : '#3b82f6',
+        color: i % 3 === 0 ? "#fbbf24" : i % 3 === 1 ? "#ef4444" : "#3b82f6",
       };
     });
   }, []);
@@ -136,19 +141,14 @@ function Scene() {
       <ambientLight intensity={0.3} />
       <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={2} />
       <pointLight position={[-10, -10, -10]} intensity={1} color="#3b82f6" />
-      
+
       <AnimatedLogo />
       <FloatingSpheres />
-      
-      <Sky
-        distance={450000}
-        sunPosition={[0, 1, 0]}
-        inclination={0}
-        azimuth={0.25}
-      />
-      
+
+      <Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0} azimuth={0.25} />
+
       <Environment preset="sunset" />
-      
+
       <EffectComposer>
         <Bloom
           intensity={2}
@@ -204,11 +204,11 @@ export default function CinematicHero() {
           <h1 className="text-8xl md:text-9xl font-light tracking-tight mb-6">
             <span className="text-white">Premium</span>
             <br />
-            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
               Performance
             </span>
           </h1>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -224,10 +224,10 @@ export default function CinematicHero() {
             transition={{ delay: 1.5 }}
             className="flex gap-6 justify-center"
           >
-            <button className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-full shadow-2xl shadow-amber-500/50 hover:shadow-amber-500/80 hover:scale-105 transition-all">
+            <button className="px-8 py-4 bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold rounded-full shadow-2xl shadow-amber-500/50 hover:shadow-amber-500/80 hover:scale-105 transition-all">
               Explore 3D
             </button>
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-bold rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 transition-all">
+            <button className="px-8 py-4 bg-white/10 backdrop-blur-xs text-white font-bold rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 transition-all">
               Learn More
             </button>
           </motion.div>
@@ -241,9 +241,9 @@ export default function CinematicHero() {
           className="absolute bottom-12 left-1/2 -translate-x-1/2 grid grid-cols-3 gap-6"
         >
           {[
-            { icon: '✨', label: 'Glass Effects' },
-            { icon: '🌈', label: 'Chromatic' },
-            { icon: '💫', label: 'Bloom' },
+            { icon: "✨", label: "Glass Effects" },
+            { icon: "🌈", label: "Chromatic" },
+            { icon: "💫", label: "Bloom" },
           ].map((item, i) => (
             <div
               key={i}

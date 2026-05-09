@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Boxes, Plus, RefreshCcw, Save, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Boxes, Plus, RefreshCcw, Save, Trash2 } from "lucide-react";
 
 import {
   AdminActionBar,
@@ -13,13 +13,10 @@ import {
   AdminPage,
   AdminPageHeader,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
-import {
-  AdminInputField,
-  AdminSelectField,
-} from '@/components/admin/AdminFormFields';
-import { useConfirm } from '@/components/admin/AdminConfirmDialog';
-import { useToast } from '@/components/admin/AdminToast';
+} from "@/components/admin/AdminPrimitives";
+import { AdminInputField, AdminSelectField } from "@/components/admin/AdminFormFields";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
 
 type BundleListItem = {
   id: string;
@@ -111,22 +108,18 @@ type FormState = {
 
 function isBundleDetail(value: unknown): value is BundleDetail {
   return Boolean(
-    value &&
-      typeof value === 'object' &&
-      'id' in value &&
-      'productId' in value &&
-      'items' in value
+    value && typeof value === "object" && "id" in value && "productId" in value && "items" in value
   );
 }
 
 function emptyForm(): FormState {
   return {
     id: null,
-    productId: '',
+    productId: "",
     items: [
       {
         id: crypto.randomUUID(),
-        componentProductId: '',
+        componentProductId: "",
         componentVariantId: null,
         quantity: 1,
       },
@@ -134,11 +127,11 @@ function emptyForm(): FormState {
   };
 }
 
-function priceLabel(product: ProductOption | BundleListItem['product']) {
+function priceLabel(product: ProductOption | BundleListItem["product"]) {
   if (product.priceEur != null) return `EUR ${product.priceEur}`;
   if (product.priceUsd != null) return `USD ${product.priceUsd}`;
   if (product.priceUah != null) return `UAH ${product.priceUah}`;
-  return 'No price';
+  return "No price";
 }
 
 export default function AdminShopBundlesPage() {
@@ -153,7 +146,7 @@ export default function AdminShopBundlesPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const selectedBundle = useMemo(
     () => bundles.find((bundle) => bundle.id === selectedBundleId) ?? null,
@@ -161,10 +154,7 @@ export default function AdminShopBundlesPage() {
   );
 
   const bundleProductOptions = useMemo(
-    () =>
-      productOptions.filter(
-        (product) => !product.bundleId || product.bundleId === form.id
-      ),
+    () => productOptions.filter((product) => !product.bundleId || product.bundleId === form.id),
     [form.id, productOptions]
   );
 
@@ -184,12 +174,12 @@ export default function AdminShopBundlesPage() {
     } else {
       setLoading(true);
     }
-    setError('');
+    setError("");
     try {
-      const response = await fetch('/api/admin/shop/bundles');
+      const response = await fetch("/api/admin/shop/bundles");
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to load bundles');
+        setError(data?.error || "Failed to load bundles");
         return;
       }
 
@@ -197,9 +187,10 @@ export default function AdminShopBundlesPage() {
       setProductOptions(Array.isArray(data?.productOptions) ? data.productOptions : []);
 
       const nextSelectedId =
-        selectedBundleId && data?.bundles?.some((bundle: BundleListItem) => bundle.id === selectedBundleId)
+        selectedBundleId &&
+        data?.bundles?.some((bundle: BundleListItem) => bundle.id === selectedBundleId)
           ? selectedBundleId
-          : data?.bundles?.[0]?.id ?? null;
+          : (data?.bundles?.[0]?.id ?? null);
 
       setSelectedBundleId(nextSelectedId);
 
@@ -214,19 +205,22 @@ export default function AdminShopBundlesPage() {
 
   async function loadDetail(id: string) {
     setDetailLoading(true);
-    setError('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/bundles/${id}`);
-      const raw = (await response.json().catch(() => null)) as BundleDetail | { error?: string } | null;
+      const raw = (await response.json().catch(() => null)) as
+        | BundleDetail
+        | { error?: string }
+        | null;
       if (!response.ok || !isBundleDetail(raw)) {
-        setError((raw as { error?: string } | null)?.error || 'Failed to load bundle detail');
+        setError((raw as { error?: string } | null)?.error || "Failed to load bundle detail");
         return;
       }
 
       setForm({
         id: raw.id,
         productId: raw.productId,
-        items: raw.items.map((item: BundleDetail['items'][number]) => ({
+        items: raw.items.map((item: BundleDetail["items"][number]) => ({
           id: item.id,
           componentProductId: item.componentProductId,
           componentVariantId: item.componentVariantId,
@@ -255,13 +249,10 @@ export default function AdminShopBundlesPage() {
   function resetToNew() {
     setSelectedBundleId(null);
     setForm(emptyForm());
-    setError('');
+    setError("");
   }
 
-  function updateItem(
-    rowId: string,
-    patch: Partial<FormState['items'][number]>
-  ) {
+  function updateItem(rowId: string, patch: Partial<FormState["items"][number]>) {
     setForm((current) => ({
       ...current,
       items: current.items.map((item) =>
@@ -282,7 +273,7 @@ export default function AdminShopBundlesPage() {
         ...current.items,
         {
           id: crypto.randomUUID(),
-          componentProductId: '',
+          componentProductId: "",
           componentVariantId: null,
           quantity: 1,
         },
@@ -302,7 +293,7 @@ export default function AdminShopBundlesPage() {
 
   async function handleSave() {
     setSaving(true);
-    setError('');
+    setError("");
     try {
       const payload = {
         productId: form.productId,
@@ -315,16 +306,16 @@ export default function AdminShopBundlesPage() {
       };
 
       const response = await fetch(
-        form.id ? `/api/admin/shop/bundles/${form.id}` : '/api/admin/shop/bundles',
+        form.id ? `/api/admin/shop/bundles/${form.id}` : "/api/admin/shop/bundles",
         {
-          method: form.id ? 'PATCH' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: form.id ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }
       );
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to save bundle');
+        setError(data?.error || "Failed to save bundle");
         return;
       }
 
@@ -342,27 +333,27 @@ export default function AdminShopBundlesPage() {
   async function handleDelete() {
     if (!form.id) return;
     const ok = await confirm({
-      tone: 'danger',
-      title: 'Delete this bundle?',
-      description: 'The bundle definition and product mappings will be removed.',
-      confirmLabel: 'Delete bundle',
+      tone: "danger",
+      title: "Delete this bundle?",
+      description: "The bundle definition and product mappings will be removed.",
+      confirmLabel: "Delete bundle",
     });
     if (!ok) return;
     setDeleting(true);
-    setError('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/bundles/${form.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const msg = data?.error || 'Failed to delete bundle';
+        const msg = data?.error || "Failed to delete bundle";
         setError(msg);
-        toast.error('Could not delete bundle', msg);
+        toast.error("Could not delete bundle", msg);
         return;
       }
 
-      toast.success('Bundle deleted');
+      toast.success("Bundle deleted");
       resetToNew();
       await load(true);
     } finally {
@@ -393,15 +384,15 @@ export default function AdminShopBundlesPage() {
               type="button"
               onClick={() => void load(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6 disabled:opacity-50"
             >
-              <RefreshCcw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
+              <RefreshCcw className={`h-4 w-4 ${refreshing ? "motion-safe:animate-spin" : ""}`} />
               Refresh
             </button>
             <button
               type="button"
               onClick={resetToNew}
-              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               New bundle
@@ -411,17 +402,36 @@ export default function AdminShopBundlesPage() {
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Bundles" value={bundleMetrics.total} meta="Bundle definitions in catalog" tone="accent" />
-        <AdminMetricCard label="Components" value={bundleMetrics.components} meta="Assigned component rows across all bundles" />
-        <AdminMetricCard label="Available units" value={bundleMetrics.available} meta="Total computed bundle availability" />
-        <AdminMetricCard label="Assignable products" value={bundleMetrics.assignableProducts} meta="Products still eligible as bundle shells" />
+        <AdminMetricCard
+          label="Bundles"
+          value={bundleMetrics.total}
+          meta="Bundle definitions in catalog"
+          tone="accent"
+        />
+        <AdminMetricCard
+          label="Components"
+          value={bundleMetrics.components}
+          meta="Assigned component rows across all bundles"
+        />
+        <AdminMetricCard
+          label="Available units"
+          value={bundleMetrics.available}
+          meta="Total computed bundle availability"
+        />
+        <AdminMetricCard
+          label="Assignable products"
+          value={bundleMetrics.assignableProducts}
+          meta="Products still eligible as bundle shells"
+        />
       </AdminMetricGrid>
 
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
 
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <AdminTableShell className="overflow-hidden">
-          <div className="border-b border-white/10 px-4 py-3 text-sm text-zinc-400">{bundles.length} bundles</div>
+          <div className="border-b border-white/10 px-4 py-3 text-sm text-zinc-400">
+            {bundles.length} bundles
+          </div>
           <div className="max-h-[72vh] overflow-auto">
             {bundles.length === 0 ? (
               <AdminEmptyState
@@ -432,7 +442,7 @@ export default function AdminShopBundlesPage() {
                   <button
                     type="button"
                     onClick={resetToNew}
-                    className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+                    className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                   >
                     <Plus className="h-4 w-4" />
                     New bundle
@@ -445,11 +455,13 @@ export default function AdminShopBundlesPage() {
                   key={bundle.id}
                   type="button"
                   onClick={() => setSelectedBundleId(bundle.id)}
-                  className={`w-full border-b border-white/5 px-4 py-4 text-left transition hover:bg-white/[0.04] ${
-                    selectedBundleId === bundle.id ? 'bg-white/[0.06]' : ''
+                  className={`w-full border-b border-white/5 px-4 py-4 text-left transition hover:bg-white/4 ${
+                    selectedBundleId === bundle.id ? "bg-white/6" : ""
                   }`}
                 >
-                  <div className="font-medium text-zinc-100">{bundle.product.titleEn || bundle.product.titleUa}</div>
+                  <div className="font-medium text-zinc-100">
+                    {bundle.product.titleEn || bundle.product.titleUa}
+                  </div>
                   <div className="mt-1 text-xs text-zinc-500">{bundle.product.slug}</div>
                   <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
                     <span>{bundle.componentsCount} items</span>
@@ -466,25 +478,28 @@ export default function AdminShopBundlesPage() {
           <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-xl font-semibold tracking-tight text-zinc-50">
-                {form.id ? 'Edit bundle' : 'Create bundle'}
+                {form.id ? "Edit bundle" : "Create bundle"}
               </h2>
               <p className="max-w-2xl text-sm leading-6 text-zinc-400">
-                Choose the bundle shell product, then attach component products and optional variants that drive bundle availability.
+                Choose the bundle shell product, then attach component products and optional
+                variants that drive bundle availability.
               </p>
             </div>
 
             <AdminActionBar className="bg-black/30">
               <div className="space-y-1">
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Selected bundle</div>
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                  Selected bundle
+                </div>
                 <div className="text-sm text-zinc-200">
-                  {selectedBundle ? selectedBundle.product.slug : 'New bundle draft'}
+                  {selectedBundle ? selectedBundle.product.slug : "New bundle draft"}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 {selectedBundle ? (
                   <Link
                     href={`/admin/shop/${selectedBundle.productId}`}
-                    className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                    className="rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6"
                   >
                     Open product
                   </Link>
@@ -504,15 +519,17 @@ export default function AdminShopBundlesPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  {saving ? 'Saving…' : 'Save bundle'}
+                  {saving ? "Saving…" : "Save bundle"}
                 </button>
               </div>
             </AdminActionBar>
 
-            {detailLoading ? <AdminInlineAlert tone="warning">Loading selected bundle details…</AdminInlineAlert> : null}
+            {detailLoading ? (
+              <AdminInlineAlert tone="warning">Loading selected bundle details…</AdminInlineAlert>
+            ) : null}
 
             <AdminSelectField
               label="Bundle product"
@@ -524,7 +541,7 @@ export default function AdminShopBundlesPage() {
                 }))
               }
               options={[
-                { value: '', label: 'Select bundle product…' },
+                { value: "", label: "Select bundle product…" },
                 ...bundleProductOptions.map((product) => ({
                   value: product.id,
                   label: `${product.titleEn || product.titleUa} (${product.slug})`,
@@ -533,19 +550,24 @@ export default function AdminShopBundlesPage() {
             />
 
             <AdminInlineAlert tone="warning">
-              Ціна комплекту та B2B-ціни задаються на картці пов&apos;язаного товару. Тут налаштовуються лише склад комплекту та обчислена доступність.
+              Ціна комплекту та B2B-ціни задаються на картці пов&apos;язаного товару. Тут
+              налаштовуються лише склад комплекту та обчислена доступність.
             </AdminInlineAlert>
 
             <div className="space-y-3">
               <AdminActionBar className="bg-black/30">
                 <div>
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Components</div>
-                  <div className="mt-1 text-sm text-zinc-300">{form.items.length} component rows in this bundle</div>
+                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                    Components
+                  </div>
+                  <div className="mt-1 text-sm text-zinc-300">
+                    {form.items.length} component rows in this bundle
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={addRow}
-                  className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                  className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6"
                 >
                   <Plus className="h-4 w-4" />
                   Add item
@@ -573,7 +595,7 @@ export default function AdminShopBundlesPage() {
                         })
                       }
                       options={[
-                        { value: '', label: 'Select product…' },
+                        { value: "", label: "Select product…" },
                         ...productOptions
                           .filter((product) => product.id !== form.productId)
                           .map((product) => ({
@@ -585,14 +607,14 @@ export default function AdminShopBundlesPage() {
 
                     <AdminSelectField
                       label="Variant"
-                      value={item.componentVariantId ?? ''}
+                      value={item.componentVariantId ?? ""}
                       onChange={(value) =>
                         updateItem(item.id, {
                           componentVariantId: value || null,
                         })
                       }
                       options={[
-                        { value: '', label: 'Default variant' },
+                        { value: "", label: "Default variant" },
                         ...variantOptions.map((variant) => ({
                           value: variant.id,
                           label: variant.title || variant.sku || variant.id,
@@ -623,14 +645,15 @@ export default function AdminShopBundlesPage() {
                     </div>
 
                     {componentProduct ? (
-                      <div className="lg:col-span-4 rounded-none border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-zinc-400">
+                      <div className="lg:col-span-4 rounded-none border border-white/10 bg-white/3 px-3 py-3 text-xs text-zinc-400">
                         <span className="font-medium text-zinc-200">
                           {componentProduct.titleEn || componentProduct.titleUa}
-                        </span>{' '}
-                        · {priceLabel(componentProduct)} ·{' '}
-                        {variantOptions.find((variant) => variant.id === item.componentVariantId)?.inventoryQty ??
+                        </span>{" "}
+                        · {priceLabel(componentProduct)} ·{" "}
+                        {variantOptions.find((variant) => variant.id === item.componentVariantId)
+                          ?.inventoryQty ??
                           variantOptions.find((variant) => variant.isDefault)?.inventoryQty ??
-                          0}{' '}
+                          0}{" "}
                         units on selected/default variant
                       </div>
                     ) : null}

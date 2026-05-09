@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -33,39 +32,52 @@ export default function ContactPageContent() {
   // telegramUsername is optional, so it's not in requiredKeys unless we want to force it
   const requiredKeys: (keyof typeof formData)[] = ["model", "wishes", "email", "phone"];
   const completion = Math.round(
-    (requiredKeys.filter(k => (formData[k] as string).trim().length > 0).length / requiredKeys.length) * 100
+    (requiredKeys.filter((k) => (formData[k] as string).trim().length > 0).length /
+      requiredKeys.length) *
+      100
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const formatPhoneMask = (value: string) => {
     // Allow user to type + manually at the start
-    const hasPlus = value.startsWith('+');
-    const digits = value.replace(/\D/g, '');
+    const hasPlus = value.startsWith("+");
+    const digits = value.replace(/\D/g, "");
 
-    if (!digits) return hasPlus ? '+' : '';
+    if (!digits) return hasPlus ? "+" : "";
 
     // If user typed +, preserve it; otherwise add it
-    const prefix = hasPlus || value.length === 0 ? '+' : '+';
+    const prefix = hasPlus || value.length === 0 ? "+" : "+";
 
     if (digits.length <= 3) return `${prefix}${digits}`;
     if (digits.length <= 5) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3)}`;
-    if (digits.length <= 8) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
-    if (digits.length <= 10) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+    if (digits.length <= 8)
+      return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
+    if (digits.length <= 10)
+      return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
     return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 10)} ${digits.slice(10, 12)}`;
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneMask(e.target.value);
-    setFormData(prev => ({ ...prev, phone: formatted }));
+    setFormData((prev) => ({ ...prev, phone: formatted }));
   };
 
   const handleTypeChange = (newType: FormType) => {
     setType(newType);
-    setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", telegramUsername: "", contactMethod: "telegram" });
+    setFormData({
+      model: "",
+      vin: "",
+      wishes: "",
+      budget: "",
+      email: "",
+      phone: "",
+      telegramUsername: "",
+      contactMethod: "telegram",
+    });
     setStatus("idle");
     setMessage("");
   };
@@ -99,8 +111,17 @@ export default function ContactPageContent() {
       if (response.ok) {
         setStatus("success");
         setMessage(t("form.success"));
-        trackFormSubmission('contact', { form_type: type });
-        setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", telegramUsername: "", contactMethod: "telegram" });
+        trackFormSubmission("contact", { form_type: type });
+        setFormData({
+          model: "",
+          vin: "",
+          wishes: "",
+          budget: "",
+          email: "",
+          phone: "",
+          telegramUsername: "",
+          contactMethod: "telegram",
+        });
       } else {
         setStatus("error");
         setMessage(result?.error || t("form.error"));
@@ -118,8 +139,8 @@ export default function ContactPageContent() {
   return (
     <div className="min-h-screen bg-black text-white">
       <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-20 md:px-10 md:py-32 lg:py-40">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_60%)] sm:h-64" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-black/80 to-black" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_60%)] sm:h-64" />
         <div className="relative mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -127,7 +148,9 @@ export default function ContactPageContent() {
             transition={{ duration: 0.8 }}
             className="mb-12 text-center sm:mb-16 md:mb-20"
           >
-            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">{t("hero.eyebrow")}</p>
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">
+              {t("hero.eyebrow")}
+            </p>
             <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl text-balance">
               {t("hero.heading")}
             </h1>
@@ -142,14 +165,18 @@ export default function ContactPageContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+              className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/2 p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
-                  <div className={`flex items-center justify-between tracking-[0.15em] uppercase text-white/40 font-light ${typography.badge}`}>
+                  <div
+                    className={`flex items-center justify-between tracking-[0.15em] uppercase text-white/40 font-light ${typography.badge}`}
+                  >
                     <span>{completion}%</span>
-                    <span className="truncate">{status === "loading" ? t("form.submitting") : t("form.progressLabel")}</span>
+                    <span className="truncate">
+                      {status === "loading" ? t("form.submitting") : t("form.progressLabel")}
+                    </span>
                   </div>
                   <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/10">
                     <div
@@ -161,7 +188,7 @@ export default function ContactPageContent() {
 
                 {/* Type selector */}
                 <div className="flex gap-2">
-                  {(["auto", "moto"] as FormType[]).map(option => (
+                  {(["auto", "moto"] as FormType[]).map((option) => (
                     <button
                       key={option}
                       type="button"
@@ -174,7 +201,9 @@ export default function ContactPageContent() {
                       }
                       aria-pressed={type === option}
                     >
-                      <span className="relative z-10">{option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}</span>
+                      <span className="relative z-10">
+                        {option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -182,7 +211,10 @@ export default function ContactPageContent() {
                 <div className="space-y-6 sm:space-y-8">
                   <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2">
                     <div>
-                      <label htmlFor="model" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                      <label
+                        htmlFor="model"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
                         {modelLabel}
                       </label>
                       <input
@@ -191,14 +223,18 @@ export default function ContactPageContent() {
                         name="model"
                         value={formData.model}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="vin" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
-                        {t("form.vinLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                      <label
+                        htmlFor="vin"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
+                        {t("form.vinLabel")}{" "}
+                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -206,7 +242,7 @@ export default function ContactPageContent() {
                         name="vin"
                         value={formData.vin}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.vinPlaceholder")}
                         maxLength={17}
                       />
@@ -214,7 +250,10 @@ export default function ContactPageContent() {
                   </div>
 
                   <div>
-                    <label htmlFor="wishes" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                    <label
+                      htmlFor="wishes"
+                      className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                    >
                       {t("form.wishesLabel")}
                     </label>
                     <textarea
@@ -223,7 +262,7 @@ export default function ContactPageContent() {
                       rows={4}
                       value={formData.wishes}
                       onChange={handleChange}
-                      className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all resize-none font-light"
+                      className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all resize-none font-light"
                       placeholder={t("form.wishesPlaceholder")}
                       required
                     />
@@ -231,8 +270,12 @@ export default function ContactPageContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="budget" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
-                        {t("form.budgetLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                      <label
+                        htmlFor="budget"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
+                        {t("form.budgetLabel")}{" "}
+                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -240,12 +283,15 @@ export default function ContactPageContent() {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.budgetPlaceholder")}
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                      <label
+                        htmlFor="email"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
                         {t("form.emailLabel")}
                       </label>
                       <input
@@ -254,7 +300,7 @@ export default function ContactPageContent() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder="example@mail.com"
                         required
                       />
@@ -263,7 +309,10 @@ export default function ContactPageContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="phone" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                      <label
+                        htmlFor="phone"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
                         {t("form.phoneLabel")}
                       </label>
                       <input
@@ -272,16 +321,22 @@ export default function ContactPageContent() {
                         name="phone"
                         value={formData.phone}
                         onChange={handlePhoneChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.phonePlaceholder")}
                         required
                         aria-label={t("form.phoneLabel")}
                       />
-                      <p className="mt-1 text-[8px] text-white/30 tracking-wide">{t("form.phoneHint")}</p>
+                      <p className="mt-1 text-[8px] text-white/30 tracking-wide">
+                        {t("form.phoneHint")}
+                      </p>
                     </div>
                     <div>
-                      <label htmlFor="telegramUsername" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
-                        {t("form.telegramUsernameLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                      <label
+                        htmlFor="telegramUsername"
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      >
+                        {t("form.telegramUsernameLabel")}{" "}
+                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -289,7 +344,7 @@ export default function ContactPageContent() {
                         name="telegramUsername"
                         value={formData.telegramUsername}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.telegramUsernamePlaceholder")}
                       />
                     </div>
@@ -315,10 +370,11 @@ export default function ContactPageContent() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className={`p-4 flex items-center justify-center gap-3 rounded-xl border ${status === "success"
+                      className={`p-4 flex items-center justify-center gap-3 rounded-xl border ${
+                        status === "success"
                           ? "border-green-300/40 bg-green-500/10 text-green-200"
                           : "border-red-300/40 bg-red-500/10 text-red-200"
-                        }`}
+                      }`}
                     >
                       {status === "success" ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                       <span className="text-sm font-light">{message}</span>
@@ -335,36 +391,56 @@ export default function ContactPageContent() {
               className="mx-auto w-full max-w-6xl"
             >
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
                   <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
                     <Mail className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.emailLabel")}</h3>
-                    <a href="mailto:info@onecompany.global" onClick={() => trackCTAClick('click_email', 'mailto:info@onecompany.global')} className="text-lg font-light text-white transition-colors hover:text-white/80">
+                    <h3
+                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                    >
+                      {t("info.emailLabel")}
+                    </h3>
+                    <a
+                      href="mailto:info@onecompany.global"
+                      onClick={() => trackCTAClick("click_email", "mailto:info@onecompany.global")}
+                      className="text-lg font-light text-white transition-colors hover:text-white/80"
+                    >
                       info@onecompany.global
                     </a>
                   </div>
                 </div>
 
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
                   <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
                     <Phone className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.phoneLabel")}</h3>
-                    <a href="tel:+380660771700" onClick={() => trackCTAClick('click_phone', 'tel:+380660771700')} className="text-lg font-light text-white transition-colors hover:text-white/80">
+                    <h3
+                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                    >
+                      {t("info.phoneLabel")}
+                    </h3>
+                    <a
+                      href="tel:+380660771700"
+                      onClick={() => trackCTAClick("click_phone", "tel:+380660771700")}
+                      className="text-lg font-light text-white transition-colors hover:text-white/80"
+                    >
                       +380 66 077 17 00
                     </a>
                   </div>
                 </div>
 
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
                   <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
                     <MapPin className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.locationLabel")}</h3>
+                    <h3
+                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                    >
+                      {t("info.locationLabel")}
+                    </h3>
                     <p className="text-lg font-light text-white">{t("info.locationValue")}</p>
                   </div>
                 </div>

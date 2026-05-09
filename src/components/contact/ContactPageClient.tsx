@@ -92,23 +92,30 @@ function normalizeChannelUrl(channel: ContactChannel) {
   return channel.value;
 }
 
-export default function ContactPageClient({ locale, pageUrl, heroPoster, contactContent }: ContactPageClientProps) {
+export default function ContactPageClient({
+  locale,
+  pageUrl,
+  heroPoster,
+  contactContent,
+}: ContactPageClientProps) {
   const t = useTranslations("contactPage");
   const isUA = locale === "ua";
   const searchParams = useSearchParams();
-  const inquiry = searchParams.get('inquiry');
+  const inquiry = searchParams.get("inquiry");
 
   const [type, setType] = useState<FormType>("auto");
   const [formData, setFormData] = useState<FormState>(() => {
     if (inquiry) {
-      const text = isUA 
-        ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.` 
+      const text = isUA
+        ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.`
         : `Hello, I am interested in ${inquiry} brand products.`;
       return { ...blankForm, wishes: text };
     }
     return blankForm;
   });
-  const [selectedChannelId, setSelectedChannelId] = useState<string>(contactContent.channels[0]?.id ?? "email");
+  const [selectedChannelId, setSelectedChannelId] = useState<string>(
+    contactContent.channels[0]?.id ?? "email"
+  );
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [times, setTimes] = useState(() => computeTimes(locale));
@@ -123,7 +130,9 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
     return Math.round((filled / progressKeys.length) * 100);
   }, [formData]);
 
-  const selectedChannel = contactContent.channels.find((channel) => channel.id === selectedChannelId) ?? contactContent.channels[0];
+  const selectedChannel =
+    contactContent.channels.find((channel) => channel.id === selectedChannelId) ??
+    contactContent.channels[0];
 
   const contactSchema = useMemo(() => {
     const contactPoints = contactContent.channels.map((channel) => {
@@ -154,7 +163,9 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
         name: "onecompany",
         url: pageUrl,
         image: heroPoster,
-        email: contactContent.channels.find((channel) => channel.type === "email")?.value ?? "info@onecompany.global",
+        email:
+          contactContent.channels.find((channel) => channel.type === "email")?.value ??
+          "info@onecompany.global",
         telephone: contactContent.messengerHandles.phone,
         address: {
           "@type": "PostalAddress",
@@ -248,13 +259,13 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
     "font-light text-white leading-tight",
     "text-[2.5rem] md:text-[3rem]"
   );
-  const leadParagraphClass = clsx(
-    "text-white/70",
-    "text-lg md:text-xl"
-  );
+  const leadParagraphClass = clsx("text-white/70", "text-lg md:text-xl");
 
   return (
-    <div data-locale={locale} className="relative min-h-screen bg-gradient-to-b from-black via-[#050505] to-[#020202] text-white">
+    <div
+      data-locale={locale}
+      className="relative min-h-screen bg-linear-to-b from-black via-[#050505] to-[#020202] text-white"
+    >
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -266,36 +277,54 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
             className="h-full w-full bg-cover bg-center"
             style={{ backgroundImage: `url(${heroPoster})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-[#050505]" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/70 to-[#050505]" />
         </div>
         <div className="relative mx-auto max-w-5xl px-6 py-28 text-center">
-          <p className="text-[11px] uppercase tracking-[0.5em] text-white/60">{contactContent.heroBadge}</p>
+          <p className="text-[11px] uppercase tracking-[0.5em] text-white/60">
+            {contactContent.heroBadge}
+          </p>
           <h1 className={heroTitleClass}>{t("heroTitle")}</h1>
           <div className="mx-auto mt-6 h-px w-24 bg-white/20" />
-          <p className={clsx("mx-auto mt-6 max-w-3xl font-light", leadParagraphClass)}>{t("heroSubtitle")}</p>
+          <p className={clsx("mx-auto mt-6 max-w-3xl font-light", leadParagraphClass)}>
+            {t("heroSubtitle")}
+          </p>
         </div>
       </section>
 
       <section className="relative px-6 py-20">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_55%)] opacity-70" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_55%)] opacity-70" />
         <div className="relative mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1.1fr_1fr]">
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="space-y-10">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-10"
+          >
             <div>
-              <p className="uppercase text-[11px] tracking-[0.45em] text-white/40">{contactContent.heroBadge}</p>
+              <p className="uppercase text-[11px] tracking-[0.45em] text-white/40">
+                {contactContent.heroBadge}
+              </p>
               <h2 className={clsx("mt-4", sectionTitleClass)}>{t("infoTitle")}</h2>
-              <p className={clsx("mt-6 leading-relaxed text-white/70", "text-base")}>{contactContent.infoBody}</p>
+              <p className={clsx("mt-6 leading-relaxed text-white/70", "text-base")}>
+                {contactContent.infoBody}
+              </p>
             </div>
 
             <div className="space-y-4">
               {contactContent.channels.map((channel) => {
                 const Icon = channelIcons[channel.type] ?? Sparkles;
                 return (
-                  <div key={channel.id} className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div
+                    key={channel.id}
+                    className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-4"
+                  >
                     <div className="rounded-2xl border border-white/20 bg-black/40 p-3">
                       <Icon className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.45em] text-white/40">{channel.label}</p>
+                      <p className="text-xs uppercase tracking-[0.45em] text-white/40">
+                        {channel.label}
+                      </p>
                       <p className="mt-1 text-lg font-light">{channel.value}</p>
                       <p className="text-sm text-white/50">{channel.note}</p>
                     </div>
@@ -307,14 +336,16 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.45em] text-white/40">{t("locationLabel")}</p>
+                  <p className="text-xs uppercase tracking-[0.45em] text-white/40">
+                    {t("locationLabel")}
+                  </p>
                   <p className="text-lg font-light">{t("locationValue")}</p>
                   <p className="text-sm text-white/50">{contactContent.timezoneNote}</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-4 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-black/40 to-black/80 p-6">
+            <div className="grid gap-4 rounded-3xl border border-white/10 bg-linear-to-br from-white/5 via-black/40 to-black/80 p-6">
               <div className="flex items-center gap-3 text-white/70">
                 <Clock className="h-5 w-5" />
                 <p className="text-sm uppercase tracking-[0.4em]">SLA</p>
@@ -326,37 +357,64 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                   <p className="text-lg text-white">{times.kyiv}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-white/40">{locale === "ua" ? "Ваш час" : "Your time"}</p>
+                  <p className="text-xs uppercase tracking-[0.35em] text-white/40">
+                    {locale === "ua" ? "Ваш час" : "Your time"}
+                  </p>
                   <p className="text-lg text-white">{times.user}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p className="text-xs uppercase tracking-[0.45em] text-white/50">{contactContent.messengerTagline}</p>
+              <p className="text-xs uppercase tracking-[0.45em] text-white/50">
+                {contactContent.messengerTagline}
+              </p>
               <div className="flex flex-wrap gap-4">
-                <a href={contactContent.messengerHandles.telegram} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black" rel="noreferrer">
+                <a
+                  href={contactContent.messengerHandles.telegram}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black"
+                  rel="noreferrer"
+                >
                   Telegram ↗
                 </a>
-                <a href={contactContent.messengerHandles.whatsapp} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black" rel="noreferrer">
+                <a
+                  href={contactContent.messengerHandles.whatsapp}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black"
+                  rel="noreferrer"
+                >
                   WhatsApp ↗
                 </a>
-                <a href={`tel:${contactContent.messengerHandles.phone}`} className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black">
+                <a
+                  href={`tel:${contactContent.messengerHandles.phone}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black"
+                >
                   Call • {contactContent.messengerHandles.phone}
                 </a>
               </div>
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-            <form onSubmit={handleSubmit} className="space-y-8 rounded-[32px] border border-white/10 bg-black/60 p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)]">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-8 rounded-[32px] border border-white/10 bg-black/60 p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
+            >
               <div>
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/40">
                   <span>{completion}%</span>
                   <span>{status === "loading" ? t("submittingCta") : t("submitCta")}</span>
                 </div>
                 <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full bg-white transition-all duration-500" style={{ width: `${completion}%` }} />
+                  <div
+                    className="h-full bg-white transition-all duration-500"
+                    style={{ width: `${completion}%` }}
+                  />
                 </div>
               </div>
 
@@ -380,7 +438,9 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
 
               <div className="grid gap-6">
                 <div>
-                  <label className="text-xs uppercase tracking-[0.4em] text-white/40">{modelLabel}</label>
+                  <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                    {modelLabel}
+                  </label>
                   <input
                     type="text"
                     id="model"
@@ -389,7 +449,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                     onChange={handleChange}
                     placeholder={modelPlaceholder}
                     required
-                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-lg font-light outline-none transition focus:border-white"
+                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-lg font-light outline-hidden transition focus:border-white"
                   />
                 </div>
                 <div className="grid gap-6 md:grid-cols-2">
@@ -404,11 +464,13 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       value={formData.vin}
                       onChange={handleChange}
                       placeholder={t("vinPlaceholder")}
-                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                     />
                   </div>
                   <div>
-                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">{t("emailFieldLabel")}</label>
+                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                      {t("emailFieldLabel")}
+                    </label>
                     <input
                       type="email"
                       id="email"
@@ -417,13 +479,15 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       onChange={handleChange}
                       placeholder={t("emailPlaceholder")}
                       required
-                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                     />
                   </div>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
-                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">Phone Number</label>
+                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       id="phone"
@@ -432,15 +496,19 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       onChange={handleChange}
                       placeholder="+380 XX XXX XX XX"
                       required
-                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                     />
                   </div>
                   <div>
-                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">Preferred Contact</label>
+                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                      Preferred Contact
+                    </label>
                     <div className="mt-3 flex gap-3">
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, contactMethod: "telegram" }))}
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, contactMethod: "telegram" }))
+                        }
                         className={clsx(
                           "flex-1 rounded-full border px-4 py-2 text-sm transition",
                           formData.contactMethod === "telegram"
@@ -452,7 +520,9 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       </button>
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, contactMethod: "whatsapp" }))}
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, contactMethod: "whatsapp" }))
+                        }
                         className={clsx(
                           "flex-1 rounded-full border px-4 py-2 text-sm transition",
                           formData.contactMethod === "whatsapp"
@@ -476,11 +546,13 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                     value={formData.telegramUsername}
                     onChange={handleChange}
                     placeholder="@username"
-                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs uppercase tracking-[0.4em] text-white/40">{t("wishesLabel")}</label>
+                  <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                    {t("wishesLabel")}
+                  </label>
                   <textarea
                     id="wishes"
                     name="wishes"
@@ -489,7 +561,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                     onChange={handleChange}
                     placeholder={t("wishesPlaceholder")}
                     required
-                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                   />
                 </div>
                 <div>
@@ -503,7 +575,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                     value={formData.budget}
                     onChange={handleChange}
                     placeholder={t("budgetPlaceholder")}
-                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-hidden transition focus:border-white"
                   />
                   <div className="mt-4 flex flex-wrap gap-3">
                     {contactContent.budgets.map((preset) => (
@@ -521,7 +593,9 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
               </div>
 
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-white/40">Preferred channel</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/40">
+                  Preferred channel
+                </p>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {contactContent.channels.map((channel) => {
                     const Icon = channelIcons[channel.type] ?? Sparkles;
@@ -580,7 +654,11 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                     )}
                   >
                     <div className="flex items-center gap-2">
-                      {status === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                      {status === "success" ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4" />
+                      )}
                       <span>{message}</span>
                     </div>
                   </motion.div>
@@ -592,7 +670,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
       </section>
 
       <section className="relative px-6 pb-24">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white/10/10 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-linear-to-b from-white/10/10 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-6xl">
           <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
             <div>
@@ -603,13 +681,18 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {contactContent.successStories.map((story) => (
-              <div key={story.id} className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-black/40 to-black/80 p-6">
+              <div
+                key={story.id}
+                className="rounded-3xl border border-white/10 bg-linear-to-b from-white/10 via-black/40 to-black/80 p-6"
+              >
                 <p className="text-xs uppercase tracking-[0.5em] text-white/50">{story.badge}</p>
                 <h4 className="mt-3 text-2xl font-light text-white">{story.title}</h4>
                 <p className="mt-3 text-sm text-white/70">{story.summary}</p>
                 <div className="mt-6 flex items-baseline gap-3 text-white">
                   <span className="text-4xl font-light">{story.metric}</span>
-                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">{story.metricLabel}</span>
+                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">
+                    {story.metricLabel}
+                  </span>
                 </div>
               </div>
             ))}

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import { Loader2, Plus, RefreshCw, Shield } from 'lucide-react';
+import { Loader2, Plus, RefreshCw, Shield } from "lucide-react";
 
 import {
   AdminActionBar,
@@ -17,8 +17,8 @@ import {
   AdminSplitDetailShell,
   AdminStatusBadge,
   AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
-import { AdminCheckboxField, AdminInputField } from '@/components/admin/AdminFormFields';
+} from "@/components/admin/AdminPrimitives";
+import { AdminCheckboxField, AdminInputField } from "@/components/admin/AdminFormFields";
 
 type AdminRole = {
   id: string;
@@ -52,24 +52,24 @@ type EditAdminForm = {
 };
 
 const EMPTY_CREATE_FORM: CreateAdminForm = {
-  email: '',
-  name: '',
-  password: '',
+  email: "",
+  name: "",
+  password: "",
   roleIds: [],
 };
 
 const EMPTY_EDIT_FORM: EditAdminForm = {
-  name: '',
+  name: "",
   isActive: true,
   roleIds: [],
 };
 
 function formatDate(value: string | null) {
   if (!value) {
-    return 'Never';
+    return "Never";
   }
 
-  return new Date(value).toLocaleString('uk-UA');
+  return new Date(value).toLocaleString("uk-UA");
 }
 
 function snapshotEditForm(form: EditAdminForm) {
@@ -84,8 +84,8 @@ export default function AdminUsersPage() {
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditAdminForm>(EMPTY_EDIT_FORM);
   const [saving, setSaving] = useState(false);
@@ -101,19 +101,31 @@ export default function AdminUsersPage() {
 
     try {
       const [usersResponse, rolesResponse] = await Promise.all([
-        fetch('/api/admin/users', { cache: 'no-store' }),
-        fetch('/api/admin/roles', { cache: 'no-store' }),
+        fetch("/api/admin/users", { cache: "no-store" }),
+        fetch("/api/admin/roles", { cache: "no-store" }),
       ]);
 
-      const usersPayload = (await usersResponse.json().catch(() => ([]))) as AdminUser[] | { error?: string };
-      const rolesPayload = (await rolesResponse.json().catch(() => ([]))) as AdminRole[] | { error?: string };
+      const usersPayload = (await usersResponse.json().catch(() => [])) as
+        | AdminUser[]
+        | { error?: string };
+      const rolesPayload = (await rolesResponse.json().catch(() => [])) as
+        | AdminRole[]
+        | { error?: string };
 
       if (!usersResponse.ok) {
-        throw new Error(!Array.isArray(usersPayload) ? usersPayload.error || 'Failed to load users' : 'Failed to load users');
+        throw new Error(
+          !Array.isArray(usersPayload)
+            ? usersPayload.error || "Failed to load users"
+            : "Failed to load users"
+        );
       }
 
       if (!rolesResponse.ok) {
-        throw new Error(!Array.isArray(rolesPayload) ? rolesPayload.error || 'Failed to load roles' : 'Failed to load roles');
+        throw new Error(
+          !Array.isArray(rolesPayload)
+            ? rolesPayload.error || "Failed to load roles"
+            : "Failed to load roles"
+        );
       }
 
       const nextUsers = Array.isArray(usersPayload) ? usersPayload : [];
@@ -126,7 +138,7 @@ export default function AdminUsersPage() {
         setSelectedUserId(nextUsers[0].id);
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Failed to load admin access data');
+      setError(loadError instanceof Error ? loadError.message : "Failed to load admin access data");
     } finally {
       setLoading(false);
     }
@@ -149,7 +161,7 @@ export default function AdminUsersPage() {
 
     if (selectedUser) {
       setEditForm({
-        name: selectedUser.name ?? '',
+        name: selectedUser.name ?? "",
         isActive: selectedUser.isActive,
         roleIds: selectedUser.roles.map((role) => role.id),
       });
@@ -161,11 +173,11 @@ export default function AdminUsersPage() {
     const needle = query.trim().toLowerCase();
 
     return users.filter((user) => {
-      if (statusFilter === 'active' && !user.isActive) {
+      if (statusFilter === "active" && !user.isActive) {
         return false;
       }
 
-      if (statusFilter === 'inactive' && user.isActive) {
+      if (statusFilter === "inactive" && user.isActive) {
         return false;
       }
 
@@ -173,8 +185,8 @@ export default function AdminUsersPage() {
         return true;
       }
 
-      return [user.name || '', user.email, ...user.roles.map((role) => role.name)]
-        .join(' ')
+      return [user.name || "", user.email, ...user.roles.map((role) => role.name)]
+        .join(" ")
         .toLowerCase()
         .includes(needle);
     });
@@ -186,7 +198,7 @@ export default function AdminUsersPage() {
     }
 
     const baseline = snapshotEditForm({
-      name: selectedUser.name ?? '',
+      name: selectedUser.name ?? "",
       isActive: selectedUser.isActive,
       roleIds: selectedUser.roles.map((role) => role.id),
     });
@@ -198,8 +210,8 @@ export default function AdminUsersPage() {
   const activeUsers = users.filter((user) => user.isActive).length;
   const inactiveUsers = totalUsers - activeUsers;
 
-  const toggleRole = (roleId: string, scope: 'create' | 'edit') => {
-    if (scope === 'create') {
+  const toggleRole = (roleId: string, scope: "create" | "edit") => {
+    if (scope === "create") {
       setCreateForm((current) => ({
         ...current,
         roleIds: current.roleIds.includes(roleId)
@@ -227,15 +239,18 @@ export default function AdminUsersPage() {
 
     try {
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as { error?: string; user?: AdminUser };
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        user?: AdminUser;
+      };
 
       if (!response.ok || !payload.user) {
-        throw new Error(payload.error || 'Failed to update admin user');
+        throw new Error(payload.error || "Failed to update admin user");
       }
 
       setUsers((current) =>
@@ -243,7 +258,9 @@ export default function AdminUsersPage() {
       );
       setSelectedUserId(payload.user.id);
     } catch (saveRequestError) {
-      setSaveError(saveRequestError instanceof Error ? saveRequestError.message : 'Failed to update admin user');
+      setSaveError(
+        saveRequestError instanceof Error ? saveRequestError.message : "Failed to update admin user"
+      );
     } finally {
       setSaving(false);
     }
@@ -255,16 +272,20 @@ export default function AdminUsersPage() {
     setCreateError(null);
 
     try {
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(createForm),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as { error?: string; id?: string; user?: AdminUser };
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        id?: string;
+        user?: AdminUser;
+      };
 
       if (!response.ok) {
-        throw new Error(payload.error || 'Failed to create admin user');
+        throw new Error(payload.error || "Failed to create admin user");
       }
 
       if (payload.user) {
@@ -280,7 +301,11 @@ export default function AdminUsersPage() {
       setCreateForm(EMPTY_CREATE_FORM);
       setCreateOpen(false);
     } catch (createRequestError) {
-      setCreateError(createRequestError instanceof Error ? createRequestError.message : 'Failed to create admin user');
+      setCreateError(
+        createRequestError instanceof Error
+          ? createRequestError.message
+          : "Failed to create admin user"
+      );
     } finally {
       setCreating(false);
     }
@@ -296,7 +321,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/[0.12]"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/12"
           >
             <Plus className="h-3.5 w-3.5" />
             Create user
@@ -305,10 +330,27 @@ export default function AdminUsersPage() {
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Admin users" value={totalUsers.toString()} meta="Total internal access records" tone="accent" />
-        <AdminMetricCard label="Active" value={activeUsers.toString()} meta="Accounts that can authenticate" />
-        <AdminMetricCard label="Inactive" value={inactiveUsers.toString()} meta="Accounts disabled for sign-in" />
-        <AdminMetricCard label="Roles" value={roles.length.toString()} meta="Available permission bundles" />
+        <AdminMetricCard
+          label="Admin users"
+          value={totalUsers.toString()}
+          meta="Total internal access records"
+          tone="accent"
+        />
+        <AdminMetricCard
+          label="Active"
+          value={activeUsers.toString()}
+          meta="Accounts that can authenticate"
+        />
+        <AdminMetricCard
+          label="Inactive"
+          value={inactiveUsers.toString()}
+          meta="Accounts disabled for sign-in"
+        />
+        <AdminMetricCard
+          label="Roles"
+          value={roles.length.toString()}
+          meta="Available permission bundles"
+        />
       </AdminMetricGrid>
 
       <AdminActionBar>
@@ -318,24 +360,26 @@ export default function AdminUsersPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by name, email, or role…"
-            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {([
-            { id: 'all', label: 'All' },
-            { id: 'active', label: 'Active' },
-            { id: 'inactive', label: 'Inactive' },
-          ] as const).map((filter) => (
+          {(
+            [
+              { id: "all", label: "All" },
+              { id: "active", label: "Active" },
+              { id: "inactive", label: "Inactive" },
+            ] as const
+          ).map((filter) => (
             <button
               key={filter.id}
               type="button"
               onClick={() => setStatusFilter(filter.id)}
               className={`rounded-full border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
                 statusFilter === filter.id
-                  ? 'border-blue-500/25 bg-blue-500/[0.08] text-blue-300'
-                  : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
+                  ? "border-blue-500/25 bg-blue-500/8 text-blue-300"
+                  : "border-white/10 bg-white/3 text-zinc-400 hover:text-zinc-100"
               }`}
             >
               {filter.label}
@@ -344,7 +388,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => void loadData()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reload
@@ -370,7 +414,7 @@ export default function AdminUsersPage() {
             <AdminTableShell>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <thead className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-5 py-4 font-medium">User</th>
                       <th className="px-5 py-4 font-medium">Roles</th>
@@ -384,13 +428,15 @@ export default function AdminUsersPage() {
                       return (
                         <tr
                           key={user.id}
-                          className={`cursor-pointer border-b border-white/6 transition hover:bg-white/[0.03] ${
-                            selected ? 'bg-blue-500/[0.06]' : 'bg-transparent'
+                          className={`cursor-pointer border-b border-white/6 transition hover:bg-white/3 ${
+                            selected ? "bg-blue-500/6" : "bg-transparent"
                           }`}
                           onClick={() => setSelectedUserId(user.id)}
                         >
                           <td className="px-5 py-4">
-                            <div className="text-sm font-medium text-zinc-100">{user.name || 'Unnamed manager'}</div>
+                            <div className="text-sm font-medium text-zinc-100">
+                              {user.name || "Unnamed manager"}
+                            </div>
                             <div className="mt-1 text-xs text-zinc-500">{user.email}</div>
                           </td>
                           <td className="px-5 py-4">
@@ -405,11 +451,13 @@ export default function AdminUsersPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <AdminStatusBadge tone={user.isActive ? 'success' : 'danger'}>
-                              {user.isActive ? 'Active' : 'Inactive'}
+                            <AdminStatusBadge tone={user.isActive ? "success" : "danger"}>
+                              {user.isActive ? "Active" : "Inactive"}
                             </AdminStatusBadge>
                           </td>
-                          <td className="px-5 py-4 text-sm text-zinc-400">{formatDate(user.lastLoginAt)}</td>
+                          <td className="px-5 py-4 text-sm text-zinc-400">
+                            {formatDate(user.lastLoginAt)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -428,10 +476,10 @@ export default function AdminUsersPage() {
               >
                 <AdminKeyValueGrid
                   rows={[
-                    { label: 'Email', value: selectedUser.email },
-                    { label: 'Created', value: formatDate(selectedUser.createdAt) },
-                    { label: 'Last login', value: formatDate(selectedUser.lastLoginAt) },
-                    { label: 'Status', value: selectedUser.isActive ? 'Active' : 'Inactive' },
+                    { label: "Email", value: selectedUser.email },
+                    { label: "Created", value: formatDate(selectedUser.createdAt) },
+                    { label: "Last login", value: formatDate(selectedUser.lastLoginAt) },
+                    { label: "Status", value: selectedUser.isActive ? "Active" : "Inactive" },
                   ]}
                 />
               </AdminInspectorCard>
@@ -450,12 +498,16 @@ export default function AdminUsersPage() {
                   <AdminCheckboxField
                     label="Account is active"
                     checked={editForm.isActive}
-                    onChange={(value) => setEditForm((current) => ({ ...current, isActive: value }))}
+                    onChange={(value) =>
+                      setEditForm((current) => ({ ...current, isActive: value }))
+                    }
                     helper="Inactive accounts remain on record but cannot sign in."
                   />
 
                   <div className="space-y-2">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Roles</div>
+                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                      Roles
+                    </div>
                     <div className="space-y-2">
                       {roles.map((role) => {
                         const checked = editForm.roleIds.includes(role.id);
@@ -464,18 +516,20 @@ export default function AdminUsersPage() {
                             key={role.id}
                             className={`flex cursor-pointer items-start gap-3 rounded-none border px-3 py-3 transition ${
                               checked
-                                ? 'border-blue-500/25 bg-blue-500/[0.08]'
-                                : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
+                                ? "border-blue-500/25 bg-blue-500/8"
+                                : "border-white/10 bg-black/20 hover:bg-white/3"
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={checked}
-                              onChange={() => toggleRole(role.id, 'edit')}
+                              onChange={() => toggleRole(role.id, "edit")}
                               className="mt-1 h-4 w-4 rounded-none border-white/20 bg-[#171717]"
                             />
                             <span className="min-w-0">
-                              <span className="block text-sm font-medium text-zinc-100">{role.name}</span>
+                              <span className="block text-sm font-medium text-zinc-100">
+                                {role.name}
+                              </span>
                               <span className="mt-1 block text-xs leading-5 text-zinc-500">
                                 {role.key} · {role.permissions.length} permissions
                               </span>
@@ -486,7 +540,9 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
-                  {saveError ? <AdminInlineAlert tone="warning">{saveError}</AdminInlineAlert> : null}
+                  {saveError ? (
+                    <AdminInlineAlert tone="warning">{saveError}</AdminInlineAlert>
+                  ) : null}
 
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -496,13 +552,13 @@ export default function AdminUsersPage() {
                           return;
                         }
                         setEditForm({
-                          name: selectedUser.name ?? '',
+                          name: selectedUser.name ?? "",
                           isActive: selectedUser.isActive,
                           roleIds: selectedUser.roles.map((role) => role.id),
                         });
                         setSaveError(null);
                       }}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/[0.06]"
+                      className="rounded-full border border-white/10 bg-white/3 px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/6"
                     >
                       Reset
                     </button>
@@ -510,9 +566,9 @@ export default function AdminUsersPage() {
                       type="button"
                       onClick={() => void handleSaveSelected()}
                       disabled={!editDirty || saving}
-                      className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-full border border-blue-500/25 bg-blue-500/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      {saving ? 'Saving…' : 'Save access'}
+                      {saving ? "Saving…" : "Save access"}
                     </button>
                   </div>
                 </div>
@@ -524,7 +580,10 @@ export default function AdminUsersPage() {
               >
                 <div className="space-y-3">
                   {roles.map((role) => (
-                    <div key={role.id} className="rounded-none border border-white/8 bg-black/25 px-3 py-3">
+                    <div
+                      key={role.id}
+                      className="rounded-none border border-white/8 bg-black/25 px-3 py-3"
+                    >
                       <div className="text-sm font-medium text-zinc-100">{role.name}</div>
                       <div className="mt-1 text-xs leading-5 text-zinc-500">
                         {role.key} · {role.permissions.length} permissions
@@ -542,7 +601,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/[0.12]"
+                className="rounded-full border border-blue-500/25 bg-blue-500/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/12"
               >
                 Create user
               </button>
@@ -552,14 +611,19 @@ export default function AdminUsersPage() {
       />
 
       {createOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-8 backdrop-blur">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-8 backdrop-blur-sm">
           <div className="w-full max-w-2xl rounded-[32px] border border-white/10 bg-[#0d0d0d] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.4)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-blue-300">System</div>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Create admin user</h2>
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-blue-300">
+                  System
+                </div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">
+                  Create admin user
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-zinc-400">
-                  Define the immutable email, initial password, and starting role set for a new internal operator.
+                  Define the immutable email, initial password, and starting role set for a new
+                  internal operator.
                 </p>
               </div>
               <button
@@ -569,7 +633,7 @@ export default function AdminUsersPage() {
                   setCreateError(null);
                   setCreateForm(EMPTY_CREATE_FORM);
                 }}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
+                className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
               >
                 Close
               </button>
@@ -600,7 +664,9 @@ export default function AdminUsersPage() {
               />
 
               <div className="space-y-2">
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Initial roles</div>
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                  Initial roles
+                </div>
                 <div className="grid gap-2 md:grid-cols-2">
                   {roles.map((role) => {
                     const checked = createForm.roleIds.includes(role.id);
@@ -608,17 +674,21 @@ export default function AdminUsersPage() {
                       <label
                         key={role.id}
                         className={`flex cursor-pointer items-start gap-3 rounded-none border px-3 py-3 transition ${
-                          checked ? 'border-blue-500/25 bg-blue-500/[0.08]' : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
+                          checked
+                            ? "border-blue-500/25 bg-blue-500/8"
+                            : "border-white/10 bg-black/20 hover:bg-white/3"
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => toggleRole(role.id, 'create')}
+                          onChange={() => toggleRole(role.id, "create")}
                           className="mt-1 h-4 w-4 rounded-none border-white/20 bg-[#171717]"
                         />
                         <span className="min-w-0">
-                          <span className="block text-sm font-medium text-zinc-100">{role.name}</span>
+                          <span className="block text-sm font-medium text-zinc-100">
+                            {role.name}
+                          </span>
                           <span className="mt-1 block text-xs leading-5 text-zinc-500">
                             {role.key} · {role.permissions.length} permissions
                           </span>
@@ -629,7 +699,9 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              {createError ? <AdminInlineAlert tone="warning">{createError}</AdminInlineAlert> : null}
+              {createError ? (
+                <AdminInlineAlert tone="warning">{createError}</AdminInlineAlert>
+              ) : null}
 
               <div className="flex flex-wrap justify-end gap-2">
                 <button
@@ -639,16 +711,16 @@ export default function AdminUsersPage() {
                     setCreateError(null);
                     setCreateForm(EMPTY_CREATE_FORM);
                   }}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
+                  className="rounded-full border border-white/10 bg-white/3 px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-blue-500/25 bg-blue-500/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {creating ? 'Creating…' : 'Create user'}
+                  {creating ? "Creating…" : "Create user"}
                 </button>
               </div>
             </form>
