@@ -33,11 +33,23 @@ const eslintConfig = defineConfig([
       "prefer-const": "warn",
       "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "off",
-      // React Compiler rules are advisory hints about missed memoization
-      // opportunities, not correctness bugs. Demote to warnings so CI
-      // surfaces them without blocking PRs. Address as cleanup tasks.
-      "react-hooks/react-compiler": "warn",
-      "react-compiler/react-compiler": "warn",
+      // React Compiler rules from eslint-plugin-react-hooks v6+. They are
+      // advisory hints about missed memoization opportunities and patterns
+      // the compiler can't optimize, not correctness bugs. Demote to
+      // warnings so CI surfaces them without blocking PRs. Address as
+      // cleanup tasks. Rule names verified against
+      // node_modules/eslint-plugin-react-hooks/cjs/eslint-plugin-react-hooks.production.js
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-render": "warn",
+      "react-hooks/no-deriving-state-in-effects": "warn",
+      "react-hooks/automatic-effect-dependencies": "warn",
+      "react-hooks/memoized-effect-dependencies": "warn",
+      "react-hooks/error-boundaries": "warn",
+      "react-hooks/component-hook-factories": "warn",
+      "react-hooks/static-components": "warn",
+      "react-hooks/capitalized-calls": "warn",
     },
   },
   {
