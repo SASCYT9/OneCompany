@@ -8,14 +8,21 @@ import "./shop-preview.css";
 import { PALETTES, DEFAULT_PALETTE, type PaletteId } from "../_shared/palettes";
 import PaletteSwitcher from "../_shared/PaletteSwitcher";
 
-const FEATURED_PRODUCTS = [
+type FeaturedProduct = {
+  brand: string;
+  title: string;
+  fitment: string;
+  price: string;
+  badge?: string;
+};
+
+const FEATURED_PRODUCTS: readonly FeaturedProduct[] = [
   {
     brand: "AKRAPOVIC",
     title: "Evolution Line Titanium",
     fitment: "BMW M3 / M4 · G80 G82",
     price: "€ 4 850",
     badge: "BESTSELLER",
-    accent: "var(--primary)",
   },
   {
     brand: "iPE INNOTECH",
@@ -62,7 +69,7 @@ const FEATURED_PRODUCTS = [
     fitment: "Lamborghini Huracán Evo",
     price: "€ 1 480",
   },
-] as const;
+];
 
 const BRANDS = [
   { name: "Akrapovic", logo: "/logos/akrapovic.svg" },
