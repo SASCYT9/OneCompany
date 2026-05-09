@@ -148,7 +148,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   return (
     <>
-      <main className="text-white">
+      <main className="dark text-white bg-background">
         <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
           <div
             className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
