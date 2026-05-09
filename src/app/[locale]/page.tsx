@@ -216,18 +216,18 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   <div className="absolute inset-0 bg-linear-to-b from-foreground/35 via-transparent to-foreground/55 dark:from-black/40 dark:to-black/70 transition-colors duration-500" />
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
-                    <div>
+                    <div className="rounded-2xl bg-black/55 backdrop-blur-md px-6 py-5 max-w-xs mx-auto shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
                       <span
-                        className={`inline-block font-display rounded-full border border-white/40 bg-black/40 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
+                        className={`inline-block font-display rounded-full border border-white/40 bg-white/10 px-6 py-2 tracking-[0.3em] text-white transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-7 sm:py-2.5 sm:tracking-[0.35em] ${typography.label}`}
                       >
                         {experience.label}
                       </span>
+                      <p
+                        className={`leading-relaxed text-white/90 text-pretty tracking-wide mt-3 ${typography.bodySmall}`}
+                      >
+                        {experience.description}
+                      </p>
                     </div>
-                    <p
-                      className={`leading-relaxed text-white text-pretty tracking-wide max-w-xs mx-auto [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)] ${typography.bodySmall}`}
-                    >
-                      {experience.description}
-                    </p>
                   </div>
                   <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
                     <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
