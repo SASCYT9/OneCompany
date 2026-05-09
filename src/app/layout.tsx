@@ -4,7 +4,11 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
 import { IBM_Plex_Mono, Unbounded, Bebas_Neue } from "next/font/google";
-import { OrganizationSchema, WebSiteSchema, LocalBusinessSchema } from "@/components/seo/StructuredData";
+import {
+  OrganizationSchema,
+  WebSiteSchema,
+  LocalBusinessSchema,
+} from "@/components/seo/StructuredData";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
@@ -23,8 +27,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | Worldwide Shipping",
-  description: "Official distributor 200+ premium tuning brands: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping USA, Europe, Ukraine.",
+  title:
+    "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | Worldwide Shipping",
+  description:
+    "Official distributor 200+ premium tuning brands: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping USA, Europe, Ukraine.",
   keywords: [
     "OneCompany",
     "One Company Global",
@@ -59,14 +65,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
     languages: {
-      'en': `${siteUrl}/en`,
-      'uk': `${siteUrl}/ua`,
-      'x-default': `${siteUrl}/ua`,
+      en: `${siteUrl}/en`,
+      uk: `${siteUrl}/ua`,
+      "x-default": `${siteUrl}/ua`,
     },
   },
   openGraph: {
     title: "OneCompany — Premium Auto & Moto Tuning | 200+ Brands | Worldwide Shipping",
-    description: "Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
+    description:
+      "Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
     type: "website",
     siteName: "OneCompany - Premium Tuning Worldwide",
     locale: "en_US",
@@ -85,7 +92,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "OneCompany — Premium Tuning | Akrapovic, Brabus, Mansory | Worldwide",
-    description: "Official distributor 200+ tuning brands. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
+    description:
+      "Official distributor 200+ tuning brands. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
     images: [`${siteUrl}/branding/og-image.png`],
     creator: "@onecompany_ua",
     site: "@onecompany_ua",
@@ -153,23 +161,17 @@ export default function RootLayout({
     <html
       lang="uk"
       suppressHydrationWarning
-      className={cn(
-        fontUnbounded.variable,
-        fontMono.variable,
-        fontCondensed.variable
-      )}
+      className={cn(fontUnbounded.variable, fontMono.variable, fontCondensed.variable)}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {process.env.NODE_ENV !== 'production' && (
+        {process.env.NODE_ENV !== "production" && (
           <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
         )}
       </head>
       <body
-        className={cn(
-          "min-h-screen bg-background text-foreground antialiased"
-        )}
+        className={cn("min-h-screen bg-background text-foreground antialiased")}
         suppressHydrationWarning
       >
         {/* Schema.org Structured Data */}
@@ -177,9 +179,7 @@ export default function RootLayout({
         <WebSiteSchema />
         <LocalBusinessSchema locale="ua" />
 
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
+        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
 
         {process.env.NEXT_PUBLIC_CLARITY_ID && (
           <MicrosoftClarity id={process.env.NEXT_PUBLIC_CLARITY_ID} />
@@ -202,8 +202,8 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             {children}

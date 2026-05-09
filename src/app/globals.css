@@ -79,9 +79,6 @@
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
 */
 @layer base {
   *,
@@ -94,13 +91,60 @@
 }
 
 @layer base {
+  /* ================================================================
+     LIGHT (default) — WARM CREAM with bronze accent
+     ================================================================ */
   :root {
-    /* OBSIDIAN BASE */
-    --background: 240 5% 2%; /* Extremely dark slate/black #050505 */
-    --foreground: 0 0% 98%;
+    --background: 36 33% 97%; /* #faf7f2 warm off-white */
+    --foreground: 30 14% 9%; /* #1a1814 warm near-black */
     --font-body: var(--font-display);
 
-    /* SURFACE: obsidian panels */
+    --surface: 36 30% 99%;
+    --surface-elevated: 0 0% 100%;
+    --surface-muted: 36 27% 90%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 14% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 14% 9%;
+
+    /* Deeper bronze for AA contrast on light */
+    --primary: 36 41% 38%; /* #8a6d3a */
+    --primary-foreground: 36 33% 97%;
+
+    --secondary: 36 27% 84%;
+    --secondary-foreground: 30 14% 9%;
+
+    --muted: 36 27% 90%;
+    --muted-foreground: 30 10% 38%;
+
+    /* Same bronze as dark — brand-consistent accent */
+    --accent: 36 47% 56%; /* #c29d59 */
+    --accent-foreground: 30 14% 9%;
+
+    --destructive: 0 70% 41%;
+    --destructive-foreground: 36 33% 97%;
+
+    --border: 35 25% 81%;
+    --input: 35 25% 81%;
+    --ring: 36 47% 56%;
+
+    --radius: 999px;
+
+    --font-stack-sans:
+      var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-stack-display:
+      var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  /* ================================================================
+     DARK — OBSIDIAN BASE (the original dark theme, unchanged)
+     ================================================================ */
+  .dark {
+    --background: 240 5% 2%; /* #050505 */
+    --foreground: 0 0% 98%;
+
     --surface: 240 5% 4%;
     --surface-elevated: 240 5% 7%;
     --surface-muted: 240 5% 10%;
@@ -111,11 +155,9 @@
     --popover: 240 5% 4%;
     --popover-foreground: 0 0% 96%;
 
-    /* BRONZE primary */
-    --primary: 43 45% 55%; /* #c29d59 */
+    --primary: 43 45% 55%; /* #c29d59 bronze */
     --primary-foreground: 240 5% 2%;
 
-    /* SECONDARY: muted obsidian */
     --secondary: 240 5% 15%;
     --secondary-foreground: 0 0% 98%;
 
@@ -128,18 +170,9 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 240 5% 2%;
 
-    /* Ultra fine glass border */
     --border: 240 5% 12%;
     --input: 240 5% 12%;
     --ring: 43 45% 55%;
-
-    --radius: 999px;
-
-    /* Unified font stacks */
-    --font-stack-sans:
-      var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-stack-display:
-      var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   * {
@@ -147,9 +180,8 @@
   }
 
   html {
-    /* Auto instead of smooth - smooth scroll can cause frame drops on high-Hz monitors */
     scroll-behavior: auto;
-    background-color: black; /* Fallback */
+    background-color: hsl(var(--background));
   }
 
   /* Respect user's motion preferences */
@@ -163,18 +195,13 @@
     }
   }
 
-  /* Optimize for high refresh rate displays */
   @media (update: fast) {
     * {
-      /* Ensure animations run at display's native refresh rate */
       animation-timing-function: linear;
     }
   }
 
-  /* ===== OPTIMIZED ANIMATIONS FOR ALL DEVICES ===== */
-  /* Use only GPU-accelerated properties: transform, opacity */
-
-  /* Force GPU layer for animated elements */
+  /* GPU-accelerated layers for animated elements */
   .animate-scroll-left,
   .animate-scroll-right,
   [class*="transition"],
@@ -184,16 +211,16 @@
     backface-visibility: hidden;
   }
 
-  /* Optimize backdrop-blur - use smaller blur radius on large screens */
+  /* Tone down backdrop-blur on huge displays */
   @media (min-width: 2560px) {
     .backdrop-blur-3xl {
-      backdrop-filter: blur(24px) !important; /* was 64px */
+      backdrop-filter: blur(24px) !important;
     }
     .backdrop-blur-2xl {
-      backdrop-filter: blur(16px) !important; /* was 40px */
+      backdrop-filter: blur(16px) !important;
     }
     .backdrop-blur-xl {
-      backdrop-filter: blur(12px) !important; /* was 24px */
+      backdrop-filter: blur(12px) !important;
     }
   }
 
@@ -204,7 +231,7 @@
 
   body {
     color: hsl(var(--foreground));
-    /* Ensure body and html are transparent so fixed video at z-index -1 is visible */
+    /* Transparent so optional fixed video background at z-index -1 stays visible */
     background-color: transparent;
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
@@ -231,7 +258,8 @@
     letter-spacing: -0.005em;
   }
 
-  body::before {
+  /* Noise overlay — only in dark theme. On light it adds dirt. */
+  .dark body::before {
     content: "";
     position: fixed;
     inset: 0;
@@ -240,9 +268,10 @@
     pointer-events: none;
   }
 
+  /* Theme-aware glass panel */
   .glass-panel {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(12, 12, 18, 0.75);
+    border: 1px solid hsl(var(--foreground) / 0.1);
+    background: hsl(var(--card) / 0.75);
     backdrop-filter: blur(16px);
   }
 
@@ -256,7 +285,11 @@
     inset: 0;
     border-radius: 30px;
     padding: 1px;
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+    background: linear-gradient(
+      120deg,
+      hsl(var(--foreground) / 0.2),
+      hsl(var(--foreground) / 0.05)
+    );
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
@@ -328,15 +361,15 @@
 
   /* ===== STEALTH WEALTH PREMIUM UTILITIES ===== */
 
-  /* Shimmer gradient line — decorative accent */
+  /* Shimmer gradient line — uses bronze accent which is the same in both themes */
   .shimmer-line {
     height: 1px;
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(194, 157, 89, 0) 15%,
-      rgba(194, 157, 89, 0.6) 50%,
-      rgba(194, 157, 89, 0) 85%,
+      hsl(var(--accent) / 0) 15%,
+      hsl(var(--accent) / 0.6) 50%,
+      hsl(var(--accent) / 0) 85%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -352,7 +385,7 @@
     }
   }
 
-  /* Bronze gradient text */
+  /* Bronze gradient text — keeps fixed bronze ramp; reads on both themes */
   .bronze-text-gradient {
     background: linear-gradient(135deg, #c29d59 0%, #d4b77e 40%, #c29d59 60%, #a8864a 100%);
     -webkit-background-clip: text;
@@ -360,14 +393,14 @@
     background-clip: text;
   }
 
-  /* Performance stats ribbon (Akrapovic/Brabus style) */
+  /* Performance stats ribbon (theme-aware) */
   .perf-ribbon {
     display: flex;
     gap: 0;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid hsl(var(--foreground) / 0.08);
     border-radius: 4px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.02);
+    background: hsl(var(--foreground) / 0.02);
     backdrop-filter: blur(8px);
   }
   .perf-ribbon__stat {
@@ -375,7 +408,7 @@
     flex-direction: column;
     align-items: center;
     padding: 1rem 1.5rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: 1px solid hsl(var(--foreground) / 0.06);
   }
   .perf-ribbon__stat:last-child {
     border-right: none;
@@ -384,7 +417,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: #fff;
+    color: hsl(var(--foreground));
     line-height: 1;
   }
   .perf-ribbon__label {
@@ -392,15 +425,15 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: rgba(255, 255, 255, 0.45);
+    color: hsl(var(--muted-foreground));
     margin-top: 0.35rem;
   }
 
-  /* Premium product card hover effect */
+  /* Premium product card hover effect (theme-aware) */
   .product-card-premium {
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid hsl(var(--foreground) / 0.04);
     transition:
       border-color 0.4s ease,
       box-shadow 0.4s ease,
@@ -413,14 +446,14 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #c29d59, transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--accent)), transparent);
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .product-card-premium:hover {
-    border-color: rgba(194, 157, 89, 0.2);
+    border-color: hsl(var(--accent) / 0.2);
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(194, 157, 89, 0.08);
+      0 8px 32px hsl(var(--foreground) / 0.12),
+      0 0 0 1px hsl(var(--accent) / 0.08);
     transform: translateY(-2px);
   }
   .product-card-premium:hover::after {
@@ -436,14 +469,14 @@
     line-height: 0.92;
   }
 
-  /* Ghost button (Brabus/Urban style) */
+  /* Ghost button (theme-aware) */
   .btn-ghost {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #fff;
+    border: 1px solid hsl(var(--foreground) / 0.25);
+    color: hsl(var(--foreground));
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.2em;
@@ -457,19 +490,19 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0.06);
+    background: hsl(var(--foreground) / 0.06);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .btn-ghost:hover {
-    border-color: rgba(255, 255, 255, 0.5);
+    border-color: hsl(var(--foreground) / 0.5);
   }
   .btn-ghost:hover::before {
     transform: scaleX(1);
   }
 
-  /* Bronze CTA button */
+  /* Bronze CTA button — fixed bronze ramp works on both themes */
   .btn-bronze {
     display: inline-flex;
     align-items: center;
@@ -507,8 +540,6 @@
     position: relative;
     z-index: 1;
   }
-
-  /* Condensed font stack variable */
 }
 @layer base {
   :root {
