@@ -1,0 +1,104 @@
+# Path-based PR auto-labels. Used by .github/workflows/labeler.yml.
+# Schema: https://github.com/actions/labeler#create-configuration-file
+
+"area: shop":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/app/[locale]/shop/**"
+          - "src/app/api/shop/**"
+          - "src/lib/shop*"
+          - "tests/shop/**"
+
+"area: admin":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/app/admin/**"
+          - "src/app/api/admin/**"
+          - "src/components/admin/**"
+
+"area: brands":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/brands*"
+          - "src/lib/brandLogos*"
+          - "public/logos/**"
+          - "BRANDS_LIST.txt"
+          - "OneCompany_Brand_Portfolio_*"
+
+"area: 3d":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/three/**"
+          - "**/*Three*.tsx"
+          - "src/components/scenes/**"
+
+"area: i18n":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/messages/**"
+          - "src/i18n/**"
+
+"area: bot":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/telegram-bot*"
+          - "src/lib/telegram*"
+
+"area: email":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/email*"
+          - "src/emails/**"
+
+"area: turn14":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/turn14*"
+          - "**/Turn14*"
+          - ".github/workflows/turn14-cron.yml"
+
+"area: db":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "prisma/**"
+          - "src/lib/prisma*"
+          - "src/lib/db*"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "**/*.mdx"
+          - "docs/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/labeler.yml"
+          - ".github/dependabot.yml"
+
+"area: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "next.config.*"
+          - "tsconfig*.json"
+          - "tailwind.config.*"
+          - "postcss.config.*"
+          - "package.json"
+          - "package-lock.json"
+          - "vercel.json"
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "package-lock.json"
+
+"area: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/SECURITY.md"
+          - ".github/CODEOWNERS"
+          - ".github/workflows/codeql.yml"
+          - ".github/workflows/scorecard.yml"
