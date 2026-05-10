@@ -781,43 +781,9 @@
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   LIGHT THEME OVERRIDES
-   When `<html>` carries `.light` (no `.dark`), flip the Akrapovic
-   palette tokens so the same selectors that drive the dark page
-   render on warm parchment + carbon-light. Iconic Akrapovic red
-   (--ak-ember) stays the same — it's brand DNA.
-
-   Hardcoded rgba(255,255,255,X) and #fff inside this file (~23
-   occurrences) will still look light-on-light. They get cleaned up
-   in a follow-up sweep — this override is the first pass to make
-   the page visible on light theme.
-   ════════════════════════════════════════════════════════════════ */
-.light {
-  --ak-bg: #f5f0e8; /* warm parchment base */
-  --ak-bg-warm: #ede5d4;
-  --ak-bg-light: #fbf8f1;
-  --ak-card: rgba(255, 255, 255, 0.85);
-  --ak-card-hover: rgba(255, 255, 255, 0.98);
-  --ak-border: rgba(20, 18, 14, 0.1);
-  --ak-titanium: #5e5e5e; /* darker grey for AA on warm cream */
-  --ak-ember: #c00020; /* unchanged — brand red */
-  --ak-ember-glow: rgba(192, 0, 32, 0.12);
-  --ak-carbon: #d8d0bf; /* warm light carbon analogue */
-  --ak-white: #1a1814; /* primary text on light = warm near-black */
-  --ak-muted: #6a6055;
-  --ak-faint: rgba(20, 18, 14, 0.04);
-}
-
-/* Targeted fixes for the most-visible hardcoded white/black spots
-   that don't pick up the palette swap. */
-.light .ak-back__link {
-  color: rgba(20, 18, 14, 0.45);
-}
-.light .ak-btn:focus-visible,
-.light .ak-line-card:focus-visible,
-.light .ak-back__link:focus-visible,
-.light .ak-hero-filter__field:focus-visible,
-.light .ak-hero-filter__cta:focus-visible {
-  outline-color: rgba(20, 18, 14, 0.55);
-}
+/* Brand-shop pages are intentionally always-dark — no light theme.
+   The layout wraps content in `<div class="dark">` so global theme
+   tokens (`--background`, `--foreground`, `--primary`, …) cascade
+   correctly inside this page even when `<html>` carries `.light`.
+   The `--ak-*` palette above lives on `:root` only, so it stays
+   dark regardless of the global toggle. */
