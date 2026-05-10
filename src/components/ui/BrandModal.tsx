@@ -7,7 +7,11 @@ import { X, ChevronRight, ArrowUpRight, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@/navigation";
 import { BrandItem } from "../sections/BrandLogosGrid";
-import { shouldInvertBrandOrLogo, shouldSmartInvertBrand } from "@/lib/invertBrands";
+import {
+  shouldInvertBrandOrLogo,
+  shouldSmartInvertBrand,
+  hasLightBackgroundLogo,
+} from "@/lib/invertBrands";
 
 interface BrandModalProps {
   brand: BrandItem | null;
@@ -18,6 +22,7 @@ interface BrandModalProps {
 export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   const t = useTranslations("brands");
   const locale = useLocale();
+  const isLightBg = brand ? hasLightBackgroundLogo(brand.name) : false;
 
   // Close on escape key
   useEffect(() => {
@@ -58,27 +63,43 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
             </button>
 
             {/* Left Column: Logo & Visuals */}
-            <div className="relative w-full md:w-2/5 bg-linear-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a] p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5">
+            <div
+              className={`relative w-full md:w-2/5 ${
+                isLightBg ? "bg-white" : "bg-linear-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a]"
+              } p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5`}
+            >
               {/* Background Pattern */}
-              <div
-                className="absolute inset-0 opacity-[0.15]"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
-                  backgroundSize: "24px 24px",
-                }}
-              />
+              {!isLightBg && (
+                <div
+                  className="absolute inset-0 opacity-[0.15]"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+                    backgroundSize: "24px 24px",
+                  }}
+                />
+              )}
 
               {/* Logo Container */}
               <div className="relative w-full aspect-video max-w-[240px] flex items-center justify-center z-10">
                 {/* Subtle glow behind logo */}
-                <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                {!isLightBg && (
+                  <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                )}
                 <div className="relative w-full h-full">
                   <Image
                     src={brand.logoSrc}
                     alt={brand.name}
                     fill
-                    className={`object-contain drop-shadow-2xl ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? "filter brightness-0 invert" : ""}`}
+                    className={`object-contain drop-shadow-2xl ${
+                      isLightBg
+                        ? ""
+                        : shouldSmartInvertBrand(brand.name)
+                          ? "filter invert hue-rotate-180"
+                          : shouldInvertBrandOrLogo(brand.name, brand.logoSrc)
+                            ? "filter brightness-0 invert"
+                            : ""
+                    }`}
                     unoptimized
                   />
                 </div>
