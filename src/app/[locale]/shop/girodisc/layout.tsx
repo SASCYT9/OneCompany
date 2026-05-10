@@ -1,5 +1,5 @@
-import './girodisc-shop.css';
+import "./girodisc-shop.css";
 
 export default function GiroDiscShopLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <div className="dark">{children}</div>;
 }

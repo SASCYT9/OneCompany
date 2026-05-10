@@ -1,5 +1,5 @@
-import './ohlins-shop.css';
+import "./ohlins-shop.css";
 
 export default function OhlinsShopLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <div className="dark">{children}</div>;
 }

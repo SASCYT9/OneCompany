@@ -6,5 +6,5 @@ type Props = {
 };
 
 export default function ShopAkrapovicLayout({ children }: Props) {
-  return <div className="ak-shop-page">{children}</div>;
+  return <div className="dark ak-shop-page">{children}</div>;
 }
