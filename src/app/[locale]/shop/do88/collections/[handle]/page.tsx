@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import { getProductsForDo88Collection } from "@/lib/do88CollectionMatcher";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
@@ -30,11 +30,16 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; handle: string }>;
+  searchParams: Promise<{ brand?: string; model?: string; chassis?: string }>;
 }) {
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const filters = await searchParams;
+  const hasFilters = Boolean(filters.brand || filters.model || filters.chassis);
+
   let card = DO88_COLLECTION_CARDS.find((c) => c.categoryHandle === handle);
   if (handle === "all") {
     card = {
@@ -45,7 +50,8 @@ export async function generateMetadata({
     };
   }
   const title = card ? `${card.title} | DO88 | One Company` : "DO88 | One Company";
-  return buildPageMetadata(resolvedLocale, `shop/do88/collections/${handle}`, {
+  const baseSlug = `shop/do88/collections/${handle}`;
+  const meta = {
     title:
       resolvedLocale === "ua"
         ? `${card?.titleUk ?? card?.title ?? handle} | DO88 | One Company`
@@ -54,7 +60,29 @@ export async function generateMetadata({
       resolvedLocale === "ua"
         ? `Високопродуктивні ${card?.titleUk ?? card?.title ?? handle} DO88 зі Швеції. Інтеркулери, радіатори та компоненти для стабільного охолодження.`
         : `High-performance DO88 ${card?.title ?? handle} from Sweden. Intercoolers, radiators, and cooling components built for stable temperatures.`,
-  });
+  };
+
+  // Faceted filter URLs (?brand=&model=&chassis=) spawn an unbounded
+  // number of vehicle-combination URLs that all show subsets of the
+  // same collection. Index only the bare collection page; for any
+  // filtered state, point canonical at the bare URL and noindex so
+  // Google consolidates authority on one page.
+  if (hasFilters) {
+    const base = buildPageMetadata(resolvedLocale, baseSlug, meta);
+    return {
+      ...base,
+      alternates: {
+        ...base.alternates,
+        canonical: absoluteUrl(buildLocalizedPath(resolvedLocale, baseSlug)),
+      },
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+
+  return buildPageMetadata(resolvedLocale, baseSlug, meta);
 }
 
 export default async function Do88CollectionHandlePage({ params, searchParams }: Props) {

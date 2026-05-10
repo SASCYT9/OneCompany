@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { buildNoIndexPageMetadata, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getShopProductBySlugServer, getShopProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
@@ -41,7 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getShopProductBySlugServer(slug);
 
   if (!product) {
-    return buildPageMetadata(resolvedLocale, `shop/${slug}`, {
+    // Soft-404 protection: when the slug doesn't match a real product,
+    // the page renders a "not found" UI but used to ship indexable
+    // metadata + canonical-to-self. Mark it noindex so Google doesn't
+    // index the placeholder page as canonical content.
+    return buildNoIndexPageMetadata(resolvedLocale, `shop/${slug}`, {
       title:
         resolvedLocale === "ua"
           ? "Товар не знайдено | One Company Shop"

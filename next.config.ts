@@ -272,6 +272,26 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Turn14 hub is a 700k-part live proxy — keep crawlers out so
+        // they don't waste budget on dynamic search permutations.
+        source: "/:locale(ua|en)/shop/turn14/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+      {
+        source: "/:locale(ua|en)/shop/turn14",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           ...(isProd
