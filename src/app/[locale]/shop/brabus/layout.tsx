@@ -9,5 +9,7 @@ type Props = {
 
 export default function ShopBrabusLayout({ children }: Props) {
   // Reusing urban classes for now since they define the layout structure
-  return <div className="dark urban-shop-page">{children}</div>;
+  return (
+    <div className="dark min-h-screen bg-[#0a0a0a] text-white urban-shop-page">{children}</div>
+  );
 }

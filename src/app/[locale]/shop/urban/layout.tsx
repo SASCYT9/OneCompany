@@ -9,5 +9,7 @@ type Props = {
 
 /** Urban theme тільки для /shop/urban; головна /shop залишається в стилі One Company. */
 export default function ShopUrbanLayout({ children }: Props) {
-  return <div className="dark urban-shop-page">{children}</div>;
+  return (
+    <div className="dark min-h-screen bg-[#0a0a0a] text-white urban-shop-page">{children}</div>
+  );
 }

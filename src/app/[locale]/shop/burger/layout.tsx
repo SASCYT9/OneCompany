@@ -6,5 +6,5 @@ type Props = {
 };
 
 export default function ShopBurgerLayout({ children }: Props) {
-  return <div className="dark bm-home">{children}</div>;
+  return <div className="dark min-h-screen bg-[#0a0a0a] text-white bm-home">{children}</div>;
 }
