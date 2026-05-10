@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
@@ -14,16 +15,27 @@ export default function ContactPageContent() {
   const t = useTranslations("contactPage");
   const locale = useLocale();
   const typography = getTypography(resolveLocale(locale));
+  const searchParams = useSearchParams();
+  const inquiry = searchParams.get("inquiry");
   const [type, setType] = useState<FormType>("auto");
-  const [formData, setFormData] = useState({
-    model: "",
-    vin: "",
-    wishes: "",
-    budget: "",
-    email: "",
-    phone: "",
-    telegramUsername: "",
-    contactMethod: "telegram" as "telegram" | "whatsapp",
+  const [formData, setFormData] = useState(() => {
+    const base = {
+      model: "",
+      vin: "",
+      wishes: "",
+      budget: "",
+      email: "",
+      phone: "",
+      telegramUsername: "",
+      contactMethod: "telegram" as "telegram" | "whatsapp",
+    };
+    if (inquiry) {
+      base.wishes =
+        locale === "ua"
+          ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.`
+          : `Hello, I am interested in ${inquiry} brand products.`;
+    }
+    return base;
   });
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
