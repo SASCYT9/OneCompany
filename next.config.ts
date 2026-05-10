@@ -277,6 +277,14 @@ const nextConfig: NextConfig = {
                   key: "Content-Security-Policy",
                   value: CONTENT_SECURITY_POLICY,
                 },
+                {
+                  // HTTPS-only for the next 12 months + apply to all
+                  // subdomains. preload makes the entry eligible for
+                  // Chrome's HSTS preload list once submitted at
+                  // hstspreload.org.
+                  key: "Strict-Transport-Security",
+                  value: "max-age=31536000; includeSubDomains; preload",
+                },
               ]
             : []),
           {

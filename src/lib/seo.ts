@@ -59,13 +59,20 @@ export function buildAlternateLinks(slug = ""): Record<string, string> {
 export function buildPageMetadata(
   locale: SupportedLocale,
   slug: string,
-  meta: { title: string; description: string; image?: string; type?: "website" | "article" | "profile" | "product" }
+  meta: {
+    title: string;
+    description: string;
+    image?: string;
+    type?: "website" | "article" | "profile" | "product";
+  }
 ): Metadata {
   const path = buildLocalizedPath(locale, slug);
   const url = absoluteUrl(path);
   const usingDefaultOg = !meta.image;
   const ogImage = meta.image
-    ? (meta.image.startsWith("http") ? meta.image : absoluteUrl(meta.image))
+    ? meta.image.startsWith("http")
+      ? meta.image
+      : absoluteUrl(meta.image)
     : absoluteUrl(defaultOgImage);
   const description = normalizeMetaText(meta.description, 165);
   // 95 fits Telegram/Twitter/Facebook without visible truncation; the
@@ -93,6 +100,10 @@ export function buildPageMetadata(
       url,
       siteName: siteConfig.name,
       locale: localeToOg[locale],
+      // Tell Facebook/social platforms about the other-language version of
+      // this page so they can offer a "View in English" / "Українською"
+      // toggle in shared link previews.
+      alternateLocale: siteConfig.locales.filter((l) => l !== locale).map((l) => localeToOg[l]),
       // Next.js Metadata silently drops the entire openGraph block when type
       // is "product" (not in its built-in enum), so we always declare
       // "website" here and let the page emit a raw <meta property="og:type"
@@ -112,7 +123,12 @@ export function buildPageMetadata(
 export function buildNoIndexPageMetadata(
   locale: SupportedLocale,
   slug: string,
-  meta: { title: string; description: string; image?: string; type?: "website" | "article" | "profile" }
+  meta: {
+    title: string;
+    description: string;
+    image?: string;
+    type?: "website" | "article" | "profile";
+  }
 ): Metadata {
   return {
     ...buildPageMetadata(locale, slug, meta),
@@ -122,9 +138,9 @@ export function buildNoIndexPageMetadata(
       googleBot: {
         index: false,
         follow: false,
-        'max-image-preview': 'none',
-        'max-snippet': 0,
-        'max-video-preview': 0,
+        "max-image-preview": "none",
+        "max-snippet": 0,
+        "max-video-preview": 0,
       },
     },
   };
