@@ -1,5 +1,9 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { localizeShopProductTitle, localizeShopDescription, localizeShopText } from "@/lib/shopText";
+import {
+  localizeShopProductTitle,
+  localizeShopDescription,
+  localizeShopText,
+} from "@/lib/shopText";
 import type { SupportedLocale } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/seo";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
@@ -33,9 +37,10 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       height: "512",
     },
     image: "https://onecompany.global/branding/one-company-logo.svg",
-    description: locale === "ua"
-      ? "Офіційний B2B дистриб'ютор 200+ преміум брендів авто та мото тюнінгу в Україні. Akrapovic, Brabus, HRE, KW, Brembo. Експертний підбір, глобальна логістика, гарантійна підтримка з 2007."
-      : "Official B2B importer of 200+ premium auto & moto tuning brands in Ukraine. Expert sourcing, global logistics, warranty support since 2007.",
+    description:
+      locale === "ua"
+        ? "Офіційний B2B дистриб'ютор 200+ преміум брендів авто та мото тюнінгу в Україні. Akrapovic, Brabus, HRE, KW, Brembo. Експертний підбір, глобальна логістика, гарантійна підтримка з 2007."
+        : "Official B2B importer of 200+ premium auto & moto tuning brands in Ukraine. Expert sourcing, global logistics, warranty support since 2007.",
     foundingDate: "2007",
     address: {
       "@type": "PostalAddress",
@@ -57,10 +62,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         availableLanguage: ["Ukrainian", "English"],
       },
     ],
-    sameAs: [
-      "https://www.instagram.com/onecompany.global",
-      "https://t.me/onecompany_global",
-    ],
+    sameAs: ["https://www.instagram.com/onecompany.global", "https://t.me/onecompany_global"],
     knowsAbout: [
       "Automotive tuning",
       "Motorcycle tuning",
@@ -79,11 +81,8 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       "тюнінг авто",
       "тюнінг мото",
       "OEM parts",
-      "Auto repair services",
       "Motorcycle parts supply",
       "мото тюнинг",
-      "автосервіс",
-      "електрик для машини",
     ],
     areaServed: [
       {
@@ -163,7 +162,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   );
 }
 
-type Availability = 'inStock' | 'preOrder' | 'outOfStock';
+type Availability = "inStock" | "preOrder" | "outOfStock";
 
 interface OfferLike {
   price: number;
@@ -185,9 +184,9 @@ interface ProductSchemaProps {
 }
 
 const SCHEMA_AVAILABILITY: Record<Availability, string> = {
-  inStock: 'https://schema.org/InStock',
-  preOrder: 'https://schema.org/PreOrder',
-  outOfStock: 'https://schema.org/OutOfStock',
+  inStock: "https://schema.org/InStock",
+  preOrder: "https://schema.org/PreOrder",
+  outOfStock: "https://schema.org/OutOfStock",
 };
 
 const SHARED_RETURN_POLICY = {
@@ -252,7 +251,16 @@ function buildOfferEntry(offer: OfferLike, url: string) {
   return entry;
 }
 
-export function ProductSchema({ name, description, image, brand, category, url, sku, offers }: ProductSchemaProps) {
+export function ProductSchema({
+  name,
+  description,
+  image,
+  brand,
+  category,
+  url,
+  sku,
+  offers,
+}: ProductSchemaProps) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -310,30 +318,39 @@ function priceValidUntilFromNow(days = 90): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function ShopProductStructuredData({ product, locale, rates }: ShopProductStructuredDataProps) {
+export function ShopProductStructuredData({
+  product,
+  locale,
+  rates,
+}: ShopProductStructuredDataProps) {
   const productPath = buildShopStorefrontProductPathForProduct(locale, product);
   const url = absoluteUrl(productPath);
   const name = localizeShopProductTitle(locale, product);
-  const description = localizeShopDescription(locale, product.shortDescription) ||
+  const description =
+    localizeShopDescription(locale, product.shortDescription) ||
     localizeShopDescription(locale, product.longDescription) ||
     name;
   const category = localizeShopText(locale, product.category);
   const galleryImages = (product.gallery?.length ? product.gallery : [product.image])
     .filter((src): src is string => Boolean(src))
-    .map((src) => (src.startsWith('http') ? src : absoluteUrl(src.startsWith('/') ? src : `/${src}`)));
-  const images = galleryImages.length > 0 ? galleryImages : [absoluteUrl('/branding/og-image.png')];
+    .map((src) =>
+      src.startsWith("http") ? src : absoluteUrl(src.startsWith("/") ? src : `/${src}`)
+    );
+  const images = galleryImages.length > 0 ? galleryImages : [absoluteUrl("/branding/og-image.png")];
 
-  const variantPrice = product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
+  const variantPrice =
+    product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
   const rawPrice = product.price ?? variantPrice;
   const ratesToUse = rates ?? DEFAULT_CURRENCY_RATES;
   const expanded = expandShopPrices(rawPrice ?? null, ratesToUse);
   const compareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
   const validUntil = priceValidUntilFromNow(90);
   const primary = pickPrimaryCurrency(locale);
-  const currencyOrder: ShopCurrencyCode[] = primary === 'UAH' ? ['UAH', 'USD', 'EUR'] : ['USD', 'EUR', 'UAH'];
+  const currencyOrder: ShopCurrencyCode[] =
+    primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];
   const offers = currencyOrder
     .map((c) => {
-      const key = c.toLowerCase() as 'usd' | 'eur' | 'uah';
+      const key = c.toLowerCase() as "usd" | "eur" | "uah";
       const price = expanded[key];
       if (!Number.isFinite(price) || price <= 0) return null;
       const compareAtPrice = compareExpanded[key];
@@ -348,11 +365,11 @@ export function ShopProductStructuredData({ product, locale, rates }: ShopProduc
     .filter((o): o is NonNullable<typeof o> => Boolean(o));
 
   const shopRoot = absoluteUrl(`/${locale}/shop`);
-  const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, "");
   const brandShopHref = brandSlug ? absoluteUrl(`/${locale}/shop/${brandSlug}`) : null;
   const breadcrumbItems: { name: string; url: string }[] = [
-    { name: locale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(`/${locale}`) },
-    { name: locale === 'ua' ? 'Магазин' : 'Shop', url: shopRoot },
+    { name: locale === "ua" ? "Головна" : "Home", url: absoluteUrl(`/${locale}`) },
+    { name: locale === "ua" ? "Магазин" : "Shop", url: shopRoot },
   ];
   if (brandShopHref) {
     breadcrumbItems.push({ name: product.brand, url: brandShopHref });
@@ -424,14 +441,13 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
         ...commonBusinessFields,
       },
       {
-        "@type": "AutoRepair",
-        "@id": "https://onecompany.global/#autorepair",
+        "@type": "AutoPartsStore",
+        "@id": "https://onecompany.global/#autopartsstore",
         ...commonBusinessFields,
-        serviceType: [
-          "Performance upgrades",
-          "OEM fitment support",
-          "Exhaust and suspension consultation",
-        ],
+        makesOffer: {
+          "@type": "OfferCatalog",
+          name: "Premium auto tuning parts",
+        },
       },
       {
         "@type": "MotorcycleDealer",
@@ -501,8 +517,8 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
     description: description,
     url: url,
     isPartOf: {
-      "@id": "https://onecompany.global/#website"
-    }
+      "@id": "https://onecompany.global/#website",
+    },
   };
 
   return (
@@ -524,14 +540,14 @@ export function FAQSchema({ faqItems }: FAQSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": faqItems.map(item => ({
+    mainEntity: faqItems.map((item) => ({
       "@type": "Question",
-      "name": item.question,
-      "acceptedAnswer": {
+      name: item.question,
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": item.answer
-      }
-    }))
+        text: item.answer,
+      },
+    })),
   };
 
   return (

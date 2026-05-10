@@ -12,8 +12,6 @@ import LocaleLangSetter from "@/components/LocaleLangSetter";
 import { readVideoConfig } from "@/lib/videoConfig";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import CookieBanner from "@/components/ui/CookieBanner";
-import AutoBreadcrumbs from "@/components/seo/AutoBreadcrumbs";
-
 import { ScrollToTop } from "@/components/ScrollToTop";
 import SmoothScroll from "@/components/effects/SmoothScroll";
 import { ShopCurrencyProvider } from "@/components/shop/CurrencyContext";
@@ -116,7 +114,6 @@ export default async function LocaleLayout({ children, params }: Props) {
             <main id="main-content" className="grow relative z-10">
               {children}
             </main>
-            <AutoBreadcrumbs />
             <ScrollToTop />
             <Footer currentYear={currentYear} companyRequisites={companyRequisites} />
             <CookieBanner locale={locale} />
