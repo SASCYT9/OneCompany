@@ -32,19 +32,5 @@
       "source": "/api/telegram/webhook",
       "destination": "/api/telegram/webhook-grammy"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/telegram/cron?task=all",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/admin/cron/atomic-sync",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/admin/cron/airtable-stocks",
-      "schedule": "0 * * * *"
-    }
   ]
 }
