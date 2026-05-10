@@ -81,7 +81,7 @@ export function HeroVideoWrapper({
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             className={`h-full w-full object-cover transition-opacity duration-700 blur-sm dark:blur-0 ${
               videoReady ? "opacity-70 dark:opacity-30" : "opacity-0"
             }`}

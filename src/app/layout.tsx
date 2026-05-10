@@ -166,6 +166,13 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Preconnect to analytics origins so the lazy-loaded scripts
+            don't pay the TLS+DNS cost when they finally fire after
+            interactive. Saves ~100-300ms on each script. */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://www.clarity.ms" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
         {process.env.NODE_ENV !== "production" && (
           <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
         )}

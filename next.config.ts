@@ -193,6 +193,9 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"], // Modern image formats
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Next 16 requires explicit allowlist for the `quality` prop. Without
+    // this Next falls back to default 75 silently for any q={85|90} usage.
+    qualities: [75, 85, 90],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache
   },
 
@@ -385,6 +388,8 @@ const nextConfig: NextConfig = {
   // Experimental features
   experimental: {
     optimizeCss: true,
+    // Smaller server-side React bundle.
+    optimizeServerReact: true,
     // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
     cpus: 4,
     // Tree-shake & barrel-optimize popular packages — meaningfully smaller client bundles.
@@ -396,6 +401,11 @@ const nextConfig: NextConfig = {
       "date-fns",
       "lodash-es",
       "@radix-ui/react-icons",
+      "lenis",
+      "react-hook-form",
+      "zustand",
+      "@vercel/analytics",
+      "next-intl",
     ],
   },
   // redirects removed to allow middleware to handle routing dynamically
