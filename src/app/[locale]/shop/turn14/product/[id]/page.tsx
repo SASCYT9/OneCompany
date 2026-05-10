@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { resolveLocale } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +12,17 @@ import { MobileProductDisclosure } from "../../../components/MobileProductDisclo
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// Turn14 product detail pages are dynamic proxies on the 700k-part
+// upstream catalog — never canonical content of our own. Keep them
+// out of search.
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 export default async function Turn14ProductPage({
   params,

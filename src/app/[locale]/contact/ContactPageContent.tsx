@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
@@ -14,16 +15,27 @@ export default function ContactPageContent() {
   const t = useTranslations("contactPage");
   const locale = useLocale();
   const typography = getTypography(resolveLocale(locale));
+  const searchParams = useSearchParams();
+  const inquiry = searchParams.get("inquiry");
   const [type, setType] = useState<FormType>("auto");
-  const [formData, setFormData] = useState({
-    model: "",
-    vin: "",
-    wishes: "",
-    budget: "",
-    email: "",
-    phone: "",
-    telegramUsername: "",
-    contactMethod: "telegram" as "telegram" | "whatsapp",
+  const [formData, setFormData] = useState(() => {
+    const base = {
+      model: "",
+      vin: "",
+      wishes: "",
+      budget: "",
+      email: "",
+      phone: "",
+      telegramUsername: "",
+      contactMethod: "telegram" as "telegram" | "whatsapp",
+    };
+    if (inquiry) {
+      base.wishes =
+        locale === "ua"
+          ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.`
+          : `Hello, I am interested in ${inquiry} brand products.`;
+    }
+    return base;
   });
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
@@ -137,9 +149,9 @@ export default function ContactPageContent() {
     type === "auto" ? t("form.modelPlaceholderAuto") : t("form.modelPlaceholderMoto");
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-20 md:px-10 md:py-32 lg:py-40">
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-black/80 to-black" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/[0.04] to-foreground/[0.06] dark:via-black/80 dark:to-black" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_60%)] sm:h-64" />
         <div className="relative mx-auto max-w-7xl">
           <motion.div
@@ -148,14 +160,14 @@ export default function ContactPageContent() {
             transition={{ duration: 0.8 }}
             className="mb-12 text-center sm:mb-16 md:mb-20"
           >
-            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-foreground/90 dark:text-foreground/65 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">
               {t("hero.eyebrow")}
             </p>
-            <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl text-balance">
+            <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-foreground sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl text-balance">
               {t("hero.heading")}
             </h1>
-            <div className="mx-auto mb-6 h-px w-20 bg-white/20 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
-            <p className="mx-auto max-w-5xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl text-pretty">
+            <div className="mx-auto mb-6 h-px w-20 bg-foreground/20 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
+            <p className="mx-auto max-w-5xl text-base font-light text-foreground dark:text-foreground/90 dark:text-foreground/65 sm:text-lg md:text-xl lg:text-2xl text-pretty">
               {t("hero.subheading")}
             </p>
           </motion.div>
@@ -165,22 +177,22 @@ export default function ContactPageContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/2 p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+              className="mx-auto w-full max-w-6xl rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
                   <div
-                    className={`flex items-center justify-between tracking-[0.15em] uppercase text-white/40 font-light ${typography.badge}`}
+                    className={`flex items-center justify-between tracking-[0.15em] uppercase text-foreground/60 font-light ${typography.badge}`}
                   >
                     <span>{completion}%</span>
                     <span className="truncate">
                       {status === "loading" ? t("form.submitting") : t("form.progressLabel")}
                     </span>
                   </div>
-                  <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-0.5 w-full overflow-hidden rounded-full bg-foreground/10">
                     <div
-                      className="h-full bg-white transition-all duration-500"
+                      className="h-full bg-primary transition-all duration-500"
                       style={{ width: `${completion}%` }}
                     />
                   </div>
@@ -196,8 +208,8 @@ export default function ContactPageContent() {
                       className={
                         `flex-1 px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] transition-all duration-300 relative overflow-hidden rounded-lg ` +
                         (type === option
-                          ? "bg-white text-black shadow-lg"
-                          : "bg-white/5 text-white/50 hover:bg-white/8 hover:text-white/70")
+                          ? "bg-foreground text-background shadow-lg"
+                          : "bg-foreground/5 text-foreground/65 hover:bg-foreground/8 hover:text-foreground dark:text-foreground/90 dark:text-foreground/65")
                       }
                       aria-pressed={type === option}
                     >
@@ -213,7 +225,7 @@ export default function ContactPageContent() {
                     <div>
                       <label
                         htmlFor="model"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {modelLabel}
                       </label>
@@ -223,7 +235,7 @@ export default function ContactPageContent() {
                         name="model"
                         value={formData.model}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
                         required
                       />
@@ -231,10 +243,10 @@ export default function ContactPageContent() {
                     <div>
                       <label
                         htmlFor="vin"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {t("form.vinLabel")}{" "}
-                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                        <span className="text-foreground/55 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -242,7 +254,7 @@ export default function ContactPageContent() {
                         name="vin"
                         value={formData.vin}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={t("form.vinPlaceholder")}
                         maxLength={17}
                       />
@@ -252,7 +264,7 @@ export default function ContactPageContent() {
                   <div>
                     <label
                       htmlFor="wishes"
-                      className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                      className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                     >
                       {t("form.wishesLabel")}
                     </label>
@@ -262,7 +274,7 @@ export default function ContactPageContent() {
                       rows={4}
                       value={formData.wishes}
                       onChange={handleChange}
-                      className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all resize-none font-light"
+                      className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all resize-none font-light"
                       placeholder={t("form.wishesPlaceholder")}
                       required
                     />
@@ -272,10 +284,10 @@ export default function ContactPageContent() {
                     <div>
                       <label
                         htmlFor="budget"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {t("form.budgetLabel")}{" "}
-                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                        <span className="text-foreground/55 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -283,14 +295,14 @@ export default function ContactPageContent() {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={t("form.budgetPlaceholder")}
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="email"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {t("form.emailLabel")}
                       </label>
@@ -300,7 +312,7 @@ export default function ContactPageContent() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder="example@mail.com"
                         required
                       />
@@ -311,7 +323,7 @@ export default function ContactPageContent() {
                     <div>
                       <label
                         htmlFor="phone"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {t("form.phoneLabel")}
                       </label>
@@ -321,22 +333,22 @@ export default function ContactPageContent() {
                         name="phone"
                         value={formData.phone}
                         onChange={handlePhoneChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={t("form.phonePlaceholder")}
                         required
                         aria-label={t("form.phoneLabel")}
                       />
-                      <p className="mt-1 text-[8px] text-white/30 tracking-wide">
+                      <p className="mt-1 text-[8px] text-foreground/55 tracking-wide">
                         {t("form.phoneHint")}
                       </p>
                     </div>
                     <div>
                       <label
                         htmlFor="telegramUsername"
-                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}
+                        className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
                       >
                         {t("form.telegramUsernameLabel")}{" "}
-                        <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                        <span className="text-foreground/55 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -344,7 +356,7 @@ export default function ContactPageContent() {
                         name="telegramUsername"
                         value={formData.telegramUsername}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-hidden focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={t("form.telegramUsernamePlaceholder")}
                       />
                     </div>
@@ -357,7 +369,7 @@ export default function ContactPageContent() {
                     disabled={status === "loading"}
                     whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
                     whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
-                    className="flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-black transition-all duration-300 hover:bg-transparent hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-primary bg-primary px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:bg-transparent hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {status === "loading" && <Loader className="animate-spin" size={14} />}
                     {status === "loading" ? t("form.submitting") : t("form.submit")}
@@ -391,62 +403,62 @@ export default function ContactPageContent() {
               className="mx-auto w-full max-w-6xl"
             >
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
-                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-foreground/5 hover:border-foreground/20">
+                  <div className="rounded-full border border-foreground/10 bg-foreground/5 p-4 text-foreground transition-transform duration-300 group-hover:scale-110">
                     <Mail className="h-6 w-6" />
                   </div>
                   <div>
                     <h3
-                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                      className={`mb-2 font-light uppercase tracking-widest text-foreground/65 ${typography.label}`}
                     >
                       {t("info.emailLabel")}
                     </h3>
                     <a
                       href="mailto:info@onecompany.global"
                       onClick={() => trackCTAClick("click_email", "mailto:info@onecompany.global")}
-                      className="text-lg font-light text-white transition-colors hover:text-white/80"
+                      className="text-lg font-light text-foreground transition-colors hover:text-foreground/90 dark:text-foreground/65"
                     >
                       info@onecompany.global
                     </a>
                   </div>
                 </div>
 
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
-                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-foreground/5 hover:border-foreground/20">
+                  <div className="rounded-full border border-foreground/10 bg-foreground/5 p-4 text-foreground transition-transform duration-300 group-hover:scale-110">
                     <Phone className="h-6 w-6" />
                   </div>
                   <div>
                     <h3
-                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                      className={`mb-2 font-light uppercase tracking-widest text-foreground/65 ${typography.label}`}
                     >
                       {t("info.phoneLabel")}
                     </h3>
                     <a
                       href="tel:+380660771700"
                       onClick={() => trackCTAClick("click_phone", "tel:+380660771700")}
-                      className="text-lg font-light text-white transition-colors hover:text-white/80"
+                      className="text-lg font-light text-foreground transition-colors hover:text-foreground/90 dark:text-foreground/65"
                     >
                       +380 66 077 17 00
                     </a>
                   </div>
                 </div>
 
-                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/2 p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/20">
-                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-foreground/5 hover:border-foreground/20">
+                  <div className="rounded-full border border-foreground/10 bg-foreground/5 p-4 text-foreground transition-transform duration-300 group-hover:scale-110">
                     <MapPin className="h-6 w-6" />
                   </div>
                   <div>
                     <h3
-                      className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}
+                      className={`mb-2 font-light uppercase tracking-widest text-foreground/65 ${typography.label}`}
                     >
                       {t("info.locationLabel")}
                     </h3>
-                    <p className="text-lg font-light text-white">{t("info.locationValue")}</p>
+                    <p className="text-lg font-light text-foreground">{t("info.locationValue")}</p>
                   </div>
                 </div>
               </div>
 
-              <p className="mt-12 text-center text-sm font-light leading-relaxed text-white/50 max-w-2xl mx-auto">
+              <p className="mt-12 text-center text-sm font-light leading-relaxed text-foreground/65 max-w-2xl mx-auto">
                 {t("info.description")}
               </p>
             </motion.div>

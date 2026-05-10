@@ -100,7 +100,10 @@ export default async function BlogPage({ params }: Props) {
   ];
 
   return (
-    <main id="main-content" className="relative min-h-screen bg-black pt-28 pb-24 text-white">
+    <main
+      id="main-content"
+      className="relative min-h-screen bg-background pt-28 pb-24 text-foreground"
+    >
       <BreadcrumbSchema items={breadcrumbs} />
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -111,7 +114,9 @@ export default async function BlogPage({ params }: Props) {
       {/* ── Header ── */}
       <section className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col gap-2">
-          <p className="text-xs uppercase tracking-[0.5em] text-white/40">{t("latest")}</p>
+          <p className="text-xs uppercase tracking-[0.5em] text-foreground/60 dark:text-foreground/40">
+            {t("latest")}
+          </p>
           <h1 className="font-display text-4xl font-light tracking-tight sm:text-5xl lg:text-6xl">
             {t("title")}
           </h1>
@@ -123,14 +128,16 @@ export default async function BlogPage({ params }: Props) {
             target="_blank"
             rel="noreferrer"
             aria-label={l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"}
-            className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-xs uppercase tracking-[0.3em] text-white backdrop-blur-sm transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+            className="group inline-flex items-center gap-2.5 rounded-full border border-foreground/20 bg-foreground/5 px-5 py-2.5 text-xs uppercase tracking-[0.3em] text-foreground backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
             </svg>
             {t("follow")}
           </a>
-          <span className="text-sm text-white/35 tracking-wide">{blog.instagramHandle}</span>
+          <span className="text-sm text-foreground/55 dark:text-foreground/35 tracking-wide">
+            {blog.instagramHandle}
+          </span>
         </div>
       </section>
 
@@ -140,7 +147,7 @@ export default async function BlogPage({ params }: Props) {
           <Link
             href={`/blog/${featured.slug}`}
             aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(featured.title, l)}`}
-            className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/3 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+            className="group relative block overflow-hidden rounded-3xl border border-foreground/10 bg-foreground/5 transition-all duration-500 hover:border-foreground/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
           >
             <div className="flex flex-col md:flex-row">
               {/* Image */}
@@ -172,21 +179,21 @@ export default async function BlogPage({ params }: Props) {
                     />
                   )
                 ) : (
-                  <div className="h-full w-full bg-linear-to-br from-white/5 via-black to-black" />
+                  <div className="h-full w-full bg-linear-to-br from-foreground/5 via-foreground/[0.04] to-foreground/[0.06]" />
                 )}
                 {featured.media[0]?.type === "video" && (
-                  <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/80 backdrop-blur-md">
+                  <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-card/85 dark:bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-foreground/95 dark:text-foreground/80 backdrop-blur-md">
                     Reel
                   </div>
                 )}
-                <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-black/80 hidden md:block" />
-                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent md:hidden" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-foreground/[0.08] dark:to-black/80 hidden md:block" />
+                <div className="absolute inset-0 bg-linear-to-t from-foreground/[0.08] dark:from-black/80 via-foreground/[0.06] dark:via-black/20 to-transparent md:hidden" />
               </div>
 
               {/* Content */}
               <div className="relative flex flex-col justify-center gap-5 p-6 sm:p-8 md:w-1/2 lg:w-[45%] md:p-10 lg:p-14">
                 {featured.location && (
-                  <div className="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-white/40">
+                  <div className="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-foreground/60 dark:text-foreground/40">
                     <span>{getLocalized(featured.location, l)}</span>
                   </div>
                 )}
@@ -195,7 +202,7 @@ export default async function BlogPage({ params }: Props) {
                   {getLocalized(featured.title, l)}
                 </h2>
 
-                <p className="line-clamp-4 text-sm leading-relaxed text-white/55 sm:text-base">
+                <p className="line-clamp-4 text-sm leading-relaxed text-foreground/70 dark:text-foreground/55 sm:text-base">
                   {getPreviewText(
                     getLocalized(featured.caption, l),
                     getLocalized(featured.title, l),
@@ -208,7 +215,7 @@ export default async function BlogPage({ params }: Props) {
                     {featured.tags.slice(0, 4).map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/45"
+                        className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-foreground/65 dark:text-foreground/45"
                       >
                         #{tag}
                       </span>
@@ -217,7 +224,7 @@ export default async function BlogPage({ params }: Props) {
                 ) : null}
 
                 <div className="mt-auto pt-4">
-                  <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50 transition-colors duration-300 group-hover:text-white">
+                  <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-foreground/65 dark:text-foreground/50 transition-colors duration-300 group-hover:text-foreground">
                     {l === "ua" ? "Читати далі" : "Read more"}
                     <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
                       →
@@ -242,7 +249,7 @@ export default async function BlogPage({ params }: Props) {
                   key={post.id}
                   href={`/blog/${post.slug}`}
                   aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(post.title, l)}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/3 transition-all duration-500 hover:border-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/5 transition-all duration-500 hover:border-foreground/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-16/10 w-full overflow-hidden">
@@ -270,29 +277,29 @@ export default async function BlogPage({ params }: Props) {
                         />
                       )
                     ) : (
-                      <div className="h-full w-full bg-linear-to-br from-white/5 via-black to-black" />
+                      <div className="h-full w-full bg-linear-to-br from-foreground/5 via-foreground/[0.04] to-foreground/[0.06]" />
                     )}
                     {media?.type === "video" && (
-                      <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur-md">
+                      <div className="absolute left-3 top-3 rounded-full border border-foreground/20 bg-card/85 dark:bg-background/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-foreground/90 dark:text-foreground/75 backdrop-blur-md">
                         Reel
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-foreground/[0.06] dark:from-black/60 via-transparent to-transparent" />
                   </div>
 
                   {/* Card body */}
                   <div className="flex flex-1 flex-col gap-3 p-5">
                     {post.location && (
-                      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-white/35">
+                      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-foreground/55 dark:text-foreground/35">
                         <span>{getLocalized(post.location, l)}</span>
                       </div>
                     )}
 
-                    <h3 className="font-display text-lg font-light leading-snug tracking-tight text-white">
+                    <h3 className="font-display text-lg font-light leading-snug tracking-tight text-foreground">
                       {getLocalized(post.title, l)}
                     </h3>
 
-                    <p className="line-clamp-2 text-sm leading-relaxed text-white/45">
+                    <p className="line-clamp-2 text-sm leading-relaxed text-foreground/65 dark:text-foreground/45">
                       {getPreviewText(
                         getLocalized(post.caption, l),
                         getLocalized(post.title, l),
@@ -301,7 +308,7 @@ export default async function BlogPage({ params }: Props) {
                     </p>
 
                     <div className="mt-auto pt-3">
-                      <span className="text-xs uppercase tracking-[0.3em] text-white/40 transition-colors group-hover:text-white">
+                      <span className="text-xs uppercase tracking-[0.3em] text-foreground/60 dark:text-foreground/40 transition-colors group-hover:text-foreground">
                         {l === "ua" ? "Детальніше →" : "Read more →"}
                       </span>
                     </div>
@@ -316,10 +323,10 @@ export default async function BlogPage({ params }: Props) {
       {/* ── Empty state ── */}
       {posts.length === 0 && (
         <section className="relative mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-white/3 p-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
+          <div className="flex flex-col items-center gap-4 rounded-3xl border border-foreground/10 bg-foreground/5 p-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5">
               <svg
-                className="h-7 w-7 text-white/30"
+                className="h-7 w-7 text-foreground/55 dark:text-foreground/30"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -332,7 +339,7 @@ export default async function BlogPage({ params }: Props) {
                 />
               </svg>
             </div>
-            <p className="text-white/50">{t("empty")}</p>
+            <p className="text-foreground/65 dark:text-foreground/50">{t("empty")}</p>
           </div>
         </section>
       )}

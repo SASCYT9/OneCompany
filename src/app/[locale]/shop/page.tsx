@@ -1,14 +1,14 @@
-import { resolveLocale } from '@/lib/seo';
-import OurStoresPortal from './components/OurStoresPortal';
+import { resolveLocale } from "@/lib/seo";
+import OurStoresPortal from "./components/OurStoresPortal";
 
-export { generateMetadata } from './metadata';
+export { generateMetadata } from "./metadata";
 
 // ISR: cache the rendered HTML for 1 hour. The B2B-only stock card
 // is rendered client-side via useSession() so the page stays static.
 // force-static is required to override the [locale] layout's dynamic
 // detection (it does i18n message loading); without it Next falls back
 // to dynamic and Vercel stamps Cache-Control: private, no-store.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 type Props = {
@@ -21,9 +21,8 @@ export default async function ShopPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   return (
-    <div data-page="our-stores">
+    <div data-page="our-stores" className="dark">
       <OurStoresPortal locale={resolvedLocale} />
     </div>
   );
 }
-

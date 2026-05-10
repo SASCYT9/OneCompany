@@ -2,30 +2,16 @@ import React from "react";
 import { absoluteUrl, buildLocalizedPath, type SupportedLocale } from "./seo";
 
 /**
- * Returns the global Organization JSON-LD Schema.
- * Connects all local shops back to One Company Global.
+ * Returns a JSON-LD reference to the canonical Organization schema
+ * emitted globally by `OrganizationSchema` in `components/seo/StructuredData.tsx`
+ * (mounted in app/layout.tsx). Reference-by-@id avoids duplicating the
+ * organization payload — and avoids the previous bug where a stale
+ * placeholder phone "+380 99 000 0000" leaked into every brand-shop
+ * schema, contradicting the real phone in the canonical block.
  */
-export function getOrganizationSchema(locale: SupportedLocale) {
+export function getOrganizationSchema(_locale: SupportedLocale) {
   return {
-    "@context": "https://schema.org",
-    "@type": "Store",
-    name: "One Company Global",
-    url: absoluteUrl(buildLocalizedPath(locale, "")),
-    logo: absoluteUrl("/branding/og-image.png"),
-    image: absoluteUrl("/branding/og-image.png"),
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+380 99 000 0000", // Will be updated properly in DB later
-      contactType: "customer service",
-      availableLanguage: ["Ukrainian", "English"],
-    },
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Kyiv, Ukraine",
-      addressLocality: "Kyiv",
-      addressCountry: "UA",
-    },
-    priceRange: "$$$",
+    "@id": "https://onecompany.global/#organization",
   };
 }
 

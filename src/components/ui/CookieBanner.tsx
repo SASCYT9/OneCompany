@@ -120,29 +120,29 @@ export default function CookieBanner({ locale = "ua" }: CookieBannerProps) {
       }`}
     >
       <div className="max-w-4xl mx-auto">
-        <div className="bg-black/95 backdrop-blur-xl border border-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-card/95 backdrop-blur-xl border border-foreground/15 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden">
           {/* Gradient accent line */}
-          <div className="h-px bg-linear-to-r from-transparent via-zinc-500 to-transparent" />
+          <div className="h-px bg-linear-to-r from-transparent via-foreground/30 to-transparent" />
 
           <div className="p-4 sm:p-6">
             <div className="flex items-start gap-3 sm:gap-4">
               {/* Icon - hidden on mobile */}
-              <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-zinc-700 shrink-0">
-                <Cookie className="w-6 h-6 text-zinc-400" />
+              <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-foreground/5 border border-foreground/15 shrink-0">
+                <Cookie className="w-6 h-6 text-foreground/65" />
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                  <h3 className="text-white font-semibold text-base sm:text-lg">{t.title}</h3>
-                  <Shield className="w-4 h-4 text-zinc-500 hidden xs:block" />
+                  <h3 className="text-foreground font-semibold text-base sm:text-lg">{t.title}</h3>
+                  <Shield className="w-4 h-4 text-foreground/55 hidden xs:block" />
                 </div>
 
-                <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
+                <p className="text-foreground/75 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
                   {t.description}{" "}
                   <Link
                     href={t.privacyLink}
-                    className="text-white hover:text-zinc-300 underline underline-offset-2 transition-colors"
+                    className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
                   >
                     {t.learnMore}
                   </Link>
@@ -152,14 +152,14 @@ export default function CookieBanner({ locale = "ua" }: CookieBannerProps) {
                 <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
                   <button
                     onClick={() => handleAccept("all")}
-                    className="w-full xs:w-auto px-5 sm:px-6 py-2.5 bg-white hover:bg-zinc-200 text-black font-semibold text-sm sm:text-base rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full xs:w-auto px-5 sm:px-6 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm sm:text-base rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {t.acceptAll}
                   </button>
 
                   <button
                     onClick={() => handleAccept("necessary")}
-                    className="w-full xs:w-auto px-5 sm:px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-medium text-sm sm:text-base rounded-xl border border-zinc-700 transition-all duration-200"
+                    className="w-full xs:w-auto px-5 sm:px-6 py-2.5 bg-foreground/5 hover:bg-foreground/10 text-foreground/80 hover:text-foreground font-medium text-sm sm:text-base rounded-xl border border-foreground/15 transition-all duration-200"
                   >
                     {t.acceptNecessary}
                   </button>
@@ -169,7 +169,7 @@ export default function CookieBanner({ locale = "ua" }: CookieBannerProps) {
               {/* Close button (accepts necessary only) */}
               <button
                 onClick={() => handleAccept("necessary")}
-                className="p-1.5 sm:p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors shrink-0"
+                className="p-1.5 sm:p-2 text-foreground/55 hover:text-foreground hover:bg-foreground/10 rounded-lg transition-colors shrink-0"
                 aria-label="Close"
               >
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { resolveLocale } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +7,18 @@ import { fetchTurn14Brands, searchTurn14Items } from "@/lib/turn14";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// Turn14 is a live proxy on a 700k-part catalog with infinite query
+// permutations (?q=, ?brandId=, ?page=). Indexing it would burn
+// crawl budget on dynamic search results that have no canonical
+// content. Block at meta + header level (also see next.config.ts).
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 export default async function Turn14CatalogPage({
   params,

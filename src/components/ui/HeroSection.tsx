@@ -116,7 +116,7 @@ export const HeroSection = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: isLoaded ? 1 : 0 }}
                 transition={{ duration: 1.2, delay: 0.8 }}
-                className="text-2xl md:text-4xl font-light text-white/90 tracking-wide"
+                className="text-2xl md:text-4xl font-light text-foreground/90 tracking-wide"
                 style={{
                   textShadow: "0 2px 20px rgba(0,0,0,0.5)",
                 }}
@@ -148,7 +148,7 @@ export const HeroSection = () => {
                 }}
                 className="rounded-full inline-block"
               >
-                <MagneticButton className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden">
+                <MagneticButton className="group relative px-14 py-6 rounded-full text-foreground text-lg font-medium transition-all duration-700 overflow-hidden">
                   <span className="relative z-10 tracking-wide">Почати подорож</span>
 
                   {/* Animated Gradient */}
@@ -169,7 +169,7 @@ export const HeroSection = () => {
             className="absolute bottom-16 left-1/2 transform -translate-x-1/2"
           >
             <div className="flex flex-col items-center space-y-3">
-              <span className="text-white/50 text-xs uppercase tracking-[0.3em] font-light">
+              <span className="text-foreground/65 dark:text-foreground/50 text-xs uppercase tracking-[0.3em] font-light">
                 Scroll
               </span>
               <motion.div

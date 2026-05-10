@@ -17,7 +17,8 @@ type ExperienceSplit = {
   description: string;
   href: string;
   accent: string;
-  bgImage: string;
+  bgImageDark: string;
+  bgImageLight: string;
   stats: { value: string; note: string }[];
 };
 
@@ -39,7 +40,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("hypercarDescription"),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
-      bgImage: "/images/hero-auto.png",
+      bgImageDark: "/images/hero-auto-dark.png",
+      bgImageLight: "/images/hero-auto-light.png",
       stats: [
         { value: "160+", note: t("autoBrands") },
         { value: "11", note: t("autoCategories") },
@@ -51,7 +53,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("factoryRaceDescription"),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
-      bgImage: "/images/hero-moto.png",
+      bgImageDark: "/images/hero-moto-dark.png",
+      bgImageLight: "/images/hero-moto-light.png",
       stats: [
         { value: "60+", note: t("motoPartners") },
         { value: "6", note: t("motoSeries") },
@@ -148,12 +151,19 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   return (
     <>
-      <main className="text-white">
-        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
+      <main className="text-foreground">
+        {/* Hero — photo cards swap dark/light variants per theme. Each variant
+            has matching gradient overlay so the label pill + stats read
+            correctly. Text uses semantic tokens so it inverts with theme. */}
+        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8 text-foreground">
           <div
-            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
+            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
           >
-            <p>{heroBadgeCopy}</p>
+            <p className="inline-flex items-center gap-3">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {heroBadgeCopy}
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
+            </p>
           </div>
 
           {/* SEO H1 - visually hidden but accessible */}
@@ -170,64 +180,84 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   key={experience.label}
                   href={experience.href}
                   className={clsx(
-                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
-                    "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
+                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5",
+                    "border border-foreground/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-foreground/30 hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
                     "rounded-2xl",
                     index === 0 ? "md:mr-2" : "md:ml-2"
                   )}
                 >
-                  {/* Background Image - raw photo */}
+                  {/* Photos swap per theme. Tailwind v4's dark:opacity-X
+                      variant doesn't apply consistently with this version
+                      of @custom-variant, so we use display swap instead. */}
                   <Image
-                    src={experience.bgImage}
+                    src={experience.bgImageDark}
                     alt={
                       experience.label === "AUTO" || experience.label === "АВТО"
                         ? "Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна"
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 hidden dark:block"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
-                    quality={75}
+                    quality={85}
                   />
-                  {/* Subtle gradient for text readability */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                  <Image
+                    src={experience.bgImageLight}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 dark:hidden"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority
+                    fetchPriority="high"
+                    quality={85}
+                  />
+                  {/* Bottom-only gradient veil — keeps photo unobstructed in
+                      the upper 2/3, darkens the lower 1/3 so the description,
+                      stats and arrow CTA all read as light text on dark.
+                      Photo composition (car middle, ground bottom) means the
+                      gradient lands on the floor area, not the car. */}
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/85 via-black/55 to-transparent" />
 
-                  <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
-                    <div>
-                      <span
-                        className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}
-                      >
-                        {experience.label}
-                      </span>
-                    </div>
+                  {/* Top — small label pill, stays out of photo focus */}
+                  <div className="relative flex justify-start">
+                    <span
+                      className={`inline-block font-display rounded-full border border-white/40 bg-black/40 backdrop-blur-md px-5 py-2 tracking-[0.3em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:border-white sm:px-6 sm:py-2.5 sm:tracking-[0.35em] ${typography.label}`}
+                    >
+                      {experience.label}
+                    </span>
+                  </div>
+
+                  {/* Bottom — description + stats + arrow stacked over the dark veil */}
+                  <div className="relative flex flex-col gap-4 mt-auto">
                     <p
-                      className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}
+                      className={`leading-relaxed text-white/90 text-pretty tracking-wide max-w-md ${typography.bodySmall}`}
                     >
                       {experience.description}
                     </p>
-                  </div>
-                  <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
-                      {experience.stats.map((stat) => (
-                        <div key={stat.note}>
-                          <p
-                            className={`font-display tracking-tight text-white ${typography.statValue}`}
-                          >
-                            {stat.value}
-                          </p>
-                          <p
-                            className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}
-                          >
-                            {stat.note}
-                          </p>
-                        </div>
-                      ))}
+                    <div className="flex w-full items-end justify-between gap-2 sm:gap-4">
+                      <div className="flex flex-wrap gap-3 sm:gap-5">
+                        {experience.stats.map((stat) => (
+                          <div key={stat.note}>
+                            <p
+                              className={`font-display tracking-tight text-primary ${typography.statValue}`}
+                            >
+                              {stat.value}
+                            </p>
+                            <p
+                              className={`uppercase tracking-[0.2em] text-white/65 sm:tracking-[0.3em] ${typography.statLabel}`}
+                            >
+                              {stat.note}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-black/40 backdrop-blur-md text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-12 sm:w-12">
+                        →
+                      </span>
                     </div>
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
-                      →
-                    </span>
                   </div>
                 </Link>
               ))}
@@ -274,21 +304,24 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       </section>
       */}
 
-        <section className="relative overflow-hidden px-6 py-20 text-white">
+        <section className="relative overflow-hidden px-6 py-20 text-foreground">
           <div className="relative mx-auto max-w-6xl">
             <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
               <div>
-                <p className={`uppercase tracking-[0.4em] text-white/50 ${typography.badge}`}>
+                <p
+                  className={`inline-flex items-center gap-3 uppercase tracking-[0.4em] text-primary ${typography.badge}`}
+                >
+                  <span aria-hidden className="h-px w-8 bg-primary" />
                   {t("b2bPrograms")}
                 </p>
                 <h3 className={`mt-3 text-balance ${typography.h2}`}>{t("partnerWithLeading")}</h3>
-                <p className={`mt-3 text-white/60 text-pretty ${typography.body}`}>
+                <p className={`mt-3 text-foreground/60 text-pretty ${typography.body}`}>
                   {t("partnerTypes")}
                 </p>
               </div>
               <Link
                 href={`/${locale}/contact`}
-                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-black"
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-primary bg-primary/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-primary transition-colors duration-200 hover:bg-primary hover:text-primary-foreground"
               >
                 {t("arrangeConsult")} ↗
               </Link>
@@ -297,13 +330,15 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
               {b2bServices.map((service) => (
                 <div
                   key={service.title}
-                  className="rounded-3xl border border-white/10 bg-black/60 shadow-lg p-6 hover:bg-black/50 hover:border-white/20 transition-colors duration-200"
+                  className="rounded-3xl border border-foreground/10 bg-card/60 dark:bg-black/60 shadow-lg p-6 hover:bg-card/80 dark:hover:bg-black/50 hover:border-foreground/20 transition-colors duration-200"
                 >
-                  <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>
+                  <p
+                    className={`uppercase tracking-[0.3em] text-foreground/50 ${typography.badge}`}
+                  >
                     {heroBadgeCopy}
                   </p>
-                  <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>
-                  <p className={`mt-3 text-white/70 ${typography.body}`}>{service.copy}</p>
+                  <h4 className={`mt-4 text-foreground ${typography.h3}`}>{service.title}</h4>
+                  <p className={`mt-3 text-foreground/70 ${typography.body}`}>{service.copy}</p>
                 </div>
               ))}
             </div>

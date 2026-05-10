@@ -4,11 +4,21 @@ import { resolveLocale, buildPageMetadata, type SupportedLocale } from "@/lib/se
 export const dynamic = "force-static";
 
 const metaCopy: Record<SupportedLocale, { title: string; description: string }> = {
-  en: { title: "Delivery & Payment · onecompany", description: "Information about delivery options and payment methods." },
-  ua: { title: "Доставка та оплата · onecompany", description: "Інформація про варіанти доставки та способи оплати." },
+  en: {
+    title: "Delivery & Payment · onecompany",
+    description: "Information about delivery options and payment methods.",
+  },
+  ua: {
+    title: "Доставка та оплата · onecompany",
+    description: "Інформація про варіанти доставки та способи оплати.",
+  },
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   const l = resolveLocale(locale);
   const meta = metaCopy[l];
@@ -20,16 +30,16 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
   const l = resolveLocale(locale);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pt-32 pb-16 text-white sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl px-4 pt-32 pb-16 text-foreground sm:px-6 lg:px-8">
       <div className="prose prose-invert max-w-none">
         <h1 className="text-3xl font-light sm:text-4xl text-balance mb-8">
           {l === "ua" ? "Доставка та оплата" : "Delivery & Payment"}
         </h1>
 
-        <div className="space-y-8 text-white/80 font-light">
+        <div className="space-y-8 text-foreground/95 dark:text-foreground/80 font-light">
           {/* Payment Section */}
           <section>
-            <h2 className="text-xl font-normal text-white mb-4 mt-8">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
               {l === "ua" ? "1. Оплата" : "1. Payment"}
             </h2>
             <p className="text-lg leading-relaxed">
@@ -39,13 +49,17 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </p>
             <ul className="list-disc pl-5 mt-4 space-y-2">
               <li>
-                <strong className="text-white">{l === "ua" ? "Оплата картою онлайн:" : "Online Payment via Card:"}</strong>{" "}
+                <strong className="text-foreground">
+                  {l === "ua" ? "Оплата картою онлайн:" : "Online Payment via Card:"}
+                </strong>{" "}
                 {l === "ua"
                   ? "Ми приймаємо платежі через захищену платіжну систему онлайн. Оплата можлива картами Visa та Mastercard. Передача даних здійснюється через захищене з'єднання."
                   : "We accept payments through a secure online payment system. We support Visa and Mastercard. Data transmission is handled via secure connection."}
               </li>
               <li>
-                <strong className="text-white">{l === "ua" ? "Банківський переказ:" : "Bank Transfer:"}</strong>{" "}
+                <strong className="text-foreground">
+                  {l === "ua" ? "Банківський переказ:" : "Bank Transfer:"}
+                </strong>{" "}
                 {l === "ua"
                   ? "Можлива оплата безготівковим розрахунком згідно з виставленим інвойсом для B2B партнерів."
                   : "Bank transfers can be made for B2B partners based on an issued invoice."}
@@ -60,7 +74,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
 
           {/* Delivery Section */}
           <section>
-            <h2 className="text-xl font-normal text-white mb-4 mt-8">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
               {l === "ua" ? "2. Доставка" : "2. Delivery"}
             </h2>
             <p>
@@ -70,13 +84,19 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </p>
             <ul className="list-disc pl-5 mt-4 space-y-3">
               <li>
-                <strong className="text-white">{l === "ua" ? "Нова Пошта (по Україні):" : "Nova Poshta (within Ukraine):"}</strong>{" "}
+                <strong className="text-foreground">
+                  {l === "ua" ? "Нова Пошта (по Україні):" : "Nova Poshta (within Ukraine):"}
+                </strong>{" "}
                 {l === "ua"
                   ? "Доставка на відділення, у поштомати або кур'єром за вказаною адресою. Терміни та вартість доставки — згідно з тарифами перевізника."
                   : "Delivery to branches, parcel lockers, or by courier to a specified address. Timelines and shipping costs are according to the carrier's rates."}
               </li>
               <li>
-                <strong className="text-white">{l === "ua" ? "DHL Express (міжнародна доставка):" : "DHL Express (international delivery):"}</strong>{" "}
+                <strong className="text-foreground">
+                  {l === "ua"
+                    ? "DHL Express (міжнародна доставка):"
+                    : "DHL Express (international delivery):"}
+                </strong>{" "}
                 {l === "ua"
                   ? "Міжнародна експрес-доставка в будь-яку точку світу. Терміни та вартість — згідно з тарифами перевізника та залежать від країни призначення."
                   : "International express delivery anywhere in the world. Timelines and costs are according to the carrier's rates and depend on the destination country."}
@@ -91,7 +111,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
 
           {/* Restrictions Section */}
           <section>
-            <h2 className="text-xl font-normal text-white mb-4 mt-8">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
               {l === "ua" ? "3. Обмеження" : "3. Restrictions"}
             </h2>
             <p>
@@ -103,17 +123,15 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
 
           {/* Company Requisites Section */}
           <section>
-            <h2 className="text-xl font-normal text-white mb-4 mt-8">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
               {l === "ua" ? "4. Реквізити" : "4. Company Details"}
             </h2>
-            <div className="not-prose border-l-2 border-white/20 pl-4 space-y-1">
-              <p className="text-white font-medium">
+            <div className="not-prose border-l-2 border-foreground/20 pl-4 space-y-1">
+              <p className="text-foreground font-medium">
                 {l === "ua" ? "ФОП Побережець Іван Юрійович" : "PE Poberezhets Ivan Yuriiovych"}
               </p>
               <p>{l === "ua" ? "ЄДРПОУ: 3803206192" : "Registration No: 3803206192"}</p>
-              <p className="mt-2">
-                {l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}
-              </p>
+              <p className="mt-2">{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
               <p>{l === "ua" ? "Київ, 01024, Україна" : "Kyiv, 01024, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>
             </div>

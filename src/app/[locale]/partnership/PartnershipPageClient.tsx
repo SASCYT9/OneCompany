@@ -81,7 +81,7 @@ export default function PartnershipPageClient() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-32 md:pt-40 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground pt-32 md:pt-40 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -97,52 +97,54 @@ export default function PartnershipPageClient() {
             transition={{ duration: 0.6 }}
           >
             <h1
-              className={`font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-white to-white/60 ${typography.h1}`}
+              className={`font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60 ${typography.h1}`}
             >
               {t("title")}
             </h1>
-            <p className={`text-white/60 mb-12 leading-relaxed ${typography.body}`}>
+            <p
+              className={`text-foreground/90 dark:text-foreground/65 mb-12 leading-relaxed ${typography.body}`}
+            >
               {t("description")}
             </p>
 
             <div className="space-y-8">
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <Building2 className="w-6 h-6 text-white" />
+                <div className="p-3 rounded-xl bg-foreground/5 border border-foreground/10">
+                  <Building2 className="w-6 h-6 text-foreground" />
                 </div>
                 <div>
                   <h3 className={`font-semibold mb-2 ${typography.h3}`}>
                     {t("benefits.official.title")}
                   </h3>
-                  <p className={`text-white/50 ${typography.bodySmall}`}>
+                  <p className={`text-foreground/65 ${typography.bodySmall}`}>
                     {t("benefits.official.description")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <Globe className="w-6 h-6 text-white" />
+                <div className="p-3 rounded-xl bg-foreground/5 border border-foreground/10">
+                  <Globe className="w-6 h-6 text-foreground" />
                 </div>
                 <div>
                   <h3 className={`font-semibold mb-2 ${typography.h3}`}>
                     {t("benefits.logistics.title")}
                   </h3>
-                  <p className={`text-white/50 ${typography.bodySmall}`}>
+                  <p className={`text-foreground/65 ${typography.bodySmall}`}>
                     {t("benefits.logistics.description")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <User className="w-6 h-6 text-white" />
+                <div className="p-3 rounded-xl bg-foreground/5 border border-foreground/10">
+                  <User className="w-6 h-6 text-foreground" />
                 </div>
                 <div>
                   <h3 className={`font-semibold mb-2 ${typography.h3}`}>
                     {t("benefits.support.title")}
                   </h3>
-                  <p className={`text-white/50 ${typography.bodySmall}`}>
+                  <p className={`text-foreground/65 ${typography.bodySmall}`}>
                     {t("benefits.support.description")}
                   </p>
                 </div>
@@ -155,9 +157,9 @@ export default function PartnershipPageClient() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCTAClick("click_telegram", "https://t.me/onecompany_global")}
-                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all hover:scale-[1.02] text-foreground group w-fit"
               >
-                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                <div className="p-2 rounded-xl bg-foreground/5 group-hover:bg-foreground/10 transition-colors">
                   <Send className="w-5 h-5" />
                 </div>
                 <span className="font-medium tracking-wide">Telegram</span>
@@ -166,9 +168,9 @@ export default function PartnershipPageClient() {
               <a
                 href="mailto:info@onecompany.global"
                 onClick={() => trackCTAClick("click_email", "mailto:info@onecompany.global")}
-                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all hover:scale-[1.02] text-foreground group w-fit"
               >
-                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                <div className="p-2 rounded-xl bg-foreground/5 group-hover:bg-foreground/10 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <span className="font-medium tracking-wide">info@onecompany.global</span>
@@ -176,9 +178,9 @@ export default function PartnershipPageClient() {
 
               <a
                 href="tel:+380660771700"
-                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all hover:scale-[1.02] text-foreground group w-fit"
               >
-                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                <div className="p-2 rounded-xl bg-foreground/5 group-hover:bg-foreground/10 transition-colors">
                   <Phone className="w-5 h-5" />
                 </div>
                 <span className="font-medium tracking-wide">+380 66 077 17 00</span>
@@ -191,10 +193,10 @@ export default function PartnershipPageClient() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative"
+            className="bg-foreground/5 backdrop-blur-xl border border-foreground/10 rounded-3xl p-8 relative"
           >
             {/* Progress Bar */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-white/5 rounded-t-3xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-foreground/5 rounded-t-3xl overflow-hidden">
               <motion.div
                 className="h-full bg-linear-to-r from-blue-500 to-purple-500"
                 initial={{ width: 0 }}
@@ -207,7 +209,7 @@ export default function PartnershipPageClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label
-                    className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}
+                    className={`text-foreground/90 dark:text-foreground/65 flex items-center gap-2 ${typography.bodySmall}`}
                   >
                     <Building2 className="w-4 h-4" /> {t("form.companyName")}
                   </label>
@@ -216,12 +218,12 @@ export default function PartnershipPageClient() {
                     required
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors"
+                    className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
-                    className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}
+                    className={`text-foreground/90 dark:text-foreground/65 flex items-center gap-2 ${typography.bodySmall}`}
                   >
                     <Globe className="w-4 h-4" /> {t("form.website")}
                   </label>
@@ -229,7 +231,7 @@ export default function PartnershipPageClient() {
                     type="text"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors"
+                    className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors"
                   />
                 </div>
               </div>
@@ -237,7 +239,7 @@ export default function PartnershipPageClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label
-                    className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}
+                    className={`text-foreground/90 dark:text-foreground/65 flex items-center gap-2 ${typography.bodySmall}`}
                   >
                     <User className="w-4 h-4" /> {t("form.contactPerson")}
                   </label>
@@ -246,12 +248,12 @@ export default function PartnershipPageClient() {
                     required
                     value={formData.contactName}
                     onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors"
+                    className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
-                    className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}
+                    className={`text-foreground/90 dark:text-foreground/65 flex items-center gap-2 ${typography.bodySmall}`}
                   >
                     <Mail className="w-4 h-4" /> {t("form.email")}
                   </label>
@@ -260,13 +262,13 @@ export default function PartnershipPageClient() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors"
+                    className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-white/60 flex items-center gap-2">
+                <label className="text-sm text-foreground/90 dark:text-foreground/65 flex items-center gap-2">
                   <Phone className="w-4 h-4" /> {t("form.phone")}
                 </label>
                 <input
@@ -274,12 +276,16 @@ export default function PartnershipPageClient() {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors"
+                  className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className={`text-white/60 ${typography.bodySmall}`}>{t("form.type")}</label>
+                <label
+                  className={`text-foreground/90 dark:text-foreground/65 ${typography.bodySmall}`}
+                >
+                  {t("form.type")}
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {(["sto", "dealer", "detailing", "tuning", "other"] as const).map((type) => (
                     <button
@@ -288,8 +294,8 @@ export default function PartnershipPageClient() {
                       onClick={() => setFormData({ ...formData, type })}
                       className={`px-4 py-2.5 rounded-full font-medium border transition-all duration-300 ${typography.bodySmall} ${
                         formData.type === type
-                          ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                          : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                          ? "bg-foreground text-background border-foreground shadow-[0_0_20px_rgba(0,0,0,0.18)] dark:shadow-[0_0_20px_rgba(255,255,255,0.25)]"
+                          : "bg-foreground/5 border-foreground/10 text-foreground/90 dark:text-foreground/65 hover:bg-foreground/10 hover:border-foreground/20 hover:text-foreground"
                       }`}
                     >
                       {t(`types.${type}`)}
@@ -299,7 +305,7 @@ export default function PartnershipPageClient() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-white/60 flex items-center gap-2">
+                <label className="text-sm text-foreground/90 dark:text-foreground/65 flex items-center gap-2">
                   <FileText className="w-4 h-4" /> {t("form.message")}
                 </label>
                 <textarea
@@ -307,7 +313,7 @@ export default function PartnershipPageClient() {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   rows={4}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-white/30 transition-colors resize-none"
+                  className="w-full bg-foreground/5 border border-foreground/15 rounded-xl px-4 py-3 text-foreground focus:outline-hidden focus:border-foreground/30 transition-colors resize-none"
                 />
               </div>
 
@@ -316,8 +322,8 @@ export default function PartnershipPageClient() {
                 disabled={status === "loading" || completion < 100}
                 className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
                   status === "loading" || completion < 100
-                    ? "bg-white/10 text-white/40 cursor-not-allowed"
-                    : "bg-white text-black hover:bg-white/90"
+                    ? "bg-foreground/10 text-foreground/60 cursor-not-allowed"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                 }`}
               >
                 {status === "loading" ? (

@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { Menu, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -122,27 +123,27 @@ export function Header() {
     <>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only absolute top-2 left-2 z-50 rounded-md bg-white/90 px-3 py-2 text-sm text-black"
+        className="sr-only focus:not-sr-only absolute top-2 left-2 z-50 rounded-md bg-card/90 px-3 py-2 text-sm text-card-foreground"
       >
         Skip to content
       </a>
       <header className="fixed top-0 left-0 right-0 z-50 px-3 pt-2 sm:px-4 sm:pt-4">
         <div
           className={cn(
-            "relative mx-auto flex w-full items-center rounded-2xl border backdrop-blur-3xl px-3 py-2.5 sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
-            isShopRoute
-              ? "max-w-7xl border-obsidian-border bg-obsidian-panel/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
-              : "max-w-6xl border-obsidian-border bg-obsidian/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            "relative mx-auto flex w-full items-center rounded-2xl border backdrop-blur-xl md:backdrop-blur-3xl px-3 py-2.5 sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
+            "border-foreground/10 bg-card/65 shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+            "dark:border-obsidian-border dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]",
+            isShopRoute ? "max-w-7xl dark:bg-obsidian-panel/80" : "max-w-6xl dark:bg-obsidian/80"
           )}
         >
           <Link
             href={logoHref}
             suppressHydrationWarning
-            className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
+            className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-foreground/40"
             aria-label="ONE COMPANY home"
           >
-            <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
-            <span className="absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
+            <Logo className="w-20 sm:w-28 md:w-32" priority tone="auto" size="compact" />
+            <span className="absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-foreground to-transparent sm:-bottom-2 sm:w-10" />
           </Link>
           <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
             {renderedNavItems.map((item) => {
@@ -153,15 +154,15 @@ export function Header() {
                   href={item.href}
                   suppressHydrationWarning
                   className={cn(
-                    "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-white/60 transition-colors md:text-[13px] md:tracking-[0.2em]",
-                    isActive && "text-white"
+                    "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors md:text-[13px] md:tracking-[0.2em]",
+                    isActive && "text-foreground"
                   )}
                 >
                   {item.label}
                   {isActive && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute -bottom-2 left-0 block h-px w-full bg-linear-to-r from-white to-transparent"
+                      className="absolute -bottom-2 left-0 block h-px w-full bg-linear-to-r from-primary via-primary/60 to-transparent"
                     />
                   )}
                 </Link>
@@ -171,13 +172,13 @@ export function Header() {
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
             {segments[0] === "shop" ? (
-              <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
+              <div className="hidden items-center gap-1 rounded-full border border-foreground/20 bg-foreground/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-foreground/70 md:flex">
                 <button
                   type="button"
                   onClick={() => setRegion("EU")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "EU" && "bg-white text-black"
+                    region === "EU" && "bg-foreground text-background"
                   )}
                 >
                   € EUR
@@ -187,7 +188,7 @@ export function Header() {
                   onClick={() => setRegion("US")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "US" && "bg-white text-black"
+                    region === "US" && "bg-foreground text-background"
                   )}
                 >
                   $ USD
@@ -197,7 +198,7 @@ export function Header() {
                   onClick={() => setRegion("UA")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "UA" && "bg-white text-black"
+                    region === "UA" && "bg-foreground text-background"
                   )}
                 >
                   ₴ UAH
@@ -205,21 +206,24 @@ export function Header() {
               </div>
             ) : null}
             <LocaleSwitcher className="hidden shrink-0 md:ml-2 md:flex" />
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
             {!isShopRoute ? (
               <Link
                 href={`/${locale}/partnership`}
-                className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-[0.28em]"
+                className="group hidden items-center gap-2 rounded-full border border-foreground/20 bg-foreground/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background sm:inline-flex sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-[0.28em]"
               >
                 <span className="hidden sm:inline">{tNav("bookAtelier")}</span>
                 <span className="sm:hidden">Book</span>
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/30 text-white transition group-hover:bg-black/80">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background/40 text-foreground transition group-hover:bg-background">
                   →
                 </span>
               </Link>
             ) : null}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:border-white hover:bg-white/20 lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-foreground/20 bg-foreground/10 text-foreground transition hover:border-foreground hover:bg-foreground/20 lg:hidden"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -235,8 +239,8 @@ export function Header() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "fixed inset-x-0 top-16 z-40 mx-2 rounded-2xl border bg-black/90 backdrop-blur-xl p-6 sm:top-20 sm:mx-auto sm:max-w-md",
-                isShopRoute ? "border-white/15" : "border-white/10"
+                "fixed inset-x-0 top-16 z-40 mx-2 rounded-2xl border bg-card/95 backdrop-blur-xl p-6 sm:top-20 sm:mx-auto sm:max-w-md",
+                isShopRoute ? "border-foreground/15" : "border-foreground/10"
               )}
             >
               <nav className="flex flex-col gap-2 text-center">
@@ -252,27 +256,28 @@ export function Header() {
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
-                          "relative font-display flex min-h-[44px] items-center justify-center border-b border-white/10 px-3 text-sm uppercase tracking-[0.25em] text-white/60 transition-colors",
-                          isActive && "text-white"
+                          "relative font-display flex min-h-[44px] items-center justify-center border-b border-foreground/10 px-3 text-sm uppercase tracking-[0.25em] text-foreground/60 transition-colors",
+                          isActive && "text-foreground"
                         )}
                       >
                         {item.label}
                         {isActive && (
-                          <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-white to-transparent" />
+                          <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-primary to-transparent" />
                         )}
                       </Link>
                     );
                   })}
-                <div className="mt-2 flex flex-col items-center gap-4 border-t border-white/10 pt-4">
+                <div className="mt-2 flex flex-col items-center gap-4 border-t border-foreground/10 pt-4">
                   <div className="flex items-center gap-3">
                     <LocaleSwitcher />
+                    <ThemeToggle />
                   </div>
                   {segments[0] === "shop" ? (
                     <Link
                       href={`/${locale}/shop/account`}
                       onClick={() => setMobileMenuOpen(false)}
                       suppressHydrationWarning
-                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-xs uppercase tracking-[0.3em] text-white transition"
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-foreground/20 bg-foreground/10 px-5 py-3 text-xs uppercase tracking-[0.3em] text-foreground transition"
                     >
                       {isUa ? "Акаунт" : "Account"}
                     </Link>
@@ -282,7 +287,7 @@ export function Header() {
                       href={`/${locale}/partnership`}
                       onClick={() => setMobileMenuOpen(false)}
                       suppressHydrationWarning
-                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-black transition"
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-foreground/20 bg-foreground px-5 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-background transition"
                     >
                       {tNav("bookAtelier")}
                     </Link>

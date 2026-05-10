@@ -8,7 +8,7 @@ type TelegramPayload = {
   chat_id: string;
   message_thread_id?: number;
   text: string;
-  parse_mode: 'HTML';
+  parse_mode: "HTML";
   reply_markup?: TelegramReplyMarkup;
 };
 
@@ -41,10 +41,10 @@ type BuildActionButtonsParams = {
 };
 
 function normalizeEnvString(value?: string): string {
-  if (!value) return '';
+  if (!value) return "";
   return value
-    .replace(/^"+|"+$/g, '')
-    .replace(/\\r\\n|\\n|\\r/g, '')
+    .replace(/^"+|"+$/g, "")
+    .replace(/\\r\\n|\\n|\\r/g, "")
     .trim();
 }
 
@@ -65,7 +65,7 @@ export function normalizeTelegramThreadId(rawThreadId?: string): number | null {
 
 function normalizeTelegramUsername(username?: string): string | null {
   if (!username) return null;
-  const cleaned = username.trim().replace(/^@+/, '');
+  const cleaned = username.trim().replace(/^@+/, "");
   if (!cleaned) return null;
   if (!/^[a-zA-Z0-9_]{5,}$/.test(cleaned)) return null;
   return cleaned;
@@ -73,31 +73,38 @@ function normalizeTelegramUsername(username?: string): string | null {
 
 function normalizePhoneForWhatsApp(phone?: string): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/\D/g, '');
+  const digits = phone.replace(/\D/g, "");
   if (digits.length < 10) return null;
   return digits;
 }
 
-export function buildTelegramActionButtons(params: BuildActionButtonsParams): TelegramReplyMarkup | undefined {
+export function buildTelegramActionButtons(
+  params: BuildActionButtonsParams
+): TelegramReplyMarkup | undefined {
   const inline_keyboard: Array<Array<TelegramInlineButton>> = [];
 
   if (params.email) {
     const subject = encodeURIComponent(params.emailSubject);
     const to = encodeURIComponent(params.email);
-    inline_keyboard.push([{ text: '📧 Send Email', url: `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}` }]);
+    inline_keyboard.push([
+      {
+        text: "📧 Send Email",
+        url: `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}`,
+      },
+    ]);
   }
 
   if (params.includeTelegramButton !== false) {
     const username = normalizeTelegramUsername(params.telegramUsername);
     if (username) {
-      inline_keyboard.push([{ text: '💬 Send Telegram', url: `https://t.me/${username}` }]);
+      inline_keyboard.push([{ text: "💬 Send Telegram", url: `https://t.me/${username}` }]);
     }
   }
 
   if (params.includeWhatsAppButton !== false) {
     const waNumber = normalizePhoneForWhatsApp(params.phone);
     if (waNumber) {
-      inline_keyboard.push([{ text: '🟢 Send WhatsApp', url: `https://wa.me/${waNumber}` }]);
+      inline_keyboard.push([{ text: "🟢 Send WhatsApp", url: `https://wa.me/${waNumber}` }]);
     }
   }
 
@@ -105,8 +112,12 @@ export function buildTelegramActionButtons(params: BuildActionButtonsParams): Te
 }
 
 export function getConfiguredContactTopicDestination(): TelegramDestination | null {
-  const topicChatId = normalizeTelegramChatId(process.env.TELEGRAM_CONTACT_TOPIC_CHAT_ID || '-1003859998121');
-  const topicThreadId = normalizeTelegramThreadId(process.env.TELEGRAM_CONTACT_TOPIC_THREAD_ID || '3');
+  const topicChatId = normalizeTelegramChatId(
+    process.env.TELEGRAM_CONTACT_TOPIC_CHAT_ID || "-1003859998121"
+  );
+  const topicThreadId = normalizeTelegramThreadId(
+    process.env.TELEGRAM_CONTACT_TOPIC_THREAD_ID || "3"
+  );
 
   if (!topicChatId || !topicThreadId) {
     return null;
@@ -130,21 +141,21 @@ export async function notifyAdminNewShopOrder(params: {
   const chatId =
     normalizeTelegramChatId(process.env.TELEGRAM_SHOP_ORDERS_CHAT_ID) ||
     normalizeTelegramChatId(process.env.TELEGRAM_CHAT_ID);
-  if (!chatId) return { ok: false, error: 'No Telegram chat configured for shop orders' };
+  if (!chatId) return { ok: false, error: "No Telegram chat configured for shop orders" };
 
   const message = [
-    '<b>🛒 New shop order</b>',
+    "<b>🛒 New shop order</b>",
     `Order: <code>${escapeHtml(params.orderNumber)}</code>`,
     `Customer: ${escapeHtml(params.customerName)}`,
     `Email: ${escapeHtml(params.email)}`,
-    `Total: ${params.currency} ${params.total.toFixed(0)} (${params.itemCount} item${params.itemCount !== 1 ? 's' : ''})`,
-  ].join('\n');
+    `Total: ${params.currency} ${params.total.toFixed(0)} (${params.itemCount} item${params.itemCount !== 1 ? "s" : ""})`,
+  ].join("\n");
 
   return sendTelegramToDestinations({
     message,
     destinations: [{ chatId }],
-    context: 'shop order notification',
-    requiredChatEnv: ['TELEGRAM_SHOP_ORDERS_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+    context: "shop order notification",
+    requiredChatEnv: ["TELEGRAM_SHOP_ORDERS_CHAT_ID", "TELEGRAM_CHAT_ID"],
   });
 }
 
@@ -156,28 +167,25 @@ export async function notifyAdminShopB2BRequest(params: {
   const chatId =
     normalizeTelegramChatId(process.env.TELEGRAM_SHOP_ORDERS_CHAT_ID) ||
     normalizeTelegramChatId(process.env.TELEGRAM_CHAT_ID);
-  if (!chatId) return { ok: false, error: 'No Telegram chat configured for shop notifications' };
+  if (!chatId) return { ok: false, error: "No Telegram chat configured for shop notifications" };
 
   const message = [
-    '<b>🏢 New B2B approval request</b>',
+    "<b>🏢 New B2B approval request</b>",
     `Customer: ${escapeHtml(params.customerName)}`,
     `Email: ${escapeHtml(params.email)}`,
-    `Company: ${escapeHtml(params.companyName || '—')}`,
-  ].join('\n');
+    `Company: ${escapeHtml(params.companyName || "—")}`,
+  ].join("\n");
 
   return sendTelegramToDestinations({
     message,
     destinations: [{ chatId }],
-    context: 'shop b2b notification',
-    requiredChatEnv: ['TELEGRAM_SHOP_ORDERS_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+    context: "shop b2b notification",
+    requiredChatEnv: ["TELEGRAM_SHOP_ORDERS_CHAT_ID", "TELEGRAM_CHAT_ID"],
   });
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+export function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export async function sendTelegramToDestinations({
@@ -194,52 +202,54 @@ export async function sendTelegramToDestinations({
       hasToken: !!token,
       hasAnyDestination: destinations.length > 0,
     });
-    return { ok: false, error: 'Missing bot env' };
+    return { ok: false, error: "Missing bot env" };
   }
 
   if (destinations.length === 0) {
     console.error(`Telegram chat configuration is missing for ${context}`, {
       requiredChatEnv,
-      optionalTopicEnv: ['TELEGRAM_CONTACT_TOPIC_CHAT_ID', 'TELEGRAM_CONTACT_TOPIC_THREAD_ID'],
+      optionalTopicEnv: ["TELEGRAM_CONTACT_TOPIC_CHAT_ID", "TELEGRAM_CONTACT_TOPIC_THREAD_ID"],
     });
-    return { ok: false, error: 'Missing chat id env' };
+    return { ok: false, error: "Missing chat id env" };
   }
 
   const payloads: TelegramPayload[] = destinations.map((destination) => ({
     chat_id: destination.chatId,
     message_thread_id: destination.messageThreadId,
     text: message,
-    parse_mode: 'HTML',
+    parse_mode: "HTML",
     reply_markup: replyMarkup,
   }));
 
   const sendOne = async (payload: TelegramPayload): Promise<TelegramSendResult> => {
-    const target = payload.message_thread_id ? `${payload.chat_id}#${payload.message_thread_id}` : payload.chat_id;
+    const target = payload.message_thread_id
+      ? `${payload.chat_id}#${payload.message_thread_id}`
+      : payload.chat_id;
 
     try {
       const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        console.error('Telegram API Error:', data);
+        console.error("Telegram API Error:", data);
         return {
           ok: false,
           target,
-          error: data.description || 'Telegram API error',
+          error: data.description || "Telegram API error",
         };
       }
 
       return { ok: true, target };
     } catch (error: unknown) {
-      console.error('Telegram Request Failed:', error);
+      console.error("Telegram Request Failed:", error);
       return {
         ok: false,
         target,
-        error: error instanceof Error ? error.message : 'Telegram request failed',
+        error: error instanceof Error ? error.message : "Telegram request failed",
       };
     }
   };
@@ -250,15 +260,18 @@ export async function sendTelegramToDestinations({
   if (successCount === 0) {
     return {
       ok: false,
-      error: results.map((result) => `${result.target}: ${result.error || 'Unknown error'}`).join('; '),
+      error: results
+        .map((result) => `${result.target}: ${result.error || "Unknown error"}`)
+        .join("; "),
     };
   }
 
   return {
     ok: true,
-    error: results
-      .filter((result) => !result.ok)
-      .map((result) => `${result.target}: ${result.error || 'Unknown error'}`)
-      .join('; ') || undefined,
+    error:
+      results
+        .filter((result) => !result.ok)
+        .map((result) => `${result.target}: ${result.error || "Unknown error"}`)
+        .join("; ") || undefined,
   };
 }

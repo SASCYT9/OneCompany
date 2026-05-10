@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import './akrapovic-shop.css';
+import { ReactNode } from "react";
+import "./akrapovic-shop.css";
 
 type Props = {
   children: ReactNode;

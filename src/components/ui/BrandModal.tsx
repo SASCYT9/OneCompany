@@ -7,7 +7,11 @@ import { X, ChevronRight, ArrowUpRight, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@/navigation";
 import { BrandItem } from "../sections/BrandLogosGrid";
-import { shouldInvertBrandOrLogo, shouldSmartInvertBrand } from "@/lib/invertBrands";
+import {
+  shouldInvertBrandOrLogo,
+  shouldSmartInvertBrand,
+  hasLightBackgroundLogo,
+} from "@/lib/invertBrands";
 
 interface BrandModalProps {
   brand: BrandItem | null;
@@ -18,6 +22,7 @@ interface BrandModalProps {
 export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   const t = useTranslations("brands");
   const locale = useLocale();
+  const isLightBg = brand ? hasLightBackgroundLogo(brand.name) : false;
 
   // Close on escape key
   useEffect(() => {
@@ -38,7 +43,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            className="absolute inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-xl"
           />
 
           {/* Modal Container */}
@@ -47,38 +52,54 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-4xl max-h-[70vh] md:max-h-[85vh] overflow-y-auto rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[400px] md:min-h-[500px]"
+            className="relative w-full max-w-4xl max-h-[70vh] md:max-h-[85vh] overflow-y-auto rounded-[24px] bg-card text-foreground shadow-2xl border border-foreground/10 flex flex-col md:flex-row min-h-[400px] md:min-h-[500px]"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white transition-colors z-50 rounded-full bg-black/20 hover:bg-white/10 backdrop-blur-xs"
+              className="absolute top-4 right-4 p-2 text-foreground/50 hover:text-foreground transition-colors z-50 rounded-full bg-foreground/5 hover:bg-foreground/10 backdrop-blur-xs"
             >
               <X size={24} />
             </button>
 
             {/* Left Column: Logo & Visuals */}
-            <div className="relative w-full md:w-2/5 bg-linear-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a] p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5">
+            <div
+              className={`relative w-full md:w-2/5 ${
+                isLightBg ? "bg-white" : "bg-linear-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a]"
+              } p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5`}
+            >
               {/* Background Pattern */}
-              <div
-                className="absolute inset-0 opacity-[0.15]"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
-                  backgroundSize: "24px 24px",
-                }}
-              />
+              {!isLightBg && (
+                <div
+                  className="absolute inset-0 opacity-[0.15]"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+                    backgroundSize: "24px 24px",
+                  }}
+                />
+              )}
 
               {/* Logo Container */}
               <div className="relative w-full aspect-video max-w-[240px] flex items-center justify-center z-10">
                 {/* Subtle glow behind logo */}
-                <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                {!isLightBg && (
+                  <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                )}
                 <div className="relative w-full h-full">
                   <Image
                     src={brand.logoSrc}
                     alt={brand.name}
                     fill
-                    className={`object-contain drop-shadow-2xl ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? "filter brightness-0 invert" : ""}`}
+                    className={`object-contain drop-shadow-2xl ${
+                      isLightBg
+                        ? ""
+                        : shouldSmartInvertBrand(brand.name)
+                          ? "filter invert hue-rotate-180"
+                          : shouldInvertBrandOrLogo(brand.name, brand.logoSrc)
+                            ? "filter brightness-0 invert"
+                            : ""
+                    }`}
                     unoptimized
                   />
                 </div>
@@ -93,7 +114,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="text-xl md:text-2xl font-bold text-white leading-tight mb-6 uppercase tracking-wide"
+                  className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-6 uppercase tracking-wide"
                 >
                   {brand.headline}
                 </motion.h3>
@@ -106,7 +127,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                 transition={{ delay: 0.2 }}
                 className="prose prose-invert max-w-none"
               >
-                <p className="text-white/70 text-sm md:text-base leading-relaxed font-light">
+                <p className="text-foreground/85 dark:text-foreground/70 text-sm md:text-base leading-relaxed font-light">
                   {brand.description ||
                     "Premium automotive brand known for excellence and performance."}
                 </p>
@@ -121,7 +142,10 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                   className="mt-8 space-y-3"
                 >
                   {brand.highlights.map((highlight, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm text-white/80">
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-sm text-foreground/90 dark:text-foreground/80"
+                    >
                       <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-600 shrink-0" />
                       <span className="font-medium">{highlight}</span>
                     </li>
@@ -136,7 +160,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     href={brand.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/10 bg-white/3 hover:bg-white/8 hover:border-white/20 rounded-xl text-white text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-xs"
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-foreground/15 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/25 rounded-xl text-foreground text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-xs"
                   >
                     <span>
                       {["Eventuri", "KW Suspension", "FI Exhaust", "Urban Automotive"].includes(
@@ -152,19 +176,19 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     ) ? (
                       <ShoppingBag
                         size={16}
-                        className="text-white/40 group-hover:text-white transition-colors"
+                        className="text-foreground/50 group-hover:text-foreground transition-colors"
                       />
                     ) : (
                       <ArrowUpRight
                         size={16}
-                        className="text-white/40 group-hover:text-white transition-colors"
+                        className="text-foreground/50 group-hover:text-foreground transition-colors"
                       />
                     )}
                   </a>
                 ) : (
                   <button
                     disabled
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/2 rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider"
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-foreground/5 bg-foreground/[0.02] rounded-xl text-foreground/30 text-sm font-medium cursor-not-allowed uppercase tracking-wider"
                   >
                     <span>{t("officialSite")}</span>
                   </button>
@@ -172,7 +196,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
 
                 <Link
                   href={`/contact?inquiry=${encodeURIComponent(brand.name)}`}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-[#f0f0f0] rounded-xl text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] uppercase tracking-wider group"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground text-sm font-bold transition-all shadow-[0_0_20px_rgba(213,0,28,0.25)] dark:shadow-[0_0_20px_rgba(194,157,89,0.25)] hover:shadow-[0_0_30px_rgba(213,0,28,0.35)] dark:hover:shadow-[0_0_30px_rgba(194,157,89,0.35)] uppercase tracking-wider group"
                 >
                   <span>{t("order")}</span>
                   <ChevronRight

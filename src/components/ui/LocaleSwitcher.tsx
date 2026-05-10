@@ -26,7 +26,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1 rounded-full border border-white/15 bg-white/5 p-1 text-[11px] uppercase tracking-[0.35em]",
+        "flex items-center gap-1 rounded-full border border-foreground/25 bg-foreground/5 p-1 text-[11px] uppercase tracking-[0.35em]",
         className
       )}
     >
@@ -41,8 +41,8 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             className={cn(
               "rounded-full px-3 py-1 transition",
               isActive
-                ? "bg-white text-black shadow-[0_4px_18px_rgba(255,255,255,0.3)]"
-                : "text-white/70 hover:text-white"
+                ? "bg-foreground text-background shadow-[0_4px_18px_rgba(0,0,0,0.18)] dark:shadow-[0_4px_18px_rgba(255,255,255,0.2)]"
+                : "text-foreground/70 hover:text-foreground"
             )}
           >
             {label}

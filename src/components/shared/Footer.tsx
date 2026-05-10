@@ -99,10 +99,10 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
   }, []);
 
   return (
-    <footer className="relative z-20 font-display border-t border-white/5 bg-black text-white overflow-hidden">
-      {/* Ambient Background */}
+    <footer className="relative z-20 font-display border-t border-foreground/10 bg-muted text-foreground dark:bg-black dark:text-white overflow-hidden">
+      {/* Ambient Background — adapts to theme */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-white/2 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-foreground/2 dark:bg-white/2 blur-[120px] rounded-full" />
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/3 blur-[100px] rounded-full" />
       </div>
 
@@ -110,21 +110,21 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
         ref={scopeRef}
         className="relative mx-auto max-w-7xl px-6 pt-12 pb-8 sm:px-8 sm:pt-20 sm:pb-12 lg:px-12"
       >
-        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-12 sm:pt-16 text-center lg:text-left">
+        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-foreground/10 pt-12 sm:pt-16 text-center lg:text-left">
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
-              <Logo tone="light" className="w-40 mx-auto lg:mx-0" />
+              <Logo tone="auto" className="w-40 mx-auto lg:mx-0" />
             </Link>
             <p
-              className={`leading-relaxed text-white/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}
+              className={`leading-relaxed text-foreground/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}
             >
               {t("description")}
             </p>
 
             {/* Telegram CTA — dual auto/moto channels */}
             <div className="space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-white/50 font-semibold">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/50 font-semibold">
                 {locale === "ua" ? "Зв'язок у Telegram" : "Telegram contact"}
               </p>
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
@@ -134,11 +134,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   rel="noreferrer"
                   aria-label={locale === "ua" ? "Telegram — Авто" : "Telegram — Auto"}
                   whileHover={{ y: -2 }}
-                  className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-4 py-2 text-sm text-white/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-white"
+                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-4 py-2 text-sm text-foreground/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-foreground"
                 >
                   <TelegramIcon className="h-4 w-4 text-sky-400" />
                   <span className="font-semibold">{locale === "ua" ? "Авто" : "Auto"}</span>
-                  <span className="text-white/40 transition-colors group-hover:text-white/70">
+                  <span className="text-foreground/40 transition-colors group-hover:text-foreground/70">
                     →
                   </span>
                 </motion.a>
@@ -148,11 +148,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   rel="noreferrer"
                   aria-label={locale === "ua" ? "Telegram — Мото" : "Telegram — Moto"}
                   whileHover={{ y: -2 }}
-                  className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-4 py-2 text-sm text-white/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-white"
+                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-4 py-2 text-sm text-foreground/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-foreground"
                 >
                   <TelegramIcon className="h-4 w-4 text-orange-400" />
                   <span className="font-semibold">{locale === "ua" ? "Мото" : "Moto"}</span>
-                  <span className="text-white/40 transition-colors group-hover:text-white/70">
+                  <span className="text-foreground/40 transition-colors group-hover:text-foreground/70">
                     →
                   </span>
                 </motion.a>
@@ -168,7 +168,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   rel="noreferrer"
                   aria-label={`Open OneCompany ${label} profile`}
                   whileHover={{ y: -3 }}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5 text-foreground/70 transition-colors hover:border-foreground/30 hover:bg-foreground/10 hover:text-foreground"
                 >
                   <Icon className="h-4 w-4" />
                 </motion.a>
@@ -179,7 +179,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           {/* Links Columns */}
           <div className="lg:col-span-2 lg:col-start-6 space-y-6">
             <h3
-              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}
+              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("company")}
             </h3>
@@ -187,7 +187,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`}
+                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.body}`}
                     href={link.href}
                     aria-label={`Navigate to ${link.name} page`}
                   >
@@ -200,7 +200,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
 
           <div className="lg:col-span-2 space-y-6">
             <h3
-              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}
+              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("disciplines")}
             </h3>
@@ -208,7 +208,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`}
+                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.body}`}
                     href={link.href}
                     aria-label={`Navigate to ${link.name} tuning section`}
                   >
@@ -221,11 +221,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
 
           <div className="lg:col-span-3 space-y-6">
             <h3
-              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}
+              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("headquarters")}
             </h3>
-            <div className={`space-y-4 text-white/70 ${typography.body}`}>
+            <div className={`space-y-4 text-foreground/70 ${typography.body}`}>
               <p className="leading-relaxed">
                 {t("addressLine1")}
                 <br />
@@ -234,10 +234,13 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                 {t("addressLine3")}
               </p>
               <div className="space-y-2">
-                <a href="tel:+380660771700" className="block transition-colors hover:text-white">
+                <a
+                  href="tel:+380660771700"
+                  className="block transition-colors hover:text-foreground"
+                >
                   +380 66 077 17 00
                 </a>
-                <p className="text-white/60">{t("workingHours")}</p>
+                <p className="text-foreground/60">{t("workingHours")}</p>
               </div>
             </div>
           </div>
@@ -245,9 +248,9 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
 
         {/* Bottom Bar */}
         <div
-          className={`mt-12 sm:mt-20 flex flex-col border-t border-white/5 pt-8 gap-8 ${typography.body}`}
+          className={`mt-12 sm:mt-20 flex flex-col border-t border-foreground/5 pt-8 gap-8 ${typography.body}`}
         >
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-white/60">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-foreground/60">
             <div className="flex flex-col items-center lg:items-start gap-2">
               <p className="text-center lg:text-left">
                 © {currentYear} One Company. {t("engineeredIn")}.
@@ -257,31 +260,31 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
             <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
               <Link
                 href={`/${locale}/delivery`}
-                className="transition-colors hover:text-white shrink-0"
+                className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("deliveryAndPayment")}
               </Link>
               <Link
                 href={`/${locale}/refund`}
-                className="transition-colors hover:text-white shrink-0"
+                className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("refundPolicy")}
               </Link>
               <Link
                 href={`/${locale}/privacy`}
-                className="transition-colors hover:text-white shrink-0"
+                className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("privacy")}
               </Link>
               <Link
                 href={`/${locale}/terms`}
-                className="transition-colors hover:text-white shrink-0"
+                className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("terms")}
               </Link>
               <Link
                 href={`/${locale}/cookies`}
-                className="transition-colors hover:text-white shrink-0"
+                className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("cookies")}
               </Link>
@@ -289,20 +292,20 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 flex-wrap">
-            <span className="text-base text-white font-medium shrink-0">
+            <span className="text-base text-foreground font-medium shrink-0">
               {locale === "ua" ? "Безпечна оплата" : "Secure Payment"}
             </span>
-            <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2 sm:gap-x-4 bg-white/5 px-4 py-2.5 rounded-xl border border-white/10 shadow-lg max-w-full">
+            <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2 sm:gap-x-4 bg-foreground/5 px-4 py-2.5 rounded-xl border border-foreground/10 shadow-lg max-w-full">
               <img
                 src="/images/payments/visa.svg"
                 alt="Visa"
-                className="h-6 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm"
+                className="h-6 w-auto object-contain opacity-100 shrink-0 bg-foreground/10 p-1 rounded-sm"
                 loading="lazy"
               />
               <img
                 src="/images/payments/mastercard.svg"
                 alt="MasterCard"
-                className="h-7 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm"
+                className="h-7 w-auto object-contain opacity-100 shrink-0 bg-foreground/10 p-1 rounded-sm"
                 loading="lazy"
               />
               <img

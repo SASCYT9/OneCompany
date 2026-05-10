@@ -79,7 +79,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
   ];
 
   return (
-    <div className="min-h-screen pt-32 pb-20 text-white relative">
+    <div className="min-h-screen pt-32 pb-20 text-foreground relative">
       <BreadcrumbSchema items={breadcrumbs} />
       <CollectionPageSchema
         name={category.title[lang]}
@@ -98,7 +98,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
           />
         </video>
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-card/70 dark:bg-black/40 backdrop-blur-[2px]" />
       </div>
 
       {/* Header */}
@@ -108,7 +108,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
           aria-label={
             category.segment === "moto" ? "Go to moto tuning section" : "Go to auto tuning section"
           }
-          className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors mb-8 uppercase tracking-widest font-light"
+          className="inline-flex items-center gap-2 text-sm text-foreground/75 dark:text-foreground/60 hover:text-foreground transition-colors mb-8 uppercase tracking-widest font-light"
         >
           ←{" "}
           {category.segment === "moto"
@@ -121,8 +121,8 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
         </Link>
 
         <div className="block mb-4">
-          <div className="inline-block px-3 py-1 border border-white/20 rounded-full backdrop-blur-md bg-white/5">
-            <span className="text-xs uppercase tracking-widest text-white/70">
+          <div className="inline-block px-3 py-1 border border-foreground/20 rounded-full backdrop-blur-md bg-foreground/5">
+            <span className="text-xs uppercase tracking-widest text-foreground/85 dark:text-foreground/70">
               {category.segment === "moto"
                 ? lang === "ua"
                   ? "Мото"
@@ -134,14 +134,14 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
           </div>
         </div>
 
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-tight text-white mb-8 drop-shadow-lg">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extralight tracking-tight text-foreground mb-8 drop-shadow-lg">
           {category.title[lang]}
         </h1>
-        <p className="text-lg md:text-xl font-light text-white/80 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+        <p className="text-lg md:text-xl font-light text-foreground/95 dark:text-foreground/80 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
           {category.description[lang]}
         </p>
         {category.spotlight && (
-          <p className="mt-4 text-sm md:text-base font-light text-white/60 max-w-2xl mx-auto drop-shadow-xs">
+          <p className="mt-4 text-sm md:text-base font-light text-foreground/75 dark:text-foreground/60 max-w-2xl mx-auto drop-shadow-xs">
             {category.spotlight[lang]}
           </p>
         )}
@@ -168,8 +168,8 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                   isFeatured ? "lg:row-span-2 min-h-[320px] sm:min-h-[380px]" : "min-h-[240px]"
                 }`}
               >
-                <div className="absolute inset-0 rounded-3xl sm:rounded-4xl border border-white/20 bg-white/10 backdrop-blur-3xl" />
-                <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 rounded-3xl sm:rounded-4xl border border-foreground/20 bg-foreground/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-linear-to-br from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div
                   className={`relative h-full flex flex-col ${
@@ -195,7 +195,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
 
                   {country && (
                     <div className="flex justify-center -mt-2 mb-2">
-                      <span className="text-[10px] uppercase tracking-widest text-white/50">
+                      <span className="text-[10px] uppercase tracking-widest text-foreground/65 dark:text-foreground/50">
                         {country}
                       </span>
                     </div>
@@ -204,7 +204,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                   <div className="flex items-end justify-between gap-4 mt-4">
                     <div>
                       <p
-                        className={`font-light text-white tracking-wide ${
+                        className={`font-light text-foreground tracking-wide ${
                           isFeatured ? "text-2xl sm:text-3xl lg:text-4xl" : "text-lg sm:text-xl"
                         }`}
                       >
@@ -214,12 +214,12 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                     </div>
 
                     <div
-                      className={`flex items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 shrink-0 ${
+                      className={`flex items-center justify-center rounded-full bg-foreground/10 border border-foreground/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-foreground/40 group-hover:bg-foreground/20 shrink-0 ${
                         isFeatured ? "h-14 w-14 sm:h-16 sm:w-16" : "h-10 w-10 sm:h-12 sm:w-12"
                       }`}
                     >
                       <svg
-                        className={`text-white transition-transform duration-500 group-hover:-rotate-45 ${
+                        className={`text-foreground transition-transform duration-500 group-hover:-rotate-45 ${
                           isFeatured ? "h-6 w-6 sm:h-7 sm:w-7" : "h-4 w-4 sm:h-5 sm:w-5"
                         }`}
                         fill="none"

@@ -1,21 +1,21 @@
-import { render } from '@react-email/render';
-import { ContactEmail } from '@/components/emails/ContactEmail';
-import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
-import type { NextRequest } from 'next/server';
-import { Resend } from 'resend';
-import { notifyAdminsNewMessage } from '@/lib/bot/notifications';
+import { render } from "@react-email/render";
+import { ContactEmail } from "@/components/emails/ContactEmail";
+import { formatAutoMessage, formatMotoMessage } from "@/lib/telegram";
+import type { NextRequest } from "next/server";
+import { Resend } from "resend";
+import { notifyAdminsNewMessage } from "@/lib/bot/notifications";
 import {
   buildTelegramActionButtons,
   getConfiguredContactTopicDestination,
   normalizeTelegramChatId,
   sendTelegramToDestinations,
-} from '@/lib/telegramNotifications';
-import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/telegramNotifications";
+import { consumeRateLimit, getRequestIp } from "@/lib/shopPublicRateLimit";
+import { prisma } from "@/lib/prisma";
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 10;
 
-type ContactType = 'auto' | 'moto';
+type ContactType = "auto" | "moto";
 
 type ContactRequestBody = {
   type?: ContactType;
@@ -27,7 +27,7 @@ type ContactRequestBody = {
   email?: string;
   name?: string;
   phone?: string;
-  contactMethod?: 'telegram' | 'whatsapp';
+  contactMethod?: "telegram" | "whatsapp";
   telegramUsername?: string;
 };
 
@@ -40,7 +40,7 @@ type ContactFormData = {
   email: string;
   name: string;
   phone: string;
-  contactMethod: 'telegram' | 'whatsapp';
+  contactMethod: "telegram" | "whatsapp";
   telegramUsername?: string;
 };
 
@@ -48,12 +48,14 @@ type AutoFormData = ContactFormData & { carModel: string };
 type MotoFormData = ContactFormData & { motoModel: string };
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 // The actual sending logic checks for the presence of the key.
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+const resend = new Resend(process.env.RESEND_API_KEY || "re_123456789");
 
 async function sendTelegram(message: string, type: ContactType, formData: ContactFormData) {
-  const primaryChatId = normalizeTelegramChatId(type === 'auto'
-    ? (process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID)
-    : (process.env.TELEGRAM_MOTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID));
+  const primaryChatId = normalizeTelegramChatId(
+    type === "auto"
+      ? process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID
+      : process.env.TELEGRAM_MOTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID
+  );
   const destinations: Array<{ chatId: string; messageThreadId?: number }> = [];
   if (primaryChatId) {
     destinations.push({ chatId: primaryChatId });
@@ -66,7 +68,7 @@ async function sendTelegram(message: string, type: ContactType, formData: Contac
 
   const replyMarkup = buildTelegramActionButtons({
     email: formData.email,
-    emailSubject: `OneCompany ${type === 'auto' ? 'Auto' : 'Moto'} Inquiry`,
+    emailSubject: `OneCompany ${type === "auto" ? "Auto" : "Moto"} Inquiry`,
     telegramUsername: formData.telegramUsername,
     phone: formData.phone,
     includeTelegramButton: true,
@@ -77,10 +79,11 @@ async function sendTelegram(message: string, type: ContactType, formData: Contac
     message,
     destinations,
     replyMarkup,
-    context: 'contact notification',
-    requiredChatEnv: type === 'auto'
-      ? ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID']
-      : ['TELEGRAM_MOTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+    context: "contact notification",
+    requiredChatEnv:
+      type === "auto"
+        ? ["TELEGRAM_AUTO_CHAT_ID", "TELEGRAM_CHAT_ID"]
+        : ["TELEGRAM_MOTO_CHAT_ID", "TELEGRAM_CHAT_ID"],
   });
 }
 
@@ -91,26 +94,28 @@ async function sendEmail(
   messageId?: string
 ) {
   const from = process.env.EMAIL_FROM;
-  const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
+  const to = type === "auto" ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
 
   if (!from || !to || !process.env.RESEND_API_KEY) {
-    console.error('Email (Resend) environment variables are not set!');
-    return { ok: false, error: 'Missing email env vars' };
+    console.error("Email (Resend) environment variables are not set!");
+    return { ok: false, error: "Missing email env vars" };
   }
 
-  const emailHtml = await render(ContactEmail({
-    name: formData.name || formData.email,
-    contact: formData.email,
-    message: formData.wishes,
-    inquiryType: type === 'auto' ? 'Auto' : 'Moto',
-    model: formData.carModel || formData.motoModel,
-    vin: formData.vin,
-    budget: formData.budget,
-    phone: formData.phone,
-    contactMethod: formData.contactMethod,
-    telegramUsername: formData.telegramUsername,
-    messageId,
-  }));
+  const emailHtml = await render(
+    ContactEmail({
+      name: formData.name || formData.email,
+      contact: formData.email,
+      message: formData.wishes,
+      inquiryType: type === "auto" ? "Auto" : "Moto",
+      model: formData.carModel || formData.motoModel,
+      vin: formData.vin,
+      budget: formData.budget,
+      phone: formData.phone,
+      contactMethod: formData.contactMethod,
+      telegramUsername: formData.telegramUsername,
+      messageId,
+    })
+  );
 
   try {
     const { data, error } = await resend.emails.send({
@@ -121,45 +126,45 @@ async function sendEmail(
     });
 
     if (error) {
-      console.error('Resend API Error:', error);
+      console.error("Resend API Error:", error);
       return { ok: false, error: error.message };
     }
 
-    console.log('✅ Email sent successfully:', data?.id);
+    console.log("✅ Email sent successfully:", data?.id);
     return { ok: true, data };
   } catch (e: unknown) {
-    console.error('Email (Resend) Request Failed:', e);
-    const errorMessage = e instanceof Error ? e.message : 'Resend request failed';
+    console.error("Email (Resend) Request Failed:", e);
+    const errorMessage = e instanceof Error ? e.message : "Resend request failed";
     return { ok: false, error: errorMessage };
   }
 }
 
 function sanitize(str: string | undefined): string {
-  if (!str) return '';
+  if (!str) return "";
   // Basic sanitization: remove HTML tags and trim whitespace.
-  return str.replace(/<[^>]*>/g, '').trim();
+  return str.replace(/<[^>]*>/g, "").trim();
 }
 
 export async function POST(req: NextRequest) {
   const ip = getRequestIp(req.headers);
   if (
     !(await consumeRateLimit({
-      keyParts: ['contact-form', ip],
+      keyParts: ["contact-form", ip],
       windowMs: WINDOW_MS,
       maxPerWindow: MAX_PER_WINDOW,
     }))
   ) {
-    return new Response(JSON.stringify({ error: 'Rate limited' }), { status: 429 });
+    return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429 });
   }
   try {
-  const body = (await req.json()) as ContactRequestBody;
-  const type: ContactType = body.type === 'moto' ? 'moto' : 'auto';
+    const body = (await req.json()) as ContactRequestBody;
+    const type: ContactType = body.type === "moto" ? "moto" : "auto";
 
-  let message: string;
-  let model = '';
-  let formData: ContactFormData;
+    let message: string;
+    let model = "";
+    let formData: ContactFormData;
 
-    if (type === 'auto') {
+    if (type === "auto") {
       const autoFormData: AutoFormData = {
         carModel: sanitize(body.carModel),
         vin: sanitize(body.vin),
@@ -168,16 +173,19 @@ export async function POST(req: NextRequest) {
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
         phone: sanitize(body.phone),
-        contactMethod: body.contactMethod || 'telegram',
+        contactMethod: body.contactMethod || "telegram",
         telegramUsername: sanitize(body.telegramUsername),
       };
       if (!autoFormData.carModel || !autoFormData.email || !autoFormData.phone) {
-        return new Response(JSON.stringify({ error: 'Missing required auto fields' }), { status: 400 });
+        return new Response(JSON.stringify({ error: "Missing required auto fields" }), {
+          status: 400,
+        });
       }
       model = autoFormData.carModel;
       message = formatAutoMessage(autoFormData);
       formData = autoFormData;
-    } else { // moto
+    } else {
+      // moto
       const motoFormData: MotoFormData = {
         motoModel: sanitize(body.motoModel),
         vin: sanitize(body.vin),
@@ -186,11 +194,13 @@ export async function POST(req: NextRequest) {
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
         phone: sanitize(body.phone),
-        contactMethod: body.contactMethod || 'telegram',
+        contactMethod: body.contactMethod || "telegram",
         telegramUsername: sanitize(body.telegramUsername),
       };
       if (!motoFormData.motoModel || !motoFormData.email || !motoFormData.phone) {
-        return new Response(JSON.stringify({ error: 'Missing required moto fields' }), { status: 400 });
+        return new Response(JSON.stringify({ error: "Missing required moto fields" }), {
+          status: 400,
+        });
       }
       model = motoFormData.motoModel;
       message = formatMotoMessage(motoFormData);
@@ -203,10 +213,10 @@ export async function POST(req: NextRequest) {
         userName: formData.name,
         userEmail: formData.email,
         userPhone: formData.phone,
-        contactMethod: formData.contactMethod.toUpperCase() as 'TELEGRAM' | 'WHATSAPP',
+        contactMethod: formData.contactMethod.toUpperCase() as "TELEGRAM" | "WHATSAPP",
         messageText: formData.wishes,
-        category: type === 'auto' ? 'AUTO' : 'MOTO',
-        status: 'NEW',
+        category: type === "auto" ? "AUTO" : "MOTO",
+        status: "NEW",
         metadata: {
           type,
           model,
@@ -217,11 +227,11 @@ export async function POST(req: NextRequest) {
           phone: formData.phone,
           contactMethod: formData.contactMethod,
           telegramUsername: formData.telegramUsername,
-        }
-      }
+        },
+      },
     });
 
-    console.log('✅ Message saved to database:', savedMessage.id);
+    console.log("✅ Message saved to database:", savedMessage.id);
 
     // Notify admins via Bot
     try {
@@ -230,28 +240,34 @@ export async function POST(req: NextRequest) {
         email: formData.email,
         phone: formData.phone,
         message: formData.wishes,
-        category: type === 'auto' ? 'auto' : 'moto',
+        category: type === "auto" ? "auto" : "moto",
+        model,
+        vin: formData.vin,
+        budget: formData.budget,
+        contactMethod: formData.contactMethod,
+        username: formData.telegramUsername?.replace(/^@+/, ""),
       });
     } catch (err) {
-      console.error('Failed to notify admins via bot:', err);
+      console.error("Failed to notify admins via bot:", err);
     }
 
     // Send to Telegram (don't block user if this fails)
     try {
       const tgResult = await sendTelegram(message, type, formData);
-      
+
       if (tgResult.ok) {
         if (tgResult.error) {
-          console.warn('⚠️ Telegram notification partially failed:', tgResult.error);
+          console.warn("⚠️ Telegram notification partially failed:", tgResult.error);
         } else {
-          console.log('✅ Telegram notification sent successfully');
+          console.log("✅ Telegram notification sent successfully");
         }
       } else {
-        console.warn('⚠️ Telegram notification failed:', tgResult.error);
+        console.warn("⚠️ Telegram notification failed:", tgResult.error);
       }
     } catch (tgError: unknown) {
-      const telegramErrorMessage = tgError instanceof Error ? tgError.message : 'Telegram notification failed';
-      console.error('❌ Telegram error (non-blocking):', telegramErrorMessage);
+      const telegramErrorMessage =
+        tgError instanceof Error ? tgError.message : "Telegram notification failed";
+      console.error("❌ Telegram error (non-blocking):", telegramErrorMessage);
     }
 
     // Send Email via Resend (don't block user if this fails)
@@ -260,24 +276,28 @@ export async function POST(req: NextRequest) {
       const emailResult = await sendEmail(emailSubject, formData, type, savedMessage.id);
 
       if (emailResult.ok) {
-        console.log('✅ Email notification sent successfully');
+        console.log("✅ Email notification sent successfully");
       } else {
-        console.warn('⚠️ Email notification failed:', emailResult.error);
+        console.warn("⚠️ Email notification failed:", emailResult.error);
       }
     } catch (emailError: unknown) {
-      const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Email notification failed';
-      console.error('❌ Email error (non-blocking):', emailErrorMessage);
+      const emailErrorMessage =
+        emailError instanceof Error ? emailError.message : "Email notification failed";
+      console.error("❌ Email error (non-blocking):", emailErrorMessage);
     }
 
-    return new Response(JSON.stringify({ 
-      ok: true,
-      messageId: savedMessage.id 
-    }), { status: 200 });
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        messageId: savedMessage.id,
+      }),
+      { status: 200 }
+    );
   } catch (e: unknown) {
-    console.error('Server Error:', e);
-    const errorMessage = e instanceof Error ? e.message : 'Server error';
+    console.error("Server Error:", e);
+    const errorMessage = e instanceof Error ? e.message : "Server error";
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

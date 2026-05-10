@@ -3,7 +3,11 @@ import Image from "next/image";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { BrandModal } from "../ui/BrandModal";
-import { shouldInvertBrandOrLogo, shouldSmartInvertBrand } from "@/lib/invertBrands";
+import {
+  shouldInvertBrandOrLogo,
+  shouldSmartInvertBrand,
+  hasLightBackgroundLogo,
+} from "@/lib/invertBrands";
 
 export interface BrandItem {
   name: string;
@@ -82,53 +86,77 @@ export default function BrandLogosGrid({
                   {letter}
                 </h3>
                 <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-                  {groupedItems[letter].map((brand) => (
-                    <li
-                      key={brand.name}
-                      className="group relative rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center overflow-hidden cursor-pointer"
-                      title={brand.name}
-                      onClick={() => setSelectedBrand(brand)}
-                    >
-                      {/* Radial white backlight for dark logos */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,rgba(255,255,255,0.20)_0%,rgba(255,255,255,0.05)_50%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0.10)_50%,transparent_70%)] transition-all duration-500 rounded-full" />
-                      </div>
-
-                      {/* Logo with unified sizing */}
-                      <div className="relative w-full z-10" style={{ paddingTop: "56%" }}>
-                        <div className="absolute inset-0 p-2">
-                          <Image
-                            src={brand.logoSrc}
-                            alt={`${brand.name} Україна - купити ${brand.name} тюнінг Київ, офіційний дилер`}
-                            fill
-                            className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? "opacity-95 group-hover:opacity-100" : "opacity-80 group-hover:opacity-100"} transition-opacity ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? "filter brightness-0 invert" : ""}`}
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                            unoptimized
-                            priority={false}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Removed duplicated brand name as per design request */}
-                      {/* <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{brand.name}</span> */}
-
-                      {brand.country && (
-                        <div className="relative z-10 w-full flex justify-center mt-4 pt-2 border-t border-white/5">
-                          <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">
-                            {brand.country}
-                          </span>
-                        </div>
-                      )}
-                      <Link
-                        href={internalHref}
-                        className="sr-only"
-                        aria-label={`Browse ${brand.name} in ${linkContext}`}
-                        tabIndex={-1}
+                  {groupedItems[letter].map((brand) => {
+                    const isLightBg = hasLightBackgroundLogo(brand.name);
+                    return (
+                      <li
+                        key={brand.name}
+                        className="group relative rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center overflow-hidden cursor-pointer"
+                        title={brand.name}
+                        onClick={() => setSelectedBrand(brand)}
                       >
-                        {brand.name}
-                      </Link>
-                    </li>
-                  ))}
+                        {/* Radial white backlight for dark logos (skip for light-bg files) */}
+                        {!isLightBg && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,rgba(255,255,255,0.20)_0%,rgba(255,255,255,0.05)_50%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0.10)_50%,transparent_70%)] transition-all duration-500 rounded-full" />
+                          </div>
+                        )}
+
+                        {/* Logo with unified sizing */}
+                        <div className="relative w-full z-10" style={{ paddingTop: "56%" }}>
+                          <div
+                            className={`absolute inset-0 p-2 ${
+                              isLightBg ? "bg-white rounded-md" : ""
+                            }`}
+                          >
+                            <Image
+                              src={brand.logoSrc}
+                              alt={`${brand.name} Україна - купити ${brand.name} тюнінг Київ, офіційний дилер`}
+                              fill
+                              className={`object-contain ${
+                                isLightBg
+                                  ? "opacity-100"
+                                  : shouldSmartInvertBrand(brand.name) ||
+                                      shouldInvertBrandOrLogo(brand.name, brand.logoSrc)
+                                    ? "opacity-95 group-hover:opacity-100"
+                                    : "opacity-80 group-hover:opacity-100"
+                              } transition-opacity ${
+                                isLightBg
+                                  ? ""
+                                  : shouldSmartInvertBrand(brand.name)
+                                    ? "filter invert hue-rotate-180"
+                                    : shouldInvertBrandOrLogo(brand.name, brand.logoSrc)
+                                      ? "filter brightness-0 invert"
+                                      : ""
+                              }`}
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                              unoptimized
+                              priority={false}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Removed duplicated brand name as per design request */}
+                        {/* <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{brand.name}</span> */}
+
+                        {brand.country && (
+                          <div className="relative z-10 w-full flex justify-center mt-4 pt-2 border-t border-white/5">
+                            <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">
+                              {brand.country}
+                            </span>
+                          </div>
+                        )}
+                        <Link
+                          href={internalHref}
+                          className="sr-only"
+                          aria-label={`Browse ${brand.name} in ${linkContext}`}
+                          tabIndex={-1}
+                        >
+                          {brand.name}
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))
