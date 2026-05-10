@@ -11,7 +11,8 @@
       "archive/promotions-2026-03": false,
       "archive/stash-admin-redesign-2025-11": false,
       "archive/stash-urban-grid-2026-03": false,
-      "archive/stash-wiki-changelog-2026-04": false
+      "archive/stash-wiki-changelog-2026-04": false,
+      "release-please--branches--master--components--onecompany": false
     }
   },
   "redirects": [
