@@ -137,7 +137,7 @@
     "image-size": "^2.0.2",
     "lint-staged": "^15.2.10",
     "pg": "^8.20.0",
-    "playwright": "^1.58.2",
+    "playwright": "^1.59.1",
     "postcss": "^8.4.41",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.8.0",
