@@ -5,7 +5,7 @@
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "regions": ["fra1"],
-  "ignoreCommand": "if [ \"${VERCEL_GIT_COMMIT_REF#archive/}\" != \"$VERCEL_GIT_COMMIT_REF\" ]; then echo 'Skipping build for archive branch'; exit 0; else exit 1; fi",
+  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in archive/*|dependabot/*) echo \"Skipping build for $VERCEL_GIT_COMMIT_REF\"; exit 0 ;; *) exit 1 ;; esac",
   "git": {
     "deploymentEnabled": {
       "archive/promotions-2026-03": false,
