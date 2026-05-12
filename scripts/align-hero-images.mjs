@@ -1,64 +1,55 @@
-// Hero image alignment: flip horizontally + align subject baseline across pairs.
-// Sources are in D:\New, outputs go to public/images/hero-{auto,moto}-{light,dark}.png.
+// Hero image alignment: flip horizontally + optional downscale to balance
+// auto/moto subjects on the homepage.
 //
-// Strategy:
-//   1. Read each source PNG.
-//   2. Horizontally flip it (mirror).
-//   3. Detect the SUBJECT bottom row by scanning from bottom up for "background"
-//      transition. We classify a row as background if its mean colour is close
-//      to the corner-sample background colour (top-left + top-right corners are
-//      always pure bg in these renders).
-//   4. Pair-wise (auto-light vs moto-light; auto-dark vs moto-dark) compute the
-//      offset needed to align the subject bottom row, then translate via canvas
-//      extend/extract preserving canvas size.
+// Reads ChatGPT-rendered PNGs from $HERO_SOURCE_DIR (one folder, four files),
+// writes the processed variants into public/images/hero-{auto,moto}-{light,dark}-vN.png.
+//
+// USAGE:
+//   1. Place all 4 source PNGs in one folder.
+//   2. Rename them so the script can find them (see pairs[] below) or update
+//      the filenames in pairs[] to match what your renderer produced.
+//   3. Run:
+//        HERO_SOURCE_DIR=/path/to/folder node scripts/align-hero-images.mjs
+//      (PowerShell:  $env:HERO_SOURCE_DIR='C:\path\to\folder'; node scripts/align-hero-images.mjs)
+//
+// HISTORY:
+//   Source directions vary by ChatGPT batch — verify by eye each time:
+//     auto: source faces RIGHT → flop=true → faces LEFT  on homepage
+//     moto: source faces LEFT  → flop=true → faces RIGHT on homepage
+//   Some batches render moto LARGER than auto. Use `scale` (e.g. 0.87) to shrink.
 
 import sharp from "sharp";
 import path from "node:path";
 import fs from "node:fs/promises";
+import process from "node:process";
+import url from "node:url";
 
-const SRC = "D:/New";
-const SRC_MOTO_NEW = "C:/Users/sascy/Downloads";
-const OUT = "d:/One Company/OneCompany/public/images";
+const SRC = process.env.HERO_SOURCE_DIR;
+if (!SRC) {
+  console.error(
+    "ERROR: HERO_SOURCE_DIR env var not set.\n" +
+      "Set it to the folder containing your 4 source PNGs, e.g.:\n" +
+      "  HERO_SOURCE_DIR=/path/to/folder node scripts/align-hero-images.mjs\n" +
+      "  PowerShell:  $env:HERO_SOURCE_DIR='C:\\path\\to\\folder'; node scripts/align-hero-images.mjs\n"
+  );
+  process.exit(1);
+}
 
-// 2026-05-12 13:05 — fresh set of 4 renders from user (Downloads).
-// AUTO must face LEFT, MOTO must face RIGHT.
-// Source directions (verified by eye 2026-05-12 13:15):
-//   (1) auto light: faces RIGHT  → flop=true  → faces LEFT
-//   (2) moto light: faces LEFT   → flop=true  → faces RIGHT
-//   (3) auto dark:  faces RIGHT  → flop=true  → faces LEFT
-//   (4) moto dark:  faces LEFT   → flop=true  → faces RIGHT
-// ChatGPT rendered (4) bike LARGER in its frame than (2) bike, so we scale
-// dark moto to 0.87 to match the light moto's footprint.
+const OUT = path.resolve(
+  path.dirname(url.fileURLToPath(import.meta.url)),
+  "..",
+  "public",
+  "images"
+);
+
+// Per-image: [outName, sourceFile, flop, scale]
+// Bump the -vN suffix when you change source files so the browser/SW pulls
+// fresh URLs (Next.js Image optimiser keys on the URL).
 const pairs = [
-  // [outName, srcDir, sourceFile, flop, scale]
-  [
-    "hero-auto-light-v9.png",
-    SRC_MOTO_NEW,
-    "ChatGPT Image 12 трав. 2026 р., 13_05_49 (1).png",
-    true,
-    1.0,
-  ],
-  [
-    "hero-moto-light-v9.png",
-    SRC_MOTO_NEW,
-    "ChatGPT Image 12 трав. 2026 р., 13_05_49 (2).png",
-    true,
-    1.0,
-  ],
-  [
-    "hero-auto-dark-v9.png",
-    SRC_MOTO_NEW,
-    "ChatGPT Image 12 трав. 2026 р., 13_05_49 (3).png",
-    true,
-    1.0,
-  ],
-  [
-    "hero-moto-dark-v9.png",
-    SRC_MOTO_NEW,
-    "ChatGPT Image 12 трав. 2026 р., 13_05_50 (4).png",
-    true,
-    0.87,
-  ],
+  ["hero-auto-light-v9.png", "auto-light.png", true, 1.0],
+  ["hero-moto-light-v9.png", "moto-light.png", true, 1.0],
+  ["hero-auto-dark-v9.png", "auto-dark.png", true, 1.0],
+  ["hero-moto-dark-v9.png", "moto-dark.png", true, 0.87],
 ];
 
 // Set to true to also vertically align subject centroids; false preserves
@@ -202,8 +193,8 @@ function detectSubjectCentroid({ data, info }) {
   return { width, height, centroidY, subjectTop, subjectBottom, bgTL, bgTR, massSum };
 }
 
-async function buildFlipped(srcDir, srcFile, flop, scale) {
-  const srcPath = path.join(srcDir, srcFile);
+async function buildFlipped(srcFile, flop, scale) {
+  const srcPath = path.join(SRC, srcFile);
   const { meta, raw } = await flippedRawRGBA(srcPath, flop, scale);
   return { srcPath, meta, raw };
 }
@@ -256,8 +247,8 @@ async function translateY(rawBuf, info, dy, bgColour) {
 
 (async () => {
   const flipped = {};
-  for (const [outName, srcDir, srcFile, flop, scale] of pairs) {
-    flipped[outName] = await buildFlipped(srcDir, srcFile, flop, scale);
+  for (const [outName, srcFile, flop, scale] of pairs) {
+    flipped[outName] = await buildFlipped(srcFile, flop, scale);
     const tag = `${flop ? "Flipped" : "Kept   "}${scale !== 1 ? ` scale=${scale}` : ""}`;
     console.log(
       `${tag}: ${srcFile} (${flipped[outName].meta.width}x${flipped[outName].meta.height}) → ${outName}`
@@ -279,9 +270,11 @@ async function translateY(rawBuf, info, dy, bgColour) {
       );
     }
     const themes = ["light", "dark"];
+    const outNames = pairs.map(([n]) => n);
     for (const theme of themes) {
-      const autoKey = `hero-auto-${theme}-v5.png`;
-      const motoKey = `hero-moto-${theme}-v5.png`;
+      const autoKey = outNames.find((n) => n.includes(`auto-${theme}`));
+      const motoKey = outNames.find((n) => n.includes(`moto-${theme}`));
+      if (!autoKey || !motoKey) continue;
       const autoC = baselines[autoKey].centroidY;
       const motoC = baselines[motoKey].centroidY;
       const target = (autoC + motoC) / 2;
