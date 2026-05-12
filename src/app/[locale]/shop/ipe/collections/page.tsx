@@ -51,9 +51,9 @@ export default async function IpeCollectionsPage({ params }: Props) {
   const ipeProducts = products.filter(isIpeProduct);
 
   return (
-    <div className="relative min-h-screen bg-black">
-      {/* Premium Black & Bronze Backdrop */}
-      <div className="fixed inset-0 z-0">
+    <div className="relative min-h-screen bg-background text-foreground">
+      {/* Cinematic backdrop — only in dark theme; light theme shows clean cream */}
+      <div className="fixed inset-0 z-0 hidden dark:block">
         <Image
           src="/images/shop/ipe/ipe-factory.png"
           alt="iPE Workshop"

@@ -7,6 +7,10 @@
 
   This file exists to ensure the browser can update the SW script at /sw.js.
   On activation it clears caches and unregisters itself.
+
+  Version: 2026-05-12-c (bumped to force re-activation across all clients —
+  bumping the version string causes the browser to fetch a "new" SW script and
+  run install + activate again, which clears all caches and unregisters.)
 */
 
 self.addEventListener('install', (event) => {

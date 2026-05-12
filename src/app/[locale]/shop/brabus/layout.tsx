@@ -8,8 +8,10 @@ type Props = {
 };
 
 export default function ShopBrabusLayout({ children }: Props) {
-  // Reusing urban classes for now since they define the layout structure
+  // Reusing urban classes for now since they define the layout structure.
+  // Brabus content (hero, fleet, rocket, PDP) is intrinsically cinematic-dark,
+  // so individual sections opt-in to `dark` scope; the layout itself stays theme-aware.
   return (
-    <div className="dark min-h-screen bg-[#0a0a0a] text-white urban-shop-page">{children}</div>
+    <div className="min-h-screen bg-background text-foreground urban-shop-page">{children}</div>
   );
 }

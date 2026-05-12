@@ -221,21 +221,21 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
   const bannerImage = card.externalImageUrl || fallbackBanner;
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white">
+    <div className="relative min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      {/* Background Banner */}
+      {/* Background Banner — cinematic only in dark theme (designed as dimmed photo under
+          dark page bg). In light theme it just whitewashes the cream page, so hide entirely. */}
       <div
-        className="absolute top-0 left-0 w-full h-[350px] md:h-[450px] z-0 pointer-events-none"
+        className="absolute top-0 left-0 w-full h-[350px] md:h-[450px] z-0 pointer-events-none hidden dark:block opacity-25"
         style={{
           backgroundImage: `url('${bannerImage}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.35,
         }}
       >
         <div className="absolute inset-0 bg-linear-to-b from-[#050505]/40 via-transparent to-[#050505]" />
@@ -245,7 +245,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
         <div className="mb-6">
           <Link
             href={`/${locale}/shop/do88/collections`}
-            className="text-[10px] uppercase tracking-[0.2em] text-white/50 hover:text-white transition inline-flex items-center gap-2"
+            className="text-[10px] uppercase tracking-[0.2em] text-foreground/65 dark:text-white/50 hover:text-foreground dark:hover:text-white transition inline-flex items-center gap-2"
           >
             ← {isUa ? "Всі категорії DO88" : "All DO88 categories"}
           </Link>
@@ -255,7 +255,11 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
             sidebar, but the brief from the shop owner is to surface the
             "vehicle finder" above the catalog so it's the first thing visible. */}
         <div className="mb-8 lg:mb-10">
-          <Suspense fallback={<div className="h-20 bg-white/5 rounded-2xl animate-pulse" />}>
+          <Suspense
+            fallback={
+              <div className="h-20 bg-foreground/5 dark:bg-white/5 rounded-2xl animate-pulse" />
+            }
+          >
             <Do88VehicleFilter locale={resolvedLocale} compact={true} currentCategory={handle} />
           </Suspense>
         </div>
@@ -264,7 +268,11 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
           {/* Left Sidebar — categories only now; vehicle picker moved to top */}
           <aside className="w-full lg:w-[280px] shrink-0 flex flex-col gap-6">
             <div className="sticky top-20 lg:top-40 z-20 hidden lg:block">
-              <Suspense fallback={<div className="h-32 bg-white/5 rounded-xl animate-pulse" />}>
+              <Suspense
+                fallback={
+                  <div className="h-32 bg-foreground/5 dark:bg-white/5 rounded-xl animate-pulse" />
+                }
+              >
                 <Do88CategoryFilter
                   locale={resolvedLocale}
                   currentHandle={handle}

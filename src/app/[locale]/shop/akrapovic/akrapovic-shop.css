@@ -4,39 +4,35 @@
    Video BG + Sound Player = exclusively Akrapovič
    ═══════════════════════════════════════════ */
 
-/* ── Variables ── */
-:root {
-  --ak-bg: #0a0a0a;
-  --ak-bg-warm: #1a1a1a;
-  --ak-bg-light: #2b2b2b;
-  --ak-card: rgba(26, 26, 26, 0.6);
-  --ak-card-hover: rgba(43, 43, 43, 0.8);
-  --ak-border: rgba(255, 255, 255, 0.08);
-  --ak-titanium: #a0a0a0;
-  --ak-ember: #c00020; /* Original Akrapovic red */
-  --ak-ember-glow: rgba(192, 0, 32, 0.15);
-  --ak-carbon: #181818;
-  --ak-white: #fafaf9;
-  --ak-muted: #888888;
-  --ak-faint: rgba(255, 255, 255, 0.04);
-}
-
 /* ── Layout ── */
 .ak-home {
-  background-color: transparent; /* Allows global ShopAmbientBackground to shine through */
+  --ak-bg: hsl(var(--background));
+  --ak-bg-warm: hsl(var(--card));
+  --ak-bg-light: hsl(var(--foreground) / 0.08);
+  --ak-card: hsl(var(--foreground) / 0.04);
+  --ak-card-hover: hsl(var(--foreground) / 0.08);
+  --ak-border: hsl(var(--foreground) / 0.12);
+  --ak-titanium: hsl(var(--foreground) / 0.7);
+  --ak-ember: #c00020;
+  --ak-ember-glow: rgba(192, 0, 32, 0.15);
+  --ak-carbon: hsl(var(--card));
+  --ak-white: hsl(var(--foreground));
+  --ak-muted: hsl(var(--foreground) / 0.6);
+  --ak-faint: hsl(var(--foreground) / 0.06);
+  background-color: transparent;
   background-image:
     radial-gradient(ellipse at 50% 0%, var(--ak-bg-light) 0%, transparent 60%),
     repeating-linear-gradient(
       45deg,
-      rgba(255, 255, 255, 0.01) 0px,
-      rgba(255, 255, 255, 0.01) 1px,
+      hsl(var(--foreground) / 0.015) 0px,
+      hsl(var(--foreground) / 0.015) 1px,
       transparent 1px,
       transparent 4px
     ),
     repeating-linear-gradient(
       -45deg,
-      rgba(255, 255, 255, 0.01) 0px,
-      rgba(255, 255, 255, 0.01) 1px,
+      hsl(var(--foreground) / 0.015) 0px,
+      hsl(var(--foreground) / 0.015) 1px,
       transparent 1px,
       transparent 4px
     );
@@ -48,6 +44,27 @@
     -apple-system,
     sans-serif;
   overflow-x: hidden;
+}
+
+/* Cinematic sections (hero with video, sound player, photo galleries, product line cards) keep white-on-dark */
+.ak-home .ak-hero,
+.ak-home .ak-sound-player,
+.ak-home .ak-sound-card,
+.ak-home .ak-gallery,
+.ak-home .ak-product-line__card,
+.ak-home .ak-line-card,
+.ak-home .ak-heritage,
+.ak-home .ak-cta-section {
+  --foreground: 0 0% 98%;
+  --ak-white: #fafaf9;
+  --ak-muted: #b8b8b8;
+  --ak-border: rgba(255, 255, 255, 0.08);
+  --ak-faint: rgba(255, 255, 255, 0.04);
+  --ak-titanium: #a0a0a0;
+  /* Explicit color reset — child elements inherit computed color from .ak-home which
+     was resolved against ink (light theme) at the parent level. Re-set color here so
+     descendants of the scope-dark section actually inherit white. */
+  color: #fafaf9;
 }
 
 /* ── Focus-visible (a11y) ── */
@@ -72,7 +89,7 @@
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.3);
+  color: hsl(var(--foreground) / 0.3);
   text-decoration: none;
   transition: color 0.3s;
 }
@@ -194,7 +211,7 @@
 .ak-hero__subtitle {
   font-size: 0.85rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.75);
+  color: hsl(var(--foreground) / 0.75);
   line-height: 1.8;
   max-width: 480px;
   margin: 1.5rem auto 0;
@@ -222,7 +239,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0;
   background: rgba(8, 8, 8, 0.78);
-  color: rgba(255, 255, 255, 0.9);
+  color: hsl(var(--foreground) / 0.9);
   padding: 0 2.4rem 0 1.25rem;
   font-size: 0.78rem;
   font-weight: 650;
@@ -246,7 +263,7 @@
   padding-right: 1.25rem;
 }
 .ak-hero-filter__search::placeholder {
-  color: rgba(255, 255, 255, 0.44);
+  color: hsl(var(--foreground) / 0.44);
   text-transform: uppercase;
 }
 .ak-hero-filter__chevron {
@@ -255,7 +272,7 @@
   top: 50%;
   right: 1rem;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.44);
+  color: hsl(var(--foreground) / 0.44);
 }
 .ak-hero-filter__cta {
   height: 52px;
@@ -264,7 +281,7 @@
   justify-content: center;
   border: 1px solid rgba(192, 0, 32, 0.32);
   background: rgba(10, 10, 10, 0.62);
-  color: rgba(255, 255, 255, 0.76);
+  color: hsl(var(--foreground) / 0.76);
   text-decoration: none;
   text-transform: uppercase;
   font-size: 0.72rem;
@@ -279,7 +296,7 @@
 .ak-hero-filter__cta:hover {
   border-color: var(--ak-ember);
   background: var(--ak-ember);
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 /* Scroll indicator */
 .ak-hero__scroll {
@@ -362,10 +379,12 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.92) contrast(1.05);
   transition:
     transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.45s ease;
+}
+.dark .ak-gallery__media img {
+  filter: brightness(0.92) contrast(1.05);
 }
 .ak-gallery__card:nth-child(1) .ak-gallery__media img {
   object-position: 38% center;
@@ -375,6 +394,8 @@
 }
 .ak-gallery__card:hover .ak-gallery__media img {
   transform: scale(1.035);
+}
+.dark .ak-gallery__card:hover .ak-gallery__media img {
   filter: brightness(1) contrast(1.08);
 }
 
@@ -406,6 +427,9 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Product line cards are dark pedestals in BOTH themes — many product photos have baked-in
+   black backgrounds; matching the card surface to dark lets `mix-blend-mode: lighten` hide
+   the photo background seam while keeping the cinematic vibe consistent. */
 .ak-line-card {
   flex: 0 0 min(80vw, 550px);
   height: clamp(380px, 60vh, 520px);
@@ -414,9 +438,9 @@
   border-radius: 12px;
   scroll-snap-align: start;
   text-decoration: none;
-  color: var(--ak-white);
-  background: var(--ak-bg);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #fafaf9;
+  background: #0d0d0b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   transition:
     transform 0.5s ease,
     box-shadow 0.5s ease;
@@ -482,7 +506,7 @@
 .ak-line-card__desc {
   font-size: 0.75rem;
   font-weight: 300;
-  color: var(--ak-muted);
+  color: hsl(var(--foreground) / 0.65);
   line-height: 1.6;
   max-width: 360px;
 }
@@ -518,7 +542,8 @@
   position: relative;
   aspect-ratio: 16/10;
   overflow: hidden;
-  background: var(--ak-bg);
+  /* Dark pedestal in both themes — many sound thumbnails have baked-in dark backgrounds. */
+  background: #0d0d0b;
 }
 .ak-sound-card__img {
   width: 100%;
@@ -662,7 +687,7 @@
 }
 .ak-btn:hover {
   border-color: var(--ak-ember);
-  color: #fff;
+  color: hsl(var(--foreground));
   box-shadow:
     0 0 40px var(--ak-ember-glow),
     0 8px 30px -10px rgba(255, 255, 255, 0.1);

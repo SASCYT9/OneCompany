@@ -3,24 +3,24 @@
   z-index: 1;
   padding: clamp(92px, 11vw, 132px) 16px 48px;
   min-height: 100dvh;
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .shell {
   max-width: min(1380px, 96vw);
   margin: 0 auto;
   padding: clamp(20px, 3vw, 40px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid hsl(var(--foreground) / 0.08);
   border-radius: 32px;
   background:
     radial-gradient(
       circle at top left,
-      rgba(194, 157, 89, 0.06), /* bronze glow */
-      transparent 30%
+      hsl(var(--primary) / 0.08),
+      /* bronze glow */ transparent 30%
     ),
-    linear-gradient(180deg, rgba(10, 10, 12, 0.8), rgba(3, 3, 3, 0.98));
+    linear-gradient(180deg, hsl(var(--card) / 0.8), hsl(var(--card) / 0.98));
   backdrop-filter: blur(32px);
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 40px 100px hsl(var(--foreground) / 0.18);
 }
 
 .topbar {
@@ -34,10 +34,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid hsl(var(--foreground) / 0.18);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.72);
+  background: hsl(var(--foreground) / 0.08);
+  color: hsl(var(--foreground) / 0.85);
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -49,13 +49,13 @@
 }
 
 .backLink:visited {
-  color: rgba(255, 255, 255, 0.72);
+  color: hsl(var(--foreground) / 0.85);
 }
 
 .backLink:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: hsl(var(--foreground) / 0.45);
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.12);
 }
 
 .header {
@@ -67,11 +67,7 @@
   width: 96px;
   height: 1px;
   margin-bottom: 16px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(255, 255, 255, 0)
-  );
+  background: linear-gradient(90deg, hsl(var(--foreground) / 0.85), transparent);
 }
 
 .label {
@@ -79,7 +75,7 @@
   font-size: 11px;
   letter-spacing: 0.45em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.48);
+  color: hsl(var(--foreground) / 0.65);
 }
 
 .title {
@@ -97,7 +93,7 @@
   max-width: 62ch;
   font-size: clamp(14px, 1.2vw, 17px);
   line-height: 1.75;
-  color: rgba(255, 255, 255, 0.72);
+  color: hsl(var(--foreground) / 0.85);
 }
 
 .grid {
@@ -114,11 +110,11 @@
   min-height: 380px;
   margin-bottom: 24px;
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid hsl(var(--foreground) / 0.1);
   border-radius: 28px;
   overflow: hidden;
   text-decoration: none;
-  background: #030303;
+  background: hsl(var(--card));
   transition:
     transform 0.35s ease,
     border-color 0.35s ease,
@@ -127,14 +123,16 @@
 
 .fullCard:hover {
   transform: translateY(-4px);
-  border-color: rgba(194, 157, 89, 0.3); /* Bronze border on hover */
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5), 0 0 40px rgba(194, 157, 89, 0.05);
+  border-color: hsl(var(--primary) / 0.3); /* Bronze border on hover */
+  box-shadow:
+    0 24px 48px hsl(var(--foreground) / 0.2),
+    0 0 40px hsl(var(--primary) / 0.08);
 }
 
 .fullCard:hover .cardArrow {
-  background: #c29d59;
-  color: #000;
-  border-color: #c29d59;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
 }
 
 .fullCardBg {
@@ -157,9 +155,9 @@
   inset: 0;
   background: linear-gradient(
     0deg,
-    rgba(3, 3, 3, 0.95) 0%,
-    rgba(3, 3, 3, 0.6) 40%,
-    rgba(3, 3, 3, 0.1) 100%
+    hsl(var(--background) / 0.95) 0%,
+    hsl(var(--background) / 0.6) 40%,
+    hsl(var(--background) / 0.1) 100%
   );
 }
 
@@ -176,11 +174,11 @@
   position: relative;
   display: block;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid hsl(var(--foreground) / 0.1);
   border-radius: 28px;
   text-decoration: none;
   color: inherit;
-  background: #030303;
+  background: hsl(var(--card));
   transition:
     transform 0.35s ease,
     border-color 0.35s ease,
@@ -193,8 +191,10 @@
 
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(194, 157, 89, 0.25); /* Bronze border on hover */
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 30px rgba(194, 157, 89, 0.05);
+  border-color: hsl(var(--primary) / 0.25); /* Bronze border on hover */
+  box-shadow:
+    0 24px 48px hsl(var(--foreground) / 0.18),
+    0 0 30px hsl(var(--primary) / 0.08);
 }
 
 .cardInner {
@@ -211,17 +211,13 @@
 }
 
 .cardMediaPhoto {
-  background: #080808;
+  background: hsl(var(--card));
 }
 
 .cardMediaLogo {
   background:
-    radial-gradient(
-      circle at 20% 10%,
-      rgba(255, 255, 255, 0.05),
-      transparent 32%
-    ),
-    linear-gradient(180deg, rgba(8, 8, 10, 0.96), rgba(3, 3, 3, 1));
+    radial-gradient(circle at 20% 10%, hsl(var(--foreground) / 0.1), transparent 32%),
+    linear-gradient(180deg, hsl(var(--card) / 0.96), hsl(var(--card)));
 }
 
 .cardMediaPlaceholder {
@@ -230,12 +226,8 @@
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(
-      circle at top left,
-      rgba(255, 255, 255, 0.08),
-      transparent 30%
-    ),
-    linear-gradient(135deg, #0d0d12, #050505);
+    radial-gradient(circle at top left, hsl(var(--foreground) / 0.12), transparent 30%),
+    linear-gradient(135deg, hsl(var(--card)), hsl(var(--background)));
 }
 
 .cardPhotoImage,
@@ -255,7 +247,7 @@
 .cardLogoImage {
   object-fit: contain;
   padding: 64px 48px;
-  filter: grayscale(1) brightness(0) invert(1);
+  filter: grayscale(1) brightness(0) var(--logo-invert);
   opacity: 0.8; /* Slightly dimmer to fit deep dark */
 }
 
@@ -271,7 +263,7 @@
     180deg,
     rgba(0, 0, 0, 0.05) 0%,
     rgba(0, 0, 0, 0.15) 35%,
-    rgba(3, 3, 3, 0.95) 100% /* Deep Obsidian base */
+    hsl(var(--background) / 0.95) 100% /* Deep Obsidian base */
   );
 }
 
@@ -288,10 +280,10 @@
   display: inline-flex;
   align-self: flex-start;
   padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid hsl(var(--foreground) / 0.25);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.34);
-  color: rgba(255, 255, 255, 0.8);
+  color: hsl(var(--foreground) / 0.95);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -305,7 +297,7 @@
   font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .cardSubtitle {
@@ -313,7 +305,7 @@
   max-width: 42ch;
   font-size: 14px;
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.72);
+  color: hsl(var(--foreground) / 0.85);
 }
 
 .cardArrow {
@@ -326,10 +318,10 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid hsl(var(--foreground) / 0.2);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.26);
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .cardArrow svg {
@@ -348,7 +340,7 @@
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: rgba(255, 255, 255, 0.88);
+  color: hsl(var(--foreground) / 0.95);
 }
 
 @media (min-width: 760px) {

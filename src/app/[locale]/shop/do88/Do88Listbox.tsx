@@ -95,28 +95,30 @@ export default function Do88Listbox({
         className={cn(
           "group relative flex min-h-[72px] w-full items-center justify-between gap-4 overflow-hidden rounded-[22px] border px-5 py-4 text-left transition-all duration-300",
           disabled
-            ? "cursor-not-allowed border-white/6 bg-black/35 text-white/30"
+            ? "cursor-not-allowed border-foreground/8 bg-foreground/10 dark:bg-black/35 text-foreground/55 dark:text-foreground/30"
             : open
-              ? "border-[#c29d59]/30 bg-black/75 shadow-2xl"
-              : "border-white/8 bg-black/55 hover:border-[#c29d59]/18 hover:bg-black/70"
+              ? "border-primary/30 bg-card/95 dark:bg-black/75 shadow-2xl"
+              : "border-foreground/10 bg-card/80 dark:bg-black/55 hover:border-primary/18 hover:bg-foreground/15 dark:hover:bg-black/70"
         )}
       >
         <span
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute inset-x-5 top-0 h-px bg-transparent transition-colors duration-300",
-            !disabled && "group-hover:bg-[#c29d59]/12",
-            open && "bg-[#c29d59]/25"
+            !disabled && "group-hover:bg-primary/12",
+            open && "bg-primary/25"
           )}
         />
         <span className="min-w-0">
-          <span className="block text-[10px] uppercase tracking-[0.24em] text-white/38">
+          <span className="block text-[10px] uppercase tracking-[0.24em] text-foreground/38">
             {label}
           </span>
           <span
             className={cn(
               "mt-2 block truncate text-[15px] font-light",
-              selectedOption && !disabled ? "text-white" : "text-white/55"
+              selectedOption && !disabled
+                ? "text-foreground"
+                : "text-foreground/70 dark:text-foreground/55"
             )}
           >
             {displayValue}
@@ -124,14 +126,14 @@ export default function Do88Listbox({
         </span>
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-white/42 transition-transform duration-300",
+            "size-4 shrink-0 text-foreground/42 transition-transform duration-300",
             open && "rotate-180"
           )}
         />
       </button>
 
       {open ? (
-        <div className="absolute inset-x-0 top-[calc(100%+12px)] z-60 overflow-hidden rounded-[22px] border border-[#c29d59]/16 bg-[#050505]/95 shadow-[0_28px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="absolute inset-x-0 top-[calc(100%+12px)] z-60 overflow-hidden rounded-[22px] border border-primary/16 bg-card/95 shadow-[0_28px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
           <div id={listboxId} role="listbox" className="max-h-[320px] overflow-y-auto p-2">
             <button
               type="button"
@@ -144,8 +146,8 @@ export default function Do88Listbox({
               className={cn(
                 "flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm transition-colors duration-200",
                 isClearSelected
-                  ? "bg-[#c29d59]/10 text-white"
-                  : "text-white/72 hover:bg-white/4 hover:text-white"
+                  ? "bg-primary/10 text-foreground"
+                  : "text-foreground/72 hover:bg-foreground/6 hover:text-foreground"
               )}
             >
               <span>{clearLabel}</span>
@@ -154,8 +156,8 @@ export default function Do88Listbox({
                 className={cn(
                   "size-2 rounded-full border transition-colors duration-200",
                   isClearSelected
-                    ? "border-[#c29d59] bg-[#c29d59]"
-                    : "border-white/18 bg-transparent"
+                    ? "border-primary bg-primary"
+                    : "border-foreground/20 bg-transparent"
                 )}
               />
             </button>
@@ -163,7 +165,7 @@ export default function Do88Listbox({
             {groups.map((group) => (
               <div key={group.label ?? "group"} className="mt-2">
                 {group.label ? (
-                  <p className="px-4 pb-2 pt-1 text-[10px] uppercase tracking-[0.22em] text-[#c29d59]/58">
+                  <p className="px-4 pb-2 pt-1 text-[10px] uppercase tracking-[0.22em] text-primary/58">
                     {group.label}
                   </p>
                 ) : null}
@@ -184,8 +186,8 @@ export default function Do88Listbox({
                         className={cn(
                           "flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm transition-colors duration-200",
                           isSelected
-                            ? "bg-[#c29d59]/10 text-white"
-                            : "text-white/72 hover:bg-white/4 hover:text-white"
+                            ? "bg-primary/10 text-foreground"
+                            : "text-foreground/72 hover:bg-foreground/6 hover:text-foreground"
                         )}
                       >
                         <span className="truncate">{option.label}</span>
@@ -194,8 +196,8 @@ export default function Do88Listbox({
                           className={cn(
                             "size-2 rounded-full border transition-colors duration-200",
                             isSelected
-                              ? "border-[#c29d59] bg-[#c29d59]"
-                              : "border-white/18 bg-transparent"
+                              ? "border-primary bg-primary"
+                              : "border-foreground/20 bg-transparent"
                           )}
                         />
                       </button>

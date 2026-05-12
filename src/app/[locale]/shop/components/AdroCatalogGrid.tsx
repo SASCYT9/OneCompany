@@ -275,19 +275,22 @@ export default function AdroCatalogGrid({
   const filterControls = (
     <div className="space-y-5">
       <div className="relative">
-        <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+        <Search
+          size={14}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/55 dark:text-foreground/30"
+        />
         <input
           type="text"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="w-full rounded-[2px] border border-white/10 bg-black/55 py-3 pl-11 pr-10 text-sm text-white outline-hidden transition-colors placeholder:text-white/28 focus:border-white/35"
+          className="w-full rounded-[2px] border border-foreground/12 bg-card/80 dark:bg-black/55 py-3 pl-11 pr-10 text-sm text-foreground outline-hidden transition-colors placeholder:text-foreground/55 dark:placeholder:text-foreground/30 focus:border-foreground/35"
         />
         {searchQuery ? (
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 transition-colors hover:text-white"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/55 dark:text-foreground/35 transition-colors hover:text-foreground"
             aria-label={t("clearSearch")}
           >
             <X size={14} />
@@ -296,13 +299,13 @@ export default function AdroCatalogGrid({
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
           {t("make")}
         </span>
         <select
           value={activeMake}
           onChange={(event) => setActiveMake(event.target.value)}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35"
+          className="w-full appearance-none rounded-[2px] border border-foreground/12 bg-card/80 dark:bg-black/55 px-4 py-3 text-sm text-foreground outline-hidden transition-colors focus:border-foreground/35"
         >
           <option value="all">{t("allMakes")}</option>
           {makeOptions.map((option) => (
@@ -314,14 +317,14 @@ export default function AdroCatalogGrid({
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
           {t("model")}
         </span>
         <select
           value={activeModel}
           onChange={(event) => setActiveModel(event.target.value)}
           disabled={modelOptions.length === 0}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35 disabled:cursor-not-allowed disabled:opacity-45"
+          className="w-full appearance-none rounded-[2px] border border-foreground/12 bg-card/80 dark:bg-black/55 px-4 py-3 text-sm text-foreground outline-hidden transition-colors focus:border-foreground/35 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <option value="all">{t("allModels")}</option>
           {modelOptions.map((option) => (
@@ -333,13 +336,13 @@ export default function AdroCatalogGrid({
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/45">
+        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
           {t("category")}
         </span>
         <select
           value={activeCategory}
           onChange={(event) => setActiveCategory(event.target.value)}
-          className="w-full appearance-none rounded-[2px] border border-white/10 bg-black/55 px-4 py-3 text-sm text-white outline-hidden transition-colors focus:border-white/35"
+          className="w-full appearance-none rounded-[2px] border border-foreground/12 bg-card/80 dark:bg-black/55 px-4 py-3 text-sm text-foreground outline-hidden transition-colors focus:border-foreground/35"
         >
           <option value="all">{t("allCategories")}</option>
           {categoryOptions.map((option) => (
@@ -353,7 +356,7 @@ export default function AdroCatalogGrid({
       <button
         type="button"
         onClick={resetFilters}
-        className="w-full rounded-[2px] border border-white/12 bg-white/4 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/75 transition-colors hover:border-white/30 hover:bg-white/8"
+        className="w-full rounded-[2px] border border-foreground/15 bg-foreground/5 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/90 dark:text-foreground/75 transition-colors hover:border-foreground/30 hover:bg-foreground/10"
       >
         {t("resetFilters")}
       </button>
@@ -363,18 +366,18 @@ export default function AdroCatalogGrid({
   if (!mounted) return null;
 
   return (
-    <section className="relative z-20 min-h-screen bg-transparent py-8 text-white">
+    <section className="relative z-20 min-h-screen bg-transparent py-8 text-foreground">
       <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
-        <div className="mb-10 grid gap-8 border-y border-white/6 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
+        <div className="mb-10 grid gap-8 border-y border-foreground/8 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/42">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/60 dark:text-foreground/42">
               {t("eyebrow")}
             </p>
-            <h1 className="mt-4 text-balance text-3xl font-extralight uppercase tracking-[0.12em] text-white md:text-5xl">
+            <h1 className="mt-4 text-balance text-3xl font-extralight uppercase tracking-[0.12em] text-foreground md:text-5xl">
               {t("title")}
             </h1>
           </div>
-          <p className="max-w-2xl text-sm leading-7 text-white/48 lg:justify-self-end">
+          <p className="max-w-2xl text-sm leading-7 text-foreground/65 dark:text-foreground/48 lg:justify-self-end">
             {t("subtitle")}
           </p>
         </div>
@@ -385,13 +388,15 @@ export default function AdroCatalogGrid({
             onClick={toggleMobileFilter}
             aria-expanded={mobileFilterOpen}
             aria-controls="adro-mobile-filters"
-            className="flex items-center gap-2.5 rounded-[2px] border border-white/12 bg-[#060606]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-white/28"
+            className="flex items-center gap-2.5 rounded-[2px] border border-foreground/15 bg-card/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:border-foreground/28"
           >
             <SlidersHorizontal size={13} />
             {t("filters")}
-            {hasActiveFilters ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-white" /> : null}
+            {hasActiveFilters ? (
+              <span className="ml-1 h-1.5 w-1.5 rounded-full bg-foreground" />
+            ) : null}
           </button>
-          <p className="text-xs tracking-wide text-white/42">
+          <p className="text-xs tracking-wide text-foreground/60 dark:text-foreground/42">
             {filteredProducts.length} {t("of")} {products.length}
           </p>
         </div>
@@ -408,24 +413,26 @@ export default function AdroCatalogGrid({
             <div
               className={`${
                 mobileFilterOpen
-                  ? "flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/8 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
-                  : "flex flex-col gap-6 rounded-[2px] border border-white/6 bg-[#050505]/90 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[112px]"
+                  ? "flex min-h-full flex-col gap-6 overflow-y-auto border-r border-foreground/10 bg-card px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
+                  : "flex flex-col gap-6 rounded-[2px] border border-foreground/8 bg-card/90 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[112px]"
               }`}
             >
               <button
                 type="button"
                 onClick={closeMobileFilter}
-                className="self-end p-1.5 text-white/40 transition-colors hover:text-white lg:hidden"
+                className="self-end p-1.5 text-foreground/60 dark:text-foreground/40 transition-colors hover:text-foreground lg:hidden"
                 aria-label={t("closeFilters")}
               >
                 <X size={16} />
               </button>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.28em] text-white/35">ADRO</p>
-                <h2 className="mt-2 text-xl font-light uppercase tracking-[0.08em] text-white">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-foreground/55 dark:text-foreground/35">
+                  ADRO
+                </p>
+                <h2 className="mt-2 text-xl font-light uppercase tracking-[0.08em] text-foreground">
                   {t("filters")}
                 </h2>
-                <p className="mt-2 text-xs text-white/38">
+                <p className="mt-2 text-xs text-foreground/55 dark:text-foreground/38">
                   {filteredProducts.length} {t("results")}
                 </p>
               </div>
@@ -434,18 +441,21 @@ export default function AdroCatalogGrid({
           </aside>
 
           {mobileFilterOpen ? (
-            <div className="fixed inset-0 z-40 bg-black/70 lg:hidden" onClick={closeMobileFilter} />
+            <div
+              className="fixed inset-0 z-40 bg-foreground/30 dark:bg-black/70 lg:hidden"
+              onClick={closeMobileFilter}
+            />
           ) : null}
 
           <main className="min-w-0 flex-1">
             <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-white/45">
+              <p className="text-sm text-foreground/65 dark:text-foreground/45">
                 {filteredProducts.length} {t("filteredProducts")}
                 {hasActiveFilters ? (
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70 transition-colors hover:text-white"
+                    className="ml-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/85 dark:text-foreground/70 transition-colors hover:text-foreground"
                   >
                     {t("reset")}
                   </button>
@@ -456,32 +466,32 @@ export default function AdroCatalogGrid({
                 <select
                   value={sortOrder}
                   onChange={(event) => setSortOrder(event.target.value as SortOrder)}
-                  className="appearance-none rounded-[2px] border border-white/10 bg-[#050505]/90 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-xl outline-hidden transition-colors focus:border-white/35"
+                  className="appearance-none rounded-[2px] border border-foreground/12 bg-card/90 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground shadow-xl outline-hidden transition-colors focus:border-foreground/35"
                 >
                   <option value="default">{t("sortDefault")}</option>
                   <option value="price_desc">{t("sortPriceDesc")}</option>
                   <option value="price_asc">{t("sortPriceAsc")}</option>
                   <option value="title_asc">{t("sortTitleAsc")}</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-foreground/65 dark:text-foreground/50">
                   <ChevronDown size={12} />
                 </div>
               </div>
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center border border-white/5 bg-black/45 py-28 text-center backdrop-blur-xs">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/4">
-                  <Search className="h-6 w-6 text-white/20" />
+              <div className="flex flex-col items-center border border-foreground/6 bg-card/70 dark:bg-black/45 py-28 text-center backdrop-blur-xs">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-foreground/5">
+                  <Search className="h-6 w-6 text-foreground/20" />
                 </div>
-                <h3 className="text-xl font-light text-white">{t("noResultsTitle")}</h3>
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-white/48">
+                <h3 className="text-xl font-light text-foreground">{t("noResultsTitle")}</h3>
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-foreground/65 dark:text-foreground/48">
                   {t("noResultsBody")}
                 </p>
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="mt-8 rounded-[2px] border border-white/18 px-8 py-3 text-[10px] uppercase tracking-[0.2em] text-white transition-colors hover:border-white hover:bg-white hover:text-black"
+                  className="mt-8 rounded-[2px] border border-foreground/25 px-8 py-3 text-[10px] uppercase tracking-[0.2em] text-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
                 >
                   {t("resetFilters")}
                 </button>
@@ -518,13 +528,13 @@ export default function AdroCatalogGrid({
                   return (
                     <article
                       key={product.slug}
-                      className="group relative flex flex-col overflow-hidden border border-white/6 bg-[#070707] transition-all duration-500 hover:border-white/18 hover:bg-[#0b0b0b]"
+                      className="group relative flex flex-col overflow-hidden border border-foreground/8 bg-card transition-all duration-500 hover:border-foreground/25 hover:bg-foreground/5"
                     >
                       <Link
                         href={`/${locale}/shop/adro/products/${product.slug}`}
                         className="z-10 flex grow flex-col"
                       >
-                        <div className="relative aspect-square overflow-hidden border-b border-white/4 bg-[#050505]">
+                        <div className="relative aspect-square overflow-hidden border-b border-foreground/6 bg-card">
                           <ShopProductImage
                             src={product.image || "/images/shop/adro/adro-hero-m4.jpg"}
                             alt={productTitle}
@@ -533,28 +543,28 @@ export default function AdroCatalogGrid({
                             fallbackSrc="/images/shop/adro/adro-hero-m4.jpg"
                             className="object-contain p-10 opacity-[0.82] transition-all duration-700 group-hover:scale-[1.05] group-hover:opacity-100"
                           />
-                          <div className="absolute left-4 top-4 z-20 border border-white/8 bg-black/65 px-2.5 py-1 text-[8px] uppercase tracking-[0.18em] text-white/50 backdrop-blur-xs">
+                          <div className="absolute left-4 top-4 z-20 border border-white/25 bg-black/65 px-2.5 py-1 text-[8px] uppercase tracking-[0.18em] text-white/85 backdrop-blur-xs">
                             {getCategoryLabel(locale, entry.category)}
                           </div>
                         </div>
 
                         <div className="flex grow flex-col px-5 pb-5 pt-4">
-                          <p className="text-[8px] uppercase tracking-[0.2em] text-white/28">
+                          <p className="text-[8px] uppercase tracking-[0.2em] text-foreground/50 dark:text-foreground/28">
                             {product.sku}
                           </p>
-                          <h3 className="mt-2 line-clamp-2 min-h-10 text-pretty text-sm leading-snug text-white/88 transition-colors group-hover:text-white">
+                          <h3 className="mt-2 line-clamp-2 min-h-10 text-pretty text-sm leading-snug text-foreground/88 transition-colors group-hover:text-foreground">
                             {productTitle}
                           </h3>
-                          <p className="mt-3 line-clamp-2 min-h-10 text-[10px] uppercase tracking-[0.12em] text-white/38">
+                          <p className="mt-3 line-clamp-2 min-h-10 text-[10px] uppercase tracking-[0.12em] text-foreground/55 dark:text-foreground/38">
                             {facetLabel}
                           </p>
-                          <div className="mt-auto border-t border-white/4 pt-3">
+                          <div className="mt-auto border-t border-foreground/6 pt-3">
                             {hasPrice && primaryPrice ? (
-                              <span className="tabular-nums text-sm font-medium tracking-wide text-white">
+                              <span className="tabular-nums text-sm font-medium tracking-wide text-foreground">
                                 {primaryPrice}
                               </span>
                             ) : (
-                              <span className="text-[10px] uppercase tracking-[0.18em] text-white/42">
+                              <span className="text-[10px] uppercase tracking-[0.18em] text-foreground/60 dark:text-foreground/42">
                                 {t("priceOnRequest")}
                               </span>
                             )}
@@ -565,7 +575,7 @@ export default function AdroCatalogGrid({
                       <div className="relative z-20 flex gap-3 px-5 pb-5 pt-0">
                         <Link
                           href={`/${locale}/shop/adro/products/${product.slug}`}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-[2px] border border-white/20 py-3 text-[10px] uppercase tracking-[0.24em] text-white/78 transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
+                          className="flex flex-1 items-center justify-center gap-2 rounded-[2px] border border-foreground/30 py-3 text-[10px] uppercase tracking-[0.24em] text-foreground/78 transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background"
                         >
                           {t("view")}
                           <ArrowRight size={12} strokeWidth={2} />
@@ -578,11 +588,11 @@ export default function AdroCatalogGrid({
                           productName={productTitle}
                           label={t("cart")}
                           labelAdded="✓"
-                          className="flex-1 rounded-[2px] border border-white/10 py-3 text-[10px] uppercase tracking-[0.24em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
+                          className="flex-1 rounded-[2px] border border-foreground/12 py-3 text-[10px] uppercase tracking-[0.24em] text-foreground transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background"
                           variant="inline"
                         />
                       </div>
-                      <div className="absolute left-0 top-0 h-px w-full origin-left scale-x-0 bg-white transition-transform duration-500 group-hover:scale-x-100" />
+                      <div className="absolute left-0 top-0 h-px w-full origin-left scale-x-0 bg-foreground transition-transform duration-500 group-hover:scale-x-100" />
                     </article>
                   );
                 })}
@@ -594,7 +604,7 @@ export default function AdroCatalogGrid({
                 <button
                   type="button"
                   onClick={() => setVisibleCount((current) => current + 30)}
-                  className="rounded-[2px] border border-white/20 px-12 py-4 text-[11px] uppercase tracking-[0.24em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
+                  className="rounded-[2px] border border-foreground/30 px-12 py-4 text-[11px] uppercase tracking-[0.24em] text-foreground transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background"
                 >
                   {t("loadMore")}
                 </button>

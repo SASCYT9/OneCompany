@@ -48,19 +48,15 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
   }
 
   const displayAmount =
-    currency === "USD"
-      ? computedUsd
-      : currency === "EUR"
-        ? computedEur
-        : computedUah;
+    currency === "USD" ? computedUsd : currency === "EUR" ? computedEur : computedUah;
 
   if (!hasValid(displayAmount)) {
     return (
       <>
-        <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-foreground/55 dark:text-foreground/40">
           {isUa ? "Ціна" : "Pricing"}
         </p>
-        <p className="mt-2 text-2xl font-light text-zinc-300">
+        <p className="mt-2 text-2xl font-light text-foreground/85 dark:text-foreground/70">
           {isUa ? "Ціна за запитом" : "Price on Request"}
         </p>
       </>
@@ -80,16 +76,17 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
 
   return (
     <>
-      <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-foreground/55 dark:text-foreground/40">
         {isUa ? "Ціна" : "Pricing"}
       </p>
-      <p className="mt-2 text-3xl font-light">
+      <p className="mt-1.5 text-3xl font-light tracking-tight text-foreground sm:text-4xl">
         {formatPrice(locale, displayAmount, currency)}
       </p>
       {conversionParts.length > 0 ? (
-        <p className="text-sm text-white/60">{conversionParts.join(" / ")}</p>
+        <p className="mt-1 text-[13px] font-light tracking-wide text-foreground/65 dark:text-foreground/55">
+          {conversionParts.join(" · ")}
+        </p>
       ) : null}
     </>
   );
 }
-

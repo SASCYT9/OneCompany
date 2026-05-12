@@ -21,7 +21,7 @@ export default async function ShopPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   return (
-    <div data-page="our-stores" className="dark">
+    <div data-page="our-stores">
       <OurStoresPortal locale={resolvedLocale} />
     </div>
   );

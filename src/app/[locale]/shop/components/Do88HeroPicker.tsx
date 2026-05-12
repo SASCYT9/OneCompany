@@ -129,10 +129,10 @@ export default function Do88HeroPicker({ locale }: Props) {
     >
       {/* Header */}
       <div className="mb-7 flex flex-col items-center text-center">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-white/65 mb-2">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-foreground/80 dark:text-foreground/65 mb-2">
           {isUa ? "Підбір по авто" : "Vehicle finder"}
         </p>
-        <h2 className="text-xl md:text-2xl font-light tracking-[0.12em] text-white uppercase">
+        <h2 className="text-xl md:text-2xl font-light tracking-[0.12em] text-foreground uppercase">
           {isUa ? "Знайдіть свій автомобіль" : "Find your vehicle"}
         </h2>
       </div>
@@ -173,18 +173,22 @@ export default function Do88HeroPicker({ locale }: Props) {
       </div>
 
       {/* Selection summary + actions */}
-      <div className="flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2 text-[11px] tracking-[0.04em] text-white/65">
-          <span className="uppercase tracking-[0.2em] text-white/45">
+      <div className="flex flex-col gap-4 border-t border-foreground/15 pt-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2 text-[11px] tracking-[0.04em] text-foreground/80 dark:text-foreground/65">
+          <span className="uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/45">
             {isUa ? "Вибір" : "Selection"}
           </span>
-          <span aria-hidden="true" className="text-white/30">
+          <span aria-hidden="true" className="text-foreground/55 dark:text-foreground/30">
             ·
           </span>
-          <span className="text-white">
+          <span className="text-foreground">
             {brand || (isUa ? "не обрано" : "not selected")}
-            {model ? <span className="text-white/75"> · {model}</span> : null}
-            {chassis ? <span className="text-white/55"> · {chassis}</span> : null}
+            {model ? (
+              <span className="text-foreground/90 dark:text-foreground/75"> · {model}</span>
+            ) : null}
+            {chassis ? (
+              <span className="text-foreground/70 dark:text-foreground/55"> · {chassis}</span>
+            ) : null}
           </span>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -192,13 +196,13 @@ export default function Do88HeroPicker({ locale }: Props) {
             type="button"
             onClick={onReset}
             disabled={!hasAnySelection}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/4 px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-white/75 transition-all duration-200 hover:border-white/35 hover:bg-white/8 hover:text-white disabled:opacity-30 disabled:hover:border-white/15 disabled:hover:bg-white/4 disabled:hover:text-white/75"
+            className="inline-flex items-center justify-center rounded-full border border-foreground/18 bg-foreground/6 px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-foreground/90 dark:text-foreground/75 transition-all duration-200 hover:border-foreground/35 hover:bg-foreground/10 hover:text-foreground disabled:opacity-30 disabled:hover:border-foreground/18 disabled:hover:bg-foreground/6 disabled:hover:text-foreground/90 dark:text-foreground/75"
           >
             {isUa ? "Скинути" : "Reset"}
           </button>
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-black shadow-[0_8px_24px_-8px_rgba(255,255,255,0.35)] transition-all duration-200 hover:bg-white/90 hover:shadow-[0_12px_32px_-6px_rgba(255,255,255,0.45)] active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-primary-foreground shadow-[0_8px_24px_-8px_rgba(213,0,28,0.35)] dark:shadow-[0_8px_24px_-8px_rgba(194,157,89,0.4)] transition-all duration-200 hover:bg-primary/90 hover:shadow-[0_12px_32px_-6px_rgba(213,0,28,0.45)] dark:hover:shadow-[0_12px_32px_-6px_rgba(194,157,89,0.5)] active:scale-[0.98]"
           >
             <svg
               viewBox="0 0 24 24"

@@ -51,7 +51,7 @@ export default async function UrbanCollectionsPage({ params }: Props) {
       <div className="w-full max-w-[1720px] mx-auto px-6 md:px-12 lg:px-16 pt-32 pb-4">
         <Link
           href={`/${locale}/shop/urban`}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-all hover:border-white/20 hover:bg-white/8 hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.3)] relative z-10"
+          className="inline-flex items-center gap-2 rounded-full border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/4 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-foreground/65 dark:text-white/50 transition-all hover:border-foreground/25 dark:hover:border-white/20 hover:bg-foreground/8 dark:hover:bg-white/8 hover:text-foreground dark:hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.3)] relative z-10"
         >
           <span>←</span> {isUa ? "Urban головна" : "Urban home"}
         </Link>

@@ -107,10 +107,10 @@ export default function Do88CollectionProductGrid({
       <div className="w-full">
         <div className="urban-product-grid__head flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <p className="urban-product-grid__eyebrow text-white/50 tracking-[0.2em] uppercase text-[10px] mb-2">
+            <p className="urban-product-grid__eyebrow text-foreground/75 dark:text-foreground/50 tracking-[0.2em] uppercase text-[10px] mb-2">
               DO88 Performance
             </p>
-            <h2 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4">
+            <h2 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4 text-foreground">
               {displayTitle}
             </h2>
           </div>
@@ -121,7 +121,7 @@ export default function Do88CollectionProductGrid({
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="w-full sm:w-auto appearance-none bg-black/40 border border-white/20 text-white py-3 pl-5 pr-12 rounded-full text-[11px] uppercase tracking-widest focus:outline-hidden focus:border-white/50 cursor-pointer backdrop-blur-md transition shadow-inner"
+                  className="w-full sm:w-auto appearance-none bg-card/70 dark:bg-black/40 border border-foreground/22 text-foreground py-3 pl-5 pr-12 rounded-full text-[11px] uppercase tracking-widest focus:outline-hidden focus:border-foreground/50 cursor-pointer backdrop-blur-md transition shadow-inner"
                 >
                   <option value="price-desc" className="text-black bg-white">
                     {isUa ? "Ціна: від дорогих до дешевих" : "Price: High to Low"}
@@ -136,7 +136,7 @@ export default function Do88CollectionProductGrid({
                     {isUa ? "Назва: Я-А" : "Name: Z-A"}
                   </option>
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-foreground/65 dark:text-foreground/50">
                   <svg
                     width="14"
                     height="14"
@@ -153,7 +153,7 @@ export default function Do88CollectionProductGrid({
 
             <Link
               href={`/${locale}/shop/do88/collections`}
-              className="urban-product-grid__all-link text-white/50 hover:text-white uppercase tracking-[0.2em] text-[10px] whitespace-nowrap hidden sm:block transition"
+              className="urban-product-grid__all-link text-foreground/65 dark:text-foreground/50 hover:text-foreground uppercase tracking-[0.2em] text-[10px] whitespace-nowrap hidden sm:block transition"
             >
               {isUa ? "← Всі категорії" : "← All categories"}
             </Link>
@@ -200,7 +200,7 @@ export default function Do88CollectionProductGrid({
                         className="object-cover transition duration-700 group-hover:scale-105 group-hover:opacity-90"
                       />
                     ) : (
-                      <div className="flex w-full h-full items-center justify-center text-white/20">
+                      <div className="flex w-full h-full items-center justify-center text-foreground/20">
                         <svg
                           className="w-12 h-12"
                           fill="none"
@@ -218,17 +218,17 @@ export default function Do88CollectionProductGrid({
                     )}
                   </div>
                   <div className="urban-product-grid__body p-6">
-                    <p className="urban-product-grid__brand text-white/40 text-[9px] uppercase tracking-[0.3em] mb-2">
+                    <p className="urban-product-grid__brand text-foreground/60 dark:text-foreground/40 text-[9px] uppercase tracking-[0.3em] mb-2">
                       {product.brand}
                     </p>
-                    <h3 className="urban-product-grid__name font-light text-xl mb-4 text-white/90">
+                    <h3 className="urban-product-grid__name font-light text-xl mb-4 text-foreground">
                       {productTitle}
                     </h3>
                     <div className="urban-product-grid__meta">
                       <p className="urban-product-grid__collection">{productCollection || title}</p>
                       <div className="urban-product-grid__price">
                         {isB2B && computedCompare && (
-                          <span className="urban-product-grid__compare-at line-through text-white/30 mr-2 text-sm">
+                          <span className="urban-product-grid__compare-at line-through text-foreground/55 dark:text-foreground/30 mr-2 text-sm">
                             {formatPrice(
                               locale,
                               computedCompare[
@@ -238,7 +238,7 @@ export default function Do88CollectionProductGrid({
                             )}
                           </span>
                         )}
-                        <span className={isB2B ? "text-emerald-400 font-bold" : "text-white"}>
+                        <span className={isB2B ? "text-emerald-400 font-bold" : "text-foreground"}>
                           {formatPrice(
                             locale,
                             computed[currency.toLowerCase() as keyof typeof computed],
@@ -259,7 +259,7 @@ export default function Do88CollectionProductGrid({
                       }
                       productName={productTitle}
                       variant="minimal"
-                      className="w-full bg-white/10 hover:bg-white hover:text-black py-3 rounded-xl text-center text-[10px] tracking-widest uppercase transition duration-300 font-semibold"
+                      className="w-full bg-foreground/12 hover:bg-primary hover:text-primary-foreground py-3 rounded-xl text-center text-[10px] tracking-widest uppercase transition duration-300 font-semibold"
                     />
                   </div>
                 </article>

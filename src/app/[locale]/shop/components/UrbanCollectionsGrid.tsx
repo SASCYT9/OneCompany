@@ -148,7 +148,7 @@ export default function UrbanCollectionsGrid({
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/70" />
 
                 {card.productCount && (
-                  <div className="absolute right-4 top-4 z-10 bg-black/30 px-2.5 py-1 text-[10px] font-semibold text-white/70 backdrop-blur-xs">
+                  <div className="absolute right-4 top-4 z-10 bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white/85 backdrop-blur-md border border-white/15">
                     {card.productCount}
                   </div>
                 )}

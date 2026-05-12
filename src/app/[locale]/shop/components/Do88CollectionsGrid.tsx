@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import type { SupportedLocale } from '@/lib/seo';
-import {
-  DO88_COLLECTION_CARDS,
-  DO88_COLLECTIONS_GRID_SETTINGS,
-} from '../data/do88CollectionsList';
-import type { Do88CollectionCard } from '../data/do88CollectionsList';
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import type { SupportedLocale } from "@/lib/seo";
+import { DO88_COLLECTION_CARDS, DO88_COLLECTIONS_GRID_SETTINGS } from "../data/do88CollectionsList";
+import type { Do88CollectionCard } from "../data/do88CollectionsList";
 
-const DO88_LOGO = '/images/shop/do88/logo-white.png'; // Make sure this exists or it will gracefully break
+const DO88_LOGO = "/images/shop/do88/logo-white.png"; // Make sure this exists or it will gracefully break
 
 type Do88CollectionsGridProps = {
   locale: SupportedLocale;
   cards?: Do88CollectionCard[];
 };
 
-export default function Do88CollectionsGrid({ locale, cards: cardsProp }: Do88CollectionsGridProps) {
-  const isUa = locale === 'ua';
+export default function Do88CollectionsGrid({
+  locale,
+  cards: cardsProp,
+}: Do88CollectionsGridProps) {
+  const isUa = locale === "ua";
   const rootRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(true);
   const searchParams = useSearchParams();
@@ -48,32 +48,29 @@ export default function Do88CollectionsGrid({ locale, cards: cardsProp }: Do88Co
   const subheading = isUa
     ? DO88_COLLECTIONS_GRID_SETTINGS.subheadingUk
     : DO88_COLLECTIONS_GRID_SETTINGS.subheading;
-  const exploreLabel = isUa ? 'Переглянути' : 'Explore';
+  const exploreLabel = isUa ? "Переглянути" : "Explore";
 
   // Construct search params string if vehicle filter was used
-  const brand = searchParams?.get('brand');
-  const keyword = searchParams?.get('keyword');
+  const brand = searchParams?.get("brand");
+  const keyword = searchParams?.get("keyword");
   const qs = new URLSearchParams();
-  if (brand) qs.set('brand', brand);
-  if (keyword) qs.set('keyword', keyword);
-  const qString = qs.toString() ? `?${qs.toString()}` : '';
+  if (brand) qs.set("brand", brand);
+  if (keyword) qs.set("keyword", keyword);
+  const qString = qs.toString() ? `?${qs.toString()}` : "";
 
   return (
     <section
       ref={rootRef}
       id="catalog"
-      className={`ucg ${visible ? 'is-visible' : ''}`}
-      style={{ minHeight: 'auto', paddingBottom: '80px' }}
+      className={`ucg ${visible ? "is-visible" : ""}`}
+      style={{ minHeight: "auto", paddingBottom: "80px" }}
     >
       <div className="ucg__grid" style={{ paddingTop: 40 }}>
         {baseCards.map((card, idx) => {
-          const cardTitle = isUa ? (card.titleUk || card.title) : card.title;
-          
+          const cardTitle = isUa ? card.titleUk || card.title : card.title;
+
           return (
-            <div
-              key={card.categoryHandle}
-              className="ucg__card"
-            >
+            <div key={card.categoryHandle} className="ucg__card">
               <Link
                 href={`/${locale}/shop/do88/collections/${card.categoryHandle}${qString}`}
                 className="ucg__card-link"
@@ -86,13 +83,22 @@ export default function Do88CollectionsGrid({ locale, cards: cardsProp }: Do88Co
                 loading="lazy"
               />
               <div className="ucg__card-gradient" />
-              
+
               <div className="ucg__card-content">
-                <p className="ucg__card-brand text-white/40 font-light uppercase tracking-widest text-[10px]">DO88 Cooling</p>
+                <p className="ucg__card-brand text-foreground/60 dark:text-foreground/40 font-light uppercase tracking-widest text-[10px]">
+                  DO88 Cooling
+                </p>
                 <h2 className="ucg__card-title">{cardTitle}</h2>
-                <div className="ucg__card-arrow text-white/50 hover:text-white transition">
+                <div className="ucg__card-arrow text-foreground/65 dark:text-foreground/50 hover:text-foreground transition">
                   {exploreLabel}
-                  <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    width={14}
+                    height={14}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                  >
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </div>

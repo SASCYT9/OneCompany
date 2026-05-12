@@ -1,5 +1,7 @@
 import "./ipe-shop.css";
 
 export default function IpeShopLayout({ children }: { children: React.ReactNode }) {
-  return <div className="dark min-h-screen bg-[#0a0a0a] text-white">{children}</div>;
+  // iPE Exhaust is cinematic-dark (titanium bronze on black, F1 aesthetic);
+  // individual sections opt-in to `dark` scope, layout stays theme-aware.
+  return <div className="min-h-screen bg-background text-foreground">{children}</div>;
 }

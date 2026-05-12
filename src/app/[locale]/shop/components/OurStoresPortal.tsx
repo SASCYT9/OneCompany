@@ -92,7 +92,7 @@ function StoreCard({
 
   return (
     <div
-      className={`group relative flex w-full flex-col overflow-hidden bg-[#060606] border-b border-r border-white/5 transition-all duration-500 ${height}`}
+      className={`group relative flex w-full flex-col overflow-hidden bg-card border-b border-r border-foreground/10 transition-all duration-500 ${height}`}
     >
       {isExternal ? (
         <a
@@ -127,13 +127,13 @@ function StoreCard({
       <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-black/10 transition-opacity duration-500 group-hover:from-black/75" />
 
       <div className="relative z-10 mt-auto w-full px-4 pb-4 md:px-7 md:pb-7">
-        <h3 className="text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] sm:text-lg lg:text-xl">
+        <h3 className="text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-primary sm:text-lg lg:text-xl">
           {t(isUa, store.name, store.nameUk)}
         </h3>
-        <p className="mt-1.5 line-clamp-2 text-xs font-light leading-relaxed text-white/65 md:max-w-[40ch] md:text-sm">
+        <p className="mt-1.5 line-clamp-2 text-xs font-light leading-relaxed text-white/75 md:max-w-[40ch] md:text-sm">
           {t(isUa, store.description, store.descriptionUk)}
         </p>
-        <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/0 transition-all duration-400 group-hover:text-white/70 group-hover:gap-3">
+        <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-transparent transition-all duration-400 group-hover:text-white/85 group-hover:gap-3">
           {exploreLabel}
           <svg
             viewBox="0 0 24 24"
@@ -170,42 +170,46 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
   const exploreLabel = isUa ? "Дослідити" : "Explore";
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#050505] text-white selection:bg-white/20">
+    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-primary/20">
       {/* Ambient */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-40 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(194,157,89,0.06)_0%,transparent_70%)]" />
       </div>
 
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[55vh] items-center justify-center overflow-hidden pt-24 pb-10 sm:min-h-[50vh] sm:pt-24 sm:pb-0">
+      {/* Original photo at full quality in both themes. Defender is naturally
+          dark (concrete garage backdrop) so white text reads cleanly without
+          aggressive filters. Soft bottom gradient just blends into page bg. */}
+      <section className="relative flex min-h-[55vh] items-center justify-center overflow-hidden bg-background pt-24 pb-10 sm:min-h-[50vh] sm:pt-24 sm:pb-0">
         <Image
           src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
           alt=""
           fill
           sizes="100vw"
-          className="object-cover sm:brightness-[0.25] sm:saturate-[0.5] brightness-[0.3]"
+          className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-linear-to-b from-[#050505]/60 via-[#050505]/15 to-[#050505]" />
-        <div className="absolute inset-0 hidden bg-linear-to-r from-[#050505]/40 via-transparent to-[#050505]/40 sm:block" />
+        {/* Soft bottom fade to page bg (theme-aware) so the photo blends into
+            the cream/dark canvas below. No top/side overlays — keeps photo open. */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-background to-transparent" />
 
         <div className="relative z-10 flex flex-col items-center gap-3 px-4 text-center sm:gap-5">
-          <h1 className="text-2xl font-extralight uppercase leading-tight tracking-[0.12em] text-white/90 sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
+          <h1 className="text-2xl font-extralight uppercase leading-tight tracking-[0.12em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
             {t(isUa, "Our Stores", "Наші Магазини")}
           </h1>
           <div className="flex items-center gap-3">
-            <div className="h-px w-12 bg-linear-to-r from-transparent to-[#C29D59]/70 sm:w-24" />
-            <div className="h-1.5 w-1.5 rotate-45 bg-[#C29D59]/50" />
-            <div className="h-px w-12 bg-linear-to-l from-transparent to-[#C29D59]/70 sm:w-24" />
+            <div className="h-px w-12 bg-linear-to-r from-transparent to-primary/70 sm:w-24" />
+            <div className="h-1.5 w-1.5 rotate-45 bg-primary/50" />
+            <div className="h-px w-12 bg-linear-to-l from-transparent to-primary/70 sm:w-24" />
           </div>
-          <p className="max-w-lg text-[13px] font-light leading-relaxed text-white/55 sm:text-sm md:text-base">
+          <p className="max-w-lg text-[13px] font-light leading-relaxed text-white/80 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)] sm:text-sm md:text-base">
             {t(
               isUa,
               "Official One Company stores. Explore the world of premium automotive brands and tuning ateliers.",
               "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
             )}
           </p>
-          <div className="mt-4 animate-bounce text-white/25 sm:mt-8">
+          <div className="mt-4 animate-bounce text-white/40 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:mt-8">
             <svg
               className="h-6 w-6"
               fill="none"
@@ -224,18 +228,18 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
         {/* Section label */}
         <div className="mb-6 flex items-end justify-between sm:mb-8">
           <div>
-            <div className="mb-4 h-px w-12 bg-linear-to-r from-white/60 to-transparent" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-white/30">
+            <div className="mb-4 h-px w-12 bg-linear-to-r from-foreground/60 to-transparent" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-foreground/55 dark:text-foreground/30">
               {t(isUa, "Explore", "Досліджуйте")}
             </p>
           </div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/25">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/45 dark:text-foreground/25">
             {storeCount} {t(isUa, "stores", "магазинів")}
           </p>
         </div>
 
         {/* Seamless grid */}
-        <div className="overflow-hidden rounded-2xl border border-white/8">
+        <div className="overflow-hidden rounded-2xl border border-foreground/10">
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {heroStores.map((store) => (
@@ -288,7 +292,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           <div className="mt-8 sm:mt-12 lg:mt-16">
             <Link
               href={`/${locale}/shop/stock`}
-              className="group relative flex flex-col justify-end w-full min-h-[220px] p-5 sm:min-h-[260px] sm:p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-white/6 bg-[#0a0a0c] transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
+              className="group relative flex flex-col justify-end w-full min-h-[220px] p-5 sm:min-h-[260px] sm:p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-foreground/10 bg-card transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
             >
               <Image
                 src="/images/shop/stores/one-company-stock-porsche.png"
@@ -308,7 +312,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                   <h2 className="mb-2 text-2xl font-light uppercase tracking-tight text-white sm:text-3xl md:text-5xl">
                     One Company Stock
                   </h2>
-                  <p className="max-w-2xl text-sm font-light leading-relaxed text-white/55 md:text-base">
+                  <p className="max-w-2xl text-sm font-light leading-relaxed text-white/75 md:text-base">
                     {t(
                       isUa,
                       "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock.",
@@ -316,7 +320,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                     )}
                   </p>
                 </div>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/60 backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-black md:h-14 md:w-14">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/75 backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary md:h-14 md:w-14">
                   <svg
                     className="h-5 w-5"
                     viewBox="0 0 24 24"

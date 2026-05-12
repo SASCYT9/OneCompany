@@ -6,5 +6,7 @@ type Props = {
 };
 
 export default function ShopBurgerLayout({ children }: Props) {
-  return <div className="dark min-h-screen bg-[#0a0a0a] text-white bm-home">{children}</div>;
+  // Burger Motorsports is cinematic-dark (red/yellow on near-black);
+  // individual sections opt-in to `dark` scope, layout stays theme-aware.
+  return <div className="min-h-screen bg-background text-foreground">{children}</div>;
 }

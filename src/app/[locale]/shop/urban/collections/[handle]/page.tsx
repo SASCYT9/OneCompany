@@ -61,7 +61,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
 
   if (!config) {
     return (
-      <div className="relative min-h-screen bg-black overflow-hidden flex flex-col pt-[100px]">
+      <div className="relative min-h-screen bg-background dark:bg-black overflow-hidden flex flex-col pt-[100px]">
         <div className="w-full max-w-[1720px] mx-auto px-6 md:px-12 lg:px-16 pb-4">
           <Link
             href={`/${locale}/shop/urban/collections`}
@@ -152,10 +152,11 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      {/* Back link floats over the cinematic hero — keep white for legibility on the photo */}
       <div className="absolute left-6 top-6 z-100 md:left-12 lg:left-16 pt-[80px]">
         <Link
           href={`/${locale}/shop/urban/collections`}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/70 transition-all hover:border-white/25 hover:bg-black/60 hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/70 transition-all hover:border-white/25 hover:bg-black/60 hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
         >
           <span>←</span> {isUa ? "Усі колекції" : "All collections"}
         </Link>

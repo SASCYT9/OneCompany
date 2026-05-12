@@ -67,18 +67,20 @@ export default function AdroCollectionProductGrid({
   const { currency, rates } = useShopCurrency();
 
   return (
-    <section className="bg-black py-24 min-h-[50vh]">
+    <section className="bg-background py-24 min-h-[50vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/65 dark:text-foreground/50 mb-3">
               {brand}
             </p>
-            <h1 className="text-3xl md:text-5xl font-light text-white tracking-tight">{title}</h1>
+            <h1 className="text-3xl md:text-5xl font-light text-foreground tracking-tight">
+              {title}
+            </h1>
           </div>
           <Link
             href={`/${locale}/shop/adro`}
-            className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+            className="text-[10px] font-bold uppercase tracking-widest text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors"
           >
             {isUa ? "Повернутися до ADRO" : "Return to ADRO"}
           </Link>
@@ -115,7 +117,7 @@ export default function AdroCollectionProductGrid({
               return (
                 <article
                   key={product.slug}
-                  className="group relative flex flex-col overflow-hidden bg-zinc-950 border border-white/5 hover:border-white/20 transition-colors duration-500"
+                  className="group relative flex flex-col overflow-hidden bg-zinc-950 border border-foreground/6 hover:border-foreground/30 transition-colors duration-500"
                 >
                   <Link
                     href={`/${locale}/shop/adro/products/${product.slug}`}
@@ -133,7 +135,7 @@ export default function AdroCollectionProductGrid({
                     </div>
 
                     <div className="p-6 flex flex-col grow relative z-20">
-                      <h3 className="text-sm font-medium text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors">
+                      <h3 className="text-sm font-medium text-zinc-300 line-clamp-2 mb-4 group-hover:text-foreground transition-colors">
                         {productTitle}
                       </h3>
 
@@ -152,7 +154,7 @@ export default function AdroCollectionProductGrid({
                           </span>
                         ) : (
                           <span
-                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-500 font-medium" : "text-white font-light"}`}
+                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-500 font-medium" : "text-foreground font-light"}`}
                           >
                             {primaryPrice}
                           </span>
@@ -165,7 +167,7 @@ export default function AdroCollectionProductGrid({
                   <div className="px-6 pb-5 pt-0 z-20 relative flex gap-3">
                     <Link
                       href={`/${locale}/shop/adro/products/${product.slug}`}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-white/20 text-[10px] tracking-[0.3em] uppercase font-light text-white/70 hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-foreground/30 text-[10px] tracking-[0.3em] uppercase font-light text-foreground/85 dark:text-foreground/70 hover:text-background hover:bg-foreground hover:border-foreground transition-all duration-300"
                     >
                       {isUa ? "ПЕРЕЙТИ" : "VIEW"}
                       <ArrowRight size={12} strokeWidth={2} />
@@ -178,14 +180,14 @@ export default function AdroCollectionProductGrid({
                       productName={productTitle}
                       label={isUa ? "КОШИК" : "CART"}
                       labelAdded={isUa ? "✓" : "✓"}
-                      className="flex-1 flex items-center justify-center py-2.5 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white/50 hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                      className="flex-1 flex items-center justify-center py-2.5 border border-foreground/12 text-[10px] tracking-[0.3em] uppercase font-light text-foreground/65 dark:text-foreground/50 hover:text-background hover:bg-foreground hover:border-foreground transition-all duration-300"
                       variant="inline"
                     />
                   </div>
 
                   {/* Minimalist interactive line at bottom */}
                   <div
-                    className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-700 group-hover:w-full"
+                    className="absolute bottom-0 left-0 h-px w-0 bg-foreground transition-all duration-700 group-hover:w-full"
                     style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
                   />
                 </article>
@@ -193,8 +195,8 @@ export default function AdroCollectionProductGrid({
             })}
           </div>
         ) : (
-          <div className="py-24 text-center border border-white/5 bg-zinc-950/50">
-            <p className="text-xl text-white font-light mb-4">
+          <div className="py-24 text-center border border-foreground/6 bg-zinc-950/50">
+            <p className="text-xl text-foreground font-light mb-4">
               {isUa ? "Колекція наразі порожня" : "Collection is currently empty"}
             </p>
             <p className="text-zinc-500 text-sm max-w-2xl mx-auto">

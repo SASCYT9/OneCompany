@@ -171,15 +171,15 @@ export default function Do88VehicleFilter({
       {isPending && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-[2px] animate-pulse rounded-t-2xl bg-linear-to-r from-transparent via-[#c29d59] to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[2px] animate-pulse rounded-t-2xl bg-linear-to-r from-transparent via-primary to-transparent"
         />
       )}
       {compact && !isSidebar && (
         <div className="shrink-0 mb-2 md:mb-0 mr-2 text-center md:text-left">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-white/50 mb-1">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-foreground/65 dark:text-foreground/50 mb-1">
             {isUa ? "Фільтр" : "Filter"}
           </p>
-          <div className="text-sm font-medium tracking-widest text-white whitespace-nowrap">
+          <div className="text-sm font-medium tracking-widest text-foreground whitespace-nowrap">
             {isUa ? "ВАШЕ АВТО" : "YOUR VEHICLE"}
           </div>
         </div>
@@ -187,19 +187,19 @@ export default function Do88VehicleFilter({
 
       {isSidebar && (
         <div className="mb-1">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-white/40 mb-1">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-foreground/60 dark:text-foreground/40 mb-1">
             {isUa ? "Фільтр" : "Filter"}
           </p>
-          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-widest text-white uppercase">
+          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-widest text-foreground uppercase">
             <span>{isUa ? "Ваше Авто" : "Your Vehicle"}</span>
             {isPending && (
               <span
                 aria-live="polite"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/8 px-2 py-[3px] text-[9px] font-normal tracking-[0.18em] text-white/75"
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground/10 px-2 py-[3px] text-[9px] font-normal tracking-[0.18em] text-foreground/90 dark:text-foreground/75"
               >
                 <span
                   aria-hidden="true"
-                  className="inline-block size-2.5 animate-spin rounded-full border border-white/30 border-t-white"
+                  className="inline-block size-2.5 animate-spin rounded-full border border-foreground/30 border-t-white"
                 />
                 {isUa ? "Завантаження" : "Loading"}
               </span>

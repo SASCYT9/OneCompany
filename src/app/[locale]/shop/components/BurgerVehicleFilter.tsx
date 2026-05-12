@@ -391,7 +391,7 @@ export default function BurgerVehicleFilter({
   const showEngineFilter = activeBrand !== "all" && availableEngines.length > 0;
 
   return (
-    <section className="bg-[#050505] text-white pt-8 pb-12 sm:pt-10 sm:pb-16 min-h-[90dvh] relative z-10 selection:bg-(--burger-yellow) selection:text-black font-sans overflow-hidden">
+    <section className="bg-card dark:bg-[#050505] text-foreground dark:text-white pt-8 pb-12 sm:pt-10 sm:pb-16 min-h-[90dvh] relative z-10 selection:bg-(--burger-yellow) selection:text-black font-sans overflow-hidden">
       {/* Top Right Golden Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
 
@@ -420,7 +420,7 @@ export default function BurgerVehicleFilter({
                 setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
               }
               aria-label={isUa ? "Сортування" : "Sort"}
-              className="appearance-none bg-[#0c0c0c] border border-white/10 hover:border-white/20 text-zinc-200 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold pl-4 pr-9 py-2.5 rounded-full outline-hidden focus:border-[#ffd700]/60 focus:ring-1 focus:ring-[#ffd700]/40 transition-all cursor-pointer"
+              className="appearance-none bg-card dark:bg-[#0c0c0c] border border-foreground/15 dark:border-white/10 hover:border-foreground/25 dark:hover:border-white/20 text-foreground/85 dark:text-zinc-200 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold pl-4 pr-9 py-2.5 rounded-full outline-hidden focus:border-[#ffd700]/60 focus:ring-1 focus:ring-[#ffd700]/40 transition-all cursor-pointer"
             >
               <option value="default">{isUa ? "Сортування" : "Sort"}</option>
               <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
@@ -432,11 +432,11 @@ export default function BurgerVehicleFilter({
           </div>
         </header>
 
-        {/* ─── FILTER PANEL — elevated card ─── */}
-        <div className="mb-7 sm:mb-9 relative rounded-2xl border border-white/[0.14] bg-[#111111] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_12px_36px_rgba(0,0,0,0.5)] overflow-visible before:content-[''] before:absolute before:top-0 before:left-6 before:right-6 before:h-px before:bg-[linear-gradient(90deg,transparent_0%,rgba(255,215,0,0.6)_30%,rgba(255,215,0,0.6)_70%,transparent_100%)] before:pointer-events-none">
+        {/* ─── FILTER PANEL — elevated card (theme-aware) ─── */}
+        <div className="mb-7 sm:mb-9 relative rounded-2xl border border-foreground/15 dark:border-white/[0.14] bg-card dark:bg-[#111111] shadow-[0_1px_0_rgba(0,0,0,0.04)_inset,0_12px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_12px_36px_rgba(0,0,0,0.5)] overflow-visible before:content-[''] before:absolute before:top-0 before:left-6 before:right-6 before:h-px before:bg-[linear-gradient(90deg,transparent_0%,rgba(255,215,0,0.6)_30%,rgba(255,215,0,0.6)_70%,transparent_100%)] before:pointer-events-none">
           {/* EMBEDDED VEHICLE PICKER */}
           {pickerSlot && (
-            <div className="burger-embedded-picker px-4 sm:px-5 pt-4 sm:pt-5 pb-4 sm:pb-5 border-b border-white/8">
+            <div className="burger-embedded-picker px-4 sm:px-5 pt-4 sm:pt-5 pb-4 sm:pb-5 border-b border-foreground/12 dark:border-white/8">
               {pickerSlot}
             </div>
           )}
@@ -462,7 +462,7 @@ export default function BurgerVehicleFilter({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={isUa ? "Назва або SKU..." : "Name or SKU..."}
-                    className="w-full h-11 bg-black/45 border border-white/12 rounded-[10px] pl-11 pr-10 text-sm text-white placeholder-zinc-500 focus:outline-hidden focus:border-[#ffd700]/60 focus:ring-2 focus:ring-[#ffd700]/15 transition-all"
+                    className="w-full h-11 bg-foreground/5 dark:bg-black/45 border border-foreground/18 dark:border-white/12 rounded-[10px] pl-11 pr-10 text-sm text-foreground dark:text-white placeholder:text-foreground/45 dark:placeholder:text-zinc-500 focus:outline-hidden focus:border-[#ffd700]/60 focus:ring-2 focus:ring-[#ffd700]/15 transition-all"
                   />
                   {searchQuery && (
                     <button
@@ -510,7 +510,7 @@ export default function BurgerVehicleFilter({
                   className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-all ${
                     activeEngine === "all"
                       ? "bg-white text-black border-white"
-                      : "bg-white/6 text-zinc-200 border-white/15 hover:bg-white/10 hover:border-white/25 hover:text-white"
+                      : "bg-foreground/8 dark:bg-white/6 text-zinc-200 border-foreground/20 dark:border-white/15 hover:bg-foreground/12 dark:hover:bg-white/10 hover:border-foreground/30 dark:hover:border-white/25 hover:text-foreground dark:hover:text-white"
                   }`}
                 >
                   {isUa ? "Усі" : "All"}
@@ -523,7 +523,7 @@ export default function BurgerVehicleFilter({
                     className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-all flex items-center gap-1.5 ${
                       activeEngine === e.key
                         ? "bg-white text-black border-white"
-                        : "bg-white/6 text-zinc-200 border-white/15 hover:bg-white/10 hover:border-white/25 hover:text-white"
+                        : "bg-foreground/8 dark:bg-white/6 text-zinc-200 border-foreground/20 dark:border-white/15 hover:bg-foreground/12 dark:hover:bg-white/10 hover:border-foreground/30 dark:hover:border-white/25 hover:text-foreground dark:hover:text-white"
                     }`}
                   >
                     <span>{e.label}</span>
@@ -544,11 +544,11 @@ export default function BurgerVehicleFilter({
         {/* ─── PRODUCT GRID — full-width ─── */}
         <main className="flex-1 min-w-0">
           {filtered.length === 0 ? (
-            <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
-              <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5">
+            <div className="py-32 text-center bg-card dark:bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
+              <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5">
                 <Search className="w-8 h-8 text-(--burger-yellow)/50" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+              <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3 tracking-tight">
                 {isUa ? "Нічого не знайдено" : "No Components Found"}
               </h3>
               <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
@@ -583,7 +583,7 @@ export default function BurgerVehicleFilter({
                   return (
                     <article
                       key={product.slug}
-                      className="group relative bg-[#0a0a0a] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/4 hover:border-(--burger-yellow)/50 hover:shadow-[0_8px_30px_rgba(255,215,0,0.1)]"
+                      className="group relative bg-card dark:bg-[#0a0a0a] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-foreground/10 dark:border-white/4 hover:border-(--burger-yellow)/50 hover:shadow-[0_8px_30px_rgba(255,215,0,0.1)]"
                     >
                       <Link
                         href={`/${locale}/shop/burger/products/${product.slug}`}
@@ -607,27 +607,27 @@ export default function BurgerVehicleFilter({
                         {/* Card Body */}
                         <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col grow">
                           {typeTag && (
-                            <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-widest font-bold text-(--burger-yellow) mb-2">
+                            <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-widest font-bold text-[#b8860b] dark:text-(--burger-yellow) mb-2">
                               {TYPE_LABELS[typeTag]?.[locale] || typeTag}
                             </p>
                           )}
-                          <h3 className="text-[11px] sm:text-sm font-semibold leading-snug sm:leading-relaxed text-zinc-100 line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4 group-hover:text-white transition-colors">
+                          <h3 className="text-[11px] sm:text-sm font-semibold leading-snug sm:leading-relaxed text-foreground dark:text-zinc-100 line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4 group-hover:text-foreground dark:group-hover:text-white transition-colors">
                             {productTitle}
                           </h3>
 
                           {/* Bottom Row: Price & Cart */}
-                          <div className="mt-auto flex items-end justify-between gap-2 border-t border-white/4 pt-3 sm:pt-4">
+                          <div className="mt-auto flex items-end justify-between gap-2 border-t border-foreground/10 dark:border-white/4 pt-3 sm:pt-4">
                             <div>
                               <p className="text-[8px] sm:text-[10px] text-zinc-500 uppercase tracking-widest font-medium mb-1">
                                 {isUa ? "Ціна" : "Price"}
                               </p>
-                              <span className="text-[11px] sm:text-lg tracking-wide font-black text-white">
+                              <span className="text-[11px] sm:text-lg tracking-wide font-black text-foreground dark:text-white">
                                 {priceStr || (isUa ? "За запитом" : "On Request")}
                               </span>
                             </div>
 
                             {/* Re-added Cart Icon / Action */}
-                            <div className="h-8 w-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#111] flex items-center justify-center text-zinc-400 group-hover:bg-(--burger-yellow) group-hover:text-black transition-colors">
+                            <div className="h-8 w-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-card dark:bg-[#111] flex items-center justify-center text-zinc-400 group-hover:bg-(--burger-yellow) group-hover:text-black transition-colors">
                               <ShoppingCart size={14} strokeWidth={2.5} />
                             </div>
                           </div>

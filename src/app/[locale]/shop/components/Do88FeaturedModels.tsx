@@ -13,11 +13,12 @@ export default function Do88FeaturedModels({ locale }: Props) {
   const isUa = locale === "ua";
 
   return (
-    <section className="bg-black text-white py-24 px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black pointer-events-none" />
+    <section className="bg-background text-foreground py-24 px-4 relative overflow-hidden">
+      {/* Bookend gradients — only in dark theme (was black bands over cream in light) */}
+      <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black pointer-events-none hidden dark:block" />
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16 do88-animate-up">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/50 mb-3">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/65 dark:text-foreground/50 mb-3">
             {isUa ? "Преміальний вибір" : "Premium Selection"}
           </p>
           <h2 className="text-3xl md:text-5xl font-light uppercase tracking-tight">
@@ -30,7 +31,7 @@ export default function Do88FeaturedModels({ locale }: Props) {
             <Link
               key={model.title}
               href={`/${locale}${model.link}`}
-              className="group block relative aspect-video md:aspect-4/3 rounded-3xl overflow-hidden border border-white/10 hover:border-white/30 transition duration-500"
+              className="group block relative aspect-video md:aspect-4/3 rounded-3xl overflow-hidden border border-foreground/12 hover:border-foreground/30 transition duration-500"
             >
               <Image
                 src={model.imageUrl}
@@ -39,28 +40,29 @@ export default function Do88FeaturedModels({ locale }: Props) {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className={`object-cover transition duration-700 group-hover:scale-105 ${model.flipImage ? "transform-[scaleX(-1)] group-hover:transform-[scaleX(-1)_scale(1.05)]" : ""}`}
               />
-              <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/20 to-black/80 transition duration-500 group-hover:bg-black/40" />
+              {/* Photo gradient veil — text below sits on this dark fade, so text inside should always be white */}
+              <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/30 to-black/85 transition duration-500" />
 
-              <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <h3 className="text-2xl md:text-3xl font-light mb-2">
+              <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
+                <h3 className="text-2xl md:text-3xl font-light mb-2 text-white">
                   {isUa ? model.titleUk : model.title}
                 </h3>
 
-                <p className="text-sm text-white/60 mb-6">
+                <p className="text-sm text-white/75 mb-6">
                   {isUa ? model.subtitleUk : model.subtitle}
                 </p>
 
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
-                    <span className="text-[10px] uppercase tracking-wider text-white/40 border border-white/10 px-2 py-1 rounded">
+                    <span className="text-[10px] uppercase tracking-wider text-white/65 border border-white/20 px-2 py-1 rounded">
                       {model.tagOne}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-white/40 border border-white/10 px-2 py-1 rounded">
+                    <span className="text-[10px] uppercase tracking-wider text-white/65 border border-white/20 px-2 py-1 rounded">
                       {model.tagTwo}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/50 group-hover:text-white transition">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition">
                     <span>{isUa ? model.buttonLabelUk : model.buttonLabel}</span>
                     <svg
                       viewBox="0 0 24 24"
