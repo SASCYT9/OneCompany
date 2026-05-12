@@ -51,10 +51,10 @@ export default async function GirodiscProductsCatalogPage({ params }: Props) {
   const isUa = resolvedLocale === "ua";
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white overflow-hidden selection:bg-red-600 selection:text-white font-sans">
-      {/* Stealth Wealth Atmosphere */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-red-600 opacity-[0.03] blur-[200px] pointer-events-none z-0 rounded-full" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[5px_5px] opacity-10 mix-blend-overlay pointer-events-none z-0" />
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden selection:bg-red-600 selection:text-white font-sans">
+      {/* Stealth Wealth Atmosphere — dark only */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-red-600 opacity-[0.03] blur-[200px] pointer-events-none z-0 rounded-full hidden dark:block" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[5px_5px] opacity-10 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* Back Link */}

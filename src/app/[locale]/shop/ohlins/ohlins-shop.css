@@ -2,27 +2,42 @@
    Öhlins Racing — "Gold Precision" Architecture (Stealth Wealth)
 ────────────────────────────────────────────────── */
 
-:root {
-  --oh-bg: #121214; /* Softer dark zinc instead of pure black */
-  --oh-bg-alt: #1a1a1c; /* Lighter section background */
-  --oh-gold: #c29d59;
-  --oh-gold-dim: rgba(194, 157, 89, 0.25); /* Stronger gold presence */
-  --oh-gold-glow: rgba(194, 157, 89, 0.5); /* Warmer glow */
-  --oh-white: #f0f0f0; /* Less harsh white */
-  --oh-gray: #a8a8aa; /* Warm gray */
-  --oh-border: rgba(255, 255, 255, 0.08); /* Lighter borders */
-  --oh-glass: rgba(255, 255, 255, 0.04); /* More visible glass */
-}
-
 .oh-home {
-  background: transparent; /* Allows global ShopAmbientBackground to shine through */
-  background-image: radial-gradient(circle at top right, rgba(194, 157, 89, 0.05) 0%, transparent 50%),
-                    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.02) 0%, transparent 40%);
+  --oh-bg: hsl(var(--background));
+  --oh-bg-alt: hsl(var(--card));
+  --oh-gold: #c29d59;
+  --oh-gold-dim: rgba(194, 157, 89, 0.25);
+  --oh-gold-glow: rgba(194, 157, 89, 0.5);
+  --oh-white: hsl(var(--foreground));
+  --oh-gray: hsl(var(--foreground) / 0.65);
+  --oh-border: hsl(var(--foreground) / 0.12);
+  --oh-glass: hsl(var(--foreground) / 0.04);
+  background: transparent;
+  background-image:
+    radial-gradient(circle at top right, rgba(194, 157, 89, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at bottom left, hsl(var(--foreground) / 0.02) 0%, transparent 40%);
   color: var(--oh-white);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   overflow-x: hidden;
   position: relative;
   min-height: 100vh;
+}
+
+/* Cinematic sections (hero with video, race-series photo cards) keep white-on-dark */
+.oh-home .oh-precision-hero,
+.oh-home .oh-race-series__card,
+.oh-home .oh-heritage,
+.oh-home .oh-cta-section {
+  --foreground: 0 0% 98%;
+  --oh-white: #f0f0f0;
+  --oh-gray: #a8a8aa;
+  --oh-border: rgba(255, 255, 255, 0.08);
+  --oh-glass: rgba(255, 255, 255, 0.04);
+  color: #f0f0f0;
 }
 
 .oh-canvas {
@@ -86,7 +101,7 @@
 .oh-hero-bg-image {
   position: absolute;
   inset: 0;
-  background-image: url('/images/shop/ohlins/hero-bg.png');
+  background-image: url("/images/shop/ohlins/hero-bg.png");
   background-size: cover;
   background-position: center;
   z-index: 0;
@@ -95,30 +110,45 @@
   will-change: transform;
 }
 @keyframes oh-ken-burns {
-  0%   { transform: scale(1.02) translate(0, 0); }
-  100% { transform: scale(1.08) translate(-1%, -0.8%); }
+  0% {
+    transform: scale(1.02) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate(-1%, -0.8%);
+  }
 }
 
 .oh-hero-bg-overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(18,18,20,0.78) 0%, rgba(18,18,20,0.5) 35%, rgba(18,18,20,0.95) 100%),
-    linear-gradient(90deg, rgba(18,18,20,0.55) 0%, transparent 35%, transparent 65%, rgba(18,18,20,0.55) 100%);
+    linear-gradient(
+      180deg,
+      rgba(18, 18, 20, 0.78) 0%,
+      rgba(18, 18, 20, 0.5) 35%,
+      rgba(18, 18, 20, 0.95) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(18, 18, 20, 0.55) 0%,
+      transparent 35%,
+      transparent 65%,
+      rgba(18, 18, 20, 0.55) 100%
+    );
   z-index: 1;
 }
 
 .oh-hero-bg-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.55) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
   z-index: 2;
   pointer-events: none;
 }
 
 /* Radial luxury glow - much wider and softer to illuminate the page */
 .oh-precision-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -126,7 +156,12 @@
   height: 100vw;
   max-width: 1400px;
   max-height: 1400px;
-  background: radial-gradient(circle, var(--oh-gold-dim) 0%, rgba(255,255,255,0.02) 40%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    var(--oh-gold-dim) 0%,
+    rgba(255, 255, 255, 0.02) 40%,
+    transparent 70%
+  );
   transform: translate(-50%, -50%);
   pointer-events: none;
   filter: blur(80px);
@@ -168,8 +203,15 @@
   animation: oh-pulse 2.4s ease-in-out infinite;
 }
 @keyframes oh-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(0.7); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
 }
 
 /* Öhlins branded wordmark */
@@ -182,7 +224,7 @@
   position: relative;
 }
 .oh-wordmark-text {
-  font-family: 'Arial Black', 'Impact', 'Helvetica Neue', sans-serif;
+  font-family: "Arial Black", "Impact", "Helvetica Neue", sans-serif;
   font-weight: 900;
   font-size: clamp(3.5rem, 8vw, 7rem);
   letter-spacing: 0.08em;
@@ -207,12 +249,12 @@
   font-weight: 400;
 }
 .oh-wordmark-sub {
-  font-family: 'Inter', 'Arial', sans-serif;
+  font-family: "Inter", "Arial", sans-serif;
   font-size: clamp(0.6rem, 1.1vw, 0.8rem);
   font-weight: 400;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: hsl(var(--foreground) / 0.45);
 }
 
 .oh-hero-divider {
@@ -262,7 +304,9 @@
 }
 .oh-btn-ghost svg {
   opacity: 0.7;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 .oh-btn-ghost:hover svg {
   opacity: 1;
@@ -296,12 +340,17 @@
 .oh-hero-product img {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 25px 40px rgba(0,0,0,0.6)) drop-shadow(0 0 30px rgba(194, 157, 89, 0.25));
+  filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 30px rgba(194, 157, 89, 0.25));
   animation: oh-float 6s ease-in-out infinite;
 }
 @keyframes oh-float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 .oh-hero-product-tag {
   display: block;
@@ -323,7 +372,7 @@
   z-index: 6;
 }
 .oh-hero-filter {
-  background: linear-gradient(180deg, rgba(10,10,12,0.78) 0%, rgba(10,10,12,0.65) 100%);
+  background: linear-gradient(180deg, rgba(10, 10, 12, 0.78) 0%, rgba(10, 10, 12, 0.65) 100%);
   border: 1px solid var(--oh-border);
   border-radius: 14px;
   padding: 1.4rem 1.4rem 1.5rem;
@@ -386,7 +435,10 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 0.55rem 0.9rem 0.5rem;
-  transition: border-color 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    opacity 0.25s ease;
   cursor: pointer;
   min-width: 0;
 }
@@ -401,13 +453,13 @@
 }
 .oh-hf-field.is-disabled .oh-hf-select {
   cursor: not-allowed;
-  color: rgba(240, 240, 240, 0.55);
+  color: hsl(var(--foreground) / 0.55);
 }
 .oh-hf-field.is-disabled .oh-hf-chev {
   opacity: 0.3;
 }
 .oh-hf-field.is-disabled:hover {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: hsl(var(--foreground) / 0.08);
   background: rgba(255, 255, 255, 0.025);
 }
 .oh-hf-label {
@@ -472,7 +524,10 @@
   text-transform: uppercase;
   cursor: pointer;
   font-family: inherit;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
   box-shadow: 0 8px 22px -6px rgba(194, 157, 89, 0.45);
   white-space: nowrap;
 }
@@ -528,15 +583,19 @@
   align-items: center;
 }
 .oh-race-chip::after {
-  content: '◆';
+  content: "◆";
   margin-left: 4.5rem;
   color: var(--oh-gold);
   opacity: 0.55;
   font-size: 0.55rem;
 }
 @keyframes oh-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .oh-btn {
@@ -566,7 +625,7 @@
   padding: 6rem 2rem;
   background: var(--oh-bg-alt);
   position: relative;
-  box-shadow: 0 -20px 40px rgba(0,0,0,0.2); /* Soft shadow between sections */
+  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.2); /* Soft shadow between sections */
 }
 .oh-dfv-inner {
   max-width: 1400px;
@@ -606,7 +665,7 @@
 .oh-decoder-visual {
   position: relative;
   aspect-ratio: 4/3;
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid var(--oh-border);
   border-radius: 16px;
   display: flex;
@@ -634,7 +693,7 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5)); /* Softer image shadow */
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5)); /* Softer image shadow */
   transition: transform 0.6s ease;
 }
 .oh-decoder-visual:hover img {
@@ -701,7 +760,9 @@
   border-color: var(--oh-gold-dim);
   background: linear-gradient(to bottom right, #202022, var(--oh-bg-alt));
   transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 40px rgba(194, 157, 89, 0.05);
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(194, 157, 89, 0.05);
 }
 
 .oh-bento-content {
@@ -734,12 +795,12 @@
   gap: 0.5rem;
   transition: all 0.3s ease;
 }
-.oh-bento-card:hover .oh-catalog-link { 
-  color: #fff;
+.oh-bento-card:hover .oh-catalog-link {
+  color: hsl(var(--foreground));
   gap: 0.8rem;
 }
 .oh-catalog-link svg {
-  width: 18px; 
+  width: 18px;
   height: 18px;
 }
 
@@ -760,7 +821,7 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(-5px 5px 15px rgba(0,0,0,0.4)); /* Softer shadow */
+  filter: drop-shadow(-5px 5px 15px rgba(0, 0, 0, 0.4)); /* Softer shadow */
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .oh-bento-card:hover .oh-bento-img {
@@ -808,7 +869,7 @@
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--oh-border);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 .oh-heritage-img {
   width: 100%;
@@ -863,7 +924,7 @@
   border-top: 1px solid var(--oh-border);
 }
 .oh-pillars::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -1px;
   left: 50%;
@@ -890,7 +951,7 @@
 }
 .oh-pillar-card {
   position: relative;
-  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid var(--oh-border);
   border-radius: 16px;
   padding: 2.4rem 2rem 2.6rem;
@@ -900,7 +961,7 @@
   backdrop-filter: blur(10px);
 }
 .oh-pillar-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at top right, rgba(194, 157, 89, 0.12), transparent 60%);
@@ -911,7 +972,9 @@
 .oh-pillar-card:hover {
   border-color: var(--oh-gold-dim);
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.35), 0 0 30px rgba(194, 157, 89, 0.08);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.35),
+    0 0 30px rgba(194, 157, 89, 0.08);
 }
 .oh-pillar-card:hover::before {
   opacity: 1;
@@ -975,10 +1038,10 @@
   letter-spacing: 0.32em;
   color: var(--oh-gold);
   margin-bottom: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 .oh-decoder-num::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 24px;
   height: 1px;
@@ -996,7 +1059,7 @@
   border-top: 1px solid var(--oh-border);
 }
 .oh-legends::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -1px;
   left: 50%;
@@ -1024,7 +1087,9 @@
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--oh-border);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 40px rgba(194, 157, 89, 0.08);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(194, 157, 89, 0.08);
   aspect-ratio: 4/3;
 }
 .oh-legends-visual img {
@@ -1094,11 +1159,11 @@
   letter-spacing: 0.3em;
   color: var(--oh-gold);
   opacity: 0.55;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   padding: 0.3rem 0.6rem;
   border: 1px solid var(--oh-gold-dim);
   border-radius: 4px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(8px);
 }
 .oh-bento-card:hover .oh-bento-index {
@@ -1122,12 +1187,11 @@
   height: 14px;
   background:
     linear-gradient(to bottom, transparent 0 5px, #fecc00 5px 9px, transparent 9px 14px),
-    linear-gradient(to right, transparent 0 6px, #fecc00 6px 9px, transparent 9px 22px),
-    #006aa7;
+    linear-gradient(to right, transparent 0 6px, #fecc00 6px 9px, transparent 9px 22px), #006aa7;
   position: relative;
   border-radius: 2px;
   margin-left: 0.5rem;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
 }
 
@@ -1161,7 +1225,7 @@
   box-shadow: 0 0 0 3px rgba(194, 157, 89, 0.15);
 }
 .oh-tl-year {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 0.18em;
@@ -1226,7 +1290,9 @@
 [data-oh-reveal] {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-oh-reveal].oh-vis {
   opacity: 1;

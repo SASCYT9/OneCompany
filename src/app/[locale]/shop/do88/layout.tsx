@@ -13,6 +13,6 @@ type Props = {
 export default function ShopDo88Layout({ children }: Props) {
   // reusing urban-shop-page to inherit the exact same spacing and dark aesthetics
   return (
-    <div className="dark min-h-screen bg-[#0a0a0a] text-white urban-shop-page">{children}</div>
+    <div className="min-h-screen bg-background text-foreground urban-shop-page">{children}</div>
   );
 }

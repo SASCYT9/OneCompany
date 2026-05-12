@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 
 export default function CSFSizingLayout({ children }: { children: ReactNode }) {
-  return <div className="dark relative min-h-screen bg-[#050505] text-white">{children}</div>;
+  // CSF Racing is cinematic-dark (cooling tech / red accent on near-black);
+  // individual sections opt-in to `dark` scope, layout stays theme-aware.
+  return <div className="relative min-h-screen bg-background text-foreground">{children}</div>;
 }

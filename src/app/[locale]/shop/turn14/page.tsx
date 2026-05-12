@@ -44,7 +44,7 @@ export default async function Turn14CatalogPage({
   const meta = data?.meta || {};
 
   return (
-    <main className="min-h-screen bg-black pt-32 pb-24 text-white">
+    <main className="min-h-screen bg-background text-foreground pt-32 pb-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 border-b border-white/10 pb-8 flex flex-col md:flex-row gap-6 md:items-end justify-between">
           <div>

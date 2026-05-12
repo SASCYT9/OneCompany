@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import type { SupportedLocale } from '@/lib/seo';
-import type { AdroHeroVehicleMake } from '@/lib/adroCatalog';
-import { ADRO_PRODUCT_LINES } from '../data/adroHomeData';
+import Link from "next/link";
+import type { SupportedLocale } from "@/lib/seo";
+import type { AdroHeroVehicleMake } from "@/lib/adroCatalog";
+import { ADRO_PRODUCT_LINES } from "../data/adroHomeData";
 
-import ScrollRevealClient from './ScrollRevealClient';
-import AdroVideoEmbed from './AdroVideoEmbed';
-import AdroHeroFilter from './AdroHeroFilter';
+import ScrollRevealClient from "./ScrollRevealClient";
+import AdroVideoEmbed from "./AdroVideoEmbed";
+import AdroHeroFilter from "./AdroHeroFilter";
 
 type Props = {
   locale: SupportedLocale;
@@ -17,7 +17,7 @@ function L(isUa: boolean, en: string, ua: string) {
 }
 
 export default function AdroHomeSignature({ locale, availableVehicles }: Props) {
-  const isUa = locale === 'ua';
+  const isUa = locale === "ua";
   const vehicles = availableVehicles ?? [];
 
   return (
@@ -27,14 +27,14 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
       {/* ── Back ── */}
       <div className="adro__back">
         <Link href={`/${locale}/shop`} className="adro__back-link">
-          &larr; {L(isUa, 'All Stores', 'Усі магазини')}
+          &larr; {L(isUa, "All Stores", "Усі магазини")}
         </Link>
       </div>
 
       {/* ══════════════════════════════════════════════════
           1 · HERO — full-bleed video, big type
       ══════════════════════════════════════════════════ */}
-      <section className="adro__hero">
+      <section className="dark adro__hero">
         <div className="adro__hero-video">
           <AdroVideoEmbed youtubeId="pyEBZ8jJvZg" />
         </div>
@@ -47,13 +47,14 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
             <img src="/images/shop/adro/adro-logo.svg" alt="ADRO" className="adro__hero-logo" />
           </h1>
           <p className="adro__hero-sub">
-            {L(isUa,
-              'Prepreg carbon. CFD engineering. Handcrafted precision.',
-              'Препрег-карбон. CFD-інженерія. Ручна точність.'
+            {L(
+              isUa,
+              "Prepreg carbon. CFD engineering. Handcrafted precision.",
+              "Препрег-карбон. CFD-інженерія. Ручна точність."
             )}
           </p>
           <Link href={`/${locale}/shop/adro/collections`} className="adro__cta">
-            {L(isUa, 'Open Catalog', 'Відкрити каталог')}
+            {L(isUa, "Open Catalog", "Відкрити каталог")}
             <span className="adro__cta-arrow">→</span>
           </Link>
 
@@ -66,16 +67,14 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
       {/* ══════════════════════════════════════════════════
           2 · SHOWREEL — cinematic GT3 video
       ══════════════════════════════════════════════════ */}
-      <section className="adro__reel">
+      <section className="dark adro__reel">
         <div className="adro__reel-video">
           <AdroVideoEmbed youtubeId="LNXs4OI_yNA" />
         </div>
         <div className="adro__reel-dim" />
         <div className="adro__reel-body" data-r>
           <p className="adro__eyebrow">Porsche 992 GT3</p>
-          <h2 className="adro__reel-h">
-            {L(isUa, 'Born for the Track', 'Народжений для треку')}
-          </h2>
+          <h2 className="adro__reel-h">{L(isUa, "Born for the Track", "Народжений для треку")}</h2>
         </div>
       </section>
 
@@ -83,10 +82,10 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
         <div className="adro__collage-grid">
           {/* Row 1 — 4 photos */}
           {[
-            { src: '/images/shop/adro/swan-01.webp', alt: 'BMW M4 ADRO — Front quarter' },
-            { src: '/images/shop/adro/swan-02.webp', alt: 'BMW M4 ADRO — Rear angle' },
-            { src: '/images/shop/adro/swan-03.webp', alt: 'BMW M4 ADRO — Side profile' },
-            { src: '/images/shop/adro/swan-04.webp', alt: 'BMW M4 ADRO — Rear quarter' },
+            { src: "/images/shop/adro/swan-01.webp", alt: "BMW M4 ADRO — Front quarter" },
+            { src: "/images/shop/adro/swan-02.webp", alt: "BMW M4 ADRO — Rear angle" },
+            { src: "/images/shop/adro/swan-03.webp", alt: "BMW M4 ADRO — Side profile" },
+            { src: "/images/shop/adro/swan-04.webp", alt: "BMW M4 ADRO — Rear quarter" },
           ].map((p, i) => (
             <div key={`t${i}`} className="adro__collage-cell">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -106,29 +105,32 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/shop/adro/adro-logo.svg" alt="" />
             </div>
-            <p className="adro__eyebrow">
-              {L(isUa, 'Material', 'Матеріал')}
-            </p>
+            <p className="adro__eyebrow">{L(isUa, "Material", "Матеріал")}</p>
             <h2 className="adro__collage-h">Dry Carbon</h2>
             <p className="adro__collage-desc">
-              {L(isUa,
-                'Technology used in professional motorsport. Autoclave-cured prepreg carbon delivers maximum strength, minimum weight, and a flawless finish.\n\nBuilt for those who accept no compromises.',
-                'Технологія, яка використовується у професійному автоспорті. Препрег-карбон з автоклавною обробкою забезпечує максимальну міцність, мінімальну вагу та бездоганний фініш.\n\nСтворено для тих, хто не приймає компромісів.'
+              {L(
+                isUa,
+                "Technology used in professional motorsport. Autoclave-cured prepreg carbon delivers maximum strength, minimum weight, and a flawless finish.\n\nBuilt for those who accept no compromises.",
+                "Технологія, яка використовується у професійному автоспорті. Препрег-карбон з автоклавною обробкою забезпечує максимальну міцність, мінімальну вагу та бездоганний фініш.\n\nСтворено для тих, хто не приймає компромісів."
               )}
             </p>
           </div>
 
           <div className="adro__collage-cell">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/shop/adro/swan-06.webp" alt="BMW M4 ADRO — Widebody fender" loading="lazy" />
+            <img
+              src="/images/shop/adro/swan-06.webp"
+              alt="BMW M4 ADRO — Widebody fender"
+              loading="lazy"
+            />
           </div>
 
           {/* Row 3 — 4 photos */}
           {[
-            { src: '/images/shop/adro/swan-08.webp', alt: 'BMW M4 ADRO — Carbon diffuser' },
-            { src: '/images/shop/adro/swan-09.webp', alt: 'BMW M4 ADRO — Wheel arch' },
-            { src: '/images/shop/adro/swan-10.webp', alt: 'BMW M4 ADRO — Sharp angle' },
-            { src: '/images/shop/adro/swan-11.webp', alt: 'BMW M4 ADRO — Full profile' },
+            { src: "/images/shop/adro/swan-08.webp", alt: "BMW M4 ADRO — Carbon diffuser" },
+            { src: "/images/shop/adro/swan-09.webp", alt: "BMW M4 ADRO — Wheel arch" },
+            { src: "/images/shop/adro/swan-10.webp", alt: "BMW M4 ADRO — Sharp angle" },
+            { src: "/images/shop/adro/swan-11.webp", alt: "BMW M4 ADRO — Full profile" },
           ].map((p, i) => (
             <div key={`b${i}`} className="adro__collage-cell">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -143,12 +145,8 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
       ══════════════════════════════════════════════════ */}
       <section id="catalog" className="adro__catalog">
         <div className="adro__catalog-head" data-r>
-          <p className="adro__eyebrow">
-            {L(isUa, 'Catalog', 'Каталог')}
-          </p>
-          <h2 className="adro__catalog-h">
-            {L(isUa, 'Shop ADRO Catalog', 'Каталог ADRO')}
-          </h2>
+          <p className="adro__eyebrow">{L(isUa, "Catalog", "Каталог")}</p>
+          <h2 className="adro__catalog-h">{L(isUa, "Shop ADRO Catalog", "Каталог ADRO")}</h2>
         </div>
 
         <div className="adro__catalog-grid">
@@ -169,15 +167,13 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
                 <h3 className="adro__card-name">{L(isUa, line.name, line.nameUk)}</h3>
                 <p className="adro__card-desc">{L(isUa, line.description, line.descriptionUk)}</p>
                 <span className="adro__card-link">
-                  {L(isUa, 'Filter catalog', 'Фільтрувати каталог')} →
+                  {L(isUa, "Filter catalog", "Фільтрувати каталог")} →
                 </span>
               </div>
             </Link>
           ))}
         </div>
       </section>
-
-
     </div>
   );
 }

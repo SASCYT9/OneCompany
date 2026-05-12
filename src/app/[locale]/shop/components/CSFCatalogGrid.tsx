@@ -215,7 +215,8 @@ function getStockLabel(locale: SupportedLocale, stock: StockFilter) {
 const STOCK_BADGE_CLASS: Record<Exclude<StockFilter, "all">, string> = {
   "in-stock": "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
   "pre-order": "border-amber-400/25 bg-amber-400/10 text-amber-200",
-  "out-of-stock": "border-white/10 bg-white/4 text-white/45",
+  "out-of-stock":
+    "border-foreground/15 dark:border-white/10 bg-foreground/6 dark:bg-white/4 text-foreground/60 dark:text-white/45",
 };
 
 const CSF_CHEV = (
@@ -583,37 +584,37 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   if (!mounted) {
     return (
       <section
-        className="relative z-30 min-h-screen bg-transparent py-8 text-white"
+        className="relative z-30 min-h-screen bg-transparent py-8 text-foreground dark:text-white"
         aria-busy="true"
       >
         <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
-          <div className="mb-6 hidden rounded-2xl border border-white/4 bg-[#050505]/80 p-4 shadow-2xl backdrop-blur-md lg:block">
+          <div className="mb-6 hidden rounded-2xl border border-foreground/10 dark:border-white/4 bg-card/85 dark:bg-[#050505]/80 p-4 shadow-2xl backdrop-blur-md lg:block">
             <div className="flex flex-wrap items-end gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-12 min-w-[160px] flex-1 animate-pulse rounded-sm bg-white/5"
+                  className="h-12 min-w-[160px] flex-1 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5"
                 />
               ))}
             </div>
           </div>
           <main className="min-w-0">
             <div className="mb-6 flex items-center justify-between">
-              <div className="h-8 w-72 animate-pulse rounded-sm bg-white/5" />
-              <div className="h-10 w-48 animate-pulse rounded-sm bg-white/5" />
+              <div className="h-8 w-72 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
+              <div className="h-10 w-48 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
               {Array.from({ length: Math.min(products.length || 8, 12) }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex flex-col overflow-hidden border border-white/6 bg-linear-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
+                  className="flex flex-col overflow-hidden border border-foreground/12 dark:border-white/6 bg-linear-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
                 >
-                  <div className="aspect-square animate-pulse bg-white/3" />
+                  <div className="aspect-square animate-pulse bg-foreground/5 dark:bg-white/3" />
                   <div className="space-y-3 px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
-                    <div className="h-3 w-16 animate-pulse rounded-sm bg-white/5" />
-                    <div className="h-4 w-full animate-pulse rounded-sm bg-white/5" />
-                    <div className="h-4 w-3/4 animate-pulse rounded-sm bg-white/5" />
-                    <div className="h-5 w-24 animate-pulse rounded-sm bg-white/5" />
+                    <div className="h-3 w-16 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
+                    <div className="h-4 w-full animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
+                    <div className="h-4 w-3/4 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
+                    <div className="h-5 w-24 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
                   </div>
                 </div>
               ))}
@@ -625,7 +626,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   }
 
   return (
-    <section className="relative z-30 min-h-screen bg-transparent py-8 text-white">
+    <section className="relative z-30 min-h-screen bg-transparent py-8 text-foreground dark:text-white">
       <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
         <div className="mb-4 flex items-center gap-3 lg:hidden">
           <button
@@ -633,7 +634,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             onClick={toggleMobileFilter}
             aria-expanded={mobileFilterOpen}
             aria-controls="csf-mobile-filters"
-            className="flex items-center gap-2.5 rounded-xl border border-white/8 bg-[#050505]/80 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-xl transition-colors hover:border-[#c8102e]/40"
+            className="flex items-center gap-2.5 rounded-xl border border-foreground/12 dark:border-white/8 bg-card/85 dark:bg-[#050505]/80 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground dark:text-white shadow-xl transition-colors hover:border-[#c8102e]/40"
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
@@ -641,7 +642,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#c8102e]" />
             ) : null}
           </button>
-          <p className="text-xs tracking-wide text-white/40">
+          <p className="text-xs tracking-wide text-foreground/55 dark:text-white/40">
             {filteredProducts.length} {isUa ? "з" : "of"} {products.length}
           </p>
         </div>
@@ -664,7 +665,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                   </span>
                 </div>
               </div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-white/55">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-foreground/70 dark:text-white/55">
                 <span className="text-[#c8102e] font-bold">{filteredProducts.length}</span>{" "}
                 {isUa ? "результатів" : "results"}
               </div>
@@ -693,7 +694,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                       <button
                         type="button"
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-foreground/55 dark:text-white/40 transition-colors hover:text-foreground dark:hover:text-white"
                         aria-label="Clear search"
                         style={{ background: "transparent", border: 0 }}
                       >
@@ -841,11 +842,11 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             mobileFilterOpen ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]" : "hidden"
           }`}
         >
-          <div className="flex min-h-full flex-col gap-6 overflow-y-auto border-r border-white/8 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl">
+          <div className="flex min-h-full flex-col gap-6 overflow-y-auto border-r border-foreground/12 dark:border-white/8 bg-card dark:bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl">
             <button
               type="button"
               onClick={closeMobileFilter}
-              className="self-end p-1.5 text-white/40 transition-colors hover:text-white"
+              className="self-end p-1.5 text-foreground/55 dark:text-white/40 transition-colors hover:text-foreground dark:hover:text-white"
               aria-label="Close filters"
             >
               <X size={16} />
@@ -853,7 +854,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
 
             <div>
               <img src="/images/shop/csf/csf-logo.svg" alt="CSF Racing" className="mb-4 h-8" />
-              <h2 className="text-balance text-2xl font-light uppercase text-white">
+              <h2 className="text-balance text-2xl font-light uppercase text-foreground dark:text-white">
                 {isUa ? "Фільтр каталогу" : "Catalog filter"}
               </h2>
               <p className="mt-2 text-xs uppercase text-[#c8102e]/70">
@@ -864,7 +865,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             <div className="relative">
               <Search
                 size={14}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30"
               />
               <input
                 type="text"
@@ -873,13 +874,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 placeholder={
                   isUa ? "Пошук за SKU, моделлю, шасі..." : "Search SKU, model, chassis..."
                 }
-                className="w-full rounded-sm border border-white/10 bg-black/40 py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/30 focus:border-[#c8102e]/50 focus:outline-hidden"
+                className="w-full rounded-sm border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-black/40 py-3 pl-11 pr-10 text-sm text-foreground dark:text-white placeholder:text-foreground/45 dark:placeholder:text-white/30 focus:border-[#c8102e]/50 focus:outline-hidden"
               />
               {searchQuery ? (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30 transition-colors hover:text-foreground dark:hover:text-white"
                   aria-label="Clear search"
                 >
                   <X size={14} />
@@ -889,13 +890,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
 
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-[10px] uppercase text-white/50">
+                <label className="mb-2 block text-[10px] uppercase text-foreground/65 dark:text-white/50">
                   {isUa ? "Категорія" : "Category"}
                 </label>
                 <select
                   value={activeCategory}
                   onChange={(event) => setActiveCategory(event.target.value)}
-                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-hidden transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                  className="w-full appearance-none rounded-sm border border-foreground/15 dark:border-white/10 bg-black/40 px-4 py-3 text-sm text-foreground dark:text-white outline-hidden transition-colors hover:border-foreground/25 dark:hover:border-white/20 focus:border-[#c8102e]/50"
                 >
                   <option value="all">{isUa ? "Усі категорії" : "All categories"}</option>
                   {categoryOptions.map((option) => (
@@ -907,13 +908,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] uppercase text-white/50">
+                <label className="mb-2 block text-[10px] uppercase text-foreground/65 dark:text-white/50">
                   {isUa ? "Марка" : "Make"}
                 </label>
                 <select
                   value={activeMake}
                   onChange={(event) => setActiveMake(event.target.value)}
-                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-hidden transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                  className="w-full appearance-none rounded-sm border border-foreground/15 dark:border-white/10 bg-black/40 px-4 py-3 text-sm text-foreground dark:text-white outline-hidden transition-colors hover:border-foreground/25 dark:hover:border-white/20 focus:border-[#c8102e]/50"
                 >
                   <option value="all">{isUa ? "Усі марки" : "All makes"}</option>
                   {makeOptions.map((option) => (
@@ -925,14 +926,14 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] uppercase text-white/50">
+                <label className="mb-2 block text-[10px] uppercase text-foreground/65 dark:text-white/50">
                   {isUa ? "Модель" : "Model"}
                 </label>
                 <select
                   value={activeModel}
                   onChange={(event) => setActiveModel(event.target.value)}
                   disabled={activeMake === "all" || modelOptions.length === 0}
-                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-hidden transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full appearance-none rounded-sm border border-foreground/15 dark:border-white/10 bg-black/40 px-4 py-3 text-sm text-foreground dark:text-white outline-hidden transition-colors hover:border-foreground/25 dark:hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <option value="all">{isUa ? "Усі моделі" : "All models"}</option>
                   {modelOptions.map((option) => (
@@ -944,14 +945,14 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] uppercase text-white/50">
+                <label className="mb-2 block text-[10px] uppercase text-foreground/65 dark:text-white/50">
                   {isUa ? "Шасі / платформа" : "Chassis / platform"}
                 </label>
                 <select
                   value={activeChassis}
                   onChange={(event) => setActiveChassis(event.target.value)}
                   disabled={chassisOptions.length === 0}
-                  className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-hidden transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full appearance-none rounded-sm border border-foreground/15 dark:border-white/10 bg-black/40 px-4 py-3 text-sm text-foreground dark:text-white outline-hidden transition-colors hover:border-foreground/25 dark:hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <option value="all">{isUa ? "Усі шасі" : "All chassis"}</option>
                   {chassisOptions.map((option) => (
@@ -964,13 +965,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
 
               {SHOW_STOCK_BADGE ? (
                 <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">
+                  <label className="mb-2 block text-[10px] uppercase text-foreground/65 dark:text-white/50">
                     {isUa ? "Наявність" : "Stock"}
                   </label>
                   <select
                     value={activeStock}
                     onChange={(event) => setActiveStock(event.target.value as StockFilter)}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-hidden transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                    className="w-full appearance-none rounded-sm border border-foreground/15 dark:border-white/10 bg-black/40 px-4 py-3 text-sm text-foreground dark:text-white outline-hidden transition-colors hover:border-foreground/25 dark:hover:border-white/20 focus:border-[#c8102e]/50"
                   >
                     <option value="all">{getStockLabel(locale, "all")}</option>
                     <option value="in-stock">{getStockLabel(locale, "in-stock")}</option>
@@ -984,7 +985,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             <button
               type="button"
               onClick={resetFilters}
-              className="w-full rounded-sm border border-[#c8102e]/30 bg-[#c8102e]/10 px-5 py-3 text-[11px] uppercase text-white transition-colors hover:border-[#c8102e]/50 hover:bg-[#c8102e]/20"
+              className="w-full rounded-sm border border-[#c8102e]/30 bg-[#c8102e]/10 px-5 py-3 text-[11px] uppercase text-foreground dark:text-white transition-colors hover:border-[#c8102e]/50 hover:bg-[#c8102e]/20"
             >
               {isUa ? "Скинути фільтри" : "Reset filters"}
             </button>
@@ -998,10 +999,10 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
         <main className="min-w-0">
           <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-balance text-2xl font-light text-white">
+              <h3 className="text-balance text-2xl font-light text-foreground dark:text-white">
                 {isUa ? "CSF Cooling Catalog" : "CSF Cooling Catalog"}
               </h3>
-              <p className="mt-2 text-sm text-white/45">
+              <p className="mt-2 text-sm text-foreground/60 dark:text-white/45">
                 {filteredProducts.length}{" "}
                 {isUa ? "товарів після фільтрації" : "products after filtering"}
               </p>
@@ -1011,7 +1012,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               <select
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value as SortOrder)}
-                className="appearance-none rounded-lg border border-white/10 bg-[#050505]/80 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-xl outline-hidden transition-colors focus:border-[#c8102e]/50"
+                className="appearance-none rounded-lg border border-foreground/15 dark:border-white/10 bg-card/85 dark:bg-[#050505]/80 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white shadow-xl outline-hidden transition-colors focus:border-[#c8102e]/50"
               >
                 <option value="default">{isUa ? "Рекомендовані" : "Recommended"}</option>
                 <option value="price_desc">
@@ -1022,21 +1023,21 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 </option>
                 <option value="title_asc">{isUa ? "Назва A-Z" : "Title A-Z"}</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-foreground/65 dark:text-white/50">
                 <ChevronDown size={12} />
               </div>
             </div>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center rounded-2xl border border-white/5 bg-black/40 py-32 text-center backdrop-blur-xs">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-                <Search className="h-6 w-6 text-white/20" />
+            <div className="flex flex-col items-center rounded-2xl border border-foreground/12 dark:border-white/5 bg-black/40 py-32 text-center backdrop-blur-xs">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-foreground/8 dark:bg-white/5">
+                <Search className="h-6 w-6 text-foreground/35 dark:text-white/20" />
               </div>
-              <h3 className="text-xl font-light text-white">
+              <h3 className="text-xl font-light text-foreground dark:text-white">
                 {isUa ? "Нічого не знайдено" : "No products found"}
               </h3>
-              <p className="mt-3 max-w-md text-sm leading-relaxed text-white/50">
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-foreground/65 dark:text-white/50">
                 {isUa
                   ? "Змініть параметри фільтра або скиньте їх, щоб повернутись до повного каталогу."
                   : "Adjust the filter parameters or reset them to return to the full catalog."}
@@ -1044,7 +1045,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="mt-8 rounded-md border border-[#c8102e]/40 bg-[#c8102e]/15 px-8 py-3 text-[10px] uppercase text-white transition-colors hover:border-[#c8102e]/60 hover:bg-[#c8102e]/25"
+                className="mt-8 rounded-md border border-[#c8102e]/40 bg-[#c8102e]/15 px-8 py-3 text-[10px] uppercase text-foreground dark:text-white transition-colors hover:border-[#c8102e]/60 hover:bg-[#c8102e]/25"
               >
                 {isUa ? "Скинути фільтри" : "Reset filters"}
               </button>
@@ -1100,13 +1101,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 return (
                   <article
                     key={product.slug}
-                    className="group relative flex flex-col overflow-hidden border border-white/6 bg-linear-to-b from-[#0c0c10] to-[#080809] shadow-2xl transition-all duration-500 hover:border-white/[0.14] hover:from-[#0f0f14] hover:to-[#0a0a0e]"
+                    className="group relative flex flex-col overflow-hidden border border-foreground/12 dark:border-white/6 bg-card dark:bg-linear-to-b dark:from-[#0c0c10] dark:to-[#080809] shadow-xl dark:shadow-2xl transition-all duration-500 hover:border-foreground/25 dark:hover:border-white/[0.14] dark:hover:from-[#0f0f14] dark:hover:to-[#0a0a0e]"
                   >
                     <Link
                       href={`/${locale}/shop/csf/products/${product.slug}`}
                       className="z-10 flex grow flex-col"
                     >
-                      <div className="relative aspect-square overflow-hidden border-b border-white/4 bg-[#0a0a0c] p-3 sm:p-4">
+                      <div className="relative aspect-square overflow-hidden border-b border-foreground/10 dark:border-white/4 bg-card dark:bg-[#0a0a0c] p-3 sm:p-4">
                         <div className="relative h-full w-full overflow-hidden rounded-none bg-white">
                           <div className="absolute inset-[10%]">
                             <ShopProductImage
@@ -1119,7 +1120,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                           </div>
                         </div>
                         <div className="absolute left-4 top-4 z-20 flex flex-wrap gap-1 sm:left-5 sm:top-5 sm:gap-2">
-                          <span className="border border-black/10 bg-white/85 px-2 py-0.5 text-[7px] uppercase text-black/70 backdrop-blur-xs sm:px-2.5 sm:py-1 sm:text-[8px]">
+                          <span className="border border-foreground/15 dark:border-black/10 bg-foreground/88 dark:bg-white/85 px-2 py-0.5 text-[7px] uppercase text-background/85 dark:text-black/70 backdrop-blur-xs sm:px-2.5 sm:py-1 sm:text-[8px]">
                             {categoryLabel}
                           </span>
                           {SHOW_STOCK_BADGE && stockState !== "all" ? (
@@ -1133,18 +1134,18 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                       </div>
 
                       <div className="flex grow flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
-                        <p className="tabular-nums text-[8px] uppercase text-white/25">
+                        <p className="tabular-nums text-[8px] uppercase text-foreground/40 dark:text-white/25">
                           {product.sku}
                         </p>
-                        <h3 className="mt-2 line-clamp-3 h-[3.6rem] overflow-hidden text-pretty text-[11px] leading-tight text-white/90 transition-colors group-hover:text-white sm:h-[4.2rem] sm:text-[13px]">
+                        <h3 className="mt-2 line-clamp-3 h-[3.6rem] overflow-hidden text-pretty text-[11px] leading-tight text-foreground/95 dark:text-white/90 transition-colors group-hover:text-foreground dark:group-hover:text-white sm:h-[4.2rem] sm:text-[13px]">
                           {productTitle}
                         </h3>
-                        <p className="mt-3 line-clamp-1 h-4 text-[8px] uppercase text-white/40 sm:mt-4 sm:h-5 sm:text-[10px]">
+                        <p className="mt-3 line-clamp-1 h-4 text-[8px] uppercase text-foreground/55 dark:text-white/40 sm:mt-4 sm:h-5 sm:text-[10px]">
                           {fitmentBadge}
                         </p>
-                        <div className="mt-auto border-t border-white/4 pt-2 sm:pt-3">
+                        <div className="mt-auto border-t border-foreground/10 dark:border-white/4 pt-2 sm:pt-3">
                           {hasPrice ? (
-                            <span className="tabular-nums text-[11px] font-medium tracking-wide text-white sm:text-sm">
+                            <span className="tabular-nums text-[11px] font-medium tracking-wide text-foreground dark:text-white sm:text-sm">
                               {primaryPrice}
                             </span>
                           ) : (
@@ -1160,7 +1161,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                     <div className="relative z-20 flex gap-2 px-3 pb-3 pt-0 sm:gap-3 sm:px-6 sm:pb-6">
                       <Link
                         href={`/${locale}/shop/csf/products/${product.slug}`}
-                        className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[2px] border border-[#c8102e]/30 py-2 text-[9px] uppercase text-[#c8102e] transition-all duration-300 hover:border-[#c8102e] hover:bg-[#c8102e] hover:text-white sm:py-3 sm:text-[10px]"
+                        className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[2px] border border-[#c8102e]/30 py-2 text-[9px] uppercase text-[#c8102e] transition-all duration-300 hover:border-[#c8102e] hover:bg-[#c8102e] hover:text-foreground dark:hover:text-white sm:py-3 sm:text-[10px]"
                       >
                         {isUa ? "Деталі" : "View"}
                         <ArrowRight
@@ -1177,7 +1178,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                         productName={productTitle}
                         label={isUa ? "КОШИК" : "CART"}
                         labelAdded="✓"
-                        className="min-w-0 flex-1 rounded-[2px] border border-white/10 py-2 text-[9px] uppercase text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black sm:py-3 sm:text-[10px]"
+                        className="min-w-0 flex-1 rounded-[2px] border border-foreground/15 dark:border-white/10 py-2 text-[9px] uppercase text-foreground dark:text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black sm:py-3 sm:text-[10px]"
                         variant="inline"
                       />
                     </div>
@@ -1192,7 +1193,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               <button
                 type="button"
                 onClick={() => setVisibleCount((current) => current + 30)}
-                className="rounded-[2px] border border-white/20 px-12 py-4 text-[11px] uppercase text-white transition-all duration-300 hover:border-[#c8102e]/50 hover:bg-[#c8102e]/10"
+                className="rounded-[2px] border border-foreground/25 dark:border-white/20 px-12 py-4 text-[11px] uppercase text-foreground dark:text-white transition-all duration-300 hover:border-[#c8102e]/50 hover:bg-[#c8102e]/10"
               >
                 {isUa ? "ЗАВАНТАЖИТИ ЩЕ" : "LOAD MORE"}
               </button>

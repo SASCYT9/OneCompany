@@ -4,31 +4,55 @@
    Pure white-on-dark, let the CARS be the color.
    ────────────────────────────────────────────────── */
 
-/* ═══ TOKENS ═══ */
+/* ═══ TOKENS — theme-aware via global hsl vars ═══ */
 :root {
-  --a-bg:  #111;
-  --a-fg:  #fff;
-  --a-mid: #888;
-  --a-dim: #555;
-  --a-line: rgba(255,255,255,.08);
-  --a-r:   12px;
+  /* Brand identity: monochrome premium. In light = ink-on-cream;
+     in dark = white-on-near-black. Cars stay the only color. */
+  --a-bg: hsl(var(--background));
+  --a-fg: hsl(var(--foreground));
+  --a-mid: hsl(var(--foreground) / 0.55);
+  --a-dim: hsl(var(--foreground) / 0.35);
+  --a-line: hsl(var(--foreground) / 0.08);
+  --a-r: 12px;
 }
 
 /* ═══ BASE ═══ */
 .adro {
   background: var(--a-bg);
   color: var(--a-fg);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/* ═══ ALWAYS-DARK ZONES ═══
+   Hero + Reel sections always render over dark video — text/borders/icons
+   must stay white in BOTH themes regardless of site theme. Force colors
+   via scoped overrides so they bypass theme-aware --a-fg/--a-mid tokens. */
+.adro__hero,
+.adro__reel {
+  color: #fff;
+}
+.adro__hero .adro__eyebrow,
+.adro__reel .adro__eyebrow {
+  color: rgba(255, 255, 255, 0.55);
+}
+.adro__hero .adro__hero-logo {
+  /* Logo is monochrome white SVG; in always-dark hero we keep it white via no-invert */
+  filter: none;
 }
 
 /* ═══ REVEAL ═══ */
 [data-r] {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity .8s cubic-bezier(.25,1,.5,1),
-              transform .8s cubic-bezier(.25,1,.5,1);
+  transition:
+    opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 [data-r].is-vis {
   opacity: 1;
@@ -37,41 +61,43 @@
 
 /* ═══ TYPOGRAPHY ═══ */
 .adro__eyebrow {
-  font-size: .65rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: .25em;
+  letter-spacing: 0.25em;
   color: var(--a-mid);
   margin: 0 0 1rem;
   font-weight: 500;
 }
 
-/* ═══ CTA ═══ */
+/* ═══ CTA — used only inside the always-dark hero, hardcoded white-on-dark ═══ */
 .adro__cta {
   display: inline-flex;
   align-items: center;
-  gap: .6rem;
+  gap: 0.6rem;
   margin-top: 2rem;
-  padding: .85rem 2rem;
-  font-size: .7rem;
+  padding: 0.85rem 2rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: .2em;
+  letter-spacing: 0.2em;
   text-decoration: none;
-  color: var(--a-fg);
-  border: 1px solid rgba(255,255,255,.2);
-  transition: all .45s cubic-bezier(.25,1,.5,1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   backdrop-filter: blur(8px);
-  background: rgba(255,255,255,.04);
+  background: rgba(255, 255, 255, 0.08);
 }
 .adro__cta:hover {
-  background: var(--a-fg);
-  color: var(--a-bg);
-  border-color: var(--a-fg);
+  background: #fff;
+  color: #111;
+  border-color: #fff;
 }
-.adro__cta--white { border-color: rgba(255,255,255,.25); }
+.adro__cta--white {
+  border-color: rgba(255, 255, 255, 0.35);
+}
 .adro__cta-arrow {
-  transition: transform .3s;
-  font-size: .9rem;
+  transition: transform 0.3s;
+  font-size: 0.9rem;
 }
 .adro__cta:hover .adro__cta-arrow {
   transform: translateX(4px);
@@ -80,24 +106,27 @@
 /* ═══ BACK ═══ */
 .adro__back {
   position: fixed;
-  top: 70px; left: 0;
+  top: 70px;
+  left: 0;
   z-index: 90;
   padding: 1rem 1.25rem;
 }
 .adro__back-link {
-  font-size: .6rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
   color: var(--a-mid);
   text-decoration: none;
   font-weight: 500;
-  background: rgba(0,0,0,.7);
+  background: hsl(var(--background) / 0.7);
   backdrop-filter: blur(12px);
-  padding: .4rem .85rem;
+  padding: 0.4rem 0.85rem;
   border: 1px solid var(--a-line);
-  transition: color .3s;
+  transition: color 0.3s;
 }
-.adro__back-link:hover { color: var(--a-fg); }
+.adro__back-link:hover {
+  color: var(--a-fg);
+}
 
 /* ═══ VIDEO EMBED ═══ */
 .adro-video-embed {
@@ -108,15 +137,15 @@
 }
 .adro-video-embed iframe {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   width: 100vw;
   height: 56.25vw; /* 16:9 */
   min-height: 100%;
   min-width: 177.78vh;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   border: 0;
 }
-
 
 /* ═════════════════════════════════════════════════════════════
    1 · HERO — full-bleed video, centered type
@@ -132,20 +161,25 @@
   overflow: hidden;
 }
 .adro__hero-video {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
 }
 .adro__hero-video .adro-video-embed iframe {
-  filter: brightness(.45) saturate(.7);
+  filter: brightness(0.45) saturate(0.7);
 }
 .adro__hero-dim {
-  position: absolute; inset: 0; z-index: 1;
+  /* Hero video is always dark — dim overlay stays dark too, regardless of site theme */
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   background:
-    radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(17,17,17,.75) 100%),
-    linear-gradient(to top, var(--a-bg) 0%, transparent 25%);
+    radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(17, 17, 17, 0.75) 100%),
+    linear-gradient(to top, hsl(var(--background)) 0%, transparent 25%);
 }
 
 .adro__hero-body {
-  position: relative; z-index: 2;
+  position: relative;
+  z-index: 2;
   max-width: 1140px;
   padding: 2rem;
   width: 100%;
@@ -161,17 +195,17 @@
   margin-right: auto;
   width: clamp(220px, 35vw, 420px);
   height: auto;
-  filter: invert(1);
-  opacity: .95;
+  filter: var(--logo-invert);
+  opacity: 0.95;
 }
 .adro__hero-sub {
-  font-size: .95rem;
-  color: var(--a-mid);
+  /* Hero is always-dark video, so hardcode white-on-dark */
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.7;
   max-width: 420px;
   margin: 0 auto 0;
 }
-
 
 /* ═════════════════════════════════════════════════════════════
    2 · SHOWREEL — short video banner
@@ -190,28 +224,36 @@
   border-bottom: 1px solid var(--a-line);
 }
 .adro__reel-video {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
 }
 .adro__reel-video .adro-video-embed iframe {
-  filter: brightness(.4) saturate(.5) contrast(1.1);
+  filter: brightness(0.4) saturate(0.5) contrast(1.1);
 }
 .adro__reel-dim {
-  position: absolute; inset: 0; z-index: 1;
-  background: radial-gradient(ellipse at center, rgba(17,17,17,.2) 0%, rgba(17,17,17,.65) 100%);
+  /* Reel video stays dark, dim overlay stays dark too */
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(17, 17, 17, 0.2) 0%,
+    rgba(17, 17, 17, 0.65) 100%
+  );
 }
 
 .adro__reel-body {
-  position: relative; z-index: 2;
+  position: relative;
+  z-index: 2;
 }
 .adro__reel-h {
-  font-size: clamp(1.8rem,4.5vw,3.5rem);
+  font-size: clamp(1.8rem, 4.5vw, 3.5rem);
   font-weight: 200;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   margin: 0;
   text-transform: uppercase;
 }
-
 
 /* ═════════════════════════════════════════════════════════════
    3 · COLLAGE — photo grid with centered text
@@ -226,10 +268,14 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2px;
+  /* On mobile the text card spans full row — dense flow lets following photos
+     backfill empty cells left behind so no awkward gaps appear */
+  grid-auto-flow: dense;
 }
 @media (min-width: 900px) {
   .adro__collage-grid {
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-flow: row;
   }
 }
 
@@ -239,26 +285,37 @@
   aspect-ratio: 4/3;
   position: relative;
 }
-.adro__collage-cell::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(17,17,17,.5) 100%);
-  pointer-events: none;
-  z-index: 1;
-}
 .adro__collage-cell img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  transition: transform .6s cubic-bezier(.25,1,.5,1), filter .4s;
-  filter: brightness(.6);
+  transition:
+    transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+    filter 0.4s;
+  /* Light theme: full brightness — photos pop against cream canvas */
+  filter: brightness(1);
 }
 .adro__collage-cell:hover img {
   transform: scale(1.06);
   filter: brightness(1);
 }
+/* Dark theme: cinematic dim + vignette — photos become ambient texture */
+.dark .adro__collage-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(17, 17, 17, 0.5) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.dark .adro__collage-cell img {
+  filter: brightness(0.6);
+}
+.dark .adro__collage-cell:hover img {
+  filter: brightness(1);
+}
 
-/* Text card in the center — spans 2 cells on desktop */
+/* Text card in the center — mobile: full width row; desktop: spans 2 of 4 cells */
 .adro__collage-text {
   position: relative;
   display: flex;
@@ -266,17 +323,25 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2.5rem 2rem;
-  background: rgba(17,17,17,.94);
+  padding: 2.5rem 1.5rem;
+  background: hsl(var(--background) / 0.94);
   backdrop-filter: blur(20px);
   aspect-ratio: auto;
   overflow: hidden;
+  /* Mobile: text card spans full 2-column row so photos stack 2-per-row
+     above and below it cleanly */
+  grid-column: 1 / -1;
+}
+@media (min-width: 640px) {
+  .adro__collage-text {
+    padding: 3rem 2rem;
+  }
 }
 @media (min-width: 900px) {
   .adro__collage-text {
+    /* Desktop: revert to 2-of-4 span (photo | TEXT | photo on middle row) */
     grid-column: span 2;
     padding: 3.5rem 3rem;
-    aspect-ratio: auto;
   }
 }
 
@@ -294,8 +359,8 @@
   width: 70%;
   max-width: 320px;
   height: auto;
-  filter: invert(1) blur(1.5px);
-  opacity: .10;
+  filter: var(--logo-invert) blur(1.5px);
+  opacity: 0.1;
 }
 
 .adro__collage-text .adro__eyebrow,
@@ -306,22 +371,26 @@
 }
 
 .adro__collage-h {
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-size: clamp(1.6rem, 5.5vw, 2rem);
   font-weight: 200;
   text-transform: uppercase;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   line-height: 1.2;
   margin: 0 0 1rem;
 }
 .adro__collage-desc {
-  font-size: .8rem;
-  line-height: 1.75;
-  color: var(--a-dim);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--a-mid);
   margin: 0;
-  max-width: 420px;
+  max-width: 480px;
   white-space: pre-line;
 }
-
+@media (min-width: 640px) {
+  .adro__collage-desc {
+    font-size: 0.85rem;
+  }
+}
 
 /* ═════════════════════════════════════════════════════════════
    4 · CATALOG — vehicle cards
@@ -333,7 +402,11 @@
   background: var(--a-bg);
   border-top: 1px solid var(--a-line);
 }
-@media (min-width: 768px) { .adro__catalog { padding: 6rem 4rem; } }
+@media (min-width: 768px) {
+  .adro__catalog {
+    padding: 6rem 4rem;
+  }
+}
 
 .adro__catalog-head {
   text-align: center;
@@ -341,10 +414,10 @@
   margin: 0 auto 3.5rem;
 }
 .adro__catalog-h {
-  font-size: clamp(1.6rem,3vw,2.4rem);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 200;
   text-transform: uppercase;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
@@ -359,33 +432,46 @@
   border: 1px solid var(--a-line);
 }
 @media (min-width: 700px) {
-  .adro__catalog-grid { grid-template-columns: repeat(2, 1fr); }
+  .adro__catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* Card */
 .adro__card {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background: var(--a-bg);
   text-decoration: none;
-  transition: background .5s;
+  transition: background 0.5s;
 }
 .adro__card:hover {
-  background: #161616;
+  background: hsl(var(--foreground) / 0.04);
 }
 
 .adro__card-img {
   height: 260px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
   overflow: hidden;
 }
-@media (min-width: 768px) { .adro__card-img { height: 300px; } }
+@media (min-width: 768px) {
+  .adro__card-img {
+    height: 300px;
+  }
+}
 .adro__card-img img {
-  max-width: 80%; max-height: 80%;
-  width: auto; height: auto;
+  max-width: 80%;
+  max-height: 80%;
+  width: auto;
+  height: auto;
   object-fit: contain;
-  filter: brightness(.85) contrast(1.05);
-  transition: transform .6s cubic-bezier(.25,1,.5,1), filter .6s;
+  filter: brightness(0.85) contrast(1.05);
+  transition:
+    transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+    filter 0.6s;
 }
 .adro__card:hover .adro__card-img img {
   transform: scale(1.06);
@@ -398,33 +484,37 @@
 }
 .adro__card-badge {
   display: inline-block;
-  font-size: .5rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .2em;
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
   color: var(--a-mid);
   border: 1px solid var(--a-line);
-  padding: .2rem .5rem;
-  margin-bottom: .75rem;
+  padding: 0.2rem 0.5rem;
+  margin-bottom: 0.75rem;
 }
 .adro__card-name {
-  font-size: 1.1rem; font-weight: 400;
+  font-size: 1.1rem;
+  font-weight: 400;
   color: var(--a-fg);
-  margin: 0 0 .4rem;
+  margin: 0 0 0.4rem;
 }
 .adro__card-desc {
-  font-size: .78rem;
+  font-size: 0.78rem;
   color: var(--a-dim);
   line-height: 1.6;
   margin: 0 0 1.2rem;
 }
 .adro__card-link {
-  font-size: .65rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: .2em;
+  letter-spacing: 0.2em;
   color: var(--a-dim);
-  transition: color .3s;
+  transition: color 0.3s;
 }
-.adro__card:hover .adro__card-link { color: var(--a-fg); }
-
+.adro__card:hover .adro__card-link {
+  color: var(--a-fg);
+}
 
 /* ═════════════════════════════════════════════════════════════
    5 · CTA — closing video
@@ -441,40 +531,50 @@
   padding: 5rem 2rem;
   border-top: 1px solid var(--a-line);
 }
-.adro__close-video { position: absolute; inset: 0; }
+.adro__close-video {
+  position: absolute;
+  inset: 0;
+}
 .adro__close-video .adro-video-embed iframe {
-  filter: brightness(.3) saturate(.35) contrast(1.15);
+  filter: brightness(0.3) saturate(0.35) contrast(1.15);
 }
 .adro__close-dim {
-  position: absolute; inset: 0; z-index: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   background:
-    radial-gradient(ellipse at center, rgba(17,17,17,.4) 0%, rgba(17,17,17,.85) 100%),
+    radial-gradient(
+      ellipse at center,
+      hsl(var(--background) / 0.4) 0%,
+      hsl(var(--background) / 0.85) 100%
+    ),
     linear-gradient(to top, var(--a-bg) 0%, transparent 30%);
 }
 
 .adro__close-body {
-  position: relative; z-index: 2;
+  position: relative;
+  z-index: 2;
   max-width: 600px;
 }
 .adro__close-h {
-  font-size: clamp(2.5rem,6vw,4.5rem);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 100;
   text-transform: uppercase;
-  letter-spacing: -.03em;
+  letter-spacing: -0.03em;
   line-height: 1;
   margin: 0 0 1.5rem;
 }
 .adro__close-text {
-  font-size: .85rem;
+  font-size: 0.85rem;
   color: var(--a-dim);
   line-height: 1.8;
-  margin: 0 0 .5rem;
+  margin: 0 0 0.5rem;
 }
 
-
 /* ═══ LEGACY ═══ */
-.adro-vault { display: none; }
-
+.adro-vault {
+  display: none;
+}
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 767px) {
@@ -491,13 +591,18 @@
     padding: 1.5rem;
   }
   .adro__hero-sub {
-    font-size: .82rem;
+    font-size: 0.82rem;
     max-width: 300px;
   }
 
   /* Reel */
-  .adro__reel { height: 40vh; min-height: 260px; }
-  .adro__reel-h { font-size: 1.5rem; }
+  .adro__reel {
+    height: 40vh;
+    min-height: 260px;
+  }
+  .adro__reel-h {
+    font-size: 1.5rem;
+  }
 
   /* Collage */
   .adro__collage-text {
@@ -508,7 +613,7 @@
     font-size: 1.4rem;
   }
   .adro__collage-desc {
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
 
   /* Catalog */
@@ -518,21 +623,23 @@
   .adro__catalog-grid {
     grid-template-columns: 1fr;
   }
-  .adro__card-img { height: 220px; }
+  .adro__card-img {
+    height: 220px;
+  }
   .adro__card-info {
     padding: 1.25rem 1.5rem 1.5rem;
   }
 
   /* CTA button */
   .adro__cta {
-    font-size: .6rem;
-    padding: .75rem 1.5rem;
+    font-size: 0.6rem;
+    padding: 0.75rem 1.5rem;
   }
 
   /* Back link */
   .adro__back {
     top: 60px;
-    padding: .75rem 1rem;
+    padding: 0.75rem 1rem;
   }
 }
 
@@ -553,44 +660,53 @@
   position: relative;
   z-index: 3;
 }
+/* Quick Finder filter — lives over the always-dark hero video, so all
+   colors stay hardcoded white-on-dark regardless of site theme. */
 .adro__hf {
-  background: linear-gradient(180deg, rgba(0, 0, 0, .58) 0%, rgba(0, 0, 0, .42) 100%);
-  border: 1px solid rgba(255, 255, 255, .1);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.56) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--a-r);
   padding: 1.25rem 1.25rem 1.35rem;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 30px 60px -25px rgba(0, 0, 0, .6);
+  box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.8);
 }
 .adro__hf-eyebrow {
   display: flex;
   align-items: center;
-  gap: .55rem;
-  font-size: .62rem;
-  letter-spacing: .26em;
+  gap: 0.55rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--a-fg);
-  opacity: .68;
-  margin: 0 0 .9rem;
-  padding-left: .15rem;
+  color: #fff;
+  opacity: 0.88;
+  margin: 0 0 0.9rem;
+  padding-left: 0.15rem;
   font-weight: 500;
 }
 .adro__hf-pulse {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--a-fg);
-  box-shadow: 0 0 10px rgba(255, 255, 255, .55);
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.55);
   animation: adro-hf-pulse 2.4s ease-in-out infinite;
 }
 @keyframes adro-hf-pulse {
-  0%, 100% { opacity: .35; transform: scale(.9); }
-  50%      { opacity: 1;   transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 .adro__hf-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: .55rem;
+  gap: 0.55rem;
 }
 @media (min-width: 640px) {
   .adro__hf-row {
@@ -613,42 +729,45 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, .025);
-  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
-  padding: .55rem .9rem .5rem;
+  padding: 0.55rem 0.9rem 0.5rem;
   cursor: pointer;
   min-width: 0;
-  transition: border-color .25s ease, background .25s ease, opacity .25s ease;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    opacity 0.25s ease;
 }
 .adro__hf-field:hover,
 .adro__hf-field:focus-within {
-  border-color: rgba(255, 255, 255, .2);
-  background: rgba(255, 255, 255, .045);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
 }
 .adro__hf-field.is-disabled {
-  opacity: .5;
+  opacity: 0.75;
   cursor: not-allowed;
 }
 .adro__hf-field.is-disabled .adro__hf-select {
   cursor: not-allowed;
-  color: rgba(255, 255, 255, .55);
+  color: rgba(255, 255, 255, 0.7);
 }
 .adro__hf-field.is-disabled .adro__hf-chev {
-  opacity: .25;
+  opacity: 0.25;
 }
 .adro__hf-field.is-disabled:hover {
-  border-color: rgba(255, 255, 255, .08);
-  background: rgba(255, 255, 255, .025);
+  border-color: hsl(var(--foreground) / 0.08);
+  background: hsl(var(--foreground) / 0.025);
 }
 .adro__hf-label {
   display: block;
-  font-size: .62rem;
-  letter-spacing: .22em;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--a-fg);
-  opacity: .58;
-  margin-bottom: .25rem;
+  color: #fff;
+  opacity: 0.82;
+  margin-bottom: 0.25rem;
   font-weight: 500;
   cursor: pointer;
 }
@@ -657,11 +776,11 @@
   background: transparent;
   border: 0;
   outline: 0;
-  color: var(--a-fg);
+  color: #fff;
   font-family: inherit;
-  font-size: .87rem;
+  font-size: 0.87rem;
   font-weight: 400;
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   padding: 0;
   padding-right: 1.4rem;
   width: 100%;
@@ -676,50 +795,53 @@
 }
 .adro__hf-select option {
   background: #111;
-  color: var(--a-fg);
-  padding: .5rem;
+  color: #fff;
+  padding: 0.5rem;
 }
 .adro__hf-chev {
   position: absolute;
-  right: .9rem;
+  right: 0.9rem;
   top: 50%;
   transform: translateY(-25%);
-  color: var(--a-fg);
-  opacity: .55;
+  color: #fff;
+  opacity: 0.55;
   pointer-events: none;
 }
 .adro__hf-submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .55rem;
-  background: var(--a-fg);
-  color: var(--a-bg);
+  gap: 0.55rem;
+  background: #fff;
+  color: #111;
   border: 0;
   border-radius: 8px;
-  padding: .9rem 1.6rem;
+  padding: 0.9rem 1.6rem;
   font-family: inherit;
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: .22em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform .3s ease, box-shadow .3s ease, background .3s ease;
-  box-shadow: 0 8px 22px -10px rgba(255, 255, 255, .35);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+  box-shadow: 0 8px 22px -10px rgba(255, 255, 255, 0.35);
 }
 .adro__hf-submit:hover {
   transform: translateY(-2px);
   background: #f4f4f4;
-  box-shadow: 0 14px 28px -12px rgba(255, 255, 255, .45);
+  box-shadow: 0 14px 28px -12px rgba(255, 255, 255, 0.45);
 }
 .adro__hf-submit:disabled {
-  opacity: .7;
+  opacity: 0.7;
   cursor: progress;
   transform: none;
 }
 .adro__hf-submit svg {
-  transition: transform .3s ease;
+  transition: transform 0.3s ease;
 }
 .adro__hf-submit:hover svg {
   transform: translateX(3px);

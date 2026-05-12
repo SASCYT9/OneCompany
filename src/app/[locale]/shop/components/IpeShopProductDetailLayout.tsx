@@ -47,21 +47,21 @@ function normalizeIpeUaCopy(value: string): string {
   const tipMap = (lower: boolean) => (suffix: string) => {
     const upper: Record<string, string> = {
       "": "Насадка",
-      "и": "Насадки",
-      "а": "Насадка",
-      "ів": "Насадок",
-      "ам": "Насадкам",
-      "ами": "Насадками",
-      "ах": "Насадках",
+      и: "Насадки",
+      а: "Насадка",
+      ів: "Насадок",
+      ам: "Насадкам",
+      ами: "Насадками",
+      ах: "Насадках",
     };
     const lowerMap: Record<string, string> = {
       "": "насадка",
-      "и": "насадки",
-      "а": "насадка",
-      "ів": "насадок",
-      "ам": "насадкам",
-      "ами": "насадками",
-      "ах": "насадках",
+      и: "насадки",
+      а: "насадка",
+      ів: "насадок",
+      ам: "насадкам",
+      ами: "насадками",
+      ах: "насадках",
     };
     return (lower ? lowerMap : upper)[suffix ?? ""] ?? (lower ? "насадки" : "Насадки");
   };
@@ -98,11 +98,11 @@ function stripIpeCrossPromoLinks(html: string): string {
   // those too when their alt mentions a different iPE product line.
   let out = html.replace(
     /<a[^>]*href=(?:"|')[^"']*ipeofficial\.com\/products\/[^"']*(?:"|')[^>]*>[\s\S]*?<\/a>/gi,
-    ''
+    ""
   );
   out = out.replace(
     /<img[^>]*alt=(?:"|')[^"']*(?:click the button to enter the link|click here to enter the link|magnesium wheels|forged magnesium|other (?:iPE )?products?)[^"']*(?:"|')[^>]*\/?>/gi,
-    ''
+    ""
   );
   // Strip empty anchors and empty/redundant span wrappers that iPE's bodyHtml
   // collects from Word-style paste — they don't render anything but litter the
@@ -110,9 +110,7 @@ function stripIpeCrossPromoLinks(html: string): string {
   let prev: string;
   do {
     prev = out;
-    out = out
-      .replace(/<a[^>]*>\s*<\/a>/gi, '')
-      .replace(/<span[^>]*>\s*<\/span>/gi, '');
+    out = out.replace(/<a[^>]*>\s*<\/a>/gi, "").replace(/<span[^>]*>\s*<\/span>/gi, "");
   } while (out !== prev);
   return out;
 }
@@ -168,9 +166,7 @@ function buildOptionAxes(variants: ShopProductVariantSummary[]): VariantOption[]
   for (let i = 0; i < 3; i += 1) {
     const values = Array.from(
       new Set(
-        variants
-          .map((v) => v.optionValues?.[i])
-          .filter((value): value is string => Boolean(value))
+        variants.map((v) => v.optionValues?.[i]).filter((value): value is string => Boolean(value))
       )
     );
     if (values.length > 1) {
@@ -202,11 +198,11 @@ function localizeAxisName(name: string, isUa: boolean): string {
   const map: Record<string, string> = {
     "Exhaust System": "Тип системи",
     "Front Pipe Design": "Передні труби",
-    "Downpipe": "Даунпайп",
-    "Material": "Матеріал",
-    "Design": "Дизайн",
-    "Configuration": "Конфігурація",
-    "Option": "Опція",
+    Downpipe: "Даунпайп",
+    Material: "Матеріал",
+    Design: "Дизайн",
+    Configuration: "Конфігурація",
+    Option: "Опція",
   };
   return map[name] ?? name;
 }
@@ -247,7 +243,9 @@ function localizeOptionValue(value: string, isUa: boolean): string {
   return out;
 }
 
-function pickPreferredCatbackVariant(variants: ShopProductVariantSummary[]): ShopProductVariantSummary | null {
+function pickPreferredCatbackVariant(
+  variants: ShopProductVariantSummary[]
+): ShopProductVariantSummary | null {
   const score = (v: ShopProductVariantSummary) => {
     const j = (v.optionValues ?? []).join(" | ").toLowerCase();
     let s = 0;
@@ -354,7 +352,7 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
         variants.find((v) => v.optionValues?.[axisIndex] === value);
       if (compatible) {
         return [0, 1, 2].map((i) =>
-          i === axisIndex ? value : compatible.optionValues?.[i] ?? next[i] ?? ""
+          i === axisIndex ? value : (compatible.optionValues?.[i] ?? next[i] ?? "")
         );
       }
       return next;
@@ -429,10 +427,7 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
   // variant image isn't part of the (possibly material-filtered) gallery.
   useEffect(() => {
     const variantImage = currentVariant?.image
-      ? rebaseIpeGalleryUrl(
-          currentVariant.image.replace(/^["']|["']$/g, "").trim(),
-          product.image
-        )
+      ? rebaseIpeGalleryUrl(currentVariant.image.replace(/^["']|["']$/g, "").trim(), product.image)
       : null;
     if (variantImage) {
       const idx = displayedImages.findIndex((img) => img === variantImage);
@@ -449,60 +444,220 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
   return (
     <div className="ipe-pdp">
       <style jsx global>{`
-        .ipe-pdp { color: #fff; min-height: 100dvh; padding: 7rem 1rem 8rem; }
+        .ipe-pdp {
+          color: hsl(var(--foreground));
+          background: hsl(var(--background));
+          min-height: 100dvh;
+          padding: 7rem 1rem 8rem;
+        }
         .ipe-pdp__container {
-          max-width: 1400px; margin: 0 auto;
-          display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+          max-width: 1400px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
           gap: 3rem;
         }
-        @media (max-width: 960px) { .ipe-pdp__container { grid-template-columns: 1fr; } }
-        .ipe-pdp__bc { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 1.5rem; display: flex; gap: .5rem; flex-wrap: wrap; }
-        .ipe-pdp__bc a:hover { color: #fff; }
-        .ipe-pdp__title { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 600; line-height: 1.15; margin: 0 0 .5rem; }
-        .ipe-pdp__cat { font-size: .75rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 2rem; }
-        .ipe-pdp__gallery-main { position: relative; aspect-ratio: 4/3; background: #0e0e10; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
-        .ipe-pdp__gallery-main img { object-fit: contain; }
-        .ipe-pdp__thumbs { display: flex; gap: .5rem; margin-top: 1rem; overflow-x: auto; padding-bottom: .25rem; }
-        .ipe-pdp__thumb { width: 72px; height: 54px; flex-shrink: 0; background: #0e0e10; border-radius: 6px; overflow: hidden; border: 2px solid transparent; cursor: pointer; opacity: .6; transition: all .2s; position: relative; }
-        .ipe-pdp__thumb img { object-fit: contain; }
-        .ipe-pdp__thumb:hover { opacity: .9; }
-        .ipe-pdp__thumb.is-active { opacity: 1; border-color: #c29d59; }
-
-        .ipe-pdp__price-row { display: flex; align-items: baseline; gap: 1rem; margin-bottom: .5rem; }
-        .ipe-pdp__price-note { font-size: .7rem; color: rgba(255,255,255,.55); letter-spacing: .1em; text-transform: uppercase; }
-
-        .ipe-pdp__options { margin: 1.5rem 0; display: flex; flex-direction: column; gap: 1.25rem; }
-        .ipe-pdp__option-label { font-size: .7rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: .5rem; display: block; }
-        .ipe-pdp__option-grid { display: flex; flex-wrap: wrap; gap: .5rem; }
-        .ipe-pdp__option-btn {
-          background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12);
-          color: #ddd; padding: .55rem .9rem; border-radius: 6px; font-size: .85rem;
-          cursor: pointer; transition: all .15s;
+        @media (max-width: 960px) {
+          .ipe-pdp__container {
+            grid-template-columns: 1fr;
+          }
         }
-        .ipe-pdp__option-btn:hover { border-color: rgba(255,255,255,.3); color: #fff; }
-        .ipe-pdp__option-btn.is-active { background: #c29d59; border-color: #c29d59; color: #0e0e10; font-weight: 600; }
+        .ipe-pdp__bc {
+          font-size: 0.7rem;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: hsl(var(--foreground) / 0.55);
+          margin-bottom: 1.5rem;
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        .ipe-pdp__bc a:hover {
+          color: hsl(var(--foreground));
+        }
+        .ipe-pdp__title {
+          font-size: clamp(1.5rem, 3vw, 2.25rem);
+          font-weight: 600;
+          line-height: 1.15;
+          margin: 0 0 0.5rem;
+          color: hsl(var(--foreground));
+        }
+        .ipe-pdp__cat {
+          font-size: 0.75rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: hsl(var(--foreground) / 0.6);
+          margin-bottom: 2rem;
+        }
+        /* Gallery uses fixed dark pedestal in both themes (IPE photos have black backdrop) */
+        .ipe-pdp__gallery-main {
+          position: relative;
+          aspect-ratio: 4/3;
+          background: #0e0e10;
+          border-radius: 12px;
+          overflow: hidden;
+          border: 1px solid hsl(var(--foreground) / 0.15);
+        }
+        .ipe-pdp__gallery-main img {
+          object-fit: contain;
+        }
+        .ipe-pdp__thumbs {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          overflow-x: auto;
+          padding-bottom: 0.25rem;
+        }
+        .ipe-pdp__thumb {
+          width: 72px;
+          height: 54px;
+          flex-shrink: 0;
+          background: #0e0e10;
+          border-radius: 6px;
+          overflow: hidden;
+          border: 2px solid transparent;
+          cursor: pointer;
+          opacity: 0.6;
+          transition: all 0.2s;
+          position: relative;
+        }
+        .ipe-pdp__thumb img {
+          object-fit: contain;
+        }
+        .ipe-pdp__thumb:hover {
+          opacity: 0.9;
+        }
+        .ipe-pdp__thumb.is-active {
+          opacity: 1;
+          border-color: #c29d59;
+        }
+
+        .ipe-pdp__price-row {
+          display: flex;
+          align-items: baseline;
+          gap: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        .ipe-pdp__price-note {
+          font-size: 0.7rem;
+          color: hsl(var(--foreground) / 0.6);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        .ipe-pdp__options {
+          margin: 1.5rem 0;
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+        .ipe-pdp__option-label {
+          font-size: 0.7rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: hsl(var(--foreground) / 0.6);
+          margin-bottom: 0.5rem;
+          display: block;
+        }
+        .ipe-pdp__option-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+        .ipe-pdp__option-btn {
+          background: hsl(var(--foreground) / 0.04);
+          border: 1px solid hsl(var(--foreground) / 0.18);
+          color: hsl(var(--foreground) / 0.85);
+          padding: 0.55rem 0.9rem;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .ipe-pdp__option-btn:hover {
+          border-color: hsl(var(--foreground) / 0.35);
+          color: hsl(var(--foreground));
+        }
+        .ipe-pdp__option-btn.is-active {
+          background: #c29d59;
+          border-color: #c29d59;
+          color: #0e0e10;
+          font-weight: 600;
+        }
 
         .ipe-pdp__vin {
-          background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
-          border-radius: 8px; padding: 1rem; margin: 1.25rem 0;
+          background: hsl(var(--foreground) / 0.04);
+          border: 1px solid hsl(var(--foreground) / 0.15);
+          border-radius: 8px;
+          padding: 1rem;
+          margin: 1.25rem 0;
         }
-        .ipe-pdp__vin-title { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: #c29d59; margin-bottom: .35rem; font-weight: 600; }
-        .ipe-pdp__vin-text { font-size: .85rem; color: rgba(255,255,255,.78); line-height: 1.5; margin-bottom: .75rem; }
+        .ipe-pdp__vin-title {
+          font-size: 0.8rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #c29d59;
+          margin-bottom: 0.35rem;
+          font-weight: 600;
+        }
+        .ipe-pdp__vin-text {
+          font-size: 0.85rem;
+          color: hsl(var(--foreground) / 0.82);
+          line-height: 1.5;
+          margin-bottom: 0.75rem;
+        }
         .ipe-pdp__vin-cta {
-          display: inline-block; padding: .55rem 1rem; border-radius: 6px;
-          background: #c29d59; color: #0e0e10; font-weight: 600; font-size: .85rem;
-          text-decoration: none; transition: filter .15s;
+          display: inline-block;
+          padding: 0.55rem 1rem;
+          border-radius: 6px;
+          background: #c29d59;
+          color: #0e0e10;
+          font-weight: 600;
+          font-size: 0.85rem;
+          text-decoration: none;
+          transition: filter 0.15s;
         }
-        .ipe-pdp__vin-cta:hover { filter: brightness(1.1); }
+        .ipe-pdp__vin-cta:hover {
+          filter: brightness(1.1);
+        }
 
-        .ipe-pdp__cart { margin-top: 1rem; }
-        .ipe-pdp__sku { margin-top: .75rem; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+        .ipe-pdp__cart {
+          margin-top: 1rem;
+        }
+        .ipe-pdp__sku {
+          margin-top: 0.75rem;
+          font-size: 0.7rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: hsl(var(--foreground) / 0.5);
+        }
 
-        .ipe-pdp__desc { margin-top: 3rem; padding: 2rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; }
-        .ipe-pdp__desc h2 { font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; margin: 1rem 0 .5rem; color: #c29d59; }
-        .ipe-pdp__desc h2:first-child { margin-top: 0; }
-        .ipe-pdp__desc p { line-height: 1.65; color: rgba(255,255,255,.85); margin: 0 0 .75rem; font-size: .92rem; }
-        .ipe-pdp__desc strong { color: #fff; }
+        .ipe-pdp__desc {
+          margin-top: 3rem;
+          padding: 2rem;
+          background: hsl(var(--foreground) / 0.03);
+          border: 1px solid hsl(var(--foreground) / 0.1);
+          border-radius: 12px;
+        }
+        .ipe-pdp__desc h2 {
+          font-size: 1.05rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin: 1rem 0 0.5rem;
+          color: #c29d59;
+        }
+        .ipe-pdp__desc h2:first-child {
+          margin-top: 0;
+        }
+        .ipe-pdp__desc p {
+          line-height: 1.65;
+          color: hsl(var(--foreground) / 0.88);
+          margin: 0 0 0.75rem;
+          font-size: 0.92rem;
+        }
+        .ipe-pdp__desc strong {
+          color: hsl(var(--foreground));
+        }
       `}</style>
 
       <div className="ipe-pdp__container">
@@ -556,7 +711,8 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
               <ShopB2BPricingBand pricing={pricing} locale={locale as any} />
             </div>
           ) : null}
-          {currentVariant && /catback|cat\s*back/i.test((currentVariant.optionValues ?? []).join(" ")) ? (
+          {currentVariant &&
+          /catback|cat\s*back/i.test((currentVariant.optionValues ?? []).join(" ")) ? (
             <div className="ipe-pdp__price-note">
               {isUa ? "Ціна за Cat-back систему" : "Price for cat-back system"}
             </div>
@@ -571,7 +727,14 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
                   : axisLabel;
                 const stripSuffix = (v: string) =>
                   axis.commonSuffix
-                    ? v.replace(new RegExp(`\\s*\\(${axis.commonSuffix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\)\\s*$`), "").trim()
+                    ? v
+                        .replace(
+                          new RegExp(
+                            `\\s*\\(${axis.commonSuffix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\)\\s*$`
+                          ),
+                          ""
+                        )
+                        .trim()
                     : v;
                 return (
                   <div key={axis.index}>
@@ -606,7 +769,12 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
                 ? "Надайте VIN код нашому спеціалісту — підтвердимо точну сумісність вашого автомобіля і допоможемо обрати правильну версію (OPF / Non-OPF, Catted / Catless)."
                 : "Share your VIN with our specialist — we'll confirm exact fitment for your vehicle and help you pick the right spec (OPF / Non-OPF, Catted / Catless)."}
             </div>
-            <a className="ipe-pdp__vin-cta" href="https://t.me/onecompany_ua" target="_blank" rel="noreferrer">
+            <a
+              className="ipe-pdp__vin-cta"
+              href="https://t.me/onecompany_ua"
+              target="_blank"
+              rel="noreferrer"
+            >
               {isUa ? "Написати спеціалісту" : "Contact specialist"}
             </a>
           </div>
@@ -619,7 +787,7 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
               productName={productTitle}
             />
           </div>
-          {(currentVariant?.sku || product.sku) ? (
+          {currentVariant?.sku || product.sku ? (
             <div className="ipe-pdp__sku">
               {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}
             </div>
@@ -629,10 +797,7 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
 
       {sanitizedBodyHtml ? (
         <div className="ipe-pdp__container" style={{ marginTop: "3rem", display: "block" }}>
-          <div
-            className="ipe-pdp__desc"
-            dangerouslySetInnerHTML={{ __html: sanitizedBodyHtml }}
-          />
+          <div className="ipe-pdp__desc" dangerouslySetInnerHTML={{ __html: sanitizedBodyHtml }} />
         </div>
       ) : null}
     </div>

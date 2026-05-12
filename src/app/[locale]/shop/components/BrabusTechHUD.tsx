@@ -13,7 +13,7 @@ export default function BrabusTechHUD({ locale }: Props) {
   const isUa = locale === "ua";
 
   return (
-    <section className="relative w-full h-[95vh] min-h-[700px] bg-black text-white overflow-hidden">
+    <section className="dark relative w-full h-[95vh] min-h-[700px] bg-black text-white overflow-hidden">
       {/* Full-Width Background Photo */}
       <div className="absolute inset-0">
         <Image

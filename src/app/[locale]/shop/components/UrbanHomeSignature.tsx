@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import type { SupportedLocale } from '@/lib/seo';
-import { URBAN_HERO, URBAN_FEATURED_MODELS } from '../data/urbanHomeData';
-import { URBAN_COLLECTIONS_INDEX_PATH } from '../data/urbanRoutes';
-import { URBAN_SHOWCASES } from '../data/urbanShowcasesData';
-import UrbanThemeScript from './UrbanThemeScript';
-import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
+import Image from "next/image";
+import Link from "next/link";
+import type { SupportedLocale } from "@/lib/seo";
+import { URBAN_HERO, URBAN_FEATURED_MODELS } from "../data/urbanHomeData";
+import { URBAN_COLLECTIONS_INDEX_PATH } from "../data/urbanRoutes";
+import { URBAN_SHOWCASES } from "../data/urbanShowcasesData";
+import UrbanThemeScript from "./UrbanThemeScript";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
-const HOME_ID = 'UrbanHomeV7';
-const ONE_COMPANY_LOGO = 'https://onecompany.global/branding/logo-light.svg';
-const URBAN_LOGO = '/images/shop/urban/svgs/logo.svg';
-const WIDETRACK_LOGO = '/images/shop/urban/svgs/widetrack.svg';
-const DEFENDER_IMG = '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp';
+const HOME_ID = "UrbanHomeV7";
+const ONE_COMPANY_LOGO = "https://onecompany.global/branding/logo-light.svg";
+const URBAN_LOGO = "/images/shop/urban/svgs/logo.svg";
+const WIDETRACK_LOGO = "/images/shop/urban/svgs/widetrack.svg";
+const DEFENDER_IMG =
+  "/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp";
 
 type UrbanHomeSignatureProps = {
   locale: SupportedLocale;
@@ -24,22 +25,22 @@ function localize(isUa: boolean, en: string, ua: string) {
 }
 
 function localizeHref(locale: SupportedLocale, href: string) {
-  if (href.startsWith('http') || href.startsWith('#')) {
+  if (href.startsWith("http") || href.startsWith("#")) {
     return href;
   }
 
-  return href.startsWith('/') ? `/${locale}${href}` : `/${locale}/${href}`;
+  return href.startsWith("/") ? `/${locale}${href}` : `/${locale}/${href}`;
 }
 
 export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) {
-  const isUa = locale === 'ua';
+  const isUa = locale === "ua";
   const heroTitle = localize(isUa, URBAN_HERO.title, URBAN_HERO.titleUk);
 
   return (
-    <>
+    <div className="bg-background text-foreground">
       <div className="urban-back-to-stores">
         <Link href={`/${locale}/shop`} className="urban-back-to-stores__link">
-          ← {isUa ? 'Усі наші магазини' : 'All our stores'}
+          ← {isUa ? "Усі наші магазини" : "All our stores"}
         </Link>
       </div>
 
@@ -48,11 +49,11 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
         id={HOME_ID}
         style={
           {
-            '--accent': '#f5f5f3',
-            '--hero-h-mobile': '100svh',
-            '--hero-h-desktop': '96dvh',
-            '--overlay-alpha': 0.25,
-            '--logo-w': '220px',
+            "--accent": "#f5f5f3",
+            "--hero-h-mobile": "100svh",
+            "--hero-h-desktop": "96dvh",
+            "--overlay-alpha": 0.25,
+            "--logo-w": "220px",
           } as React.CSSProperties
         }
       >
@@ -65,10 +66,24 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
         <div className="uh7-loader" id={`${HOME_ID}-loader`} aria-hidden>
           <div className="uh7-loader__brand" aria-label="One Company x Urban Automotive">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="uh7-loader__brand-one" src={ONE_COMPANY_LOGO} alt="One Company" width={422} height={155} />
-            <span className="uh7-loader__brand-x" aria-hidden>x</span>
+            <img
+              className="uh7-loader__brand-one"
+              src={ONE_COMPANY_LOGO}
+              alt="One Company"
+              width={422}
+              height={155}
+            />
+            <span className="uh7-loader__brand-x" aria-hidden>
+              x
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="uh7-loader__brand-urban" src={URBAN_LOGO} alt="Urban Automotive" width={643} height={101} />
+            <img
+              className="uh7-loader__brand-urban"
+              src={URBAN_LOGO}
+              alt="Urban Automotive"
+              width={643}
+              height={101}
+            />
           </div>
           <div className="uh7-loader__bar">
             <div className="uh7-loader__bar-fill" />
@@ -94,7 +109,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
           <div className="uh7-hero__letterbox uh7-hero__letterbox--bot" aria-hidden />
           <div className="uh7-shutter" aria-hidden>
             {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="uh7-shutter__p" style={{ ['--i' as string]: i }} />
+              <div key={i} className="uh7-shutter__p" style={{ ["--i" as string]: i }} />
             ))}
           </div>
           <div className="uh7-hero__frame" aria-hidden>
@@ -106,27 +121,43 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
           <div className="uh7-hero__corner uh7-hero__corner--bl" aria-hidden />
           <div className="uh7-hero__corner uh7-hero__corner--br" aria-hidden />
           <span className="uh7-hero__side-text uh7-hero__side-text--l" aria-hidden>
-            {isUa ? 'Засн. 2015 — Бірмінгем, Англія' : 'Est. 2015 — Birmingham, England'}
+            {isUa ? "Засн. 2015 — Бірмінгем, Англія" : "Est. 2015 — Birmingham, England"}
           </span>
           <span className="uh7-hero__side-text uh7-hero__side-text--r" aria-hidden>
-            {isUa ? 'Фірмова програма Widetrack' : 'Signature Widetrack Programme'}
+            {isUa ? "Фірмова програма Widetrack" : "Signature Widetrack Programme"}
           </span>
           <div className="uh7-hero__glow" aria-hidden />
           <div className="uh7-hero__content">
             <div className="uh7-hero__brand" aria-label="One Company x Urban Automotive">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="uh7-hero__brand-one" src={ONE_COMPANY_LOGO} alt="One Company" width={422} height={155} />
-              <span className="uh7-hero__brand-x" aria-hidden>x</span>
+              <img
+                className="uh7-hero__brand-one"
+                src={ONE_COMPANY_LOGO}
+                alt="One Company"
+                width={422}
+                height={155}
+              />
+              <span className="uh7-hero__brand-x" aria-hidden>
+                x
+              </span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="uh7-hero__brand-urban" src={URBAN_LOGO} alt="Urban Automotive" width={643} height={101} />
+              <img
+                className="uh7-hero__brand-urban"
+                src={URBAN_LOGO}
+                alt="Urban Automotive"
+                width={643}
+                height={101}
+              />
             </div>
-            <p className="uh7-hero__eyebrow">{localize(isUa, URBAN_HERO.eyebrow, URBAN_HERO.eyebrowUk)}</p>
+            <p className="uh7-hero__eyebrow">
+              {localize(isUa, URBAN_HERO.eyebrow, URBAN_HERO.eyebrowUk)}
+            </p>
             <h1 className="uh7-hero__title">{heroTitle}</h1>
             <p className="uh7-hero__subtitle">
               {localize(isUa, URBAN_HERO.subtitle, URBAN_HERO.subtitleUk)}
             </p>
             <p className="uh7-hero__official">
-              {isUa ? 'One Company × Urban Automotive' : 'One Company × Urban Automotive'}
+              {isUa ? "One Company × Urban Automotive" : "One Company × Urban Automotive"}
             </p>
             <div className="uh7-hero__buttons">
               <Link
@@ -137,8 +168,8 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               </Link>
               <a
                 href={URBAN_HERO.secondaryButtonLink}
-                target={URBAN_HERO.secondaryButtonNewTab ? '_blank' : undefined}
-                rel={URBAN_HERO.secondaryButtonNewTab ? 'noopener noreferrer' : undefined}
+                target={URBAN_HERO.secondaryButtonNewTab ? "_blank" : undefined}
+                rel={URBAN_HERO.secondaryButtonNewTab ? "noopener noreferrer" : undefined}
                 className="uh7-btn uh7-btn--secondary uh7-mag"
               >
                 {localize(isUa, URBAN_HERO.secondaryButtonLabel, URBAN_HERO.secondaryButtonLabelUk)}
@@ -152,22 +183,20 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            {isUa
-              ? 'Дизайнерські програми Urban Automotive'
-              : 'Urban Automotive design programmes'}
+            {isUa ? "Дизайнерські програми Urban Automotive" : "Urban Automotive design programmes"}
           </div>
           <div className="uh7-trust__item">
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            {isUa ? 'Доставка по всьому світу' : 'Worldwide Delivery'}
+            {isUa ? "Доставка по всьому світу" : "Worldwide Delivery"}
           </div>
           <div className="uh7-trust__item">
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-            {isUa ? 'Ручна робота в Англії' : 'Handcrafted in England'}
+            {isUa ? "Ручна робота в Англії" : "Handcrafted in England"}
           </div>
           <div className="uh7-trust__item">
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">
@@ -176,7 +205,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               <circle cx="5.5" cy="18.5" r="2.5" />
               <circle cx="18.5" cy="18.5" r="2.5" />
             </svg>
-            {isUa ? 'Онлайн-магазин' : 'Shop Online'}
+            {isUa ? "Онлайн-магазин" : "Shop Online"}
           </div>
         </div>
 
@@ -207,20 +236,24 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               <div className="uh7-sc__content">
                 <span className="uh7-sc__badge">{localize(isUa, s.badge, s.badgeUk)}</span>
                 <h2 className="uh7-sc__name">
-                  {localize(isUa, s.name, s.nameUk).split('\n').map((line, i) => (
-                    <span key={i}>
-                      {line}
-                      {i === 0 ? <br /> : null}
-                    </span>
-                  ))}
+                  {localize(isUa, s.name, s.nameUk)
+                    .split("\n")
+                    .map((line, i) => (
+                      <span key={i}>
+                        {line}
+                        {i === 0 ? <br /> : null}
+                      </span>
+                    ))}
                 </h2>
                 <p className="uh7-sc__sub">{localize(isUa, s.subtitle, s.subtitleUk)}</p>
                 <div className="uh7-sc__actions">
                   <Link
                     className="uh7-sc__cta uh7-mag"
-                    href={s.exploreLink.startsWith('#') ? s.exploreLink : `/${locale}${s.exploreLink}`}
+                    href={
+                      s.exploreLink.startsWith("#") ? s.exploreLink : `/${locale}${s.exploreLink}`
+                    }
                   >
-                    {isUa ? 'Дослідити' : 'Explore'}
+                    {isUa ? "Дослідити" : "Explore"}
                     <svg viewBox="0 0 24 24">
                       <line x1="5" y1="12" x2="19" y2="12" />
                       <polyline points="12 5 19 12 12 19" />
@@ -243,12 +276,16 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
         <div className="uh7-fleet" id={`${HOME_ID}-fleet`}>
           <div className="uh7-shdr uh7-rv" data-uh7-reveal>
             <div className="uh7-shdr__rule" />
-            <p className="uh7-shdr__label">{isUa ? 'Преміальний модельний ряд' : 'Curated Premium Fleet'}</p>
+            <p className="uh7-shdr__label">
+              {isUa ? "Преміальний модельний ряд" : "Curated Premium Fleet"}
+            </p>
             <h2 className="uh7-shdr__title">
-              {isUa ? 'Кожна модель — витвір мистецтва' : 'Every Model, a Masterpiece'}
+              {isUa ? "Кожна модель — витвір мистецтва" : "Every Model, a Masterpiece"}
             </h2>
             <p className="uh7-shdr__desc">
-              {isUa ? 'Оберіть свій Urban — ми доставимо по всьому світу' : 'Choose your Urban — worldwide delivery'}
+              {isUa
+                ? "Оберіть свій Urban — ми доставимо по всьому світу"
+                : "Choose your Urban — worldwide delivery"}
             </p>
           </div>
           <div className="uh7-fleet__grid uh7-stg" data-uh7-reveal>
@@ -276,12 +313,14 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                   <div className="uh7-card__holo" aria-hidden />
                   <div className="uh7-card__gradient" aria-hidden />
                   <div className="uh7-card__vignette" aria-hidden />
-                  <span className="uh7-card__shop">{isUa ? 'Дослідити' : 'Explore'}</span>
+                  <span className="uh7-card__shop">{isUa ? "Дослідити" : "Explore"}</span>
                   <div className="uh7-card__content">
                     <span className="uh7-card__badge">
                       {localize(isUa, model.badge, model.badgeUk)}
                     </span>
-                    <h3 className="uh7-card__title">{localize(isUa, model.title, model.titleUk)}</h3>
+                    <h3 className="uh7-card__title">
+                      {localize(isUa, model.title, model.titleUk)}
+                    </h3>
                     <p className="uh7-card__subtitle">
                       {localize(isUa, model.subtitle, model.subtitleUk)}
                     </p>
@@ -314,13 +353,30 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
             <div className="uh7-def__hero-overlay" aria-hidden />
             <div className="uh7-def__hero-content">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="uh7-def__widetrack-logo" src={WIDETRACK_LOGO} alt="Widetrack" loading="lazy" />
+              <img
+                className="uh7-def__widetrack-logo"
+                src={WIDETRACK_LOGO}
+                alt="Widetrack"
+                loading="lazy"
+              />
               <h2 className="uh7-def__title">
-                {isUa ? <>Домінування<br />Widetrack</> : <>Widetrack<br />Domination</>}
+                {isUa ? (
+                  <>
+                    Домінування
+                    <br />
+                    Widetrack
+                  </>
+                ) : (
+                  <>
+                    Widetrack
+                    <br />
+                    Domination
+                  </>
+                )}
               </h2>
               <p className="uh7-def__subtitle">
                 {isUa
-                  ? 'Найкращі Defender у світі. Карбонові аеродинамічні пакети, розширені арки та ексклюзивне оздоблення — все виготовлено вручну у Великій Британії.'
+                  ? "Найкращі Defender у світі. Карбонові аеродинамічні пакети, розширені арки та ексклюзивне оздоблення — все виготовлено вручну у Великій Британії."
                   : "The world's finest Defenders. Carbon aero packages, widened arches and bespoke finishing — all hand-built in Great Britain."}
               </p>
               <div className="uh7-def__features">
@@ -332,7 +388,9 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                       <path d="M2 12l10 5 10-5" />
                     </svg>
                   </div>
-                  <span className="uh7-def__feat-text">{isUa ? 'Візуальний карбон' : 'Visual Carbon'}</span>
+                  <span className="uh7-def__feat-text">
+                    {isUa ? "Візуальний карбон" : "Visual Carbon"}
+                  </span>
                 </div>
                 <div className="uh7-def__feat">
                   <div className="uh7-def__feat-icon">
@@ -342,7 +400,9 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                       <path d="M9 21V9" />
                     </svg>
                   </div>
-                  <span className="uh7-def__feat-text">{isUa ? 'Ковані диски' : 'Forged Wheels'}</span>
+                  <span className="uh7-def__feat-text">
+                    {isUa ? "Ковані диски" : "Forged Wheels"}
+                  </span>
                 </div>
                 <div className="uh7-def__feat">
                   <div className="uh7-def__feat-icon">
@@ -351,11 +411,17 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                       <path d="M12 6v6l4 2" />
                     </svg>
                   </div>
-                  <span className="uh7-def__feat-text">{isUa ? 'Ручна збірка' : 'Hand Built'}</span>
+                  <span className="uh7-def__feat-text">{isUa ? "Ручна збірка" : "Hand Built"}</span>
                 </div>
               </div>
-              <Link href={localizeHref(locale, `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`)} className="uh7-def__cta">
-                {isUa ? 'Дослідити Defender' : 'Explore Defender'}
+              <Link
+                href={localizeHref(
+                  locale,
+                  `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`
+                )}
+                className="uh7-def__cta"
+              >
+                {isUa ? "Дослідити Defender" : "Explore Defender"}
                 <svg viewBox="0 0 24 24">
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
@@ -366,23 +432,25 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
           <div className="uh7-def__stats">
             <div className="uh7-def__stat">
               <p className="uh7-def__stat-num">90 / 110 / 130</p>
-              <p className="uh7-def__stat-label">{isUa ? 'Модельний ряд' : 'Model Range'}</p>
+              <p className="uh7-def__stat-label">{isUa ? "Модельний ряд" : "Model Range"}</p>
             </div>
             <div className="uh7-def__stat">
               <p className="uh7-def__stat-num">Widetrack</p>
-              <p className="uh7-def__stat-label">{isUa ? 'Фірмова програма' : 'Signature Programme'}</p>
+              <p className="uh7-def__stat-label">
+                {isUa ? "Фірмова програма" : "Signature Programme"}
+              </p>
             </div>
             <div className="uh7-def__stat">
               <p className="uh7-def__stat-num">Carbon</p>
-              <p className="uh7-def__stat-label">{isUa ? 'Аеро пакет' : 'Aero Package'}</p>
+              <p className="uh7-def__stat-label">{isUa ? "Аеро пакет" : "Aero Package"}</p>
             </div>
             <div className="uh7-def__stat">
               <p className="uh7-def__stat-num">UK</p>
-              <p className="uh7-def__stat-label">{isUa ? 'Виробництво' : 'Hand Built'}</p>
+              <p className="uh7-def__stat-label">{isUa ? "Виробництво" : "Hand Built"}</p>
             </div>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

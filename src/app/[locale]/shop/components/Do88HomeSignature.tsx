@@ -9,7 +9,7 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
   const isUa = locale === "ua";
 
   return (
-    <main className="min-h-[85vh] bg-[#030303] text-white relative flex flex-col items-center justify-center overflow-hidden pb-24 border-b border-[#111]">
+    <main className="dark min-h-[85vh] bg-[#030303] text-foreground relative flex flex-col items-center justify-center overflow-hidden pb-24 border-b border-[#111]">
       {/* Heavy Film Grain */}
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.08] mix-blend-overlay pointer-events-none z-1"></div>
       {/* Animated Cinematic BW Background */}
@@ -27,7 +27,7 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
       <div className="relative z-10 flex flex-col items-center justify-center text-center mt-32 px-4 w-full">
         {/* Eyebrow */}
         <p
-          className="text-[10px] sm:text-[12px] uppercase tracking-[0.3em] text-[#c29d59] mb-6 do88-animate-up do88-text-glow"
+          className="text-[10px] sm:text-[12px] uppercase tracking-[0.3em] text-primary mb-6 do88-animate-up do88-text-glow"
           style={{ animationDelay: "0.05s" }}
         >
           {isUa ? "Преміальні системи охолодження" : "Premium Cooling Systems"}
@@ -35,15 +35,17 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
 
         {/* Hero Title */}
         <h1
-          className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-widest leading-[1.1] mb-8 do88-animate-up text-white/90 drop-shadow-2xl"
+          className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-widest leading-[1.1] mb-8 do88-animate-up text-foreground dark:text-foreground/90 drop-shadow-2xl"
           style={{ animationDelay: "0.1s" }}
         >
           <span className="do88-gradient-text">DO88</span> <br />
-          <span className="font-light tracking-[0.15em] text-white/80">PERFORMANCE</span>
+          <span className="font-light tracking-[0.15em] text-foreground/95 dark:text-foreground/80">
+            PERFORMANCE
+          </span>
         </h1>
 
         <p
-          className="max-w-xl text-white/60 text-sm sm:text-base mb-16 leading-relaxed do88-animate-up"
+          className="max-w-xl text-foreground/75 dark:text-foreground/60 text-sm sm:text-base mb-16 leading-relaxed do88-animate-up"
           style={{ animationDelay: "0.15s" }}
         >
           {isUa
@@ -60,7 +62,7 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
         <div className="mt-16 do88-animate-up" style={{ animationDelay: "0.3s" }}>
           <Link
             href={`/${locale}/shop/do88/collections`}
-            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#c29d59]/70 hover:text-[#c29d59] transition relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-px after:bg-[#c29d59]/20 hover:after:bg-[#c29d59] do88-text-glow"
+            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary/70 hover:text-primary transition relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-px after:bg-primary/20 hover:after:bg-primary do88-text-glow"
           >
             {isUa ? "Або перегляньте всі категорії" : "Or view all categories"}
             <svg

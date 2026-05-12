@@ -350,17 +350,21 @@ export default function OhlinsVehicleFilter({
   const filterControls = (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <div className="relative border border-white/20 transition-colors hover:border-[#c29d59]/50">
+        <div className="relative border border-foreground/25 dark:border-white/20 transition-colors hover:border-[#c29d59]/50">
           <select
             value={activeMake}
             onChange={(e) => onMakeChange(e.target.value)}
-            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden"
+            className="appearance-none w-full rounded-none bg-card dark:bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden"
           >
-            <option value="all" className="bg-[#0a0a0c] font-light text-zinc-500">
+            <option value="all" className="bg-card dark:bg-[#0a0a0c] font-light text-zinc-500">
               {isUa ? "Виберіть Марку" : "Select Make"}
             </option>
             {availableMakes.map((m) => (
-              <option key={m.key} value={m.key} className="bg-[#0a0a0c] text-white">
+              <option
+                key={m.key}
+                value={m.key}
+                className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+              >
                 {m.label} ({m.count})
               </option>
             ))}
@@ -373,8 +377,8 @@ export default function OhlinsVehicleFilter({
         <div
           className={`relative border transition-colors ${
             activeMake === "all"
-              ? "border-white/10 opacity-50"
-              : "border-white/20 hover:border-[#c29d59]/50"
+              ? "border-foreground/15 dark:border-white/10 opacity-50"
+              : "border-foreground/25 dark:border-white/20 hover:border-[#c29d59]/50"
           }`}
         >
           <select
@@ -382,9 +386,9 @@ export default function OhlinsVehicleFilter({
             onChange={(e) => onModelChange(e.target.value)}
             disabled={activeMake === "all" || availableModels.length === 0}
             aria-disabled={activeMake === "all" || availableModels.length === 0}
-            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden disabled:cursor-not-allowed"
+            className="appearance-none w-full rounded-none bg-card dark:bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden disabled:cursor-not-allowed"
           >
-            <option value="" className="bg-[#0a0a0c] font-light text-zinc-500">
+            <option value="" className="bg-card dark:bg-[#0a0a0c] font-light text-zinc-500">
               {activeMake === "all"
                 ? isUa
                   ? "Спочатку марка"
@@ -398,7 +402,11 @@ export default function OhlinsVehicleFilter({
                     : "Select Model"}
             </option>
             {availableModels.map((m) => (
-              <option key={m.name} value={m.name} className="bg-[#0a0a0c] text-white">
+              <option
+                key={m.name}
+                value={m.name}
+                className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+              >
                 {m.name}
               </option>
             ))}
@@ -411,8 +419,8 @@ export default function OhlinsVehicleFilter({
         <div
           className={`relative border transition-colors ${
             !activeModel || availableChassis.length === 0
-              ? "border-white/10 opacity-50"
-              : "border-white/20 hover:border-[#c29d59]/50"
+              ? "border-foreground/15 dark:border-white/10 opacity-50"
+              : "border-foreground/25 dark:border-white/20 hover:border-[#c29d59]/50"
           }`}
         >
           <select
@@ -420,9 +428,9 @@ export default function OhlinsVehicleFilter({
             onChange={(e) => setActiveChassis(e.target.value)}
             disabled={!activeModel || availableChassis.length === 0}
             aria-disabled={!activeModel || availableChassis.length === 0}
-            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden disabled:cursor-not-allowed"
+            className="appearance-none w-full rounded-none bg-card dark:bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden disabled:cursor-not-allowed"
           >
-            <option value="" className="bg-[#0a0a0c] font-light text-zinc-500">
+            <option value="" className="bg-card dark:bg-[#0a0a0c] font-light text-zinc-500">
               {activeMake === "all"
                 ? isUa
                   ? "Спочатку марка"
@@ -440,7 +448,11 @@ export default function OhlinsVehicleFilter({
                       : "Select Chassis"}
             </option>
             {availableChassis.map((code) => (
-              <option key={code} value={code} className="bg-[#0a0a0c] text-white">
+              <option
+                key={code}
+                value={code}
+                className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+              >
                 {code}
               </option>
             ))}
@@ -450,17 +462,21 @@ export default function OhlinsVehicleFilter({
           </div>
         </div>
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#c29d59]/50">
+        <div className="relative border border-foreground/25 dark:border-white/20 transition-colors hover:border-[#c29d59]/50">
           <select
             value={activeCategory}
             onChange={(e) => setActiveCategory(e.target.value)}
-            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden"
+            className="appearance-none w-full rounded-none bg-card dark:bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden"
           >
-            <option value="all" className="bg-[#0a0a0c] font-light text-zinc-500">
+            <option value="all" className="bg-card dark:bg-[#0a0a0c] font-light text-zinc-500">
               {isUa ? "Усі Лінійки" : "All Lines"}
             </option>
             {availableCategories.map((c) => (
-              <option key={c.key} value={c.key} className="bg-[#0a0a0c] text-white">
+              <option
+                key={c.key}
+                value={c.key}
+                className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+              >
                 {isUa ? c.labelUa : c.label} ({c.count})
               </option>
             ))}
@@ -470,7 +486,7 @@ export default function OhlinsVehicleFilter({
           </div>
         </div>
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#c29d59]/50">
+        <div className="relative border border-foreground/25 dark:border-white/20 transition-colors hover:border-[#c29d59]/50">
           <Search
             size={14}
             strokeWidth={1.5}
@@ -481,7 +497,7 @@ export default function OhlinsVehicleFilter({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={isUa ? "Модель, SKU або код шасі..." : "Model, SKU or chassis code..."}
-            className="w-full rounded-none bg-[#0a0a0c] px-12 py-4 text-[11px] font-light tracking-widest text-white outline-hidden placeholder-zinc-500"
+            className="w-full rounded-none bg-card dark:bg-[#0a0a0c] px-12 py-4 text-[11px] font-light tracking-widest text-foreground dark:text-white outline-hidden placeholder-zinc-500"
           />
           {searchQuery ? (
             <button
@@ -495,22 +511,31 @@ export default function OhlinsVehicleFilter({
           ) : null}
         </div>
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#c29d59]/50">
+        <div className="relative border border-foreground/25 dark:border-white/20 transition-colors hover:border-[#c29d59]/50">
           <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
             <SlidersHorizontal size={14} strokeWidth={1.5} />
           </div>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-            className="appearance-none w-full rounded-none bg-[#0a0a0c] py-4 pl-12 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden"
+            className="appearance-none w-full rounded-none bg-card dark:bg-[#0a0a0c] py-4 pl-12 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden"
           >
-            <option value="default" className="bg-[#0a0a0c] text-white">
+            <option
+              value="default"
+              className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+            >
               {isUa ? "За замовчуванням" : "Default Sort"}
             </option>
-            <option value="price_desc" className="bg-[#0a0a0c] text-white">
+            <option
+              value="price_desc"
+              className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+            >
               {isUa ? "Спочатку дорожчі" : "Price: High to Low"}
             </option>
-            <option value="price_asc" className="bg-[#0a0a0c] text-white">
+            <option
+              value="price_asc"
+              className="bg-card dark:bg-[#0a0a0c] text-foreground dark:text-white"
+            >
               {isUa ? "Спочатку дешевші" : "Price: Low to High"}
             </option>
           </select>
@@ -530,7 +555,7 @@ export default function OhlinsVehicleFilter({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="uppercase tracking-widest transition-colors hover:text-white"
+                className="uppercase tracking-widest transition-colors hover:text-foreground dark:hover:text-white"
                 style={{ color: GOLD }}
               >
                 {isUa ? "Скинути" : "Reset"}
@@ -544,7 +569,7 @@ export default function OhlinsVehicleFilter({
 
   return (
     <section
-      className="bg-transparent text-white py-12 min-h-[90dvh] relative z-10 font-sans overflow-hidden"
+      className="bg-transparent text-foreground dark:text-white py-12 min-h-[90dvh] relative z-10 font-sans overflow-hidden"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
       {/* Top Gold Glow */}
@@ -563,7 +588,7 @@ export default function OhlinsVehicleFilter({
               onClick={toggleMobileFilter}
               aria-expanded={mobileFilterOpen}
               aria-controls="ohlins-mobile-filters"
-              className="flex items-center gap-2.5 border border-white/[0.14] bg-[#0a0a0c]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-[#c29d59]/45"
+              className="flex items-center gap-2.5 border border-white/[0.14] bg-card/92 dark:bg-[#0a0a0c]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground dark:text-white transition-colors hover:border-[#c29d59]/45"
             >
               <SlidersHorizontal size={13} />
               {isUa ? "Фільтри" : "Filters"}
@@ -584,21 +609,21 @@ export default function OhlinsVehicleFilter({
               />
               <div
                 id="ohlins-mobile-filters"
-                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] overflow-y-auto border-r border-white/10 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl lg:hidden"
+                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] overflow-y-auto border-r border-foreground/15 dark:border-white/10 bg-card dark:bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl lg:hidden"
               >
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center justify-between border-b border-foreground/15 dark:border-white/10 pb-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.26em]" style={{ color: GOLD }}>
                       Ohlins
                     </p>
-                    <h2 className="mt-2 text-lg font-light uppercase tracking-[0.08em] text-white">
+                    <h2 className="mt-2 text-lg font-light uppercase tracking-[0.08em] text-foreground dark:text-white">
                       {isUa ? "Фільтри" : "Filters"}
                     </h2>
                   </div>
                   <button
                     type="button"
                     onClick={closeMobileFilter}
-                    className="p-2 text-zinc-500 transition-colors hover:text-white"
+                    className="p-2 text-zinc-500 transition-colors hover:text-foreground dark:hover:text-white"
                     aria-label="Close filters"
                   >
                     <X size={16} />
@@ -612,7 +637,7 @@ export default function OhlinsVehicleFilter({
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
           <div className="relative z-30 mb-8 hidden w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
-              <h2 className="text-2xl lg:text-3xl font-light tracking-wider uppercase text-white/90">
+              <h2 className="text-2xl lg:text-3xl font-light tracking-wider uppercase text-foreground/95 dark:text-white/90">
                 {isUa ? "ЗНАЙДІТЬ СВОЮ ПІДВІСКУ" : "FIND YOUR SUSPENSION"}
               </h2>
               <p
@@ -629,14 +654,14 @@ export default function OhlinsVehicleFilter({
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
           <main className="w-full">
             {filtered.length === 0 ? (
-              <div className="flex flex-col items-center border border-zinc-900 bg-[#111] px-5 py-24 text-center shadow-2xl sm:px-8">
+              <div className="flex flex-col items-center border border-zinc-900 bg-card dark:bg-[#111] px-5 py-24 text-center shadow-2xl sm:px-8">
                 <div
-                  className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5"
+                  className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5"
                   style={{ boxShadow: `0 0 30px ${GOLD_DIM}` }}
                 >
                   <Search className="w-8 h-8" style={{ color: `${GOLD}80` }} />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3 tracking-tight">
                   {isUa ? "Нічого не знайдено" : "No Components Found"}
                 </h3>
                 <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
@@ -666,7 +691,7 @@ export default function OhlinsVehicleFilter({
                         {alternativeMatches.length} {isUa ? "збігів" : "matches"}
                       </p>
                     </div>
-                    <div className="border-y border-white/10">
+                    <div className="border-y border-foreground/15 dark:border-white/10">
                       {alternativeMatches.map((item) => {
                         const alternativeTitle =
                           item.title[locale] || item.title.en || item.title.ua;
@@ -674,7 +699,7 @@ export default function OhlinsVehicleFilter({
                           <Link
                             key={item.slug}
                             href={item.href}
-                            className="grid min-h-[88px] grid-cols-[64px_1fr] items-center gap-4 border-b border-white/10 py-4 transition-colors last:border-b-0 hover:bg-white/3 sm:grid-cols-[72px_1fr_auto]"
+                            className="grid min-h-[88px] grid-cols-[64px_1fr] items-center gap-4 border-b border-foreground/15 dark:border-white/10 py-4 transition-colors last:border-b-0 hover:bg-foreground/5 dark:hover:bg-white/3 sm:grid-cols-[72px_1fr_auto]"
                           >
                             <div className="relative h-16 w-16 overflow-hidden bg-black/50">
                               {item.image ? (
@@ -685,7 +710,7 @@ export default function OhlinsVehicleFilter({
                                   style={{ backgroundImage: `url(${item.image})` }}
                                 />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center border border-white/5 text-[10px] uppercase tracking-[0.16em] text-zinc-500">
+                                <div className="flex h-full w-full items-center justify-center border border-foreground/12 dark:border-white/5 text-[10px] uppercase tracking-[0.16em] text-zinc-500">
                                   {item.brand.slice(0, 3)}
                                 </div>
                               )}
@@ -740,7 +765,7 @@ export default function OhlinsVehicleFilter({
                   return (
                     <article
                       key={product.slug}
-                      className="group relative bg-[#0a0a0c] rounded-none flex flex-col border border-white/5 hover:border-white/20 transition-all duration-500 shadow-xl"
+                      className="group relative bg-card dark:bg-[#0a0a0c] rounded-none flex flex-col border border-foreground/12 dark:border-white/5 hover:border-foreground/25 dark:hover:border-white/20 transition-all duration-500 shadow-xl"
                     >
                       {/* Category Badge */}
                       {category && (
@@ -765,7 +790,7 @@ export default function OhlinsVehicleFilter({
                         className="flex flex-col grow z-10"
                       >
                         {/* Square Image Canvas */}
-                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-[#080809] border-b border-white/5">
+                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-[#080809] border-b border-foreground/12 dark:border-white/5">
                           {product.image ? (
                             <div className="absolute inset-0 p-8">
                               <Image
@@ -802,13 +827,13 @@ export default function OhlinsVehicleFilter({
                               {make}
                             </p>
                           )}
-                          <h3 className="text-sm font-light leading-relaxed text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors h-10">
+                          <h3 className="text-sm font-light leading-relaxed text-zinc-300 line-clamp-2 mb-4 group-hover:text-foreground dark:group-hover:text-white transition-colors h-10">
                             {productTitle}
                           </h3>
 
                           {/* Price */}
                           <div className="mt-auto pt-2 pb-4">
-                            <span className="text-lg tracking-widest font-thin text-white">
+                            <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
                               {priceData ? priceData.primary : isUa ? "ОЧІКУЄТЬСЯ" : "PENDING"}
                             </span>
                             {priceData && (
@@ -844,7 +869,7 @@ export default function OhlinsVehicleFilter({
                       <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
                         <Link
                           href={`/${locale}/shop/ohlins/products/${product.slug}`}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 border text-[10px] tracking-[0.3em] uppercase font-light hover:text-white transition-all duration-300 rounded-[2px]"
+                          className="flex-1 flex items-center justify-center gap-2 py-3 border text-[10px] tracking-[0.3em] uppercase font-light hover:text-foreground dark:hover:text-white transition-all duration-300 rounded-[2px]"
                           style={{
                             borderColor: `${GOLD}50`,
                             color: GOLD,
@@ -871,7 +896,7 @@ export default function OhlinsVehicleFilter({
                           productName={productTitle}
                           label={isUa ? "КОШИК" : "CART"}
                           labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          className="flex-1 flex items-center justify-center py-3 border border-foreground/15 dark:border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-foreground dark:text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                           variant="inline"
                         />
                       </div>
@@ -886,7 +911,7 @@ export default function OhlinsVehicleFilter({
               <div className="mt-16 flex justify-center w-full relative z-30">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 30)}
-                  className="px-12 py-4 border border-white/20 text-white text-[11px] tracking-[0.3em] uppercase font-light transition-all duration-300 rounded-[2px]"
+                  className="px-12 py-4 border border-foreground/25 dark:border-white/20 text-foreground dark:text-white text-[11px] tracking-[0.3em] uppercase font-light transition-all duration-300 rounded-[2px]"
                   style={{ boxShadow: `0 0 20px ${GOLD_DIM}` }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = GOLD;

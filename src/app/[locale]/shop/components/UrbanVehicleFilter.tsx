@@ -205,27 +205,27 @@ function PremiumCombobox({
         aria-controls={listboxId}
         className={`flex min-h-[58px] w-full items-center justify-between gap-4 rounded-[10px] px-4 py-3 text-left transition duration-300 ${
           open
-            ? "bg-white/[0.07] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] backdrop-blur-md"
-            : "bg-transparent hover:bg-white/4"
+            ? "bg-foreground/[0.007] dark:bg-white/[0.07] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] backdrop-blur-md"
+            : "bg-transparent hover:bg-foreground/6 dark:hover:bg-white/4"
         }`}
       >
         <span className="min-w-0">
-          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-white/40">
+          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/55 dark:text-white/40">
             {label}
           </span>
           <span
-            className={`mt-0.5 block truncate text-[14px] font-medium ${selectedOption ? "text-white" : "text-white/60"}`}
+            className={`mt-0.5 block truncate text-[14px] font-medium ${selectedOption ? "text-foreground dark:text-white" : "text-foreground/75 dark:text-white/60"}`}
           >
             {selectedOption?.label ?? placeholder}
           </span>
         </span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-white/45 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-foreground/60 dark:text-white/45 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-70 overflow-hidden rounded-[14px] border border-white/12 bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-70 overflow-hidden rounded-[14px] border border-foreground/18 dark:border-white/12 bg-card/95 dark:bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
           <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
             <button
               type="button"
@@ -235,8 +235,8 @@ function PremiumCombobox({
               }}
               className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                 value === "all"
-                  ? "bg-white/8 text-white"
-                  : "text-white/72 hover:bg-white/4 hover:text-white"
+                  ? "bg-foreground/10 dark:bg-white/8 text-foreground dark:text-white"
+                  : "text-foreground/85 dark:text-white/72 hover:bg-foreground/6 dark:hover:bg-white/4 hover:text-foreground dark:hover:text-white"
               }`}
             >
               {allLabel}
@@ -246,7 +246,7 @@ function PremiumCombobox({
               groups.map((group) => (
                 <div key={group.label ?? "group"} className="mt-2">
                   {group.label ? (
-                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/28">
+                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-foreground/42 dark:text-white/28">
                       {group.label}
                     </p>
                   ) : null}
@@ -261,8 +261,8 @@ function PremiumCombobox({
                         }}
                         className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                           value === option.value
-                            ? "bg-white/8 text-white"
-                            : "text-white/72 hover:bg-white/4 hover:text-white"
+                            ? "bg-foreground/10 dark:bg-white/8 text-foreground dark:text-white"
+                            : "text-foreground/85 dark:text-white/72 hover:bg-foreground/6 dark:hover:bg-white/4 hover:text-foreground dark:hover:text-white"
                         }`}
                       >
                         {option.label}
@@ -272,7 +272,9 @@ function PremiumCombobox({
                 </div>
               ))
             ) : (
-              <div className="px-4 py-8 text-sm text-white/45">{allLabel}</div>
+              <div className="px-4 py-8 text-sm text-foreground/60 dark:text-white/45">
+                {allLabel}
+              </div>
             )}
           </div>
         </div>
@@ -334,10 +336,12 @@ function ProductCard({
   return (
     <article
       className={`group flex h-full flex-col overflow-hidden rounded-[14px] border backdrop-blur-md ${
-        featured ? "border-white/18 bg-[#0b0b0b]" : "border-white/10 bg-white/[0.018]"
-      } shadow-[0_18px_56px_rgba(0,0,0,0.24)] transition duration-500 hover:-translate-y-1 hover:border-white/28 hover:bg-white/[0.035] hover:shadow-[0_26px_72px_rgba(0,0,0,0.62)]`}
+        featured
+          ? "border-foreground/22 dark:border-white/18 bg-card dark:bg-[#0b0b0b]"
+          : "border-foreground/15 dark:border-white/10 bg-foreground/[0.0018] dark:bg-white/[0.018]"
+      } shadow-[0_18px_56px_rgba(0,0,0,0.24)] transition duration-500 hover:-translate-y-1 hover:border-foreground/32 dark:hover:border-white/28 hover:bg-foreground/[0.0035] dark:hover:bg-white/[0.035] hover:shadow-[0_26px_72px_rgba(0,0,0,0.62)]`}
     >
-      <div className="relative aspect-16/11 overflow-hidden border-b border-white/10 bg-[#050505]">
+      <div className="relative aspect-16/11 overflow-hidden border-b border-foreground/15 dark:border-white/10 bg-card dark:bg-[#050505]">
         <Image
           src={productImage}
           alt={entry.title}
@@ -346,14 +350,15 @@ function ProductCard({
           className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
+        {/* Badges sit on dark-glass over the product photo — always white-on-dark, both themes */}
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {featured ? (
-            <span className="border border-white/20 bg-black/45 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/82 backdrop-blur-md">
+            <span className="border border-white/25 bg-black/55 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/95 backdrop-blur-md">
               {isUa ? "Urban programme" : "Urban programme"}
             </span>
           ) : null}
           {entry.isBodykit ? (
-            <span className="border border-white/14 bg-black/35 px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] text-white/62 backdrop-blur-md">
+            <span className="border border-white/20 bg-black/45 px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] text-white/85 backdrop-blur-md">
               {isUa ? "Повний комплект" : "Complete kit"}
             </span>
           ) : null}
@@ -361,22 +366,24 @@ function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[0.2em] text-white/42">
+        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[0.2em] text-foreground/58 dark:text-white/42">
           <span>{entry.brand}</span>
-          <span className="text-white/20">•</span>
+          <span className="text-foreground/35 dark:text-white/20">•</span>
           <span>{entry.modelSummaryLabel}</span>
         </div>
 
         <Link href={productUrl} className="mt-3 block">
-          <h3 className="line-clamp-2 min-h-[2.8rem] text-[18px] font-medium leading-tight text-white transition duration-200 group-hover:text-white">
+          <h3 className="line-clamp-2 min-h-[2.8rem] text-[18px] font-medium leading-tight text-foreground dark:text-white transition duration-200 group-hover:text-foreground dark:group-hover:text-white">
             {entry.title}
           </h3>
         </Link>
 
         <div className="mt-2 space-y-1.5">
-          <p className="line-clamp-1 text-sm leading-6 text-white/58">{entry.categoryLabel}</p>
+          <p className="line-clamp-1 text-sm leading-6 text-foreground/72 dark:text-white/58">
+            {entry.categoryLabel}
+          </p>
           {entry.product.sku ? (
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/32">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/48 dark:text-white/32">
               SKU {entry.product.sku}
             </p>
           ) : null}
@@ -386,11 +393,11 @@ function ProductCard({
           <div className="flex items-end justify-between gap-4">
             <div>
               {compareAmount > currentAmount && compareAmount > 0 ? (
-                <p className="text-xs text-white/35 line-through">
+                <p className="text-xs text-foreground/50 dark:text-white/35 line-through">
                   {formatDisplayPrice(locale, currency, computedCompare!)}
                 </p>
               ) : null}
-              <p className="mt-1 text-[20px] font-medium tracking-tight text-white">
+              <p className="mt-1 text-[20px] font-medium tracking-tight text-foreground dark:text-white">
                 {hasPrice
                   ? formatDisplayPrice(locale, currency, computedPrice)
                   : isUa
@@ -401,7 +408,9 @@ function ProductCard({
             {SHOW_STOCK_BADGE ? (
               <span
                 className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                  entry.product.stock === "inStock" ? "text-white/58" : "text-white/45"
+                  entry.product.stock === "inStock"
+                    ? "text-foreground/72 dark:text-white/58"
+                    : "text-foreground/60 dark:text-white/45"
                 }`}
               >
                 {availability}
@@ -412,7 +421,7 @@ function ProductCard({
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href={productUrl}
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/14 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/72 transition hover:border-white/32 hover:text-white"
+              className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-foreground/18 dark:border-white/14 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-foreground/85 dark:text-white/72 transition hover:border-foreground/38 dark:hover:border-white/32 hover:text-foreground dark:hover:text-white"
             >
               {isUa ? "Деталі" : "Details"}
             </Link>
@@ -423,14 +432,14 @@ function ProductCard({
                 redirect
                 variant="inline"
                 productName={entry.title}
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-[#f3f0e8] px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-black transition hover:bg-white"
+                className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-foreground dark:bg-[#f3f0e8] px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-background dark:text-black transition hover:bg-foreground/85 dark:hover:bg-white"
                 label={isUa ? "Замовити" : "Order"}
                 labelAdded={isUa ? "У кошику" : "In cart"}
               />
             ) : (
               <Link
                 href={`/${locale}/contact`}
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/18 bg-white/4 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/78 transition hover:border-white/32 hover:bg-white/[0.07]"
+                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-foreground/22 dark:border-white/18 bg-foreground/6 dark:bg-white/4 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-foreground/88 dark:text-white/78 transition hover:border-foreground/38 dark:hover:border-white/32 hover:bg-foreground/[0.007] dark:hover:bg-white/[0.07]"
               >
                 {isUa ? "Запитати комплект" : "Request"}
               </Link>
@@ -801,28 +810,28 @@ export default function UrbanVehicleFilter({
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="mb-8 flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
+        <div className="mb-8 flex flex-col items-start justify-between gap-6 border-b border-foreground/15 dark:border-white/10 pb-8 md:flex-row md:items-end">
           <div>
-            <p className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45">
-              <span className="h-px w-8 bg-white/35" />
+            <p className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/60 dark:text-white/45">
+              <span className="h-px w-8 bg-foreground/38 dark:bg-white/35" />
               Urban Automotive
             </p>
-            <h1 className="mt-4 text-balance text-4xl font-light tracking-tight text-white drop-shadow-md sm:text-5xl">
+            <h1 className="mt-4 text-balance text-4xl font-light tracking-tight text-foreground dark:text-white drop-shadow-md sm:text-5xl">
               {isUa ? "Каталог Urban" : "Urban Catalog"}
             </h1>
           </div>
-          <div className="inline-flex items-center justify-center border border-white/12 bg-white/[0.035] px-4 py-2 text-xs font-medium uppercase tracking-[0.15em] text-white/62">
+          <div className="inline-flex items-center justify-center border border-foreground/18 dark:border-white/12 bg-foreground/[0.0035] dark:bg-white/[0.035] px-4 py-2 text-xs font-medium uppercase tracking-[0.15em] text-foreground/78 dark:text-white/62">
             {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
           </div>
         </div>
 
-        <div className="relative z-50 mb-12 rounded-[16px] border border-white/10 bg-[#070707]/78 p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.34)]">
+        <div className="relative z-50 mb-12 rounded-[16px] border border-foreground/15 dark:border-white/10 bg-card/78 dark:bg-[#070707]/78 p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.34)]">
           <div className="mb-3">
             <label className="relative block">
               <span className="sr-only">
                 {isUa ? "Пошук по каталогу Urban" : "Search Urban catalog"}
               </span>
-              <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+              <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/60 dark:text-white/45" />
               <input
                 type="search"
                 value={searchQuery}
@@ -830,7 +839,7 @@ export default function UrbanVehicleFilter({
                 placeholder={
                   isUa ? "Пошук за моделлю, деталлю або SKU" : "Search by model, part, or SKU"
                 }
-                className="min-h-[58px] w-full rounded-[10px] border border-white/10 bg-black/30 px-12 pr-5 text-sm text-white outline-hidden transition placeholder:text-white/32 focus:border-white/25 focus:bg-black/45"
+                className="min-h-[58px] w-full rounded-[10px] border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-black/30 px-12 pr-5 text-sm text-foreground dark:text-white outline-hidden transition placeholder:text-foreground/48 dark:placeholder:text-white/32 focus:border-foreground/30 dark:focus:border-white/25 focus:bg-foreground/8 dark:focus:bg-black/45"
               />
             </label>
           </div>
@@ -871,7 +880,7 @@ export default function UrbanVehicleFilter({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="flex min-h-[60px] items-center justify-center gap-2 rounded-[16px] bg-white/2 px-6 text-xs font-semibold uppercase tracking-widest text-white/50 transition duration-300 hover:bg-[#c29d59]/15 hover:text-[#ead29d] hover:shadow-[0_0_20px_rgba(194,157,89,0.15)]"
+                className="flex min-h-[60px] items-center justify-center gap-2 rounded-[16px] bg-foreground/4 dark:bg-white/2 px-6 text-xs font-semibold uppercase tracking-widest text-foreground/65 dark:text-white/50 transition duration-300 hover:bg-[#c29d59]/15 hover:text-[#ead29d] hover:shadow-[0_0_20px_rgba(194,157,89,0.15)]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span className="hidden xl:block">{isUa ? "Скинути" : "Reset"}</span>
@@ -880,12 +889,12 @@ export default function UrbanVehicleFilter({
           </div>
 
           {hasActiveFilters ? (
-            <div className="mx-3 mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-4">
+            <div className="mx-3 mt-3 flex flex-wrap items-center gap-2 border-t border-foreground/12 dark:border-white/5 pt-4">
               {searchQuery.trim() ? (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="inline-flex items-center gap-2 rounded-[999px] border border-white/14 bg-white/4 px-3 py-1.5 text-xs text-white/72 transition hover:border-white/25 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-[999px] border border-foreground/18 dark:border-white/14 bg-foreground/6 dark:bg-white/4 px-3 py-1.5 text-xs text-foreground/85 dark:text-white/72 transition hover:border-foreground/30 dark:hover:border-white/25 hover:text-foreground dark:hover:text-white"
                 >
                   <span>{searchQuery.trim()}</span>
                   <X className="h-3 w-3" />
@@ -895,7 +904,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveBrand("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/3 px-3 py-1.5 text-xs text-foreground/75 dark:text-white/60 transition hover:border-foreground/25 dark:hover:border-white/20 hover:text-foreground dark:hover:text-white"
                 >
                   <span>{currentBrandLabel}</span>
                   <X className="h-3 w-3" />
@@ -905,7 +914,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveModel("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/3 px-3 py-1.5 text-xs text-foreground/75 dark:text-white/60 transition hover:border-foreground/25 dark:hover:border-white/20 hover:text-foreground dark:hover:text-white"
                 >
                   <span>{currentModelLabel}</span>
                   <X className="h-3 w-3" />
@@ -915,7 +924,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveFamily("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/3 px-3 py-1.5 text-xs text-foreground/75 dark:text-white/60 transition hover:border-foreground/25 dark:hover:border-white/20 hover:text-foreground dark:hover:text-white"
                 >
                   <span>
                     {isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}
@@ -927,7 +936,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={() => setActiveCategory("all")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/3 px-3 py-1.5 text-xs text-foreground/75 dark:text-white/60 transition hover:border-foreground/25 dark:hover:border-white/20 hover:text-foreground dark:hover:text-white"
                 >
                   <span>{currentCategoryLabel}</span>
                   <X className="h-3 w-3" />
@@ -938,8 +947,8 @@ export default function UrbanVehicleFilter({
         </div>
 
         {filteredProducts.length === 0 ? (
-          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/3 p-8 text-center">
-            <h3 className="text-2xl font-semibold text-white">
+          <div className="mt-8 rounded-[28px] border border-foreground/15 dark:border-white/10 bg-foreground/5 dark:bg-white/3 p-8 text-center">
+            <h3 className="text-2xl font-semibold text-foreground dark:text-white">
               {isUa ? "Нічого не знайдено" : "No matching products"}
             </h3>
             <button
@@ -953,11 +962,11 @@ export default function UrbanVehicleFilter({
         ) : activeFamily === "all" && activeCategory === "all" && featuredBodykits.length > 0 ? (
           <div className="mt-8 space-y-10">
             <section>
-              <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
+              <div className="mb-5 flex items-center justify-between border-b border-foreground/15 dark:border-white/10 pb-3">
+                <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-foreground/85 dark:text-white/72">
                   {isUa ? "Програми" : "Programmes"}
                 </h3>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-foreground/50 dark:text-white/35">
                   {featuredBodykits.length} /{" "}
                   {filteredProducts.filter((entry) => entry.family === "bodykits").length}
                 </span>
@@ -979,11 +988,11 @@ export default function UrbanVehicleFilter({
 
             {componentProducts.length > 0 ? (
               <section>
-                <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3">
-                  <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
+                <div className="mb-5 flex items-center justify-between border-b border-foreground/15 dark:border-white/10 pb-3">
+                  <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-foreground/85 dark:text-white/72">
                     {isUa ? "Компоненти" : "Components"}
                   </h3>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-foreground/50 dark:text-white/35">
                     {componentProducts.length} /{" "}
                     {filteredProducts.filter((entry) => entry.family !== "bodykits").length}
                   </span>
@@ -1027,7 +1036,7 @@ export default function UrbanVehicleFilter({
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 text-xs font-semibold uppercase tracking-[0.18em] text-[#ead29d] transition hover:border-[#c29d59]/60 hover:bg-[#c29d59]/18"
             >
               {isUa ? "Показати ще" : "Load more"}
-              <span className="ml-3 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/70">
+              <span className="ml-3 rounded-full bg-foreground/12 dark:bg-white/10 px-2 py-0.5 text-[10px] text-foreground/85 dark:text-white/70">
                 {Math.min(PAGE_SIZE, remainingCount)} / {remainingCount}
               </span>
             </button>

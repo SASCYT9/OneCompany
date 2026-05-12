@@ -372,33 +372,42 @@ export default function RacechipVehicleFilter({
           onChange={(v) => setActiveEngine(v || "all")}
         />
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50 self-end">
-          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
+        <div className="relative border border-foreground/25 dark:border-white/20 transition-colors hover:border-[#ff4a00]/50 self-end">
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-foreground/55 dark:text-zinc-500">
             <SlidersHorizontal size={14} strokeWidth={1.5} />
           </div>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-            className="appearance-none w-full h-11.5 rounded-none bg-[#080808] pl-12 pr-10 text-[11px] font-light uppercase tracking-widest text-white outline-hidden"
+            className="appearance-none w-full h-11.5 rounded-none bg-card dark:bg-[#080808] pl-12 pr-10 text-[11px] font-light uppercase tracking-widest text-foreground dark:text-white outline-hidden"
           >
-            <option value="default" className="bg-[#080808] text-white">
+            <option
+              value="default"
+              className="bg-card dark:bg-[#080808] text-foreground dark:text-white"
+            >
               {isUa ? "За замовчуванням" : "Default Sort"}
             </option>
-            <option value="price_desc" className="bg-[#080808] text-white">
+            <option
+              value="price_desc"
+              className="bg-card dark:bg-[#080808] text-foreground dark:text-white"
+            >
               {isUa ? "Спочатку дорожчі" : "Price: High to Low"}
             </option>
-            <option value="price_asc" className="bg-[#080808] text-white">
+            <option
+              value="price_asc"
+              className="bg-card dark:bg-[#080808] text-foreground dark:text-white"
+            >
               {isUa ? "Спочатку дешевші" : "Price: Low to High"}
             </option>
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-foreground/55 dark:text-zinc-500">
             <ChevronDown size={14} strokeWidth={1.5} />
           </div>
         </div>
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <p className="text-[10px] font-light tracking-widest text-zinc-500 sm:text-xs">
+        <p className="text-[10px] font-light tracking-widest text-foreground/55 dark:text-zinc-500 sm:text-xs">
           {filtered.length}{" "}
           {isUa
             ? `результат${filtered.length === 1 ? "" : filtered.length < 5 ? "и" : "ів"}`
@@ -410,7 +419,7 @@ export default function RacechipVehicleFilter({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-[#ff4a00] uppercase tracking-widest transition-colors hover:text-white"
+                className="text-[#ff4a00] uppercase tracking-widest transition-colors hover:text-foreground dark:hover:text-white"
               >
                 {isUa ? "Скинути" : "Reset"}
               </button>
@@ -424,7 +433,7 @@ export default function RacechipVehicleFilter({
   if (!mounted) return null;
 
   return (
-    <section className="bg-transparent text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[#ff4a00] selection:text-white font-sans overflow-hidden">
+    <section className="bg-transparent text-foreground dark:text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[#ff4a00] selection:text-foreground dark:text-white font-sans overflow-hidden">
       {/* Top Right Orange Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,74,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
 
@@ -436,7 +445,7 @@ export default function RacechipVehicleFilter({
               onClick={toggleMobileFilter}
               aria-expanded={mobileFilterOpen}
               aria-controls="racechip-mobile-filters"
-              className="flex items-center gap-2.5 border border-white/[0.14] bg-[#080808]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-[#ff4a00]/45"
+              className="flex items-center gap-2.5 border border-white/[0.14] bg-card/92 dark:bg-[#080808]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground dark:text-white transition-colors hover:border-[#ff4a00]/45"
             >
               <SlidersHorizontal size={13} />
               {isUa ? "Фільтри" : "Filters"}
@@ -444,7 +453,7 @@ export default function RacechipVehicleFilter({
                 <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#ff4a00]" />
               ) : null}
             </button>
-            <p className="text-xs tracking-wide text-zinc-500">
+            <p className="text-xs tracking-wide text-foreground/55 dark:text-zinc-500">
               {filtered.length} {isUa ? "результатів" : "results"}
             </p>
           </div>
@@ -457,21 +466,21 @@ export default function RacechipVehicleFilter({
               />
               <div
                 id="racechip-mobile-filters"
-                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] overflow-y-auto border-r border-white/10 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl lg:hidden"
+                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] overflow-y-auto border-r border-foreground/15 dark:border-white/10 bg-card dark:bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl lg:hidden"
               >
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center justify-between border-b border-foreground/15 dark:border-white/10 pb-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.26em] text-[#ff4a00]">
                       RaceChip
                     </p>
-                    <h2 className="mt-2 text-lg font-light uppercase tracking-[0.08em] text-white">
+                    <h2 className="mt-2 text-lg font-light uppercase tracking-[0.08em] text-foreground dark:text-white">
                       {isUa ? "Фільтри" : "Filters"}
                     </h2>
                   </div>
                   <button
                     type="button"
                     onClick={closeMobileFilter}
-                    className="p-2 text-zinc-500 transition-colors hover:text-white"
+                    className="p-2 text-foreground/55 dark:text-zinc-500 transition-colors hover:text-foreground dark:hover:text-white"
                     aria-label="Close filters"
                   >
                     <X size={16} />
@@ -483,12 +492,12 @@ export default function RacechipVehicleFilter({
           ) : null}
 
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
-          <div className="relative z-30 mb-8 hidden max-w-7xl mx-auto w-full lg:block">
+          <div className="relative z-[100] mb-8 hidden max-w-7xl mx-auto w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
-              <h2 className="text-2xl lg:text-3xl font-light tracking-wider uppercase text-white/90">
+              <h2 className="text-2xl lg:text-3xl font-light tracking-wider uppercase text-foreground/95 dark:text-white/90">
                 {isUa ? "НАЛАШТУЙТЕ СВІЙ АВТОМОБІЛЬ" : "CONFIGURE YOUR VEHICLE"}
               </h2>
-              <p className="mt-3 text-[10px] tracking-[0.3em] uppercase text-zinc-500 font-light flex items-center gap-2">
+              <p className="mt-3 text-[10px] tracking-[0.3em] uppercase text-foreground/55 dark:text-zinc-500 font-light flex items-center gap-2">
                 <Zap size={11} strokeWidth={2} className="text-[#ff4a00]" />
                 GTS 5 + App Control
               </p>
@@ -499,21 +508,21 @@ export default function RacechipVehicleFilter({
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
           <main className="w-full">
             {filtered.length === 0 ? (
-              <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
-                <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">
+              <div className="py-32 text-center bg-card dark:bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
+                <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">
                   <Search className="w-8 h-8 text-[#ff4a00]/50" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3 tracking-tight">
                   {isUa ? "Нічого не знайдено" : "No Components Found"}
                 </h3>
-                <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                <p className="text-foreground/55 dark:text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
                   {isUa
                     ? "Компоненти для цієї комбінації відсутні."
                     : "Components for this combination are currently unavailable."}
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="px-8 py-3.5 bg-white text-black text-[12px] uppercase tracking-widest hover:bg-[#ff4a00] hover:text-white transition-colors shadow-lg font-bold rounded-lg"
+                  className="px-8 py-3.5 bg-white text-black text-[12px] uppercase tracking-widest hover:bg-[#ff4a00] hover:text-foreground dark:hover:text-white transition-colors shadow-lg font-bold rounded-lg"
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}
                 </button>
@@ -530,7 +539,7 @@ export default function RacechipVehicleFilter({
                   return (
                     <article
                       key={product.slug}
-                      className="group relative bg-[#080808] rounded-none flex flex-col border border-white/5 hover:border-white/20 transition-all duration-500 shadow-xl"
+                      className="group relative bg-card dark:bg-[#080808] rounded-none flex flex-col border border-foreground/12 dark:border-white/5 hover:border-foreground/25 dark:hover:border-white/20 transition-all duration-500 shadow-xl"
                     >
                       {/* Static GTS 5 Badge — all products are GTS 5 tier */}
                       <div className="absolute top-4 right-4 z-20">
@@ -546,7 +555,7 @@ export default function RacechipVehicleFilter({
                         className="flex flex-col grow z-10"
                       >
                         {/* Square Image Canvas */}
-                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-[#0a0a0a] border-b border-white/5">
+                        <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center bg-card dark:bg-[#0a0a0a] border-b border-foreground/12 dark:border-white/5">
                           {product.image ? (
                             <div className="absolute inset-0 p-8">
                               <Image
@@ -554,12 +563,12 @@ export default function RacechipVehicleFilter({
                                 alt={productTitle}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-contain opacity-80 transition-transform group-hover:scale-105 group-hover:opacity-100 mix-blend-screen"
+                                className="object-contain transition-transform group-hover:scale-105 dark:opacity-80 dark:group-hover:opacity-100 dark:mix-blend-screen"
                                 style={{ transitionDuration: "1s" }}
                               />
                             </div>
                           ) : (
-                            <div className="w-16 h-16 opacity-20 text-white">
+                            <div className="w-16 h-16 opacity-20 text-foreground dark:text-white">
                               <svg
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -586,44 +595,44 @@ export default function RacechipVehicleFilter({
                         {/* Card Body */}
                         <div className="px-6 pt-6 pb-2 flex flex-col grow">
                           {engineTag && (
-                            <p className="text-[9px] uppercase tracking-[0.2em] font-light text-zinc-500 mb-2 line-clamp-1">
+                            <p className="text-[9px] uppercase tracking-[0.2em] font-light text-foreground/55 dark:text-zinc-500 mb-2 line-clamp-1">
                               {formatRacechipEngine(engineTag)}
                             </p>
                           )}
-                          <h3 className="text-sm font-light leading-relaxed text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors h-10">
+                          <h3 className="text-sm font-light leading-relaxed text-foreground/85 dark:text-zinc-300 line-clamp-2 mb-4 group-hover:text-foreground dark:group-hover:text-white transition-colors h-10">
                             {productTitle}
                           </h3>
 
                           {/* Dynamic Engine Specs Card Preview */}
                           {product.longDescription?.en &&
                             product.longDescription.en.includes("Original Power") && (
-                              <div className="mb-6 grid grid-cols-2 gap-4 border-t border-b border-white/5 py-3">
+                              <div className="mb-6 grid grid-cols-2 gap-4 border-t border-b border-foreground/12 dark:border-white/5 py-3">
                                 <div>
-                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">
+                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-foreground/40 dark:text-zinc-600 mb-1">
                                     Power
                                   </span>
-                                  <span className="text-xs font-light text-zinc-400">
+                                  <span className="text-xs font-light text-foreground/70 dark:text-zinc-400">
                                     {product.longDescription.en.match(
                                       /Original Power:<\/strong> (.*?) ->/
                                     )?.[1] || "---"}
                                     <span className="text-[#ff4a00] mx-1">→</span>
-                                    <span className="text-white">
+                                    <span className="text-foreground dark:text-white">
                                       {product.longDescription.en.match(
                                         /Tuned Power:<\/strong> (.*?)<\/li>/
                                       )?.[1] || "---"}
                                     </span>
                                   </span>
                                 </div>
-                                <div className="border-l border-white/5 pl-4">
-                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-zinc-600 mb-1">
+                                <div className="border-l border-foreground/12 dark:border-white/5 pl-4">
+                                  <span className="block text-[8px] uppercase tracking-[0.3em] font-light text-foreground/40 dark:text-zinc-600 mb-1">
                                     Torque
                                   </span>
-                                  <span className="text-xs font-light text-zinc-400">
+                                  <span className="text-xs font-light text-foreground/70 dark:text-zinc-400">
                                     {product.longDescription.en.match(
                                       /Original Torque:<\/strong> (.*?) ->/
                                     )?.[1] || "---"}
                                     <span className="text-[#ff4a00] mx-1">→</span>
-                                    <span className="text-white">
+                                    <span className="text-foreground dark:text-white">
                                       {product.longDescription.en.match(
                                         /Tuned Torque:<\/strong> (.*?)<\/li>/
                                       )?.[1] || "---"}
@@ -635,26 +644,44 @@ export default function RacechipVehicleFilter({
 
                           {/* Price — primary + all currencies */}
                           <div className="mt-auto pt-2 pb-4">
-                            <span className="text-lg tracking-widest font-thin text-white">
+                            <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
                               {priceData ? priceData.primary : "ОЧІКУЄТЬСЯ"}
                             </span>
                             {priceData && (
-                              <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-zinc-600">
-                                <span className={currency === "EUR" ? "text-zinc-400" : ""}>
+                              <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-foreground/40 dark:text-zinc-600">
+                                <span
+                                  className={
+                                    currency === "EUR"
+                                      ? "text-foreground/70 dark:text-zinc-400"
+                                      : ""
+                                  }
+                                >
                                   {priceData.eur}
                                 </span>
                                 {priceData.usd && (
                                   <>
-                                    <span className="text-zinc-800">·</span>
-                                    <span className={currency === "USD" ? "text-zinc-400" : ""}>
+                                    <span className="text-foreground/15 dark:text-zinc-800">·</span>
+                                    <span
+                                      className={
+                                        currency === "USD"
+                                          ? "text-foreground/70 dark:text-zinc-400"
+                                          : ""
+                                      }
+                                    >
                                       {priceData.usd}
                                     </span>
                                   </>
                                 )}
                                 {priceData.uah && (
                                   <>
-                                    <span className="text-zinc-800">·</span>
-                                    <span className={currency === "UAH" ? "text-zinc-400" : ""}>
+                                    <span className="text-foreground/15 dark:text-zinc-800">·</span>
+                                    <span
+                                      className={
+                                        currency === "UAH"
+                                          ? "text-foreground/70 dark:text-zinc-400"
+                                          : ""
+                                      }
+                                    >
                                       {priceData.uah}
                                     </span>
                                   </>
@@ -669,7 +696,7 @@ export default function RacechipVehicleFilter({
                       <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
                         <Link
                           href={`/${locale}/shop/racechip/products/${product.slug}`}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#ff4a00]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#ff4a00] hover:text-white hover:bg-[#ff4a00] hover:border-[#ff4a00] transition-all duration-300 rounded-[2px]"
+                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#ff4a00]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#ff4a00] hover:text-foreground dark:hover:text-white hover:bg-[#ff4a00] hover:border-[#ff4a00] transition-all duration-300 rounded-[2px]"
                         >
                           {isUa ? "ПЕРЕЙТИ" : "VIEW"}
                           <ArrowRight size={12} strokeWidth={2} />
@@ -682,7 +709,7 @@ export default function RacechipVehicleFilter({
                           productName={productTitle}
                           label={isUa ? "КОШИК" : "CART"}
                           labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          className="flex-1 flex items-center justify-center py-3 border border-foreground/15 dark:border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-foreground dark:text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                           variant="inline"
                         />
                       </div>
@@ -697,7 +724,7 @@ export default function RacechipVehicleFilter({
               <div className="mt-16 flex justify-center w-full relative z-30">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 30)}
-                  className="px-12 py-4 border border-white/20 text-white text-[11px] tracking-[0.3em] uppercase font-light hover:bg-[#ff4a00] hover:text-white hover:border-[#ff4a00] transition-all duration-300 rounded-[2px] shadow-[0_0_20px_rgba(255,74,0,0.1)]"
+                  className="px-12 py-4 border border-foreground/25 dark:border-white/20 text-foreground dark:text-white text-[11px] tracking-[0.3em] uppercase font-light hover:bg-[#ff4a00] hover:text-foreground dark:hover:text-white hover:border-[#ff4a00] transition-all duration-300 rounded-[2px] shadow-[0_0_20px_rgba(255,74,0,0.1)]"
                 >
                   {isUa ? "ЗАВАНТАЖИТИ ЩЕ" : "LOAD MORE"}
                 </button>

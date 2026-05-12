@@ -165,14 +165,14 @@ export default function BrabusCollectionProductGrid({
               return (
                 <article
                   key={product.slug}
-                  className="group bg-[#0a0a0a] rounded-xl overflow-hidden flex flex-col hover:bg-[#111] transition-colors duration-300 border border-[#1f1f1f] hover:border-[#333]"
+                  className="group bg-card dark:bg-[#0a0a0a] rounded-xl overflow-hidden flex flex-col hover:bg-foreground/[0.06] dark:hover:bg-[#111] transition-colors duration-300 border border-foreground/12 dark:border-[#1f1f1f] hover:border-foreground/20 dark:hover:border-[#333]"
                 >
                   <Link
                     href={buildShopProductPathBrabus(locale, product)}
                     className="flex flex-col grow"
                     aria-label={productTitle}
                   >
-                    <div className="relative aspect-4/3 bg-[#0f0f0f] overflow-hidden flex items-center justify-center">
+                    <div className="relative aspect-4/3 bg-card dark:bg-[#0f0f0f] overflow-hidden flex items-center justify-center">
                       <ShopProductImage
                         src={product.image || "/images/placeholders/product-fallback.svg"}
                         fallbackSrc={productFallbackImage}
@@ -184,10 +184,10 @@ export default function BrabusCollectionProductGrid({
                     </div>
 
                     <div className="p-6 flex flex-col grow relative z-20">
-                      <p className="text-[10px] font-medium uppercase tracking-widest text-white/40 mb-2">
+                      <p className="text-[10px] font-medium uppercase tracking-widest text-foreground/55 dark:text-white/40 mb-2">
                         {product.brand}
                       </p>
-                      <h3 className="text-sm font-medium text-white line-clamp-2 mb-3 tracking-wide leading-relaxed">
+                      <h3 className="text-sm font-medium text-foreground dark:text-white line-clamp-2 mb-3 tracking-wide leading-relaxed">
                         {productTitle}
                       </h3>
 
@@ -195,7 +195,7 @@ export default function BrabusCollectionProductGrid({
 
                       <div className="flex flex-col gap-1 mb-5">
                         {isB2B && computedCompare ? (
-                          <span className="text-[10px] text-white/30 line-through tracking-wider">
+                          <span className="text-[10px] text-foreground/45 dark:text-white/30 line-through tracking-wider">
                             {currency === "USD" && formatPrice(locale, computedCompare.usd, "USD")}
                             {currency === "EUR" && formatPrice(locale, computedCompare.eur, "EUR")}
                             {currency === "UAH" && formatPrice(locale, computedCompare.uah, "UAH")}
@@ -203,12 +203,12 @@ export default function BrabusCollectionProductGrid({
                         ) : null}
 
                         {computed.eur === 0 ? (
-                          <span className="text-sm font-normal text-white/50 tracking-wide">
+                          <span className="text-sm font-normal text-foreground/65 dark:text-white/50 tracking-wide">
                             {isUa ? "Ціна за запитом" : "Price on Request"}
                           </span>
                         ) : (
                           <span
-                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-400 font-medium" : "text-white/90 font-normal"}`}
+                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-400 font-medium" : "text-foreground/95 dark:text-white/90 font-normal"}`}
                           >
                             {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                             {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
@@ -218,12 +218,12 @@ export default function BrabusCollectionProductGrid({
                       </div>
 
                       <div className="mt-auto flex items-center justify-between">
-                        <span className="text-xs uppercase tracking-widest text-white/50 font-medium group-hover:text-white transition-colors">
+                        <span className="text-xs uppercase tracking-widest text-foreground/65 dark:text-white/50 font-medium group-hover:text-foreground dark:group-hover:text-white transition-colors">
                           {isUa ? "Переглянути" : "View Details"}
                         </span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4 text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all"
+                          className="w-4 h-4 text-foreground/45 dark:text-white/30 group-hover:text-foreground dark:group-hover:text-white group-hover:translate-x-1 transition-all"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -242,18 +242,18 @@ export default function BrabusCollectionProductGrid({
             })}
           </BrabusSpotlightGrid>
         ) : (
-          <div className="urban-product-grid__empty py-24 text-center border border-white/10 bg-black/40">
-            <p className="urban-product-grid__empty-title text-xl text-white font-medium mb-4">
+          <div className="urban-product-grid__empty py-24 text-center border border-foreground/15 dark:border-white/10 bg-foreground/6 dark:bg-black/40">
+            <p className="urban-product-grid__empty-title text-xl text-foreground dark:text-white font-medium mb-4">
               {isUa ? "Колекція незабаром у каталозі" : "Collection coming to the catalog"}
             </p>
-            <p className="urban-product-grid__empty-copy text-white/60 max-w-2xl mx-auto mb-8">
+            <p className="urban-product-grid__empty-copy text-foreground/75 dark:text-white/60 max-w-2xl mx-auto mb-8">
               {isUa
                 ? `Ми завершуємо формування преміум-асортименту Brabus для ${title}. Залиште запит, і наш менеджер підбере тюнінг-програму під ваш автомобіль.`
                 : `We are finalizing the premium Brabus assortment for ${title}. Leave a request and our team will curate a tuning program for your car.`}
             </p>
             <Link
               href={`/${locale}/#contact`}
-              className="urban-product-grid__empty-cta inline-block bg-[#ff0000] text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors duration-300"
+              className="urban-product-grid__empty-cta inline-block bg-[#ff0000] text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors duration-300"
             >
               {isUa ? "Запитати конфігурацію" : "Request configuration"}
             </Link>

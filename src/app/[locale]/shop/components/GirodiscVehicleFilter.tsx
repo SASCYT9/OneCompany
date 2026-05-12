@@ -531,7 +531,10 @@ export default function GirodiscVehicleFilter({
   }
 
   return (
-    <section id="catalog" className="bg-transparent text-white py-8 min-h-screen relative z-30">
+    <section
+      id="catalog"
+      className="bg-transparent text-foreground dark:text-white py-8 min-h-screen relative z-30"
+    >
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* ─── Mobile Filter Toggle ─── */}
         <div className="lg:hidden flex items-center gap-3 mb-4">
@@ -540,13 +543,13 @@ export default function GirodiscVehicleFilter({
             onClick={toggleMobileFilter}
             aria-expanded={mobileFilterOpen}
             aria-controls="girodisc-mobile-filters"
-            className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/8 rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-red-600/40 transition-colors shadow-xl"
+            className="flex items-center gap-2.5 px-5 py-3 bg-card/85 dark:bg-[#050505]/80 backdrop-blur-md border border-foreground/12 dark:border-white/8 rounded-xl text-foreground dark:text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-red-600/40 transition-colors shadow-xl"
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
             {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-1" />}
           </button>
-          <p className="text-white/40 text-xs tracking-wide">
+          <p className="text-foreground/55 dark:text-white/40 text-xs tracking-wide">
             {formatComponentCount(locale, filteredProducts.length)}
           </p>
         </div>
@@ -559,21 +562,21 @@ export default function GirodiscVehicleFilter({
             shrink-0 transition-transform duration-300
             ${
               mobileFilterOpen
-                ? "fixed inset-y-0 left-0 z-50 w-[85%] sm:w-[320px] bg-[#030303] border-r border-white/5 shadow-[20px_0_60px_rgba(0,0,0,0.9)] overflow-y-auto custom-scrollbar block"
+                ? "fixed inset-y-0 left-0 z-50 w-[85%] sm:w-[320px] bg-card dark:bg-[#030303] border-r border-foreground/12 dark:border-white/5 shadow-[20px_0_60px_rgba(0,0,0,0.9)] overflow-y-auto custom-scrollbar block"
                 : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
             }
           `}
           >
             <div
               className={`
-              ${mobileFilterOpen ? "p-6 min-h-full flex flex-col gap-8" : "lg:sticky lg:top-[120px] max-h-[85vh] overflow-y-auto custom-scrollbar pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/4 p-6 rounded-2xl shadow-2xl"}
+              ${mobileFilterOpen ? "p-6 min-h-full flex flex-col gap-8" : "lg:sticky lg:top-[120px] max-h-[85vh] overflow-y-auto custom-scrollbar pb-10 flex flex-col gap-8 bg-card/85 dark:bg-[#050505]/80 backdrop-blur-md border border-foreground/10 dark:border-white/4 p-6 rounded-2xl shadow-2xl"}
             `}
             >
               {/* Mobile close button */}
               <button
                 type="button"
                 onClick={closeMobileFilter}
-                className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
+                className="lg:hidden self-end p-1.5 text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white transition-colors"
                 aria-label="Close filters"
               >
                 <X size={16} />
@@ -584,7 +587,7 @@ export default function GirodiscVehicleFilter({
                 <h2 className="text-2xl font-light tracking-widest uppercase mb-1 drop-shadow-xs border-l-2 border-red-600 pl-3">
                   {isUa ? "Каталог" : "Catalog"}
                 </h2>
-                <p className="text-white/60 text-xs tracking-widest uppercase font-semibold pl-3.5">
+                <p className="text-foreground/75 dark:text-white/60 text-xs tracking-widest uppercase font-semibold pl-3.5">
                   {formatComponentCount(locale, filteredProducts.length)}
                 </p>
               </div>
@@ -593,19 +596,19 @@ export default function GirodiscVehicleFilter({
               <div className="relative">
                 <Search
                   size={14}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30"
                 />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => updateSearch(e.target.value)}
                   placeholder={isUa ? "Пошук за назвою або SKU..." : "Search part or SKU..."}
-                  className="w-full bg-black/40 border border-white/10 rounded-sm pl-11 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-hidden focus:border-red-600/50 transition-colors backdrop-blur-md"
+                  className="w-full bg-foreground/5 dark:bg-black/40 border border-foreground/15 dark:border-white/10 rounded-sm pl-11 pr-4 py-3 text-sm text-foreground dark:text-white placeholder:text-foreground/30 dark:placeholder:text-white/30 focus:outline-hidden focus:border-red-600/50 transition-colors backdrop-blur-md"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => updateSearch("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30 hover:text-foreground dark:hover:text-white transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -614,7 +617,7 @@ export default function GirodiscVehicleFilter({
 
               {/* CATEGORIES FILTER */}
               <div className="flex flex-col gap-3 mt-2">
-                <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/6 pb-2 font-medium">
+                <h3 className="text-xs text-foreground/75 dark:text-white/60 uppercase tracking-widest border-b border-foreground/12 dark:border-white/6 pb-2 font-medium">
                   {isUa ? "Категорія" : "Category"}
                 </h3>
                 <ul className="flex flex-col">
@@ -622,7 +625,9 @@ export default function GirodiscVehicleFilter({
                     <button
                       onClick={() => updateCategory("all")}
                       className={`w-full text-left py-2.5 text-xs uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
-                        activeCategory === "all" ? "text-white" : "text-white/50 hover:text-white"
+                        activeCategory === "all"
+                          ? "text-foreground dark:text-white"
+                          : "text-foreground/65 dark:text-white/50 hover:text-foreground dark:hover:text-white"
                       }`}
                     >
                       <span>{isUa ? "Всі категорії" : "All Categories"}</span>
@@ -637,13 +642,15 @@ export default function GirodiscVehicleFilter({
                         onClick={() => updateCategory(cat.key)}
                         className={`w-full text-left py-2.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
                           activeCategory === cat.key
-                            ? "text-white"
-                            : "text-white/50 hover:text-white"
+                            ? "text-foreground dark:text-white"
+                            : "text-foreground/65 dark:text-white/50 hover:text-foreground dark:hover:text-white"
                         }`}
                       >
                         <span>{cat.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] text-white/40 font-bold">{cat.count}</span>
+                          <span className="text-[9px] text-foreground/55 dark:text-white/40 font-bold">
+                            {cat.count}
+                          </span>
                           {activeCategory === cat.key && (
                             <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
                           )}
@@ -656,7 +663,7 @@ export default function GirodiscVehicleFilter({
 
               {/* MAKES FILTER */}
               <div className="flex flex-col gap-3 mt-2">
-                <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/6 pb-2 font-medium">
+                <h3 className="text-xs text-foreground/75 dark:text-white/60 uppercase tracking-widest border-b border-foreground/12 dark:border-white/6 pb-2 font-medium">
                   {isUa ? "Марка Авто" : "Vehicle Make"}
                 </h3>
                 <ul className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
@@ -664,7 +671,9 @@ export default function GirodiscVehicleFilter({
                     <button
                       onClick={() => updateMake("all")}
                       className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
-                        activeMake === "all" ? "text-white" : "text-white/40 hover:text-white"
+                        activeMake === "all"
+                          ? "text-foreground dark:text-white"
+                          : "text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white"
                       }`}
                     >
                       <span>{isUa ? "Всі марки" : "All Makes"}</span>
@@ -678,7 +687,9 @@ export default function GirodiscVehicleFilter({
                       <button
                         onClick={() => updateMake(make.key)}
                         className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                          activeMake === make.key ? "text-white" : "text-white/40 hover:text-white"
+                          activeMake === make.key
+                            ? "text-foreground dark:text-white"
+                            : "text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white"
                         }`}
                       >
                         <span>{make.label}</span>
@@ -696,11 +707,11 @@ export default function GirodiscVehicleFilter({
 
               {/* MODELS FILTER */}
               <div className="flex flex-col gap-3 mt-2">
-                <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/6 pb-2 font-medium">
+                <h3 className="text-xs text-foreground/75 dark:text-white/60 uppercase tracking-widest border-b border-foreground/12 dark:border-white/6 pb-2 font-medium">
                   {isUa ? "Модель" : "Vehicle Model"}
                 </h3>
                 {activeMake === "all" ? (
-                  <p className="text-[11px] leading-relaxed text-white/35">
+                  <p className="text-[11px] leading-relaxed text-foreground/50 dark:text-white/35">
                     {isUa ? "Спочатку оберіть марку авто." : "Select a vehicle make first."}
                   </p>
                 ) : (
@@ -709,7 +720,9 @@ export default function GirodiscVehicleFilter({
                       <button
                         onClick={() => updateModel("all")}
                         className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
-                          activeModel === "all" ? "text-white" : "text-white/40 hover:text-white"
+                          activeModel === "all"
+                            ? "text-foreground dark:text-white"
+                            : "text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white"
                         }`}
                       >
                         <span>{isUa ? "Усі моделі" : "All Models"}</span>
@@ -724,8 +737,8 @@ export default function GirodiscVehicleFilter({
                           onClick={() => updateModel(model.key)}
                           className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
                             activeModel === model.key
-                              ? "text-white"
-                              : "text-white/40 hover:text-white"
+                              ? "text-foreground dark:text-white"
+                              : "text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white"
                           }`}
                         >
                           <span>{model.label}</span>
@@ -759,7 +772,7 @@ export default function GirodiscVehicleFilter({
                   onChange={(e) =>
                     updateSort(e.target.value as "default" | "price_desc" | "price_asc")
                   }
-                  className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-hidden focus:border-red-600/50 transition-colors shadow-xl cursor-pointer"
+                  className="appearance-none bg-card/85 dark:bg-[#050505]/80 backdrop-blur-md border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-hidden focus:border-red-600/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
                   <option value="price_desc">
@@ -769,21 +782,21 @@ export default function GirodiscVehicleFilter({
                     {isUa ? "Ціна: Від найменшої" : "Price: Low to High"}
                   </option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-foreground/65 dark:text-white/50">
                   <ChevronDown size={12} />
                 </div>
               </div>
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="py-32 text-center bg-black/40 backdrop-blur-xs border border-white/5 rounded-2xl flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                  <Search className="w-6 h-6 text-white/20" />
+              <div className="py-32 text-center bg-black/40 backdrop-blur-xs border border-foreground/12 dark:border-white/5 rounded-2xl flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-foreground/8 dark:bg-white/5 flex items-center justify-center mb-6">
+                  <Search className="w-6 h-6 text-foreground/35 dark:text-white/20" />
                 </div>
-                <h3 className="text-xl font-light text-white mb-3">
+                <h3 className="text-xl font-light text-foreground dark:text-white mb-3">
                   {isUa ? "Нічого не знайдено" : "No Components Found"}
                 </h3>
-                <p className="text-white/50 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                <p className="text-foreground/65 dark:text-white/50 text-sm max-w-md mx-auto mb-8 leading-relaxed">
                   {searchQuery
                     ? isUa
                       ? `Нічого не знайдено за запитом "${searchQuery}"`
@@ -794,7 +807,7 @@ export default function GirodiscVehicleFilter({
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="px-8 py-3 bg-red-600/10 backdrop-blur-xl border border-red-600/30 text-white text-[10px] uppercase tracking-widest hover:bg-red-600/20 hover:border-red-600/60 transition-all duration-500 shadow-lg rounded-md font-medium"
+                  className="px-8 py-3 bg-red-600/10 backdrop-blur-xl border border-red-600/30 text-foreground dark:text-white text-[10px] uppercase tracking-widest hover:bg-red-600/20 hover:border-red-600/60 transition-all duration-500 shadow-lg rounded-md font-medium"
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}
                 </button>
@@ -840,14 +853,14 @@ export default function GirodiscVehicleFilter({
                     return (
                       <article
                         key={product.slug}
-                        className="group relative bg-[#030303] backdrop-blur-xl rounded-none overflow-hidden flex flex-col hover:bg-[#080808] transition-all duration-700 border border-white/3 hover:border-white/8 shadow-2xl"
+                        className="group relative bg-card dark:bg-[#030303] backdrop-blur-xl rounded-none overflow-hidden flex flex-col hover:bg-card dark:hover:bg-[#080808] transition-all duration-700 border border-foreground/3 dark:border-white/3 hover:border-foreground/12 dark:hover:border-white/8 shadow-2xl"
                       >
                         <Link
                           href={buildShopProductPathGirodisc(locale, product)}
                           className="flex flex-col grow z-10"
                         >
                           {/* Image Container */}
-                          <div className="relative aspect-square sm:aspect-4/3 bg-[#050505] overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-white/3 group-hover:border-red-600/30 transition-colors duration-700">
+                          <div className="relative aspect-square sm:aspect-4/3 bg-card dark:bg-[#050505] overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-foreground/3 dark:border-white/3 group-hover:border-red-600/30 transition-colors duration-700">
                             {/* Premium Background Effects */}
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[4px_4px] opacity-20 pointer-events-none mix-blend-overlay"></div>
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[32px_32px] opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
@@ -855,7 +868,7 @@ export default function GirodiscVehicleFilter({
 
                             <GirodiscProductImage src={product.image} alt={productTitle} />
                             <div className="absolute left-2 top-2 z-20 sm:left-4 sm:top-4">
-                              <span className="px-2 py-1 bg-[#0a0a0a]/90 backdrop-blur-xl text-white/80 border border-white/5 text-[7px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-bold rounded-sm shadow-xl">
+                              <span className="px-2 py-1 bg-card/92 dark:bg-[#0a0a0a]/90 backdrop-blur-xl text-foreground/90 dark:text-white/80 border border-foreground/12 dark:border-white/5 text-[7px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-bold rounded-sm shadow-xl">
                                 {catNameDisplay}
                               </span>
                             </div>
@@ -867,25 +880,25 @@ export default function GirodiscVehicleFilter({
                               {product.sku}
                             </p>
                             {(productMakeLabel || productModelLabel) && (
-                              <p className="mb-2 text-[8px] sm:text-[9px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white/35 line-clamp-1">
+                              <p className="mb-2 text-[8px] sm:text-[9px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-foreground/50 dark:text-white/35 line-clamp-1">
                                 {[productMakeLabel, productModelLabel].filter(Boolean).join(" · ")}
                               </p>
                             )}
-                            <h3 className="text-[11px] sm:text-[13px] font-normal leading-snug sm:leading-relaxed text-white/80 group-hover:text-white line-clamp-3 mb-3 sm:mb-6 transition-colors duration-300">
+                            <h3 className="text-[11px] sm:text-[13px] font-normal leading-snug sm:leading-relaxed text-foreground/90 dark:text-white/80 group-hover:text-foreground dark:group-hover:text-white line-clamp-3 mb-3 sm:mb-6 transition-colors duration-300">
                               {productTitle}
                             </h3>
 
                             {/* Price */}
                             <div className="mt-auto">
                               {computed.usd === 0 ? (
-                                <span className="text-[9px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.15em] uppercase font-medium text-white/40">
+                                <span className="text-[9px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.15em] uppercase font-medium text-foreground/55 dark:text-white/40">
                                   {isUa ? "Ціна за запитом" : "Price on Request"}
                                 </span>
                               ) : (
                                 <div className="flex flex-col p-1 pl-0">
                                   {pricing.effectiveCompareAt?.usd &&
                                     pricing.effectiveCompareAt.usd > computed.usd && (
-                                      <span className="text-xs text-white/40 line-through mb-1 font-light">
+                                      <span className="text-xs text-foreground/55 dark:text-white/40 line-through mb-1 font-light">
                                         {currency === "USD" &&
                                           formatPrice(
                                             locale,
@@ -907,7 +920,7 @@ export default function GirodiscVehicleFilter({
                                           )}
                                       </span>
                                     )}
-                                  <span className="text-[11px] sm:text-[18px] tracking-wider sm:tracking-widest font-light text-white group-hover:text-red-500 transition-colors duration-300">
+                                  <span className="text-[11px] sm:text-[18px] tracking-wider sm:tracking-widest font-light text-foreground dark:text-white group-hover:text-red-500 transition-colors duration-300">
                                     {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                                     {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
                                     {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
@@ -926,7 +939,7 @@ export default function GirodiscVehicleFilter({
                         <div className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6 z-20 relative flex gap-2 sm:gap-3">
                           <Link
                             href={buildShopProductPathGirodisc(locale, product)}
-                            className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-red-600/30 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 transition-all duration-300 rounded-[2px]"
+                            className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-red-600/30 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-red-500 hover:text-foreground dark:hover:text-white hover:bg-red-600 hover:border-red-600 transition-all duration-300 rounded-[2px]"
                           >
                             {isUa ? "Деталі" : "View"}
                             <ArrowRight
@@ -943,7 +956,7 @@ export default function GirodiscVehicleFilter({
                             productName={productTitle}
                             label={isUa ? "КОШИК" : "CART"}
                             labelAdded={isUa ? "✓" : "✓"}
-                            className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-white/10 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                            className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-foreground/15 dark:border-white/10 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-foreground dark:text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                             variant="inline"
                           />
                         </div>

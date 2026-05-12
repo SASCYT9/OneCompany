@@ -52,24 +52,24 @@ export default async function AdroCollectionsPage({ params }: Props) {
   const adroProducts = products.filter(isAdroProduct);
 
   return (
-    <div className="relative min-h-screen bg-black">
+    <div className="relative min-h-screen bg-background">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/images/shop/adro/adro-m3-front.jpg"
           alt="ADRO carbon aero"
           fill
           priority
-          className="object-cover opacity-[0.12] grayscale"
+          className="object-cover opacity-[0.06] grayscale dark:opacity-[0.12]"
         />
-        <div className="absolute inset-0 bg-linear-to-b from-[#050505]/85 via-black/92 to-[#030303]" />
-        <div className="absolute left-1/2 top-1/4 h-[420px] w-[860px] -translate-x-1/2 rounded-full bg-white/2.5 blur-[190px]" />
+        <div className="absolute inset-0 bg-linear-to-b from-background/40 via-background/70 to-background dark:from-[#050505]/85 dark:via-black/92 dark:to-[#030303]" />
+        <div className="absolute left-1/2 top-1/4 h-[420px] w-[860px] -translate-x-1/2 rounded-full bg-foreground/[0.025] blur-[190px]" />
       </div>
 
       <div className="relative z-10 pt-[100px]">
         <div className="mx-auto w-full max-w-[1700px] px-6 pb-4 pt-4 md:px-12 lg:px-16">
           <Link
             href={`/${resolvedLocale}/shop/adro`}
-            className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 transition-colors hover:text-white"
+            className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40 transition-colors hover:text-foreground"
           >
             ← {isUa ? "Повернутися до ADRO" : "Return to ADRO"}
           </Link>
@@ -78,7 +78,7 @@ export default async function AdroCollectionsPage({ params }: Props) {
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-32">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
             </div>
           }
         >

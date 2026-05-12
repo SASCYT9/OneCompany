@@ -28,7 +28,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="group relative aspect-4/5 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl">
+      <div className="group relative aspect-4/5 overflow-hidden rounded-3xl border border-foreground/12 bg-card shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${imageKey}-${safeActiveIndex}`}
@@ -48,21 +48,21 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
                 priority
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-white/5">
+              <div className="flex h-full w-full items-center justify-center text-foreground/15 dark:text-foreground/5">
                 <ShoppingBag className="h-20 w-20" />
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-black/15 to-black/80" />
-        <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/5 mix-blend-overlay" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/4 to-foreground/15 dark:via-black/15 dark:to-black/80" />
+        <div className="pointer-events-none absolute inset-0 rounded-3xl border border-foreground/8 dark:mix-blend-overlay" />
 
         {/* Badges */}
         {(category || (SHOW_STOCK_BADGE && isInStock !== undefined)) && (
           <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3 z-10 pointer-events-none">
             {category ? (
-              <span className="rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
+              <span className="rounded-full border border-foreground/25 bg-card/85 dark:bg-black/60 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] text-foreground/95 dark:text-foreground/80 backdrop-blur-md">
                 {category}
               </span>
             ) : (
@@ -98,10 +98,10 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-black/60 transition-all duration-300 sm:h-28 sm:w-28 ${
+                className={`group/thumb relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-card/85 dark:bg-black/60 transition-all duration-300 sm:h-28 sm:w-28 ${
                   isActive
                     ? "border-[#c29d59]/50 shadow-[0_0_15px_-3px_rgba(194,157,89,0.2)]"
-                    : "border-white/10 hover:border-white/30"
+                    : "border-foreground/12 hover:border-foreground/30"
                 }`}
               >
                 {image && image.length > 0 && (
@@ -110,13 +110,12 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
                     alt={`${productTitle} thumbnail ${index + 1}`}
                     fill
                     sizes="15vw"
-                    className={`object-cover p-2 transition-transform duration-700 ${
-                      isActive ? "scale-110" : "hover:scale-105"
+                    className={`object-cover p-2 transition-all duration-500 ${
+                      isActive
+                        ? "scale-110 opacity-100"
+                        : "opacity-55 group-hover/thumb:opacity-90 group-hover/thumb:scale-105"
                     }`}
                   />
-                )}
-                {!isActive && (
-                  <div className="absolute inset-0 bg-black/50 transition-colors duration-300 hover:bg-black/20" />
                 )}
               </button>
             );

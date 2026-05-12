@@ -2,25 +2,20 @@
    Burger Motorsports — Cinematic Editorial Theme
    ═══════════════════════════════════════════ */
 
-/* ── Variables ── */
+/* ── Variables (legacy / global fallback) ── */
 :root {
   --bm-accent: #d42b2b;
   --bm-accent-light: #ef4444;
-  --bm-dark: #040404;
-  --bm-surface: #0a0a0a;
-  --bm-border: rgba(255, 255, 255, 0.06);
-  --bm-text: #f5f5f5;
-  --bm-muted: rgba(255, 255, 255, 0.5);
-  --bm-dim: rgba(255, 255, 255, 0.15);
-  --burger-yellow: #FFD700;
+  --burger-yellow: #ffd700;
 }
 
 /* ── Reveal ── */
 [data-bm-reveal] {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 [data-bm-reveal].bm-vis {
   opacity: 1;
@@ -29,10 +24,35 @@
 
 /* ── Layout ── */
 .bm-home {
+  --bm-dark: hsl(var(--background));
+  --bm-surface: hsl(var(--card));
+  --bm-border: hsl(var(--foreground) / 0.12);
+  --bm-text: hsl(var(--foreground));
+  --bm-muted: hsl(var(--foreground) / 0.65);
+  --bm-dim: hsl(var(--foreground) / 0.25);
   background: var(--bm-dark);
   color: var(--bm-text);
   min-height: 100dvh;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Cinematic sections that sit on a photo / dark overlay — text inside stays white
+   in BOTH themes. Override --foreground HSL channels so any `hsl(var(--foreground)/X)`
+   rules inside resolve to white-tinted.
+   NOTE: `.bm-panel` is NOT here — it has the photo on the LEFT column only; the text-info
+   column lives on the bare panel surface (theme-aware). Only the .bm-panel__img-wrap
+   sub-element needs to stay dark for the photo dim, handled by its own rules. */
+.bm-home .bm-hero,
+.bm-home .bm-showcase,
+.bm-home .bm-banner,
+.bm-home .bm-feature,
+.bm-home .bm-cta-section {
+  --foreground: 0 0% 98%;
+  --bm-text: #f5f5f5;
+  --bm-muted: rgba(255, 255, 255, 0.5);
+  --bm-border: rgba(255, 255, 255, 0.06);
+  --bm-dim: rgba(255, 255, 255, 0.15);
+  color: #f5f5f5;
 }
 
 /* ── Catalog back link (".burger-back") — used on /shop/burger/products ── */
@@ -48,20 +68,26 @@
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: hsl(var(--foreground) / 0.4);
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.25s, gap 0.25s;
+  transition:
+    color 0.25s,
+    gap 0.25s;
 }
 .burger-back__link:hover {
-  color: var(--burger-yellow, #FFD700);
+  color: var(--burger-yellow, #ffd700);
   gap: 10px;
 }
 @media (min-width: 768px) {
-  .burger-back { padding: 0 48px; }
+  .burger-back {
+    padding: 0 48px;
+  }
 }
 @media (min-width: 1024px) {
-  .burger-back { padding: 0 64px; }
+  .burger-back {
+    padding: 0 64px;
+  }
 }
 
 /* ── Hero back link (".bm-back") — used on /shop/burger ── */
@@ -93,7 +119,7 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 600;
-  color: #fff;
+  color: hsl(var(--foreground));
   background: var(--bm-accent);
   text-decoration: none;
   transition: all 0.35s ease;
@@ -139,8 +165,14 @@
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(180deg, rgba(4,4,4,0.7) 0%, rgba(4,4,4,0.55) 40%, rgba(4,4,4,0.6) 70%, rgba(4,4,4,0.9) 100%),
-    radial-gradient(ellipse at center, rgba(4,4,4,0.35) 0%, rgba(4,4,4,0.65) 100%);
+    linear-gradient(
+      180deg,
+      rgba(4, 4, 4, 0.7) 0%,
+      rgba(4, 4, 4, 0.55) 40%,
+      rgba(4, 4, 4, 0.6) 70%,
+      rgba(4, 4, 4, 0.9) 100%
+    ),
+    radial-gradient(ellipse at center, rgba(4, 4, 4, 0.35) 0%, rgba(4, 4, 4, 0.65) 100%);
 }
 
 /* Typographic watermark */
@@ -153,7 +185,7 @@
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.025);
+  color: hsl(var(--foreground) / 0.025);
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
@@ -197,14 +229,14 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #ffffff;
+  color: hsl(var(--foreground));
   margin: 0 0 24px;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
 .bm-hero__sub {
   font-size: 17px;
-  color: rgba(255, 255, 255, 0.92);
+  color: hsl(var(--foreground) / 0.92);
   line-height: 1.7;
   max-width: 580px;
   margin: 0 auto 40px;
@@ -236,7 +268,7 @@
   margin-bottom: 12px;
 }
 .burger-embedded-picker .bm-picker__label {
-  color: rgba(255, 255, 255, 0.55);
+  color: hsl(var(--foreground) / 0.55);
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.28em;
@@ -247,17 +279,17 @@
   margin-bottom: 0;
 }
 .burger-embedded-picker .bm-picker__label::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 14px;
   height: 1px;
-  background: var(--burger-yellow, #FFD700);
+  background: var(--burger-yellow, #ffd700);
 }
 
 /* Gold "Find" button matching the filter panel's accent */
 .burger-embedded-picker .bm-picker__btn {
-  background: var(--burger-yellow, #FFD700);
-  border-color: var(--burger-yellow, #FFD700);
+  background: var(--burger-yellow, #ffd700);
+  border-color: var(--burger-yellow, #ffd700);
   color: #050505;
   border-radius: 10px;
   letter-spacing: 0.16em;
@@ -272,26 +304,34 @@
 
 /* Select buttons match the filter panel's recessed-input look */
 .burger-embedded-picker .bm-select__button {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: hsl(var(--foreground) / 0.05);
+  border-color: hsl(var(--foreground) / 0.18);
   border-radius: 10px;
   height: 44px;
 }
+.dark .burger-embedded-picker .bm-select__button {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: hsl(var(--foreground) / 0.12);
+}
 .burger-embedded-picker .bm-select__button:hover:not(:disabled) {
   border-color: rgba(255, 215, 0, 0.4);
+  background: hsl(var(--foreground) / 0.08);
+}
+.dark .burger-embedded-picker .bm-select__button:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.6);
 }
 .burger-embedded-picker .bm-select__button:focus-visible {
-  border-color: var(--burger-yellow, #FFD700);
+  border-color: var(--burger-yellow, #ffd700);
 }
 /* Active state — when a value is selected (not placeholder) */
-.burger-embedded-picker .bm-select__button:has(.bm-select__value:not(.bm-select__value--placeholder)) {
+.burger-embedded-picker
+  .bm-select__button:has(.bm-select__value:not(.bm-select__value--placeholder)) {
   border-color: rgba(255, 215, 0, 0.45);
   background: rgba(255, 215, 0, 0.06);
 }
 .burger-embedded-picker .bm-select__list {
   border-radius: 10px;
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: hsl(var(--foreground) / 0.12);
 }
 .burger-embedded-picker .bm-select__option:hover,
 .burger-embedded-picker .bm-select__option:focus-visible {
@@ -351,7 +391,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: hsl(var(--foreground) / 0.5);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
@@ -359,8 +399,8 @@
   transition: all 0.2s ease;
 }
 .bm-picker__reset:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.3);
   background: rgba(255, 255, 255, 0.04);
 }
 .bm-picker__reset svg {
@@ -387,7 +427,7 @@
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: hsl(var(--foreground) / 0.55);
   font-weight: 600;
   padding-left: 2px;
 }
@@ -400,7 +440,7 @@
   gap: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: hsl(var(--foreground));
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -409,7 +449,9 @@
   cursor: pointer;
   outline: none;
   height: 42px;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   text-align: left;
 }
 
@@ -436,12 +478,12 @@
 }
 
 .bm-select__value--placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: hsl(var(--foreground) / 0.45);
 }
 
 .bm-select__chev {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.55);
+  color: hsl(var(--foreground) / 0.55);
   font-size: 10px;
   transition: transform 0.2s;
   pointer-events: none;
@@ -461,18 +503,29 @@
   margin: 0;
   padding: 6px 0;
   list-style: none;
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--foreground) / 0.15);
   border-radius: 4px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
   max-height: 320px;
   overflow-y: auto;
   animation: bm-select-fade 0.15s ease-out;
 }
+.dark .bm-select__list {
+  background: #0a0a0a;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
 
 @keyframes bm-select-fade {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bm-select__list::-webkit-scrollbar {
@@ -495,24 +548,26 @@
   padding: 10px 14px;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: hsl(var(--foreground) / 0.85);
   font-size: 13px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .bm-select__option:hover,
 .bm-select__option:focus-visible {
   background: rgba(212, 43, 43, 0.15);
-  color: #fff;
+  color: hsl(var(--foreground));
   outline: none;
 }
 
 .bm-select__option--active {
   background: rgba(212, 43, 43, 0.22);
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .bm-select__option-label {
@@ -526,7 +581,7 @@
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
+  color: hsl(var(--foreground) / 0.45);
   background: rgba(255, 255, 255, 0.05);
   padding: 2px 8px;
   border-radius: 999px;
@@ -543,7 +598,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 700;
-  color: #fff;
+  color: hsl(var(--foreground));
   background: var(--bm-accent);
   border: 1px solid var(--bm-accent);
   cursor: pointer;
@@ -630,7 +685,7 @@
   margin-top: 0;
   padding: 16px 14px 18px;
   background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: hsl(var(--foreground) / 0.06);
 }
 .burger-sidebar-picker .bm-picker__row {
   grid-template-columns: 1fr;
@@ -656,18 +711,25 @@
   font-size: 9px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.2);
+  color: hsl(var(--foreground) / 0.2);
 }
 .bm-hero__scroll-line {
   display: block;
   width: 1px;
   height: 32px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
   animation: bm-scroll-pulse 2s ease-in-out infinite;
 }
 @keyframes bm-scroll-pulse {
-  0%, 100% { opacity: 0.3; transform: scaleY(0.7); }
-  50% { opacity: 1; transform: scaleY(1); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -711,7 +773,7 @@
   font-size: 36px;
   font-weight: 200;
   letter-spacing: -0.03em;
-  color: rgba(255, 255, 255, 0.25);
+  color: hsl(var(--foreground) / 0.25);
   line-height: 1;
   margin-bottom: 16px;
   font-variant-numeric: tabular-nums;
@@ -723,12 +785,12 @@
   margin: 0 0 14px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .bm-step p {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
+  color: hsl(var(--foreground) / 0.85);
   line-height: 1.7;
   margin: 0;
   font-weight: 400;
@@ -754,19 +816,29 @@
 .bm-feature__img {
   object-fit: cover;
   object-position: center 40%;
+  transition:
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.6s;
+}
+.dark .bm-feature__img {
   filter: brightness(0.9);
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.6s;
 }
 .bm-feature__visual:hover .bm-feature__img {
   transform: scale(1.03);
+}
+.dark .bm-feature__visual:hover .bm-feature__img {
   filter: brightness(1);
 }
 
 .bm-feature__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(4,4,4,0.6) 0%, rgba(4,4,4,0.15) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(4, 4, 4, 0.6) 0%,
+    rgba(4, 4, 4, 0.15) 50%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
@@ -783,7 +855,7 @@
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #fff;
+  color: hsl(var(--foreground));
   font-weight: 700;
   margin-bottom: 14px;
   padding: 6px 16px;
@@ -797,16 +869,16 @@
   line-height: 1.1;
   margin: 0 0 16px;
   letter-spacing: -0.02em;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 }
 
 .bm-feature__caption p {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.92);
+  color: hsl(var(--foreground) / 0.92);
   line-height: 1.65;
   margin: 0 0 26px;
   font-weight: 400;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
 .bm-feature__link {
@@ -816,7 +888,7 @@
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #fff;
+  color: hsl(var(--foreground));
   text-decoration: none;
   font-weight: 600;
   padding: 10px 24px;
@@ -887,7 +959,7 @@
 }
 /* Dark overlay to blend white-background product shots into dark theme */
 .bm-panel__img-wrap::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: rgba(4, 4, 4, 0.35);
@@ -901,12 +973,17 @@
 }
 .bm-panel__img {
   object-fit: cover;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s;
+}
+.dark .bm-panel__img {
   filter: brightness(0.8) saturate(0.9);
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.4s;
 }
 .bm-panel:hover .bm-panel__img {
   transform: scale(1.05);
+}
+.dark .bm-panel:hover .bm-panel__img {
   filter: brightness(0.95) saturate(1);
 }
 
@@ -919,7 +996,7 @@
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #fff;
+  color: hsl(var(--foreground));
   margin-bottom: 12px;
   font-weight: 700;
   padding: 4px 12px;
@@ -931,12 +1008,12 @@
   font-weight: 700;
   margin: 0 0 10px;
   letter-spacing: -0.01em;
-  color: #fff;
+  color: hsl(var(--foreground));
 }
 
 .bm-panel__info p {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
+  color: hsl(var(--foreground) / 0.85);
   line-height: 1.65;
   margin: 0;
   max-width: 560px;
@@ -944,9 +1021,11 @@
 
 .bm-panel__arrow {
   font-size: 22px;
-  color: rgba(255, 255, 255, 0.25);
+  color: hsl(var(--foreground) / 0.25);
   padding: 0 40px;
-  transition: color 0.3s, transform 0.3s;
+  transition:
+    color 0.3s,
+    transform 0.3s;
 }
 .bm-panel:hover .bm-panel__arrow {
   color: var(--bm-accent);
@@ -992,7 +1071,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.55);
+  color: hsl(var(--foreground) / 0.55);
   transition: color 0.3s;
   position: relative;
 }
@@ -1000,7 +1079,7 @@
   color: var(--bm-text);
 }
 .bm-platforms__item:hover::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 4px;
   left: 50%;
@@ -1039,7 +1118,9 @@
   .bm-feature__visual {
     aspect-ratio: 16/9;
   }
-  .bm-back { left: 32px; }
+  .bm-back {
+    left: 32px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1096,7 +1177,7 @@
    Product description prose (.burger-prose)
    ═══════════════════════════════════════════ */
 .burger-prose {
-  color: rgba(255, 255, 255, 0.88);
+  color: hsl(var(--foreground) / 0.88);
   line-height: 1.7;
   font-size: 15px;
 }
@@ -1115,7 +1196,7 @@
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--burger-yellow, #FFD700);
+  color: var(--burger-yellow, #ffd700);
 }
 .burger-prose h3:first-child {
   margin-top: 0;
@@ -1136,17 +1217,17 @@
   content: "•";
   position: absolute;
   left: -1.25rem;
-  color: var(--burger-yellow, #FFD700);
+  color: var(--burger-yellow, #ffd700);
   font-weight: 700;
 }
 
 .burger-prose strong {
-  color: var(--burger-yellow, #FFD700);
+  color: var(--burger-yellow, #ffd700);
   font-weight: 600;
 }
 
 .burger-prose a {
-  color: var(--burger-yellow, #FFD700);
+  color: var(--burger-yellow, #ffd700);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

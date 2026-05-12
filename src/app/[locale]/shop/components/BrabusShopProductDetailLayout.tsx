@@ -112,15 +112,34 @@ export function BrabusShopProductDetailLayout({
       <style jsx global>{`
         .b-pdp {
           --b-bg: transparent;
-          --b-card: #0f0f0f;
+          --b-card: hsl(var(--card));
+          --b-fg: hsl(var(--foreground));
           --b-red: #c29d59;
-          --b-muted: rgba(255, 255, 255, 0.5);
-          --b-border: rgba(255, 255, 255, 0.08);
+          --b-muted: hsl(var(--foreground) / 0.65);
+          --b-border: hsl(var(--foreground) / 0.12);
+          --b-info-bg: hsl(var(--card) / 0.85);
+          --b-info-border: hsl(var(--foreground) / 0.08);
+          --b-spec-divider: hsl(var(--foreground) / 0.08);
+          --b-related-bg: hsl(var(--card) / 0.9);
+          --b-rc-bg: hsl(var(--card));
+          --b-rc-bg-hover: hsl(var(--foreground) / 0.04);
+          --b-rc-img-bg: hsl(var(--foreground) / 0.02);
           background: var(--b-bg);
-          color: #fff;
+          color: var(--b-fg);
           font-family: var(--font-body, "Inter", system-ui, sans-serif);
           min-height: 100dvh;
           position: relative;
+        }
+        /* Dark-theme palette restore (video backdrop) */
+        .dark .b-pdp,
+        .b-pdp.dark {
+          --b-info-bg: rgba(5, 5, 5, 0.7);
+          --b-info-border: rgba(255, 255, 255, 0.04);
+          --b-spec-divider: rgba(255, 255, 255, 0.04);
+          --b-related-bg: rgba(5, 5, 5, 0.9);
+          --b-rc-bg: #080808;
+          --b-rc-bg-hover: #0f0f0f;
+          --b-rc-img-bg: #0a0a0a;
         }
 
         /* ── Grid Layout ──────────────────────── */
@@ -162,9 +181,13 @@ export function BrabusShopProductDetailLayout({
           background: #f8f8f8;
           border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
+          border: 1px solid var(--b-border);
           cursor: zoom-in;
+        }
+        .dark .b-carousel__main {
+          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+          border-color: rgba(255, 255, 255, 0.1);
         }
         .b-carousel__main img {
           object-fit: contain;
@@ -243,7 +266,7 @@ export function BrabusShopProductDetailLayout({
           height: 4px;
         }
         .b-carousel__thumbs::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
+          background: hsl(var(--foreground) / 0.25);
           border-radius: 4px;
         }
 
@@ -387,10 +410,10 @@ export function BrabusShopProductDetailLayout({
         /* ── Right: Sticky Info Panel ─────────── */
         .b-pdp__info {
           padding: 4rem 3rem 8rem 4rem;
-          background: rgba(5, 5, 5, 0.7);
+          background: var(--b-info-bg);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-left: 1px solid rgba(255, 255, 255, 0.04);
+          border-left: 1px solid var(--b-info-border);
         }
         .b-pdp__info-inner {
           position: sticky;
@@ -430,7 +453,7 @@ export function BrabusShopProductDetailLayout({
           transition: color 0.3s;
         }
         .b-bc a:hover {
-          color: #fff;
+          color: var(--b-fg);
         }
         .b-bc span {
           color: var(--b-border);
@@ -452,7 +475,7 @@ export function BrabusShopProductDetailLayout({
           letter-spacing: 0.08em;
           line-height: 1.2;
           margin: 0 0 1.25rem;
-          color: #fff;
+          color: var(--b-fg);
         }
 
         /* Mini specs inline */
@@ -477,7 +500,7 @@ export function BrabusShopProductDetailLayout({
         }
         .b-ms-val {
           font-size: 0.75rem;
-          color: #fff;
+          color: var(--b-fg);
           font-weight: 400;
           text-transform: uppercase;
           letter-spacing: 0.1em;
@@ -503,9 +526,9 @@ export function BrabusShopProductDetailLayout({
         }
         .b-btn-custom {
           width: 100%;
-          background: rgba(194, 157, 89, 0.1) !important;
-          color: #fff !important;
-          border: 1px solid rgba(194, 157, 89, 0.4) !important;
+          background: rgba(194, 157, 89, 0.15) !important;
+          color: var(--b-fg) !important;
+          border: 1px solid rgba(194, 157, 89, 0.5) !important;
           backdrop-filter: blur(12px);
           padding: 1.25rem !important;
           text-align: center;
@@ -516,6 +539,11 @@ export function BrabusShopProductDetailLayout({
           transition: all 0.3s;
           cursor: pointer;
           border-radius: 0;
+        }
+        .dark .b-btn-custom {
+          background: rgba(194, 157, 89, 0.1) !important;
+          color: #fff !important;
+          border-color: rgba(194, 157, 89, 0.4) !important;
         }
         .b-btn-custom:hover {
           background: rgba(194, 157, 89, 0.25) !important;
@@ -539,7 +567,7 @@ export function BrabusShopProductDetailLayout({
           padding-bottom: 2px;
         }
         .b-action-links a:hover {
-          color: #fff;
+          color: var(--b-fg);
           border-bottom-color: var(--b-red);
         }
 
@@ -558,7 +586,7 @@ export function BrabusShopProductDetailLayout({
           padding: 1.75rem 0;
           background: transparent;
           border: none;
-          color: #fff;
+          color: var(--b-fg);
           font-size: 0.7rem;
           text-transform: uppercase;
           letter-spacing: 0.2em;
@@ -628,18 +656,21 @@ export function BrabusShopProductDetailLayout({
         }
         .b-spec-table td {
           padding: 1rem 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          border-bottom: 1px solid var(--b-spec-divider);
         }
         .b-spec-table td:first-child {
           width: 45%;
-          color: rgba(255, 255, 255, 0.4);
+          color: hsl(var(--foreground) / 0.55);
           font-size: 0.65rem;
           text-transform: uppercase;
           letter-spacing: 0.15em;
         }
         .b-spec-table td:last-child {
-          color: #fff;
+          color: var(--b-fg);
           font-size: 0.8rem;
+        }
+        .dark .b-spec-table td:first-child {
+          color: rgba(255, 255, 255, 0.4);
         }
         .b-spec-table tr:last-child td {
           border-bottom: none;
@@ -650,7 +681,7 @@ export function BrabusShopProductDetailLayout({
           position: relative;
           z-index: 10;
           padding: 6rem clamp(2rem, 5vw, 6rem);
-          background: rgba(5, 5, 5, 0.9);
+          background: var(--b-related-bg);
           backdrop-filter: blur(20px);
           border-top: 1px solid var(--b-border);
         }
@@ -661,7 +692,7 @@ export function BrabusShopProductDetailLayout({
           letter-spacing: 0.2em;
           margin: 0 0 3.5rem;
           text-align: center;
-          color: #fff;
+          color: var(--b-fg);
         }
         .b-rg {
           display: grid;
@@ -673,20 +704,20 @@ export function BrabusShopProductDetailLayout({
           overflow: hidden;
         }
         .b-rc {
-          background: #080808;
+          background: var(--b-rc-bg);
           text-decoration: none;
           display: flex;
           flex-direction: column;
           transition: background 0.3s;
         }
         .b-rc:hover {
-          background: #0f0f0f;
+          background: var(--b-rc-bg-hover);
         }
         .b-rc-img {
           aspect-ratio: 4/3;
           position: relative;
           padding: 1.5rem;
-          background: #0a0a0a;
+          background: var(--b-rc-img-bg);
         }
         .b-rc-img img {
           object-fit: contain;
@@ -708,7 +739,7 @@ export function BrabusShopProductDetailLayout({
         .b-rc-name {
           font-size: 0.85rem;
           font-weight: 300;
-          color: #fff;
+          color: var(--b-fg);
           margin: 0 0 1rem;
           line-height: 1.4;
         }
@@ -722,8 +753,8 @@ export function BrabusShopProductDetailLayout({
       `}</style>
 
       <div className="b-pdp">
-        {/* Background Video */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Background Video — cinematic, dark only */}
+        <div className="absolute inset-0 z-0 pointer-events-none hidden dark:block">
           <BrabusVideoBackground
             videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
             fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg"

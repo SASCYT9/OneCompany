@@ -10,7 +10,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(245, 245, 243, 0.7);
+  color: hsl(var(--foreground) / 0.7);
   text-decoration: none;
   transition: color 0.25s ease;
 }
@@ -21,15 +21,15 @@
 
 /* Urban Shop — design tokens and base layout (from reference theme) */
 .urban-shop-page {
-  --urban-ff-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-  --urban-ff-body: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --urban-c-black: #0a0a0a;
-  --urban-c-dark: #111;
-  --urban-c-grey-1: #141414;
-  --urban-c-grey-2: #1e1e1e;
-  --urban-c-grey-5: #999;
-  --urban-c-white: #f5f5f3;
-  --urban-c-accent: #f5f5f3;
+  --urban-ff-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --urban-ff-body: "Sora", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --urban-c-black: hsl(var(--background));
+  --urban-c-dark: hsl(var(--card));
+  --urban-c-grey-1: hsl(var(--foreground) / 0.08);
+  --urban-c-grey-2: hsl(var(--foreground) / 0.12);
+  --urban-c-grey-5: hsl(var(--foreground) / 0.6);
+  --urban-c-white: hsl(var(--foreground));
+  --urban-c-accent: hsl(var(--foreground));
   --urban-r-md: 14px;
   --urban-r-lg: 24px;
   --urban-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -40,6 +40,19 @@
   background: var(--urban-c-black);
   color: var(--urban-c-white);
   min-height: 100dvh;
+}
+
+/* Cinematic photo sections inside any urban-shop-page brand store keep white-on-dark
+   because they sit on actual dark photo/video assets. */
+.urban-shop-page .urban-hero,
+.urban-shop-page .urban-card,
+.urban-shop-page .urban-overview__hero,
+.urban-shop-page .urban-vp,
+.urban-shop-page .urban-stack__item {
+  --foreground: 0 0% 98%;
+  --urban-c-white: #f5f5f3;
+  --urban-c-grey-5: #999;
+  color: #f5f5f3;
 }
 
 /* Hero */
@@ -93,7 +106,7 @@
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(245, 245, 243, 0.5);
+  color: hsl(var(--foreground) / 0.5);
   margin-bottom: 20px;
 }
 
@@ -109,7 +122,7 @@
 .urban-hero__subtitle {
   font-size: clamp(14px, 1.3vw, 16px);
   line-height: 1.7;
-  color: rgba(245, 245, 243, 0.8);
+  color: hsl(var(--foreground) / 0.8);
   max-width: 520px;
   margin: 0 auto 32px;
 }
@@ -146,13 +159,13 @@
 .urban-btn--primary:hover {
   background: transparent;
   color: var(--urban-c-white);
-  border-color: rgba(245, 245, 243, 0.5);
+  border-color: hsl(var(--foreground) / 0.5);
 }
 
 .urban-btn--secondary {
   background: transparent;
   color: var(--urban-c-white);
-  border: 1px solid rgba(245, 245, 243, 0.25);
+  border: 1px solid hsl(var(--foreground) / 0.25);
 }
 
 .urban-btn--secondary:hover {
@@ -172,7 +185,7 @@
   width: 1px;
   height: 48px;
   margin: 0 auto clamp(20px, 3vw, 32px);
-  background: linear-gradient(180deg, transparent, rgba(245, 245, 243, 0.25));
+  background: linear-gradient(180deg, transparent, hsl(var(--foreground) / 0.25));
 }
 
 .urban-section-header__label {
@@ -180,7 +193,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: rgba(245, 245, 243, 0.45);
+  color: hsl(var(--foreground) / 0.45);
   margin-bottom: 12px;
 }
 
@@ -293,9 +306,9 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(245, 245, 243, 0.85);
+  color: hsl(var(--foreground) / 0.85);
   padding: 6px 12px;
-  border: 1px solid rgba(245, 245, 243, 0.25);
+  border: 1px solid hsl(var(--foreground) / 0.25);
   border-radius: 2px;
   margin-bottom: 12px;
   width: fit-content;
@@ -315,7 +328,7 @@
 .urban-card__subtitle {
   font-size: clamp(12px, 1.1vw, 14px);
   line-height: 1.5;
-  color: rgba(245, 245, 243, 0.75);
+  color: hsl(var(--foreground) / 0.75);
   margin: 0 0 10px;
 }
 
@@ -330,7 +343,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(245, 245, 243, 0.5);
+  color: hsl(var(--foreground) / 0.5);
 }
 
 .urban-card__arrow {
@@ -343,7 +356,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(245, 245, 243, 0.3);
+  border: 1px solid hsl(var(--foreground) / 0.3);
   border-radius: 50%;
   transition: all 0.3s var(--urban-ease-expo);
 }
@@ -371,7 +384,7 @@
 .shop-catalog--urban .rounded-full.border,
 .shop-catalog--urban .rounded-2xl.border,
 .shop-catalog--urban section.rounded-2xl {
-  border-color: rgba(245, 245, 243, 0.12);
+  border-color: hsl(var(--foreground) / 0.12);
   background: rgba(20, 20, 20, 0.8);
 }
 
@@ -381,26 +394,26 @@
 }
 
 .shop-catalog--urban button:not([class*="border-black/80"]):hover {
-  border-color: rgba(245, 245, 243, 0.3);
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 .shop-catalog--urban .border-black\/80,
 .shop-catalog--urban button.border-black\/80 {
-  border-color: rgba(245, 245, 243, 0.5);
-  background: rgba(245, 245, 243, 0.08);
+  border-color: hsl(var(--foreground) / 0.5);
+  background: hsl(var(--foreground) / 0.08);
 }
 
 .shop-catalog--urban .text-\[11px\],
 .shop-catalog--urban .text-xs,
 .shop-catalog--urban p {
-  color: rgba(245, 245, 243, 0.85);
+  color: hsl(var(--foreground) / 0.85);
 }
 
 .shop-catalog--urban .text-black\/45,
 .shop-catalog--urban .text-black\/60,
 .shop-catalog--urban .text-black\/65,
 .shop-catalog--urban .text-black\/70 {
-  color: rgba(245, 245, 243, 0.55);
+  color: hsl(var(--foreground) / 0.55);
 }
 
 .shop-catalog--urban .bg-white,
@@ -413,21 +426,21 @@
 .shop-catalog--urban select {
   background: rgba(30, 30, 30, 0.9);
   color: var(--urban-c-white);
-  border-color: rgba(245, 245, 243, 0.15);
+  border-color: hsl(var(--foreground) / 0.15);
 }
 
 .shop-catalog--urban input::placeholder {
-  color: rgba(245, 245, 243, 0.4);
+  color: hsl(var(--foreground) / 0.4);
 }
 
 .shop-catalog--urban a.rounded-\[30px\],
 .shop-catalog--urban a.overflow-hidden.rounded-\[30px\] {
   background: rgba(30, 30, 30, 0.95);
-  border-color: rgba(245, 245, 243, 0.1);
+  border-color: hsl(var(--foreground) / 0.1);
 }
 
 .shop-catalog--urban a.rounded-\[30px\]:hover {
-  border-color: rgba(245, 245, 243, 0.25);
+  border-color: hsl(var(--foreground) / 0.25);
 }
 
 .shop-catalog--urban .text-\[\#161410\],

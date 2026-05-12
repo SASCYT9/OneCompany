@@ -54,9 +54,9 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
   );
 
   return (
-    <div className="relative min-h-screen bg-black">
-      {/* Premium Red & Black Backdrop */}
-      <div className="fixed inset-0 z-0">
+    <div className="relative min-h-screen bg-background text-foreground">
+      {/* Cinematic factory backdrop — only in dark theme; light theme shows clean cream */}
+      <div className="fixed inset-0 z-0 hidden dark:block">
         <Image
           src="/images/shop/akrapovic/factory-fallback.jpg"
           alt="Akrapovic Factory"
@@ -74,7 +74,7 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
         <div className="w-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-6">
           <Link
             href={`/${locale}/shop/akrapovic`}
-            className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors"
+            className="text-[10px] uppercase tracking-[0.2em] text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white transition-colors"
           >
             ← {resolvedLocale === "ua" ? "Головна Akrapovič" : "Akrapovič home"}
           </Link>

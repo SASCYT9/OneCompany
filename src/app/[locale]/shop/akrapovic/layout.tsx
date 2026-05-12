@@ -6,5 +6,7 @@ type Props = {
 };
 
 export default function ShopAkrapovicLayout({ children }: Props) {
-  return <div className="dark min-h-screen bg-[#0a0a0a] text-white ak-shop-page">{children}</div>;
+  // Akrapovic is cinematic-dark (titanium + carbon + audio heritage, red ember accent);
+  // individual sections opt-in to `dark` scope, layout stays theme-aware.
+  return <div className="min-h-screen bg-background text-foreground ak-shop-page">{children}</div>;
 }
