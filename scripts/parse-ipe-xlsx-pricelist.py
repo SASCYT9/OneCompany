@@ -314,10 +314,101 @@ def parse_sheet(
     return items
 
 
+def parse_addons_sheet(ws: openpyxl.worksheet.worksheet.Worksheet) -> dict[str, Any]:
+    """Parse the 'Add-on options' sheet into structured tip/valve/accessory lists.
+
+    Column layout (0-indexed):
+      0: section label + sub-label joined by '\\n' (only on first row of each section)
+      2: SKU (Valve Controls only)
+      3: MAT (SS / Ti)
+      4: DESCRIPTION (e.g. "Chrome/Polished Silver Tips")
+      6: relative-price marker '+' (Valve Controls + Accessories)
+      7: MSRP price (USD)
+    """
+    rows = list(ws.iter_rows(values_only=True))
+
+    section_label: str | None = None
+    dual_tips: list[dict[str, Any]] = []
+    quad_tips: list[dict[str, Any]] = []
+    valve_controls: list[dict[str, Any]] = []
+    accessories: list[dict[str, Any]] = []
+    in_remarks = False
+
+    SECTION_KEYS = ("Valve Controls", "Dual Out Tips", "Quad Tips", "Accessories")
+
+    for raw_row in rows:
+        row = list(raw_row) + [None] * (max(0, 9 - len(raw_row)))
+        first_raw = row[0] if row[0] is not None else ""
+        first = collapse(first_raw)
+        # Section label often arrives as "Section\nsub-label" — match on the
+        # first line only.
+        section_first_line = str(first_raw).splitlines()[0].strip() if first_raw else ""
+
+        if first == "Remark" or first.startswith("Remark") or first.startswith("Notice"):
+            in_remarks = True
+            continue
+        if in_remarks:
+            continue
+        if first.startswith("※"):
+            continue
+        if not first and is_blank(row):
+            continue
+        if looks_like_table_header(row):
+            continue
+
+        if section_first_line in SECTION_KEYS:
+            section_label = section_first_line
+
+        if section_label is None:
+            continue
+
+        # Price at col 7
+        price = parse_money(row[7]) if row[7] is not None else None
+        if price is None:
+            continue
+
+        sku = collapse(row[2]) or None
+        material = collapse(row[3]) or None
+        # Description may have a "\n" continuation (Titanium Material rows).
+        description = collapse(row[4]) or ""
+        description = description.replace("\n", " — ") if description else ""
+
+        entry = {
+            "label": description or "",
+            "material": material,
+            "msrp_usd": price,
+            "sku": sku,
+        }
+
+        if section_label == "Valve Controls":
+            valve_controls.append(entry)
+        elif section_label == "Dual Out Tips":
+            dual_tips.append(entry)
+        elif section_label == "Quad Tips":
+            quad_tips.append(entry)
+        elif section_label == "Accessories":
+            accessories.append(entry)
+
+    for collection in (dual_tips, quad_tips):
+        if not collection:
+            continue
+        cheapest = min(collection, key=lambda e: e["msrp_usd"])
+        for e in collection:
+            e["is_default"] = e is cheapest
+
+    return {
+        "dual_tips": dual_tips,
+        "quad_tips": quad_tips,
+        "valve_controls": valve_controls,
+        "accessories": accessories,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Parse iPE 2026 xlsx price list.")
     parser.add_argument("xlsx_path", type=Path)
     parser.add_argument("--json-out", type=Path, required=True)
+    parser.add_argument("--addons-json-out", type=Path, default=None)
     parser.add_argument("--low-fee", type=float, default=1500)
     parser.add_argument("--high-fee", type=float, default=1600)
     parser.add_argument("--threshold", type=float, default=5000)
@@ -371,6 +462,25 @@ def main() -> int:
     print(f"Retail-ready: {retail_ready}")
     print(f"By brand: {sorted(by_brand.items(), key=lambda x: -x[1])[:15]}")
     print(f"JSON: {args.json_out}")
+
+    # Addons sheet (Tips / Valves / Accessories) — emits a separate JSON when
+    # --addons-json-out is provided.
+    if args.addons_json_out is not None and "Add-on options" in wb.sheetnames:
+        addons = parse_addons_sheet(wb["Add-on options"])
+        args.addons_json_out.parent.mkdir(parents=True, exist_ok=True)
+        addons_payload = {
+            "source_xlsx": str(args.xlsx_path),
+            **addons,
+        }
+        args.addons_json_out.write_text(
+            json.dumps(addons_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(
+            f"Addons: dual_tips={len(addons['dual_tips'])} quad_tips={len(addons['quad_tips'])} "
+            f"valves={len(addons['valve_controls'])} accessories={len(addons['accessories'])}"
+        )
+        print(f"Addons JSON: {args.addons_json_out}")
+
     return 0
 
 

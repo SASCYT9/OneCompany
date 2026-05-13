@@ -1121,6 +1121,163 @@ export function resolveIpeVariantPricing(
   };
 }
 
+/* ============================================================
+ * Tips axis catalog (parsed from Excel "Add-on options" sheet)
+ * ============================================================ */
+
+export type IpeAddonEntry = {
+  label: string;
+  material: string | null;
+  msrp_usd: number;
+  sku: string | null;
+  is_default?: boolean;
+};
+
+export type IpeAddonsCatalog = {
+  source_xlsx?: string;
+  dual_tips: IpeAddonEntry[];
+  quad_tips: IpeAddonEntry[];
+  valve_controls: IpeAddonEntry[];
+  accessories: IpeAddonEntry[];
+};
+
+export type IpeTipOption = {
+  label: string; // "Carbon Fiber" / "Titanium Blue" — user-facing
+  fullLabel: string; // raw "Carbon Fiber Tips" with optional material suffix
+  sku: string | null; // real Excel SKU if per-model row, else null
+  msrpDelta: number; // 0 for default Chrome/Polished Silver, positive for upgrades
+  source: "per-model" | "universal-dual" | "universal-quad";
+};
+
+// Ordered most-specific → least-specific so the "Titanium Material" line that
+// embeds "Chrome Silver" inside its description doesn't get mislabelled as
+// the regular Chrome/Polished Silver finish.
+const TIP_NORMALIZED_KEYS: Array<readonly [RegExp, string]> = [
+  [
+    /titanium\s*material|gold\s*\/\s*chrome\s*silver\s*\/\s*titanium\s*blue/i,
+    "Titanium (Gold / Silver / Blue)",
+  ],
+  [/black\s*mamba/i, "89mm Black Mamba"],
+  [/red\s*mamba/i, "89mm Red Mamba"],
+  [/carbon\s*fiber/i, "Carbon Fiber"],
+  [/titanium\s*blue/i, "Titanium Blue"],
+  [/chrome\s*black|gloss\s*black/i, "Chrome Black"],
+  [/satin\s*silver/i, "Satin Silver"],
+  [/satin\s*gold/i, "Satin Gold"],
+  [/chrome[\s/]+polished\s*silver|polished\s*silver|chrome\s*silver/i, "Chrome / Polished Silver"],
+  [/\bgold\b/i, "Satin Gold"],
+];
+
+function normalizeTipLabel(text: string | null | undefined): string {
+  const s = String(text ?? "").trim();
+  if (!s) return "";
+  for (const [rx, label] of TIP_NORMALIZED_KEYS) {
+    if (rx.test(s)) return label;
+  }
+  // Strip generic " Tips" suffix and brand prefixes
+  return s.replace(/\b(iPE\s+)?tips?$/i, "").trim() || s;
+}
+
+/**
+ * Detect whether a product uses dual-out tips (2 tips) or quad tips (4 tips)
+ * based on Shopify snapshot product/variant text or DB title hints.
+ */
+export function inferQuadTipsFromText(...parts: Array<string | null | undefined>): boolean {
+  const joined = parts.filter(Boolean).join(" ").toLowerCase();
+  if (/\bquad\s*tips?\b|\b4[- ]tips?\b|2\s*tips?\s+per\s+side/i.test(joined)) return true;
+  return false;
+}
+
+/**
+ * For a given product's price-row scope, return the list of tip options to
+ * expose as a selectable axis. Prefers per-model tip rows (with real Excel
+ * SKUs) when available; otherwise falls back to the universal Add-on tips
+ * catalog (Dual or Quad based on hint).
+ *
+ * The first returned option is always the "default" (cheapest, msrpDelta=0).
+ * Subsequent options carry a positive msrpDelta computed relative to the
+ * default.
+ */
+export function selectIpeTipOptions(
+  priceRows: ReadonlyArray<IpeParsedPriceListRow>,
+  addons: IpeAddonsCatalog | null,
+  hint: { quadTips: boolean }
+): IpeTipOption[] {
+  // 1. Per-model tip rows: any priceRow whose description matches /tips?/i
+  //    AND has a non-null msrp_usd.
+  const perModel = priceRows.filter((r) => {
+    const desc = (r.description ?? "").toLowerCase();
+    const section = (r.section ?? "").toLowerCase();
+    const isTipText = /\btips?\b|\btailpipes?\b/.test(desc) || /\btips?\b/.test(section);
+    return isTipText && r.msrp_usd != null && r.msrp_usd > 0;
+  });
+  // Deduplicate per-model tips by normalized label (some Excel rows duplicate
+  // the same finish under multiple sections — keep the cheapest).
+  const perModelByLabel = new Map<string, IpeParsedPriceListRow>();
+  for (const row of perModel) {
+    const label = normalizeTipLabel(row.description);
+    if (!label) continue;
+    const prev = perModelByLabel.get(label);
+    if (!prev || (prev.msrp_usd ?? 0) > (row.msrp_usd ?? 0)) {
+      perModelByLabel.set(label, row);
+    }
+  }
+  if (perModelByLabel.size >= 1) {
+    const entries = Array.from(perModelByLabel.entries()).map(([label, row]) => ({
+      label,
+      row,
+      msrp: Number(row.msrp_usd ?? 0),
+    }));
+    // msrpDelta = full msrp of the tip row. For Standard cars the "relative"
+    // rows already encode the upgrade cost over the included Chrome Silver
+    // baseline (so the delta matches Excel "+$X" exactly). For Premium cars
+    // (Ferrari Purosangue: tips $4,000 absolute) the customer pays the full
+    // tip cost on top of the base section.
+    const tips: IpeTipOption[] = entries
+      .sort((a, b) => a.msrp - b.msrp)
+      .map((e) => ({
+        label: e.label,
+        fullLabel: e.row.description ?? e.label,
+        sku: e.row.sku ?? null,
+        msrpDelta: Math.round(e.msrp * 100) / 100,
+        source: "per-model" as const,
+      }));
+    // For "relative" tip rows (Standard cars with a free Chrome Silver
+    // included), prepend a synthetic "Standard" option at delta=0 so the
+    // customer can choose NOT to upgrade.
+    const allRelative = entries.every((e) => e.row.price_kind === "relative");
+    if (allRelative) {
+      tips.unshift({
+        label: "Стандартні (Chrome Silver)",
+        fullLabel: "Стандартні насадки (Chrome Silver, включено)",
+        sku: null,
+        msrpDelta: 0,
+        source: "per-model",
+      });
+    }
+    return tips;
+  }
+
+  // 2. Universal fallback from Add-on catalog (no per-model tips found)
+  if (!addons) return [];
+  const universalList = hint.quadTips ? addons.quad_tips : addons.dual_tips;
+  if (!universalList.length) return [];
+  const cheapest = Math.min(...universalList.map((e) => e.msrp_usd));
+  return universalList
+    .slice()
+    .sort((a, b) => a.msrp_usd - b.msrp_usd)
+    .map((e) => ({
+      label: normalizeTipLabel(e.label) || e.label,
+      fullLabel: e.label,
+      sku: e.sku,
+      // Universal Add-on tips are absolute prices ($410..$1,500). Treat the
+      // cheapest as the included baseline ($0 delta) and others as the
+      // upgrade cost over baseline.
+      msrpDelta: Math.max(0, Math.round((e.msrp_usd - cheapest) * 100) / 100),
+      source: hint.quadTips ? ("universal-quad" as const) : ("universal-dual" as const),
+    }));
+}
+
 export function buildIpeSyntheticVariantSku(handle: string, optionSignature: string) {
   const digest = createHash("sha1")
     .update(`${handle}::${optionSignature}`)

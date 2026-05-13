@@ -1,0 +1,139 @@
+{
+  "source_xlsx": "scripts\\ipe\\2026-april-pricelist.xlsx",
+  "dual_tips": [
+    {
+      "label": "Chrome/Polished Silver Tips",
+      "material": "SS",
+      "msrp_usd": 410.0,
+      "sku": null,
+      "is_default": true
+    },
+    {
+      "label": "Titanium Blue Tips",
+      "material": "SS",
+      "msrp_usd": 550.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Chrome Black Tips / Gloss Black Tips",
+      "material": "SS",
+      "msrp_usd": 600.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Carbon Fiber Tips",
+      "material": "SS",
+      "msrp_usd": 810.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "89mm Black Mamba Tips",
+      "material": "SS",
+      "msrp_usd": 810.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "89mm Red Mamba Tips",
+      "material": "SS",
+      "msrp_usd": 810.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Titanium Material: Gold / Chrome Silver / Titanium Blue Tips",
+      "material": "Ti",
+      "msrp_usd": 790.0,
+      "sku": null,
+      "is_default": false
+    }
+  ],
+  "quad_tips": [
+    {
+      "label": "Chrome/Polished Silver Tips",
+      "material": "SS",
+      "msrp_usd": 720.0,
+      "sku": null,
+      "is_default": true
+    },
+    {
+      "label": "Titanium Blue Tips",
+      "material": "SS",
+      "msrp_usd": 950.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Chrome Black Tips",
+      "material": "SS",
+      "msrp_usd": 1070.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Carbon Fiber Tips",
+      "material": "SS",
+      "msrp_usd": 1500.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "89mm Black Mamba Tips",
+      "material": "SS",
+      "msrp_usd": 1500.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "89mm Red Mamba Tips",
+      "material": "SS",
+      "msrp_usd": 1500.0,
+      "sku": null,
+      "is_default": false
+    },
+    {
+      "label": "Titanium Material: Gold / Chrome Silver / Titanium Blue Tips",
+      "material": "Ti",
+      "msrp_usd": 1430.0,
+      "sku": null,
+      "is_default": false
+    }
+  ],
+  "valve_controls": [
+    {
+      "label": "Remote Control",
+      "material": null,
+      "msrp_usd": 280.0,
+      "sku": "1X-32-V0V0-8S-B5001"
+    },
+    {
+      "label": "OBDII with Lighting Sensor Control",
+      "material": null,
+      "msrp_usd": 570.0,
+      "sku": "1X-31-V0V0-8S-B1001"
+    }
+  ],
+  "accessories": [
+    {
+      "label": "Customize Golden Version (Titanium Exhaust Only)",
+      "material": "Ti",
+      "msrp_usd": 1730.0,
+      "sku": null
+    },
+    {
+      "label": "Heat Protector",
+      "material": null,
+      "msrp_usd": 920.0,
+      "sku": null
+    },
+    {
+      "label": "Customize Engraving",
+      "material": null,
+      "msrp_usd": 350.0,
+      "sku": null
+    }
+  ]
+}
