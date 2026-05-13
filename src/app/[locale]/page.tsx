@@ -197,7 +197,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 hidden dark:block"
+                    className="object-cover object-bottom md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
@@ -208,7 +208,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     alt=""
                     aria-hidden="true"
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 dark:hidden"
+                    className="object-cover object-bottom md:object-center group-hover:scale-105 transition-transform duration-700 dark:hidden"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
