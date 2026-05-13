@@ -1,0 +1,24 @@
+◇ injected env (1) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+=== iPE kitchen-sink audit (125 products) ===
+Currency rates: USD=1.18 UAH=52 EUR=1 | 1USD=44.07UAH = 0.85EUR
+
+Total issues found: 18
+
+[synthetic-sku] 15 total  (high=0 med=0 low=15)
+  LOW  ipe-audi-rs3-sedan-sportback-8v-2-exhaust  — variant sku=IPE-AUDIRS3SEDANSPORTBACK8V2-3D553ED2
+  LOW  ipe-audi-rs3-sportback-8v-exhaust  — variant sku=IPE-AUDIRS3SPORTBACK8V-CD79F61D
+  LOW  ipe-audi-rs3-sportback-8v-exhaust  — variant sku=IPE-AUDIRS3SPORTBACK8V-9789122E
+  LOW  ipe-bmw-m240i-g42-exhaust-system  — variant sku=IPE-BMWM240IG42-77781554
+  LOW  ipe-bmw-m240i-g42-exhaust-system  — variant sku=IPE-BMWM240IG42-F6012A63
+  LOW  ipe-bmw-m240i-g42-exhaust-system  — variant sku=IPE-BMWM240IG42-0FC5E6CB
+  ... and 9 more
+
+[flat-price-flat-sku] 2 total  (high=2 med=0 low=0)
+  HIGH ipe-lamborghini-huracan-tecnica-exhaust-system  — 2 variants but only 1 unique SKU and 1 unique price (options differ but pricing+SKU don't)
+  HIGH ipe-mercedes-benz-amg-g63-w465-exhaust-system  — 3 variants but only 1 unique SKU and 1 unique price (options differ but pricing+SKU don't)
+
+[position-gap] 1 total  (high=0 med=0 low=1)
+  LOW  ipe-porsche-911-turbo-turbo-s-991-991-2-titanium  — expected 5 at index 4, got 6; positions=[1,2,3,4,6,7,8]
+
