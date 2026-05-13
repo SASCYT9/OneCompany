@@ -1,0 +1,39 @@
+◇ injected env (1) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+=== Final Excel-match audit ===
+Total iPE products:           125
+Total iPE variants:           1708
+  Real Excel SKUs:            1693
+    → SKU found in Excel:     1693
+    → SKU NOT in Excel:       0
+  Synthetic IPE-* SKUs:       15
+  Null SKU or Null price:     0
+
+Price match analysis (only variants with Excel SKU + price):
+  Exact match base price:     386
+  Within base+max-tip range:  1286
+  Out of range (mismatch):    21
+
+=== Sample mismatches (top 30) ===
+  [ipe-ferrari-296-gtb-exhaust-system] sku=0F2960-TNVN00-4 dbPrice=$13600 expectedBase=$8300 max=$12800 [Titanium | Full System | Catted Downpipe (OPF)]
+  [ipe-ferrari-296-gtb-exhaust-system] sku=0F2960-NVN00-4 dbPrice=$12900 expectedBase=$7600 max=$12100 [Stainless steel | Full System | Catted Downpipe (OPF)]
+  [ipe-lamborghini-huracan-evo-exhaust] sku=0LHUP-NVN00-2 dbPrice=$7600 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF Version) · SS / Non-OPF | Chrome / Polished Silver]
+  [ipe-lamborghini-huracan-evo-exhaust] sku=0LHUP-NVN00-2 dbPrice=$7740 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF Version) · SS / Non-OPF | Titanium Blue]
+  [ipe-lamborghini-huracan-evo-exhaust] sku=0LHUP-NVN00-2 dbPrice=$7790 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF Version) · SS / Non-OPF | Chrome Black]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUP-NVN00-2 dbPrice=$7600 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF) · SS / Non-OPF | Chrome / Polished Silver]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUP-NVN00-2 dbPrice=$7740 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF) · SS / Non-OPF | Titanium Blue]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUP-NVN00-2 dbPrice=$7790 expectedBase=$8000 max=$12500 [Cat Back System (Non-OPF) · SS / Non-OPF | Chrome Black]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUE-NVNO0-2 dbPrice=$7600 expectedBase=$8000 max=$12500 [Cat Back System (OPF) · SS / OPF | Chrome / Polished Silver]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUE-NVNO0-2 dbPrice=$7740 expectedBase=$8000 max=$12500 [Cat Back System (OPF) · SS / OPF | Titanium Blue]
+  [ipe-lamborghini-huracan-sto-exhaust-system] sku=0LHUE-NVNO0-2 dbPrice=$7790 expectedBase=$8000 max=$12500 [Cat Back System (OPF) · SS / OPF | Chrome Black]
+  [ipe-lamborghini-huracan-tecnica-exhaust-system] sku=0LHUP-NVN00-2 dbPrice=$7600 expectedBase=$8000 max=$12500 [OPF]
+  [ipe-lamborghini-huracan-tecnica-exhaust-system] sku=0LHUP-NVN00-2 dbPrice=$7600 expectedBase=$8000 max=$12500 [Non OPF]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5500 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | Chrome / Polished Silver]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5640 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | Titanium Blue]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5690 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | Chrome Black]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5880 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | Titanium (Gold / Silver / Blue)]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5900 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | 89mm Black Mamba]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5900 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | 89mm Red Mamba]
+  [ipe-mercedes-benz-gt43-gt50-gt53-coupe-x290-1-exhaust] sku=0Z5753-NVN00-202 dbPrice=$5900 expectedBase=$6000 max=$10600 [Cat Back System (Original Motor) · SS | Carbon Fiber]
+  [ipe-porsche-911-carrera-s-4s-997-exhaust] sku=1P996T-11-N000-1S dbPrice=$2900 expectedBase=$3000 max=$7600 [Header · SS | Chrome / Polished Silver]
