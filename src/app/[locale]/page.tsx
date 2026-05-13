@@ -53,8 +53,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("factoryRaceDescription"),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
-      bgImageDark: "/images/hero-moto-dark-v9.png",
-      bgImageLight: "/images/hero-moto-light-v9.png",
+      bgImageDark: "/images/hero-moto-dark-v10.png",
+      bgImageLight: "/images/hero-moto-light-v10.png",
       stats: [
         { value: "60+", note: t("motoPartners") },
         { value: "6", note: t("motoSeries") },
@@ -197,7 +197,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className="object-cover object-bottom md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block"
+                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block`}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
@@ -208,7 +208,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     alt=""
                     aria-hidden="true"
                     fill
-                    className="object-cover object-bottom md:object-center group-hover:scale-105 transition-transform duration-700 dark:hidden"
+                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 dark:hidden`}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
