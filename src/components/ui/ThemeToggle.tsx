@@ -24,7 +24,7 @@ export default function ThemeToggle() {
     <button
       ref={btnRef}
       onClick={handleToggle}
-      className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-foreground/25 bg-foreground/5 text-foreground hover:bg-foreground/10 hover:border-foreground/40 transition-all duration-300"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-foreground/25 bg-foreground/5 text-foreground hover:bg-foreground/10 hover:border-foreground/40 transition-all duration-300"
       aria-label="Toggle theme"
       title={isDark ? "Switch to light" : "Switch to dark"}
     >
@@ -48,9 +48,6 @@ export default function ThemeToggle() {
           />
         </svg>
       )}
-      <span className="text-xs font-light uppercase tracking-wider">
-        {isDark ? "Dark" : "Light"}
-      </span>
     </button>
   );
 }

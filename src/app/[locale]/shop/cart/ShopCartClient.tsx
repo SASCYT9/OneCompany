@@ -71,7 +71,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
       <img
         src={currentSrc!.replace(/^["']|["']$/g, "").trim()}
         alt={alt}
-        className="h-full w-full object-contain p-1.5 mix-blend-screen"
+        className="h-full w-full object-contain p-1.5"
         onError={() => setFailedCount((c) => c + 1)}
       />
     );
