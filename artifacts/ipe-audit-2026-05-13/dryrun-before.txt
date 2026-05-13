@@ -1,0 +1,48 @@
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Scanned 153 iPE products from snapshot.
+Variant updates: 20 | unchanged: 227 | resolve-failed: 298
+
+First 25 changes:
+  [bmw-m240i-g42-exhaust-system] Catback System / 200 Cell / OPF
+    $8400 -> $5400
+  [bmw-m240i-g42-exhaust-system] Catback System / Catless / OPF
+    $8000 -> $5400
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $10400
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $9700
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catted Downpipe (OPF)
+    $10400 -> $6300
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catless Downpipe (OPF)
+    $9700 -> $6300
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $6300
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $6300
+  [lamborghini-huracan-tecnica-exhaust-system] OPF
+    $7600 -> $8000
+  [lamborghini-huracan-tecnica-exhaust-system] Non OPF
+    $7600 -> $8000
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catted Downpipe (OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catted Downpipe (Non-OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catless Downpipe (Non-OPF)
+    $8500 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catted Downpipe (OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catless Downpipe (OPF)
+    $8500 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catted Downpipe (Non-OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catless Downpipe (Non-OPF)
+    $8500 -> $5500
+  [porsche-911-gt3-gt3-rs-992-full-exhaust-system] Stainless Steel / Catback
+    $6900 -> $16600
+  [porsche-992-gt3-full-exhaust-system] Titanium / Catless / OPF
+    $16800 -> $17400
+  [porsche-992-gt3-full-exhaust-system] Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)
+    $17600 -> $17400
+
+(dry run — pass --commit to write)

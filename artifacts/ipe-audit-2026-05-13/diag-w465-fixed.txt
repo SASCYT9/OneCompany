@@ -1,0 +1,44 @@
+◇ injected env (1) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+=== Snapshot handles count === 345
+=== Manifest rows count === 1541
+
+=== Product in snapshot === true
+Title: Mercedes-Benz AMG G63 (W465) Exhaust System
+Variants: 3
+Options: [
+  'Downpipe=[Catted Downpipe|Catless Downpipe|Non-Downpipe]',
+  'Catback system=[Cat-back + Double triple Gold tips]'
+]
+
+=== Manifest rows for W465 === 3
+  rowIdx=1008 sku=0Z6463-NVN00-2 brand=Mercedes-Benz priceKind=absolute oldMsrp=$2300 oldRetail=$3800
+  rowIdx=1009 sku=1Z6565-03-NOTB-7S brand=Mercedes-Benz priceKind=unpriced oldMsrp=$5500 oldRetail=$7100
+  rowIdx=1010 sku=1Z6565-03-NOTG-7S brand=Mercedes-Benz priceKind=unpriced oldMsrp=$6400 oldRetail=$8000
+
+=== Final price rows used for resolver ===
+  sku=0Z6463-NVN00-2 section=Cat Back System price_kind=absolute msrp=$6100 retail=$7700
+  sku=1Z6565-03-NOTB-7S section=Cat Back System price_kind=unpriced msrp=$null retail=$null
+  sku=1Z6565-03-NOTG-7S section=Upgrade Options (No Discount) price_kind=unpriced msrp=$null retail=$null
+
+=== Candidates from buildIpeVariantCandidates ===
+  source=official title="Catted Downpipe / Cat-back + Double triple Gold tips" optionValues=[Catted Downpipe|Cat-back + Double triple Gold tips]
+  source=official title="Catless Downpipe / Cat-back + Double triple Gold tips" optionValues=[Catless Downpipe|Cat-back + Double triple Gold tips]
+  source=official title="Non-Downpipe / Cat-back + Double triple Gold tips" optionValues=[Non-Downpipe|Cat-back + Double triple Gold tips]
+
+=== Pricing for each candidate ===
+  Catted Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$7700
+    base: sku=0Z6463-NVN00-2 section=Cat Back System retail=$7700
+    deltas: —
+    review: []  confidence=0.748
+  Catless Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$7700
+    base: sku=0Z6463-NVN00-2 section=Cat Back System retail=$7700
+    deltas: —
+    review: []  confidence=0.748
+  Non-Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$7700
+    base: sku=0Z6463-NVN00-2 section=Cat Back System retail=$7700
+    deltas: —
+    review: []  confidence=0.748

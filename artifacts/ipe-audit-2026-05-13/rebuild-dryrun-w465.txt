@@ -1,0 +1,26 @@
+◇ injected env (1) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Snapshot dir: 2026-05-02T14-44-33-838Z
+Mode: DRY-RUN
+Handle filter: mercedes-benz-amg-g63-w465-exhaust-system
+
+[ipe-mercedes-benz-amg-g63-w465-exhaust-system]
+  Before: 1v / 2 axes
+  After:  3v / 2 axes
+  Options:
+    1. Downpipe  (3: Catted Downpipe | Catless Downpipe | Non-Downpipe)
+    2. Catback system  (1: Cat-back + Double triple Gold tips)
+  Variants:
+    1. [Catted Downpipe / Cat-back + Double triple Gold tips]  sku=0Z6463-NVN00-2  $7700 [DEF]
+    2. [Catless Downpipe / Cat-back + Double triple Gold tips]  sku=0Z6463-NVN00-2  $7700
+    3. [Non-Downpipe / Cat-back + Double triple Gold tips]  sku=0Z6463-NVN00-2  $7700
+
+=== Summary ===
+Products to rebuild: 1
+Variants to DELETE: 1
+Variants to CREATE: 3
+Products with at least one NULL-price variant: 0
+
+Full plan JSON: D:\One Company\OneCompany\artifacts\ipe-audit-2026-05-13\rebuild-multi-axis-dryrun.json
+
+(dry run — pass --apply to write)

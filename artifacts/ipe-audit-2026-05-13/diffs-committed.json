@@ -1,0 +1,122 @@
+{
+  "committedAt": "2026-05-13T19:07:09.243Z",
+  "commit": true,
+  "scanned": 158,
+  "changed": 16,
+  "unchanged": 474,
+  "resolveFailed": 102,
+  "diffs": [
+    {
+      "handle": "audi-a6-c8-2-0t-45-tfsi-exhaust",
+      "title": "Audi A6 (C8) 2.0T 45 TFSI Exhaust System",
+      "optionValues": ["Cat Back System"],
+      "oldUsd": 5600,
+      "newUsd": 5900
+    },
+    {
+      "handle": "audi-a6-c8-2-0t-45-tfsi-exhaust",
+      "title": "Audi A6 (C8) 2.0T 45 TFSI Exhaust System",
+      "optionValues": ["Cat Back System"],
+      "oldUsd": 5600,
+      "newUsd": 6300
+    },
+    {
+      "handle": "audi-a6-c8-3-0t-55-tfsi-exhaust",
+      "title": "Audi A6 (C8) 3.0T 55 TFSI Exhaust System",
+      "optionValues": ["Dual Side Dual Out Version Cat Back System ABS Rear Diffuser"],
+      "oldUsd": 6300,
+      "newUsd": 5900
+    },
+    {
+      "handle": "audi-s3-sedan-8v-exhaust",
+      "title": "Audi S3 Sedan / Sportback (8V) Exhaust System",
+      "optionValues": ["Dual Side Dual Out Version Cat Back System ABS Rear Diffuser"],
+      "oldUsd": 5900,
+      "newUsd": 6000
+    },
+    {
+      "handle": "bmw-540i-g30-exhaust-system",
+      "title": "BMW 540i (G30) Exhaust System",
+      "optionValues": ["Catted Downpipe Non-OPF Version"],
+      "oldUsd": 2800,
+      "newUsd": 3000
+    },
+    {
+      "handle": "bmw-m2-competition-exhaust",
+      "title": "BMW M2 Competition (F87N) Exhaust System",
+      "optionValues": ["Catted Downpipe"],
+      "oldUsd": 3000,
+      "newUsd": 2900
+    },
+    {
+      "handle": "ferrari-458-italia-titanium-exhaust",
+      "title": "Ferrari 458 Italia / Spider (Titanium) Exhaust System",
+      "optionValues": ["Cat Back System · Cat Back System"],
+      "oldUsd": 7600,
+      "newUsd": 7900
+    },
+    {
+      "handle": "ferrari-812-superfast-gts-titanium-exhaust",
+      "title": "Ferrari 812 Superfast / GTS (Titanium) Exhaust System",
+      "optionValues": ["Rear Valvetronic System"],
+      "oldUsd": 9700,
+      "newUsd": 9400
+    },
+    {
+      "handle": "ferrari-812-superfast-gts-titanium-exhaust",
+      "title": "Ferrari 812 Superfast / GTS (Titanium) Exhaust System",
+      "optionValues": ["Rear Valvetronic System · Titanium Rear Valvetronic System"],
+      "oldUsd": 10800,
+      "newUsd": 11500
+    },
+    {
+      "handle": "mercedes-benz-amg-cls53-c257-exhaust",
+      "title": "Mercedes-Benz AMG CLS53 (C257) Exhaust System",
+      "optionValues": ["Catted Downpipe Non-OPF Version"],
+      "oldUsd": 3500,
+      "newUsd": 4200
+    },
+    {
+      "handle": "mercedes-benz-amg-gt-gt-s-c190-r190-titanium-exhaust",
+      "title": "Mercedes-Benz AMG GT / GT S / GT C (C190/R190) (Titanium) Exhaust System",
+      "optionValues": ["F 1 Version Cat Back System"],
+      "oldUsd": 6800,
+      "newUsd": 6300
+    },
+    {
+      "handle": "porsche-911-turbo-turbo-s-997-exhaust",
+      "title": "Porsche 911 Turbo / Turbo S (997) Exhaust System",
+      "optionValues": ["Catted Downpipe with Valvetronic Muffler"],
+      "oldUsd": 5900,
+      "newUsd": 6100
+    },
+    {
+      "handle": "porsche-911-turbo-turbo-s-997-exhaust",
+      "title": "Porsche 911 Turbo / Turbo S (997) Exhaust System",
+      "optionValues": ["Catless Downpipe with Valvetronic Muffler"],
+      "oldUsd": 5500,
+      "newUsd": 5700
+    },
+    {
+      "handle": "titanium-blue-tips-ss-991-2-992",
+      "title": "Titanium Blue Tips",
+      "optionValues": ["Header · Header"],
+      "oldUsd": 3000,
+      "newUsd": 2700
+    },
+    {
+      "handle": "volkswagen-golf-gti-mk8-exhaust",
+      "title": "Volkswagen Golf GTi (Mk8) Exhaust System",
+      "optionValues": ["Cat Back System"],
+      "oldUsd": 3900,
+      "newUsd": 3800
+    },
+    {
+      "handle": "volkswagen-golf-r-mk7-exhaust",
+      "title": "Volkswagen Golf R (Mk7) Exhaust System",
+      "optionValues": ["Cat Back System"],
+      "oldUsd": 3800,
+      "newUsd": 4000
+    }
+  ]
+}

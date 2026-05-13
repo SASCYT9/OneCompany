@@ -1,0 +1,36 @@
+◇ injected env (1) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Rates from ShopSettings: USD=1.18 UAH=52 EUR=1
+  1 USD = 44.0678 UAH = 0.8475 EUR
+  Mode: DRY-RUN
+
+Variants to update (UAH+EUR diff): 601
+Variants skipped (no USD): 0
+Products to update (top-level): 125
+Products skipped (no priced default variant): 0
+
+Sample 10 variant changes:
+  variantId=cmoaeyfon00a1e9s0cbeashbc  UAH: ? -> 317288.14  EUR: ? -> 6101.69
+  variantId=cmoaeyfon00a2e9s06tqu16tc  UAH: ? -> 96949.15  EUR: ? -> 1864.41
+  variantId=cmoaeyfoo00a3e9s05agve7r1  UAH: ? -> 317288.14  EUR: ? -> 6101.69
+  variantId=cmoaeyfon009we9s0csocfx80  UAH: ? -> 132203.39  EUR: ? -> 2542.37
+  variantId=cmoaeyfon009xe9s0elaw78gp  UAH: ? -> 114576.27  EUR: ? -> 2203.39
+  variantId=cmoaeyfon009ze9s0vehnlero  UAH: ? -> 211525.42  EUR: ? -> 4067.8
+  variantId=cmoaeyfon00a0e9s0vbc6z8yd  UAH: ? -> 149830.51  EUR: ? -> 2881.36
+  variantId=cmoaeyfoo00a4e9s09jxq308j  UAH: ? -> 132203.39  EUR: ? -> 2542.37
+  variantId=cmoaeyfoo00a5e9s0t2z6l8k1  UAH: ? -> 114576.27  EUR: ? -> 2203.39
+  variantId=cmoaeyfoo00a6e9s091oih6x6  UAH: ? -> 132203.39  EUR: ? -> 2542.37
+
+Sample 10 product top-level changes:
+  ipe-bmw-850i-g15-exhaust  USD: 6700 -> 6700
+  ipe-ferrari-458-italia-exhaust  USD: 7600 -> 7600
+  ipe-maserati-quattroporte-mk6-2wd-exhaust  USD: 7100 -> 7100
+  ipe-mclaren-540c-570s-570gt-exhaust  USD: 7400 -> 7400
+  ipe-mercedes-benz-e53-coupe-c238-5-exhaust  USD: 5700 -> 5700
+  ipe-porsche-911-carrera-s-4s-gts-991-3-exhaust  USD: 6400 -> 6400
+  ipe-porsche-911-turbo-turbo-s-996-exhaust  USD: 5900 -> 5900
+  ipe-porsche-boxster-cayman-987-2-exhaust  USD: 4700 -> 4700
+  ipe-porsche-panamera-4-3-0t-971-exhaust  USD: 6800 -> 6800
+  ipe-audi-a6-c8-3-0t-55-tfsi-exhaust  USD: 5600 -> 5600
+
+(dry run — pass --apply to write)

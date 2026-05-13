@@ -1,0 +1,112 @@
+◇ injected env (1) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+=== Snapshot handles count === 345
+=== Manifest rows count === 1541
+
+=== Product in snapshot === true
+Title: Porsche 911 GT3 / GT3 RS (992) Full Exhaust System
+Variants: 12
+Options: [
+  'Material=[Titanium|Stainless Steel]',
+  'Headers (Stainless Steel)=[Equal Length Headers / 200 Cell (OPF/Non-OPF)|Equal Length Headers / Catless (OPF/Non-OPF)|200 Cell / OPF|200 Cell / Non-OPF|Catless / OPF|Catless / Non-OPF]'
+]
+
+=== Manifest rows for W465 === 10
+  rowIdx=6 sku=1P92G3-AVFM0-1 brand=Porsche priceKind=absolute oldMsrp=$15800 oldRetail=$17400
+  rowIdx=1222 sku=1P92G3-01-A0M0-1S brand=Porsche priceKind=absolute oldMsrp=$4600 oldRetail=$6100
+  rowIdx=1223 sku=1P92G3-03-EVP0-6N brand=Porsche priceKind=absolute oldMsrp=$5300 oldRetail=$6900
+  rowIdx=1224 sku=1P91RN-03-N0AS-7S brand=Porsche priceKind=unpriced oldMsrp=$4500 oldRetail=$6000
+  rowIdx=1226 sku=1P92G3-03-EVP0-6N brand=Porsche priceKind=absolute oldMsrp=$7900 oldRetail=$9500
+  rowIdx=1227 sku=1P92G3-01-A0M0-1S brand=Porsche priceKind=absolute oldMsrp=$5300 oldRetail=$6900
+  rowIdx=1228 sku=1P92G3-23-EVP0-6N brand=Porsche priceKind=absolute oldMsrp=$0 oldRetail=$0
+  rowIdx=1229 sku=1P91RN-23-N0AP-7S brand=Porsche priceKind=unpriced oldMsrp=$140 oldRetail=$140
+  rowIdx=1231 sku=1P92G3-23-EVP0-6N brand=Porsche priceKind=absolute oldMsrp=$410 oldRetail=$410
+  rowIdx=1232 sku=1P91RN-23-N0AP-7S brand=Porsche priceKind=unpriced oldMsrp=$0 oldRetail=$0
+
+=== Final price rows used for resolver ===
+  sku=1P92G3-AVFM0-1 section=Pro Version Full System (Cat Pipe) price_kind=absolute msrp=$15800 retail=$17400
+  sku=1P92G3-01-A0M0-1S section=Equal-length Full System (Stainless) price_kind=absolute msrp=$8700 retail=$10300
+  sku=1P92G3-03-EVP0-6N section=Equal-length Full System (Stainless) price_kind=absolute msrp=$4400 retail=$5900
+  sku=1P91RN-03-N0AS-7S section=Equal-length Full System (Stainless) price_kind=unpriced msrp=$null retail=$null
+  sku=1P92G3-03-EVP0-6N section=Equal-length Full System (Stainless) price_kind=absolute msrp=$4400 retail=$5900
+  sku=1P92G3-01-A0M0-1S section=Equal-length Full System (Stainless + Ti) price_kind=absolute msrp=$8700 retail=$10300
+  sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) price_kind=absolute msrp=$5700 retail=$7300
+  sku=1P91RN-23-N0AP-7S section=Equal-length Full System (Stainless + Ti) price_kind=unpriced msrp=$null retail=$null
+  sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) price_kind=absolute msrp=$5700 retail=$7300
+  sku=1P91RN-23-N0AP-7S section=Equal-length Full System (Stainless + Ti) price_kind=unpriced msrp=$null retail=$null
+
+=== Candidates from buildIpeVariantCandidates ===
+  source=official title="Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)" optionValues=[Titanium|Equal Length Headers / 200 Cell (OPF/Non-OPF)]
+  source=official title="Titanium / Equal Length Headers / Catless (OPF/Non-OPF)" optionValues=[Titanium|Equal Length Headers / Catless (OPF/Non-OPF)]
+  source=official title="Titanium / 200 Cell / OPF" optionValues=[Titanium|200 Cell / OPF]
+  source=official title="Titanium / 200 Cell / Non-OPF" optionValues=[Titanium|200 Cell / Non-OPF]
+  source=official title="Titanium / Catless / OPF" optionValues=[Titanium|Catless / OPF]
+  source=official title="Titanium / Catless / Non-OPF" optionValues=[Titanium|Catless / Non-OPF]
+  source=official title="Stainless Steel / Equal Length Headers / 200 Cell (OPF/Non-OPF)" optionValues=[Stainless Steel|Equal Length Headers / 200 Cell (OPF/Non-OPF)]
+  source=official title="Stainless Steel / Equal Length Headers / Catless (OPF/Non-OPF)" optionValues=[Stainless Steel|Equal Length Headers / Catless (OPF/Non-OPF)]
+  source=official title="Stainless Steel / 200 Cell / OPF" optionValues=[Stainless Steel|200 Cell / OPF]
+  source=official title="Stainless Steel / 200 Cell / Non-OPF" optionValues=[Stainless Steel|200 Cell / Non-OPF]
+  source=official title="Stainless Steel / Catless / OPF" optionValues=[Stainless Steel|Catless / OPF]
+  source=official title="Stainless Steel / Catless / Non-OPF" optionValues=[Stainless Steel|Catless / Non-OPF]
+
+=== Pricing for each candidate ===
+  Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.78
+  Titanium / Equal Length Headers / Catless (OPF/Non-OPF)
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.78
+  Titanium / 200 Cell / OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Titanium / 200 Cell / Non-OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Titanium / Catless / OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Titanium / Catless / Non-OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Stainless Steel / Equal Length Headers / 200 Cell (OPF/Non-OPF)
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.78
+  Stainless Steel / Equal Length Headers / Catless (OPF/Non-OPF)
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.78
+  Stainless Steel / 200 Cell / OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Stainless Steel / 200 Cell / Non-OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Stainless Steel / Catless / OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779
+  Stainless Steel / Catless / Non-OPF
+    priceUsd=$7300
+    base: sku=1P92G3-23-EVP0-6N section=Equal-length Full System (Stainless + Ti) retail=$7300
+    deltas: —
+    review: [base-price-row-ambiguous]  confidence=0.779

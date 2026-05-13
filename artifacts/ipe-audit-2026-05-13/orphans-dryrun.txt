@@ -1,0 +1,13 @@
+◇ injected env (1) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Snapshot dir: 2026-05-02T14-44-33-838Z
+Mode: DRY-RUN
+
+Total iPE products: 125
+Orphans (not in snapshot or manifest): 2
+  ipe-ferrari-purosangue-titanium-exhaust  isPublished=true  "Ferrari Purosangue (Titanium) Exhaust System"
+  ipe-mercedes-benz-cla35-c118-exhaust  isPublished=true  "Mercedes-Benz CLA35(C118)"
+
+Will change isPublished=true -> false on 2 products
+
+(dry run — pass --apply to write)

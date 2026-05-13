@@ -1,0 +1,59 @@
+◇ injected env (1) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Snapshot dir: 2026-05-02T14-44-33-838Z
+Scanned 158 iPE products from snapshot.
+Variant updates: 50 | unchanged: 388 | resolve-failed: 105
+
+First 25 changes:
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $5900
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $6300
+  [audi-a6-c8-3-0t-55-tfsi-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $6300 -> $5900
+  [audi-s3-sedan-8v-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $5900 -> $6000
+  [bmw-540i-g30-exhaust-system] Catted Downpipe Non-OPF Version
+    $2800 -> $3000
+  [bmw-m2-competition-exhaust] Catted Downpipe
+    $3000 -> $2900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / 200 Cell / OPF
+    $6100 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Equal-Length Mid Pipe / Catless / OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Equal-Length Mid Pipe / Catless / Non-OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / 200 Cell / OPF
+    $10200 -> $8400
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / Catless / OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / Catless / Non-OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / Catless / OPF
+    $6100 -> $4900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / Catless / Non-OPF
+    $6100 -> $4900
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Factory Front Pipe / Catted Downpipe (OPF)
+    $10400 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Factory Front Pipe / Catless Downpipe (OPF)
+    $9700 -> $8500
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $8500
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catted Downpipe (OPF)
+    $10400 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catless Downpipe (OPF)
+    $9700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $6600
+  [ferrari-458-italia-titanium-exhaust] Cat Back System · Cat Back System
+    $7600 -> $7900
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System
+    $9700 -> $9400
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System · Titanium Rear Valvetronic System
+    $10800 -> $11500
+
+(dry run — pass --commit to write)

@@ -1,0 +1,38 @@
+◇ injected env (1) from .env.local // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+=== Snapshot handles count === 344
+=== Manifest rows count === 1565
+
+=== Product in snapshot === true
+Title: Mercedes-Benz AMG G63 (W465) Exhaust System
+Variants: 3
+Options: [
+  'Downpipe=[Catted Downpipe|Catless Downpipe|Non-Downpipe]',
+  'Catback system=[Cat-back + Double triple Gold tips]'
+]
+
+=== Manifest rows for W465 === 0
+
+=== Final price rows used for resolver ===
+
+=== Candidates from buildIpeVariantCandidates ===
+  source=official title="Catted Downpipe / Cat-back + Double triple Gold tips" optionValues=[Catted Downpipe|Cat-back + Double triple Gold tips]
+  source=official title="Catless Downpipe / Cat-back + Double triple Gold tips" optionValues=[Catless Downpipe|Cat-back + Double triple Gold tips]
+  source=official title="Non-Downpipe / Cat-back + Double triple Gold tips" optionValues=[Non-Downpipe|Cat-back + Double triple Gold tips]
+
+=== Pricing for each candidate ===
+  Catted Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$null
+    base: sku=undefined section=undefined retail=$undefined
+    deltas: —
+    review: [base-price-row-unresolved]  confidence=0
+  Catless Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$null
+    base: sku=undefined section=undefined retail=$undefined
+    deltas: —
+    review: [base-price-row-unresolved]  confidence=0
+  Non-Downpipe / Cat-back + Double triple Gold tips
+    priceUsd=$null
+    base: sku=undefined section=undefined retail=$undefined
+    deltas: —
+    review: [base-price-row-unresolved]  confidence=0

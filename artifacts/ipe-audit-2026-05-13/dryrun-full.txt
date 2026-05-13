@@ -1,0 +1,111 @@
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Snapshot dir: 2026-05-02T14-44-33-838Z
+Scanned 158 iPE products from snapshot.
+Variant updates: 50 | unchanged: 388 | resolve-failed: 105
+
+All changes:
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $5900
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $6300
+  [audi-a6-c8-3-0t-55-tfsi-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $6300 -> $5900
+  [audi-s3-sedan-8v-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $5900 -> $6000
+  [bmw-540i-g30-exhaust-system] Catted Downpipe Non-OPF Version
+    $2800 -> $3000
+  [bmw-m2-competition-exhaust] Catted Downpipe
+    $3000 -> $2900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / 200 Cell / OPF
+    $6100 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Equal-Length Mid Pipe / Catless / OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Equal-Length Mid Pipe / Catless / Non-OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / 200 Cell / OPF
+    $10200 -> $8400
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / Catless / OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Full System / Factory Mid Pipe / Catless / Non-OPF
+    $9500 -> $4900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / Catless / OPF
+    $6100 -> $4900
+  [bmw-m2-g87-exhaust-system] Catback System / Equal-Length Mid Pipe / Catless / Non-OPF
+    $6100 -> $4900
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Factory Front Pipe / Catted Downpipe (OPF)
+    $10400 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Factory Front Pipe / Catless Downpipe (OPF)
+    $9700 -> $8500
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Full System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $8500
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catted Downpipe (OPF)
+    $10400 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Factory Front Pipe / Catless Downpipe (OPF)
+    $9700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catted Downpipe (OPF)
+    $10700 -> $6600
+  [bmw-m3-m4-g80-g82-exhaust] Catback System / Equal-Length Front Pipe / Catless Downpipe (OPF)
+    $10000 -> $6600
+  [ferrari-458-italia-titanium-exhaust] Cat Back System · Cat Back System
+    $7600 -> $7900
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System
+    $9700 -> $9400
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System · Titanium Rear Valvetronic System
+    $10800 -> $11500
+  [mercedes-benz-amg-cls53-c257-exhaust] Catted Downpipe Non-OPF Version
+    $3500 -> $4200
+  [mercedes-benz-amg-g63-w465-exhaust-system] Catted Downpipe / Cat-back + Double triple Gold tips
+    $12100 -> $7700
+  [mercedes-benz-amg-gt-gt-s-c190-r190-titanium-exhaust] F 1 Version Cat Back System
+    $6800 -> $6300
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catted Downpipe (OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catless Downpipe (OPF)
+    $8500 -> $7100
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catted Downpipe (Non-OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Full System / Catless Downpipe (Non-OPF)
+    $8500 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catted Downpipe (OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catless Downpipe (OPF)
+    $8500 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catted Downpipe (Non-OPF)
+    $8700 -> $5500
+  [porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system] Stainless Steel / Catback System / Catless Downpipe (Non-OPF)
+    $8500 -> $5500
+  [porsche-911-gt3-gt3-rs-992-full-exhaust-system] Stainless Steel / Catback
+    $6900 -> $9500
+  [porsche-911-turbo-turbo-s-997-exhaust] Catted Downpipe with Valvetronic Muffler
+    $5900 -> $6100
+  [porsche-911-turbo-turbo-s-997-exhaust] Catless Downpipe with Valvetronic Muffler
+    $5500 -> $5700
+  [porsche-992-gt3-full-exhaust-system] Titanium / Catless / OPF
+    $16800 -> $7300
+  [porsche-992-gt3-full-exhaust-system] Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)
+    $17600 -> $7300
+  [titanium-blue-tips-ss-991-2-992] Header · Header
+    $3000 -> $2700
+  [volkswagen-golf-gti-mk8-exhaust] Cat Back System
+    $3900 -> $3800
+  [volkswagen-golf-r-mk7-exhaust] Cat Back System
+    $3800 -> $4000
+  [volkswagen-golf-r-mk8-exhaust-system] Stainless Steel / Full System / Catted Downpipe (OPF)
+    $7500 -> $6000
+  [volkswagen-golf-r-mk8-exhaust-system] Stainless Steel / Full System / Catless Downpipe (OPF)
+    $7100 -> $5600
+  [volkswagen-golf-r-variant-mk8-exhaust-system] Stainless Steel / Full System / Catted Downpipe (OPF)
+    $7900 -> $6400
+  [volkswagen-golf-r-variant-mk8-exhaust-system] Stainless Steel / Full System / Catless Downpipe (OPF)
+    $7500 -> $6000
+  [volkswagen-tiguan-r-exhaust-system] Stainless Steel / Full System / Catted Downpipe (OPF)
+    $7400 -> $5900
+  [volkswagen-tiguan-r-exhaust-system] Stainless Steel / Full System / Catless Downpipe (OPF)
+    $7000 -> $5500
+
+Full diff JSON: D:\One Company\OneCompany\artifacts\ipe-audit-2026-05-13\diffs-dryrun.json
+
+(dry run — pass --commit to write)

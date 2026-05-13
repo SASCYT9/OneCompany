@@ -1,0 +1,25 @@
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+=== iPE variant-axis audit ===
+Total iPE products in DB: 125
+  Matched to snapshot:                 123
+  NOT in snapshot:                     2
+  ✓ Variant count matches snapshot:    38
+  ✗ DB has FEWER variants than iPE:    0
+      of which: DB=1 but iPE has >1:   0
+  ✗ DB has MORE variants than iPE:     85
+
+=== Critical: DB has fewer variants (missing user-selectable options) — top 25 ===
+
+=== DB has MORE variants (phantom options) — top 10 ===
+  ipe-bmw-850i-g15-exhaust                                     DB=12 vs iPE=1
+  ipe-ferrari-458-italia-exhaust                               DB=2 vs iPE=1
+  ipe-maserati-quattroporte-mk6-2wd-exhaust                    DB=2 vs iPE=1
+  ipe-mercedes-benz-e53-coupe-c238-5-exhaust                   DB=5 vs iPE=1
+  ipe-porsche-911-carrera-s-4s-gts-991-3-exhaust               DB=8 vs iPE=1
+  ipe-porsche-911-turbo-turbo-s-996-exhaust                    DB=4 vs iPE=1
+  ipe-porsche-boxster-cayman-987-2-exhaust                     DB=6 vs iPE=1
+  ipe-porsche-panamera-4-3-0t-971-exhaust                      DB=10 vs iPE=1
+  ipe-audi-a6-c8-3-0t-55-tfsi-exhaust                          DB=6 vs iPE=1
+  ipe-audi-r8-v10-2020-exhaust-system                          DB=2 vs iPE=1

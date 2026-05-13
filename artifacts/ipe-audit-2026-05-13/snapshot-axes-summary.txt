@@ -1,0 +1,163 @@
+Snapshot products: 345
+
+=== Q1: Distinct option-axis names (count = product occurrences) ===
+   319x  "Title"
+    19x  "Material"
+    18x  "Exhaust System"
+    12x  "Downpipe (Stainless Steel)"
+     2x  "Design"
+     2x  "OPF"
+     2x  "Headers (Stainless Steel)"
+     1x  "Catback System"
+     1x  "Downpipe"
+     1x  "Catback system"
+     1x  "MODEL"
+     1x  "Setup"
+     1x  "Downpipes(Stainless Steel)"
+     1x  "Downpipes (Stainless Steel)"
+
+=== Q2: Top 10 values per axis ===
+
+  Axis "Title":
+     319x  "Default Title"
+
+  Axis "Material":
+      17x  "Stainless Steel"
+       5x  "Titanium"
+       2x  "Stainless steel"
+
+  Axis "Exhaust System":
+      16x  "Catback System"
+      15x  "Full System"
+       2x  "Header"
+       2x  "Downpipes"
+       2x  "Header Back Exhaust system"
+
+  Axis "Downpipe (Stainless Steel)":
+       7x  "Catted Downpipe (OPF)"
+       6x  "Catless Downpipe (OPF)"
+       3x  "200 Cell / OPF"
+       3x  "Catless / OPF"
+       2x  "200 Cell / Non-OPF"
+       2x  "Catless / Non-OPF"
+       2x  "Catted Downpipe (Non-OPF)"
+       2x  "Catted Downpipe (OPF/Non-OPF)"
+       1x  "Catless Downpipe (Non-OPF)"
+
+  Axis "Design":
+       1x  "Equal-Length Mid Pipe"
+       1x  "Factory Mid Pipe"
+       1x  "Factory Front Pipe"
+       1x  "Equal-Length Front Pipe"
+
+  Axis "OPF":
+       2x  "OPF version"
+       1x  "Non-OPF version"
+
+  Axis "Headers (Stainless Steel)":
+       2x  "Equal Length Headers / 200 Cell (OPF/Non-OPF)"
+       2x  "Equal Length Headers / Catless (OPF/Non-OPF)"
+       1x  "Catback"
+       1x  "200 Cell / OPF"
+       1x  "200 Cell / Non-OPF"
+       1x  "Catless / OPF"
+       1x  "Catless / Non-OPF"
+
+  Axis "Catback System":
+       1x  "OPF"
+       1x  "Non OPF"
+
+  Axis "Downpipe":
+       1x  "Catted Downpipe"
+       1x  "Catless Downpipe"
+       1x  "Non-Downpipe"
+
+  Axis "Catback system":
+       1x  "Cat-back + Double triple Gold tips"
+
+  Axis "MODEL":
+       1x  "MFR-01"
+       1x  "MFR-02"
+
+  Axis "Setup":
+       1x  "Full system"
+       1x  "Headers-back"
+
+  Axis "Downpipes(Stainless Steel)":
+       1x  "Catted Downpipe (Non-OPF)"
+       1x  "Catless Downpipe (Non-OPF)"
+       1x  "Catted Downpipe (OPF)"
+       1x  "Catless Downpipe (OPF)"
+
+  Axis "Downpipes (Stainless Steel)":
+       1x  "Catted Downpipe (Non-OPF)"
+       1x  "Catless Downpipe (Non-OPF)"
+       1x  "Catted Downpipe (OPF)"
+       1x  "Catless Downpipe (OPF)"
+
+=== Q3: Single-variant Default-Title products: 319 ===
+  audi-a4-a5-b9-quattro-exhaust
+  audi-a6-a7c7-c7-5-exhaust
+  audi-a6-c8-2-0t-45-tfsi-exhaust
+  audi-a6-c8-3-0t-55-tfsi-exhaust
+  audi-a7-c8-3-0t-55-tfsi-exhaust
+  audi-a7c8-2-0t-45-tfsi-exhaust
+  audi-r8-v10-2020-exhaust-system
+  audi-r8-v10-v10-plus-mk2-catback-system
+  audi-rs-q8-exhaust
+  audi-rs3-sedan-sportback-8v-2-exhaust
+
+=== Q4: Multi-axis sample products ===
+
+  [mercedes-benz-amg-g63-w465-exhaust-system]
+    options: [('Downpipe', ['Catted Downpipe', 'Catless Downpipe', 'Non-Downpipe']), ('Catback system', ['Cat-back + Double triple Gold tips'])]
+    variants (3):
+      sku=None  title="Catted Downpipe / Cat-back + Double triple Gold tips"  opts=['Catted Downpipe', 'Cat-back + Double triple Gold tips']  img=None
+      sku=None  title="Catless Downpipe / Cat-back + Double triple Gold tips"  opts=['Catless Downpipe', 'Cat-back + Double triple Gold tips']  img=None
+      sku=None  title="Non-Downpipe / Cat-back + Double triple Gold tips"  opts=['Non-Downpipe', 'Cat-back + Double triple Gold tips']  img=None
+
+  [bmw-m3-m4-g80-g82-exhaust]
+    options: [('Exhaust System', ['Full System', 'Catback System']), ('Design', ['Factory Front Pipe', 'Equal-Length Front Pipe']), ('Downpipe (Stainless Steel)', ['Catted Downpipe (OPF)', 'Catless Downpipe (OPF)'])]
+    variants (8):
+      sku=None  title="Full System / Factory Front Pipe / Catted Downpipe (OPF)"  opts=['Full System', 'Factory Front Pipe', 'Catted Downpipe (OPF)']  img=None
+      sku=None  title="Full System / Factory Front Pipe / Catless Downpipe (OPF)"  opts=['Full System', 'Factory Front Pipe', 'Catless Downpipe (OPF)']  img=None
+      sku=None  title="Full System / Equal-Length Front Pipe / Catted Downpipe (OPF"  opts=['Full System', 'Equal-Length Front Pipe', 'Catted Downpipe (OPF)']  img=None
+      sku=None  title="Full System / Equal-Length Front Pipe / Catless Downpipe (OP"  opts=['Full System', 'Equal-Length Front Pipe', 'Catless Downpipe (OPF)']  img=None
+
+  [porsche-911-carrera-4-s-4s-992-exhaust]
+    options: [('Material', ['Stainless Steel']), ('Exhaust System', ['Full System', 'Header', 'Catback System', 'Downpipes']), ('Downpipes(Stainless Steel)', ['Catted Downpipe (Non-OPF)', 'Catless Downpipe (Non-OPF)', 'Catted Downpipe (OPF)', 'Catless Downpipe (OPF)'])]
+    variants (16):
+      sku=None  title="Stainless Steel / Full System / Catted Downpipe (Non-OPF)"  opts=['Stainless Steel', 'Full System', 'Catted Downpipe (Non-OPF)']  img=None
+      sku=None  title="Stainless Steel / Full System / Catless Downpipe (Non-OPF)"  opts=['Stainless Steel', 'Full System', 'Catless Downpipe (Non-OPF)']  img=None
+      sku=None  title="Stainless Steel / Full System / Catted Downpipe (OPF)"  opts=['Stainless Steel', 'Full System', 'Catted Downpipe (OPF)']  img=None
+      sku=None  title="Stainless Steel / Full System / Catless Downpipe (OPF)"  opts=['Stainless Steel', 'Full System', 'Catless Downpipe (OPF)']  img=None
+
+  [ferrari-296-gtb-exhaust-system]
+    options: [('Material', ['Titanium', 'Stainless steel']), ('Exhaust System', ['Full System', 'Catback System']), ('Downpipe (Stainless Steel)', ['Catted Downpipe (OPF)', 'Catless Downpipe (OPF)'])]
+    variants (8):
+      sku=None  title="Titanium / Full System / Catted Downpipe (OPF)"  opts=['Titanium', 'Full System', 'Catted Downpipe (OPF)']  img=None
+      sku=None  title="Titanium / Full System / Catless Downpipe (OPF)"  opts=['Titanium', 'Full System', 'Catless Downpipe (OPF)']  img=None
+      sku=None  title="Titanium / Catback System / Catted Downpipe (OPF)"  opts=['Titanium', 'Catback System', 'Catted Downpipe (OPF)']  img=None
+      sku=None  title="Titanium / Catback System / Catless Downpipe (OPF)"  opts=['Titanium', 'Catback System', 'Catless Downpipe (OPF)']  img=None
+
+  [porsche-992-gt3-full-exhaust-system]
+    options: [('Material', ['Titanium', 'Stainless Steel']), ('Headers (Stainless Steel)', ['Equal Length Headers / 200 Cell (OPF/Non-OPF)', 'Equal Length Headers / Catless (OPF/Non-OPF)', '200 Cell / OPF', '200 Cell / Non-OPF', 'Catless / OPF', 'Catless / Non-OPF'])]
+    variants (12):
+      sku=5  title="Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)"  opts=['Titanium', 'Equal Length Headers / 200 Cell (OPF/Non-OPF)']  img=None
+      sku=5  title="Titanium / Equal Length Headers / Catless (OPF/Non-OPF)"  opts=['Titanium', 'Equal Length Headers / Catless (OPF/Non-OPF)']  img=None
+      sku=5  title="Titanium / 200 Cell / OPF"  opts=['Titanium', '200 Cell / OPF']  img=None
+      sku=5  title="Titanium / 200 Cell / Non-OPF"  opts=['Titanium', '200 Cell / Non-OPF']  img=None
+
+=== Q5: Variant SKU population ===
+  Total variants in snapshot: 460
+  Variants with non-null sku: 30 (6%)
+
+=== Q7: Variant featuredImage hosts ===
+    22x  cdn.shopify.com
+
+=== Bonus: number of option axes per product ===
+  1 axis: 322 products
+  2 axis: 10 products
+  3 axis: 13 products
+
+DONE

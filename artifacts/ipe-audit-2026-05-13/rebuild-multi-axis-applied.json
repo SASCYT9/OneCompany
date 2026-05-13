@@ -1,0 +1,2247 @@
+{
+  "committedAt": "2026-05-13T19:05:57.037Z",
+  "apply": true,
+  "plans": [
+    {
+      "handle": "bmw-m2-g87-exhaust-system",
+      "slug": "ipe-bmw-m2-g87-exhaust-system",
+      "dbProductId": "cmoaeynu400aye9s0y5kr7shz",
+      "beforeVariantCount": 8,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 16,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Exhaust System",
+          "position": 1,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Design",
+          "position": 2,
+          "values": ["Equal-Length Mid Pipe", "Factory Mid Pipe"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["200 Cell / OPF", "200 Cell / Non-OPF", "Catless / OPF", "Catless / Non-OPF"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Full System / Equal-Length Mid Pipe / 200 Cell / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 8400,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Full System / Equal-Length Mid Pipe / 200 Cell / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 8400,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Full System / Equal-Length Mid Pipe / Catless / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Full System / Equal-Length Mid Pipe / Catless / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Full System / Factory Mid Pipe / 200 Cell / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 8400,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Full System / Factory Mid Pipe / 200 Cell / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 8400,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Full System / Factory Mid Pipe / Catless / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Full System / Factory Mid Pipe / Catless / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Catback System / Equal-Length Mid Pipe / 200 Cell / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 9,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Catback System / Equal-Length Mid Pipe / 200 Cell / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 10,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Catback System / Equal-Length Mid Pipe / Catless / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 11,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Catback System / Equal-Length Mid Pipe / Catless / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 12,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Mid Pipe",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Catback System / Factory Mid Pipe / 200 Cell / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 13,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Catback System / Factory Mid Pipe / 200 Cell / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 14,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        },
+        {
+          "title": "Catback System / Factory Mid Pipe / Catless / OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 15,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.658
+        },
+        {
+          "title": "Catback System / Factory Mid Pipe / Catless / Non-OPF",
+          "sku": "0WM4G8-A0N00-3",
+          "position": 16,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Mid Pipe",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 4900,
+          "baseRowSku": "0WM4G8-A0N00-3",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.667
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "catback system | equal-length mid pipe | 200 cell / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "catback system | equal-length mid pipe | catless / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "catback system | equal-length mid pipe | catless / non-opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "full system | factory mid pipe | catless / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/02.png"
+        },
+        {
+          "optionSig": "full system | factory mid pipe | catless / non-opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/02.png"
+        },
+        {
+          "optionSig": "full system | equal-length mid pipe | catless / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/02.png"
+        },
+        {
+          "optionSig": "full system | equal-length mid pipe | catless / non-opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/02.png"
+        },
+        {
+          "optionSig": "full system | factory mid pipe | 200 cell / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-m2-g87-exhaust-system/02.png"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "bmw-m240i-g42-exhaust-system",
+      "slug": "ipe-bmw-m240i-g42-exhaust-system",
+      "dbProductId": "cmoaeyqwd00bxe9s0enyqwe9m",
+      "beforeVariantCount": 4,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 4,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Exhaust System",
+          "position": 1,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 2,
+          "values": ["200 Cell / OPF", "Catless / OPF"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Full System / 200 Cell / OPF",
+          "sku": "IPE-BMW-M-240-I-G-42-EXHAUST-SYSTEM-D635A17B",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Full System",
+          "option2Value": "200 Cell / OPF",
+          "option3Value": null,
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        },
+        {
+          "title": "Full System / Catless / OPF",
+          "sku": "IPE-BMW-M-240-I-G-42-EXHAUST-SYSTEM-4D292486",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Catless / OPF",
+          "option3Value": null,
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        },
+        {
+          "title": "Catback System / 200 Cell / OPF",
+          "sku": "IPE-BMW-M-240-I-G-42-EXHAUST-SYSTEM-D3C2762A",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "200 Cell / OPF",
+          "option3Value": null,
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        },
+        {
+          "title": "Catback System / Catless / OPF",
+          "sku": "IPE-BMW-M-240-I-G-42-EXHAUST-SYSTEM-BA660C2B",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Catless / OPF",
+          "option3Value": null,
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "full system | 200 cell / opf",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "full system | catless / opf",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | 200 cell / opf",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | catless / opf",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": [
+        "Variant \"Full System / 200 Cell / OPF\" — no price could be resolved (base-price-row-unresolved)",
+        "Variant \"Full System / Catless / OPF\" — no price could be resolved (base-price-row-unresolved)",
+        "Variant \"Catback System / 200 Cell / OPF\" — no price could be resolved (base-price-row-unresolved)",
+        "Variant \"Catback System / Catless / OPF\" — no price could be resolved (base-price-row-unresolved)"
+      ]
+    },
+    {
+      "handle": "bmw-m3-m4-g80-g82-exhaust",
+      "slug": "ipe-bmw-m3-m4-g80-g82-exhaust",
+      "dbProductId": "cmoaez0zp00d4e9s0ovc9fel1",
+      "beforeVariantCount": 9,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 8,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Exhaust System",
+          "position": 1,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Design",
+          "position": 2,
+          "values": ["Factory Front Pipe", "Equal-Length Front Pipe"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF)", "Catless Downpipe (OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Full System / Factory Front Pipe / Catted Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Full System",
+          "option2Value": "Factory Front Pipe",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.705
+        },
+        {
+          "title": "Full System / Factory Front Pipe / Catless Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Factory Front Pipe",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 8500,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.705
+        },
+        {
+          "title": "Full System / Equal-Length Front Pipe / Catted Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Front Pipe",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.706
+        },
+        {
+          "title": "Full System / Equal-Length Front Pipe / Catless Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Full System",
+          "option2Value": "Equal-Length Front Pipe",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 8500,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.707
+        },
+        {
+          "title": "Catback System / Factory Front Pipe / Catted Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Front Pipe",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.792
+        },
+        {
+          "title": "Catback System / Factory Front Pipe / Catless Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Factory Front Pipe",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.792
+        },
+        {
+          "title": "Catback System / Equal-Length Front Pipe / Catted Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Front Pipe",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.794
+        },
+        {
+          "title": "Catback System / Equal-Length Front Pipe / Catless Downpipe (OPF)",
+          "sku": "0WM4G8-NVNM0-201",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Catback System",
+          "option2Value": "Equal-Length Front Pipe",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 6600,
+          "baseRowSku": "0WM4G8-NVNM0-201",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.794
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "full system | factory front pipe | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "full system | factory front pipe | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "full system | equal-length front pipe | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "full system | equal-length front pipe | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | factory front pipe | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | factory front pipe | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | equal-length front pipe | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | equal-length front pipe | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "catback system | equal-length front pipe | titanium",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "bmw-x3m-x4m-f97-f98-exhaust",
+      "slug": "ipe-bmw-x3m-x4m-f97-f98-exhaust",
+      "dbProductId": "cmoaezg3h00fie9s0boki25gy",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 8,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["200 Cell / OPF", "200 Cell / Non-OPF", "Catless / OPF", "Catless / Non-OPF"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / 200 Cell / OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 9900,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.714
+        },
+        {
+          "title": "Stainless Steel / Full System / 200 Cell / Non-OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 9900,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.714
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless / OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 8500,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.759
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless / Non-OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 8500,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.759
+        },
+        {
+          "title": "Stainless Steel / Catback System / 200 Cell / OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "200 Cell / OPF",
+          "priceUsd": 6600,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.802
+        },
+        {
+          "title": "Stainless Steel / Catback System / 200 Cell / Non-OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "200 Cell / Non-OPF",
+          "priceUsd": 6600,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.801
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless / OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless / OPF",
+          "priceUsd": 6600,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.847
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless / Non-OPF",
+          "sku": "0WX498-NVNO0-2",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless / Non-OPF",
+          "priceUsd": 6600,
+          "baseRowSku": "0WX498-NVNO0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.847
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system | 200 cell / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-x3m-x4m-f97-f98-exhaust/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "bmw-x5m-x6m-f95-f96-exhaust-system",
+      "slug": "ipe-bmw-x5m-x6m-f95-f96-exhaust-system",
+      "dbProductId": "cmoaezl0j00gee9s0dbbk1zpn",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 1,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Catback System"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Catback System",
+          "sku": "0WX595-NVNM0-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": null,
+          "priceUsd": 7500,
+          "baseRowSku": "0WX595-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.85
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/bmw-x5m-x6m-f95-f96-exhaust-system/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "ferrari-296-gtb-exhaust-system",
+      "slug": "ipe-ferrari-296-gtb-exhaust-system",
+      "dbProductId": "cmoaezpkj00gwe9s0665zjpd2",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 8,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Titanium", "Stainless steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF)", "Catless Downpipe (OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Titanium / Full System / Catted Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Titanium",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 13600,
+          "baseRowSku": "0F2960-TNVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.752
+        },
+        {
+          "title": "Titanium / Full System / Catless Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 11900,
+          "baseRowSku": "0F2960-TNVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.752
+        },
+        {
+          "title": "Titanium / Catback System / Catted Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 8300,
+          "baseRowSku": "0F2960-TNVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.84
+        },
+        {
+          "title": "Titanium / Catback System / Catless Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 8300,
+          "baseRowSku": "0F2960-TNVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.84
+        },
+        {
+          "title": "Stainless steel / Full System / Catted Downpipe (OPF)",
+          "sku": "0F2960-NVN00-4",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Stainless steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 12900,
+          "baseRowSku": "0F2960-NVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.75
+        },
+        {
+          "title": "Stainless steel / Full System / Catless Downpipe (OPF)",
+          "sku": "0F2960-NVN00-4",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Stainless steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 11200,
+          "baseRowSku": "0F2960-NVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.75
+        },
+        {
+          "title": "Stainless steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0F2960-NVN00-4",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Stainless steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 7600,
+          "baseRowSku": "0F2960-NVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.838
+        },
+        {
+          "title": "Stainless steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0F2960-NVN00-4",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Stainless steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 7600,
+          "baseRowSku": "0F2960-NVN00-4",
+          "reviewReasons": [],
+          "confidence": 0.838
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/ferrari-296-gtb-exhaust-system/03.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "lamborghini-huracan-tecnica-exhaust-system",
+      "slug": "ipe-lamborghini-huracan-tecnica-exhaust-system",
+      "dbProductId": "cmoaf1dh200t0e9s0y8w8vuin",
+      "beforeVariantCount": 2,
+      "beforeOptionCount": 1,
+      "afterVariantCount": 2,
+      "afterOptionCount": 1,
+      "options": [
+        {
+          "name": "Catback System",
+          "position": 1,
+          "values": ["OPF", "Non OPF"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "OPF",
+          "sku": "0LHUP-NVN00-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "OPF",
+          "option2Value": null,
+          "option3Value": null,
+          "priceUsd": 7600,
+          "baseRowSku": "0LHUP-NVN00-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.777
+        },
+        {
+          "title": "Non OPF",
+          "sku": "0LHUP-NVN00-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Non OPF",
+          "option2Value": null,
+          "option3Value": null,
+          "priceUsd": 7600,
+          "baseRowSku": "0LHUP-NVN00-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.795
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "opf",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "non opf",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "mercedes-benz-amg-g63-w465-exhaust-system",
+      "slug": "ipe-mercedes-benz-amg-g63-w465-exhaust-system",
+      "dbProductId": "cmoogdmqa0000e9d8e9ojf7w8",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 3,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Downpipe",
+          "position": 1,
+          "values": ["Catted Downpipe", "Catless Downpipe", "Non-Downpipe"]
+        },
+        {
+          "name": "Catback system",
+          "position": 2,
+          "values": ["Cat-back + Double triple Gold tips"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Catted Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Catted Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "priceUsd": 7700,
+          "baseRowSku": "0Z6463-NVN00-2",
+          "reviewReasons": [],
+          "confidence": 0.748
+        },
+        {
+          "title": "Catless Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Catless Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "priceUsd": 7700,
+          "baseRowSku": "0Z6463-NVN00-2",
+          "reviewReasons": [],
+          "confidence": 0.748
+        },
+        {
+          "title": "Non-Downpipe / Cat-back + Double triple Gold tips",
+          "sku": "0Z6463-NVN00-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Non-Downpipe",
+          "option2Value": "Cat-back + Double triple Gold tips",
+          "option3Value": null,
+          "priceUsd": 7700,
+          "baseRowSku": "0Z6463-NVN00-2",
+          "reviewReasons": [],
+          "confidence": 0.748
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "catted downpipe | cat-back + double triple gold tips",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/mercedes-benz-amg-g63-w465-exhaust-system/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system",
+      "slug": "ipe-porsche-718-cayman-boxster-2-5t-982-with-718-gt4-bodykit-exhaust-system",
+      "dbProductId": "cmoaf4wqj01f8e9s05dtfcneo",
+      "beforeVariantCount": 8,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 8,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": [
+            "Catted Downpipe (OPF)",
+            "Catless Downpipe (OPF)",
+            "Catted Downpipe (Non-OPF)",
+            "Catless Downpipe (Non-OPF)"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.755
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 7100,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.755
+        },
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (Non-OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.755
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (Non-OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.755
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.843
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.843
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (Non-OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.843
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (Non-OPF)",
+          "sku": "0P718N-NVN00-2-01",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0P718N-NVN00-2-01",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.843
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | full system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | full system | catless downpipe (non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | catback system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | catback system | catless downpipe (non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-911-carrera-4-s-4s-992-exhaust",
+      "slug": "ipe-porsche-911-carrera-4-s-4s-992-exhaust",
+      "dbProductId": "cmoaf5ika01i7e9s018w5sau1",
+      "beforeVariantCount": 2,
+      "beforeOptionCount": 1,
+      "afterVariantCount": 16,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Header", "Catback System", "Downpipes"]
+        },
+        {
+          "name": "Downpipes(Stainless Steel)",
+          "position": 3,
+          "values": [
+            "Catted Downpipe (Non-OPF)",
+            "Catless Downpipe (Non-OPF)",
+            "Catted Downpipe (OPF)",
+            "Catless Downpipe (OPF)"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": [],
+          "confidence": 0.738
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": [],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": [],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": [],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Header / Catted Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Header",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.738
+        },
+        {
+          "title": "Stainless Steel / Header / Catless Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Header",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Header / Catted Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Header",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Header / Catless Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Header",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 9,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.738
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 10,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 11,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 12,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Downpipes / Catted Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 13,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Downpipes",
+          "option3Value": "Catted Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.738
+        },
+        {
+          "title": "Stainless Steel / Downpipes / Catless Downpipe (Non-OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 14,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Downpipes",
+          "option3Value": "Catless Downpipe (Non-OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Downpipes / Catted Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 15,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Downpipes",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        },
+        {
+          "title": "Stainless Steel / Downpipes / Catless Downpipe (OPF)",
+          "sku": "1P92G3-BVFM0-1",
+          "position": 16,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Downpipes",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 16600,
+          "baseRowSku": "1P92G3-BVFM0-1",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.747
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "cat-back system · stainless steel",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "cat-back system · titanium",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-911-gt3-992-catback-system",
+      "slug": "ipe-porsche-911-gt3-992-catback-system",
+      "dbProductId": "cmoaf65zz01mje9s0z89hrc6t",
+      "beforeVariantCount": 4,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 4,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Titanium", "Stainless Steel"]
+        },
+        {
+          "name": "OPF",
+          "position": 2,
+          "values": ["OPF version", "Non-OPF version"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Titanium / OPF version",
+          "sku": "0P92G3-TNVPM0-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Titanium",
+          "option2Value": "OPF version",
+          "option3Value": null,
+          "priceUsd": 8400,
+          "baseRowSku": "0P92G3-TNVPM0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Titanium / Non-OPF version",
+          "sku": "0P92G3-TNVPM0-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Non-OPF version",
+          "option3Value": null,
+          "priceUsd": 8400,
+          "baseRowSku": "0P92G3-TNVPM0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Stainless Steel / OPF version",
+          "sku": "0P92G3-NVPM0-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "OPF version",
+          "option3Value": null,
+          "priceUsd": 6900,
+          "baseRowSku": "0P92G3-NVPM0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Stainless Steel / Non-OPF version",
+          "sku": "0P92G3-NVPM0-2",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Non-OPF version",
+          "option3Value": null,
+          "priceUsd": 6900,
+          "baseRowSku": "0P92G3-NVPM0-2",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "titanium | opf version",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "titanium | non-opf version",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | opf version",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | non-opf version",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-911-gt3-gt3-rs-992-full-exhaust-system",
+      "slug": "ipe-porsche-911-gt3-gt3-rs-992-full-exhaust-system",
+      "dbProductId": "cmoaf6adj01n7e9s0zo7o621b",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 3,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Headers (Stainless Steel)",
+          "position": 2,
+          "values": [
+            "Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+            "Equal Length Headers / Catless (OPF/Non-OPF)",
+            "Catback"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "sku": "1P92G3-01-B0M0-1S",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 9500,
+          "baseRowSku": "1P92G3-01-B0M0-1S",
+          "reviewReasons": [],
+          "confidence": 0.734
+        },
+        {
+          "title": "Stainless Steel / Equal Length Headers / Catless (OPF/Non-OPF)",
+          "sku": "1P92G3-01-B0M0-1S",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Equal Length Headers / Catless (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 9500,
+          "baseRowSku": "1P92G3-01-B0M0-1S",
+          "reviewReasons": [],
+          "confidence": 0.748
+        },
+        {
+          "title": "Stainless Steel / Catback",
+          "sku": "1P92G3-01-B0M0-1S",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback",
+          "option3Value": null,
+          "priceUsd": 9500,
+          "baseRowSku": "1P92G3-01-B0M0-1S",
+          "reviewReasons": [],
+          "confidence": 0.813
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/porsche-911-gt3-gt3-rs-992-full-exhaust-system/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-992-gt3-full-exhaust-system",
+      "slug": "ipe-porsche-992-gt3-full-exhaust-system",
+      "dbProductId": "cmoaf76i501sxe9s0xnlw23cd",
+      "beforeVariantCount": 2,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 12,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Titanium", "Stainless Steel"]
+        },
+        {
+          "name": "Headers (Stainless Steel)",
+          "position": 2,
+          "values": [
+            "Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+            "Equal Length Headers / Catless (OPF/Non-OPF)",
+            "200 Cell / OPF",
+            "200 Cell / Non-OPF",
+            "Catless / OPF",
+            "Catless / Non-OPF"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Titanium",
+          "option2Value": "Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Titanium / Equal Length Headers / Catless (OPF/Non-OPF)",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Equal Length Headers / Catless (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Titanium / 200 Cell / OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "200 Cell / OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Titanium / 200 Cell / Non-OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "200 Cell / Non-OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Titanium / Catless / OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 5,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Catless / OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Titanium / Catless / Non-OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 6,
+          "isDefault": false,
+          "option1Value": "Titanium",
+          "option2Value": "Catless / Non-OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Stainless Steel / Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 7,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Equal Length Headers / 200 Cell (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Stainless Steel / Equal Length Headers / Catless (OPF/Non-OPF)",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 8,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Equal Length Headers / Catless (OPF/Non-OPF)",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.78
+        },
+        {
+          "title": "Stainless Steel / 200 Cell / OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 9,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "200 Cell / OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Stainless Steel / 200 Cell / Non-OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 10,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "200 Cell / Non-OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Stainless Steel / Catless / OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 11,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catless / OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        },
+        {
+          "title": "Stainless Steel / Catless / Non-OPF",
+          "sku": "1P92G3-23-EVP0-6N",
+          "position": 12,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catless / Non-OPF",
+          "option3Value": null,
+          "priceUsd": 7300,
+          "baseRowSku": "1P92G3-23-EVP0-6N",
+          "reviewReasons": ["base-price-row-ambiguous"],
+          "confidence": 0.779
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "titanium | catless / opf",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/porsche-992-gt3-full-exhaust-system/07.jpg"
+        },
+        {
+          "optionSig": "titanium | equal length headers / 200 cell (opf/non-opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/porsche-992-gt3-full-exhaust-system/06.png"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "porsche-cayenne-cayenne-coupe-e3-exhaust",
+      "slug": "ipe-porsche-cayenne-cayenne-coupe-e3-exhaust",
+      "dbProductId": "cmoaf7n6w01wve9s0lj859wpt",
+      "beforeVariantCount": 2,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 2,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF/Non-OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF/Non-OPF)",
+          "sku": "IPE-PORSCHE-CAYENNE-CAYENNE-COUPE-E-3-EXHAUST-1D74A8E2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF/Non-OPF)",
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF/Non-OPF)",
+          "sku": "IPE-PORSCHE-CAYENNE-CAYENNE-COUPE-E-3-EXHAUST-29099078",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF/Non-OPF)",
+          "priceUsd": null,
+          "baseRowSku": null,
+          "reviewReasons": ["base-price-row-unresolved"],
+          "confidence": 0
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (opf/non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        },
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf/non-opf)",
+          "compareAtUsd": null,
+          "image": null
+        }
+      ],
+      "warnings": [
+        "Variant \"Stainless Steel / Full System / Catted Downpipe (OPF/Non-OPF)\" — no price could be resolved (base-price-row-unresolved)",
+        "Variant \"Stainless Steel / Catback System / Catted Downpipe (OPF/Non-OPF)\" — no price could be resolved (base-price-row-unresolved)"
+      ]
+    },
+    {
+      "handle": "subaru-brz-zd8-exhaust-system",
+      "slug": "ipe-subaru-brz-zd8-exhaust-system",
+      "dbProductId": "cmoaf8bho020ye9s0713t9vua",
+      "beforeVariantCount": 1,
+      "beforeOptionCount": 2,
+      "afterVariantCount": 1,
+      "afterOptionCount": 2,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Header Back Exhaust system"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Header Back Exhaust system",
+          "sku": "0SBZ3-NVNM0-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Header Back Exhaust system",
+          "option3Value": null,
+          "priceUsd": 4200,
+          "baseRowSku": "0SBZ3-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.668
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | header back exhaust system",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/subaru-brz-zd8-exhaust-system/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "volkswagen-golf-r-mk8-exhaust-system",
+      "slug": "ipe-volkswagen-golf-r-mk8-exhaust-system",
+      "dbProductId": "cmoaf94cv0254e9s0kg474g0x",
+      "beforeVariantCount": 4,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 4,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF)", "Catless Downpipe (OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF)",
+          "sku": "0VM8R-NVN40-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6000,
+          "baseRowSku": "0VM8R-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.75
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (OPF)",
+          "sku": "0VM8R-NVN40-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 5600,
+          "baseRowSku": "0VM8R-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.75
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0VM8R-NVN40-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 4500,
+          "baseRowSku": "0VM8R-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.837
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0VM8R-NVN40-2",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 4500,
+          "baseRowSku": "0VM8R-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.837
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-mk8-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-mk8-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "stainless steel | full system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-mk8-exhaust-system/01.jpg"
+        },
+        {
+          "optionSig": "stainless steel | catback system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-mk8-exhaust-system/01.jpg"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "volkswagen-golf-r-variant-mk8-exhaust-system",
+      "slug": "ipe-volkswagen-golf-r-variant-mk8-exhaust-system",
+      "dbProductId": "cmoaf99po025se9s0623nundj",
+      "beforeVariantCount": 4,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 4,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF)", "Catless Downpipe (OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF)",
+          "sku": "0VM8RV-NVN40-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 6400,
+          "baseRowSku": "0VM8RV-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.741
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (OPF)",
+          "sku": "0VM8RV-NVN40-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 6000,
+          "baseRowSku": "0VM8RV-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.741
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0VM8RV-NVN40-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 4900,
+          "baseRowSku": "0VM8RV-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.828
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0VM8RV-NVN40-2",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 4900,
+          "baseRowSku": "0VM8RV-NVN40-2",
+          "reviewReasons": [],
+          "confidence": 0.828
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-variant-mk8-exhaust-system/05.png"
+        },
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-variant-mk8-exhaust-system/01.png"
+        },
+        {
+          "optionSig": "stainless steel | full system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-variant-mk8-exhaust-system/01.png"
+        },
+        {
+          "optionSig": "stainless steel | catback system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-golf-r-variant-mk8-exhaust-system/05.png"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "handle": "volkswagen-tiguan-r-exhaust-system",
+      "slug": "ipe-volkswagen-tiguan-r-exhaust-system",
+      "dbProductId": "cmoaf9h76026fe9s0a83iyokn",
+      "beforeVariantCount": 4,
+      "beforeOptionCount": 3,
+      "afterVariantCount": 4,
+      "afterOptionCount": 3,
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": ["Stainless Steel"]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": ["Full System", "Catback System"]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": ["Catted Downpipe (OPF)", "Catless Downpipe (OPF)"]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Stainless Steel / Full System / Catted Downpipe (OPF)",
+          "sku": "0VTGR0-NVNM0-2",
+          "position": 1,
+          "isDefault": true,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 5900,
+          "baseRowSku": "0VTGR0-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.745
+        },
+        {
+          "title": "Stainless Steel / Full System / Catless Downpipe (OPF)",
+          "sku": "0VTGR0-NVNM0-2",
+          "position": 2,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Full System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 5500,
+          "baseRowSku": "0VTGR0-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.745
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0VTGR0-NVNM0-2",
+          "position": 3,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "priceUsd": 4400,
+          "baseRowSku": "0VTGR0-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.833
+        },
+        {
+          "title": "Stainless Steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0VTGR0-NVNM0-2",
+          "position": 4,
+          "isDefault": false,
+          "option1Value": "Stainless Steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "priceUsd": 4400,
+          "baseRowSku": "0VTGR0-NVNM0-2",
+          "reviewReasons": [],
+          "confidence": 0.833
+        }
+      ],
+      "preservedOverrides": [
+        {
+          "optionSig": "stainless steel | catback system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-tiguan-r-exhaust-system/04.png"
+        },
+        {
+          "optionSig": "stainless steel | full system | catted downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-tiguan-r-exhaust-system/01.png"
+        },
+        {
+          "optionSig": "stainless steel | full system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-tiguan-r-exhaust-system/01.png"
+        },
+        {
+          "optionSig": "stainless steel | catback system | catless downpipe (opf)",
+          "compareAtUsd": null,
+          "image": "https://rfip333zgtfizdii.public.blob.vercel-storage.com/media/library/shop/ipe/volkswagen-tiguan-r-exhaust-system/04.png"
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

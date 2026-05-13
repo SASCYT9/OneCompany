@@ -1,0 +1,108 @@
+◇ injected env (1) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+Total resolve-failed variants: 309
+
+=== Sample of 30 resolve-failed variants ===
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$5600 dbSku=0AA50-NVN0S-2
+  DB variant sig:    "cat back system"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$2300 dbSku=1AA50-11-B000-2N
+  DB variant sig:    "catless downpipe"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$5600 dbSku=0AA70-NVN00-2
+  DB variant sig:    "cat back system"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$5600 dbSku=1AS50-03-N0AS-7S
+  DB variant sig:    "cat back system · tips chrome silver"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$5600 dbSku=0AS70-NVN00-2
+  DB variant sig:    "cat back system"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$5600 dbSku=1P971N-03-N0AS-7S
+  DB variant sig:    "cat back system · tips chrome silver"
+  Candidate sigs:    
+
+[audi-a6-c8-2-0t-45-tfsi-exhaust] dbPrice=$2700 dbSku=1AA50-11-A000-2N
+  DB variant sig:    "downpipe · catted downpipe"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$3300 dbSku=0AA71-A0NM0-3
+  DB variant sig:    "catted downpipe opf version"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$6300 dbSku=1VMK7-03-N0AS-7S
+  DB variant sig:    "dual side dual out version · tips chrome silver a 6 c 8 55 tfsi quattro cat back system"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$6300 dbSku=0AA71-NVN00-2-02
+  DB variant sig:    "dual side dual out version cat back system carbon fiber rear diffuser"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$5600 dbSku=0AA71-NVN00-2
+  DB variant sig:    "factory version · factory version cat back system"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$6300 dbSku=0AA61-NVN00-2-02
+  DB variant sig:    "dual side dual out version cat back system abs rear diffuser"
+  Candidate sigs:    
+
+[audi-a6-c8-3-0t-55-tfsi-exhaust] dbPrice=$3200 dbSku=0AA71-A0N00-3
+  DB variant sig:    "catted downpipe non-opf version"
+  Candidate sigs:    
+
+[audi-a7c8-2-0t-45-tfsi-exhaust] dbPrice=$5300 dbSku=0AA61-NVN00-2
+  DB variant sig:    "factory version · cat back system"
+  Candidate sigs:    
+
+[audi-a7c8-2-0t-45-tfsi-exhaust] dbPrice=$2700 dbSku=0AA61-A0N00-3
+  DB variant sig:    "downpipe · catted downpipe"
+  Candidate sigs:    
+
+[audi-a7c8-2-0t-45-tfsi-exhaust] dbPrice=$2400 dbSku=0AA61-B0N00-3
+  DB variant sig:    "catless downpipe"
+  Candidate sigs:    
+
+[audi-a7c8-2-0t-45-tfsi-exhaust] dbPrice=$5900 dbSku=0AA61-NVN00-2-02
+  DB variant sig:    "dual side dual out version cat back system abs rear diffuser"
+  Candidate sigs:    
+
+[audi-a7c8-2-0t-45-tfsi-exhaust] dbPrice=$5900 dbSku=1VMK7-03-N0AS-7S
+  DB variant sig:    "dual side dual out version · tips chrome silver a 6 c 8 45 tfsi quattro 2 0 t cat back system"
+  Candidate sigs:    
+
+[audi-rs3-sedan-sportback-8v-2-exhaust] dbPrice=$5900 dbSku=IPE-AUDIRS3SEDANSPORTBACK8V2-3D553ED2
+  DB variant sig:    "cat-back system · stainless steel"
+  Candidate sigs:    
+
+[audi-rs3-sportback-8v-exhaust] dbPrice=$5900 dbSku=IPE-AUDIRS3SPORTBACK8V-CD79F61D
+  DB variant sig:    "cat-back system · stainless steel"
+  Candidate sigs:    
+
+[audi-rs3-sportback-8v-exhaust] dbPrice=$7600 dbSku=IPE-AUDIRS3SPORTBACK8V-9789122E
+  DB variant sig:    "cat-back system · titanium"
+  Candidate sigs:    
+
+[audi-rs3-sportback-8v-titanium-exhaust] dbPrice=$3400 dbSku=0AR30-B0N00-3
+  DB variant sig:    "downpipe · catless downpipe"
+  Candidate sigs:    
+
+[audi-rs3-sportback-8v-titanium-exhaust] dbPrice=$5900 dbSku=0AR32-BVN00-201
+  DB variant sig:    "cat back system · cat back system"
+  Candidate sigs:    
+
+[audi-rs3-sportback-8v-titanium-exhaust] dbPrice=$7600 dbSku=0AR30-TNVN00-2
+  DB variant sig:    "titanium cat back system"
+  Candidate sigs:    
+
+[audi-rs4-b9-opf] dbPrice=$7200 dbSku=0AR61-NVN00-201
+  DB variant sig:    "cat back system"
+  Candidate sigs:    "downpipe · catless downpipe non-opf version audi rs 6-c 8", "downpipe · catless downpipe opf version audi rs 6-c 8"
+
+[audi-rs4-b

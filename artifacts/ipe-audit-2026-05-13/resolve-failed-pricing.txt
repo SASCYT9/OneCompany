@@ -1,0 +1,61 @@
+◇ injected env (1) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+Resolve-failed breakdown:
+  with good SKU in price list: 263
+    of those, CURRENT price = expected: 197
+    of those, CURRENT price ≠ expected: 17
+  with missing/synthetic SKU:  46
+
+=== Wrong-priced resolve-failed (would update if fixed): ===
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] sku=0AA70-NVN00-2
+    sig="cat back system"
+    $5600 -> $5900 (Δ +300, 5%)
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] sku=0AS70-NVN00-2
+    sig="cat back system"
+    $5600 -> $6300 (Δ +700, 13%)
+  [audi-a6-c8-3-0t-55-tfsi-exhaust] sku=0AA61-NVN00-2-02
+    sig="dual side dual out version cat back system abs rear diffuser"
+    $6300 -> $5900 (Δ -400, -6%)
+  [bmw-320i-325i-330i-g20-exhaust] sku=1IF56-03-N0AD-7S
+    sig="tips carbon fiber dual side single out"
+    $1910 -> $2190 (Δ +280, 15%)
+  [bmw-520i-525i-530i-g30-exhaust] sku=1IF56-03-N0AD-7S
+    sig="tips carbon fiber dual side single out"
+    $1910 -> $2190 (Δ +280, 15%)
+  [bmw-540i-g30-exhaust-system] sku=0WX505-A0NN0-3
+    sig="catted downpipe non-opf version"
+    $2800 -> $3000 (Δ +200, 7%)
+  [bmw-m2-competition-exhaust] sku=0W3532-A0N00-3
+    sig="catted downpipe"
+    $3000 -> $2900 (Δ -100, -3%)
+  [ferrari-458-italia-titanium-exhaust] sku=0F45S-NVN00-4
+    sig="cat back system · cat back system"
+    $7600 -> $7900 (Δ +300, 4%)
+  [ferrari-812-superfast-gts-titanium-exhaust] sku=0F012-NVN00-4
+    sig="rear valvetronic system"
+    $9700 -> $9400 (Δ -300, -3%)
+  [mercedes-benz-amg-cls53-c257-exhaust] sku=0KCVC8-A0NN0-3
+    sig="catted downpipe non-opf version"
+    $3500 -> $4200 (Δ +700, 20%)
+  [mercedes-benz-amg-gt-gt-s-c190-r190-titanium-exhaust] sku=0ZGTRP-NV000-2
+    sig="f 1 version cat back system"
+    $6800 -> $6300 (Δ -500, -7%)
+  [porsche-911-turbo-turbo-s-997-exhaust] sku=0P97FT-AVN00-2
+    sig="catted downpipe with valvetronic muffler"
+    $5900 -> $6100 (Δ +200, 3%)
+  [porsche-911-turbo-turbo-s-997-exhaust] sku=0P97FT-BVN00-2
+    sig="catless downpipe with valvetronic muffler"
+    $5500 -> $5700 (Δ +200, 4%)
+  [porsche-panamera-4-3-0t-971-exhaust] sku=1P971N-03-N0AD-7S
+    sig="rear valvetronic system · tips carbon fiber 976 bmr control"
+    $6000 -> $1910 (Δ -4090, -68%)
+  [porsche-panamera-s-4-4s-gts-970-1-exhaust] sku=1P971N-03-N0AD-7S
+    sig="rear valvetronic system · tips carbon fiber 976 bmr control"
+    $6000 -> $1910 (Δ -4090, -68%)
+  [titanium-blue-tips-ss-991-2-992] sku=1P996N-11-N000-1S
+    sig="header · header"
+    $3000 -> $2700 (Δ -300, -10%)
+  [volkswagen-golf-gti-mk8-exhaust] sku=0VMK8-NVNO0-2
+    sig="cat back system"
+    $3900 -> $3800 (Δ -100, -3%)

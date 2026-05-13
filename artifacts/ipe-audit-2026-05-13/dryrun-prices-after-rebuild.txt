@@ -1,0 +1,43 @@
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Snapshot dir: 2026-05-02T14-44-33-838Z
+Scanned 158 iPE products from snapshot.
+Variant updates: 16 | unchanged: 474 | resolve-failed: 102
+
+All changes:
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $5900
+  [audi-a6-c8-2-0t-45-tfsi-exhaust] Cat Back System
+    $5600 -> $6300
+  [audi-a6-c8-3-0t-55-tfsi-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $6300 -> $5900
+  [audi-s3-sedan-8v-exhaust] Dual Side Dual Out Version Cat Back System ABS Rear Diffuser
+    $5900 -> $6000
+  [bmw-540i-g30-exhaust-system] Catted Downpipe Non-OPF Version
+    $2800 -> $3000
+  [bmw-m2-competition-exhaust] Catted Downpipe
+    $3000 -> $2900
+  [ferrari-458-italia-titanium-exhaust] Cat Back System · Cat Back System
+    $7600 -> $7900
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System
+    $9700 -> $9400
+  [ferrari-812-superfast-gts-titanium-exhaust] Rear Valvetronic System · Titanium Rear Valvetronic System
+    $10800 -> $11500
+  [mercedes-benz-amg-cls53-c257-exhaust] Catted Downpipe Non-OPF Version
+    $3500 -> $4200
+  [mercedes-benz-amg-gt-gt-s-c190-r190-titanium-exhaust] F 1 Version Cat Back System
+    $6800 -> $6300
+  [porsche-911-turbo-turbo-s-997-exhaust] Catted Downpipe with Valvetronic Muffler
+    $5900 -> $6100
+  [porsche-911-turbo-turbo-s-997-exhaust] Catless Downpipe with Valvetronic Muffler
+    $5500 -> $5700
+  [titanium-blue-tips-ss-991-2-992] Header · Header
+    $3000 -> $2700
+  [volkswagen-golf-gti-mk8-exhaust] Cat Back System
+    $3900 -> $3800
+  [volkswagen-golf-r-mk7-exhaust] Cat Back System
+    $3800 -> $4000
+
+Full diff JSON: D:\One Company\OneCompany\artifacts\ipe-audit-2026-05-13\diffs-dryrun.json
+
+(dry run — pass --commit to write)

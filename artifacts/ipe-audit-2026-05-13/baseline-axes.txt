@@ -1,0 +1,53 @@
+◇ injected env (1) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+=== iPE variant-axis audit ===
+Total iPE products in DB: 125
+  Matched to snapshot:                 123
+  NOT in snapshot:                     2
+  ✓ Variant count matches snapshot:    30
+  ✗ DB has FEWER variants than iPE:    7
+      of which: DB=1 but iPE has >1:   4
+  ✗ DB has MORE variants than iPE:     86
+
+=== Critical: DB has fewer variants (missing user-selectable options) — top 25 ===
+
+[ipe-porsche-911-carrera-4-s-4s-992-exhaust]  DB=2 vs iPE=16
+  DB variants:    "Cat-back System · Stainless Steel", "Cat-back System · Titanium"
+  iPE variants:   "Stainless Steel / Full System / Catted Downpipe (Non-OPF)", "Stainless Steel / Full System / Catless Downpipe (Non-OPF)", "Stainless Steel / Full System / Catted Downpipe (OPF)", "Stainless Steel / Full System / Catless Downpipe (OPF)"...
+
+[ipe-porsche-992-gt3-full-exhaust-system]  DB=2 vs iPE=12
+  DB variants:    "Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)", "Titanium / Catless / OPF"
+  iPE variants:   "Titanium / Equal Length Headers / 200 Cell (OPF/Non-OPF)", "Titanium / Equal Length Headers / Catless (OPF/Non-OPF)", "Titanium / 200 Cell / OPF", "Titanium / 200 Cell / Non-OPF"...
+
+[ipe-porsche-911-gt3-gt3-rs-992-full-exhaust-system]  DB=1 vs iPE=3
+  DB variants:    "Stainless Steel / Catback"
+  iPE variants:   "Stainless Steel / Equal Length Headers / 200 Cell (OPF/Non-OPF)", "Stainless Steel / Equal Length Headers / Catless (OPF/Non-OPF)", "Stainless Steel / Catback"
+
+[ipe-bmw-m2-g87-exhaust-system]  DB=8 vs iPE=16
+  DB variants:    "Catback System / Equal-Length Mid Pipe / 200 Cell / OPF", "Catback System / Equal-Length Mid Pipe / Catless / OPF", "Catback System / Equal-Length Mid Pipe / Catless / Non-OPF", "Full System / Factory Mid Pipe / Catless / OPF"...
+  iPE variants:   "Full System / Equal-Length Mid Pipe / 200 Cell / OPF", "Full System / Equal-Length Mid Pipe / 200 Cell / Non-OPF", "Full System / Equal-Length Mid Pipe / Catless / OPF", "Full System / Equal-Length Mid Pipe / Catless / Non-OPF"...
+
+[ipe-ferrari-296-gtb-exhaust-system]  DB=1 vs iPE=8
+  DB variants:    "Stainless steel / Catback System / Catted Downpipe (OPF)"
+  iPE variants:   "Titanium / Full System / Catted Downpipe (OPF)", "Titanium / Full System / Catless Downpipe (OPF)", "Titanium / Catback System / Catted Downpipe (OPF)", "Titanium / Catback System / Catless Downpipe (OPF)"...
+
+[ipe-bmw-x3m-x4m-f97-f98-exhaust]  DB=1 vs iPE=8
+  DB variants:    "Stainless Steel / Catback System / 200 Cell / OPF"
+  iPE variants:   "Stainless Steel / Full System / 200 Cell / OPF", "Stainless Steel / Full System / 200 Cell / Non-OPF", "Stainless Steel / Full System / Catless / OPF", "Stainless Steel / Full System / Catless / Non-OPF"...
+
+[ipe-mercedes-benz-amg-g63-w465-exhaust-system]  DB=1 vs iPE=3
+  DB variants:    "Catted Downpipe / Cat-back + Double triple Gold tips"
+  iPE variants:   "Catted Downpipe / Cat-back + Double triple Gold tips", "Catless Downpipe / Cat-back + Double triple Gold tips", "Non-Downpipe / Cat-back + Double triple Gold tips"
+
+=== DB has MORE variants (phantom options) — top 10 ===
+  ipe-bmw-850i-g15-exhaust                                     DB=12 vs iPE=1
+  ipe-ferrari-458-italia-exhaust                               DB=2 vs iPE=1
+  ipe-maserati-quattroporte-mk6-2wd-exhaust                    DB=2 vs iPE=1
+  ipe-mercedes-benz-e53-coupe-c238-5-exhaust                   DB=5 vs iPE=1
+  ipe-porsche-911-carrera-s-4s-gts-991-3-exhaust               DB=8 vs iPE=1
+  ipe-porsche-911-turbo-turbo-s-996-exhaust                    DB=4 vs iPE=1
+  ipe-porsche-boxster-cayman-987-2-exhaust                     DB=6 vs iPE=1
+  ipe-porsche-panamera-4-3-0t-971-exhaust                      DB=10 vs iPE=1
+  ipe-audi-a6-c8-3-0t-55-tfsi-exhaust                          DB=6 vs iPE=1
+  ipe-audi-r8-v10-2020-exhaust-system                          DB=2 vs iPE=1
