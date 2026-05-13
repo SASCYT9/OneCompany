@@ -540,10 +540,21 @@ async function main() {
     manifestRowsForHandle.set(r.officialHandle, list);
   }
 
+  // Multi-axis snapshot handles — these were rebuilt by Phase 1 (the
+  // rebuild-ipe-multi-axis-variants.ts script) and we MUST NOT overwrite
+  // their iPE-Shopify-native option structure here.
+  const multiAxisSnapshotHandles = new Set<string>();
+  for (const p of snap.products) {
+    const hasRealAxes = p.variants?.some((v: any) =>
+      v.optionValues?.some((val: string) => val && val.toLowerCase() !== "default title")
+    );
+    if (hasRealAxes) multiAxisSnapshotHandles.add(p.handle);
+  }
+
   // Discover targets
   const targets: Array<{
     slug: string;
-    reason: "premium" | "synthetic";
+    reason: "premium" | "synthetic" | "non-multi-axis";
     premiumTarget?: PremiumTarget;
   }> = [];
   if (SCOPE_ARG === "premium" || SCOPE_ARG === "all") {
@@ -571,13 +582,32 @@ async function main() {
       }
     }
   }
+  // Phase 3: all remaining iPE products that were NOT rebuilt by Phase 1
+  // (multi-axis snapshot) and NOT already in the premium/synthetic targets
+  // above. These are typically single-axis Excel-derived products with real
+  // SKUs that may benefit from a Tips axis and/or section-level cleanup.
+  if (SCOPE_ARG === "non-multi-axis" || SCOPE_ARG === "phase3") {
+    const allIpe = await prisma.shopProduct.findMany({
+      where: { brand: { contains: "iPE", mode: "insensitive" } },
+      select: { slug: true },
+    });
+    const premiumSlugs = new Set(PREMIUM_TARGETS.map((p) => p.slug));
+    const existingTargetSlugs = new Set(targets.map((t) => t.slug));
+    for (const prod of allIpe) {
+      if (premiumSlugs.has(prod.slug)) continue;
+      if (existingTargetSlugs.has(prod.slug)) continue;
+      const handle = prod.slug.replace(/^ipe-/, "");
+      if (multiAxisSnapshotHandles.has(handle)) continue; // Phase 1 territory
+      targets.push({ slug: prod.slug, reason: "non-multi-axis" });
+    }
+  }
 
   const filtered = HANDLE_FILTER
     ? targets.filter((t) => t.slug === HANDLE_FILTER || t.slug === `ipe-${HANDLE_FILTER}`)
     : targets;
 
   console.log(
-    `\nTargets discovered: ${filtered.length} (${filtered.filter((t) => t.reason === "premium").length} premium, ${filtered.filter((t) => t.reason === "synthetic").length} synthetic)`
+    `\nTargets discovered: ${filtered.length} (${filtered.filter((t) => t.reason === "premium").length} premium, ${filtered.filter((t) => t.reason === "synthetic").length} synthetic, ${filtered.filter((t) => t.reason === "non-multi-axis").length} non-multi-axis)`
   );
 
   const plans: RebuildPlan[] = [];

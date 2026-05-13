@@ -1,0 +1,78 @@
+◇ injected env (1) from .env.local // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+=== Brand audit ===
+brand                         total   pub  unpub  noUsd  noUah  syntO  noSku  flat   vars   avg
+RaceChip                       5181  5181      0   5181   5181      0      0     0   5181     1
+DO88                           1230  1230      0   1230   1230      0      0     0   1230     1
+Brabus                          980   980      0    980    980      0      0     0    980     1
+GiroDisc                        958   958      0      0    958      0      0     0    958     1
+Burger Motorsports              666   666      0      0    666    562      0     0    666     1
+OHLINS                          488   488      0    488      2      0      0     0    488     1
+AKRAPOVIC                       354   354      0    354      1      2      0     0    354     1
+CSF                             286   286      0    286      0      0      0     0    286     1
+ADRO                            203   203      0    203      0      0      0     0    203     1
+iPE exhaust                     125   125      0      0      0      8      0     6   1118   8.9
+Range Rover                      73    73      0      0      0      0      0     0    117   1.6
+Land Rover                       60    60      0      0      0      0      0     0    182     3
+Mercedes-Benz                    34    34      0      0      0      0      0     0     34     1
+Audi                             30    30      0      0      0      0      0     0     71   2.4
+Lamborghini                      28    28      0      0      0      0      0     0     28     1
+Volkswagen                       23    23      0      0      0      0      0     0     32   1.4
+Bentley                           6     6      0      0      0      0      0     0      6     1
+Rolls-Royce                       5     5      0      0      0      0      0     0      5     1
+
+=== Issue samples (per brand, top problematic) ===
+
+[RaceChip] total=5181  synthOnly=0 noPriceUsd=5181 flat=0
+  no-price ex: [
+  'racechip-gts5-mazda-6-gj-from-2012-2-2d-euro-6d-temp-2191ccm-184hp-135kw-445nm',
+  'racechip-gts5-mazda-cx-5-ke-gh-2011-to-2016-skyaktiv-d-175-2191ccm-175hp-129kw-420nm',
+  'racechip-gts5-mercedes-benz-cls-c257-from-2017-cls-300-d-1950ccm-245hp-180kw-500nm'
+]
+
+[DO88] total=1230  synthOnly=0 noPriceUsd=1230 flat=0
+  no-price ex: [ 'do88-tr-300-9912', 'do88-icm-250-s-1r', 'do88-do88-kit146s' ]
+
+[Brabus] total=980  synthOnly=0 noPriceUsd=980 flat=0
+  no-price ex: [ 'brabus-465-d45-00', 'brabus-257-d40-00', 'brabus-m12-v297-pe' ]
+
+[Burger Motorsports] total=666  synthOnly=562 noPriceUsd=0 flat=0
+  synth ex: [
+  'burger-bmw-b48-b58-gen3-jb4-tuner',
+  'burger-jb4-performance-tuner-for-nissan-rogue-turbo',
+  'burger-jb4-tuner-for-ford-escape'
+]
+
+[OHLINS] total=488  synthOnly=0 noPriceUsd=488 flat=0
+  no-price ex: [ 'ohlins-35020-04', 'ohlins-48010-55', 'ohlins-48010-47' ]
+
+[AKRAPOVIC] total=354  synthOnly=2 noPriceUsd=354 flat=0
+  synth ex: [ 'akrapovic-tp-po997gt3h', 'akrapovic-mtp-recl3rsh' ]
+  no-price ex: [
+  'akrapovic-s-bm-t-18h',
+  'akrapovic-p-hf1351',
+  'akrapovic-s-po991so-ht-1'
+]
+
+[CSF] total=286  synthOnly=0 noPriceUsd=286 flat=0
+  no-price ex: [ 'csf-7213', 'csf-7084', 'csf-8131b' ]
+
+[ADRO] total=203  synthOnly=0 noPriceUsd=203 flat=0
+  no-price ex: [
+  'adro-a18a10-1101',
+  'adro-a18a20-1101-a18a20-1504-a18a20-2401',
+  'adro-a11a21-1402'
+]
+
+[iPE exhaust] total=125  synthOnly=8 noPriceUsd=0 flat=6
+  synth ex: [
+  'ipe-audi-rs3-sedan-sportback-8v-2-exhaust',
+  'ipe-porsche-911-turbo-turbo-s-991-991-2-exhaust',
+  'ipe-porsche-911-turbo-turbo-s-997-2-exhaust'
+]
+  flat ex: [
+  'ipe-porsche-911-gt3-gt3-rs-992-full-exhaust-system',
+  'ipe-audi-r8-v10-2020-exhaust-system',
+  'ipe-lamborghini-huracan-tecnica-exhaust-system'
+]

@@ -1,0 +1,26 @@
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+D:\One Company\OneCompany\node_modules\@prisma\client\src\runtime\RequestHandler.ts:242
+      throw new PrismaClientInitializationError(message, this.client._clientVersion)
+            ^
+
+PrismaClientInitializationError: 
+Invalid `p.shopProduct.findMany()` invocation in
+D:\One Company\OneCompany\scripts\audit-ipe-flat-prices.ts:9:36
+
+  6 const p = new PrismaClient();
+  7 
+  8 (async () => {
+→ 9   const rows = await p.shopProduct.findMany(
+Too many database connections opened: FATAL: too many connections for role "prisma_migration"
+    at ei.handleRequestError (D:\One Company\OneCompany\node_modules\@prisma\client\src\runtime\RequestHandler.ts:242:13)
+    at ei.handleAndLogRequestError (D:\One Company\OneCompany\node_modules\@prisma\client\src\runtime\RequestHandler.ts:174:12)
+    at ei.request (D:\One Company\OneCompany\node_modules\@prisma\client\src\runtime\RequestHandler.ts:143:12)
+    at async a (D:\One Company\OneCompany\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:833:24)
+    at async <anonymous> (D:\One Company\OneCompany\scripts\audit-ipe-flat-prices.ts:9:16) {
+  clientVersion: '6.19.3',
+  errorCode: undefined,
+  retryable: undefined
+}
+
+Node.js v24.15.0
