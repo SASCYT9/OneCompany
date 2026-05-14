@@ -12,6 +12,7 @@ import Do88CategoryFilter from "../../Do88CategoryFilter";
 import { CAR_DATA } from "../../do88FitmentData";
 import { Suspense } from "react";
 
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 // Anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // NOTE: cannot be `force-static` — that forces searchParams empty, breaking ?brand=&keyword= filtering.
 export const revalidate = 3600;

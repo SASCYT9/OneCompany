@@ -8,6 +8,7 @@ import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import AkrapovicVehicleFilter from "../../components/AkrapovicVehicleFilter";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 export const dynamic = "force-static";
 export const revalidate = 3600;
 

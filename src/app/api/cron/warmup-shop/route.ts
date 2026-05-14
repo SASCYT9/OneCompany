@@ -54,25 +54,26 @@ export async function GET(request: NextRequest) {
   const started = Date.now();
   const origin = SITE_ORIGIN.replace(/\/$/, "");
 
-  const results = await Promise.allSettled(
-    WARMUP_PATHS.map(async (path) => {
-      const url = `${origin}${path}`;
-      const t0 = Date.now();
-      try {
-        const r = await fetch(url, {
-          headers: { "x-cron-warmup": "1" },
-          cache: "no-store",
-        });
-        return { path, status: r.status, ms: Date.now() - t0 };
-      } catch (e) {
-        return { path, error: String(e), ms: Date.now() - t0 };
-      }
-    })
-  );
-
-  const summary = results.map((r) =>
-    r.status === "fulfilled" ? r.value : { error: String(r.reason) }
-  );
+  // Serial fetch with a 250 ms gap between hits. Previously Promise.allSettled
+  // fired all 16 URLs in parallel — each opening its own Prisma connection on
+  // the cold-Lambda render path. With a pgbouncer pool of ~10, several of
+  // those queries failed and Vercel cached the resulting empty/errored pages
+  // for the revalidate window. Serial pacing keeps the pool happy.
+  const summary: Array<{ path: string; status?: number; error?: string; ms: number }> = [];
+  for (const path of WARMUP_PATHS) {
+    const url = `${origin}${path}`;
+    const t0 = Date.now();
+    try {
+      const r = await fetch(url, {
+        headers: { "x-cron-warmup": "1" },
+        cache: "no-store",
+      });
+      summary.push({ path, status: r.status, ms: Date.now() - t0 });
+    } catch (e) {
+      summary.push({ path, error: String(e).slice(0, 120), ms: Date.now() - t0 });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
   return NextResponse.json({
     ok: true,
     totalMs: Date.now() - started,

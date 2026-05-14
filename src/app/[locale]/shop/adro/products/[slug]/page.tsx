@@ -7,6 +7,7 @@ import ShopProductDetailPage, {
 // Cache-bust 2026-05-14: previous Vercel ISR cache held stale 404s for ADRO
 // PDP slugs (likely cached at build-time during the PR #98 → #102 window when
 // the case-sensitive brand filter was producing 0-row Prisma queries).
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 export const dynamic = "force-static";
 export const revalidate = 3600;
 

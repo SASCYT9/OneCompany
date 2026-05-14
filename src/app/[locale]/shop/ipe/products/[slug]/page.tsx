@@ -18,6 +18,7 @@ import { IpeShopProductDetailLayout } from "../../../components/IpeShopProductDe
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 export const dynamic = "force-static";
 export const revalidate = 3600;
 

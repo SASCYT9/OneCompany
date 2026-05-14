@@ -2,6 +2,7 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import { GIRODISC_PRODUCT_LINES } from "../../data/girodiscHomeData";
 
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 type Props = {
   params: Promise<{ locale: string }>;
 };
