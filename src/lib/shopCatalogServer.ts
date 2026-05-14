@@ -20,7 +20,11 @@ import {
   getRacechipCatalogFallbackProductBySlug,
 } from "@/lib/racechipCatalogFallback";
 import { Prisma } from "@prisma/client";
-import { adminProductInclude, type AdminShopProductRecord } from "@/lib/shopAdminCatalog";
+import {
+  adminProductInclude,
+  brandGridProductInclude,
+  type AdminShopProductRecord,
+} from "@/lib/shopAdminCatalog";
 import {
   isLikelyBrabusOverviewProductLike,
   scoreBrabusProductCandidateLike,
@@ -1307,7 +1311,9 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
 
   // iPE-only: surface the per-image material tag stored at import time so
   // the iPE PDP can filter gallery shots to the active variant's material.
-  const galleryMaterialsMeta = row.metafields.find(
+  // `row.metafields` may be undefined when called from a brand-grid path that
+  // uses a lighter include (we skip metafields there to save the join).
+  const galleryMaterialsMeta = (row.metafields ?? []).find(
     (m) => m.namespace === "ipe" && m.key === "gallery_image_materials"
   );
   const galleryMaterialsRaw = galleryMaterialsMeta?.value
@@ -1916,11 +1922,15 @@ export async function getShopProductsByBrandServer(
   const promise = (async () => {
     let dbRows: AdminShopProductRecord[] = [];
     try {
-      dbRows = await prisma.shopProduct.findMany({
+      // Lighter include than adminProductInclude — drops options/metafields/
+      // bundle (PDP-only fields), keeping category/media/variants/collections
+      // that the grid + collection-matcher code paths actually read.
+      // `mapDbToCatalog` is defensive against the dropped fields.
+      dbRows = (await prisma.shopProduct.findMany({
         where: { isPublished: true, ...where },
         orderBy: { updatedAt: "desc" },
-        include: adminProductInclude,
-      });
+        include: brandGridProductInclude,
+      })) as unknown as AdminShopProductRecord[];
     } catch {
       // DB unavailable — fall through to static-only path below.
     }
