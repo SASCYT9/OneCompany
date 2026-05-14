@@ -405,10 +405,23 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     notFound();
   }
 
-  // Brand-scoped related-product pool: avoids loading the full ~30k
-  // cross-brand catalog. Cross-shop fitment (which needs cross-brand) is
-  // deferred to a streaming Suspense boundary below.
-  const allProducts = await pickRelatedProductsPool(mode, product.brand);
+  // ONLY Brabus + Burger layouts embed the `relatedProducts` array (lines
+  // 787, 798 below — they have custom-branded "recommended combinations"
+  // sections inside their layouts). Every other PDP mode that flows through
+  // this template (akrapovic, csf, adro, ipe, ohlins, girodisc, forged,
+  // racechip-via-default, urban, do88, generic) renders the default inline
+  // layout, which does NOT show related products at all.
+  //
+  // So `pickRelatedProductsPool` (loads 350-1000 products through
+  // mapDbToCatalog with Urban/Brabus/Akrapovic editorial copy generators)
+  // was running unconditionally for data ~80% of PDPs threw away — cold
+  // Lambda spent 3-8 s producing rows nothing rendered. Gate it.
+  const isBrabusMode = mode === "brabus" || product.brand === "Brabus";
+  const isBurgerMode = mode === "burger" || product.brand === "Burger Motorsports";
+  const needsRelated = isBrabusMode || isBurgerMode;
+  const allProducts: ShopProduct[] = needsRelated
+    ? await pickRelatedProductsPool(mode, product.brand)
+    : [];
 
   const settingsRecord = await getOrCreateShopSettings(prisma);
 
@@ -686,10 +699,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     product.brand === "Brabus" || mode === "brabus"
       ? relatedProductsRaw.filter((rp) => !isFactoryOnlyProduct(rp.sku))
       : relatedProductsRaw;
-  const relatedProductsWithPricing = relatedProducts.map((item) => ({
-    item,
-    price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
-  }));
 
   // Cross-shop fitment matches — show parts from OTHER stores that fit the
   // same vehicle (e.g. ADRO M3 G80 bumper → iPE / Akrapovic / Ohlins / CSF
@@ -701,22 +710,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // CrossShopFitmentStreamingSection below), so the product info renders
   // immediately and the "also fits" widget streams in shortly after.
   const crossShopFitment = isExcludedFromCrossShop(product) ? null : extractProductFitment(product);
-  const urbanRelatedImagePools = new Map<string, string[]>();
-  if (isUrbanMode) {
-    const relatedUrbanHandles = new Set(
-      [
-        urbanCollectionHandle,
-        ...relatedProducts.map((item) => getUrbanCollectionHandleForProduct(item)),
-      ].filter((handle): handle is string => Boolean(handle))
-    );
-
-    relatedUrbanHandles.forEach((handle) => {
-      urbanRelatedImagePools.set(
-        handle,
-        buildUrbanCollectionImagePool(getUrbanCollectionPageConfig(handle), [handle])
-      );
-    });
-  }
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
