@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
-import ShopAmbientBackground from './components/ShopAmbientBackground';
-import ShopImpersonationBanner from './components/ShopImpersonationBanner';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
+import { ReactNode } from "react";
+import ShopAmbientBackground from "./components/ShopAmbientBackground";
+import ShopImpersonationBanner from "./components/ShopImpersonationBanner";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 
 type Props = {
   children: ReactNode;
@@ -13,7 +13,7 @@ export default async function ShopLayout({ children }: Props) {
   const impersonator = session?.impersonator ?? null;
 
   return (
-    <>
+    <div className="shop-context">
       {impersonator ? (
         <ShopImpersonationBanner
           customerEmail={session!.email}
@@ -23,6 +23,6 @@ export default async function ShopLayout({ children }: Props) {
       ) : null}
       <ShopAmbientBackground />
       {children}
-    </>
+    </div>
   );
 }

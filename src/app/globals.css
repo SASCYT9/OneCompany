@@ -165,7 +165,7 @@
     --popover: 240 5% 4%;
     --popover-foreground: 0 0% 96%;
 
-    --primary: 43 45% 55%; /* #c29d59 bronze */
+    --primary: 0 0% 100%; /* white — bronze лишається тільки всередині .shop-context / .admin-context */
     --primary-foreground: 240 5% 2%;
 
     --secondary: 240 5% 15%;
@@ -174,7 +174,7 @@
     --muted: 240 5% 20%;
     --muted-foreground: 240 5% 65%;
 
-    --accent: 43 45% 55%;
+    --accent: 0 0% 100%;
     --accent-foreground: 240 5% 2%;
 
     --destructive: 0 84% 60%;
@@ -182,7 +182,7 @@
 
     --border: 240 5% 12%;
     --input: 240 5% 12%;
-    --ring: 43 45% 55%;
+    --ring: 0 0% 100%;
 
     /* Dark theme keeps the original pill-shape corners. Light (Porsche
        Editorial) uses sharp 4px corners defined in :root. */
@@ -198,22 +198,36 @@
     --color-card-foreground: hsl(0 0% 96%);
     --color-popover: hsl(240 5% 4%);
     --color-popover-foreground: hsl(0 0% 96%);
-    --color-primary: hsl(43 45% 55%);
+    --color-primary: hsl(0 0% 100%);
     --color-primary-foreground: hsl(240 5% 2%);
     --color-secondary: hsl(240 5% 15%);
     --color-secondary-foreground: hsl(0 0% 98%);
     --color-muted: hsl(240 5% 20%);
     --color-muted-foreground: hsl(240 5% 65%);
-    --color-accent: hsl(43 45% 55%);
+    --color-accent: hsl(0 0% 100%);
     --color-accent-foreground: hsl(240 5% 2%);
     --color-destructive: hsl(0 84% 60%);
     --color-destructive-foreground: hsl(240 5% 2%);
     --color-border: hsl(240 5% 12%);
     --color-input: hsl(240 5% 12%);
-    --color-ring: hsl(43 45% 55%);
+    --color-ring: hsl(0 0% 100%);
 
     /* Logo inversion in dark: flip to white */
     --logo-invert: invert(1);
+  }
+
+  /* Bronze accent island — only inside /shop and /admin trees.
+     CSS custom properties cascade via DOM inheritance, so applying these
+     classes on the shop/admin layout wrappers re-paints all primary/accent/ring
+     surfaces inside without touching individual components. */
+  .dark .shop-context,
+  .dark .admin-context {
+    --primary: 43 45% 55%;
+    --accent: 43 45% 55%;
+    --ring: 43 45% 55%;
+    --color-primary: hsl(43 45% 55%);
+    --color-accent: hsl(43 45% 55%);
+    --color-ring: hsl(43 45% 55%);
   }
 
   * {

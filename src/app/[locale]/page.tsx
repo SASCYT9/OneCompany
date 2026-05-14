@@ -180,7 +180,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   key={experience.label}
                   href={experience.href}
                   className={clsx(
-                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5",
+                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5 md:min-h-[420px] xl:min-h-[480px] 2xl:min-h-[540px]",
                     "border border-foreground/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-foreground/30 hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
                     "rounded-2xl",
                     index === 0 ? "md:mr-2" : "md:ml-2"
@@ -188,7 +188,11 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                 >
                   {/* Photos swap per theme. Tailwind v4's dark:opacity-X
                       variant doesn't apply consistently with this version
-                      of @custom-variant, so we use display swap instead. */}
+                      of @custom-variant, so we use display swap instead.
+                      Dark landscape image on mobile fits height exactly
+                      (no overflow for object-position to use) so we lift it
+                      via translate-y; the freed strip at the bottom hosts
+                      the description without overlapping the car. */}
                   <Image
                     src={experience.bgImageDark}
                     alt={
@@ -197,7 +201,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                         : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
                     }
                     fill
-                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block`}
+                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block -translate-y-[30%] sm:translate-y-0`}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
@@ -208,18 +212,18 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     alt=""
                     aria-hidden="true"
                     fill
-                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 dark:hidden`}
+                    className={`object-cover ${index === 0 ? "object-[center_98%] sm:object-[center_83%] md:object-[center_70%]" : "object-[center_100%] sm:object-[center_87%] md:object-[center_75%]"} group-hover:scale-105 transition-transform duration-700 dark:hidden`}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                     fetchPriority="high"
                     quality={85}
                   />
-                  {/* Bottom-only gradient veil — keeps photo unobstructed in
-                      the upper 2/3, darkens the lower 1/3 so the description,
-                      stats and arrow CTA all read as light text on dark.
-                      Photo composition (car middle, ground bottom) means the
-                      gradient lands on the floor area, not the car. */}
-                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/85 via-black/55 to-transparent" />
+                  {/* Veil — light covers the entire photo with a uniform dark
+                      overlay so white text reads anywhere on the card. Dark
+                      keeps a softer bottom-only gradient so the car at the
+                      top remains visible. */}
+                  <div className="absolute inset-0 bg-black/35 dark:hidden" />
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/85 via-black/55 to-transparent hidden dark:block" />
 
                   {/* Top — small label pill, stays out of photo focus */}
                   <div className="relative flex justify-start">
