@@ -2027,14 +2027,19 @@ export function getCsfProductsServer() {
   });
 }
 
-/** Akrapovič: brand ∈ {'akrapovic', 'akrapovič'} OR tag 'Akrapovic'. */
+/** Akrapovič: brand ∈ {'akrapovic', 'akrapovič'} OR tag 'Akrapovic'.
+ *  HOT-FIX: Prisma `in` is case-sensitive; DB stores `brand="AKRAPOVIC"`
+ *  (all-caps from Atomic feed import). Switched to per-variant `equals`
+ *  with `mode: 'insensitive'` so ALL casings match. */
 export function getAkrapovicProductsServer() {
   return getShopProductsByBrandServer({
     cacheKey: "akrapovic",
     where: {
       OR: [
-        { brand: { in: ["akrapovic", "akrapovič", "Akrapovic", "Akrapovič"] } },
-        { vendor: { in: ["akrapovic", "akrapovič", "Akrapovic", "Akrapovič"] } },
+        { brand: { equals: "akrapovic", mode: "insensitive" } },
+        { brand: { equals: "akrapovič", mode: "insensitive" } },
+        { vendor: { equals: "akrapovic", mode: "insensitive" } },
+        { vendor: { equals: "akrapovič", mode: "insensitive" } },
         { tags: { has: "Akrapovic" } },
       ],
     },
@@ -2053,13 +2058,15 @@ export function getAkrapovicProductsServer() {
 }
 
 /** Öhlins: brand ∈ {'ohlins', 'öhlins'} OR vendor 'ohlins' OR slug
- *  startsWith 'ohlins-'. */
+ *  startsWith 'ohlins-'. HOT-FIX: Prisma `in` is case-sensitive; DB stores
+ *  `brand="OHLINS"` (all-caps). Switched to case-insensitive `equals`. */
 export function getOhlinsProductsServer() {
   return getShopProductsByBrandServer({
     cacheKey: "ohlins",
     where: {
       OR: [
-        { brand: { in: ["ohlins", "öhlins", "Ohlins", "Öhlins"] } },
+        { brand: { equals: "ohlins", mode: "insensitive" } },
+        { brand: { equals: "öhlins", mode: "insensitive" } },
         { vendor: { equals: "ohlins", mode: "insensitive" } },
         { slug: { startsWith: "ohlins-" } },
       ],
@@ -2077,15 +2084,21 @@ export function getOhlinsProductsServer() {
   });
 }
 
-/** iPE: brand ∈ {iPE variants} OR vendor likewise OR tag with same. */
+/** iPE: brand ∈ {iPE variants} OR vendor likewise OR tag with same.
+ *  HOT-FIX: case-insensitive matching since DB has e.g. `"iPE exhaust"`
+ *  (lowercase 'e' in "exhaust") that case-sensitive `in` missed. */
 export function getIpeProductsServer() {
   const ipeBrands = ["ipe", "iPE", "iPe", "IPE", "iPE Exhaust", "Innotech Performance Exhaust"];
   return getShopProductsByBrandServer({
     cacheKey: "ipe",
     where: {
       OR: [
-        { brand: { in: ipeBrands } },
-        { vendor: { in: ipeBrands } },
+        { brand: { equals: "ipe", mode: "insensitive" } },
+        { brand: { equals: "ipe exhaust", mode: "insensitive" } },
+        { brand: { equals: "innotech performance exhaust", mode: "insensitive" } },
+        { vendor: { equals: "ipe", mode: "insensitive" } },
+        { vendor: { equals: "ipe exhaust", mode: "insensitive" } },
+        { vendor: { equals: "innotech performance exhaust", mode: "insensitive" } },
         // Tag-based fallback: hasSome tolerates the brand value being stored as a tag
         { tags: { hasSome: ipeBrands } },
       ],
