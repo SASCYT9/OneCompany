@@ -35,6 +35,20 @@ export default function RacechipQuickFinder({
   // it the button looks frozen until the catalog RSC payload finishes
   // streaming back (which can be a noticeable wait on a cold Lambda hit).
   const [isPending, startTransition] = useTransition();
+  // Prefetch the catalog route the first time the user starts interacting
+  // with the form. By the time they click "Знайти тюнінг" the RSC payload
+  // is already in the browser cache, so the transition feels instant.
+  const [prefetched, setPrefetched] = useState(false);
+
+  function ensureCatalogPrefetched() {
+    if (prefetched) return;
+    setPrefetched(true);
+    try {
+      router.prefetch(`/${locale}/shop/racechip/catalog`);
+    } catch {
+      // prefetch is best-effort; ignore failures
+    }
+  }
 
   // Parse the make's models into a Map<modelKey, { label, chassis: [{key,label}] }>.
   type ModelBucket = { label: string; chassis: { key: string; label: string }[] };
@@ -114,6 +128,8 @@ export default function RacechipQuickFinder({
   return (
     <form
       onSubmit={handleSubmit}
+      onFocusCapture={ensureCatalogPrefetched}
+      onPointerDownCapture={ensureCatalogPrefetched}
       className={`rc-finder rc-finder--${variant}${className ? ` ${className}` : ""}`}
       role="search"
       aria-label={isUa ? "Підбір RaceChip для авто" : "RaceChip vehicle finder"}
