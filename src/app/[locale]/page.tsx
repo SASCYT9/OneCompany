@@ -41,7 +41,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       bgImageDark: "/images/hero-auto-mono.png",
-      bgImageLight: "/images/hero-auto-mono.png",
+      bgImageLight: "/images/hero-auto-light-v9.png",
       stats: [
         { value: "160+", note: t("autoBrands") },
         { value: "11", note: t("autoCategories") },
@@ -54,7 +54,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       bgImageDark: "/images/hero-moto-mono.png",
-      bgImageLight: "/images/hero-moto-mono.png",
+      bgImageLight: "/images/hero-moto-light-v10.png",
       stats: [
         { value: "60+", note: t("motoPartners") },
         { value: "6", note: t("motoSeries") },
