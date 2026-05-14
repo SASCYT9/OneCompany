@@ -1,8 +1,11 @@
-import { resolveLocale } from '@/lib/seo';
-import ShopProductDetailPage, { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
+import { resolveLocale } from "@/lib/seo";
+import ShopProductDetailPage, {
+  getShopProductPageMetadata,
+} from "../../../components/ShopProductDetailPage";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 type Props = {
@@ -14,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   return getShopProductPageMetadata({
     locale: resolveLocale(locale),
     slug,
-    mode: 'default',
+    mode: "default",
   });
 }
 
@@ -22,10 +25,5 @@ export default async function AkrapovicProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return (
-    <ShopProductDetailPage
-      locale={resolvedLocale}
-      slug={slug}
-    />
-  );
+  return <ShopProductDetailPage locale={resolvedLocale} slug={slug} />;
 }
