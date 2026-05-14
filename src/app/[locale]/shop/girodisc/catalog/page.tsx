@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getGirodiscProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
@@ -34,10 +34,11 @@ export default async function GirodiscProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, girodiscRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getGirodiscProductsServer(),
   ]);
+  const girodiscProducts = girodiscRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -45,8 +46,6 @@ export default async function GirodiscProductsCatalogPage({ params }: Props) {
     false,
     null
   );
-
-  const girodiscProducts = products.filter((p) => p.brand?.toLowerCase() === "girodisc");
 
   const isUa = resolvedLocale === "ua";
 

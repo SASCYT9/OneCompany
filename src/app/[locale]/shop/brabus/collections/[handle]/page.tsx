@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { BRABUS_COLLECTION_CARDS } from "../../../data/brabusCollectionsList";
 import { getBrabusCollectionPageConfig } from "../../../data/brabusCollectionPages";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getBrabusProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { getProductsForBrabusCollection } from "@/lib/brabusCollectionMatcher";
@@ -52,7 +52,7 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
 
   const [settingsRecord, products] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getBrabusProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(

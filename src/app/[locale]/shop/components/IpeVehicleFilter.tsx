@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -183,7 +183,6 @@ export default function IpeVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialBrand = searchParams?.get("brand") || "all";
@@ -265,9 +264,13 @@ export default function IpeVehicleFilter({
       if (query.trim()) params.set("q", query);
       const qs = params.toString();
       const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
-      router.replace(nextPath, { scroll: false });
+      // Avoid router.replace — App Router treats it as a full RSC refetch
+      // (heavy on brand catalogs with many rows). Pure URL sync only.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", nextPath);
+      }
     },
-    [pathname, router]
+    [pathname]
   );
 
   useEffect(() => {

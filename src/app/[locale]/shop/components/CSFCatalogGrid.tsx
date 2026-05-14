@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -245,7 +245,6 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
@@ -293,9 +292,14 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       if (query.trim()) params.set("q", query.trim());
 
       const nextQuery = params.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname || "", { scroll: false });
+      const nextPath = nextQuery ? `${pathname}?${nextQuery}` : pathname || "";
+      // App Router would re-fetch the RSC payload on router.replace — sync URL
+      // via raw history API since filtering is pure client state.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", nextPath);
+      }
     },
-    [pathname, router]
+    [pathname]
   );
 
   useEffect(() => {

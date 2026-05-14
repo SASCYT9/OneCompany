@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import UrbanVehicleFilter from "../../components/UrbanVehicleFilter";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getUrbanProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { getUrbanCatalogProducts } from "@/lib/urbanCollectionMatcher";
 import Link from "next/link";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -34,10 +33,11 @@ export default async function UrbanProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, urbanRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getUrbanProductsServer(),
   ]);
+  const urbanProducts = urbanRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -45,8 +45,6 @@ export default async function UrbanProductsCatalogPage({ params }: Props) {
     false,
     null
   );
-
-  const urbanProducts = getUrbanCatalogProducts(products);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

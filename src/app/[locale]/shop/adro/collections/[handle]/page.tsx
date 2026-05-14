@@ -1,15 +1,15 @@
-import { buildPageMetadata, resolveLocale } from '@/lib/seo';
-import { localizeShopProductTitle } from '@/lib/shopText';
-import { prisma } from '@/lib/prisma';
-import { ADRO_PRODUCT_LINES } from '../../../data/adroHomeData';
-import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { getProductsForAdroCollection } from '@/lib/adroCollectionMatcher';
-import AdroCollectionProductGrid from '../../../components/AdroCollectionProductGrid';
+import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { prisma } from "@/lib/prisma";
+import { ADRO_PRODUCT_LINES } from "../../../data/adroHomeData";
+import { getAdroProductsServer } from "@/lib/shopCatalogServer";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { getProductsForAdroCollection } from "@/lib/adroCollectionMatcher";
+import AdroCollectionProductGrid from "../../../components/AdroCollectionProductGrid";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 type Props = {
@@ -20,18 +20,22 @@ export async function generateStaticParams() {
   return ADRO_PRODUCT_LINES.map((line) => ({ handle: line.id }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; handle: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; handle: string }>;
+}) {
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
   const title = line
-    ? `${resolvedLocale === 'ua' ? line.nameUk : line.name} | ADRO | One Company`
+    ? `${resolvedLocale === "ua" ? line.nameUk : line.name} | ADRO | One Company`
     : `${handle} | ADRO | One Company`;
-  
+
   return buildPageMetadata(resolvedLocale, `shop/adro/collections/${handle}`, {
     title,
     description:
-      resolvedLocale === 'ua'
+      resolvedLocale === "ua"
         ? `Програма ADRO для ${line?.nameUk ?? handle}. Препрег-карбон і CFD-аеродинаміка рівня F1.`
         : `ADRO aerodynamic program for ${line?.name ?? handle}. Prepreg carbon and F1-level CFD aero.`,
   });
@@ -42,8 +46,9 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
 
-  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+  const [settingsRecord, products] = await Promise.all([
+    getOrCreateShopSettings(prisma),
+    getAdroProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
@@ -59,8 +64,10 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
   const sortedProducts = [...collectionProducts].sort((a, b) => {
     const titleA = localizeShopProductTitle(resolvedLocale, a).toLowerCase();
     const titleB = localizeShopProductTitle(resolvedLocale, b).toLowerCase();
-    const isKitA = titleA.includes('kit') || titleA.includes('widebody') || titleA.includes('full body');
-    const isKitB = titleB.includes('kit') || titleB.includes('widebody') || titleB.includes('full body');
+    const isKitA =
+      titleA.includes("kit") || titleA.includes("widebody") || titleA.includes("full body");
+    const isKitB =
+      titleB.includes("kit") || titleB.includes("widebody") || titleB.includes("full body");
     if (isKitA && !isKitB) return -1;
     if (!isKitA && isKitB) return 1;
     const priceA = a.price?.usd || a.price?.eur || a.price?.uah || 0;
@@ -73,7 +80,7 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
       <AdroCollectionProductGrid
         locale={resolvedLocale}
         handle={handle}
-        title={line ? (resolvedLocale === 'ua' ? line.nameUk : line.name) : handle}
+        title={line ? (resolvedLocale === "ua" ? line.nameUk : line.name) : handle}
         brand="ADRO Aero"
         products={sortedProducts}
         viewerContext={viewerContext}

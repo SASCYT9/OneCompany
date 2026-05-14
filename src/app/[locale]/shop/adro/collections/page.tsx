@@ -3,10 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getAdroProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { isAdroProduct } from "@/lib/adroCatalog";
 import AdroCatalogGrid from "../../components/AdroCatalogGrid";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -37,10 +36,11 @@ export default async function AdroCollectionsPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, adroRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getAdroProductsServer(),
   ]);
+  const adroProducts = adroRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -48,8 +48,6 @@ export default async function AdroCollectionsPage({ params }: Props) {
     false,
     null
   );
-
-  const adroProducts = products.filter(isAdroProduct);
 
   return (
     <div className="relative min-h-screen bg-background">

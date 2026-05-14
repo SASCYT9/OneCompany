@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getUrbanProductsServer } from "@/lib/shopCatalogServer";
 import {
   getProductsForUrbanCollection,
   sortUrbanCollectionProducts,
@@ -57,7 +57,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
   const isUa = resolvedLocale === "ua";
   const config = getUrbanCollectionPageConfig(handle);
   const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
-  const products = config ? await getShopProductsServer() : [];
+  const products = config ? await getUrbanProductsServer() : [];
 
   if (!config) {
     return (

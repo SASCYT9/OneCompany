@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BrabusVehicleFilter from "../../components/BrabusVehicleFilter";
 import BrabusVideoBackground from "../../components/BrabusVideoBackground";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getBrabusProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
@@ -36,9 +36,9 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, allBrabusProducts] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getBrabusProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
@@ -48,10 +48,10 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
     null
   );
 
-  const brabusProducts = products
-    .filter((p) => p.brand?.toLowerCase() === "brabus")
+  const brabusProducts = allBrabusProducts
     .filter((p) => !isFactoryOnlyProduct(p.sku))
-    .filter((p) => !isBrabusExhaustProduct(p));
+    .filter((p) => !isBrabusExhaustProduct(p))
+    .map(projectShopProductForListGrid);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

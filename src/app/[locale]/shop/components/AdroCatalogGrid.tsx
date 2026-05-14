@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
@@ -87,7 +87,6 @@ export default function AdroCatalogGrid({
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const t = useTranslations("adroCatalog");
   const { currency, rates } = useShopCurrency();
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
@@ -120,9 +119,14 @@ export default function AdroCatalogGrid({
       if (query.trim()) params.set("q", query.trim());
 
       const nextQuery = params.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname || "", { scroll: false });
+      const nextPath = nextQuery ? `${pathname}?${nextQuery}` : pathname || "";
+      // Avoid router.replace — App Router re-fetches the whole RSC payload on
+      // each call. Filtering is pure client state, raw history API suffices.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", nextPath);
+      }
     },
-    [pathname, router]
+    [pathname]
   );
 
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Activity } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -78,7 +78,6 @@ export default function OhlinsVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -111,9 +110,14 @@ export default function OhlinsVehicleFilter({
       if (q.trim()) params.set("q", q);
       const qs = params.toString();
       const newPath = qs ? `${pathname}?${qs}` : pathname || "";
-      router.replace(newPath, { scroll: false });
+      // App Router `router.replace` would re-fetch the whole RSC payload on
+      // every filter change. The filter is pure client state — sync URL via
+      // raw history API instead so navigation stays free.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", newPath);
+      }
     },
-    [pathname, router]
+    [pathname]
   );
 
   useEffect(() => {
