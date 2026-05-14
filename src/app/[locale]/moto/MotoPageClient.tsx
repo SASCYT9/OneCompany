@@ -388,7 +388,7 @@ export default function MotoPage() {
             loop
             muted
             playsInline
-            className="h-full w-full object-cover opacity-50 blur-sm will-change-transform dark:opacity-30 dark:blur-0"
+            className="h-full w-full object-cover opacity-30 will-change-transform"
           >
             <source src="/videos/MotoBG-web.mp4" type="video/mp4" />
           </video>

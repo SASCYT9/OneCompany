@@ -262,13 +262,7 @@ export default function AutomotivePage() {
     <LazyMotion features={domAnimation}>
       <div className="min-h-dvh bg-background text-foreground font-sans relative">
         <div className="fixed inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover opacity-50 blur-sm dark:opacity-30 dark:blur-0"
-          >
+          <video autoPlay loop muted playsInline className="h-full w-full object-cover opacity-30">
             <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-background/40 dark:bg-black/70" />
