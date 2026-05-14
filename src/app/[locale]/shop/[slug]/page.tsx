@@ -1,14 +1,22 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { buildNoIndexPageMetadata, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import {
+  buildNoIndexPageMetadata,
+  buildPageMetadata,
+  resolveLocale,
+  type SupportedLocale,
+} from "@/lib/seo";
 import { getShopProductBySlugServer, getShopProductsByBrandServer } from "@/lib/shopCatalogServer";
+import type { ShopProduct } from "@/lib/shopCatalog";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
+  type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
 import {
   localizeShopDescription,
@@ -87,14 +95,10 @@ export default async function ShopProductPage({ params }: Props) {
     redirect(canonicalPath);
   }
 
-  // Related products: limit to same brand. ~95% of related-product picks come
-  // from the same brand anyway (cross-brand suggestions add noise), and this
-  // shrinks the SSR payload from a full ~30k cross-brand catalog to a single
-  // brand's subset (~50-5000 rows depending on the brand).
-  const [allProducts, settingsRecord] = await Promise.all([
-    getShopProductsByBrandServer(product.brand),
-    getOrCreateShopSettings(prisma),
-  ]);
+  // Related products no longer block first byte: the brand-scoped fetch +
+  // findRelatedProducts scoring run inside the Suspense boundary at the
+  // bottom of the page. Main path only awaits shop settings.
+  const settingsRecord = await getOrCreateShopSettings(prisma);
 
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
   const rates = settingsRuntime.currencyRates;
@@ -113,7 +117,6 @@ export default async function ShopProductPage({ params }: Props) {
     .map(normalizeImage)
     .filter((item): item is string => Boolean(item));
   const safeGallery = gallery.length ? gallery : ["/images/placeholders/product-fallback.svg"];
-  const relatedProducts = findRelatedProducts(product, allProducts, 3);
 
   return (
     <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
@@ -207,56 +210,81 @@ export default async function ShopProductPage({ params }: Props) {
           </div>
         </section>
 
-        {relatedProducts.length ? (
-          <section className="space-y-4">
-            <h2 className="text-2xl font-light">{isUa ? "Схожі товари" : "Related products"}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {relatedProducts.map((item) => {
-                const image = normalizeImage(item.image);
-                return (
-                  <Link
-                    key={item.slug}
-                    href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
-                    className="group overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/5 transition hover:border-primary/35"
-                  >
-                    <div className="relative aspect-4/3 overflow-hidden">
-                      {image ? (
-                        <ShopProductImage
-                          src={image}
-                          alt={localizeShopProductTitle(resolvedLocale, item)}
-                          fill
-                          sizes="(max-width: 1280px) 100vw, 30vw"
-                          fallbackSrc="/images/placeholders/product-fallback.svg"
-                          className="object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-card/70 dark:bg-background/40 text-foreground/10">
-                          <ShoppingBag className="h-12 w-12 opacity-30" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-2 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
-                        {item.brand}
-                      </p>
-                      <h3 className="text-lg font-light leading-snug">
-                        {localizeShopProductTitle(resolvedLocale, item)}
-                      </h3>
-                      <p className="text-sm text-foreground/80 dark:text-foreground/65">
-                        <ShopInlinePriceText
-                          locale={resolvedLocale}
-                          price={resolveShopProductPricing(item, viewerContext).effectivePrice}
-                          requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
-                        />
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
+        <Suspense fallback={null}>
+          <RelatedProductsSection
+            product={product}
+            locale={resolvedLocale}
+            viewerContext={viewerContext}
+          />
+        </Suspense>
       </div>
     </main>
+  );
+}
+
+async function RelatedProductsSection({
+  product,
+  locale,
+  viewerContext,
+}: {
+  product: ShopProduct;
+  locale: SupportedLocale;
+  viewerContext: ShopViewerPricingContext;
+}) {
+  // Brand-scoped fetch — ~95% of related-product picks come from the same
+  // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
+  // the Suspense subtree so it doesn't block the main PDP first byte.
+  const brandPool = await getShopProductsByBrandServer(product.brand);
+  const relatedProducts = findRelatedProducts(product, brandPool, 3);
+  if (!relatedProducts.length) return null;
+  const isUa = locale === "ua";
+  return (
+    <section className="space-y-4">
+      <h2 className="text-2xl font-light">{isUa ? "Схожі товари" : "Related products"}</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {relatedProducts.map((item) => {
+          const image = normalizeImage(item.image);
+          return (
+            <Link
+              key={item.slug}
+              href={buildShopStorefrontProductPathForProduct(locale, item)}
+              className="group overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/5 transition hover:border-primary/35"
+            >
+              <div className="relative aspect-4/3 overflow-hidden">
+                {image ? (
+                  <ShopProductImage
+                    src={image}
+                    alt={localizeShopProductTitle(locale, item)}
+                    fill
+                    sizes="(max-width: 1280px) 100vw, 30vw"
+                    fallbackSrc="/images/placeholders/product-fallback.svg"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-card/70 dark:bg-background/40 text-foreground/10">
+                    <ShoppingBag className="h-12 w-12 opacity-30" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
+                  {item.brand}
+                </p>
+                <h3 className="text-lg font-light leading-snug">
+                  {localizeShopProductTitle(locale, item)}
+                </h3>
+                <p className="text-sm text-foreground/80 dark:text-foreground/65">
+                  <ShopInlinePriceText
+                    locale={locale}
+                    price={resolveShopProductPricing(item, viewerContext).effectivePrice}
+                    requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
+                  />
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
