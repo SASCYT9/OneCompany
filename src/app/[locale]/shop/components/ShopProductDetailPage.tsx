@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -16,6 +17,10 @@ import {
   getShopProductBySlugServer,
   getShopProductImageOverrideForSku,
   getShopProductsServer,
+  getShopProductsByBrandServer,
+  getUrbanProductsServer,
+  getDo88ProductsServer,
+  getBrabusProductsServer,
 } from "@/lib/shopCatalogServer";
 import {
   localizeShopDescription,
@@ -85,6 +90,24 @@ type Props = {
   slug: string;
   mode?: ProductPageMode;
 };
+
+/**
+ * Pick the right brand-scoped fetcher for the related-product pool. Avoids
+ * loading the full ~30k cross-brand catalog when we only need products from
+ * the same brand for `findRelatedProducts` / `getProductsForUrbanCollection`
+ * / `getProductsForDo88Collection`.
+ *
+ * Cross-shop fitment (which requires cross-brand) is deferred to a streaming
+ * Suspense boundary at the bottom of the page.
+ */
+async function pickRelatedProductsPool(mode: ProductPageMode, brand: string) {
+  if (mode === "urban") return getUrbanProductsServer();
+  if (mode === "do88") return getDo88ProductsServer();
+  if (mode === "brabus") return getBrabusProductsServer();
+  const brandKey = (brand ?? "").trim();
+  if (!brandKey) return getShopProductsServer();
+  return getShopProductsByBrandServer(brandKey);
+}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const effectiveLocale = locale === "ua" ? "uk-UA" : "en-US";
@@ -376,16 +399,18 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
-  const [product, allProducts] = await Promise.all([
-    getShopProductBySlugServer(slug),
-    getShopProductsServer(),
-  ]);
-
-  const settingsRecord = await getOrCreateShopSettings(prisma);
+  const product = await getShopProductBySlugServer(slug);
 
   if (!product) {
     notFound();
   }
+
+  // Brand-scoped related-product pool: avoids loading the full ~30k
+  // cross-brand catalog. Cross-shop fitment (which needs cross-brand) is
+  // deferred to a streaming Suspense boundary below.
+  const allProducts = await pickRelatedProductsPool(mode, product.brand);
+
+  const settingsRecord = await getOrCreateShopSettings(prisma);
 
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
   const rates = settingsRuntime.currencyRates;
@@ -669,14 +694,13 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // Cross-shop fitment matches — show parts from OTHER stores that fit the
   // same vehicle (e.g. ADRO M3 G80 bumper → iPE / Akrapovic / Ohlins / CSF
   // matches for the same chassis). Suppressed for Urban / Brabus / Turn14.
+  //
+  // The match computation iterates the full ~30k cross-brand catalog in JS
+  // and used to block the main PDP first-byte by ~1 s. It's now deferred to
+  // a streaming Suspense boundary at the bottom of the page (see
+  // CrossShopFitmentStreamingSection below), so the product info renders
+  // immediately and the "also fits" widget streams in shortly after.
   const crossShopFitment = isExcludedFromCrossShop(product) ? null : extractProductFitment(product);
-  const crossShopGroups =
-    crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
-      ? findCrossShopFitmentMatches(product, allProducts, {
-          perBrand: 3,
-          totalLimit: 9,
-        })
-      : [];
   const urbanRelatedImagePools = new Map<string, string[]>();
   if (isUrbanMode) {
     const relatedUrbanHandles = new Set(
@@ -992,16 +1016,38 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       {/* Cross-shop fitment matches — sits below the main PDP layout for every
           brand mode (Burger included). Suppressed for Brabus + Urban + Turn14
           since `findCrossShopFitmentMatches` excludes their products both as
-          source and as candidates. */}
-      {crossShopFitment && crossShopGroups.length > 0 ? (
-        <div className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-          <CrossShopFitment
-            locale={resolvedLocale}
-            fitment={crossShopFitment}
-            groups={crossShopGroups}
-          />
-        </div>
+          source and as candidates. Streams independently so the main PDP
+          first-byte isn't blocked by the cross-brand catalog scan. */}
+      {crossShopFitment ? (
+        <Suspense fallback={null}>
+          <CrossShopFitmentStreamingSection product={product} locale={resolvedLocale} />
+        </Suspense>
       ) : null}
     </main>
+  );
+}
+
+async function CrossShopFitmentStreamingSection({
+  product,
+  locale,
+}: {
+  product: ShopProduct;
+  locale: SupportedLocale;
+}) {
+  if (isExcludedFromCrossShop(product)) return null;
+  const fitment = extractProductFitment(product);
+  if (!fitment.make && fitment.chassisCodes.length === 0) return null;
+
+  const allProducts = await getShopProductsServer();
+  const groups = findCrossShopFitmentMatches(product, allProducts, {
+    perBrand: 3,
+    totalLimit: 9,
+  });
+  if (!groups.length) return null;
+
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      <CrossShopFitment locale={locale} fitment={fitment} groups={groups} />
+    </div>
   );
 }
