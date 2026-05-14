@@ -1,19 +1,21 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import {
+  getRacechipProductsServer,
+  projectShopProductForVehicleCatalog,
+} from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
 import RacechipVehicleFilter from "../../components/RacechipVehicleFilter";
 import "../racechip-shop.css";
 
-// racechip/catalog inlines the full Racechip product catalogue (~25 MB
-// pre-rendered) which exceeds Vercel's ISR fallback limit (19.07 MB).
-// Force-dynamic so Next.js 16 doesn't emit an .rsc.fallback file for it
-// (Next 16 generates one even without force-static, unlike prior versions).
-// Future optimization: paginate or split the catalog.
-export const dynamic = "force-dynamic";
+// Re-enable ISR: previously this route was force-dynamic because the cross-brand
+// fetch produced a ~25 MB RSC payload (exceeded Vercel's 19 MB ISR fallback).
+// We now brand-filter the query at the DB and strip heavy fields before
+// shipping to the client, so the payload fits well under the limit again.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -40,7 +42,7 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
 
   const [settingsRecord, products] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getRacechipProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
@@ -50,9 +52,7 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
     null
   );
 
-  const racechipProducts = products.filter(
-    (p) => p.brand?.toLowerCase() === "racechip" || p.vendor?.toLowerCase() === "racechip"
-  );
+  const racechipProducts = products.map(projectShopProductForVehicleCatalog);
 
   const isUa = resolvedLocale === "ua";
 

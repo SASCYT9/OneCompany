@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { buildNoIndexPageMetadata, buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductBySlugServer, getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getShopProductBySlugServer, getShopProductsByBrandServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
   buildShopViewerPricingContext,
@@ -87,8 +87,12 @@ export default async function ShopProductPage({ params }: Props) {
     redirect(canonicalPath);
   }
 
+  // Related products: limit to same brand. ~95% of related-product picks come
+  // from the same brand anyway (cross-brand suggestions add noise), and this
+  // shrinks the SSR payload from a full ~30k cross-brand catalog to a single
+  // brand's subset (~50-5000 rows depending on the brand).
   const [allProducts, settingsRecord] = await Promise.all([
-    getShopProductsServer(),
+    getShopProductsByBrandServer(product.brand),
     getOrCreateShopSettings(prisma),
   ]);
 

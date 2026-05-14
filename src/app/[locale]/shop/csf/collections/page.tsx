@@ -1,6 +1,6 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getCsfProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { Suspense } from "react";
 import CSFCatalogGrid from "../../components/CSFCatalogGrid";
 
@@ -28,8 +28,7 @@ export default async function CSFCollectionsPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
-  const allProducts = await getShopProductsServer();
-  const csfProducts = allProducts.filter((p) => p.brand.toLowerCase().includes("csf"));
+  const csfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

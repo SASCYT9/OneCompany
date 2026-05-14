@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -312,7 +312,6 @@ export default function GirodiscVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialMake = searchParams?.get("make") || "all";
@@ -341,12 +340,13 @@ export default function GirodiscVehicleFilter({
       if (q.trim()) params.set("q", q.trim());
       const queryString = params.toString();
       const nextPath = queryString ? `${pathname}?${queryString}` : pathname || "";
+      // Sync URL without router.replace — App Router re-fetches the whole RSC
+      // payload on router.replace, which is wasteful for client-only filters.
       if (typeof window !== "undefined") {
         window.history.replaceState(window.history.state, "", nextPath);
       }
-      router.replace(nextPath, { scroll: false });
     },
-    [pathname, router]
+    [pathname]
   );
 
   // ─── Extract Car Makes (from "car_make:xyz") ───

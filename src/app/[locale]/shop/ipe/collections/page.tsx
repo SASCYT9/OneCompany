@@ -3,10 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getIpeProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { isIpeProduct } from "@/lib/ipeBrand";
 import IpeVehicleFilter from "../../components/IpeVehicleFilter";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -36,10 +35,11 @@ export default async function IpeCollectionsPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, ipeRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getIpeProductsServer(),
   ]);
+  const ipeProducts = ipeRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -47,8 +47,6 @@ export default async function IpeCollectionsPage({ params }: Props) {
     false,
     null
   );
-
-  const ipeProducts = products.filter(isIpeProduct);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

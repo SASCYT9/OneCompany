@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getAkrapovicProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import AkrapovicVehicleFilter from "../../components/AkrapovicVehicleFilter";
@@ -34,23 +34,17 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, akrapovicRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getAkrapovicProductsServer(),
   ]);
+  const akrapovicProducts = akrapovicRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
     null,
     false,
     null
-  );
-
-  const akrapovicProducts = products.filter(
-    (p) =>
-      p.brand?.toLowerCase() === "akrapovič" ||
-      p.brand?.toLowerCase() === "akrapovic" ||
-      p.tags?.includes("Akrapovic")
   );
 
   return (

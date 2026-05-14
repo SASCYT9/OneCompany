@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BurgerVehicleFilter from "../../components/BurgerVehicleFilter";
 import BurgerHeroPicker from "../../components/BurgerHeroPicker";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getBurgerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
@@ -35,10 +35,11 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, burgerRows] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getShopProductsServer(),
+    getBurgerProductsServer(),
   ]);
+  const burgerProducts = burgerRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -46,8 +47,6 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
     false,
     null
   );
-
-  const burgerProducts = products.filter((p) => p.brand?.toLowerCase() === "burger motorsports");
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

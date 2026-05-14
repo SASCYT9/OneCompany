@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Zap } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -47,7 +47,6 @@ export default function RacechipVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -99,9 +98,16 @@ export default function RacechipVehicleFilter({
       if (sort !== "default") params.set("sort", sort);
       const qs = params.toString();
       const newPath = qs ? `${pathname}?${qs}` : pathname || "";
-      router.replace(newPath, { scroll: false });
+      // Use raw history API instead of router.replace: in App Router,
+      // router.replace re-fetches the entire RSC payload (5+ MB for racechip)
+      // on every filter change, which causes 200–500 ms of latency per click.
+      // The filter is pure client state, so we only need the URL to reflect
+      // it for share/bookmark/refresh — no server round-trip required.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", newPath);
+      }
     },
-    [pathname, router]
+    [pathname]
   );
 
   useEffect(() => {

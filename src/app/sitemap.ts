@@ -3,12 +3,14 @@ import { absoluteUrl, buildLocalizedPath, siteConfig, buildAlternateLinks } from
 import { categoryData } from "@/lib/categoryData";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { localizedStaticSlugs } from "@/lib/seoIndexPolicy";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
-import { getUrbanCollectionHandleForProduct } from "@/lib/urbanCollectionMatcher";
+import { listShopProductSlugsForSitemap } from "@/lib/shopCatalogServer";
 import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 
-const staticPageConfig: Record<string, { priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }> = {
+const staticPageConfig: Record<
+  string,
+  { priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }
+> = {
   "": { priority: 1.0, changeFrequency: "daily" },
   "/shop": { priority: 0.85, changeFrequency: "daily" },
   "/shop/urban": { priority: 0.82, changeFrequency: "weekly" },
@@ -57,7 +59,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticEntries = siteConfig.locales.flatMap((locale) =>
     localizedStaticSlugs.map((slug) => {
-      const pageConfig = staticPageConfig[slug] ?? { priority: 0.5, changeFrequency: "monthly" as const };
+      const pageConfig = staticPageConfig[slug] ?? {
+        priority: 0.5,
+        changeFrequency: "monthly" as const,
+      };
       const path = buildLocalizedPath(locale, slug);
       return {
         url: absoluteUrl(path),
@@ -107,7 +112,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
   );
 
-  const shopProducts = await getShopProductsServer();
+  const shopProducts = await listShopProductSlugsForSitemap();
   const urbanCollectionEntries = siteConfig.locales.flatMap((locale) =>
     URBAN_COLLECTION_CARDS.map((collection) => {
       const pageSlug = `/shop/urban/collections/${collection.collectionHandle}`;
@@ -130,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // a static-friendly meta-refresh to the brand path, and the short URL
       // ends up in the index as a soft 301 (wasting crawl budget).
       const path = buildShopStorefrontProductPathForProduct(locale, product);
-      const pageSlug = path.replace(`/${locale}`, '');
+      const pageSlug = path.replace(`/${locale}`, "");
       return {
         url: absoluteUrl(path),
         lastModified: buildLastModified,
@@ -143,5 +148,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  return [...staticEntries, ...categoryEntries, ...urbanCollectionEntries, ...shopProductEntries, ...blogEntries];
+  return [
+    ...staticEntries,
+    ...categoryEntries,
+    ...urbanCollectionEntries,
+    ...shopProductEntries,
+    ...blogEntries,
+  ];
 }

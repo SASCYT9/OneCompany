@@ -1,22 +1,24 @@
-import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { resolveLocale } from '@/lib/seo';
-import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { resolveLocale, type SupportedLocale } from "@/lib/seo";
+import { getShopProductBySlugServer, getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   extractProductFitment,
   findCrossShopFitmentMatches,
   isExcludedFromCrossShop,
-} from '@/lib/crossShopFitment';
-import CrossShopFitment from '../../../components/CrossShopFitment';
-import { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
-import { IpeShopProductDetailLayout } from '../../../components/IpeShopProductDetailLayout';
-import { ShopProductStructuredData } from '@/components/seo/StructuredData';
+} from "@/lib/crossShopFitment";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import CrossShopFitment from "../../../components/CrossShopFitment";
+import { getShopProductPageMetadata } from "../../../components/ShopProductDetailPage";
+import { IpeShopProductDetailLayout } from "../../../components/IpeShopProductDetailLayout";
+import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 type Props = {
@@ -28,16 +30,17 @@ export async function generateMetadata({ params }: Props) {
   return getShopProductPageMetadata({
     locale: resolveLocale(locale),
     slug,
-    mode: 'ipe',
+    mode: "ipe",
   });
 }
 
 export default async function IpeProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const [product, allProducts, settingsRecord] = await Promise.all([
+  // Main PDP path: only product + settings (avoid full-catalog fetch).
+  // Cross-shop suggestions stream below via Suspense.
+  const [product, settingsRecord] = await Promise.all([
     getShopProductBySlugServer(slug),
-    getShopProductsServer(),
     getOrCreateShopSettings(prisma),
   ]);
   if (!product) notFound();
@@ -49,16 +52,6 @@ export default async function IpeProductPage({ params }: Props) {
   const viewerContext = buildShopViewerPricingContext(settings, null, false, null);
   const pricing = resolveShopProductPricing(product, viewerContext);
 
-  const crossShopFitment =
-    !isExcludedFromCrossShop(product) ? extractProductFitment(product) : null;
-  const crossShopGroups =
-    crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
-      ? findCrossShopFitmentMatches(product, allProducts, {
-          perBrand: 3,
-          totalLimit: 9,
-        })
-      : [];
-
   return (
     <>
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
@@ -68,15 +61,34 @@ export default async function IpeProductPage({ params }: Props) {
         product={product}
         pricing={pricing}
       />
-      {crossShopFitment && crossShopGroups.length > 0 ? (
-        <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-          <CrossShopFitment
-            locale={resolvedLocale}
-            fitment={crossShopFitment}
-            groups={crossShopGroups}
-          />
-        </div>
-      ) : null}
+      <Suspense fallback={null}>
+        <CrossShopFitmentSection product={product} locale={resolvedLocale} />
+      </Suspense>
     </>
+  );
+}
+
+async function CrossShopFitmentSection({
+  product,
+  locale,
+}: {
+  product: ShopProduct;
+  locale: SupportedLocale;
+}) {
+  if (isExcludedFromCrossShop(product)) return null;
+  const fitment = extractProductFitment(product);
+  if (!fitment.make && fitment.chassisCodes.length === 0) return null;
+
+  const allProducts = await getShopProductsServer();
+  const groups = findCrossShopFitmentMatches(product, allProducts, {
+    perBrand: 3,
+    totalLimit: 9,
+  });
+  if (!groups.length) return null;
+
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+      <CrossShopFitment locale={locale} fitment={fitment} groups={groups} />
+    </div>
   );
 }

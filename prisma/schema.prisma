@@ -237,6 +237,8 @@ model ShopProduct {
   @@index([isPublished])
   @@index([status])
   @@index([categoryId])
+  @@index([brand])
+  @@index([vendor])
 }
 
 model ShopWarehouse {
