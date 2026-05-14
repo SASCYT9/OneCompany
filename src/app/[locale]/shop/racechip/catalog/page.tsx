@@ -15,6 +15,7 @@ import "../racechip-shop.css";
 // fetch produced a ~25 MB RSC payload (exceeded Vercel's 19 MB ISR fallback).
 // We now brand-filter the query at the DB and strip heavy fields before
 // shipping to the client, so the payload fits well under the limit again.
+// Cache-bust 2026-05-14: prod ISR cache held an errored render. Touch to rebuild.
 export const revalidate = 3600;
 
 type Props = {
