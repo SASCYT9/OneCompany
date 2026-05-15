@@ -29,6 +29,7 @@ import {
   type ShopAlternativeSearchItem,
 } from "@/lib/shopSearch";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
@@ -634,6 +635,11 @@ export default function OhlinsVehicleFilter({
                   </button>
                 </div>
                 <div className="mt-6">{filterControls}</div>
+                <MobileFilterDrawerCTA
+                  locale={locale}
+                  resultsCount={filtered.length}
+                  resultsAnchorId="ohlins-results"
+                />
               </div>
             </>
           ) : null}
@@ -656,7 +662,7 @@ export default function OhlinsVehicleFilter({
           </div>
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
-          <main className="w-full">
+          <main id="ohlins-results" className="w-full scroll-mt-24">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center border border-zinc-900 bg-card dark:bg-[#111] px-5 py-24 text-center shadow-2xl sm:px-8">
                 <div

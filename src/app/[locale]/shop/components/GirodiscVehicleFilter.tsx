@@ -15,6 +15,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import GirodiscSpotlightGrid from "./GirodiscSpotlightGrid";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type GirodiscVehicleFilterProps = {
@@ -754,6 +755,11 @@ export default function GirodiscVehicleFilter({
                   </ul>
                 )}
               </div>
+              <MobileFilterDrawerCTA
+                locale={locale}
+                resultsCount={filteredProducts.length}
+                resultsAnchorId="girodisc-results"
+              />
             </div>
           </aside>
 
@@ -763,7 +769,7 @@ export default function GirodiscVehicleFilter({
           )}
 
           {/* ─── RIGHT: PRODUCT GRID ─── */}
-          <main className="flex-1 min-w-0">
+          <main id="girodisc-results" className="flex-1 min-w-0 scroll-mt-24">
             {/* Top Sort Bar */}
             <div className="flex justify-end mb-6 z-20 relative">
               <div className="relative inline-block">

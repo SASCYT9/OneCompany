@@ -13,6 +13,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import RacechipSelect from "./RacechipSelect";
 import {
@@ -493,6 +494,11 @@ export default function RacechipVehicleFilter({
                   </button>
                 </div>
                 <div className="mt-6">{filterControls}</div>
+                <MobileFilterDrawerCTA
+                  locale={locale}
+                  resultsCount={filtered.length}
+                  resultsAnchorId="racechip-results"
+                />
               </div>
             </>
           ) : null}
@@ -512,7 +518,7 @@ export default function RacechipVehicleFilter({
           </div>
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
-          <main className="w-full">
+          <main id="racechip-results" className="w-full scroll-mt-24">
             {filtered.length === 0 ? (
               <div className="py-32 text-center bg-card dark:bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
                 <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">

@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
@@ -12,6 +11,7 @@ import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { prisma } from "@/lib/prisma";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
   getShopProductBySlugServer,
@@ -69,7 +69,10 @@ import CrossShopFitment from "./CrossShopFitment";
 
 import type { ShopProduct } from "@/lib/shopCatalog";
 
-const prisma = new PrismaClient();
+// 2026-05-15: was `const prisma = new PrismaClient();` here — a second Prisma
+// instance parallel to the @/lib/prisma singleton. On cold Lambda start it
+// cost +200-500 ms of duplicate init and fragmented the connection pool.
+// Now imported from the global singleton.
 
 type ProductPageMode =
   | "default"

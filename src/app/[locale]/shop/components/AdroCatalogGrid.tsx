@@ -24,6 +24,7 @@ import {
   enrichAdroCatalogProduct,
   type EnrichedAdroCatalogProduct,
 } from "@/lib/adroCatalog";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
@@ -441,6 +442,11 @@ export default function AdroCatalogGrid({
                 </p>
               </div>
               {filterControls}
+              <MobileFilterDrawerCTA
+                locale={locale}
+                resultsCount={filteredProducts.length}
+                resultsAnchorId="adro-results"
+              />
             </div>
           </aside>
 
@@ -451,7 +457,7 @@ export default function AdroCatalogGrid({
             />
           ) : null}
 
-          <main className="min-w-0 flex-1">
+          <main id="adro-results" className="min-w-0 flex-1 scroll-mt-24">
             <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-foreground/65 dark:text-foreground/45">
                 {filteredProducts.length} {t("filteredProducts")}

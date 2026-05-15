@@ -37,7 +37,7 @@
   "crons": [
     {
       "path": "/api/cron/warmup-shop",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 6 * * 1"
     }
   ]
 }
