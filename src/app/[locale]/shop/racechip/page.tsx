@@ -1,5 +1,9 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getRacechipProductsServer } from "@/lib/shopCatalogServer";
+// 2026-05-15: use light fetcher (narrow SELECT, no relations) — this page only
+// needs car_make:/car_model: tags from each row to build the dropdown, so the
+// heavy `getRacechipProductsServer` was wasted work. See shopCatalogServer.ts
+// for context on the light fetcher.
+import { getRacechipProductsLightServer } from "@/lib/shopCatalogServer";
 import RacechipHomeSignature from "../components/RacechipHomeSignature";
 import type { RacechipMakeModelEntry } from "../components/RacechipQuickFinder";
 
@@ -28,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 async function loadMakeModels(): Promise<RacechipMakeModelEntry[]> {
-  const rows = await getRacechipProductsServer();
+  const rows = await getRacechipProductsLightServer();
 
   const map = new Map<string, Set<string>>();
   for (const r of rows) {

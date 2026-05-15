@@ -1974,6 +1974,209 @@ export function getRacechipProductsServer() {
   return getShopProductsByBrandServer("racechip");
 }
 
+/**
+ * Light racechip catalog fetcher — optimized path for the racechip grid view.
+ *
+ * Why this exists: `getShopProductsByBrandServer` pulls every scalar column of
+ * `ShopProduct` (including ~5–30 KB `longDescUa/En`, `bodyHtmlUa/En` per row)
+ * plus 4 relations through `brandGridProductInclude`. For racechip's 5 181
+ * products that's ~150 MB out of the DB onto Lambda. We then strip 90 % of
+ * those fields in JS via `projectShopProductForVehicleCatalog`. Classic
+ * "fetch everything, throw it away" antipattern.
+ *
+ * This fetcher selects only the columns the racechip catalog grid + vehicle
+ * filter actually read, bypasses `mapDbToCatalog` (which is not defensive
+ * against missing variants/media/collections relations — see lines ~1276,
+ * 1277, 1493), and emits the same `ShopProduct` shape that
+ * `projectShopProductForVehicleCatalog` produces. The caller no longer needs
+ * to call that projection helper.
+ *
+ * WARNING — coupling with scrape-racechip output: the `RacechipVehicleFilter`
+ * card-preview block parses `<strong>Original Power:</strong> X -> Y` regex
+ * out of `longDescription.en`. As of 2026-05 the scraper emits a table-format
+ * description (`<tr><td>Original Power</td>...</tr>`) that this regex never
+ * matches, so the snippet is effectively dead code and we can safely drop
+ * the description fields from SELECT. **If a future change to
+ * `scripts/scrape-racechip.mjs` starts emitting the strong-tag format, add
+ * `bodyHtmlEn` and `longDescEn` back into the SELECT here** or the card
+ * preview will silently render dashes.
+ *
+ * Expected payload impact: ~150 MB → ~5 MB out of DB; ~6 MB → ~0.6 MB RSC.
+ * Cold MISS 8 s → ~1 s; warm MISS 1.5 s → ~0.3 s.
+ */
+const RACECHIP_LIGHT_CACHE_KEY = "racechip-light";
+
+export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
+  const now = Date.now();
+
+  const cached = brandProductsCache.get(RACECHIP_LIGHT_CACHE_KEY);
+  if (cached && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
+    return cached.products;
+  }
+
+  const inflight = brandProductsPromise.get(RACECHIP_LIGHT_CACHE_KEY);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    type LightRow = {
+      id: string;
+      slug: string;
+      sku: string | null;
+      scope: string;
+      brand: string | null;
+      vendor: string | null;
+      productType: string | null;
+      tags: string[];
+      titleUa: string;
+      titleEn: string;
+      image: string | null;
+      stock: string;
+      priceUah: unknown;
+      priceEur: unknown;
+      priceUsd: unknown;
+      priceUahB2b: unknown;
+      priceEurB2b: unknown;
+      priceUsdB2b: unknown;
+      compareAtUah: unknown;
+      compareAtEur: unknown;
+      compareAtUsd: unknown;
+      compareAtUahB2b: unknown;
+      compareAtEurB2b: unknown;
+      compareAtUsdB2b: unknown;
+    };
+
+    let rows: LightRow[] = [];
+    try {
+      rows = (await prisma.shopProduct.findMany({
+        where: {
+          isPublished: true,
+          OR: [
+            { brand: { equals: "racechip", mode: "insensitive" } },
+            { vendor: { equals: "racechip", mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          slug: true,
+          sku: true,
+          scope: true,
+          brand: true,
+          vendor: true,
+          productType: true,
+          tags: true,
+          titleUa: true,
+          titleEn: true,
+          image: true,
+          stock: true,
+          priceUah: true,
+          priceEur: true,
+          priceUsd: true,
+          priceUahB2b: true,
+          priceEurB2b: true,
+          priceUsdB2b: true,
+          compareAtUah: true,
+          compareAtEur: true,
+          compareAtUsd: true,
+          compareAtUahB2b: true,
+          compareAtEurB2b: true,
+          compareAtUsdB2b: true,
+        },
+        orderBy: { updatedAt: "desc" },
+      })) as unknown as LightRow[];
+    } catch {
+      // DB unavailable — fall through to static fallback only.
+    }
+
+    // Project each DB row into a light ShopProduct, mirroring the shape of
+    // `projectShopProductForVehicleCatalog` so downstream `RacechipVehicleFilter`
+    // sees consistent input regardless of source (DB vs. static fallback).
+    const empty = { ua: "", en: "" };
+
+    const toMoney = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
+      // CRITICAL: Prisma Decimal must be coerced to Number before crossing the
+      // RSC boundary or Next.js throws "Only plain objects can be passed from
+      // Server to Client Components".
+      eur: eur != null ? Number(eur) : 0,
+      usd: usd != null ? Number(usd) : 0,
+      uah: uah != null ? Number(uah) : 0,
+    });
+
+    const anyPositive = (money: ShopMoneySet) => money.eur > 0 || money.usd > 0 || money.uah > 0;
+
+    const dbProducts: ShopProduct[] = rows.map((row) => {
+      // De-dup title (100 % of racechip rows have titleUa === titleEn).
+      // `localizeShopText('ua', { ua: '', en: X })` returns `ua || en`, so the
+      // /ua/ catalog still renders the same string — saves ~310 KB raw.
+      const titleProjection =
+        row.titleUa && row.titleUa !== row.titleEn
+          ? { ua: row.titleUa, en: row.titleEn }
+          : { ua: "", en: row.titleEn };
+
+      // Strip non-vehicle tags (tier:*, app_control, chip_tuning, ccm:*,
+      // base_hp:*, gain_hp:*, gain_nm:*) — RacechipVehicleFilter only reads
+      // car_make:*, car_model:*, car_engine:*. Saves ~470 KB across 5 k rows.
+      const carTags = (row.tags ?? []).filter((t) => t.startsWith("car_"));
+
+      const b2bPrice = toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b);
+      const compareAt = toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah);
+      const b2bCompareAt = toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b);
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        sku: row.sku ?? "",
+        scope: row.scope as ShopScope,
+        brand: row.brand ?? "",
+        vendor: row.vendor ?? undefined,
+        productType: row.productType ?? undefined,
+        tags: carTags,
+        title: titleProjection,
+        category: empty,
+        shortDescription: empty,
+        longDescription: empty,
+        leadTime: empty,
+        stock: (row.stock === "preOrder" ? "preOrder" : "inStock") as ShopStock,
+        collection: empty,
+        price: toMoney(row.priceEur, row.priceUsd, row.priceUah),
+        // Only attach optional B2B/compare bundles when they have non-zero
+        // values; matches existing convention in `mapDbToCatalog` and lets
+        // `mergeB2BPriceSet` in shopPricingAudience derive the discount from
+        // B2C when this is left undefined.
+        b2bPrice: anyPositive(b2bPrice) ? b2bPrice : undefined,
+        compareAt: anyPositive(compareAt) ? compareAt : undefined,
+        b2bCompareAt: anyPositive(b2bCompareAt) ? b2bCompareAt : undefined,
+        image: row.image ?? "",
+        highlights: [],
+      };
+    });
+
+    // Merge in static fallback products (~186 GTS5 SKUs missing from DB).
+    // Mirror the pattern from `getShopProductsByBrandServer` lines 1944-1948:
+    // db rows win on slug collision; fallback fills the gap. Project each
+    // fallback row through `projectShopProductForVehicleCatalog` so the
+    // resulting RSC payload stays in the same light shape (otherwise the
+    // ~186 fallback products would ship their full `longDescription` HTML).
+    const bySlug = new Map<string, ShopProduct>();
+    dbProducts.forEach((product) => bySlug.set(product.slug, product));
+    RACECHIP_CATALOG_FALLBACK_PRODUCTS.forEach((p) => {
+      if (!bySlug.has(p.slug)) {
+        bySlug.set(p.slug, projectShopProductForVehicleCatalog(p));
+      }
+    });
+
+    const out = Array.from(bySlug.values());
+    brandProductsCache.set(RACECHIP_LIGHT_CACHE_KEY, { products: out, ts: Date.now() });
+    return out;
+  })();
+
+  brandProductsPromise.set(RACECHIP_LIGHT_CACHE_KEY, promise);
+  try {
+    return await promise;
+  } finally {
+    brandProductsPromise.delete(RACECHIP_LIGHT_CACHE_KEY);
+  }
+}
+
 /** ADRO: brand or vendor === 'adro'. */
 export function getAdroProductsServer() {
   return getShopProductsByBrandServer("adro");

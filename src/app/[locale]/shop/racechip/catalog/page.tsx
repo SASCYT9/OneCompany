@@ -3,8 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import {
   // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
-  getRacechipProductsServer,
-  projectShopProductForVehicleCatalog,
+  // 2026-05-15: switched from getRacechipProductsServer (~150 MB DB transfer for
+  // 5 181 rows × full ShopProduct columns + 4 relations) to the light fetcher
+  // which selects only the columns RacechipVehicleFilter reads, dropping the
+  // RSC payload from ~6 MB to ~600 KB and cold MISS from ~8 s to ~1 s.
+  getRacechipProductsLightServer,
 } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -17,7 +20,11 @@ import "../racechip-shop.css";
 // We now brand-filter the query at the DB and strip heavy fields before
 // shipping to the client, so the payload fits well under the limit again.
 // Cache-bust 2026-05-14: prod ISR cache held an errored render. Touch to rebuild.
-export const revalidate = 3600;
+// 2026-05-15: bumped from 1 h to 24 h. Inventory/prices for racechip only mutate
+// when atomic-sync-cron runs (now weekly), and admin saves call
+// `revalidatePath('/', 'layout')` to force-bust any cached ISR page, so a 24 h
+// staleness ceiling drops MISS frequency 24× without losing freshness for edits.
+export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -42,9 +49,11 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [settingsRecord, products] = await Promise.all([
+  const [settingsRecord, racechipProducts] = await Promise.all([
     getOrCreateShopSettings(prisma),
-    getRacechipProductsServer(),
+    // Light fetcher already returns the projected shape — no need to map
+    // through projectShopProductForVehicleCatalog like the old code path did.
+    getRacechipProductsLightServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
@@ -53,8 +62,6 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
     false,
     null
   );
-
-  const racechipProducts = products.map(projectShopProductForVehicleCatalog);
 
   const isUa = resolvedLocale === "ua";
 
