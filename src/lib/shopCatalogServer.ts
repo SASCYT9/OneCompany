@@ -2018,13 +2018,14 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
   if (inflight) return inflight;
 
   const promise = (async () => {
+    // Mirror exactly the shape projectShopProductForVehicleCatalog emits:
+    // - omit `id`     (5181 cuids → ~285 KB of RSC bloat, never read by filter)
+    // - omit `vendor` (always 'RaceChip' on racechip rows → ~120 KB redundant)
+    // - omit `sku`    (master projection sets sku: "" anyway → ~260 KB saved)
     type LightRow = {
-      id: string;
       slug: string;
-      sku: string | null;
       scope: string;
       brand: string | null;
-      vendor: string | null;
       productType: string | null;
       tags: string[];
       titleUa: string;
@@ -2056,12 +2057,9 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
           ],
         },
         select: {
-          id: true,
           slug: true,
-          sku: true,
           scope: true,
           brand: true,
-          vendor: true,
           productType: true,
           tags: true,
           titleUa: true,
@@ -2122,12 +2120,14 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       const b2bCompareAt = toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b);
 
       return {
-        id: row.id,
         slug: row.slug,
-        sku: row.sku ?? "",
+        // sku: "" matches projectShopProductForVehicleCatalog — RacechipVehicleFilter
+        // does not read sku, and the full SKU string ("RC-GTS5-VW-1-4-TSI-...")
+        // costs ~260 KB across 5181 rows. PDP routes look up by slug, not sku.
+        sku: "",
         scope: row.scope as ShopScope,
         brand: row.brand ?? "",
-        vendor: row.vendor ?? undefined,
+        // vendor omitted — always equals brand ('RaceChip') for racechip rows.
         productType: row.productType ?? undefined,
         tags: carTags,
         title: titleProjection,
