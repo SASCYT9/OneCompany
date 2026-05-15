@@ -180,7 +180,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   key={experience.label}
                   href={experience.href}
                   className={clsx(
-                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[320px] sm:gap-6 sm:p-5 md:min-h-[420px] xl:min-h-[480px] 2xl:min-h-[540px]",
+                    "group relative flex flex-1 min-h-[360px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[360px] sm:gap-6 sm:p-5 md:min-h-[420px] xl:min-h-[480px] 2xl:min-h-[540px]",
                     "border border-foreground/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-foreground/30 hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
                     "rounded-2xl",
                     index === 0 ? "md:mr-2" : "md:ml-2"
