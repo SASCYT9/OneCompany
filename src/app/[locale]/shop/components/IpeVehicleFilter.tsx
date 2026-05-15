@@ -604,7 +604,7 @@ export default function IpeVehicleFilter({
             onClick={toggleMobileFilter}
             aria-expanded={mobileFilterOpen}
             aria-controls="ipe-mobile-filters"
-            className="flex items-center gap-2.5 px-5 py-3 bg-zinc-950 backdrop-blur-md border border-foreground/15 dark:border-white/10 rounded-none text-foreground dark:text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-foreground/35 dark:hover:border-white/30 transition-colors shadow-none"
+            className="flex items-center gap-2.5 px-5 py-3 bg-card dark:bg-zinc-950 backdrop-blur-md border border-foreground/15 dark:border-white/10 rounded-none text-foreground dark:text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-foreground/35 dark:hover:border-white/30 transition-colors shadow-sm dark:shadow-none"
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
@@ -627,7 +627,7 @@ export default function IpeVehicleFilter({
             <div
               className={`${
                 mobileFilterOpen
-                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-foreground/15 dark:border-white/10 bg-card dark:bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+                  ? "flex h-full flex-col gap-8 overflow-y-auto overscroll-contain border-r border-foreground/15 dark:border-white/10 bg-card dark:bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
                   : "lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-124px)] lg:overflow-y-auto flex flex-col gap-5 bg-card dark:bg-zinc-950/95 border border-foreground/12 dark:border-white/8 p-5 rounded-[2px] shadow-[0_18px_55px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_55px_rgba(0,0,0,0.38)] [scrollbar-color:rgba(194,157,89,0.35)_transparent] scrollbar-thin"
               }`}
             >

@@ -22,14 +22,14 @@ export function MobileProductDisclosure({
     <section className={className}>
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/4 px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/78 transition hover:border-white/22 hover:bg-white/[0.07] sm:hidden"
+        className="flex w-full items-center justify-between gap-4 rounded-2xl border border-foreground/12 bg-foreground/[0.04] px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/78 transition hover:border-foreground/22 hover:bg-foreground/[0.07] dark:border-white/12 dark:bg-white/4 dark:text-white/78 dark:hover:border-white/22 dark:hover:bg-white/[0.07] sm:hidden"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
         <span>{title}</span>
         <ChevronDown
           size={16}
-          className={`shrink-0 text-white/55 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          className={`shrink-0 text-foreground/55 dark:text-white/55 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
         />
       </button>
       <div

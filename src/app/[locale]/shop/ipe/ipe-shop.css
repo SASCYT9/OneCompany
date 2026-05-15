@@ -507,6 +507,15 @@
   transition:
     transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.5s ease;
+  /* Soft shadow tied to surrounding light surface — without it the dark card
+     reads as a torn cut-out on cream pages. Hidden inside .dark scope below. */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 18px 38px -22px rgba(20, 16, 8, 0.35),
+    0 6px 14px -10px rgba(20, 16, 8, 0.18);
+}
+.dark .ipe-vehicle-card {
+  box-shadow: none;
 }
 .ipe-vehicle-card::after {
   content: "";
@@ -635,15 +644,63 @@
   }
 }
 @media (max-width: 600px) {
+  /* Mobile: tighter section so the lineup doesn't dominate the scroll. */
+  .ipe-lineup {
+    padding: 3.25rem 1.25rem;
+  }
+  .ipe-lineup__header {
+    margin-bottom: 2rem;
+  }
   .ipe-lineup__grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
+  /* Compact card: 16:9 photo well + content row underneath ≈ 215px tall,
+     so two cards fit on a 375×812 viewport without losing the visual. */
   .ipe-vehicle-card {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: auto;
+    min-height: 0;
   }
   .ipe-vehicle-card__image {
-    padding: 1.4rem 1.25rem 5.5rem;
+    position: relative;
+    inset: auto;
+    aspect-ratio: 16 / 9;
+    padding: 0.75rem 1rem;
+  }
+  .ipe-vehicle-card__overlay {
+    /* Full-card gradient is no longer needed — content sits below the photo;
+       keep just a soft top edge for the badge readability. */
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, transparent 35%);
+    inset: 0 0 auto 0;
+    height: 60%;
+  }
+  .ipe-vehicle-card__content {
+    position: relative;
+    padding: 0.85rem 1rem 1rem;
+  }
+  .ipe-vehicle-card__name {
+    font-size: 1.05rem;
+    margin-bottom: 0.2rem;
+  }
+  .ipe-vehicle-card__desc {
+    font-size: 0.7rem;
+    line-height: 1.5;
+    margin: 0;
+    /* Cap to two lines so card height is predictable across brand copy. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ipe-vehicle-card__cta {
+    /* Whole card is already a link — drop the redundant "Explore →" on mobile. */
+    display: none;
+  }
+  .ipe-vehicle-card__badge {
+    top: 0.75rem;
+    left: 0.75rem;
+    font-size: 0.48rem;
+    padding: 0.18rem 0.5rem;
   }
 }
 

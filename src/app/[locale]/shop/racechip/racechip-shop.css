@@ -479,9 +479,24 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* Native <option> popups honor only `background` + `color` reliably across
+   browsers — and they ignore CSS variables on most OSes once the popup is
+   detached. So we have to hardcode both per theme rather than rely on tokens.
+   Light theme: cream popup with ink text; Dark theme: near-black with white. */
 .rc-finder__select option {
+  background: #ffffff;
+  color: #141414;
+}
+:root.dark .rc-finder__select option,
+.dark .rc-finder__select option {
   background: #0c0c0c;
-  color: var(--rc-white);
+  color: #f4f4f4;
+}
+/* The hero-finder card is a forced-dark glass panel even in light theme
+   (see `.rc .rc__hero-finder` above), so its dropdown stays dark too. */
+.rc__hero-finder .rc-finder__select option {
+  background: #0c0c0c;
+  color: #f4f4f4;
 }
 .rc-finder__submit {
   display: inline-flex;
