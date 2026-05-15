@@ -57,8 +57,11 @@ export default async function GirodiscProductsCatalogPage({ params }: Props) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[5px_5px] opacity-10 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
-        {/* Back Link */}
-        <div className="mb-4 relative z-50">
+        {/* Back Link — no z-50 here: it would tie with the mobile filter
+            drawer (z-50) and bleed through it on phones, letting users tap
+            the back link by accident. Parent `relative z-10` already keeps
+            it above the bg glow/noise overlays (z-0). */}
+        <div className="mb-4">
           <Link
             href={`/${resolvedLocale}/shop/girodisc`}
             className="text-[10px] tracking-[0.2em] uppercase text-zinc-500 hover:text-white transition-colors font-light flex items-center gap-2"

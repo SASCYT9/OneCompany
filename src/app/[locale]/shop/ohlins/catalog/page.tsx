@@ -137,8 +137,11 @@ export default async function OhlinsCatalogPage({ params }: Props) {
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
-        {/* Back Link */}
-        <div className="mb-4 relative z-50">
+        {/* Back Link — no z-50 here: it would tie with the mobile filter
+            drawer (z-50) and bleed through it on phones, letting users tap
+            the back link by accident. Parent `relative z-10` already keeps
+            it above the bg glow/noise overlays (z-0). */}
+        <div className="mb-4">
           <Link
             href={`/${resolvedLocale}/shop/ohlins`}
             className="text-[10px] tracking-[0.2em] uppercase text-foreground/55 dark:text-zinc-500 hover:text-[#c29d59] transition-colors font-light flex items-center gap-2"
