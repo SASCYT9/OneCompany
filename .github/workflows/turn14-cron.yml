@@ -2,14 +2,14 @@ name: Daily Turn14 Sync
 
 on:
   schedule:
-    # Runs at 03:00 UTC every day
-    - cron: '0 3 * * *'
+    # Runs at 03:00 UTC every Monday
+    - cron: "0 3 * * 1"
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -17,8 +17,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci

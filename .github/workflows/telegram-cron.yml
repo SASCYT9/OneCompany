@@ -2,8 +2,8 @@ name: Daily Telegram Reminders + Digest
 
 on:
   schedule:
-    # 09:00 UTC daily (matches previous Vercel cron schedule)
-    - cron: "0 9 * * *"
+    # 09:00 UTC every Monday
+    - cron: "0 9 * * 1"
   workflow_dispatch: # manual trigger from GitHub UI
 
 jobs:
