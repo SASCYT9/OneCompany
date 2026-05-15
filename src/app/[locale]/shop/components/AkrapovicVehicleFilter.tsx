@@ -19,6 +19,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import {
   BRAND_PATTERNS,
@@ -693,13 +694,18 @@ export default function AkrapovicVehicleFilter({
               )}
             </div>
             {filterDropdowns()}
+            <MobileFilterDrawerCTA
+              locale={locale}
+              resultsCount={filteredProducts.length}
+              resultsAnchorId="akrapovic-results"
+            />
           </div>
         </div>
 
         {/* ═══ DESKTOP: Sort row (hidden, sort is in top bar) ═══ */}
 
         {filterOnly ? null : (
-          <>
+          <div id="akrapovic-results" className="scroll-mt-24">
             {/* ═══ Product Grid ═══ */}
             {filteredProducts.length === 0 ? (
               <div className="py-32 text-center bg-black/40 backdrop-blur-sm border border-foreground/12 dark:border-white/5 rounded-2xl flex flex-col items-center">
@@ -864,7 +870,7 @@ export default function AkrapovicVehicleFilter({
                 ) : null}
               </>
             )}
-          </>
+          </div>
         )}
       </div>
     </section>

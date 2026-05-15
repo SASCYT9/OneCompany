@@ -21,6 +21,7 @@ import {
   isCleanCsfModelLabel,
 } from "@/lib/csfCatalog";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import "../csf/csf-shop.css";
 
@@ -993,6 +994,11 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             >
               {isUa ? "Скинути фільтри" : "Reset filters"}
             </button>
+            <MobileFilterDrawerCTA
+              locale={locale}
+              resultsCount={filteredProducts.length}
+              resultsAnchorId="csf-results"
+            />
           </div>
         </aside>
 
@@ -1000,7 +1006,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
           <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={closeMobileFilter} />
         ) : null}
 
-        <main className="min-w-0">
+        <main id="csf-results" className="min-w-0 scroll-mt-24">
           <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-balance text-2xl font-light text-foreground dark:text-white">

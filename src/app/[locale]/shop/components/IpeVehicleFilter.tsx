@@ -22,6 +22,7 @@ import {
   resolveIpeVehicleModel,
 } from "@/lib/ipeCatalog";
 import { splitIpeModelLabel, IPE_HERO_BRAND_PRIORITY } from "@/lib/ipeHeroCatalog";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type IpeVehicleFilterProps = {
@@ -998,6 +999,11 @@ export default function IpeVehicleFilter({
                   </ul>
                 </FilterSection>
               )}
+              <MobileFilterDrawerCTA
+                locale={locale}
+                resultsCount={filteredProducts.length}
+                resultsAnchorId="ipe-results"
+              />
             </div>
           </aside>
 
@@ -1005,7 +1011,7 @@ export default function IpeVehicleFilter({
             <div className="lg:hidden fixed inset-0 z-40 bg-black/80" onClick={closeMobileFilter} />
           )}
 
-          <main className="flex-1 min-w-0">
+          <main id="ipe-results" className="flex-1 min-w-0 scroll-mt-24">
             <div className="flex justify-end mb-6 z-20 relative">
               <div className="relative inline-block">
                 <select

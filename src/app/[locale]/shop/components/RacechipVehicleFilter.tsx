@@ -13,6 +13,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import RacechipSelect from "./RacechipSelect";
 import {
@@ -80,21 +81,6 @@ export default function RacechipVehicleFilter({
   const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
-  // Closes the mobile filter drawer and scrolls to the result grid. Used by
-  // the CTA button at the bottom of the drawer so that after narrowing the
-  // filter on mobile the user immediately sees their match instead of being
-  // stuck in the full-screen drawer wondering where "1 результат" lives.
-  const viewResultsFromDrawer = useCallback(() => {
-    closeMobileFilter();
-    if (typeof window !== "undefined") {
-      // Wait one frame so the drawer's exit transition fires before we scroll.
-      window.requestAnimationFrame(() => {
-        document
-          .getElementById("racechip-results")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-  }, [closeMobileFilter]);
   const previousMakeRef = useRef(activeMake);
   const previousModelRef = useRef(activeModel);
   const previousChassisRef = useRef(activeChassis);
@@ -508,33 +494,11 @@ export default function RacechipVehicleFilter({
                   </button>
                 </div>
                 <div className="mt-6">{filterControls}</div>
-                {/* Sticky CTA at the bottom of the drawer — without this, after
-                    narrowing the filters on mobile the user sees "1 результат"
-                    but the matching product card lives BELOW the drawer they
-                    can't see past. Tap closes the drawer + smooth-scrolls to
-                    the grid. */}
-                <div className="sticky bottom-0 -mx-5 mt-6 border-t border-foreground/15 dark:border-white/10 bg-card/95 dark:bg-[#050505]/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur">
-                  <button
-                    type="button"
-                    onClick={viewResultsFromDrawer}
-                    disabled={filtered.length === 0}
-                    className="flex w-full items-center justify-center gap-2 border border-[#ff4a00]/50 bg-[#ff4a00]/15 px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white transition-colors hover:border-[#ff4a00] hover:bg-[#ff4a00]/25 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {filtered.length === 0
-                      ? isUa
-                        ? "Немає результатів"
-                        : "No results"
-                      : isUa
-                        ? `Переглянути ${filtered.length} ${
-                            filtered.length === 1
-                              ? "товар"
-                              : filtered.length < 5
-                                ? "товари"
-                                : "товарів"
-                          }`
-                        : `View ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
-                  </button>
-                </div>
+                <MobileFilterDrawerCTA
+                  locale={locale}
+                  resultsCount={filtered.length}
+                  resultsAnchorId="racechip-results"
+                />
               </div>
             </>
           ) : null}
