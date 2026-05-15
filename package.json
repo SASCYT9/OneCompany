@@ -127,7 +127,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19",
-    "@types/three": "^0.181.0",
+    "@types/three": "^0.184.1",
     "baseline-browser-mapping": "^2.10.20",
     "canvas": "^3.2.0",
     "dotenv": "^17.4.2",
