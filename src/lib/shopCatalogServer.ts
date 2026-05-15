@@ -7,6 +7,8 @@
 import fs from "fs";
 import path from "path";
 
+import { cache } from "react";
+
 import {
   SHOP_PRODUCTS,
   getShopProductBySlug as getStaticBySlug,
@@ -2342,8 +2344,20 @@ export function projectShopProductForVehicleCatalog(product: ShopProduct): ShopP
   };
 }
 
-/** One product by slug: DB first, then static. */
-export async function getShopProductBySlugServer(slug: string): Promise<ShopProduct | undefined> {
+/**
+ * One product by slug: DB first, then static.
+ *
+ * 2026-05-15: wrapped in React `cache()` to deduplicate per-request calls.
+ * `ShopProductDetailPage` invokes this twice on the same request — once from
+ * `getShopProductPageMetadata` (Next.js `generateMetadata`) and once from the
+ * default-export component render. Without `cache()` that's two separate
+ * `prisma.shopProduct.findFirst` round-trips for the same slug on the same
+ * SSR pass; with `cache()` the second call returns the memoized first result.
+ * Per-request scope only — different requests still hit the DB once.
+ */
+export const getShopProductBySlugServer = cache(async function getShopProductBySlugServer(
+  slug: string
+): Promise<ShopProduct | undefined> {
   try {
     const row = await prisma.shopProduct.findFirst({
       where: { slug, isPublished: true },
@@ -2381,4 +2395,4 @@ export async function getShopProductBySlugServer(slug: string): Promise<ShopProd
   }
 
   return applyShopProductImageOverrides(staticProduct);
-}
+});
