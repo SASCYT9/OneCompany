@@ -80,6 +80,21 @@ export default function RacechipVehicleFilter({
   const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+  // Closes the mobile filter drawer and scrolls to the result grid. Used by
+  // the CTA button at the bottom of the drawer so that after narrowing the
+  // filter on mobile the user immediately sees their match instead of being
+  // stuck in the full-screen drawer wondering where "1 результат" lives.
+  const viewResultsFromDrawer = useCallback(() => {
+    closeMobileFilter();
+    if (typeof window !== "undefined") {
+      // Wait one frame so the drawer's exit transition fires before we scroll.
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById("racechip-results")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [closeMobileFilter]);
   const previousMakeRef = useRef(activeMake);
   const previousModelRef = useRef(activeModel);
   const previousChassisRef = useRef(activeChassis);
@@ -493,6 +508,33 @@ export default function RacechipVehicleFilter({
                   </button>
                 </div>
                 <div className="mt-6">{filterControls}</div>
+                {/* Sticky CTA at the bottom of the drawer — without this, after
+                    narrowing the filters on mobile the user sees "1 результат"
+                    but the matching product card lives BELOW the drawer they
+                    can't see past. Tap closes the drawer + smooth-scrolls to
+                    the grid. */}
+                <div className="sticky bottom-0 -mx-5 mt-6 border-t border-foreground/15 dark:border-white/10 bg-card/95 dark:bg-[#050505]/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur">
+                  <button
+                    type="button"
+                    onClick={viewResultsFromDrawer}
+                    disabled={filtered.length === 0}
+                    className="flex w-full items-center justify-center gap-2 border border-[#ff4a00]/50 bg-[#ff4a00]/15 px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white transition-colors hover:border-[#ff4a00] hover:bg-[#ff4a00]/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {filtered.length === 0
+                      ? isUa
+                        ? "Немає результатів"
+                        : "No results"
+                      : isUa
+                        ? `Переглянути ${filtered.length} ${
+                            filtered.length === 1
+                              ? "товар"
+                              : filtered.length < 5
+                                ? "товари"
+                                : "товарів"
+                          }`
+                        : `View ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
+                  </button>
+                </div>
               </div>
             </>
           ) : null}
@@ -512,7 +554,7 @@ export default function RacechipVehicleFilter({
           </div>
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
-          <main className="w-full">
+          <main id="racechip-results" className="w-full scroll-mt-24">
             {filtered.length === 0 ? (
               <div className="py-32 text-center bg-card dark:bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
                 <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5 shadow-[0_0_30px_rgba(255,74,0,0.1)]">
