@@ -455,11 +455,54 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
           margin: 0 auto;
           display: grid;
           grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-          gap: 3rem;
+          column-gap: 3rem;
+          row-gap: 3rem;
+          align-items: start;
+        }
+        .ipe-pdp__gallery-col {
+          grid-column: 1;
+          grid-row: 1;
+          min-width: 0;
+        }
+        .ipe-pdp__config {
+          grid-column: 2;
+          grid-row: 1 / span 2;
+          min-width: 0;
+        }
+        .ipe-pdp__desc {
+          grid-column: 1;
+          grid-row: 2;
+        }
+        @media (min-width: 961px) {
+          .ipe-pdp__config {
+            position: sticky;
+            top: 96px;
+            max-height: calc(100dvh - 120px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+            scrollbar-color: hsl(var(--foreground) / 0.25) transparent;
+            padding-right: 0.5rem;
+          }
+          .ipe-pdp__config::-webkit-scrollbar {
+            width: 6px;
+          }
+          .ipe-pdp__config::-webkit-scrollbar-thumb {
+            background: hsl(var(--foreground) / 0.25);
+            border-radius: 3px;
+          }
         }
         @media (max-width: 960px) {
           .ipe-pdp__container {
             grid-template-columns: 1fr;
+            column-gap: 0;
+            row-gap: 1.75rem;
+          }
+          .ipe-pdp__gallery-col,
+          .ipe-pdp__config,
+          .ipe-pdp__desc {
+            grid-column: 1;
+            grid-row: auto;
           }
         }
         .ipe-pdp__bc {
@@ -633,11 +676,12 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
         }
 
         .ipe-pdp__desc {
-          margin-top: 3rem;
           padding: 2rem;
           background: hsl(var(--foreground) / 0.03);
           border: 1px solid hsl(var(--foreground) / 0.1);
           border-radius: 12px;
+          word-break: break-word;
+          overflow-wrap: anywhere;
         }
         .ipe-pdp__desc h2 {
           font-size: 1.05rem;
@@ -658,10 +702,65 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
         .ipe-pdp__desc strong {
           color: hsl(var(--foreground));
         }
+        .ipe-pdp__desc img {
+          max-width: 100%;
+          height: auto;
+        }
+        .ipe-pdp__desc table {
+          display: block;
+          overflow-x: auto;
+          max-width: 100%;
+        }
+
+        @media (max-width: 640px) {
+          .ipe-pdp {
+            padding: 4.5rem 1rem 4rem;
+          }
+          .ipe-pdp__bc {
+            margin-bottom: 1rem;
+            font-size: 0.65rem;
+          }
+          .ipe-pdp__title {
+            font-size: clamp(1.25rem, 5vw, 1.6rem);
+          }
+          .ipe-pdp__cat {
+            margin-bottom: 1.25rem;
+          }
+          .ipe-pdp__options {
+            margin: 1rem 0;
+            gap: 0.85rem;
+          }
+          .ipe-pdp__option-btn {
+            padding: 0.5rem 0.7rem;
+            font-size: 0.8rem;
+          }
+          .ipe-pdp__thumb {
+            width: 56px;
+            height: 42px;
+          }
+          .ipe-pdp__vin {
+            padding: 0.85rem;
+            margin: 1rem 0;
+          }
+          .ipe-pdp__vin-text {
+            font-size: 0.8rem;
+          }
+          .ipe-pdp__desc {
+            padding: 1.25rem;
+            border-radius: 10px;
+          }
+          .ipe-pdp__desc p {
+            font-size: 0.88rem;
+            line-height: 1.6;
+          }
+          .ipe-pdp__desc h2 {
+            font-size: 0.92rem;
+          }
+        }
       `}</style>
 
       <div className="ipe-pdp__container">
-        <div>
+        <div className="ipe-pdp__gallery-col">
           <div className="ipe-pdp__bc">
             <Link href={`/${locale}/shop`}>{isUa ? "Магазин" : "Shop"}</Link>
             <span>/</span>
@@ -695,7 +794,7 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
           ) : null}
         </div>
 
-        <div>
+        <div className="ipe-pdp__config">
           <h1 className="ipe-pdp__title">{productTitle}</h1>
           {productCategory ? <div className="ipe-pdp__cat">{productCategory}</div> : null}
 
@@ -793,13 +892,10 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
             </div>
           ) : null}
         </div>
-      </div>
-
-      {sanitizedBodyHtml ? (
-        <div className="ipe-pdp__container" style={{ marginTop: "3rem", display: "block" }}>
+        {sanitizedBodyHtml ? (
           <div className="ipe-pdp__desc" dangerouslySetInnerHTML={{ __html: sanitizedBodyHtml }} />
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }

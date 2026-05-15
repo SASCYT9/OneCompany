@@ -364,7 +364,7 @@ export default function BrabusVehicleFilter({
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* ═══ HORIZONTAL FILTER BAR ═══ */}
         <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-card dark:bg-[#0a0a0a] border-y border-foreground/12 dark:border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-card dark:bg-[#111] [&_option]:text-foreground dark:text-white">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[170px_160px_140px_180px_1fr_140px_auto] items-center gap-3 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-[170px_160px_140px_180px_1fr_140px_auto] items-center gap-3 py-4">
             {/* Brand Select */}
             <div className="relative">
               <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
@@ -459,7 +459,7 @@ export default function BrabusVehicleFilter({
             </div>
 
             {/* Search */}
-            <div className="relative col-span-2 sm:col-span-4 lg:col-span-1">
+            <div className="relative col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-1">
               <Search
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 dark:text-white/25"
