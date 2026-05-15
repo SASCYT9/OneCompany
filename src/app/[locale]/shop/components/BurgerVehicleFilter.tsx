@@ -109,6 +109,29 @@ export default function BurgerVehicleFilter({
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
+  // Sync local filter state when the URL changes from the embedded
+  // BurgerHeroPicker (which calls router.push). Without this, the picker
+  // updates the URL but the catalog stays on the previous filter — user has
+  // to refresh the page to see results.
+  //
+  // The cascade-reset effects below watch `activeBrand`/`activeModel` and
+  // wipe narrower filters when those change. We sync `prevBrandRef` /
+  // `prevModelRef` here so a coordinated brand+model+chassis URL update
+  // doesn't immediately self-destruct the model/chassis we just set.
+  const prevBrandRef = useRef(activeBrand);
+  const prevModelRef = useRef(activeModel);
+  useEffect(() => {
+    const nextBrand = searchParams?.get("brand") || "all";
+    const nextModel = searchParams?.get("model") || "all";
+    prevBrandRef.current = nextBrand;
+    prevModelRef.current = nextModel;
+    setActiveBrand(nextBrand);
+    setActiveType(searchParams?.get("type") || "all");
+    setActiveModel(nextModel);
+    setActiveChassis(searchParams?.get("chassis") || "all");
+    setActiveEngine(searchParams?.get("engine") || "all");
+  }, [searchParams]);
+
   // ─── Extract brands from tags ───
   const availableBrands = useMemo(() => {
     const brands = new Map<string, number>();
@@ -243,8 +266,9 @@ export default function BurgerVehicleFilter({
   );
 
   // Reset narrower filters when brand actually changes (skip initial mount so
-  // ?brand=BMW&model=M5&chassis=F90 from URL is preserved).
-  const prevBrandRef = useRef(activeBrand);
+  // ?brand=BMW&model=M5&chassis=F90 from URL is preserved). prevBrandRef is
+  // declared in the URL-sync effect above and kept in sync there to prevent
+  // a coordinated URL update from self-destructing the model/chassis it set.
   useEffect(() => {
     if (prevBrandRef.current !== activeBrand) {
       prevBrandRef.current = activeBrand;
@@ -255,8 +279,7 @@ export default function BurgerVehicleFilter({
     }
   }, [activeBrand]);
 
-  // Same for model: reset chassis/engine only when model actually changes (not on mount)
-  const prevModelRef = useRef(activeModel);
+  // Same for model: reset chassis/engine only when model actually changes.
   useEffect(() => {
     if (prevModelRef.current !== activeModel) {
       prevModelRef.current = activeModel;
