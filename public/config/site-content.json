@@ -41,13 +41,7 @@
       "label": "continents weekly"
     }
   ],
-  "values": [
-    "PERFORMANCE",
-    "QUALITY",
-    "SERVICE",
-    "SOUND",
-    "INNOVATION"
-  ],
+  "values": ["PERFORMANCE", "QUALITY", "SERVICE", "SOUND", "INNOVATION"],
   "brandSections": {
     "automotive": [
       {
@@ -272,6 +266,183 @@
     "instagramHandle": "@onecompany.global",
     "posts": [
       {
+        "id": "ig-dyutmkamy6s",
+        "slug": "stopflex-carbon-ceramic-brakes-bmw-7-g12",
+        "title": {
+          "ua": "STOPFLEX для BMW 7 G12 - карбоново-керамічні гальмівні диски",
+          "en": "STOPFLEX carbon-ceramic brakes for BMW 7 G12"
+        },
+        "caption": {
+          "ua": "STOPFLEX для BMW 7 G12 - карбоново-керамічні гальмівні диски для тих, хто хоче більше контролю, стабільності та впевненості на швидкості.\n\nІнженерне рішення для потужних авто, де гальмування має бути таким же серйозним, як і динаміка.\n\nГальмівні системи STOPFLEX доступні для замовлення в One Company.\n\n#onecompany #stopflex #bmw7g12 #luxurycars #cartuning",
+          "en": "STOPFLEX for BMW 7 G12 — carbon-ceramic brake discs for those who want more control, stability, and confidence at speed.\n\nAn engineering solution for high-performance cars, where braking should be as serious as the dynamics.\n\nSTOPFLEX brake systems are available to order at One Company.\n\n#onecompany #stopflex #bmw7g12 #luxurycars #cartuning"
+        },
+        "date": "2026-05-14T11:25:26.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["onecompany", "stopflex", "bmw7g12", "luxurycars", "cartuning"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dyutmkamy6s-1",
+            "type": "video",
+            "src": "/videos/blog/DYUTmKAMy6s-v5-1.mp4",
+            "alt": "STOPFLEX carbon-ceramic brakes for BMW 7 G12"
+          }
+        ]
+      },
+      {
+        "id": "ig-dysd4qndcvi",
+        "slug": "ipe-exhaust-porsche-992-gt3",
+        "title": {
+          "ua": "IPE Exhaust для Porsche 992 GT3 - система, де кожна деталь говорить сама за себе",
+          "en": "IPE Exhaust for Porsche 992 GT3"
+        },
+        "caption": {
+          "ua": "IPE Exhaust для Porsche 992 GT3 - система, де кожна деталь говорить сама за себе.\n\nСталева геометрія, карбонові насадки, акуратні зварні шви та фірмовий характер звуку. Саме такі компоненти формують відчуття автомобіля ще до першого запуску двигуна.\n\nOne Company підбирає та постачає оригінальні преміальні рішення для авто - від вихлопних систем до повних тюнінг-проєктів.\n\n#onecompany #ipeexhaust #porsche992gt3 #exhaustsystem #cartuning",
+          "en": "IPE Exhaust for the Porsche 992 GT3 — a system where every detail speaks for itself.\n\nSteel geometry, carbon tips, precise welds, and a signature sound character. These are the components that shape how a car feels before the engine even starts.\n\nOne Company sources and supplies genuine premium solutions for performance cars — from exhaust systems to complete tuning projects.\n\n#onecompany #ipeexhaust #porsche992gt3 #exhaustsystem #cartuning"
+        },
+        "date": "2026-05-13T14:28:24.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["onecompany", "ipeexhaust", "porsche992gt3", "exhaustsystem", "cartuning"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dysd4qndcvi-1",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-1.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          },
+          {
+            "id": "media-ig-dysd4qndcvi-2",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-2.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          },
+          {
+            "id": "media-ig-dysd4qndcvi-3",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-3.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          },
+          {
+            "id": "media-ig-dysd4qndcvi-4",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-4.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          },
+          {
+            "id": "media-ig-dysd4qndcvi-5",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-5.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          },
+          {
+            "id": "media-ig-dysd4qndcvi-6",
+            "type": "image",
+            "src": "/images/blog/DYSD4QNDCvi-v5-6.jpg",
+            "alt": "IPE Exhaust for Porsche 992 GT3"
+          }
+        ]
+      },
+      {
+        "id": "ig-dx9n9mfdpgs",
+        "slug": "kw-height-adjustable-springs-bmw-m5-f90",
+        "title": {
+          "ua": "KW Height Adjustable Springs для BMW M5 F90 - в наявності",
+          "en": "KW Height Adjustable Springs for BMW M5 F90 — in stock"
+        },
+        "caption": {
+          "ua": "✅ В НАЯВНОСТІ. Готові до відправки.\n\nKW Height Adjustable Springs - регульовані пружини для BMW M5 F90.\n\nБільше контролю над посадкою авто без втрати заводської логіки підвіски. KW HAS дозволяють налаштувати висоту, зберегти EDC та залишити комфорт для щоденної експлуатації.\n\nДля BMW M5 F90 це один із найкращих варіантів, якщо потрібен нижчий, зібраніший та візуально правильний силует без жорсткого переходу на спортивну підвіску.\n\n#kwsuspension #bmwm5 #suspensiontuning #tuning #onecompany",
+          "en": "✅ IN STOCK. Ready to ship.\n\nKW Height Adjustable Springs — adjustable springs for the BMW M5 F90.\n\nMore control over the car's stance without losing the factory suspension logic. KW HAS lets you dial in ride height, retain EDC, and keep daily-driving comfort.\n\nFor the BMW M5 F90 it's one of the best options when you want a lower, more composed, visually correct silhouette without the harsh switch to a full sport setup.\n\n#kwsuspension #bmwm5 #suspensiontuning #tuning #onecompany"
+        },
+        "date": "2026-05-05T12:12:28.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["kwsuspension", "bmwm5", "suspensiontuning", "tuning", "onecompany"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dx9n9mfdpgs-1",
+            "type": "image",
+            "src": "/images/blog/DX9N9mFDPGs-v5-1.jpg",
+            "alt": "KW Height Adjustable Springs for BMW M5 F90 — in stock"
+          },
+          {
+            "id": "media-ig-dx9n9mfdpgs-2",
+            "type": "image",
+            "src": "/images/blog/DX9N9mFDPGs-v5-2.jpg",
+            "alt": "KW Height Adjustable Springs for BMW M5 F90 — in stock"
+          }
+        ]
+      },
+      {
+        "id": "ig-dxyrwk6sv1b",
+        "slug": "rizoma-premium-italian-moto-accessories",
+        "title": {
+          "ua": "RIZOMA - італійські преміальні мотоаксесуари",
+          "en": "RIZOMA — premium Italian motorcycle accessories"
+        },
+        "caption": {
+          "ua": "RIZOMA 🇮🇹 Легендарний італійський бренд, що створює преміальні мотоаксесуари, де кожна деталь - це поєднання функціональності та мистецтва.\n\nВід мінімалістичних LED поворотників до агресивних дзеркал Stealth. Rizoma перетворює стоковий байк на унікальний витвір.\n\nдоступний для замовлення в One Company - оновіть свій мотоцикл деталями, які говорять самі за себе.\n\n#rizoma #rizomaaccessories #мотоцикл #мототюнінг #onecompany",
+          "en": "RIZOMA 🇮🇹 The legendary Italian brand crafts premium motorcycle accessories where every detail is a fusion of function and art.\n\nFrom minimalist LED indicators to the aggressive Stealth mirrors — Rizoma turns a stock bike into a unique build.\n\nAvailable to order at One Company — upgrade your motorcycle with parts that speak for themselves.\n\n#rizoma #rizomaaccessories #motorcycle #motorcycletuning #onecompany"
+        },
+        "date": "2026-05-01T10:02:36.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["rizoma", "rizomaaccessories", "мотоцикл", "мототюнінг", "onecompany"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dxyrwk6sv1b-1",
+            "type": "video",
+            "src": "/videos/blog/DXyrwK6sV1b-v5-1.mp4",
+            "alt": "RIZOMA — premium Italian motorcycle accessories"
+          }
+        ]
+      },
+      {
+        "id": "ig-dxqyweedmzc",
+        "slug": "nitron-suspension-bmw-m2",
+        "title": {
+          "ua": "NITRON - британська точність у кожному повороті",
+          "en": "NITRON — British suspension precision for BMW M2"
+        },
+        "caption": {
+          "ua": "NITRON - британська точність у кожному повороті ⚡\nМонотрубна конструкція, 24 режимів регулювання, алюмінієвий корпус і характер, який відчувається з першого метра. Створено для тих, хто керує, а не просто їде.\n📍 One Company Global - офіційне замовлення в Україні\n#nitron #nitronr1 #автотюнінг #bmwm2 #onecompany",
+          "en": "NITRON — British precision in every corner ⚡\nA monotube design, 24 levels of adjustment, an aluminium body, and a character you feel from the first metre. Built for those who drive, not just commute.\n📍 One Company Global — official ordering in Ukraine\n#nitron #nitronr1 #cartuning #bmwm2 #onecompany"
+        },
+        "date": "2026-04-28T08:24:52.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["nitron", "nitronr1", "автотюнінг", "bmwm2", "onecompany"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dxqyweedmzc-1",
+            "type": "image",
+            "src": "/images/blog/DXqyWeeDMzC-v5-1.jpg",
+            "alt": "NITRON — British suspension precision for BMW M2"
+          },
+          {
+            "id": "media-ig-dxqyweedmzc-2",
+            "type": "image",
+            "src": "/images/blog/DXqyWeeDMzC-v5-2.jpg",
+            "alt": "NITRON — British suspension precision for BMW M2"
+          }
+        ]
+      },
+      {
         "id": "ig-dxbfmkodara",
         "slug": "bmw-m4-g82-armytrix-valvetronic-exhaust",
         "title": {
@@ -287,13 +458,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "armytrix",
-          "bmwm4",
-          "exhaustsound",
-          "cartuning"
-        ],
+        "tags": ["onecompany", "armytrix", "bmwm4", "exhaustsound", "cartuning"],
         "status": "published",
         "media": [
           {
@@ -321,13 +486,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "darwinpro",
-          "audirs",
-          "cartuning",
-          "onecompany",
-          "тюнінг"
-        ],
+        "tags": ["darwinpro", "audirs", "cartuning", "onecompany", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -372,13 +531,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "klineinnovation",
-          "porschegt3",
-          "onecompany",
-          "tuningcar",
-          "тюнінг"
-        ],
+        "tags": ["klineinnovation", "porschegt3", "onecompany", "tuningcar", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -406,13 +559,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "scproject",
-          "yamahar9",
-          "onecompany",
-          "scprojectexhaust",
-          "motorcycletuning"
-        ],
+        "tags": ["scproject", "yamahar9", "onecompany", "scprojectexhaust", "motorcycletuning"],
         "status": "published",
         "media": [
           {
@@ -445,13 +592,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "lartedesign",
-          "premiumcars",
-          "тюнінг",
-          "cartuning"
-        ],
+        "tags": ["onecompany", "lartedesign", "premiumcars", "тюнінг", "cartuning"],
         "status": "published",
         "media": [
           {
@@ -479,13 +620,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "techartporsche",
-          "carbonfiber",
-          "widebody",
-          "тюнінг",
-          "onecompany"
-        ],
+        "tags": ["techartporsche", "carbonfiber", "widebody", "тюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -536,13 +671,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "libertywalk",
-          "lbworks",
-          "landcruiser250",
-          "tuning"
-        ],
+        "tags": ["onecompany", "libertywalk", "lbworks", "landcruiser250", "tuning"],
         "status": "published",
         "media": [
           {
@@ -587,12 +716,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "al13wheels",
-          "ferrari",
-          "tuning"
-        ],
+        "tags": ["onecompany", "al13wheels", "ferrari", "tuning"],
         "status": "published",
         "media": [
           {
@@ -631,12 +755,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ilmbergercarbon",
-          "motorcycle",
-          "carbonfiber"
-        ],
+        "tags": ["onecompany", "ilmbergercarbon", "motorcycle", "carbonfiber"],
         "status": "published",
         "media": [
           {
@@ -664,10 +783,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -694,13 +810,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "jb4",
-          "burgermotorsports",
-          "cartuning",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["jb4", "burgermotorsports", "cartuning", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -727,13 +837,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "brabus",
-          "widestar",
-          "mercedesg63",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["brabus", "widestar", "mercedesg63", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -778,10 +882,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -808,10 +909,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -856,10 +954,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -931,10 +1026,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -991,12 +1083,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "quicksilverexhaust",
-          "exhaustsystem",
-          "tuning"
-        ],
+        "tags": ["onecompany", "quicksilverexhaust", "exhaustsystem", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1023,10 +1110,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1083,10 +1167,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1131,10 +1212,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1167,10 +1245,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1197,11 +1272,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "mtstechnik",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "mtstechnik", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1229,13 +1300,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "gsport",
-          "gesi",
-          "catalyticconverter",
-          "tuning"
-        ],
+        "tags": ["onecompany", "gsport", "gesi", "catalyticconverter", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1263,13 +1328,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ipe",
-          "ipeexhaust",
-          "titaniumexhaustpipes",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ipe", "ipeexhaust", "titaniumexhaustpipes", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1297,13 +1356,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "hrewheels",
-          "hre",
-          "s101sc",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "hrewheels", "hre", "s101sc", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1331,11 +1384,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning",
-          "onecompanyglobal"
-        ],
+        "tags": ["onecompany", "tuning", "onecompanyglobal"],
         "status": "published",
         "media": [
           {
@@ -1386,12 +1435,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ctcarbon",
-          "bmwx5m",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ctcarbon", "bmwx5m", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1448,13 +1492,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "darwinpro",
-          "bmw8",
-          "tuning",
-          "carbon"
-        ],
+        "tags": ["onecompany", "darwinpro", "bmw8", "tuning", "carbon"],
         "status": "published",
         "media": [
           {
@@ -1517,12 +1555,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "urbanautomotive",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "urbanautomotive", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1550,13 +1583,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "eventuri",
-          "bmwm5",
-          "g90",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "eventuri", "bmwm5", "g90", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1584,13 +1611,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1641,13 +1662,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1674,12 +1689,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "rangerovertuning",
-          "widetrack",
-          "onecompanyglobal",
-          "onecompany"
-        ],
+        "tags": ["rangerovertuning", "widetrack", "onecompanyglobal", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -1706,12 +1716,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "brabus",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "brabus", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1738,13 +1743,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "RSQ8Facelift",
-          "CTCarbon",
-          "onecompanyglobal",
-          "тюнінг",
-          "carbonbodykit"
-        ],
+        "tags": ["RSQ8Facelift", "CTCarbon", "onecompanyglobal", "тюнінг", "carbonbodykit"],
         "status": "published",
         "media": [
           {
@@ -1771,12 +1770,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "iPE",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "iPE", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1803,12 +1797,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "eventuri",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "eventuri", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1835,13 +1824,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "adro",
-          "bmwm3",
-          "bmwm4"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "adro", "bmwm3", "bmwm4"],
         "status": "published",
         "media": [
           {
@@ -1868,12 +1851,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "akrapovic",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "akrapovic", "тюнінг"],
         "status": "published",
         "media": [
           {
