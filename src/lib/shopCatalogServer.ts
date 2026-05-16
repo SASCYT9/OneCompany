@@ -1046,6 +1046,20 @@ function isImageComingSoonAsset(value: string | null | undefined) {
   return /(?:^|[/_-])image-coming-soon(?:[/_.-]|$)/i.test(String(value ?? ""));
 }
 
+/**
+ * Strip the `_<uuid>` suffix from Shopify CDN URLs that no longer resolve
+ * (Shopify reuploads as the clean name; original UUID variant returns 404).
+ * Scoped to `cdn.shopify.com` only so we don't accidentally rewrite other
+ * hosts that legitimately carry GUIDs in filenames.
+ */
+const SHOPIFY_STALE_UUID_PATTERN =
+  /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.(?:jpg|jpeg|png|webp|gif|avif))/i;
+function normalizeShopifyImageUrl(url: string | null | undefined): string {
+  const value = String(url ?? "");
+  if (!value || !/^https?:\/\/cdn\.shopify\.com\//i.test(value)) return value;
+  return value.replace(SHOPIFY_STALE_UUID_PATTERN, "$1");
+}
+
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
   const override = getShopProductImageOverrideForSku(product.sku);
   const hasGirodiscPlaceholder =
@@ -1053,16 +1067,33 @@ function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
     (isImageComingSoonAsset(product.image) ||
       Boolean(product.gallery?.some(isImageComingSoonAsset)));
 
+  // Always normalise stale Shopify-CDN UUIDs, even when there's no SKU-level
+  // override — otherwise Urban products inherit dead CDN URLs that 404 in
+  // the browser and render as empty placeholder cards.
+  const normalizedImage = normalizeShopifyImageUrl(product.image);
+  const normalizedGallery = product.gallery?.map(normalizeShopifyImageUrl);
+  const galleryDiffers =
+    normalizedGallery &&
+    product.gallery &&
+    normalizedGallery.some((url, idx) => url !== product.gallery![idx]);
+  const imageDiffers = normalizedImage !== product.image;
+
   if (!override && !hasGirodiscPlaceholder) {
-    return product;
+    if (!imageDiffers && !galleryDiffers) return product;
+    return { ...product, image: normalizedImage, gallery: normalizedGallery ?? product.gallery };
   }
 
-  const image = override?.image ?? SHOP_PRODUCT_FALLBACK_IMAGE;
+  const overrideImage = override?.image ?? SHOP_PRODUCT_FALLBACK_IMAGE;
+  const image = normalizeShopifyImageUrl(overrideImage);
   const gallery = uniqueStrings(
-    override?.gallery ??
+    (
+      override?.gallery ??
       (hasGirodiscPlaceholder
         ? [image]
-        : (product.gallery?.map((src) => (isImageComingSoonAsset(src) ? image : src)) ?? [image]))
+        : ((normalizedGallery ?? product.gallery)?.map((src) =>
+            isImageComingSoonAsset(src) ? image : src
+          ) ?? [image]))
+    ).map(normalizeShopifyImageUrl)
   );
 
   if (
