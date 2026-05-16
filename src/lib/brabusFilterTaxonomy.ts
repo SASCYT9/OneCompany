@@ -4,7 +4,7 @@
 
 import type { SupportedLocale } from "@/lib/seo";
 
-export const BRABUS_BRAND_ORDER = [
+export const BRABUS_BRAND_ORDER: readonly string[] = [
   "Mercedes",
   "Porsche",
   "Rolls-Royce",
@@ -12,7 +12,7 @@ export const BRABUS_BRAND_ORDER = [
   "Lamborghini",
   "Range Rover",
   "smart",
-] as const;
+];
 
 export const BRABUS_BRAND_LABELS: Record<string, Record<SupportedLocale, string>> = {
   Mercedes: { en: "Mercedes-Benz", ua: "Mercedes-Benz" },
