@@ -4,46 +4,12 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
-
-const BRANDS = [
-  {
-    key: "Mercedes",
-    labelUa: "Mercedes-Benz",
-    labelEn: "Mercedes-Benz",
-    models: ["all", "G-Klasse", "S-Klasse", "GLE-Klasse", "GLS-Klasse", "V-Klasse", "AMG GT"],
-  },
-  {
-    key: "Porsche",
-    labelUa: "Porsche",
-    labelEn: "Porsche",
-    models: ["all", "Porsche 911 Turbo", "Porsche Taycan"],
-  },
-  {
-    key: "Rolls-Royce",
-    labelUa: "Rolls-Royce",
-    labelEn: "Rolls-Royce",
-    models: ["all", "Rolls-Royce Ghost", "Rolls-Royce Cullinan"],
-  },
-  {
-    key: "Bentley",
-    labelUa: "Bentley",
-    labelEn: "Bentley",
-    models: ["all", "Bentley Continental", "Bentley Flying Spur"],
-  },
-  {
-    key: "Lamborghini",
-    labelUa: "Lamborghini",
-    labelEn: "Lamborghini",
-    models: ["all", "Lamborghini Urus SE"],
-  },
-  {
-    key: "Range Rover",
-    labelUa: "Range Rover",
-    labelEn: "Range Rover",
-    models: ["all", "Range Rover"],
-  },
-  { key: "smart", labelUa: "smart", labelEn: "smart", models: ["all", "smart #1", "smart #3"] },
-];
+import {
+  BRABUS_BRAND_ORDER,
+  BRABUS_BRAND_LABELS,
+  BRABUS_MODEL_LABELS,
+  BRABUS_MODELS_BY_BRAND,
+} from "@/lib/brabusFilterTaxonomy";
 
 type Props = {
   locale: SupportedLocale;
@@ -59,7 +25,7 @@ export default function BrabusQuickSelector({ locale, compact = false }: Props) 
   const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const currentModels = useMemo(() => {
-    return BRANDS.find((b) => b.key === selectedBrand)?.models || ["all"];
+    return ["all", ...(BRABUS_MODELS_BY_BRAND[selectedBrand] || [])];
   }, [selectedBrand]);
 
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -93,9 +59,9 @@ export default function BrabusQuickSelector({ locale, compact = false }: Props) 
           className="w-full appearance-none bg-[#050505]/60 backdrop-blur-md border border-white/10 text-white px-6 py-4 lg:py-5 rounded-none outline-hidden focus:border-[#c29d59]/50 hover:bg-[#111]/80 transition-all cursor-pointer text-xs md:text-sm tracking-widest uppercase shadow-2xl"
           aria-label={isUa ? "Марка автомобіля" : "Vehicle brand"}
         >
-          {BRANDS.map((b) => (
-            <option key={b.key} value={b.key} className="bg-black">
-              {isUa ? b.labelUa : b.labelEn}
+          {BRABUS_BRAND_ORDER.map((key) => (
+            <option key={key} value={key} className="bg-black">
+              {BRABUS_BRAND_LABELS[key]?.[locale] || key}
             </option>
           ))}
         </select>
@@ -126,7 +92,11 @@ export default function BrabusQuickSelector({ locale, compact = false }: Props) 
         >
           {currentModels.map((m) => (
             <option key={m} value={m} className="bg-black">
-              {m === "all" ? (isUa ? "Всі моделі" : "All Models") : m}
+              {m === "all"
+                ? isUa
+                  ? "Всі моделі"
+                  : "All Models"
+                : BRABUS_MODEL_LABELS[m]?.[locale] || m}
             </option>
           ))}
         </select>

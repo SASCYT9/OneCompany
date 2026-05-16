@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Search, X, ChevronDown, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -16,63 +16,16 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
+import {
+  BRABUS_BRAND_ORDER as BRAND_ORDER,
+  BRABUS_BRAND_LABELS as BRAND_LABELS,
+  BRABUS_MODEL_LABELS as MODEL_LABELS,
+} from "@/lib/brabusFilterTaxonomy";
 
 type BrabusVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
-};
-
-/* ─── Brand display names & order ─── */
-const BRAND_ORDER = [
-  "Mercedes",
-  "Porsche",
-  "Rolls-Royce",
-  "Bentley",
-  "Lamborghini",
-  "Range Rover",
-  "smart",
-];
-const BRAND_LABELS: Record<string, Record<string, string>> = {
-  Mercedes: { en: "Mercedes-Benz", ua: "Mercedes-Benz" },
-  Porsche: { en: "Porsche", ua: "Porsche" },
-  "Rolls-Royce": { en: "Rolls-Royce", ua: "Rolls-Royce" },
-  Bentley: { en: "Bentley", ua: "Bentley" },
-  Lamborghini: { en: "Lamborghini", ua: "Lamborghini" },
-  "Range Rover": { en: "Range Rover", ua: "Range Rover" },
-  smart: { en: "smart", ua: "smart" },
-};
-
-/* ─── Model/Klasse display names ─── */
-const MODEL_LABELS: Record<string, Record<string, string>> = {
-  "G-Klasse": { en: "G-Class", ua: "G-Клас" },
-  "A-Klasse": { en: "A-Class", ua: "A-Клас" },
-  "C-Klasse": { en: "C-Class", ua: "C-Клас" },
-  "CLS-Klasse": { en: "CLS-Class", ua: "CLS-Клас" },
-  "E-Klasse": { en: "E-Class", ua: "E-Клас" },
-  "EQC-Klasse": { en: "EQC", ua: "EQC" },
-  EQC: { en: "EQC", ua: "EQC" },
-  "EQS-Klasse": { en: "EQS", ua: "EQS" },
-  "EQS SUV": { en: "EQS SUV", ua: "EQS SUV" },
-  "GLB-Klasse": { en: "GLB-Class", ua: "GLB-Клас" },
-  "GLC-Klasse": { en: "GLC-Class", ua: "GLC-Клас" },
-  "GLE-Klasse": { en: "GLE-Class", ua: "GLE-Клас" },
-  "GLS-Klasse": { en: "GLS-Class", ua: "GLS-Клас" },
-  "GT-Klasse": { en: "AMG GT", ua: "AMG GT" },
-  "S-Klasse": { en: "S-Class", ua: "S-Клас" },
-  "SL-Klasse": { en: "SL-Class", ua: "SL-Клас" },
-  "V-Klasse": { en: "V-Class", ua: "V-Клас" },
-  "X-Klasse": { en: "X-Class", ua: "X-Клас" },
-  "Porsche 911 Turbo": { en: "911 Turbo", ua: "911 Turbo" },
-  "Porsche Taycan": { en: "Taycan", ua: "Taycan" },
-  "Rolls-Royce Ghost": { en: "Ghost", ua: "Ghost" },
-  "Rolls-Royce Cullinan": { en: "Cullinan", ua: "Cullinan" },
-  "Bentley Continental GT Speed": { en: "Continental GT", ua: "Continental GT" },
-  "Bentley Continental GTC Speed": { en: "Continental GTC", ua: "Continental GTC" },
-  "Lamborghini Urus SE": { en: "Urus", ua: "Urus" },
-  P530: { en: "P530", ua: "P530" },
-  "smart #1": { en: "#1", ua: "#1" },
-  "smart #3": { en: "#3", ua: "#3" },
 };
 
 const PAGE_SIZE = 30;
@@ -187,19 +140,45 @@ export default function BrabusVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const searchParams = useSearchParams();
-  const initialBrand = searchParams?.get("brand") || "all";
-  const initialModel = searchParams?.get("model") || "all";
-  const initialChassis = searchParams?.get("chassis") || "all";
-  const initialEngine = searchParams?.get("engine") || "all";
+  const pathname = usePathname();
+  const router = useRouter();
+  // Read filter state from window.location directly via lazy useState init —
+  // useSearchParams() can return empty values during the first client render
+  // after a back-navigation onto an ISR/force-static page, which would silently
+  // collapse the filter to "all" before our URL-sync effect runs.
+  const readInitial = (key: string, fallback: string) => {
+    if (typeof window === "undefined") return fallback;
+    return new URLSearchParams(window.location.search).get(key) || fallback;
+  };
 
-  const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
-  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [activeBrand, setActiveBrand] = useState<string>(() => readInitial("brand", "all"));
+  const [activeModel, setActiveModel] = useState<string>(() => readInitial("model", "all"));
+  const [activeChassis, setActiveChassis] = useState<string>(() => readInitial("chassis", "all"));
+  const [activeEngine, setActiveEngine] = useState<string>(() => readInitial("engine", "all"));
+  const [searchQuery, setSearchQuery] = useState<string>(() => readInitial("q", ""));
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(
+    () => readInitial("sort", "default") as "default" | "price_desc" | "price_asc"
+  );
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Mirror filter state into the URL so that navigating to a product detail and
+  // then back ("back" button) restores the same filter. Uses replace() to avoid
+  // polluting browser history with every dropdown change.
+  useEffect(() => {
+    if (!mounted) return;
+    const params = new URLSearchParams();
+    if (activeBrand !== "all") params.set("brand", activeBrand);
+    if (activeModel !== "all") params.set("model", activeModel);
+    if (activeChassis !== "all") params.set("chassis", activeChassis);
+    if (activeEngine !== "all") params.set("engine", activeEngine);
+    if (searchQuery.trim()) params.set("q", searchQuery.trim());
+    if (sortOrder !== "default") params.set("sort", sortOrder);
+    const qs = params.toString();
+    const next = qs ? `${pathname}?${qs}` : pathname;
+    const current = `${pathname}${window.location.search}`;
+    if (next !== current) router.replace(next, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeBrand, activeModel, activeChassis, activeEngine, searchQuery, sortOrder, mounted]);
 
   /* ─── Data derivation ─── */
   const availableBrands = useMemo(() => {
