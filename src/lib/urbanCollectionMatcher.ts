@@ -23,6 +23,29 @@ const MERCEDES_G_WAGON_HANDLES = new Set([
 const PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX =
   /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит)/i;
 
+/**
+ * Base-handle ↔ variant pairings. When a customer opens a *base* collection
+ * (e.g. `/lamborghini-urus`), products that explicitly belong to a more
+ * specific variant (Urus SE / S / Performante) must NOT appear under the
+ * base umbrella — the user has effectively asked for "the original Urus,
+ * not its derivatives". Without this guard the word-boundary `\burus\b`
+ * matches "urus se" and pulls every SE part into the base list.
+ *
+ * Tokens here are matched word-boundary against the same collection /
+ * support candidates as the alias scan, so phrasing variations
+ * ("Urus SE", "Lamborghini Urus SE") all collapse to the same hit.
+ *
+ * The override still respects an explicit `product.collections[handle]`
+ * link — if the DB authoritatively tags the SKU as the base handle we
+ * trust it (that path returns score 500 above the variant check).
+ */
+const HANDLE_VARIANT_EXCLUSIONS: Record<string, string[]> = {
+  "lamborghini-urus": ["Urus SE", "Urus S", "Urus Performante"],
+  "rolls-royce-cullinan": ["Cullinan Series II"],
+  "rolls-royce-ghost": ["Ghost Series II"],
+  "land-rover-defender-110": ["Defender 110 OCTA", "Defender Octa"],
+};
+
 const HANDLE_TO_ALIASES: Record<string, string[]> = {
   "land-rover-defender-110": ["Land Rover Defender 110", "Defender 110"],
   "land-rover-defender-90": ["Land Rover Defender 90", "Defender 90"],
@@ -273,13 +296,35 @@ function getUrbanMatchScore(
     return 0;
   }
 
+  const aliases = getHandleAliases(handle, title, brand);
+  const collectionCandidates = getCollectionCandidates(product);
+  const supportCandidates = getSupportCandidates(product);
+
+  // Variant-exclusion gate (base handles only). Runs BEFORE the explicit
+  // `product.collections[handle]` check because the Shopify / GP-Portal
+  // sync routinely tags sub-variant products under BOTH the variant AND
+  // the base collection (e.g. an "Urus S" front bumper gets listed in
+  // `lamborghini-urus` and `lamborghini-urus-s` simultaneously). Trusting
+  // the base tag pulls every Urus S/SE/Performante part into the plain
+  // "Urus" page, which is what the customer is complaining about. If
+  // the product carries a sub-variant marker anywhere (collection title,
+  // own title, tags), it does not belong on the base umbrella page.
+  const variantExclusions = HANDLE_VARIANT_EXCLUSIONS[handle];
+  if (variantExclusions && variantExclusions.length > 0) {
+    const normalizedExclusions = variantExclusions
+      .map((value) => normalizeUrbanValue(value))
+      .filter(Boolean);
+    const matchesVariant = (candidate: string) =>
+      normalizedExclusions.some((excl) => containsAsWord(candidate, excl));
+    if (collectionCandidates.some(matchesVariant) || supportCandidates.some(matchesVariant)) {
+      return 0;
+    }
+  }
+
   if (product.collections?.some((item) => item.handle === handle)) {
     return 500;
   }
 
-  const aliases = getHandleAliases(handle, title, brand);
-  const collectionCandidates = getCollectionCandidates(product);
-  const supportCandidates = getSupportCandidates(product);
   let score = 0;
 
   aliases.forEach((alias) => {
