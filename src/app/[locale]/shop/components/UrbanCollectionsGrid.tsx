@@ -80,7 +80,9 @@ export default function UrbanCollectionsGrid({
           <button
             type="button"
             className={`relative px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 ${
-              filter === "all" ? "text-white" : "text-white/35 hover:text-white/70"
+              filter === "all"
+                ? "text-foreground dark:text-white"
+                : "text-foreground/45 hover:text-foreground/80 dark:text-white/35 dark:hover:text-white/70"
             }`}
             data-filter="all"
             onClick={() => setFilter("all")}
@@ -99,7 +101,9 @@ export default function UrbanCollectionsGrid({
                 key={brand}
                 type="button"
                 className={`relative px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 ${
-                  isActive ? "text-white" : "text-white/35 hover:text-white/70"
+                  isActive
+                    ? "text-foreground dark:text-white"
+                    : "text-foreground/45 hover:text-foreground/80 dark:text-white/35 dark:hover:text-white/70"
                 }`}
                 data-filter={key}
                 onClick={() => setFilter(key)}

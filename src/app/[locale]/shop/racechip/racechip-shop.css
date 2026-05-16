@@ -706,6 +706,33 @@
   border: 0;
   pointer-events: none; /* prevents hover from revealing YouTube chrome */
 }
+
+/* Mobile: RaceChip published this clip as a YouTube Short — the on-video text
+   overlay was burned in for vertical Shorts playback, so in our regular embed
+   it reads sideways. Rotate the iframe -90° on phones and pivot the container
+   to 16:9 so the overlay reads horizontally. The Driving Modes phone in the
+   footage will visually lie on its side, but the captions become legible —
+   this is the better trade-off than asking users to tilt their heads. */
+@media (max-width: 600px) {
+  .rc__app-media {
+    aspect-ratio: 16 / 9;
+    max-width: 100%;
+    border-radius: 14px;
+  }
+  .rc__app-video {
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    /* Pre-rotation iframe dims = container's height × container's width
+       so after rotate(-90deg) it lands flush in the 16:9 box.
+       16:9 container: H = 9/16 × W → iframe width = 56.25% (of W) = H,
+       iframe height = 100% / (9/16) ≈ 177.78% (of H) = W. */
+    width: 56.25%;
+    height: 177.78%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    transform-origin: center center;
+  }
+}
 /* Transparent shield over the iframe — captures pointer events so the
    YouTube player UI never gets a hover/click signal. */
 .rc__app-video-shield {

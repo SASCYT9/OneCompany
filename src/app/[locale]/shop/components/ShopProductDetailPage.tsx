@@ -44,6 +44,11 @@ import {
 } from "@/lib/do88CollectionMatcher";
 import { DO88_COLLECTION_CARDS } from "../data/do88CollectionsList";
 import {
+  extractDo88CategoryLeafToken,
+  resolveCompatibleVehiclesForDo88Product,
+  type CompatibleVehicle,
+} from "../do88/do88FitmentData";
+import {
   getProductsForUrbanCollection,
   getUrbanCollectionHandleForProduct,
 } from "@/lib/urbanCollectionMatcher";
@@ -57,6 +62,8 @@ import {
 import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import { ShopProductGallery } from "./ShopProductGallery";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
+import { Do88CompatibleVehiclesBlock } from "./Do88CompatibleVehiclesBlock";
+import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { getUrbanCollectionPageConfig } from "../data/urbanCollectionPages.server";
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
@@ -554,7 +561,15 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
   pushFallbackSpec(isUa ? "Артикул" : "Part number", primaryPartNumber);
   pushFallbackSpec(isUa ? "Термін постачання" : "Lead time", leadTime);
-  if (product.length != null || product.width != null || product.height != null) {
+  // Do88 dimensions/weight are unreliable — supplier feed returns packing-box
+  // sizes for unrelated SKUs (e.g. a 60kg intake listed as 81×38×22 mm /
+  // 2.6 kg). Hide the spec rows for Do88 until the source data is fixed,
+  // rather than misleading customers. Other brands still expose them.
+  const hideDimensionsAndWeight = isDo88Mode;
+  if (
+    !hideDimensionsAndWeight &&
+    (product.length != null || product.width != null || product.height != null)
+  ) {
     const dimensionsValue = [
       product.length != null ? `${product.length} mm` : null,
       product.width != null ? `${product.width} mm` : null,
@@ -564,7 +579,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       .join(" × ");
     pushFallbackSpec(isUa ? "Габарити" : "Dimensions", dimensionsValue);
   }
-  if (product.weightKg != null) {
+  if (!hideDimensionsAndWeight && product.weightKg != null) {
     pushFallbackSpec(isUa ? "Вага" : "Weight", `${product.weightKg} kg`);
   }
   // Patch UA spec values that retained English fragments from supplier copy
@@ -574,13 +589,38 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       value: fixDo88UaDescriptionFragments(s.value),
     }));
   }
+  // Reverse-lookup of all (make, model, chassis) combinations this Do88 SKU
+  // is known to fit. Built from the same dictionary the vehicle filter uses,
+  // so an EA888 part shows up as compatible with both Audi A3/S3 and VW
+  // Golf Mk7 GTI/R instead of silently looking Audi-only on the PDP.
+  // Empty list (or non-Do88 mode) → block won't render.
+  // Resolve from the locale string first; fall back to whichever side has the
+  // category breadcrumb (some legacy rows only carry one locale). Token gate is
+  // language-agnostic — `categoryTokens` use the canonical English suffix.
+  const do88CategoryBreadcrumb =
+    localizeShopText(resolvedLocale, product.category) ||
+    product.category?.en ||
+    product.category?.ua ||
+    "";
+  const do88CompatibleVehicles: CompatibleVehicle[] = isDo88Mode
+    ? resolveCompatibleVehiclesForDo88Product(
+        extractDo88CategoryLeafToken(do88CategoryBreadcrumb),
+        // Title gate uses lowercased substring match — feed it the English
+        // title so phrases like "EA888" / "Mk7 Golf" hit regardless of locale.
+        product.title?.en || localizeShopProductTitle(resolvedLocale, product)
+      )
+    : [];
+
   // Drop malformed key-spec values that came through corrupted from the
-  // supplier feed (e.g. a leading number stripped to `0"`).
+  // supplier feed (e.g. a leading number stripped to `0"`). Also strip any
+  // dimension/weight rows that came through the description parser — same
+  // reason as the fallback guards above (unreliable Do88 supplier data).
   if (productBrandLc === "do88") {
     descriptionSections.specs = descriptionSections.specs.filter((s) => {
       const value = s.value.trim();
       if (/^[0]"\s*\d/.test(value)) return false;
       if (value.length < 2) return false;
+      if (/^(габарит|розмір|dimension|size|вага|weight|маса)/i.test(s.label.trim())) return false;
       return true;
     });
   }
@@ -796,12 +836,11 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       ) : (
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href={backLinkHref}
+            <ShopBackToCatalogLink
+              fallbackHref={backLinkHref}
+              label={backLinkLabel}
               className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
-            >
-              {backLinkLabel}
-            </Link>
+            />
 
             {contextLinkHref && contextLinkLabel ? (
               <Link
@@ -836,7 +875,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           </div>
 
           <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="sticky top-32 min-w-0 space-y-4">
+            <div className="min-w-0 space-y-4 lg:sticky lg:top-32">
               <ShopProductGallery
                 images={[
                   safeImageUrl,
@@ -849,7 +888,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
               />
             </div>
 
-            <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-foreground/5 p-6 backdrop-blur-xl sm:p-7">
+            <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -907,6 +946,14 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                     />
                   ) : null}
                 </MobileProductDisclosure>
+              ) : null}
+
+              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                <Do88CompatibleVehiclesBlock
+                  vehicles={do88CompatibleVehicles}
+                  locale={locale}
+                  isUa={isUa}
+                />
               ) : null}
 
               <div className="rounded-2xl border border-foreground/12 bg-card shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:bg-black/40 dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] p-5 space-y-4">

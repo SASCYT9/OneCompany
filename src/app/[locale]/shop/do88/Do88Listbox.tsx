@@ -1,8 +1,53 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Lower-case + strip diacritics so a user typing "porsh" / "audi" / "гольф"
+ * matches "Porsche" / "Audi" / "Golf" without worrying about accents.
+ */
+function normalizeQuery(value: string) {
+  return value.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
+/**
+ * Tolerant match. Substring first (after stripping punctuation), then
+ * gap-limited subsequence — same approach as the catalog product search.
+ *   "porsh" → "porsche"      ✓ (subsequence, gap=1)
+ *   "gol"   → "Golf GTI"     ✓ (substring)
+ *   "mk7"   → "Golf Mk7"     ✓ (substring of "mk7")
+ *   "abz"   → "Audi"         ✗ (no 'b'/'z')
+ *   "ah"    → "Audi"         ✗ (subsequence gap "udi" = 3 > MAX_GAP)
+ */
+const MAX_SUBSEQUENCE_GAP = 2;
+
+function isSubsequenceMatch(query: string, label: string) {
+  if (!query) return true;
+  const haystack = normalizeQuery(label);
+  const stripped = haystack.replace(/[^a-z0-9]/g, "");
+  const strippedQ = query.replace(/[^a-z0-9]/g, "");
+  if (strippedQ && stripped.includes(strippedQ)) return true;
+  let i = 0;
+  let gap = 0;
+  for (const ch of haystack) {
+    if (ch === query[i]) {
+      i += 1;
+      gap = 0;
+      if (i === query.length) return true;
+    } else if (i > 0) {
+      gap += 1;
+      if (gap > MAX_SUBSEQUENCE_GAP) return false;
+    }
+  }
+  return false;
+}
+
+// Show the type-to-search input as soon as we have 5+ options. Brand list is
+// exactly 5 (Porsche/BMW/Audi/VW/Toyota), so this threshold ensures search
+// shows up everywhere it's potentially useful, including the brand picker.
+const SEARCH_INPUT_MIN_OPTIONS = 5;
 
 export type FilterOption = {
   value: string;
@@ -39,7 +84,22 @@ export default function Do88Listbox({
 }: Do88ListboxProps) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  // Reset and refocus on open/close so each opening starts with a clean
+  // search box and keystrokes go straight into the filter.
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      // Defer focus until the popover paints — same render cycle won't
+      // have mounted the input yet.
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus();
+      });
+    }
+  }, [open]);
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -78,6 +138,29 @@ export default function Do88Listbox({
     ? (disabledPlaceholder ?? placeholder)
     : (selectedOption?.label ?? placeholder);
   const isClearSelected = value === clearValue;
+
+  // Total option count drives whether we render a search input — for small
+  // dropdowns (≤5 options) it just clutters the panel.
+  const totalOptionCount = useMemo(
+    () => groups.reduce((sum, group) => sum + group.options.length, 0),
+    [groups]
+  );
+  const showSearchInput = totalOptionCount >= SEARCH_INPUT_MIN_OPTIONS;
+  const normalizedQuery = normalizeQuery(query);
+
+  const filteredGroups = useMemo(() => {
+    if (!normalizedQuery) return groups;
+    return groups
+      .map((group) => ({
+        ...group,
+        options: group.options.filter((option) =>
+          isSubsequenceMatch(normalizedQuery, option.label)
+        ),
+      }))
+      .filter((group) => group.options.length > 0);
+  }, [groups, normalizedQuery]);
+
+  const hasAnyMatch = filteredGroups.length > 0;
 
   return (
     <div ref={rootRef} className={cn("relative overflow-visible", open && "z-60")}>
@@ -134,35 +217,75 @@ export default function Do88Listbox({
 
       {open ? (
         <div className="absolute inset-x-0 top-[calc(100%+12px)] z-60 overflow-hidden rounded-[22px] border border-primary/16 bg-card/95 shadow-[0_28px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
-          <div id={listboxId} role="listbox" className="max-h-[320px] overflow-y-auto p-2">
-            <button
-              type="button"
-              role="option"
-              aria-selected={isClearSelected}
-              onClick={() => {
-                onChange(clearValue);
-                setOpen(false);
-              }}
-              className={cn(
-                "flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm transition-colors duration-200",
-                isClearSelected
-                  ? "bg-primary/10 text-foreground"
-                  : "text-foreground/72 hover:bg-foreground/6 hover:text-foreground"
-              )}
-            >
-              <span>{clearLabel}</span>
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "size-2 rounded-full border transition-colors duration-200",
-                  isClearSelected
-                    ? "border-primary bg-primary"
-                    : "border-foreground/20 bg-transparent"
-                )}
-              />
-            </button>
+          {showSearchInput ? (
+            <div className="border-b border-foreground/10 bg-card/90 px-3 py-2.5">
+              <div className="relative flex items-center">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 size-3.5 text-foreground/40"
+                />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  inputMode="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.stopPropagation();
+                      if (query) setQuery("");
+                      else setOpen(false);
+                    }
+                  }}
+                  placeholder={placeholder}
+                  aria-label={`${label}: ${placeholder}`}
+                  className="w-full rounded-[14px] border border-foreground/12 bg-background/85 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-foreground/45 focus:border-primary/40 focus:outline-hidden"
+                />
+              </div>
+            </div>
+          ) : null}
 
-            {groups.map((group) => (
+          <div id={listboxId} role="listbox" className="max-h-[320px] overflow-y-auto p-2">
+            {!normalizedQuery ? (
+              <button
+                type="button"
+                role="option"
+                aria-selected={isClearSelected}
+                onClick={() => {
+                  onChange(clearValue);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm transition-colors duration-200",
+                  isClearSelected
+                    ? "bg-primary/10 text-foreground"
+                    : "text-foreground/72 hover:bg-foreground/6 hover:text-foreground"
+                )}
+              >
+                <span>{clearLabel}</span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-2 rounded-full border transition-colors duration-200",
+                    isClearSelected
+                      ? "border-primary bg-primary"
+                      : "border-foreground/20 bg-transparent"
+                  )}
+                />
+              </button>
+            ) : null}
+
+            {!hasAnyMatch ? (
+              <p className="px-4 py-6 text-center text-xs text-foreground/55">
+                {placeholder} — {query}
+              </p>
+            ) : null}
+
+            {filteredGroups.map((group) => (
               <div key={group.label ?? "group"} className="mt-2">
                 {group.label ? (
                   <p className="px-4 pb-2 pt-1 text-[10px] uppercase tracking-[0.22em] text-primary/58">

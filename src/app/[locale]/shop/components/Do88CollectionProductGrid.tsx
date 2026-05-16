@@ -2,7 +2,8 @@
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -13,6 +14,70 @@ import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+
+/** Lower-case + strip diacritics for tolerant matching. */
+function normalizeForSearch(value: string | null | undefined) {
+  return String(value ?? "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+/**
+ * Tolerant product match. Two passes:
+ *   1) Substring against an alphanumeric-only haystack — handles common
+ *      tolerances like "big340" vs "BIG-340-3" (dashes stripped) and "lf190cf"
+ *      vs "LF-190-CF".
+ *   2) If substring fails, subsequence match with a *strict gap limit* —
+ *      allows skipping up to MAX_GAP chars between each matched character.
+ *      Catches typos like "porsh" → "porsche" (gap=1, skip 'c') without
+ *      false-positives where query chars happen to appear scattered across
+ *      an entire long title (e.g. "big340" should NOT match "Carbon Fiber
+ *      Engine Cover, BMW M2 M3 M4 G80…" just because b/i/g/3/4/0 all occur
+ *      far apart).
+ */
+const MAX_SUBSEQUENCE_GAP = 2;
+
+function stripNonAlnum(value: string) {
+  return value.replace(/[^a-z0-9]/g, "");
+}
+
+function isTolerantMatch(query: string, haystack: string) {
+  if (!query) return true;
+  // Pass 1: strict substring after stripping punctuation/whitespace.
+  if (stripNonAlnum(haystack).includes(stripNonAlnum(query))) return true;
+  // Pass 2: gap-limited subsequence.
+  let i = 0;
+  let gap = 0;
+  for (const ch of haystack) {
+    if (ch === query[i]) {
+      i += 1;
+      gap = 0;
+      if (i === query.length) return true;
+    } else if (i > 0) {
+      gap += 1;
+      if (gap > MAX_SUBSEQUENCE_GAP) return false;
+    }
+  }
+  return false;
+}
+
+/** Returns true if any search-field on the product matches the query. */
+function productMatchesQuery(product: ShopProduct, query: string) {
+  if (!query) return true;
+  const haystacks = [
+    product.sku,
+    product.title?.en,
+    product.title?.ua,
+    ...(product.variants?.map((v) => v.sku) ?? []),
+    ...(product.tags ?? []),
+  ]
+    .filter(Boolean)
+    .map((v) => normalizeForSearch(String(v)));
+  return haystacks.some((h) => isTolerantMatch(query, h));
+}
+
+const SEARCH_INPUT_MIN_PRODUCTS = 5;
 
 type Do88CollectionProductGridProps = {
   locale: SupportedLocale;
@@ -75,8 +140,17 @@ export default function Do88CollectionProductGrid({
   const [sortOrder, setSortOrder] = useState<
     "price-desc" | "price-asc" | "title-asc" | "title-desc"
   >("price-desc");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const sortedProducts = [...products].sort((a, b) => {
+  const showSearchInput = products.length >= SEARCH_INPUT_MIN_PRODUCTS;
+  const normalizedQuery = normalizeForSearch(searchQuery).trim();
+
+  const filteredProducts = useMemo(() => {
+    if (!normalizedQuery) return products;
+    return products.filter((p) => productMatchesQuery(p, normalizedQuery));
+  }, [products, normalizedQuery]);
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOrder) {
       case "price-asc":
         return (a.price?.eur || 0) - (b.price?.eur || 0);
@@ -116,6 +190,37 @@ export default function Do88CollectionProductGrid({
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
+            {showSearchInput ? (
+              <div className="relative w-full sm:w-72">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-foreground/45"
+                />
+                <input
+                  type="text"
+                  inputMode="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={isUa ? "Пошук — артикул або назва" : "Search by SKU or name"}
+                  aria-label={isUa ? "Пошук товарів" : "Search products"}
+                  className="w-full bg-card/70 dark:bg-black/40 border border-foreground/22 text-foreground py-3 pl-11 pr-10 rounded-full text-[12px] tracking-wide placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground/50 backdrop-blur-md transition shadow-inner"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    aria-label={isUa ? "Очистити" : "Clear search"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex size-6 items-center justify-center rounded-full text-foreground/55 hover:bg-foreground/10 hover:text-foreground transition"
+                  >
+                    <X aria-hidden="true" className="size-3.5" />
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {products.length > 0 && (
               <div className="relative w-full sm:w-auto">
                 <select
@@ -160,7 +265,22 @@ export default function Do88CollectionProductGrid({
           </div>
         </div>
 
-        {products.length > 0 ? (
+        {normalizedQuery && filteredProducts.length === 0 ? (
+          <div className="mt-12 flex flex-col items-center justify-center gap-3 rounded-2xl border border-foreground/10 bg-card/60 dark:bg-black/40 px-6 py-12 text-center">
+            <p className="text-sm text-foreground/70">
+              {isUa
+                ? `Нічого не знайдено за запитом «${searchQuery}»`
+                : `No results for "${searchQuery}"`}
+            </p>
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="rounded-full border border-foreground/20 px-5 py-2 text-[10px] uppercase tracking-[0.2em] text-foreground/75 transition hover:border-foreground/40 hover:text-foreground"
+            >
+              {isUa ? "Скинути пошук" : "Clear search"}
+            </button>
+          </div>
+        ) : sortedProducts.length > 0 ? (
           <div className="urban-product-grid__cards mt-12">
             {sortedProducts.map((product) => {
               const pricing = viewerContext

@@ -74,10 +74,42 @@ export default function Do88VehicleFilter({
 
     const q = params.toString();
     const targetPath = `/${locale}/shop/do88/collections/${cat || "all"}`;
+    const targetFull = `${targetPath}${q ? `?${q}` : ""}`;
 
-    startTransition(() => {
-      router.push(`${targetPath}${q ? `?${q}` : ""}`);
-    });
+    // Category change (different path segment) requires real navigation.
+    // Brand/model/chassis change within the same category is a pure URL
+    // sync — use `history.replaceState` so we don't pile up history entries
+    // (otherwise browser-back from a PDP walks through every intermediate
+    // filter state instead of returning to the fully-selected catalog).
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : targetPath;
+    const isSamePath = currentPath === targetPath;
+
+    // Remember the last (brand, model, chassis) the user picked so the PDP
+    // can highlight the matching chip in its "Compatible models" block. Use
+    // sessionStorage so it survives navigation to a PDP and back, but
+    // doesn't bleed across browser tabs / sessions.
+    if (typeof window !== "undefined") {
+      try {
+        if (make || model || chassis) {
+          window.sessionStorage.setItem(
+            "do88VehiclePreference",
+            JSON.stringify({ brand: make, model, chassis })
+          );
+        } else {
+          window.sessionStorage.removeItem("do88VehiclePreference");
+        }
+      } catch {
+        // sessionStorage can throw in privacy / restricted modes — ignore.
+      }
+    }
+
+    if (isSamePath && typeof window !== "undefined") {
+      window.history.replaceState(window.history.state, "", targetFull);
+    } else {
+      startTransition(() => {
+        router.push(targetFull);
+      });
+    }
   };
 
   const handleMakeChange = (makeValue: string) => {

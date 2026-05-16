@@ -822,6 +822,13 @@
 .urban-overview {
   background: var(--overview-bg, #000);
   color: #fff;
+  /* The overview card is forced-dark in both themes (its `--overview-bg`
+     defaults to #000), so the foreground token must stay white-ish inside
+     this scope. Without this override, the light-theme foreground (dark
+     ink) bleeds into eyebrow / subtitle / highlight rules that use
+     `hsl(var(--foreground) / X)`, turning their text dark-on-dark and
+     making the model copy unreadable. */
+  --foreground: 0 0% 100%;
   font-family:
     "Montserrat",
     -apple-system,
