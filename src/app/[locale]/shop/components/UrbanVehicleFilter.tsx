@@ -14,6 +14,7 @@ import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import {
   buildUrbanCatalogEntries,
   type UrbanCatalogEntry,
@@ -391,20 +392,24 @@ function ProductCard({
 
         <div className="mt-auto pt-5">
           <div className="flex items-end justify-between gap-4">
-            <div>
-              {compareAmount > currentAmount && compareAmount > 0 ? (
-                <p className="text-xs text-foreground/50 dark:text-white/35 line-through">
-                  {formatDisplayPrice(locale, currency, computedCompare!)}
-                </p>
-              ) : null}
-              <p className="mt-1 text-[20px] font-medium tracking-tight text-foreground dark:text-white">
-                {hasPrice
-                  ? formatDisplayPrice(locale, currency, computedPrice)
-                  : isUa
-                    ? "Ціна за запитом"
-                    : "Price on request"}
-              </p>
-            </div>
+            <ShopCardPriceTag
+              locale={locale}
+              b2cPrice={entry.product.price}
+              b2bExplicit={entry.product.b2bPrice ?? null}
+              compareAt={entry.product.compareAt ?? null}
+              brand={entry.product.brand ?? null}
+              variant="compact"
+              classNames={{
+                root: "flex flex-col items-start gap-0.5",
+                price:
+                  "text-[20px] font-medium tracking-tight text-foreground dark:text-white tabular-nums",
+                retail:
+                  "text-xs font-light line-through text-foreground/50 dark:text-white/35 order-first",
+                badge:
+                  "inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary",
+              }}
+              requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
+            />
             {SHOW_STOCK_BADGE ? (
               <span
                 className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${

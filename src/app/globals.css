@@ -22,6 +22,13 @@
   --font-mono:
     var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  /* Premium typography for admin Premium Operator Console direction.
+     --font-display (Unbounded) is loaded in src/app/layout.tsx via next/font.
+     --font-condensed (Bebas Neue) is also loaded there. Exposed here as
+     Tailwind utilities `font-display` / `font-condensed` so admin components
+     can use them without inline styles. */
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-condensed: var(--font-condensed), "Impact", "Arial Narrow", sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -184,9 +191,8 @@
     --input: 240 5% 12%;
     --ring: 0 0% 100%;
 
-    /* Dark theme keeps the original pill-shape corners. Light (Porsche
-       Editorial) uses sharp 4px corners defined in :root. */
-    --radius: 999px;
+    /* Consistent sharp 4px corners (Porsche Editorial) in both modes */
+    --radius: 4px;
 
     /* Tailwind v4 quirk: @theme registers --color-* tokens via @property
        at :root level; nested .dark scopes don't propagate the resolved
@@ -222,12 +228,12 @@
      surfaces inside without touching individual components. */
   .dark .shop-context,
   .dark .admin-context {
-    --primary: 43 45% 55%;
-    --accent: 43 45% 55%;
-    --ring: 43 45% 55%;
-    --color-primary: hsl(43 45% 55%);
-    --color-accent: hsl(43 45% 55%);
-    --color-ring: hsl(43 45% 55%);
+    --primary: 210 10% 80%;
+    --accent: 210 10% 80%;
+    --ring: 210 10% 80%;
+    --color-primary: hsl(210 10% 80%);
+    --color-accent: hsl(210 10% 80%);
+    --color-ring: hsl(210 10% 80%);
   }
 
   * {

@@ -384,6 +384,13 @@ export function BurgerShopProductDetailLayout({
                         locale={resolvedLocale}
                         isUa={isUa}
                         price={pricing.effectivePrice}
+                        b2cPrice={pricing.bands.b2c.price}
+                        b2bExplicit={
+                          pricing.bands.b2b?.source === "b2b-explicit"
+                            ? pricing.bands.b2b.price
+                            : null
+                        }
+                        brand={product.brand ?? (product as any).vendor ?? null}
                       />
                     </div>
                     {pricing.effectiveCompareAt && (

@@ -803,6 +803,8 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
               locale={locale as any}
               isUa={isUa}
               price={{ eur: priceEur, usd: priceUsd, uah: priceUah }}
+              b2cPrice={{ eur: priceEur, usd: priceUsd, uah: priceUah }}
+              brand={product.brand ?? (product as any).vendor ?? null}
             />
           </div>
           {pricing ? (

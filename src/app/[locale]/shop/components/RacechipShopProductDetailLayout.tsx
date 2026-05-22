@@ -7,6 +7,7 @@ import { ArrowLeft, Check, ChevronRight, Zap, Target, Truck } from "lucide-react
 
 import type { SupportedLocale } from "@/lib/seo";
 import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
+import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
@@ -232,36 +233,18 @@ export default function RacechipShopProductDetailLayout({
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 md:mb-8">
                 <div className="min-w-0">
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-foreground/55 dark:text-zinc-500 mb-2 font-bold">
-                    {isUa ? "Ціна" : "Price"}
-                  </span>
-                  <div className="text-3xl sm:text-4xl font-black text-foreground tracking-tight break-words">
-                    {finalPriceLabel || (isUa ? "Під замовлення" : "On Request")}
-                  </div>
-                  {/* All 3 currencies row */}
-                  {pricing && (
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 sm:mt-3 text-[11px] tracking-widest font-light text-foreground/55 dark:text-zinc-500">
-                      <span className={currency === "EUR" ? "text-foreground font-bold" : ""}>
-                        {pricing.eur}
-                      </span>
-                      {pricing.usd && (
-                        <>
-                          <span className="text-foreground/25 dark:text-zinc-700">·</span>
-                          <span className={currency === "USD" ? "text-foreground font-bold" : ""}>
-                            {pricing.usd}
-                          </span>
-                        </>
-                      )}
-                      {pricing.uah && (
-                        <>
-                          <span className="text-foreground/25 dark:text-zinc-700">·</span>
-                          <span className={currency === "UAH" ? "text-foreground font-bold" : ""}>
-                            {pricing.uah}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  )}
+                  <ShopPrimaryPriceBox
+                    locale={locale as "ua" | "en"}
+                    isUa={isUa}
+                    price={resolvedB2B.effectivePrice}
+                    b2cPrice={resolvedB2B.bands.b2c.price}
+                    b2bExplicit={
+                      resolvedB2B.bands.b2b?.source === "b2b-explicit"
+                        ? resolvedB2B.bands.b2b.price
+                        : null
+                    }
+                    brand={product.brand ?? null}
+                  />
                 </div>
                 <div className="sm:text-right shrink-0">
                   <span className="flex items-center gap-1.5 text-[11px] sm:text-xs text-foreground/85 dark:text-zinc-300 font-bold uppercase tracking-widest sm:justify-end">

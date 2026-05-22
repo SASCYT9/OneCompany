@@ -2,6 +2,10 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import { getCsfProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { Suspense } from "react";
+import { prisma } from "@/lib/prisma";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { loadBrandDiscountMap } from "@/lib/shopBrandB2bDiscounts";
 import CSFCatalogGrid from "../../components/CSFCatalogGrid";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -29,7 +33,23 @@ export default async function CSFCollectionsPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
-  const csfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
+  const [csfRows, settingsRecord, systemBrandMap] = await Promise.all([
+    getCsfProductsServer(),
+    getOrCreateShopSettings(prisma),
+    loadBrandDiscountMap(prisma),
+  ]);
+  const csfProducts = csfRows.map(projectShopProductForListGrid);
+
+  // SSR baseline is anonymous so the page can be cached publicly; per-
+  // customer overrides are layered in client-side via
+  // `useShopViewerContext()` → `/api/shop/brand-discounts/me`.
+  const viewerContext = buildShopViewerPricingContext(
+    getShopSettingsRuntime(settingsRecord),
+    null,
+    false,
+    null,
+    { systemBrandDiscountMap: systemBrandMap }
+  );
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -57,7 +77,11 @@ export default async function CSFCollectionsPage({ params }: Props) {
             </div>
           }
         >
-          <CSFCatalogGrid locale={resolvedLocale} products={csfProducts} />
+          <CSFCatalogGrid
+            locale={resolvedLocale}
+            products={csfProducts}
+            viewerContext={viewerContext}
+          />
         </Suspense>
       </div>
     </div>

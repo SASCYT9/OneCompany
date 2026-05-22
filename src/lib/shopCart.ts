@@ -1,20 +1,20 @@
-import crypto from 'crypto';
-import { Prisma, PrismaClient } from '@prisma/client';
-import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
+import crypto from "crypto";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import {
   resolveShopPriceBands,
   resolveShopProductPricing,
   type ShopViewerPricingContext,
-} from '@/lib/shopPricingAudience';
+} from "@/lib/shopPricingAudience";
 
-export const SHOP_CART_COOKIE = 'oc_cart_token';
+export const SHOP_CART_COOKIE = "oc_cart_token";
 export const SHOP_CART_MAX_ITEMS = 40;
 export const SHOP_CART_MAX_QUANTITY = 20;
 const SHOP_CART_TTL_DAYS = 30;
 
 const cartWithItemsInclude = {
   items: {
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   },
 } satisfies Prisma.ShopCartInclude;
 
@@ -29,11 +29,11 @@ export type ShopCartItemInput = {
 };
 
 function normalizeLocale(locale?: string | null) {
-  return locale === 'ua' ? 'ua' : 'en';
+  return locale === "ua" ? "ua" : "en";
 }
 
 function createCartToken() {
-  return crypto.randomBytes(18).toString('hex');
+  return crypto.randomBytes(18).toString("hex");
 }
 
 function addDays(days: number) {
@@ -41,7 +41,7 @@ function addDays(days: number) {
 }
 
 function uniqueKey(slug: string, variantId?: string | null) {
-  return `${slug}::${variantId ?? ''}`;
+  return `${slug}::${variantId ?? ""}`;
 }
 
 function normalizeQuantity(value: unknown) {
@@ -54,7 +54,7 @@ function normalizeItems(items: ShopCartItemInput[]) {
   const aggregate = new Map<string, ShopCartItemInput>();
 
   for (const item of items.slice(0, SHOP_CART_MAX_ITEMS)) {
-    const slug = String(item.slug ?? '').trim();
+    const slug = String(item.slug ?? "").trim();
     const quantity = normalizeQuantity(item.quantity);
     if (!slug || quantity <= 0) continue;
 
@@ -90,7 +90,7 @@ async function loadCustomerCart(prisma: PrismaClient, customerId?: string | null
   if (!customerId) return null;
   return prisma.shopCart.findFirst({
     where: { customerId },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updatedAt: "desc" },
     include: cartWithItemsInclude,
   });
 }
@@ -108,7 +108,7 @@ async function createCart(
     data: {
       token: input.token?.trim() || createCartToken(),
       customerId: input.customerId ?? null,
-      currency: String(input.currency ?? 'EUR').toUpperCase(),
+      currency: String(input.currency ?? "EUR").toUpperCase(),
       locale: normalizeLocale(input.locale),
       expiresAt: addDays(SHOP_CART_TTL_DAYS),
     },
@@ -324,7 +324,7 @@ export async function updateShopCartItemQuantity(
   const { cart, token } = await resolveShopCart(prisma, input);
   const existing = cart.items.find((item) => item.id === input.itemId);
   if (!existing) {
-    throw new Error('CART_ITEM_NOT_FOUND');
+    throw new Error("CART_ITEM_NOT_FOUND");
   }
 
   const nextItems = cart.items.map((item) => ({
@@ -406,6 +406,10 @@ export async function serializeResolvedShopCart(
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
           context,
+          // Variants inherit the parent product's brand (variant.brand is
+          // typically null). Without this, per-brand B2B discount tiers
+          // are bypassed for variant-based cart items.
+          brand: product.brand ?? (product as any).vendor ?? null,
         })
       : resolveShopProductPricing(product, context);
     items.push({

@@ -1,0 +1,224 @@
+{
+  "generatedAt": "2026-05-13T13:07:02.629Z",
+  "totalActivePublished": 10716,
+  "missingUaTitle": 0,
+  "missingEnTitle": 0,
+  "noUaDescription": 461,
+  "noEnDescription": 464,
+  "noImage": 107,
+  "noPositivePrice": 3,
+  "duplicateSkuGroups": 908,
+  "duplicateSkuTotal": 2802,
+  "byBrand": [
+    {
+      "brand": "RaceChip",
+      "count": 5181
+    },
+    {
+      "brand": "DO88",
+      "count": 1230
+    },
+    {
+      "brand": "Brabus",
+      "count": 980
+    },
+    {
+      "brand": "GiroDisc",
+      "count": 958
+    },
+    {
+      "brand": "Burger Motorsports",
+      "count": 666
+    },
+    {
+      "brand": "OHLINS",
+      "count": 488
+    },
+    {
+      "brand": "AKRAPOVIC",
+      "count": 354
+    },
+    {
+      "brand": "CSF",
+      "count": 286
+    },
+    {
+      "brand": "ADRO",
+      "count": 203
+    },
+    {
+      "brand": "iPE exhaust",
+      "count": 111
+    },
+    {
+      "brand": "Range Rover",
+      "count": 73
+    },
+    {
+      "brand": "Land Rover",
+      "count": 60
+    },
+    {
+      "brand": "Mercedes-Benz",
+      "count": 34
+    },
+    {
+      "brand": "Audi",
+      "count": 30
+    },
+    {
+      "brand": "Lamborghini",
+      "count": 28
+    },
+    {
+      "brand": "Volkswagen",
+      "count": 23
+    },
+    {
+      "brand": "Bentley",
+      "count": 6
+    },
+    {
+      "brand": "Rolls-Royce",
+      "count": 5
+    }
+  ],
+  "noUaDescByBrand": {
+    "OHLINS": 335,
+    "AKRAPOVIC": 122,
+    "Burger Motorsports": 1,
+    "CSF": 3
+  },
+  "noEnDescByBrand": {
+    "OHLINS": 335,
+    "AKRAPOVIC": 122,
+    "ADRO": 3,
+    "Burger Motorsports": 1,
+    "CSF": 3
+  },
+  "samples": {
+    "missingUaTitle": [],
+    "missingEnTitle": [],
+    "noImage": [
+      {
+        "id": "cmnxjlfe0008re90c1r3o47fp",
+        "sku": "E-ME/T/5",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-e-me-t-5"
+      },
+      {
+        "id": "cmnxjma9v009we90cb4ntecbd",
+        "sku": "E-AR/T/1",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-e-ar-t-1"
+      },
+      {
+        "id": "cmnxjn8fa00b7e90c240cdvjb",
+        "sku": "801607",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-801607"
+      },
+      {
+        "id": "cmnxjnn7b00bre90c1phlxkh0",
+        "sku": "P-HF868",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-p-hf868"
+      },
+      {
+        "id": "cmnxjshge00ike90cvs1q1pgt",
+        "sku": "L-ME/SS/2/R",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-l-me-ss-2-r"
+      },
+      {
+        "id": "cmnxjsjab00ime90cxa23rgv3",
+        "sku": "L-ME/SS/2/L",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-l-me-ss-2-l"
+      },
+      {
+        "id": "cmnxjutva00lxe90czitowqxz",
+        "sku": "DI-PO/CA/10/M",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-di-po-ca-10-m"
+      },
+      {
+        "id": "cmnxjxt1o00q8e90cftbeo3rw",
+        "sku": "P-HF1621",
+        "brand": "AKRAPOVIC",
+        "slug": "akrapovic-p-hf1621"
+      },
+      {
+        "id": "cmnxk02rk00tje90cinc8f8u0",
+        "sku": "NIS GQ00",
+        "brand": "OHLINS",
+        "slug": "ohlins-nis-gq00"
+      },
+      {
+        "id": "cmnxk9pc7017re90cml2rwxoe",
+        "sku": "BMS 6I00",
+        "brand": "OHLINS",
+        "slug": "ohlins-bms-6i00"
+      }
+    ],
+    "noPrice": [
+      {
+        "id": "cmnxjgfec001re90c0x37deje",
+        "sku": "M-NI/T/1H",
+        "brand": "AKRAPOVIC"
+      },
+      {
+        "id": "cmnxk02rk00tje90cinc8f8u0",
+        "sku": "NIS GQ00",
+        "brand": "OHLINS"
+      },
+      {
+        "id": "cmnxkflrh01ghe90c4nqt6ap1",
+        "sku": "06245-04",
+        "brand": "OHLINS"
+      }
+    ],
+    "duplicateSkus": [
+      {
+        "sku": "RC-GTS5-ALFA-ROMEO-1-9-JTD-1910CCM-115HP-85KW-275NM",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-BMW-218I-1499CCM-140HP-103KW-220NM",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-FIAT-1-5-T4-HYBRID-1469CCM-131HP-96KW-240NM",
+        "count": 2
+      },
+      {
+        "sku": "1AA50-11-A000-2N",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-MASERATI-3-0-D-2987CCM-250HP-184KW-570NM",
+        "count": 3
+      },
+      {
+        "sku": "RC-GTS5-CITROEN-2-0-HDI-140-1997CCM-136HP-100KW-320NM",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-OPEL-1-3-CDTI-16V-1248CCM-69HP-51KW-170NM",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-PORSCHE-2-9-E-HYBRID-2894CCM-462HP-340KW-550NM",
+        "count": 2
+      },
+      {
+        "sku": "RC-GTS5-KIA-1-0-T-GDI-FROM-08-2020-998CCM-101HP-74KW-172NM",
+        "count": 2
+      },
+      {
+        "sku": "BMW-FFK-G02",
+        "count": 2
+      }
+    ]
+  }
+}

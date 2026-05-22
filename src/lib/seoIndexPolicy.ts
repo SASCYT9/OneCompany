@@ -70,6 +70,7 @@ export const noindexPatterns = [
   /^\/admin(?:\/.*)?$/,
   /^\/api(?:\/.*)?$/,
   /^\/quote(?:\/.*)?$/,
+  /^\/design-lab(?:\/.*)?$/,
 ] as const;
 
 export type RedirectPattern = {

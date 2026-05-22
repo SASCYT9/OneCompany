@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="One Company forged wheel center cap">
+  <defs>
+    <radialGradient id="cap-shell" cx="50%" cy="42%" r="58%">
+      <stop offset="0" stop-color="#1d2227"/>
+      <stop offset="0.48" stop-color="#080a0d"/>
+      <stop offset="1" stop-color="#010203"/>
+    </radialGradient>
+    <linearGradient id="cap-ring" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f5fbff"/>
+      <stop offset="0.24" stop-color="#73808b"/>
+      <stop offset="0.54" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#2d353d"/>
+    </linearGradient>
+    <pattern id="carbon" width="54" height="54" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="54" height="54" fill="#050608"/>
+      <rect x="0" y="0" width="27" height="11" fill="#242a30" opacity="0.82"/>
+      <rect x="27" y="27" width="27" height="11" fill="#1c2127" opacity="0.88"/>
+      <rect x="0" y="30" width="27" height="8" fill="#000" opacity="0.24"/>
+      <rect x="27" y="3" width="27" height="8" fill="#000" opacity="0.2"/>
+    </pattern>
+    <path id="outer-text-top" d="M 154 512 A 358 358 0 0 1 870 512"/>
+    <path id="outer-text-bottom" d="M 870 512 A 358 358 0 0 1 154 512"/>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+  <circle cx="512" cy="512" r="500" fill="none"/>
+  <g filter="url(#soft-shadow)">
+    <circle cx="512" cy="512" r="430" fill="url(#cap-ring)"/>
+    <circle cx="512" cy="512" r="400" fill="#05070a"/>
+    <circle cx="512" cy="512" r="356" fill="url(#cap-shell)" stroke="#dce5eb" stroke-width="8"/>
+    <circle cx="512" cy="512" r="282" fill="url(#carbon)" stroke="#68727b" stroke-width="3" opacity="0.98"/>
+    <circle cx="512" cy="512" r="236" fill="#05070a" opacity="0.28"/>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#f7fbff" letter-spacing="7">
+      <textPath href="#outer-text-top" startOffset="50%" text-anchor="middle">ONE COMPANY 6061-T6 FORGED PROGRAM</textPath>
+    </text>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#f7fbff" letter-spacing="7">
+      <textPath href="#outer-text-bottom" startOffset="50%" text-anchor="middle">PRECISION TAILORED WHEELS</textPath>
+    </text>
+    <circle cx="173" cy="512" r="10" fill="#f7fbff"/>
+    <circle cx="851" cy="512" r="10" fill="#f7fbff"/>
+    <text x="512" y="500" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="158" font-weight="900" fill="#f7fbff" letter-spacing="-9">ONE</text>
+    <text x="512" y="595" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="58" font-weight="900" fill="#f7fbff" letter-spacing="8">COMPANY</text>
+    <path d="M390 620h244" stroke="#f7fbff" stroke-width="10" stroke-linecap="round" opacity="0.75"/>
+  </g>
+</svg>

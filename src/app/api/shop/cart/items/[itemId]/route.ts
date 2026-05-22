@@ -1,19 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { deleteShopCartItem, SHOP_CART_COOKIE, serializeResolvedShopCart, updateShopCartItemQuantity } from '@/lib/shopCart';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import {
+  deleteShopCartItem,
+  SHOP_CART_COOKIE,
+  serializeResolvedShopCart,
+  updateShopCartItemQuantity,
+} from "@/lib/shopCart";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { loadBrandDiscountMap, loadCustomerBrandDiscountMap } from "@/lib/shopBrandB2bDiscounts";
+import { prisma } from "@/lib/prisma";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 function setCartCookie(response: NextResponse, token: string) {
   response.cookies.set(SHOP_CART_COOKIE, token, {
-    path: '/',
+    path: "/",
     maxAge: COOKIE_MAX_AGE,
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
 }
 
@@ -21,6 +27,10 @@ async function loadPricingContext() {
   const [session, settingsRecord] = await Promise.all([
     getCurrentShopCustomerSession(),
     getOrCreateShopSettings(prisma),
+  ]);
+  const [systemBrandMap, customerBrandMap] = await Promise.all([
+    loadBrandDiscountMap(prisma),
+    loadCustomerBrandDiscountMap(prisma, session?.customerId ?? null),
   ]);
   const settings = getShopSettingsRuntime(settingsRecord);
   return {
@@ -30,7 +40,11 @@ async function loadPricingContext() {
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      {
+        systemBrandDiscountMap: systemBrandMap,
+        customerBrandDiscountMap: customerBrandMap,
+      }
     ),
   };
 }
@@ -43,12 +57,12 @@ export async function PATCH(
   try {
     body = (await request.json()) as { quantity?: number; currency?: string; locale?: string };
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const quantity = Number(body.quantity ?? 0);
   if (!Number.isFinite(quantity)) {
-    return NextResponse.json({ error: 'quantity is required' }, { status: 400 });
+    return NextResponse.json({ error: "quantity is required" }, { status: 400 });
   }
 
   const { itemId } = await params;
@@ -59,7 +73,7 @@ export async function PATCH(
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: body.currency ?? settings.defaultCurrency,
-      locale: body.locale ?? session?.preferredLocale ?? 'en',
+      locale: body.locale ?? session?.preferredLocale ?? "en",
       itemId,
       quantity,
     });
@@ -68,11 +82,11 @@ export async function PATCH(
     setCartCookie(response, token);
     return response;
   } catch (error) {
-    if ((error as Error).message === 'CART_ITEM_NOT_FOUND') {
-      return NextResponse.json({ error: 'Cart item not found' }, { status: 404 });
+    if ((error as Error).message === "CART_ITEM_NOT_FOUND") {
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
     }
-    console.error('Shop cart item patch', error);
-    return NextResponse.json({ error: 'Failed to update cart item' }, { status: 500 });
+    console.error("Shop cart item patch", error);
+    return NextResponse.json({ error: "Failed to update cart item" }, { status: 500 });
   }
 }
 
@@ -87,7 +101,7 @@ export async function DELETE(
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: settings.defaultCurrency,
-      locale: session?.preferredLocale ?? 'en',
+      locale: session?.preferredLocale ?? "en",
       itemId,
     });
     const payload = await serializeResolvedShopCart(cart, context);
@@ -95,9 +109,9 @@ export async function DELETE(
     setCartCookie(response, token);
     return response;
   } catch (error) {
-    console.error('Shop cart item delete', error);
-    return NextResponse.json({ error: 'Failed to delete cart item' }, { status: 500 });
+    console.error("Shop cart item delete", error);
+    return NextResponse.json({ error: "Failed to delete cart item" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

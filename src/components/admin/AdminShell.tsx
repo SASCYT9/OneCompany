@@ -500,31 +500,6 @@ export default function AdminShell({
           ))}
         </nav>
 
-        {/* Hero card — real Mansory photo (matches reference) */}
-        {!collapsed ? (
-          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-none border border-white/5 bg-[#0F0F0F]">
-            <div className="relative h-32 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/hero-auto.jpg"
-                alt="Premium automotive distributor"
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-[#0F0F0F] via-transparent to-transparent" />
-            </div>
-            <div className="border-t border-white/4 px-4 py-3">
-              <div className="flex items-center gap-2 text-[11px] font-medium text-blue-400">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.7)] motion-safe:animate-pulse" />
-                onecompany.global
-              </div>
-              <div className="mt-1 text-[11px] leading-4 text-zinc-500">
-                Premium Automotive Performance &amp; Styling Distributor
-              </div>
-            </div>
-          </div>
-        ) : null}
-
         <div className="border-t border-white/5 px-3 py-3">
           <AdminCurrencySwitcher collapsed={collapsed} />
           <button
@@ -542,7 +517,7 @@ export default function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-3 py-3 backdrop-blur-xl sm:px-6 sm:py-3.5">
+        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-3 py-2.5 backdrop-blur-xl sm:px-6 sm:py-3.5">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
@@ -560,13 +535,11 @@ export default function AdminShell({
                   submitQuickLink();
                 }}
                 className={cn(
-                  "flex items-center gap-2 rounded-none border bg-[#171717] px-3.5 py-2 transition-all",
-                  searchFocused
-                    ? "border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
-                    : "border-white/6 hover:border-white/15"
+                  "flex items-center gap-2 rounded-none border bg-[#171717] px-2.5 py-1.5 transition-all sm:px-3.5 sm:py-2",
+                  searchFocused ? "border-blue-500/40" : "border-white/6 hover:border-white/15"
                 )}
               >
-                <Search className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                <Search className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden="true" />
                 <input
                   id="admin-global-search"
                   value={query}

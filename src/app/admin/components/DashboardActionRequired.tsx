@@ -4,12 +4,6 @@ import { ArrowUpRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const CARBON_WEAVE_STYLE: React.CSSProperties = {
-  backgroundImage:
-    "linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%), repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px)",
-  backgroundBlendMode: "normal, overlay, overlay",
-};
-
 export type ActionItem = {
   id: string;
   severity: "red" | "amber" | "green";
@@ -29,27 +23,23 @@ export function DashboardActionRequired({ items }: { items: ActionItem[] }) {
     .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] || b.count - a.count);
 
   return (
-    <section
-      className="relative overflow-hidden rounded-none border border-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_1px_2px_rgba(0,0,0,0.6)]"
-      style={CARBON_WEAVE_STYLE}
-    >
-      <div className="flex items-center gap-3 border-b border-white/5 px-4 py-2.5">
-        <span className="h-3 w-[3px] rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-100">
-          Action required
+    <section className="relative overflow-hidden rounded-none border border-white/5 bg-[#171717]">
+      <div className="flex items-center gap-2.5 border-b border-white/5 px-4 py-3">
+        <h3 className="font-display text-[13px] font-semibold tracking-tight text-zinc-100">
+          Потребує дії
         </h3>
-        <span className="ml-auto text-[10px] font-bold uppercase tracking-wider tabular-nums text-zinc-500">
-          {actionable.length} {actionable.length === 1 ? "item" : "items"}
+        <span className="font-display ml-auto text-[12px] tabular-nums text-zinc-500">
+          {actionable.length}
         </span>
       </div>
 
       {actionable.length === 0 ? (
-        <div className="flex items-center gap-3 px-4 py-6 text-sm text-zinc-400">
-          <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
-          <span>All clear. No urgent actions right now.</span>
+        <div className="font-display flex items-center gap-3 px-4 py-6 text-[13px] text-zinc-400">
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          <span>Все спокійно. Активних проблем немає.</span>
         </div>
       ) : (
-        <ul className="divide-y divide-white/4">
+        <ul className="divide-y divide-white/5">
           {actionable.map((item) => (
             <li key={item.id}>
               <ActionRow item={item} />
@@ -91,19 +81,23 @@ function ActionRow({ item }: { item: ActionItem }) {
     <Link
       href={item.href}
       aria-label={`${severityText}: ${item.label}, count ${item.count}`}
-      className="group relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white/2.5 focus-visible:outline-hidden focus-visible:bg-white/4 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset"
+      className="group relative flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.025] focus-visible:outline-hidden focus-visible:bg-white/4 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-inset"
     >
-      <span
-        className={cn("absolute left-0 top-0 h-full w-[2px]", stripeClass)}
-        aria-hidden="true"
-      />
+      <span className={cn("absolute left-0 top-0 h-full w-px", stripeClass)} aria-hidden="true" />
       <span className={cn("h-2 w-2 shrink-0 rounded-full", dotClass)} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-semibold text-zinc-100">{item.label}</span>
-          <span className={cn("text-sm font-bold tabular-nums", countClass)}>{item.count}</span>
+          <span className="font-display text-[14px] font-semibold text-zinc-100">{item.label}</span>
+          <span
+            className={cn(
+              "font-condensed text-[20px] font-normal tabular-nums leading-none",
+              countClass
+            )}
+          >
+            {item.count}
+          </span>
         </div>
-        <div className="mt-0.5 truncate text-xs text-zinc-400">{item.detail}</div>
+        <div className="font-display mt-1 truncate text-[12px] text-zinc-400">{item.detail}</div>
       </div>
       <ArrowUpRight
         className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-blue-400"

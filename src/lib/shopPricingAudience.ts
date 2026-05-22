@@ -1,9 +1,9 @@
-import type { CustomerGroup } from '@prisma/client';
-import type { ShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import type { ShopProduct } from '@/lib/shopCatalog';
+import type { CustomerGroup } from "@prisma/client";
+import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import type { ShopProduct } from "@/lib/shopCatalog";
 
-export type ShopPriceAudience = 'b2c' | 'b2b';
-export type ShopResolvedPriceSource = 'b2c' | 'b2b-explicit' | 'b2b-discount';
+export type ShopPriceAudience = "b2c" | "b2b";
+export type ShopResolvedPriceSource = "b2c" | "b2b-explicit" | "b2b-discount";
 
 export type ShopViewerPricingContext = {
   customerGroup: CustomerGroup | null;
@@ -11,6 +11,16 @@ export type ShopViewerPricingContext = {
   defaultB2BDiscountPercent: number | null;
   b2bVisibilityMode: string;
   isAuthenticated: boolean;
+  /**
+   * Optional pre-loaded discount maps (lowercased brand → discount %)
+   * used by the 3-tier per-brand resolution. If absent, only the
+   * legacy 2-tier (customer-global → system-default) applies.
+   * Loaded by call sites (server components / API routes) once per
+   * request via loadBrandDiscountMap / loadCustomerBrandDiscountMap
+   * from `src/lib/shopBrandB2bDiscounts.ts`.
+   */
+  systemBrandDiscountMap?: ReadonlyMap<string, number>;
+  customerBrandDiscountMap?: ReadonlyMap<string, number>;
 };
 
 export type ShopResolvedPricing = {
@@ -53,7 +63,7 @@ export type ShopResolvedPricing = {
         usd: number;
         uah: number;
       } | null;
-      source: Extract<ShopResolvedPriceSource, 'b2b-explicit' | 'b2b-discount'>;
+      source: Extract<ShopResolvedPriceSource, "b2b-explicit" | "b2b-discount">;
       discountPercent: number | null;
     } | null;
   };
@@ -98,11 +108,7 @@ function clampDiscountPercent(value: unknown) {
 }
 
 function hasAnyPositiveValue(set?: Partial<PriceSet> | null) {
-  return (
-    Number(set?.eur ?? 0) > 0 ||
-    Number(set?.usd ?? 0) > 0 ||
-    Number(set?.uah ?? 0) > 0
-  );
+  return Number(set?.eur ?? 0) > 0 || Number(set?.usd ?? 0) > 0 || Number(set?.uah ?? 0) > 0;
 }
 
 function hasPriceDifference(left: PriceSet, right: PriceSet) {
@@ -123,8 +129,33 @@ function applyPercentDiscount(base: PriceSet, discountPercent: number): PriceSet
   };
 }
 
-function resolveEffectiveDiscountPercent(context: ShopViewerPricingContext) {
-  if (context.customerGroup === 'B2B_APPROVED') {
+/**
+ * 4-tier B2B discount resolution (highest → lowest priority):
+ *   1. ShopCustomerBrandDiscount    — per-customer per-brand override
+ *   2. ShopBrandB2bDiscount         — system-wide per-brand
+ *   3. ShopCustomer.b2bDiscountPercent — per-customer global
+ *   4. ShopSettings.defaultB2BDiscountPercent — system fallback
+ *
+ * `brand` is the product's brand string (case-insensitive). When omitted
+ * or no brand-level rule exists, falls back through tiers 3 and 4. The
+ * per-brand maps live on `context.customerBrandDiscountMap` /
+ * `systemBrandDiscountMap` — both are optional, so callers that didn't
+ * preload them still get a working 2-tier result.
+ */
+function resolveEffectiveDiscountPercent(context: ShopViewerPricingContext, brand?: string | null) {
+  // Per-brand tiers only apply to approved B2B customers — guest/B2C
+  // viewers never get B2B pricing regardless of brand rules.
+  if (context.customerGroup === "B2B_APPROVED" && brand) {
+    const key = brand.trim().toLowerCase();
+    if (key) {
+      const customerBrand = context.customerBrandDiscountMap?.get(key);
+      if (customerBrand != null) return clampDiscountPercent(customerBrand);
+      const systemBrand = context.systemBrandDiscountMap?.get(key);
+      if (systemBrand != null) return clampDiscountPercent(systemBrand);
+    }
+  }
+
+  if (context.customerGroup === "B2B_APPROVED") {
     const customerOverride = clampDiscountPercent(context.customerB2BDiscountPercent);
     if (customerOverride > 0) {
       return customerOverride;
@@ -146,20 +177,20 @@ function mergeB2BPriceSet(
   if (!hasExplicit && !discounted) {
     return {
       price: null,
-      source: 'b2c' as const,
+      source: "b2c" as const,
       discountPercent: null,
     };
   }
 
   const price = {
-    eur: explicit.eur > 0 ? explicit.eur : discounted?.eur ?? base.eur,
-    usd: explicit.usd > 0 ? explicit.usd : discounted?.usd ?? base.usd,
-    uah: explicit.uah > 0 ? explicit.uah : discounted?.uah ?? base.uah,
+    eur: explicit.eur > 0 ? explicit.eur : (discounted?.eur ?? base.eur),
+    usd: explicit.usd > 0 ? explicit.usd : (discounted?.usd ?? base.usd),
+    uah: explicit.uah > 0 ? explicit.uah : (discounted?.uah ?? base.uah),
   };
 
   return {
     price,
-    source: hasExplicit ? ('b2b-explicit' as const) : ('b2b-discount' as const),
+    source: hasExplicit ? ("b2b-explicit" as const) : ("b2b-discount" as const),
     discountPercent: hasExplicit ? null : discountPercent,
   };
 }
@@ -183,9 +214,9 @@ function mergeB2BCompareSet(
   }
 
   return {
-    eur: explicit.eur > 0 ? explicit.eur : fallback?.eur ?? 0,
-    usd: explicit.usd > 0 ? explicit.usd : fallback?.usd ?? 0,
-    uah: explicit.uah > 0 ? explicit.uah : fallback?.uah ?? 0,
+    eur: explicit.eur > 0 ? explicit.eur : (fallback?.eur ?? 0),
+    usd: explicit.usd > 0 ? explicit.usd : (fallback?.usd ?? 0),
+    uah: explicit.uah > 0 ? explicit.uah : (fallback?.uah ?? 0),
   };
 }
 
@@ -193,7 +224,11 @@ export function buildShopViewerPricingContext(
   settings: ShopSettingsRuntime,
   customerGroup: CustomerGroup | null,
   isAuthenticated: boolean,
-  customerB2BDiscountPercent?: number | null
+  customerB2BDiscountPercent?: number | null,
+  brandMaps?: {
+    systemBrandDiscountMap?: ReadonlyMap<string, number>;
+    customerBrandDiscountMap?: ReadonlyMap<string, number>;
+  }
 ): ShopViewerPricingContext {
   return {
     customerGroup,
@@ -201,22 +236,24 @@ export function buildShopViewerPricingContext(
     defaultB2BDiscountPercent: settings.defaultB2bDiscountPercent,
     b2bVisibilityMode: settings.b2bVisibilityMode,
     isAuthenticated,
+    systemBrandDiscountMap: brandMaps?.systemBrandDiscountMap,
+    customerBrandDiscountMap: brandMaps?.customerBrandDiscountMap,
   };
 }
 
 export function canViewerSeeB2BBands(context: ShopViewerPricingContext) {
-  if (context.customerGroup === 'B2B_APPROVED') {
+  if (context.customerGroup === "B2B_APPROVED") {
     return true;
   }
-  return context.b2bVisibilityMode === 'public_dual';
+  return context.b2bVisibilityMode === "public_dual";
 }
 
 export function resolveCheckoutAudience(context: ShopViewerPricingContext): ShopPriceAudience {
-  return context.customerGroup === 'B2B_APPROVED' ? 'b2b' : 'b2c';
+  return context.customerGroup === "B2B_APPROVED" ? "b2b" : "b2c";
 }
 
 export function shouldPromptB2BQuote(context: ShopViewerPricingContext) {
-  return context.b2bVisibilityMode === 'request_quote' && context.customerGroup !== 'B2B_APPROVED';
+  return context.b2bVisibilityMode === "request_quote" && context.customerGroup !== "B2B_APPROVED";
 }
 
 export function resolveShopPriceBands(input: {
@@ -225,30 +262,27 @@ export function resolveShopPriceBands(input: {
   b2bPrice?: Partial<PriceSet> | null;
   b2bCompareAt?: Partial<PriceSet> | null;
   context: ShopViewerPricingContext;
+  /** Product brand string — enables per-brand discount lookup. */
+  brand?: string | null;
 }): ShopResolvedPricing {
   const b2cPrice = normalizeMoneySet(input.b2cPrice);
   const b2cCompareAt = normalizeCompareSet(input.b2cCompareAt);
-  const effectiveDiscountPercent = resolveEffectiveDiscountPercent(input.context);
+  const effectiveDiscountPercent = resolveEffectiveDiscountPercent(input.context, input.brand);
   const mergedB2B = mergeB2BPriceSet(b2cPrice, input.b2bPrice, effectiveDiscountPercent);
   const b2bPrice = mergedB2B.price;
-  const b2bCompareAt = mergeB2BCompareSet(
-    b2cPrice,
-    b2cCompareAt,
-    b2bPrice,
-    input.b2bCompareAt
-  );
+  const b2bCompareAt = mergeB2BCompareSet(b2cPrice, b2cCompareAt, b2bPrice, input.b2bCompareAt);
 
   const audience = resolveCheckoutAudience(input.context);
-  const effectivePrice = audience === 'b2b' && b2bPrice ? b2bPrice : b2cPrice;
-  const effectiveCompareAt = audience === 'b2b' && b2bPrice ? b2bCompareAt : b2cCompareAt;
+  const effectivePrice = audience === "b2b" && b2bPrice ? b2bPrice : b2cPrice;
+  const effectiveCompareAt = audience === "b2b" && b2bPrice ? b2bCompareAt : b2cCompareAt;
   const bandVisible = canViewerSeeB2BBands(input.context) && Boolean(b2bPrice);
 
   return {
     audience,
-    source: audience === 'b2b' && b2bPrice ? mergedB2B.source : 'b2c',
+    source: audience === "b2b" && b2bPrice ? mergedB2B.source : "b2c",
     b2bVisible: bandVisible,
     requestQuote: shouldPromptB2BQuote(input.context),
-    discountPercent: audience === 'b2b' && b2bPrice ? mergedB2B.discountPercent : null,
+    discountPercent: audience === "b2b" && b2bPrice ? mergedB2B.discountPercent : null,
     effectivePrice,
     effectiveCompareAt,
     bands: {
@@ -260,7 +294,7 @@ export function resolveShopPriceBands(input: {
         ? {
             price: b2bPrice,
             compareAt: b2bCompareAt,
-            source: mergedB2B.source === 'b2b-discount' ? 'b2b-discount' : 'b2b-explicit',
+            source: mergedB2B.source === "b2b-discount" ? "b2b-discount" : "b2b-explicit",
             discountPercent: mergedB2B.discountPercent,
           }
         : null,
@@ -268,15 +302,16 @@ export function resolveShopPriceBands(input: {
   };
 }
 
-export function resolveShopProductPricing(
-  product: ShopProduct,
-  context: ShopViewerPricingContext
-) {
+export function resolveShopProductPricing(product: ShopProduct, context: ShopViewerPricingContext) {
+  // Brand falls back to vendor — see the comment on the brand resolver
+  // for the full 4-tier discount priority.
+  const brand = product.brand ?? (product as any).vendor ?? null;
   return resolveShopPriceBands({
     b2cPrice: product.price,
     b2cCompareAt: product.compareAt ?? null,
     b2bPrice: product.b2bPrice ?? null,
     b2bCompareAt: product.b2bCompareAt ?? null,
     context,
+    brand,
   });
 }

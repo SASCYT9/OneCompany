@@ -13,6 +13,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   resolveIpeProductLine,
@@ -1124,17 +1125,24 @@ export default function IpeVehicleFilter({
                             </h3>
 
                             <div className="mt-auto">
-                              {computed.usd === 0 && computed.eur === 0 ? (
-                                <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-foreground/40 dark:text-zinc-600">
-                                  {isUa ? "Ціна за запитом" : "Price on Request"}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-medium text-foreground dark:text-white">
-                                  {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
-                                  {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
-                                  {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
-                                </span>
-                              )}
+                              <ShopCardPriceTag
+                                locale={locale}
+                                b2cPrice={product.price}
+                                b2bExplicit={product.b2bPrice ?? null}
+                                compareAt={product.compareAt ?? null}
+                                brand={product.brand ?? null}
+                                variant="compact"
+                                classNames={{
+                                  root: "flex items-baseline gap-2 flex-wrap",
+                                  price:
+                                    "text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-medium text-foreground dark:text-white tabular-nums",
+                                  retail:
+                                    "text-[9px] sm:text-[10px] font-light line-through text-foreground/40 dark:text-zinc-500",
+                                  badge:
+                                    "inline-flex items-center rounded-sm bg-[#c29d59]/20 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#c29d59]",
+                                }}
+                                requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
+                              />
                             </div>
                           </div>
                         </Link>

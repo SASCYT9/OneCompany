@@ -5,15 +5,14 @@ import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * KPI card matching the OneCompany reference:
- *  - Blue circular icon top-left
- *  - Label · big tabular value
- *  - Optional ↗/↘ delta% vs prev period (compact, single line)
- *  - Optional meta text (truncated to 2 lines)
- *  - Optional bottom blue line+area sparkline edge-to-edge
+ * KPI card — "Premium Operator Console" direction.
  *
- * Cards use flex column with the spark anchored to the bottom so heights
- * stay equal in a 6-column grid.
+ *  - Hero number: Bebas Neue (condensed display) tabular — reads like an
+ *    instrument readout, takes the visual weight.
+ *  - Label + meta: Unbounded (display) — distinctive but readable copy.
+ *  - Optional thin top accent stripe (`primary`) elevates ONE card per row
+ *    to indicate the hero metric without resorting to bigger sizing.
+ *  - Optional sparkline anchored to the bottom for trend context.
  */
 export function DashboardKpiCard({
   label,
@@ -26,6 +25,7 @@ export function DashboardKpiCard({
   tone = "default",
   invertDelta = false,
   icon,
+  primary = false,
 }: {
   label: string;
   value: ReactNode;
@@ -37,6 +37,8 @@ export function DashboardKpiCard({
   tone?: "default" | "accent";
   invertDelta?: boolean;
   icon?: ReactNode;
+  /** Mark as the row's hero metric — adds a thin blue top stripe. */
+  primary?: boolean;
 }) {
   const hasDelta = current != null && previous != null && previous !== 0;
   const deltaPct = hasDelta ? ((current - previous) / Math.abs(previous)) * 100 : null;
@@ -51,12 +53,21 @@ export function DashboardKpiCard({
   return (
     <div
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-none border bg-[#171717] transition-all duration-200",
-        tone === "accent" ? "border-blue-500/25" : "border-white/5",
-        "hover:border-white/12"
+        "group relative flex h-full flex-col overflow-hidden rounded-none border bg-[#171717] transition-colors duration-200",
+        tone === "accent" ? "border-blue-500/30 bg-blue-500/[0.03]" : "border-white/8",
+        "hover:border-white/16"
       )}
     >
-      <div className={cn("flex flex-1 flex-col px-5 pt-5", hasSpark ? "pb-3" : "pb-5")}>
+      {primary ? (
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-400 to-transparent"
+        />
+      ) : null}
+
+      <div
+        className={cn("flex flex-1 flex-col px-4 pt-4 sm:px-5", hasSpark ? "pb-3" : "pb-4 sm:pb-5")}
+      >
         <div className="flex items-start gap-3">
           {icon ? (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600/15 text-blue-400 [&>svg]:h-4 [&>svg]:w-4">
@@ -64,37 +75,39 @@ export function DashboardKpiCard({
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-medium text-zinc-500">{label}</div>
-            <div className="mt-1.5 truncate text-[26px] font-semibold leading-none tracking-tight tabular-nums text-zinc-50">
+            <div className="font-display truncate text-[12px] font-medium text-zinc-400">
+              {label}
+            </div>
+            <div className="font-condensed mt-1.5 truncate text-[32px] font-normal leading-none tracking-tight text-zinc-50 tabular-nums sm:text-[40px]">
               {value}
             </div>
 
             {hasDelta ? (
               <div
                 className={cn(
-                  "mt-1.5 flex items-center gap-1 truncate text-[11px] font-medium tabular-nums",
+                  "font-display mt-2 flex items-center gap-1 truncate text-[12px] font-medium tabular-nums",
                   deltaColor
                 )}
               >
                 {deltaFlat ? (
-                  <Minus className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <Minus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 ) : deltaUp ? (
-                  <ArrowUp className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <ArrowUp className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 ) : (
-                  <ArrowDown className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <ArrowDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 )}
                 <span>
-                  {deltaFlat ? "~0%" : `${deltaPct! > 0 ? "+" : ""}${deltaPct!.toFixed(1)}%`}
+                  {deltaFlat ? "≈ 0%" : `${deltaPct! > 0 ? "+" : ""}${deltaPct!.toFixed(1)}%`}
                 </span>
-                <span className="truncate text-[11px] font-normal text-zinc-500">vs prev</span>
+                <span className="truncate text-[12px] font-normal text-zinc-500">vs прев.</span>
               </div>
             ) : null}
 
             {meta ? (
               <div
                 className={cn(
-                  "line-clamp-2 text-[11px] leading-[16px] text-zinc-500",
-                  hasDelta ? "mt-1" : "mt-1.5"
+                  "font-display line-clamp-2 text-[12px] leading-tight text-zinc-400",
+                  hasDelta ? "mt-1.5" : "mt-2"
                 )}
               >
                 {meta}
@@ -107,7 +120,7 @@ export function DashboardKpiCard({
                   <span
                     key={i}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium tabular-nums",
+                      "font-display inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium tabular-nums",
                       p.tone === "green" && "border-green-500/25 bg-green-500/10 text-green-300",
                       p.tone === "amber" && "border-amber-500/25 bg-amber-500/10 text-amber-300",
                       p.tone === "red" && "border-red-500/25 bg-red-500/10 text-red-300",
@@ -149,9 +162,20 @@ function SparkLine({ data }: { data: number[] }) {
     return { x, y };
   });
 
-  const linePath = points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-    .join(" ");
+  // Smooth cardinal spline
+  let linePath = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+    const t = 0.5;
+    const cp1x = p1.x + ((p2.x - p0.x) / 6) * t;
+    const cp1y = p1.y + ((p2.y - p0.y) / 6) * t;
+    const cp2x = p2.x - ((p3.x - p1.x) / 6) * t;
+    const cp2y = p2.y - ((p3.y - p1.y) / 6) * t;
+    linePath += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
   const areaPath = `${linePath} L ${w} ${h} L 0 ${h} Z`;
 
   return (
@@ -159,7 +183,7 @@ function SparkLine({ data }: { data: number[] }) {
       viewBox={`0 0 ${w} ${h}`}
       preserveAspectRatio="none"
       role="img"
-      aria-label={`Trend sparkline, ${data.length} periods`}
+      aria-label={`Тренд, ${data.length} періодів`}
       className="block h-10 w-full"
     >
       <defs>

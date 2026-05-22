@@ -1,28 +1,30 @@
-import { Prisma, PrismaClient } from '@prisma/client';
-import type { AdminSession } from '@/lib/adminAuth';
+import { Prisma, PrismaClient } from "@prisma/client";
+import type { AdminSession } from "@/lib/adminAuth";
 
 export const ADMIN_PERMISSIONS = {
-  SHOP_PRODUCTS_READ: 'shop.products.read',
-  SHOP_PRODUCTS_WRITE: 'shop.products.write',
-  SHOP_CUSTOMERS_READ: 'shop.customers.read',
-  SHOP_CUSTOMERS_WRITE: 'shop.customers.write',
-  SHOP_CATEGORIES_READ: 'shop.categories.read',
-  SHOP_CATEGORIES_WRITE: 'shop.categories.write',
-  SHOP_COLLECTIONS_READ: 'shop.collections.read',
-  SHOP_COLLECTIONS_WRITE: 'shop.collections.write',
-  SHOP_IMPORTS_MANAGE: 'shop.imports.manage',
-  SHOP_PRICING_READ: 'shop.pricing.read',
-  SHOP_PRICING_WRITE: 'shop.pricing.write',
-  SHOP_INVENTORY_READ: 'shop.inventory.read',
-  SHOP_INVENTORY_WRITE: 'shop.inventory.write',
-  SHOP_ORDERS_READ: 'shop.orders.read',
-  SHOP_ORDERS_WRITE: 'shop.orders.write',
-  SHOP_SETTINGS_READ: 'shop.settings.read',
-  SHOP_SETTINGS_WRITE: 'shop.settings.write',
-  SHOP_AUDIT_READ: 'shop.audit.read',
+  SHOP_PRODUCTS_READ: "shop.products.read",
+  SHOP_PRODUCTS_WRITE: "shop.products.write",
+  SHOP_CUSTOMERS_READ: "shop.customers.read",
+  SHOP_CUSTOMERS_WRITE: "shop.customers.write",
+  SHOP_CATEGORIES_READ: "shop.categories.read",
+  SHOP_CATEGORIES_WRITE: "shop.categories.write",
+  SHOP_COLLECTIONS_READ: "shop.collections.read",
+  SHOP_COLLECTIONS_WRITE: "shop.collections.write",
+  SHOP_IMPORTS_MANAGE: "shop.imports.manage",
+  SHOP_PRICING_READ: "shop.pricing.read",
+  SHOP_PRICING_WRITE: "shop.pricing.write",
+  SHOP_INVENTORY_READ: "shop.inventory.read",
+  SHOP_INVENTORY_WRITE: "shop.inventory.write",
+  SHOP_ORDERS_READ: "shop.orders.read",
+  SHOP_ORDERS_WRITE: "shop.orders.write",
+  SHOP_SETTINGS_READ: "shop.settings.read",
+  SHOP_SETTINGS_WRITE: "shop.settings.write",
+  SHOP_AUDIT_READ: "shop.audit.read",
+  SHOP_FORGED_REFERENCES_READ: "shop.forged.references.read",
+  SHOP_FORGED_REFERENCES_WRITE: "shop.forged.references.write",
 } as const;
 
-export const SUPERADMIN_ROLE_KEY = 'superadmin';
+export const SUPERADMIN_ROLE_KEY = "superadmin";
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS];
 
@@ -43,8 +45,8 @@ type AdminAuditClient = PrismaClient | Prisma.TransactionClient;
 
 function getBootstrapAdminIdentity(): BootstrapAdminIdentity {
   return {
-    email: (process.env.ADMIN_EMAIL || 'admin@onecompany.local').trim().toLowerCase(),
-    name: (process.env.ADMIN_NAME || 'One Company Admin').trim() || 'One Company Admin',
+    email: (process.env.ADMIN_EMAIL || "admin@onecompany.local").trim().toLowerCase(),
+    name: (process.env.ADMIN_NAME || "One Company Admin").trim() || "One Company Admin",
   };
 }
 
@@ -56,12 +58,12 @@ export async function ensureAdminBootstrap(prisma: PrismaClient) {
     where: { key: SUPERADMIN_ROLE_KEY },
     create: {
       key: SUPERADMIN_ROLE_KEY,
-      name: 'Super Admin',
-      permissions: ['*'],
+      name: "Super Admin",
+      permissions: ["*"],
     },
     update: {
-      name: 'Super Admin',
-      permissions: ['*'],
+      name: "Super Admin",
+      permissions: ["*"],
     },
   });
 
@@ -98,7 +100,7 @@ export async function ensureAdminBootstrap(prisma: PrismaClient) {
     id: user.id,
     email: user.email,
     name: user.name,
-    permissions: ['*'],
+    permissions: ["*"],
   };
 }
 

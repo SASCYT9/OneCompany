@@ -13,6 +13,7 @@ import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
 
 type BrabusCollectionProductGridProps = {
@@ -193,28 +194,24 @@ export default function BrabusCollectionProductGrid({
 
                       <div className="grow"></div>
 
-                      <div className="flex flex-col gap-1 mb-5">
-                        {isB2B && computedCompare ? (
-                          <span className="text-[10px] text-foreground/45 dark:text-white/30 line-through tracking-wider">
-                            {currency === "USD" && formatPrice(locale, computedCompare.usd, "USD")}
-                            {currency === "EUR" && formatPrice(locale, computedCompare.eur, "EUR")}
-                            {currency === "UAH" && formatPrice(locale, computedCompare.uah, "UAH")}
-                          </span>
-                        ) : null}
-
-                        {computed.eur === 0 ? (
-                          <span className="text-sm font-normal text-foreground/65 dark:text-white/50 tracking-wide">
-                            {isUa ? "Ціна за запитом" : "Price on Request"}
-                          </span>
-                        ) : (
-                          <span
-                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-400 font-medium" : "text-foreground/95 dark:text-white/90 font-normal"}`}
-                          >
-                            {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
-                            {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
-                            {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
-                          </span>
-                        )}
+                      <div className="mb-5">
+                        <ShopCardPriceTag
+                          locale={locale}
+                          b2cPrice={product.price}
+                          b2bExplicit={product.b2bPrice ?? null}
+                          compareAt={product.compareAt ?? null}
+                          brand={product.brand ?? null}
+                          variant="compact"
+                          classNames={{
+                            root: "flex items-baseline gap-2 flex-wrap",
+                            price: `text-sm tracking-wide tabular-nums ${isB2B ? "text-emerald-400 font-medium" : "text-foreground/95 dark:text-white/90 font-normal"}`,
+                            retail:
+                              "text-[10px] text-foreground/45 dark:text-white/30 line-through tracking-wider",
+                            badge:
+                              "inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-400",
+                          }}
+                          requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
+                        />
                       </div>
 
                       <div className="mt-auto flex items-center justify-between">

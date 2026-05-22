@@ -34,6 +34,7 @@ import {
 import { isBrabusLocalImage, resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import { resolveBundleInventory } from "@/lib/shopBundles";
 import { prisma } from "@/lib/prisma";
+import { b2bOnlyExcludeWhere } from "@/lib/shopAudience";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { resolveUrbanThemeAssetUrl } from "@/lib/urbanThemeAssets";
 import { resolveEnglishCategory } from "@/lib/shopCategoryTranslation";
@@ -1829,7 +1830,9 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     let dbRows: AdminShopProductRecord[] = [];
     try {
       dbRows = await prisma.shopProduct.findMany({
-        where: { isPublished: true },
+        // Public catalog: hide products tagged `audience:b2b` (REMUS etc.
+        // gated to /shop/stock only). See src/lib/shopAudience.ts.
+        where: { isPublished: true, ...b2bOnlyExcludeWhere() },
         orderBy: { updatedAt: "desc" },
         include: adminProductInclude,
       });
@@ -1960,7 +1963,8 @@ export async function getShopProductsByBrandServer(
       // that the grid + collection-matcher code paths actually read.
       // `mapDbToCatalog` is defensive against the dropped fields.
       dbRows = (await prisma.shopProduct.findMany({
-        where: { isPublished: true, ...where },
+        // Brand-grid: hide B2B-only products from all per-brand pages.
+        where: { isPublished: true, ...b2bOnlyExcludeWhere(), ...where },
         orderBy: { updatedAt: "desc" },
         include: brandGridProductInclude,
       })) as unknown as AdminShopProductRecord[];
@@ -2084,6 +2088,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       rows = (await prisma.shopProduct.findMany({
         where: {
           isPublished: true,
+          ...b2bOnlyExcludeWhere(),
           OR: [
             { brand: { equals: "racechip", mode: "insensitive" } },
             { vendor: { equals: "racechip", mode: "insensitive" } },
@@ -2293,6 +2298,36 @@ export function getAkrapovicProductsServer() {
   });
 }
 
+/** Ilmberger Carbon: brand or vendor matches any `ilmberger*` variant,
+ *  OR tag includes "Ilmberger Carbon"/"Ilmberger". Mirrors Akrapovic
+ *  pattern (case-insensitive equals + tag fallback). Catalog is empty
+ *  at launch — returns `[]` cleanly until products are imported. */
+export function getIlmbergerProductsServer() {
+  return getShopProductsByBrandServer({
+    cacheKey: "ilmberger",
+    where: {
+      OR: [
+        { brand: { equals: "ilmberger", mode: "insensitive" } },
+        { brand: { equals: "ilmberger carbon", mode: "insensitive" } },
+        { vendor: { equals: "ilmberger", mode: "insensitive" } },
+        { vendor: { equals: "ilmberger carbon", mode: "insensitive" } },
+        { tags: { hasSome: ["Ilmberger", "Ilmberger Carbon"] } },
+      ],
+    },
+    predicate: (p) => {
+      const brand = (p.brand ?? "").toLowerCase();
+      const vendor = (p.vendor ?? "").toLowerCase();
+      return (
+        brand === "ilmberger" ||
+        brand === "ilmberger carbon" ||
+        vendor === "ilmberger" ||
+        vendor === "ilmberger carbon" ||
+        (p.tags ?? []).some((t) => t === "Ilmberger" || t === "Ilmberger Carbon")
+      );
+    },
+  });
+}
+
 /** Öhlins: brand ∈ {'ohlins', 'öhlins'} OR vendor 'ohlins' OR slug
  *  startsWith 'ohlins-'. HOT-FIX: Prisma `in` is case-sensitive; DB stores
  *  `brand="OHLINS"` (all-caps). Switched to case-insensitive `equals`. */
@@ -2429,7 +2464,8 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
   let rows: ShopProductSitemapEntry[] = [];
   try {
     const raw = await prisma.shopProduct.findMany({
-      where: { isPublished: true },
+      // Sitemap: exclude B2B-only products from public search indexing.
+      where: { isPublished: true, ...b2bOnlyExcludeWhere() },
       orderBy: { updatedAt: "desc" },
       select: {
         slug: true,
@@ -2594,7 +2630,9 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
 ): Promise<ShopProduct | undefined> {
   try {
     const row = await prisma.shopProduct.findFirst({
-      where: { slug, isPublished: true },
+      // Per-slug lookup used by public product detail pages — B2B-only
+      // products must 404 here even if their slug is guessed.
+      where: { slug, isPublished: true, ...b2bOnlyExcludeWhere() },
       include: adminProductInclude,
     });
     if (row) {

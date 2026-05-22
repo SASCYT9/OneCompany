@@ -932,7 +932,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 >
                   {descriptionSections.introHtml ? (
                     <div
-                      className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
+                      className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:relative [&_li]:pl-4 [&_li]:list-none [&_li]:before:absolute [&_li]:before:left-0 [&_li]:before:top-[10px] [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
                       dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
                     />
                   ) : null}
@@ -962,6 +962,14 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                     locale={resolvedLocale}
                     isUa={isUa}
                     price={pricing.effectivePrice}
+                    // Pass raw bands + brand so the client-side hook can
+                    // apply per-brand discount when a B2B customer is
+                    // logged in (the SSR `price` is anon-context only).
+                    b2cPrice={pricing.bands.b2c.price}
+                    b2bExplicit={
+                      pricing.bands.b2b?.source === "b2b-explicit" ? pricing.bands.b2b.price : null
+                    }
+                    brand={product.brand ?? (product as any).vendor ?? null}
                   />
                   {pricing.effectiveCompareAt ? (
                     <div className="mt-1 flex items-center gap-2">

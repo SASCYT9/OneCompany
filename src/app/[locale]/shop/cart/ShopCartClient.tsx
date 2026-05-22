@@ -9,6 +9,8 @@ import { trackViewCart } from "@/lib/analytics";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { convertShopMoney } from "@/lib/shopMoneyFormat";
 
+type MoneySet = { eur: number; usd: number; uah: number };
+
 type CartItem = {
   id: string;
   slug: string;
@@ -16,7 +18,26 @@ type CartItem = {
   variantId?: string | null;
   variantTitle?: string | null;
   title?: { ua: string; en: string };
-  price?: { eur: number; usd: number; uah: number };
+  price?: MoneySet;
+  /**
+   * Full resolved pricing snapshot from the API. When the viewer is a
+   * verified B2B customer, `bands.b2b` holds the dealer price and we can
+   * derive a strikethrough retail + discount % badge from `bands.b2c`.
+   */
+  pricing?: {
+    audience: "b2b" | "b2c";
+    b2bVisible: boolean;
+    requestQuote: boolean;
+    bands: {
+      b2c: { price: MoneySet; compareAt: MoneySet | null };
+      b2b: {
+        price: MoneySet;
+        compareAt: MoneySet | null;
+        source: "b2b-explicit" | "b2b-discount";
+        discountPercent: number | null;
+      } | null;
+    };
+  };
   image?: string;
   fallbackImage?: string | null;
 };
@@ -194,11 +215,40 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                         {i.variantTitle}
                       </p>
                     ) : null}
-                    <p className="mt-2 text-sm text-foreground/70 dark:text-foreground/55">
-                      {i.price
-                        ? formatPrice(locale, convertShopMoney(i.price, currency, rates), currency)
-                        : ""}{" "}
-                      × {i.quantity}
+                    <p className="mt-2 flex flex-wrap items-baseline gap-1.5 text-sm text-foreground/70 dark:text-foreground/55">
+                      <span className="tabular-nums text-foreground">
+                        {i.price
+                          ? formatPrice(
+                              locale,
+                              convertShopMoney(i.price, currency, rates),
+                              currency
+                            )
+                          : ""}
+                      </span>
+                      {(() => {
+                        // Show retail strikethrough + −% badge only when a
+                        // visible B2B discount applies and the retail in the
+                        // active currency is meaningfully higher than dealer.
+                        if (!i.pricing || i.pricing.audience !== "b2b" || !i.pricing.bands.b2b)
+                          return null;
+                        const dealer = i.price ? convertShopMoney(i.price, currency, rates) : 0;
+                        const retail = convertShopMoney(i.pricing.bands.b2c.price, currency, rates);
+                        if (!(retail > 0 && Math.round(retail) > Math.round(dealer))) return null;
+                        const pct = i.pricing.bands.b2b.discountPercent;
+                        return (
+                          <>
+                            <span className="text-xs font-light line-through text-foreground/45 dark:text-white/35">
+                              {formatPrice(locale, retail, currency)}
+                            </span>
+                            {pct != null && pct > 0 ? (
+                              <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary">
+                                −{pct}%
+                              </span>
+                            ) : null}
+                          </>
+                        );
+                      })()}
+                      <span>× {i.quantity}</span>
                     </p>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <button

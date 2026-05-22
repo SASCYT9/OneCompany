@@ -7,9 +7,11 @@ import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Wand2 } from "lucide-
 
 import {
   AdminEditorSection,
+  AdminEditorTabs,
   AdminInlineAlert,
   AdminPage,
   AdminStatusBadge,
+  type AdminEditorTab,
 } from "@/components/admin/AdminPrimitives";
 import { AdminCollapsibleSection } from "@/components/admin/AdminCollapsibleSection";
 import { AdminEditorTopBar } from "@/components/admin/AdminEditorTopBar";
@@ -27,6 +29,19 @@ import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline"
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminProductVariantCard } from "./AdminProductVariantCard";
+
+type ProductEditorTabId = "general" | "pricing" | "inventory" | "media" | "admin";
+
+function PRODUCT_EDITOR_TABS(isEditing: boolean): AdminEditorTab[] {
+  const tabs: AdminEditorTab[] = [
+    { id: "general", label: "Загальне" },
+    { id: "pricing", label: "Ціни" },
+    { id: "inventory", label: "Склад і варіанти" },
+    { id: "media", label: "Медіа та SEO" },
+  ];
+  if (isEditing) tabs.push({ id: "admin", label: "Адмін" });
+  return tabs;
+}
 
 type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 type ProductMediaType = "IMAGE" | "VIDEO" | "EXTERNAL_VIDEO";
@@ -823,6 +838,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [collectionsExpanded, setCollectionsExpanded] = useState(false);
   const [variantBulk, setVariantBulk] = useState<VariantBulkState>(createEmptyVariantBulk());
   const [hardDeleting, setHardDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProductEditorTabId>("general");
 
   useEffect(() => {
     let cancelled = false;
@@ -1442,6 +1458,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           }
         />
 
+        <AdminEditorTabs
+          tabs={PRODUCT_EDITOR_TABS(isEditing)}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as ProductEditorTabId)}
+        />
+
         {error ? (
           <div className="mb-4">
             <AdminInlineAlert tone="error">{error}</AdminInlineAlert>
@@ -1457,6 +1479,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           <div className="min-w-0 space-y-5">
             <AdminEditorSection
               id="overview"
+              hidden={activeTab !== "general"}
               title="Огляд"
               description="Основна ідентичність товару в каталозі, стан публікації та привʼязка до колекцій."
             >
@@ -1722,6 +1745,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminEditorSection
               id="content"
+              hidden={activeTab !== "general"}
               title="Опис і контент"
               description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
             >
@@ -1781,6 +1805,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminEditorSection
               id="pricing"
+              hidden={activeTab !== "pricing"}
               title="Ціни"
               description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
             >
@@ -1879,6 +1904,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminCollapsibleSection
               id="dimensions"
+              hidden={activeTab !== "inventory"}
               title="Габарити та вага"
               description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
             >
@@ -1933,6 +1959,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminCollapsibleSection
               id="seo"
+              hidden={activeTab !== "media"}
               title="SEO та пошук"
               description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
             >
@@ -1964,6 +1991,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminEditorSection
               id="media"
+              hidden={activeTab !== "media"}
               title="Медіа"
               description="Порядок зображень та відео у вітрині для цього товару."
             >
@@ -2080,6 +2108,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminEditorSection
               id="options"
+              hidden={activeTab !== "inventory"}
               title="Опції"
               description="Набори опцій (наприклад, колір / розмір), з яких формуються варіанти."
             >
@@ -2134,6 +2163,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminEditorSection
               id="variants"
+              hidden={activeTab !== "inventory"}
               title="Варіанти"
               description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
             >
@@ -2353,6 +2383,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
             <AdminCollapsibleSection
               id="metafields"
+              hidden={activeTab !== "media"}
               title="Мета‑поля"
               description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
             >
@@ -2416,6 +2447,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             {isEditing && productId && (
               <AdminCollapsibleSection
                 id="activity"
+                hidden={activeTab !== "admin"}
                 title="Активність та нотатки"
                 description="Внутрішні нотатки адміна, теги та аудит-трейл змін цього товару."
               >
@@ -2461,6 +2493,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             {isEditing && (
               <AdminCollapsibleSection
                 id="danger-zone"
+                hidden={activeTab !== "admin"}
                 title="Небезпечні дії"
                 description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
               >
@@ -2484,8 +2517,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             )}
           </div>
 
-          {/* Right sidebar — Shopify-style organization & quick actions */}
-          <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          {/* Right sidebar — Shopify-style organization & quick actions (desktop only). */}
+          <aside className="hidden space-y-4 lg:block lg:sticky lg:top-20 lg:self-start">
             <div className="border border-white/5 bg-[#171717] p-5">
               <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                 Стан каталогу

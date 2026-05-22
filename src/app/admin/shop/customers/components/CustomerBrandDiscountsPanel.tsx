@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { Plus, Save, Trash2 } from 'lucide-react';
-import { useToast } from '@/components/admin/AdminToast';
-import { AdminTableShell } from '@/components/admin/AdminPrimitives';
+import { useCallback, useEffect, useState } from "react";
+import { Plus, Save, Trash2 } from "lucide-react";
+import { useToast } from "@/components/admin/AdminToast";
+import { AdminTableShell } from "@/components/admin/AdminPrimitives";
 
 type Discount = {
   id: string;
@@ -18,39 +18,65 @@ type Props = {
   globalDiscountPct: number | null;
 };
 
-const KNOWN_BRANDS = [
-  'Akrapovic',
-  'Brabus',
-  'Burger Motorsports',
-  'CSF',
-  'iPE',
-  'Ohlins',
-  'Adro',
-  'do88',
-  'GiroDisc',
-  'Racechip',
-  'Urban',
+// Fallback list when the live brand-catalog API is unavailable. The
+// component otherwise auto-loads every whitelisted tuning brand from
+// `/api/shop/stock/brands` so the datalist stays in sync with what we
+// actually sell (Brembo, Remus, Ilmberger Carbon, …).
+const KNOWN_BRANDS_FALLBACK = [
+  "Akrapovic",
+  "Brabus",
+  "Burger Motorsports",
+  "CSF",
+  "iPE",
+  "Ohlins",
+  "Adro",
+  "do88",
+  "GiroDisc",
+  "Racechip",
+  "Urban",
+  "Remus",
+  "Ilmberger Carbon",
 ];
 
 export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: Props) {
   const toast = useToast();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [knownBrands, setKnownBrands] = useState<string[]>(KNOWN_BRANDS_FALLBACK);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const [newBrand, setNewBrand] = useState('');
-  const [newPct, setNewPct] = useState('');
-  const [newNotes, setNewNotes] = useState('');
+  const [newBrand, setNewBrand] = useState("");
+  const [newPct, setNewPct] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+
+  // Auto-load brand list so the datalist matches the live catalog
+  // (Brembo, Remus, Ilmberger Carbon, do88, etc.) rather than a hardcoded
+  // 11-entry snapshot.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/shop/stock/brands?source=all")
+      .then((r) => r.json())
+      .then((res) => {
+        if (!alive || !Array.isArray(res?.data) || res.data.length === 0) return;
+        setKnownBrands(res.data.map((b: { name: string }) => b.name));
+      })
+      .catch(() => {
+        // keep fallback list
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Не вдалося завантажити знижки');
+        setError((data as { error?: string }).error || "Не вдалося завантажити знижки");
         return;
       }
       setDiscounts((data as { discounts: Discount[] }).discounts ?? []);
@@ -65,15 +91,15 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
 
   async function add() {
     if (!newBrand.trim()) {
-      setError('Виберіть бренд або введіть назву');
+      setError("Виберіть бренд або введіть назву");
       return;
     }
     setSaving(true);
-    setError('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand: newBrand.trim(),
           discountPct: Number(newPct),
@@ -82,15 +108,15 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Не вдалося зберегти';
+        const msg = (data as { error?: string }).error || "Не вдалося зберегти";
         setError(msg);
         toast.error(msg);
         return;
       }
       toast.success(`Знижку ${newBrand} оновлено`);
-      setNewBrand('');
-      setNewPct('');
-      setNewNotes('');
+      setNewBrand("");
+      setNewPct("");
+      setNewNotes("");
       await load();
     } finally {
       setSaving(false);
@@ -103,11 +129,11 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
     try {
       const response = await fetch(
         `/api/admin/shop/customers/${customerId}/brand-discounts?brand=${encodeURIComponent(brand)}`,
-        { method: 'DELETE' },
+        { method: "DELETE" }
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        toast.error((data as { error?: string }).error || 'Не вдалося видалити');
+        toast.error((data as { error?: string }).error || "Не вдалося видалити");
         return;
       }
       toast.success(`Знижку ${brand} видалено`);
@@ -122,13 +148,13 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-zinc-100">Знижки по брендах</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          Персональна знижка % окремо для кожного бренду. Якщо запис відсутній — застосовується
-          глобальна B2B-знижка
-          {globalDiscountPct != null ? ` (${globalDiscountPct}%)` : ' (не задана)'}.
+          Персональна знижка % окремо для кожного бренду цього клієнта. Якщо запис відсутній —
+          застосовується глобальна B2B-знижка клієнта
+          {globalDiscountPct != null ? ` (${globalDiscountPct}%)` : " (не задана)"}.
         </p>
-        <p className="mt-1 text-[11px] text-amber-300/70">
-          ⚠️ Інтеграція з ціноутворенням — у наступному етапі. Поки що ці значення зберігаються,
-          але pricing-логіка не змінюється — використовується глобальна знижка.
+        <p className="mt-1 text-[11px] text-emerald-300/80">
+          ✓ Інтеграція з ціноутворенням активна. Застосовується пріоритет: персональна per-brand
+          знижка → системна per-brand знижка → глобальна знижка клієнта → 0%.
         </p>
       </div>
 
@@ -137,7 +163,9 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
         <div className="grid gap-3 sm:grid-cols-[1.5fr_1fr_2fr_auto]">
           <div>
             <label className="block">
-              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">Бренд</span>
+              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">
+                Бренд
+              </span>
               <input
                 list="known-brands"
                 value={newBrand}
@@ -146,7 +174,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
                 className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
               />
               <datalist id="known-brands">
-                {KNOWN_BRANDS.map((b) => (
+                {knownBrands.map((b) => (
                   <option key={b} value={b} />
                 ))}
               </datalist>
@@ -154,7 +182,9 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
           </div>
           <div>
             <label className="block">
-              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">Знижка %</span>
+              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">
+                Знижка %
+              </span>
               <input
                 type="number"
                 step="0.5"
@@ -169,7 +199,9 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
           </div>
           <div>
             <label className="block">
-              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">Нотатка</span>
+              <span className="block text-[10px] uppercase tracking-[0.18em] text-zinc-500 mb-1">
+                Нотатка
+              </span>
               <input
                 value={newNotes}
                 onChange={(e) => setNewNotes(e.target.value)}
@@ -201,7 +233,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
       ) : discounts.length === 0 ? (
         <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">
           Персональних знижок по брендах ще немає. Усі бренди використовують глобальну знижку
-          {globalDiscountPct != null ? ` ${globalDiscountPct}%.` : '.'}
+          {globalDiscountPct != null ? ` ${globalDiscountPct}%.` : "."}
         </div>
       ) : (
         <AdminTableShell>
@@ -223,7 +255,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
                     <td className="px-4 py-3 text-emerald-300 font-semibold text-right tabular-nums">
                       −{d.discountPct.toFixed(2)}%
                     </td>
-                    <td className="px-4 py-3 text-zinc-400">{d.notes || '—'}</td>
+                    <td className="px-4 py-3 text-zinc-400">{d.notes || "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500">
                       {new Date(d.updatedAt).toLocaleString()}
                     </td>

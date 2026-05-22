@@ -11,6 +11,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import fitmentOptions from "../data/burgerFitmentOptions.json";
 import BurgerSelect from "./BurgerSelect";
@@ -644,9 +645,24 @@ export default function BurgerVehicleFilter({
                               <p className="text-[8px] sm:text-[10px] text-zinc-500 uppercase tracking-widest font-medium mb-1">
                                 {isUa ? "Ціна" : "Price"}
                               </p>
-                              <span className="text-[11px] sm:text-lg tracking-wide font-black text-foreground dark:text-white">
-                                {priceStr || (isUa ? "За запитом" : "On Request")}
-                              </span>
+                              <ShopCardPriceTag
+                                locale={locale}
+                                b2cPrice={product.price}
+                                b2bExplicit={product.b2bPrice ?? null}
+                                compareAt={product.compareAt ?? null}
+                                brand={product.brand ?? null}
+                                variant="compact"
+                                classNames={{
+                                  root: "flex items-baseline gap-2 flex-wrap",
+                                  price:
+                                    "text-[11px] sm:text-lg tracking-wide font-black text-foreground dark:text-white tabular-nums",
+                                  retail:
+                                    "text-[9px] sm:text-[11px] font-light line-through text-foreground/45 dark:text-white/35",
+                                  badge:
+                                    "inline-flex items-center rounded-sm bg-[color:var(--burger-yellow,#ffd700)]/20 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#b8860b] dark:text-[color:var(--burger-yellow,#ffd700)]",
+                                }}
+                                requestLabel={isUa ? "За запитом" : "On Request"}
+                              />
                             </div>
 
                             {/* Re-added Cart Icon / Action */}
