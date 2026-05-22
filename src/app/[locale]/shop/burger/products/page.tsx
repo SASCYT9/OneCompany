@@ -1,11 +1,15 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BurgerVehicleFilter from "../../components/BurgerVehicleFilter";
 import BurgerHeroPicker from "../../components/BurgerHeroPicker";
 import { getBurgerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -49,8 +53,42 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
     null
   );
 
+  const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/burger/products");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Burger Motorsports",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/burger")),
+    },
+    {
+      name: isUa ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = burgerProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог Burger Motorsports" : "Burger Motorsports Catalog",
+    listingPath,
+    itemListEntries
+  );
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       <div style={{ paddingTop: "100px" }}>
         <div className="burger-back">
           <Link href={`/${locale}/shop/burger`} className="burger-back__link">

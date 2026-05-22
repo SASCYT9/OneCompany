@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -247,27 +247,45 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
-  const [activeCategory, setActiveCategory] = useState(searchParams?.get("category") || "all");
-  const [activeMake, setActiveMake] = useState(searchParams?.get("make") || "all");
-  const [activeModel, setActiveModel] = useState(searchParams?.get("model") || "all");
-  const [activeChassis, setActiveChassis] = useState(searchParams?.get("chassis") || "all");
-  const [activeYear, setActiveYear] = useState(searchParams?.get("year") || "all");
-  const [activeStock, setActiveStock] = useState<StockFilter>(
-    (searchParams?.get("stock") as StockFilter) || "all"
-  );
-  const [activePriceBand, setActivePriceBand] = useState<PriceBand>(
-    (searchParams?.get("price") as PriceBand) || "all"
-  );
-  const [searchQuery, setSearchQuery] = useState(searchParams?.get("q") || "");
-  const [sortOrder, setSortOrder] = useState<SortOrder>(
-    (searchParams?.get("sort") as SortOrder) || "default"
-  );
+  // Initial state ignores URL params so SSR and CSR first-render match
+  // (defaults: all). URL params apply after mount via window.location —
+  // useSearchParams() inside <Suspense> would force the fallback in SSR HTML.
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeMake, setActiveMake] = useState("all");
+  const [activeModel, setActiveModel] = useState("all");
+  const [activeChassis, setActiveChassis] = useState("all");
+  const [activeYear, setActiveYear] = useState("all");
+  const [activeStock, setActiveStock] = useState<StockFilter>("all");
+  const [activePriceBand, setActivePriceBand] = useState<PriceBand>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(30);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlCategory = params.get("category");
+    const urlMake = params.get("make");
+    const urlModel = params.get("model");
+    const urlChassis = params.get("chassis");
+    const urlYear = params.get("year");
+    const urlStock = params.get("stock") as StockFilter | null;
+    const urlPrice = params.get("price") as PriceBand | null;
+    const urlQ = params.get("q");
+    const urlSort = params.get("sort") as SortOrder | null;
+    if (urlCategory) setActiveCategory(urlCategory);
+    if (urlMake) setActiveMake(urlMake);
+    if (urlModel) setActiveModel(urlModel);
+    if (urlChassis) setActiveChassis(urlChassis);
+    if (urlYear) setActiveYear(urlYear);
+    if (urlStock) setActiveStock(urlStock);
+    if (urlPrice) setActivePriceBand(urlPrice);
+    if (urlQ) setSearchQuery(urlQ);
+    if (urlSort) setSortOrder(urlSort);
+  }, []);
 
   const syncToUrl = useCallback(
     (
@@ -586,49 +604,10 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     setSortOrder("default");
   };
 
-  if (!mounted) {
-    return (
-      <section
-        className="relative z-30 min-h-screen bg-transparent py-8 text-foreground dark:text-white"
-        aria-busy="true"
-      >
-        <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
-          <div className="mb-6 hidden rounded-2xl border border-foreground/10 dark:border-white/4 bg-card/85 dark:bg-[#050505]/80 p-4 shadow-2xl backdrop-blur-md lg:block">
-            <div className="flex flex-wrap items-end gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-12 min-w-[160px] flex-1 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5"
-                />
-              ))}
-            </div>
-          </div>
-          <main className="min-w-0">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="h-8 w-72 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-              <div className="h-10 w-48 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
-              {Array.from({ length: Math.min(products.length || 8, 12) }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col overflow-hidden border border-foreground/12 dark:border-white/6 bg-linear-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
-                >
-                  <div className="aspect-square animate-pulse bg-foreground/5 dark:bg-white/3" />
-                  <div className="space-y-3 px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
-                    <div className="h-3 w-16 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-                    <div className="h-4 w-full animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-                    <div className="h-4 w-3/4 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-                    <div className="h-5 w-24 animate-pulse rounded-sm bg-foreground/8 dark:bg-white/5" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </main>
-        </div>
-      </section>
-    );
-  }
+  // Note: previous skeleton-return when `!mounted` was removed so the full
+  // product grid renders in initial SSR HTML for Googlebot. Filter state
+  // restores from URL via the post-mount effect; SSR shows the unfiltered
+  // list. `mounted` is still set true after mount and used by URL-sync.
 
   return (
     <section className="relative z-30 min-h-screen bg-transparent py-8 text-foreground dark:text-white">

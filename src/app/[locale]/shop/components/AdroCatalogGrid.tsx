@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
@@ -89,21 +89,38 @@ export default function AdroCatalogGrid({
   const t = useTranslations("adroCatalog");
   const { currency, rates } = useShopCurrency();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
-  const [mounted, setMounted] = useState(false);
 
-  const [activeMake, setActiveMake] = useState(searchParams?.get("make") || "all");
-  const [activeModel, setActiveModel] = useState(searchParams?.get("model") || "all");
-  const [activeCategory, setActiveCategory] = useState(searchParams?.get("category") || "all");
-  const [searchQuery, setSearchQuery] = useState(searchParams?.get("q") || "");
-  const [sortOrder, setSortOrder] = useState<SortOrder>(
-    (searchParams?.get("sort") as SortOrder) || "default"
-  );
+  // Initial state intentionally ignores URL params so SSR and CSR first-render
+  // match (defaults: all/empty). URL params apply after mount via the effect
+  // below — this lets Googlebot index the unfiltered SSR HTML (full product
+  // list visible) while still honoring deep-links once hydration completes.
+  // Reading the URL via `window.location.search` instead of `useSearchParams`
+  // keeps the page eligible for static rendering — useSearchParams would force
+  // the closest Suspense boundary to render its fallback in the pre-rendered
+  // HTML, hiding every product card from the initial crawl.
+  const [activeMake, setActiveMake] = useState("all");
+  const [activeModel, setActiveModel] = useState("all");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(30);
   const previousMakeRef = useRef(activeMake);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const make = params.get("make");
+    const model = params.get("model");
+    const category = params.get("category");
+    const q = params.get("q");
+    const sort = params.get("sort") as SortOrder | null;
+    if (make) setActiveMake(make);
+    if (model) setActiveModel(model);
+    if (category) setActiveCategory(category);
+    if (q) setSearchQuery(q);
+    if (sort) setSortOrder(sort);
+  }, []);
 
   const enrichedProducts = useMemo(
     () => products.map((product) => enrichAdroCatalogProduct(product)),
@@ -368,7 +385,10 @@ export default function AdroCatalogGrid({
     </div>
   );
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` guard was removed to make
+  // listing HTML crawlable by Googlebot. The full product grid renders SSR
+  // (with anonymous prices + default order). After hydration, the effect
+  // above applies URL filter params and switches to client-side state.
 
   return (
     <section className="relative z-20 min-h-screen bg-transparent py-8 text-foreground">

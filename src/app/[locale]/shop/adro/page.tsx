@@ -32,6 +32,13 @@ export default async function ShopAdroPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const adroProducts = await getAdroProductsServer();
   const availableVehicles = buildAdroHeroVehicleTree(adroProducts);
+  const featuredProducts = adroProducts.slice(0, 12);
 
-  return <AdroHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
+  return (
+    <AdroHomeSignature
+      locale={resolvedLocale}
+      availableVehicles={availableVehicles}
+      featuredProducts={featuredProducts}
+    />
+  );
 }

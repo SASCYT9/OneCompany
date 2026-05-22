@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -182,46 +182,68 @@ export default function IpeVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const initialBrand = searchParams?.get("brand") || "all";
-  const initialLine = searchParams?.get("line") || "all";
-  const initialModelRaw = searchParams?.get("model") || "all";
-  const initialBodyParam = searchParams?.get("body") || "all";
-  // The hero filter writes `?model=M3 / M4 (G80/G82)` — split that into a
-  // base ("M3 / M4") plus body ("G80/G82") so the catalog presents them as
-  // two separate facets. Older bookmarks stay compatible.
-  const { base: initialModelBase, body: initialBodyFromModel } =
-    initialModelRaw !== "all" ? splitIpeModelLabel(initialModelRaw) : { base: "all", body: null };
-  const initialModel = initialModelBase || "all";
-  const initialBody =
-    initialBodyParam !== "all" ? initialBodyParam : (initialBodyFromModel ?? "all");
-  const initialMaterial = searchParams?.get("material") || "all";
-  const initialSpec = searchParams?.get("spec") || "all";
-  const initialSearch = searchParams?.get("q") || "";
-  const initialSort =
-    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
-  const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
-  const [activeLine, setActiveLine] = useState<string>(initialLine);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [activeBody, setActiveBody] = useState<string>(initialBody);
-  const [activeMaterial, setActiveMaterial] = useState<string>(initialMaterial);
-  const [activeSpec, setActiveSpec] = useState<string>(initialSpec);
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  // Initial state ignores URL params so SSR and CSR first-render match
+  // (defaults: all/empty). The post-mount effect below restores filter state
+  // from window.location.search. Reading useSearchParams at render time would
+  // force the surrounding <Suspense> to emit its fallback in pre-rendered HTML.
+  const [activeBrand, setActiveBrand] = useState<string>("all");
+  const [activeLine, setActiveLine] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeBody, setActiveBody] = useState<string>("all");
+  const [activeMaterial, setActiveMaterial] = useState<string>("all");
+  const [activeSpec, setActiveSpec] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [modelQuery, setModelQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [openSections, setOpenSections] = useState<Record<FilterSectionKey, boolean>>({
     brand: true,
-    line: initialLine !== "all",
-    model: initialModel !== "all",
-    body: initialBody !== "all",
-    material: initialMaterial !== "all",
-    spec: initialSpec !== "all",
+    line: false,
+    model: false,
+    body: false,
+    material: false,
+    spec: false,
   });
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlBrand = params.get("brand") || "all";
+    const urlLine = params.get("line") || "all";
+    const urlModelRaw = params.get("model") || "all";
+    const urlBodyParam = params.get("body") || "all";
+    // Hero filter writes `?model=M3 / M4 (G80/G82)` — split that into base +
+    // body so the catalog presents them as two separate facets.
+    const { base: urlModelBase, body: urlBodyFromModel } =
+      urlModelRaw !== "all" ? splitIpeModelLabel(urlModelRaw) : { base: "all", body: null };
+    const urlModel = urlModelBase || "all";
+    const urlBody = urlBodyParam !== "all" ? urlBodyParam : (urlBodyFromModel ?? "all");
+    const urlMaterial = params.get("material") || "all";
+    const urlSpec = params.get("spec") || "all";
+    const urlQ = params.get("q") || "";
+    const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+
+    if (urlBrand !== "all") setActiveBrand(urlBrand);
+    if (urlLine !== "all") setActiveLine(urlLine);
+    if (urlModel !== "all") setActiveModel(urlModel);
+    if (urlBody !== "all") setActiveBody(urlBody);
+    if (urlMaterial !== "all") setActiveMaterial(urlMaterial);
+    if (urlSpec !== "all") setActiveSpec(urlSpec);
+    if (urlQ) setSearchQuery(urlQ);
+    if (urlSort !== "default") setSortOrder(urlSort);
+    setOpenSections((prev) => ({
+      ...prev,
+      line: urlLine !== "all" || prev.line,
+      model: urlModel !== "all" || prev.model,
+      body: urlBody !== "all" || prev.body,
+      material: urlMaterial !== "all" || prev.material,
+      spec: urlSpec !== "all" || prev.spec,
+    }));
+  }, []);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   const toggleSection = useCallback((section: FilterSectionKey) => {
@@ -590,7 +612,9 @@ export default function IpeVehicleFilter({
     searchQuery.trim().length > 0 ||
     sortOrder !== "default";
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed — full grid renders SSR
+  // for Googlebot. URL filter state is restored client-side via the post-mount
+  // effect above. `mounted` is still used by the URL-sync effect (no SSR write).
 
   return (
     <section

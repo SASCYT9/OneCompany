@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -311,25 +311,34 @@ export default function GirodiscVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const initialMake = searchParams?.get("make") || "all";
-  const initialModel = searchParams?.get("model") || "all";
-  const initialCategory = searchParams?.get("category") || "all";
-  const initialSort =
-    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
-  const initialSearch = searchParams?.get("q") || "";
 
-  // ─── State ───
-  const [activeMake, setActiveMake] = useState<string>(initialMake);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  // ─── State ─── (defaults to "all" — URL params apply post-mount so SSR HTML
+  // ships the full product grid for Googlebot)
+  const [activeMake, setActiveMake] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlMake = params.get("make");
+    const urlModel = params.get("model");
+    const urlCategory = params.get("category");
+    const urlSort = params.get("sort") as "default" | "price_desc" | "price_asc" | null;
+    const urlQ = params.get("q");
+    if (urlMake) setActiveMake(urlMake);
+    if (urlModel) setActiveModel(urlModel);
+    if (urlCategory) setActiveCategory(urlCategory);
+    if (urlSort) setSortOrder(urlSort);
+    if (urlQ) setSearchQuery(urlQ);
+  }, []);
 
   const syncToUrl = useCallback(
     (make: string, model: string, category: string, sort: string, q: string) => {
@@ -487,7 +496,9 @@ export default function GirodiscVehicleFilter({
     setVisibleCount(PAGE_SIZE);
   }, [activeMake, activeModel, activeCategory, searchQuery, sortOrder]);
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed so the SSR HTML carries
+  // the full product grid for Googlebot. `mounted` is still set by the post-
+  // mount effect and used by URL-sync below.
 
   const hasActiveFilters =
     activeMake !== "all" ||

@@ -138,28 +138,39 @@ export default function BrabusVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const pathname = usePathname();
   const router = useRouter();
-  // Read filter state from window.location directly via lazy useState init —
-  // useSearchParams() can return empty values during the first client render
-  // after a back-navigation onto an ISR/force-static page, which would silently
-  // collapse the filter to "all" before our URL-sync effect runs.
-  const readInitial = (key: string, fallback: string) => {
-    if (typeof window === "undefined") return fallback;
-    return new URLSearchParams(window.location.search).get(key) || fallback;
-  };
 
-  const [activeBrand, setActiveBrand] = useState<string>(() => readInitial("brand", "all"));
-  const [activeModel, setActiveModel] = useState<string>(() => readInitial("model", "all"));
-  const [activeChassis, setActiveChassis] = useState<string>(() => readInitial("chassis", "all"));
-  const [activeEngine, setActiveEngine] = useState<string>(() => readInitial("engine", "all"));
-  const [searchQuery, setSearchQuery] = useState<string>(() => readInitial("q", ""));
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(
-    () => readInitial("sort", "default") as "default" | "price_desc" | "price_asc"
-  );
+  // Initial state ignores URL params so SSR and CSR first-render match.
+  // Lazy-init from window.location.search would set CSR state differently
+  // from SSR ("all") and trigger React hydration warnings on every dropdown.
+  // URL params apply after mount via the effect below.
+  const [activeBrand, setActiveBrand] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeChassis, setActiveChassis] = useState<string>("all");
+  const [activeEngine, setActiveEngine] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlBrand = params.get("brand");
+    const urlModel = params.get("model");
+    const urlChassis = params.get("chassis");
+    const urlEngine = params.get("engine");
+    const urlQ = params.get("q");
+    const urlSort = params.get("sort") as "default" | "price_desc" | "price_asc" | null;
+    if (urlBrand) setActiveBrand(urlBrand);
+    if (urlModel) setActiveModel(urlModel);
+    if (urlChassis) setActiveChassis(urlChassis);
+    if (urlEngine) setActiveEngine(urlEngine);
+    if (urlQ) setSearchQuery(urlQ);
+    if (urlSort) setSortOrder(urlSort);
+    setMounted(true);
+  }, []);
 
   // Mirror filter state into the URL so that navigating to a product detail and
   // then back ("back" button) restores the same filter. Uses replace() to avoid
@@ -333,7 +344,9 @@ export default function BrabusVehicleFilter({
     [filteredProducts, visibleCount]
   );
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed — the filter renders
+  // its full product grid on SSR (Googlebot crawl) with unfiltered defaults;
+  // the post-mount useEffect above applies any URL filter state.
 
   return (
     <section

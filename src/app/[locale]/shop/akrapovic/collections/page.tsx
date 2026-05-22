@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
 import { getAkrapovicProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import AkrapovicVehicleFilter from "../../components/AkrapovicVehicleFilter";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -48,8 +52,42 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
     null
   );
 
+  const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/akrapovic/collections");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Akrapovič",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/akrapovic")),
+    },
+    {
+      name: isUa ? "Колекції" : "Collections",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = akrapovicProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог Akrapovič" : "Akrapovič Catalog",
+    listingPath,
+    itemListEntries
+  );
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Cinematic factory backdrop — only in dark theme; light theme shows clean cream */}
       <div className="fixed inset-0 z-0 hidden dark:block">
         <Image

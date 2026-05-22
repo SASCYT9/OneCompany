@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, ShoppingCart } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -91,46 +90,64 @@ export default function BurgerVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
-  const searchParams = useSearchParams();
-  const initialBrand = searchParams?.get("brand") || "all";
-  const initialType = searchParams?.get("type") || "all";
-  const initialModel = searchParams?.get("model") || "all";
-  const initialChassis = searchParams?.get("chassis") || "all";
-  const initialEngine = searchParams?.get("engine") || "all";
-
-  const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
-  const [activeType, setActiveType] = useState<string>(initialType);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
-  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
+  // Initial state defaults to "all" so SSR and CSR first-render match — URL
+  // params apply on mount via window.location below. Reading useSearchParams
+  // here would force the surrounding <Suspense> to emit a null fallback in
+  // pre-rendered HTML, hiding every product card from Googlebot.
+  const [activeBrand, setActiveBrand] = useState<string>("all");
+  const [activeType, setActiveType] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeChassis, setActiveChassis] = useState<string>("all");
+  const [activeEngine, setActiveEngine] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Sync local filter state when the URL changes from the embedded
-  // BurgerHeroPicker (which calls router.push). Without this, the picker
-  // updates the URL but the catalog stays on the previous filter — user has
-  // to refresh the page to see results.
-  //
-  // The cascade-reset effects below watch `activeBrand`/`activeModel` and
-  // wipe narrower filters when those change. We sync `prevBrandRef` /
-  // `prevModelRef` here so a coordinated brand+model+chassis URL update
-  // doesn't immediately self-destruct the model/chassis we just set.
-  const prevBrandRef = useRef(activeBrand);
-  const prevModelRef = useRef(activeModel);
+  // Cascade-reset refs (used by the effects further down to skip dependent-
+  // filter resets when the change came from URL/picker, not user click).
+  const prevBrandRef = useRef("all");
+  const prevModelRef = useRef("all");
+
+  // Sync filter state from the URL on mount + whenever a programmatic
+  // navigation lands (BurgerHeroPicker calls router.push, browser
+  // back/forward fires popstate). Patching pushState/replaceState catches
+  // App Router's client-side transitions without relying on
+  // useSearchParams (which would bail the page out of static rendering).
   useEffect(() => {
-    const nextBrand = searchParams?.get("brand") || "all";
-    const nextModel = searchParams?.get("model") || "all";
-    prevBrandRef.current = nextBrand;
-    prevModelRef.current = nextModel;
-    setActiveBrand(nextBrand);
-    setActiveType(searchParams?.get("type") || "all");
-    setActiveModel(nextModel);
-    setActiveChassis(searchParams?.get("chassis") || "all");
-    setActiveEngine(searchParams?.get("engine") || "all");
-  }, [searchParams]);
+    if (typeof window === "undefined") return;
+    function syncFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const nextBrand = params.get("brand") || "all";
+      const nextModel = params.get("model") || "all";
+      prevBrandRef.current = nextBrand;
+      prevModelRef.current = nextModel;
+      setActiveBrand(nextBrand);
+      setActiveType(params.get("type") || "all");
+      setActiveModel(nextModel);
+      setActiveChassis(params.get("chassis") || "all");
+      setActiveEngine(params.get("engine") || "all");
+    }
+    setMounted(true);
+    syncFromUrl();
+
+    const origPushState = window.history.pushState;
+    const origReplaceState = window.history.replaceState;
+    window.history.pushState = function (...args) {
+      origPushState.apply(window.history, args as Parameters<typeof origPushState>);
+      syncFromUrl();
+    };
+    window.history.replaceState = function (...args) {
+      origReplaceState.apply(window.history, args as Parameters<typeof origReplaceState>);
+      syncFromUrl();
+    };
+    window.addEventListener("popstate", syncFromUrl);
+    return () => {
+      window.history.pushState = origPushState;
+      window.history.replaceState = origReplaceState;
+      window.removeEventListener("popstate", syncFromUrl);
+    };
+  }, []);
 
   // ─── Extract brands from tags ───
   const availableBrands = useMemo(() => {
@@ -408,7 +425,10 @@ export default function BurgerVehicleFilter({
     [filtered, visibleCount]
   );
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed so the SSR HTML carries
+  // the full product grid for Googlebot. `getDisplayPrice` still checks
+  // `mounted` and returns null SSR (prices fill in after hydration via the
+  // currency context).
 
   const showTypeFilter = availableTypes.length > 1;
   const showEngineFilter = activeBrand !== "all" && availableEngines.length > 0;

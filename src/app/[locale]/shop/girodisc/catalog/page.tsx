@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getGirodiscProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
 import GirodiscVehicleFilter from "../../components/GirodiscVehicleFilter";
 
@@ -49,9 +53,41 @@ export default async function GirodiscProductsCatalogPage({ params }: Props) {
   );
 
   const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/girodisc/catalog");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "GiroDisc",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/girodisc")),
+    },
+    {
+      name: isUa ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = girodiscProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог GiroDisc" : "GiroDisc Catalog",
+    listingPath,
+    itemListEntries
+  );
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden selection:bg-red-600 selection:text-white font-sans">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Stealth Wealth Atmosphere — dark only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-red-600 opacity-[0.03] blur-[200px] pointer-events-none z-0 rounded-full hidden dark:block" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[5px_5px] opacity-10 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />

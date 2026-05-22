@@ -1,7 +1,11 @@
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import { getCsfProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { Suspense } from "react";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import CSFCatalogGrid from "../../components/CSFCatalogGrid";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -31,8 +35,41 @@ export default async function CSFCollectionsPage({ params }: Props) {
 
   const csfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
 
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/csf/collections");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "CSF Racing",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/csf")),
+    },
+    {
+      name: isUa ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = csfProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог CSF Racing" : "CSF Racing Catalog",
+    listingPath,
+    itemListEntries
+  );
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Ambient background — dark only */}
       <div className="fixed inset-0 z-0 pointer-events-none hidden dark:block">
         <div className="absolute top-0 left-1/3 w-[900px] h-[500px] bg-[rgba(200,16,46,0.03)] blur-[200px] rounded-full" />

@@ -1,4 +1,4 @@
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { prisma } from "@/lib/prisma";
 import { ADRO_PRODUCT_LINES } from "../../../data/adroHomeData";
@@ -6,6 +6,9 @@ import { getAdroProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { getProductsForAdroCollection } from "@/lib/adroCollectionMatcher";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import AdroCollectionProductGrid from "../../../components/AdroCollectionProductGrid";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -76,12 +79,51 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
     return priceB - priceA;
   });
 
+  const isUa = resolvedLocale === "ua";
+  const lineLabel = line ? (isUa ? line.nameUk : line.name) : handle;
+  const handlePath = buildLocalizedPath(resolvedLocale, `/shop/adro/collections/${handle}`);
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "ADRO",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/adro")),
+    },
+    {
+      name: isUa ? "Колекції" : "Collections",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/adro/collections")),
+    },
+    {
+      name: lineLabel,
+      url: absoluteUrl(handlePath),
+    },
+  ];
+  const itemListEntries = sortedProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    `${isUa ? "ADRO — " : "ADRO — "}${lineLabel}`,
+    handlePath,
+    itemListEntries
+  );
+
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       <AdroCollectionProductGrid
         locale={resolvedLocale}
         handle={handle}
-        title={line ? (resolvedLocale === "ua" ? line.nameUk : line.name) : handle}
+        title={lineLabel}
         brand="ADRO Aero"
         products={sortedProducts}
         viewerContext={viewerContext}

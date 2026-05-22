@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Activity } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -77,25 +77,37 @@ export default function OhlinsVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const initialMake = searchParams?.get("make") || "all";
-  const initialModel = searchParams?.get("model") || "";
-  const initialChassis = searchParams?.get("chassis") || "";
-  const initialCategory = searchParams?.get("category") || "all";
-  const initialSort =
-    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
-  const initialSearch = searchParams?.get("q") || "";
+  // Initial state defaults to "all"/empty so SSR and CSR first-render match;
+  // URL params apply post-mount via window.location. Reading useSearchParams
+  // at render time would force the surrounding <Suspense> to emit a fallback
+  // in the pre-rendered HTML, hiding every product card from Googlebot.
+  const [activeMake, setActiveMake] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("");
+  const [activeChassis, setActiveChassis] = useState<string>("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
 
-  const [activeMake, setActiveMake] = useState<string>(initialMake);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
-  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlMake = params.get("make");
+    const urlModel = params.get("model");
+    const urlChassis = params.get("chassis");
+    const urlCategory = params.get("category");
+    const urlSort = params.get("sort") as "default" | "price_desc" | "price_asc" | null;
+    const urlQ = params.get("q");
+    if (urlMake) setActiveMake(urlMake);
+    if (urlModel) setActiveModel(urlModel);
+    if (urlChassis) setActiveChassis(urlChassis);
+    if (urlCategory) setActiveCategory(urlCategory);
+    if (urlSort) setSortOrder(urlSort);
+    if (urlQ) setSearchQuery(urlQ);
+  }, []);
   const [visibleCount, setVisibleCount] = useState(30);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
@@ -330,7 +342,9 @@ export default function OhlinsVehicleFilter({
     };
   };
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed so the SSR HTML carries
+  // the full product grid for Googlebot. The inner helper at the top of the
+  // function still checks `mounted` and returns null SSR for price labels.
 
   /* Öhlins Gold accent */
   const GOLD = "#c29d59";

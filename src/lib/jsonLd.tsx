@@ -65,3 +65,56 @@ export function JsonLd({ schema }: { schema: Record<string, any> }) {
     />
   );
 }
+
+/**
+ * Builds a Schema.org BreadcrumbList. Caller provides full label+href pairs
+ * including locale prefix (use `buildLocalizedPath(locale, slug)` upstream).
+ */
+export function generateBreadcrumbListSchema(items: Array<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+type ItemListProductEntry = {
+  slug: string;
+  title: string;
+  path: string; // locale-prefixed, no domain
+  image?: string | null;
+  brand?: string | null;
+};
+
+/**
+ * Builds a Schema.org ItemList of products for a collection/listing page.
+ * Each entry is a Product reference (not full payload) — the canonical Product
+ * schema lives on the detail page (ShopProductStructuredData). This keeps the
+ * listing JSON-LD compact (~200 entries × ~150 bytes) while still giving
+ * Google an explicit, server-rendered link graph.
+ */
+export function generateProductItemListSchema(
+  listName: string,
+  listUrl: string,
+  products: ItemListProductEntry[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: listName,
+    url: absoluteUrl(listUrl),
+    numberOfItems: products.length,
+    itemListElement: products.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: absoluteUrl(product.path),
+      name: product.title,
+      ...(product.image ? { image: product.image } : {}),
+    })),
+  };
+}

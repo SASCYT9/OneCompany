@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BrabusVehicleFilter from "../../components/BrabusVehicleFilter";
 import BrabusVideoBackground from "../../components/BrabusVideoBackground";
 import { getBrabusProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
 import { isBrabusExhaustProduct } from "@/lib/brabusCatalogExclusions";
 import Link from "next/link";
@@ -54,8 +58,42 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
     .filter((p) => !isBrabusExhaustProduct(p))
     .map(projectShopProductForListGrid);
 
+  const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/brabus/products");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Brabus",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/brabus")),
+    },
+    {
+      name: isUa ? "Каталог компонентів" : "Component catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = brabusProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог компонентів Brabus" : "Brabus Component Catalog",
+    listingPath,
+    itemListEntries
+  );
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Cinematic video backdrop — only in dark theme */}
       <div className="fixed inset-0 z-0 hidden dark:block">
         <BrabusVideoBackground
