@@ -100,7 +100,7 @@ export default function IlmbergerHomeSignature({
           <div className="il-hero__logo-wrapper">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logos/ilmberger-carbon.webp"
+              src="/logos/ilmberger-carbon-transparent.webp"
               alt="Ilmberger Carbon"
               className="il-hero__logo"
             />

@@ -83,6 +83,33 @@
   color: var(--il-white);
 }
 
+/* Mobile — bump up + chrome pill so the back-link is visible against
+   the hero video instead of melting into the dark scrim. */
+@media (max-width: 767px) {
+  .il-back {
+    top: 56px;
+    padding: 0.4rem 0.75rem;
+  }
+  .il-back__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(10, 13, 18, 0.7);
+    border: 1px solid rgba(192, 200, 208, 0.4);
+    color: var(--il-white);
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  .il-back__link:hover {
+    background: rgba(10, 13, 18, 0.85);
+    border-color: var(--il-chrome);
+  }
+}
+
 /* ── Typography ── */
 .il-label {
   display: inline-block;
