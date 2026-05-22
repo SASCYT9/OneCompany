@@ -35,7 +35,13 @@ export async function generateMetadata({ params }: Props) {
   });
   const resolvedLocale = resolveLocale(locale);
   const title = item ? `${item.brand} · ${item.name}` : "B2B Catalog Item";
-  return buildNoIndexPageMetadata(resolvedLocale, `shop/stock/${id}`, { title });
+  const description = item
+    ? `${item.brand} ${item.name} — B2B catalog item.`
+    : "B2B catalog item details.";
+  return buildNoIndexPageMetadata(resolvedLocale, `shop/stock/${id}`, {
+    title,
+    description,
+  });
 }
 
 function formatPrice(amount: number | null | undefined, locale: string) {
