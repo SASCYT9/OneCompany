@@ -314,25 +314,15 @@ export default function IlmbergerCatalog({
       ════════════════════════════════════════════════════════════════ */}
       <div className="bg-[var(--il-bg)]/80 border-b border-[var(--il-faint)] sticky top-0 z-30 backdrop-blur-md">
         <div className="relative max-w-7xl mx-auto">
-          {/* Scroll fade hints (mobile only) */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-[var(--il-bg)] to-transparent pointer-events-none z-10 md:hidden"
-            aria-hidden
-          />
-          <div
-            className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[var(--il-bg)] to-transparent pointer-events-none z-10 md:hidden"
-            aria-hidden
-          />
-
-          <div
-            className="px-4 md:px-8 py-3 flex gap-2 overflow-x-auto scrollbar-none relative z-0"
-            role="tablist"
-          >
+          {/* 11 categories — wrap onto multiple rows so all are visible without
+              horizontal scroll. Smaller padding/font on mobile to fit more
+              per row. */}
+          <div className="px-4 md:px-8 py-3 flex flex-wrap gap-1.5 md:gap-2" role="tablist">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
-                className={`flex-shrink-0 px-5 py-2 text-[10px] font-semibold tracking-widest uppercase rounded-sm border transition-all duration-300 ${
+                className={`px-3 md:px-5 py-1.5 md:py-2 text-[9px] md:text-[10px] font-semibold tracking-widest uppercase rounded-sm border transition-all duration-300 ${
                   category === cat.id
                     ? "bg-[var(--il-white)] text-[var(--il-bg)] border-[var(--il-white)] shadow-lg shadow-black/5"
                     : "bg-[var(--il-bg-soft)]/50 text-[var(--il-muted)] border-[var(--il-faint)] hover:text-[var(--il-white)] hover:border-[var(--il-titanium)]"
