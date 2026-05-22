@@ -34,6 +34,8 @@ const staticPageConfig: Record<
   "/shop/burger": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/adro": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/adro/collections": { priority: 0.8, changeFrequency: "weekly" },
+  "/shop/ilmberger": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/ilmberger/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },
   "/moto": { priority: 0.9, changeFrequency: "daily" },
   "/brands": { priority: 0.8, changeFrequency: "weekly" },
