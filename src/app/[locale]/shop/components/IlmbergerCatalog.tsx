@@ -32,7 +32,7 @@ type Props = {
 // Only manufacturers with actual products in DB. Aprilia/Yamaha/Honda/Kawasaki
 // dropped — they have 0 products as of 2026-05.
 const MANUFACTURERS: Record<string, string[]> = {
-  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "S 1000 R"],
+  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "S 1000 R", "M 1000 R", "S 1000 XR", "M 1000 XR"],
   Ducati: ["Panigale V4", "Streetfighter V4", "Diavel V4", "Diavel 1260", "XDiavel"],
 };
 
