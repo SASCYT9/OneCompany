@@ -9,6 +9,7 @@ import {
   loadCustomerBrandDiscountMap,
   resolveBrandDiscount,
 } from "@/lib/shopBrandB2bDiscounts";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 
 function emptyTurn14Response(meta: { page?: number } = {}) {
   return NextResponse.json({
@@ -435,20 +436,50 @@ async function handleShopSearch(
       ];
     }
     if (q) {
-      where.AND = [
-        ...(where.AND ?? []),
-        {
-          OR: [
-            { titleEn: { contains: q, mode: "insensitive" } },
-            { titleUa: { contains: q, mode: "insensitive" } },
-            { sku: { contains: q, mode: "insensitive" } },
-            { brand: { contains: q, mode: "insensitive" } },
-            { vendor: { contains: q, mode: "insensitive" } },
-            { shortDescEn: { contains: q, mode: "insensitive" } },
-            { shortDescUa: { contains: q, mode: "insensitive" } },
-          ],
-        },
-      ];
+      // Multi-token search: each whitespace-separated word must appear in at
+      // least one searchable field (case-insensitive). Lets "porsche 911"
+      // match "Porsche 911 Carrera S" even when tokens are out of order, and
+      // lets "bmw m2 carbon" intersect title+category+description.
+      //
+      // Skip tokens of length 1 (single-letter "B" / "M" would match too much)
+      // and special-case tokens that look like flat-form fits tags (slug or
+      // "make:model") so we can do an O(1) array index hit too.
+      const tokens = q
+        .trim()
+        .split(/\s+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 2)
+        .slice(0, 8); // cap — avoid 100-token DoS query
+
+      for (const token of tokens) {
+        const lower = token.toLowerCase();
+        where.AND = [
+          ...(where.AND ?? []),
+          {
+            OR: [
+              { titleEn: { contains: token, mode: "insensitive" } },
+              { titleUa: { contains: token, mode: "insensitive" } },
+              { sku: { contains: token, mode: "insensitive" } },
+              { brand: { contains: token, mode: "insensitive" } },
+              { vendor: { contains: token, mode: "insensitive" } },
+              { shortDescEn: { contains: token, mode: "insensitive" } },
+              { shortDescUa: { contains: token, mode: "insensitive" } },
+              { longDescEn: { contains: token, mode: "insensitive" } },
+              { longDescUa: { contains: token, mode: "insensitive" } },
+              { categoryEn: { contains: token, mode: "insensitive" } },
+              { categoryUa: { contains: token, mode: "insensitive" } },
+              { collectionEn: { contains: token, mode: "insensitive" } },
+              { collectionUa: { contains: token, mode: "insensitive" } },
+              { productCategory: { contains: token, mode: "insensitive" } },
+              { productType: { contains: token, mode: "insensitive" } },
+              // Exact-tag hit: matches flat tags like `bmw-m2`, `remus`,
+              // `akrapovic`, or any slug stored in `tags[]`. Hugely cheaper
+              // than the regex-on-tags substring path (uses the GIN index).
+              { tags: { has: lower } },
+            ],
+          },
+        ];
+      }
     }
 
     // Prisma can't sort by the COALESCE of priceUsdB2b/priceUsd/priceEur.
@@ -487,10 +518,13 @@ async function handleShopSearch(
             stock: true,
             priceEur: true,
             priceUsd: true,
+            priceUah: true,
             priceUsdB2b: true,
             priceEurB2b: true,
+            priceUahB2b: true,
             compareAtUsd: true,
             compareAtEur: true,
+            compareAtUah: true,
           },
         }),
         prisma.shopProduct.count({ where }),
@@ -499,21 +533,45 @@ async function handleShopSearch(
       console.warn("[Shop Catalog Search] DB query failed", dbErr);
     }
 
-    // 3-tier discount resolution: pre-load BOTH maps once per request so
-    // per-item resolveBrandDiscount() is in-memory only. ~250 system rows +
-    // <50 per-customer overrides — negligible payload.
-    const [systemBrandMap, customerBrandMap] = await Promise.all([
+    // 3-tier discount resolution + currency rates loaded ONCE per request.
+    // Rates are needed to derive USD/EUR for UAH-only-priced products (CSF,
+    // Akrapovic, Ohlins, ADRO — ~1,300 rows in DB). Without this fallback
+    // those products render as "On request" on /shop/stock.
+    const [systemBrandMap, customerBrandMap, settingsRecord] = await Promise.all([
       loadBrandDiscountMap(prisma).catch(() => new Map<string, number>()),
       loadCustomerBrandDiscountMap(prisma, customerId).catch(() => new Map<string, number>()),
+      getOrCreateShopSettings(prisma).catch(() => null),
     ]);
+    const rates = settingsRecord ? getShopSettingsRuntime(settingsRecord).currencyRates : null;
+    const usdPerUah = rates && rates.UAH > 0 && rates.USD > 0 ? rates.USD / rates.UAH : 0;
+    const eurPerUah = rates && rates.UAH > 0 && rates.EUR > 0 ? rates.EUR / rates.UAH : 0;
 
     const sanitizedItems = items.map((p) => {
       const name = p.titleEn || p.titleUa || "Product";
       const description = p.shortDescEn || p.shortDescUa || "";
-      // Prefer USD; fall back to EUR. B2B-specific price wins if present.
-      const b2bPrice = p.priceUsdB2b ?? p.priceEurB2b;
-      const retail = p.priceUsd ?? p.priceEur;
-      const compareAt = p.compareAtUsd ?? p.compareAtEur;
+      // Convert UAH → USD when neither USD nor EUR is set on the product.
+      // This unblocks Ohlins / Akrapovic / CSF / ADRO (UAH-only catalogs,
+      // ~1,300 products) that otherwise rendered as "On request".
+      const uahToUsd = (uah: unknown) => {
+        const n = Number(uah ?? 0);
+        if (!Number.isFinite(n) || n <= 0 || usdPerUah <= 0) return null;
+        return Math.round(n * usdPerUah * 100) / 100;
+      };
+      const uahToEur = (uah: unknown) => {
+        const n = Number(uah ?? 0);
+        if (!Number.isFinite(n) || n <= 0 || eurPerUah <= 0) return null;
+        return Math.round(n * eurPerUah * 100) / 100;
+      };
+
+      // Resolve retail (B2C) in USD: prefer priceUsd, then EUR-derived USD,
+      // then UAH-derived USD. Same logic for compareAt + B2B.
+      const retail = p.priceUsd ?? p.priceEur ?? uahToUsd(p.priceUah);
+      const b2bPrice =
+        p.priceUsdB2b ?? p.priceEurB2b ?? uahToUsd((p as { priceUahB2b?: unknown }).priceUahB2b);
+      const compareAt =
+        p.compareAtUsd ??
+        p.compareAtEur ??
+        uahToUsd((p as { compareAtUah?: unknown }).compareAtUah);
       const basePrice = Number(retail ?? 0);
 
       // Effective discount % for this brand: customer-brand > system-brand
@@ -539,6 +597,9 @@ async function handleShopSearch(
             ? Math.round(retailNum * (1 - effectivePct / 100) * 100) / 100
             : retailNum;
       }
+      // Silence "unused" lint — kept for symmetric ergonomic helper that may
+      // be useful when the UI shifts default display currency to EUR.
+      void uahToEur;
 
       return {
         id: p.id,

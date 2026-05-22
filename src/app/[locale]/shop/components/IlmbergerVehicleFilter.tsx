@@ -20,7 +20,7 @@ type Props = {
 // on the home page show the same brands/models the catalog actually filters
 // for. Drop manufacturers with 0 products (Aprilia/Yamaha/Honda/Kawasaki).
 const MANUFACTURERS: Record<string, string[]> = {
-  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "S 1000 R"],
+  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "S 1000 R", "M 1000 R", "S 1000 XR", "M 1000 XR"],
   Ducati: ["Panigale V4", "Streetfighter V4", "Diavel V4", "Diavel 1260", "XDiavel"],
 };
 
@@ -78,11 +78,9 @@ export default function IlmbergerVehicleFilter({
       list = list.filter((p) => getSearchableText(p).includes(brandKey));
     }
     if (model !== "all") {
-      const modelNoSpace = model.toLowerCase().replace(/\s+/g, "");
-      list = list.filter((p) => {
-        const t = getSearchableText(p);
-        return t.includes(model.toLowerCase()) || t.replace(/\s+/g, "").includes(modelNoSpace);
-      });
+      // Exact tag match. Substring matching on searchableText would falsely
+      // capture "S 1000 RR" when filtering for "S 1000 R" (prefix overlap).
+      list = list.filter((p) => (p.tags ?? []).includes(model));
     }
     if (category !== "all") {
       list = list.filter((p) => getSearchableText(p).includes(category.toLowerCase()));

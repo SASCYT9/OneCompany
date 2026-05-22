@@ -181,7 +181,6 @@ export const OUR_STORES: OurStore[] = [
     gridSpan: 'wide',
   },
   {
-    // Hidden until catalog is populated. Reachable via direct URL.
     id: "ilmberger",
     name: "Ilmberger Carbon",
     nameUk: "Ilmberger Carbon",
@@ -190,8 +189,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk:
       "Автоклавний препрег-карбон для спортбайків. Ручна укладка в Ліндберзі, Німеччина з 1995 року.",
     href: "/shop/ilmberger",
-    imageUrl: "/logos/ilmberger-carbon.webp",
+    imageUrl: "/images/shop/ilmberger/products/gallery-12-alternator-bike.jpg",
     gridSpan: 'standard',
-    isHidden: true,
   },
 ];

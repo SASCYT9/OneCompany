@@ -123,7 +123,6 @@ export default function IlmbergerCatalog({
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     const brandKey = manufacturer !== "all" ? manufacturer.toLowerCase().split(" ")[0] : null;
-    const modelKey = model !== "all" ? model.toLowerCase() : null;
     for (const p of sourceList) {
       const text = (() => {
         if (!hasRealProducts) {
@@ -146,12 +145,11 @@ export default function IlmbergerCatalog({
       })();
       // Narrow by current marque/model context so the year list reflects what's reachable.
       if (brandKey && !text.includes(brandKey)) continue;
-      if (
-        modelKey &&
-        !text.includes(modelKey) &&
-        !text.replace(/\s+/g, "").includes(modelKey.replace(/\s+/g, ""))
-      )
-        continue;
+      // Model narrowing uses exact tag match (substring would alias S 1000 R into S 1000 RR).
+      if (model !== "all" && hasRealProducts) {
+        const tags = ((p as ShopProduct).tags ?? []) as string[];
+        if (!tags.includes(model)) continue;
+      }
       // Match "MY 2019" pattern AND legacy "'16" pattern (XDiavel etc.)
       const myMatches = text.match(/my\s+(20\d{2})/g);
       myMatches?.forEach((m) => years.add(m.replace(/my\s+/i, "")));
@@ -206,13 +204,19 @@ export default function IlmbergerCatalog({
       list = list.filter((p) => getSearchableText(p).includes(brandKey));
     }
 
-    // Filter by model (S 1000 RR / Panigale V4 / etc.) — substring match
+    // Filter by model — exact tag match against canonical bike-model tags
+    // (set at import time). Substring matching on searchableText falsely
+    // captures "S 1000 RR" when filtering for "S 1000 R" (prefix overlap),
+    // and similarly for M 1000 R vs M 1000 RR.
     if (model !== "all") {
-      // Normalize spaces: "S 1000 RR" and "S1000RR" both should match.
-      const modelNoSpace = model.toLowerCase().replace(/\s+/g, "");
       list = list.filter((p) => {
-        const t = getSearchableText(p);
-        return t.includes(model.toLowerCase()) || t.replace(/\s+/g, "").includes(modelNoSpace);
+        if (!hasRealProducts) {
+          // Mock products don't have a tags array — keep substring fallback.
+          const t = getSearchableText(p);
+          const modelNoSpace = model.toLowerCase().replace(/\s+/g, "");
+          return t.includes(model.toLowerCase()) || t.replace(/\s+/g, "").includes(modelNoSpace);
+        }
+        return ((p as ShopProduct).tags ?? []).includes(model);
       });
     }
 
