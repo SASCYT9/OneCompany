@@ -9,6 +9,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { ILMBERGER_MOCK_PRODUCTS } from "../data/ilmbergerHomeData";
+import IlmbergerBikePicker from "./IlmbergerBikePicker";
 import IlmbergerSpotlightCard from "./IlmbergerSpotlightCard";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
@@ -93,6 +94,27 @@ export default function IlmbergerCatalog({
 
   const hasRealProducts = products.length > 0;
   const sourceList = hasRealProducts ? products : ILMBERGER_MOCK_PRODUCTS;
+
+  // Live count per bike model — used by IlmbergerBikePicker to show
+  // "X parts" badges on each bike card.
+  const productCountByModel = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!hasRealProducts) return counts;
+    for (const p of products) {
+      for (const tag of p.tags ?? []) {
+        if (typeof tag !== "string") continue;
+        // Only count canonical bike-model tags (the ones we put on cards).
+        if (
+          /^(S 1000 (RR|R|XR)|M 1000 (RR|R|XR)|Panigale V4|Streetfighter V4|Diavel V4|Diavel 1260|XDiavel)$/.test(
+            tag
+          )
+        ) {
+          counts.set(tag, (counts.get(tag) ?? 0) + 1);
+        }
+      }
+    }
+    return counts;
+  }, [products, hasRealProducts]);
 
   // Years available — extracted dynamically from categoryEn / categoryUa
   // (formatted as "BMW S 1000 RR (MY 2019)"). Auto-narrows when manufacturer
@@ -308,6 +330,24 @@ export default function IlmbergerCatalog({
           </p>
         </div>
       </header>
+
+      {/* ════════════════════════════════════════════════════════════════
+          STEP 1 — BIKE PICKER
+          Shows always at the top; clicking a bike sets manufacturer+model
+          and smooth-scrolls to the catalog anchor below.
+      ════════════════════════════════════════════════════════════════ */}
+      <IlmbergerBikePicker
+        locale={locale}
+        productCountByModel={productCountByModel}
+        onPick={(mfr, mdl) => {
+          setManufacturer(mfr);
+          setModel(mdl);
+          setYear("all");
+        }}
+      />
+
+      {/* Anchor — IlmbergerBikePicker scrolls here on bike click */}
+      <div data-il-anchor="catalog" aria-hidden />
 
       {/* ════════════════════════════════════════════════════════════════
           QUICK CATEGORY CHIPS
