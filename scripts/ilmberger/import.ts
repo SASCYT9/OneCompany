@@ -23,6 +23,11 @@ import path from "path";
 const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run");
 const SETUP_CATEGORY_ONLY = argv.includes("--setup-category");
+// --skip-existing: do not overwrite rows that already exist in DB (by slug).
+// Useful when scraping a new collection whose products mostly re-use SKUs
+// from a previous collection (cross-fit parts). Keeps existing tags +
+// categoryEn intact instead of replacing them with the new context's values.
+const SKIP_EXISTING = argv.includes("--skip-existing");
 const limitFlag = argv.indexOf("--limit");
 const LIMIT = limitFlag >= 0 ? parseInt(argv[limitFlag + 1], 10) : null;
 const onlyFlag = argv.indexOf("--only");
@@ -69,7 +74,12 @@ function detectMarque(sku: string, titleEn: string): "BMW" | "Ducati" | "Other" 
   ) {
     return "Ducati";
   }
-  if (/\.[SM]\d{3}[A-Z]?$/.test(sku) || /\bbmw\b|s\s*1000|m\s*1000/i.test(titleEn)) {
+  // BMW XR chassis: S10XR (all-years), 1XR15 (2015-2019), 1XR20 (2020-2023), 1XR24 (2024+), MXR24 (M XR 2024)
+  if (
+    /\.[SM]\d{3}[A-Z]?$/.test(sku) ||
+    /\.(S10XR|1XR\d{2}|MXR\d{2})\b/.test(sku) ||
+    /\bbmw\b|s\s*1000|m\s*1000/i.test(titleEn)
+  ) {
     return "BMW";
   }
   return "Other";
@@ -143,8 +153,23 @@ function categoryFromTitle(titleEn: string, sku: string): { en: string; ua: stri
   }
 
   // ── BMW (default) ──────────────────────────────────────────────────
+  // SKU-chassis year fallback for BMW XR + 2025 R/M models.
+  if (!year) {
+    if (/\.MXR24\b/.test(sku))
+      year = "2024"; // M 1000 XR 2024
+    else if (/\.1XR24\b/.test(sku))
+      year = "2024"; // S 1000 XR 2024
+    else if (/\.1XR20\b/.test(sku))
+      year = "2020"; // S 1000 XR 2020-2023
+    else if (/\.1XR15\b/.test(sku))
+      year = "2015"; // S 1000 XR 2015-2019
+    else if (/\.S10XR\b/.test(sku)) year = "2024"; // generic XR all-years → tag as latest
+  }
+
   const modelPatterns: Array<{ re: RegExp; name: string }> = [
     { re: /m\s*\/\s*s\s*1000\s*rr/i, name: "M/S 1000 RR" },
+    { re: /\bm\s*1000\s*xr\b|m1000xr/i, name: "M 1000 XR" },
+    { re: /\bs\s*1000\s*xr\b|s1000xr/i, name: "S 1000 XR" },
     { re: /\bm\s*1000\s*rr\b|m1000rr/i, name: "M 1000 RR" },
     { re: /\bs\s*1000\s*rr\b|s1000rr/i, name: "S 1000 RR" },
     { re: /\bm\s*1000\s*r\b(?!r)/i, name: "M 1000 R" },
@@ -159,6 +184,10 @@ function categoryFromTitle(titleEn: string, sku: string): { en: string; ua: stri
       model = name;
     }
   }
+  // SKU-chassis model fallback when title is silent (some XR parts list "all years")
+  if (model === "1000 RR" && /\.MXR\d{2}\b/.test(sku)) model = "M 1000 XR";
+  if (model === "1000 RR" && /\.(1XR\d{2}|S10XR)\b/.test(sku)) model = "S 1000 XR";
+
   const isStreetModel = /\.S125[SN]?$/.test(sku);
   const streetSuffix = isStreetModel ? " Street" : "";
   return year
@@ -214,20 +243,35 @@ function buildRow(p: ScrapedProduct, categoryId: string | null) {
     }
   } else {
     // BMW (default)
+    if (titleNoSpace.includes("m1000xr")) modelTags.push("M 1000 XR");
+    if (titleNoSpace.includes("s1000xr")) modelTags.push("S 1000 XR");
     if (titleNoSpace.includes("m1000rr")) modelTags.push("M 1000 RR");
-    if (titleNoSpace.includes("m1000r") && !titleNoSpace.includes("m1000rr"))
+    if (
+      titleNoSpace.includes("m1000r") &&
+      !titleNoSpace.includes("m1000rr") &&
+      !titleNoSpace.includes("m1000xr")
+    )
       modelTags.push("M 1000 R");
     if (titleNoSpace.includes("s1000rr")) modelTags.push("S 1000 RR");
-    if (titleNoSpace.includes("s1000r") && !titleNoSpace.includes("s1000rr"))
+    if (
+      titleNoSpace.includes("s1000r") &&
+      !titleNoSpace.includes("s1000rr") &&
+      !titleNoSpace.includes("s1000xr")
+    )
       modelTags.push("S 1000 R");
     if (title.includes("m/s 1000 rr") || title.includes("m / s 1000 rr")) {
       if (!modelTags.includes("M 1000 RR")) modelTags.push("M 1000 RR");
       if (!modelTags.includes("S 1000 RR")) modelTags.push("S 1000 RR");
     }
+    // SKU-chassis fallback when title doesn't name the bike
     if (modelTags.length === 0) {
-      const m = p.sku.match(/\.([SM])\d{3}[A-Z]?$/);
-      if (m?.[1] === "M") modelTags.push("M 1000 RR");
-      if (m?.[1] === "S") modelTags.push("S 1000 RR");
+      if (/\.MXR\d{2}\b/.test(p.sku)) modelTags.push("M 1000 XR");
+      else if (/\.(1XR\d{2}|S10XR)\b/.test(p.sku)) modelTags.push("S 1000 XR");
+      else {
+        const m = p.sku.match(/\.([SM])\d{3}[A-Z]?$/);
+        if (m?.[1] === "M") modelTags.push("M 1000 RR");
+        if (m?.[1] === "S") modelTags.push("S 1000 RR");
+      }
     }
   }
 
@@ -366,6 +410,7 @@ async function main() {
   const prisma = new PrismaClient();
   let created = 0;
   let updated = 0;
+  let skipped = 0;
   let errors = 0;
   try {
     for (const row of rows) {
@@ -375,6 +420,10 @@ async function main() {
           select: { id: true },
         });
         if (existing) {
+          if (SKIP_EXISTING) {
+            skipped++;
+            continue;
+          }
           await prisma.shopProduct.update({ where: { slug: row.slug }, data: row });
           updated++;
           console.log(`  ✏️  ${row.sku} updated`);
@@ -391,7 +440,9 @@ async function main() {
   } finally {
     await prisma.$disconnect();
   }
-  console.log(`\n✅ Created ${created}, updated ${updated}, failed ${errors} of ${rows.length}`);
+  console.log(
+    `\n✅ Created ${created}, updated ${updated}, skipped ${skipped}, failed ${errors} of ${rows.length}`
+  );
 }
 
 main().catch((e) => {
