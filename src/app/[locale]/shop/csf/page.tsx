@@ -2,6 +2,7 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getCsfProductsServer } from "@/lib/shopCatalogServer";
 import { buildCsfHeroSummary } from "@/lib/csfHeroCatalog";
 import CSFHomeSignature from "../components/CSFHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -39,5 +40,14 @@ export default async function CSFRacingPage({ params, searchParams }: Props) {
   const csfProducts = await getCsfProductsServer();
   const heroSummary = buildCsfHeroSummary(csfProducts);
 
-  return <CSFHomeSignature locale={resolvedLocale} smmSource={src} heroSummary={heroSummary} />;
+  return (
+    <>
+      <CSFHomeSignature locale={resolvedLocale} smmSource={src} heroSummary={heroSummary} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/csf/collections`}
+        productCount={csfProducts.length}
+      />
+    </>
+  );
 }

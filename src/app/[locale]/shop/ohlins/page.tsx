@@ -2,6 +2,7 @@ import { resolveLocale } from "@/lib/seo";
 import { getOhlinsProductsServer } from "@/lib/shopCatalogServer";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
 import OhlinsHomeSignature from "../components/OhlinsHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -33,5 +34,14 @@ export default async function OhlinsSkinPage({ params }: Props) {
   const ohlinsProducts = await getOhlinsProductsServer();
   const availableVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
 
-  return <OhlinsHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
+  return (
+    <>
+      <OhlinsHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/ohlins/catalog`}
+        productCount={ohlinsProducts.length}
+      />
+    </>
+  );
 }

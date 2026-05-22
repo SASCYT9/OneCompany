@@ -2,6 +2,7 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getIpeProductsServer } from "@/lib/shopCatalogServer";
 import { buildIpeHeroVehicleTree } from "@/lib/ipeHeroCatalog";
 import IpeHomeSignature from "../components/IpeHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -33,5 +34,14 @@ export default async function ShopIpePage({ params }: Props) {
   const ipeProducts = await getIpeProductsServer();
   const availableVehicles = buildIpeHeroVehicleTree(ipeProducts);
 
-  return <IpeHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
+  return (
+    <>
+      <IpeHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/ipe/collections`}
+        productCount={ipeProducts.length}
+      />
+    </>
+  );
 }

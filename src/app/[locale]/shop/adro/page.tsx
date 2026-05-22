@@ -2,6 +2,7 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getAdroProductsServer } from "@/lib/shopCatalogServer";
 import { buildAdroHeroVehicleTree } from "@/lib/adroCatalog";
 import AdroHomeSignature from "../components/AdroHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -35,10 +36,17 @@ export default async function ShopAdroPage({ params }: Props) {
   const featuredProducts = adroProducts.slice(0, 12);
 
   return (
-    <AdroHomeSignature
-      locale={resolvedLocale}
-      availableVehicles={availableVehicles}
-      featuredProducts={featuredProducts}
-    />
+    <>
+      <AdroHomeSignature
+        locale={resolvedLocale}
+        availableVehicles={availableVehicles}
+        featuredProducts={featuredProducts}
+      />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/adro/collections`}
+        productCount={adroProducts.length}
+      />
+    </>
   );
 }

@@ -1,5 +1,7 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { getBurgerProductsServer } from "@/lib/shopCatalogServer";
 import BurgerStoreHome from "../components/BurgerStoreHome";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -28,6 +30,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function ShopBurgerPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const burgerProducts = await getBurgerProductsServer();
 
-  return <BurgerStoreHome locale={resolvedLocale} />;
+  return (
+    <>
+      <BurgerStoreHome locale={resolvedLocale} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/burger/products`}
+        productCount={burgerProducts.length}
+      />
+    </>
+  );
 }
