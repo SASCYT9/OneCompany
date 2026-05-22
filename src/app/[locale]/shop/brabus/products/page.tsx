@@ -11,15 +11,19 @@ import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
 import { isBrabusExhaustProduct } from "@/lib/brabusCatalogExclusions";
+import {
+  ShopPaginationNav,
+  paginateProducts,
+  COLLECTION_PAGE_SIZE,
+} from "../../components/ShopPaginationNav";
 import Link from "next/link";
 
-// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
-export const dynamic = "force-static";
+// ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -37,9 +41,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function BrabusProductsCatalogPage({ params }: Props) {
+export default async function BrabusProductsCatalogPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const sp = searchParams ? await searchParams : {};
+  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRecord, allBrabusProducts] = await Promise.all([
     getOrCreateShopSettings(prisma),
@@ -53,10 +59,15 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
     null
   );
 
-  const brabusProducts = allBrabusProducts
+  const allFilteredBrabusProducts = allBrabusProducts
     .filter((p) => !isFactoryOnlyProduct(p.sku))
     .filter((p) => !isBrabusExhaustProduct(p))
     .map(projectShopProductForListGrid);
+  const {
+    pageProducts: brabusProducts,
+    currentPage,
+    totalPages,
+  } = paginateProducts(allFilteredBrabusProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
   const isUa = resolvedLocale === "ua";
   const listingPath = buildLocalizedPath(resolvedLocale, "/shop/brabus/products");
@@ -116,6 +127,13 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
           locale={resolvedLocale}
           products={brabusProducts}
           viewerContext={viewerContext}
+        />
+
+        <ShopPaginationNav
+          locale={resolvedLocale}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          basePath={`/${resolvedLocale}/shop/brabus/products`}
         />
       </div>
     </div>

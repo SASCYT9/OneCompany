@@ -17,6 +17,11 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdmin
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
 import RacechipVehicleFilter from "../../components/RacechipVehicleFilter";
+import {
+  ShopPaginationNav,
+  paginateProducts,
+  COLLECTION_PAGE_SIZE,
+} from "../../components/ShopPaginationNav";
 import "../racechip-shop.css";
 
 // Re-enable ISR: previously this route was force-dynamic because the cross-brand
@@ -32,6 +37,7 @@ export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -49,16 +55,23 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function RaceChipProductsCatalogPage({ params }: Props) {
+export default async function RaceChipProductsCatalogPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const sp = searchParams ? await searchParams : {};
+  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, racechipProducts] = await Promise.all([
+  const [settingsRecord, allRacechipProducts] = await Promise.all([
     getOrCreateShopSettings(prisma),
     // Light fetcher already returns the projected shape — no need to map
     // through projectShopProductForVehicleCatalog like the old code path did.
     getRacechipProductsLightServer(),
   ]);
+  const {
+    pageProducts: racechipProducts,
+    currentPage,
+    totalPages,
+  } = paginateProducts(allRacechipProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
@@ -91,7 +104,7 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
   // payload stays manageable while still giving Google a sizable link graph.
   // Remaining products are reachable via sitemap and intra-listing pagination.
   const ITEMLIST_CAP = 500;
-  const itemListEntries = racechipProducts.slice(0, ITEMLIST_CAP).map((product) => ({
+  const itemListEntries = allRacechipProducts.slice(0, ITEMLIST_CAP).map((product) => ({
     slug: product.slug,
     title: localizeShopProductTitle(resolvedLocale, product),
     path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
@@ -138,6 +151,13 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
               viewerContext={viewerContext}
             />
           </Suspense>
+
+          <ShopPaginationNav
+            locale={resolvedLocale}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/racechip/catalog`}
+          />
         </div>
       </div>
     </div>

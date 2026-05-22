@@ -15,15 +15,19 @@ import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
 import OhlinsVehicleFilter from "../../components/OhlinsVehicleFilter";
+import {
+  ShopPaginationNav,
+  paginateProducts,
+  COLLECTION_PAGE_SIZE,
+} from "../../components/ShopPaginationNav";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
 
-// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
-export const dynamic = "force-static";
+// ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -55,9 +59,11 @@ function resolveAlternativeSearchImage(image: string | null | undefined) {
   return value;
 }
 
-export default async function OhlinsCatalogPage({ params }: Props) {
+export default async function OhlinsCatalogPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const sp = searchParams ? await searchParams : {};
+  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRecord, products] = await Promise.all([
     getOrCreateShopSettings(prisma),
@@ -71,8 +77,15 @@ export default async function OhlinsCatalogPage({ params }: Props) {
     null
   );
 
-  const ohlinsProducts = products.filter(isOhlinsProduct);
-  const ohlinsHeroVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
+  const allOhlinsProducts = products.filter(isOhlinsProduct);
+  // Hero vehicle tree must span the full catalog so make/model dropdowns stay
+  // accurate even when the user is viewing a paginated slice.
+  const ohlinsHeroVehicles = buildOhlinsHeroVehicleTree(allOhlinsProducts);
+  const {
+    pageProducts: ohlinsProducts,
+    currentPage,
+    totalPages,
+  } = paginateProducts(allOhlinsProducts, requestedPage, COLLECTION_PAGE_SIZE);
   const alternativeSearchItems = products.reduce<ShopAlternativeSearchItem[]>((items, product) => {
     if (isOhlinsProduct(product)) {
       return items;
@@ -144,7 +157,7 @@ export default async function OhlinsCatalogPage({ params }: Props) {
       url: absoluteUrl(listingPath),
     },
   ];
-  const itemListEntries = ohlinsProducts.map((product) => ({
+  const itemListEntries = allOhlinsProducts.map((product) => ({
     slug: product.slug,
     title: localizeShopProductTitle(resolvedLocale, product),
     path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
@@ -202,6 +215,13 @@ export default async function OhlinsCatalogPage({ params }: Props) {
               viewerContext={viewerContext}
             />
           </Suspense>
+
+          <ShopPaginationNav
+            locale={resolvedLocale}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/ohlins/catalog`}
+          />
         </div>
       </div>
     </div>
