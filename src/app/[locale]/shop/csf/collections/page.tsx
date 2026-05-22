@@ -7,10 +7,17 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import CSFCatalogGrid from "../../components/CSFCatalogGrid";
+import {
+  ShopPaginationNav,
+  paginateProducts,
+  COLLECTION_PAGE_SIZE,
+} from "../../components/ShopPaginationNav";
 
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
+export const revalidate = 3600;
+
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -28,12 +35,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function CSFCollectionsPage({ params }: Props) {
+export default async function CSFCollectionsPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
+  const sp = searchParams ? await searchParams : {};
+  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const csfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
+  const allCsfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
+  const {
+    pageProducts: csfProducts,
+    currentPage,
+    totalPages,
+  } = paginateProducts(allCsfProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
   const listingPath = buildLocalizedPath(resolvedLocale, "/shop/csf/collections");
   const breadcrumbs = [
@@ -96,6 +110,13 @@ export default async function CSFCollectionsPage({ params }: Props) {
         >
           <CSFCatalogGrid locale={resolvedLocale} products={csfProducts} />
         </Suspense>
+
+        <ShopPaginationNav
+          locale={resolvedLocale}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          basePath={`/${resolvedLocale}/shop/csf/collections`}
+        />
       </div>
     </div>
   );
