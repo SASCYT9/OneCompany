@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
+import { getDo88ProductsServer } from "@/lib/shopCatalogServer";
 import Do88HomeSignature from "../components/Do88HomeSignature";
 import Do88CollectionsGrid from "../components/Do88CollectionsGrid";
 import Do88FeaturedModels from "../components/Do88FeaturedModels";
 import OurStoresPortal from "../components/OurStoresPortal";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 import "@/styles/urban-collections.css";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
@@ -55,6 +57,12 @@ export default async function ShopDo88Page({ params }: Props) {
       </Suspense>
 
       <Do88FeaturedModels locale={resolvedLocale} />
+
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/do88/collections/all`}
+        productCount={(await getDo88ProductsServer()).length}
+      />
     </>
   );
 }

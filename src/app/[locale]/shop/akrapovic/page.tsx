@@ -5,6 +5,7 @@ import { getAkrapovicProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import AkrapovicHomeSignature from "../components/AkrapovicHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -65,6 +66,11 @@ export default async function ShopAkrapovicPage({ params }: Props) {
         locale={resolvedLocale}
         products={akrapovicProducts}
         viewerContext={viewerContext}
+      />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/akrapovic/collections`}
+        productCount={akrapovicProducts.length}
       />
     </>
   );

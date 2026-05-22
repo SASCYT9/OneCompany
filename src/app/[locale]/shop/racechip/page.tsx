@@ -5,6 +5,7 @@ import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 // for context on the light fetcher.
 import { getRacechipProductsLightServer } from "@/lib/shopCatalogServer";
 import RacechipHomeSignature from "../components/RacechipHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 import type { RacechipMakeModelEntry } from "../components/RacechipQuickFinder";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
@@ -31,7 +32,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-async function loadMakeModels(): Promise<RacechipMakeModelEntry[]> {
+async function loadMakeModelsWithCount(): Promise<{
+  makeModels: RacechipMakeModelEntry[];
+  productCount: number;
+}> {
   const rows = await getRacechipProductsLightServer();
 
   const map = new Map<string, Set<string>>();
@@ -43,18 +47,30 @@ async function loadMakeModels(): Promise<RacechipMakeModelEntry[]> {
     if (model) map.get(make)!.add(model);
   }
 
-  return [...map.entries()]
-    .map(([make, modelsSet]) => ({
-      make,
-      models: [...modelsSet].sort((a, b) => a.localeCompare(b)),
-    }))
-    .sort((a, b) => a.make.localeCompare(b.make));
+  return {
+    makeModels: [...map.entries()]
+      .map(([make, modelsSet]) => ({
+        make,
+        models: [...modelsSet].sort((a, b) => a.localeCompare(b)),
+      }))
+      .sort((a, b) => a.make.localeCompare(b.make)),
+    productCount: rows.length,
+  };
 }
 
 export default async function RaceChipHomePage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const makeModels = await loadMakeModels();
+  const { makeModels, productCount } = await loadMakeModelsWithCount();
 
-  return <RacechipHomeSignature locale={resolvedLocale} makeModels={makeModels} />;
+  return (
+    <>
+      <RacechipHomeSignature locale={resolvedLocale} makeModels={makeModels} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/racechip/catalog`}
+        productCount={productCount}
+      />
+    </>
+  );
 }

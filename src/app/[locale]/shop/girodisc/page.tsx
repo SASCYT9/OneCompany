@@ -2,6 +2,7 @@ import { resolveLocale } from "@/lib/seo";
 import { getGirodiscProductsServer } from "@/lib/shopCatalogServer";
 import { buildGirodiscHeroVehicleTree } from "@/lib/girodiscHeroCatalog";
 import GiroDiscHomeSignature from "../components/GiroDiscHomeSignature";
+import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -32,5 +33,14 @@ export default async function GiroDiscSkinPage({ params }: Props) {
   const girodiscProducts = await getGirodiscProductsServer();
   const availableVehicles = buildGirodiscHeroVehicleTree(girodiscProducts);
 
-  return <GiroDiscHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
+  return (
+    <>
+      <GiroDiscHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
+      <ShopBrandViewAllCta
+        locale={resolvedLocale}
+        href={`/${locale}/shop/girodisc/catalog`}
+        productCount={girodiscProducts.length}
+      />
+    </>
+  );
 }
