@@ -78,7 +78,9 @@ export function Header() {
                   ? `/${locale}/shop/girodisc/catalog`
                   : ["brabus", "burger", "urban"].includes(currentBrand)
                     ? `/${locale}/shop/${currentBrand}/products`
-                    : ["do88", "akrapovic", "adro", "csf", "ipe"].includes(currentBrand)
+                    : ["do88", "akrapovic", "adro", "csf", "ipe", "ilmberger"].includes(
+                          currentBrand
+                        )
                       ? `/${locale}/shop/${currentBrand}/collections`
                       : `/${locale}/shop/${currentBrand}#catalog`,
             label: isUa
@@ -92,13 +94,7 @@ export function Header() {
           {
             key: "stock",
             href: `/${locale}/shop/stock`,
-            label: isUa
-              ? isBrandPortal
-                ? "B2B Склад"
-                : "B2B Каталог"
-              : isBrandPortal
-                ? "B2B Stock"
-                : "B2B Catalog",
+            label: "B2B",
           },
         ]
       : []),
