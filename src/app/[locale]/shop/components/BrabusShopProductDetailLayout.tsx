@@ -881,14 +881,6 @@ export function BrabusShopProductDetailLayout({
                   locale={resolvedLocale}
                   isUa={isUa}
                   price={pricing.effectivePrice}
-                  // Per-brand B2B discount (e.g. Brabus −8%) gets applied
-                  // client-side once the session loads; pass the raw bands
-                  // so ShopPrimaryPriceBox can recompute via useShopViewerContext.
-                  b2cPrice={pricing.bands.b2c.price}
-                  b2bExplicit={
-                    pricing.bands.b2b?.source === "b2b-explicit" ? pricing.bands.b2b.price : null
-                  }
-                  brand={product.brand ?? (product as any).vendor ?? null}
                 />
               </div>
 

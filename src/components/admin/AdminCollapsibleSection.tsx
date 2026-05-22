@@ -22,7 +22,6 @@ export function AdminCollapsibleSection({
   defaultOpen = false,
   children,
   className,
-  hidden,
 }: {
   id?: string;
   title: string;
@@ -32,17 +31,11 @@ export function AdminCollapsibleSection({
   defaultOpen?: boolean;
   children: ReactNode;
   className?: string;
-  /** When true, the section is hidden via CSS — form state is preserved. */
-  hidden?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section
-      id={id}
-      hidden={hidden}
-      className={cn("scroll-mt-24 border border-white/5 bg-[#171717]", className)}
-    >
+    <section id={id} className={cn("scroll-mt-24 border border-white/5 bg-[#171717]", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

@@ -3,7 +3,6 @@ import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { addItemToShopCart, SHOP_CART_COOKIE, serializeResolvedShopCart } from "@/lib/shopCart";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { loadBrandDiscountMap, loadCustomerBrandDiscountMap } from "@/lib/shopBrandB2bDiscounts";
 import { prisma } from "@/lib/prisma";
 
 import { importTurn14ItemToDb } from "@/lib/turn14Sync";
@@ -89,20 +88,12 @@ export async function POST(request: NextRequest) {
       getCurrentShopCustomerSession(),
       getOrCreateShopSettings(prisma),
     ]);
-    const [systemBrandMap, customerBrandMap] = await Promise.all([
-      loadBrandDiscountMap(prisma),
-      loadCustomerBrandDiscountMap(prisma, session?.customerId ?? null),
-    ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const context = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      {
-        systemBrandDiscountMap: systemBrandMap,
-        customerBrandDiscountMap: customerBrandMap,
-      }
+      session?.b2bDiscountPercent ?? null
     );
     const { cart, token } = await addItemToShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,

@@ -24,20 +24,6 @@ const DO88_THUMB_PATTERN =
 const SHOPIFY_UUID_SUFFIX_PATTERN =
   /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.(?:jpg|jpeg|png|webp|gif|avif))/i;
 
-// Turn14 CloudFront uses a small thumb suffix `<hash>S.<ext>` for the
-// catalog's default image. A `L` variant (~16× larger, ~130 KB vs ~8 KB)
-// exists for ~33% of brands (Borla, CSF, do88, Mickey Thompson, Brembo OE,
-// SPL Parts, etc.). Other brands' URLs are already full-size (no S suffix)
-// or use a different per-view scheme (a/b/c/d/e/f) we leave alone.
-//
-// Verified empirically (scripts/_check-turn14-image-pattern.ts +
-// CDN HEAD probe) that `…S.(jpg|png)` → `…L.$1` returns 200 with a
-// substantially larger payload. If a given URL has no `L` variant, the
-// CDN returns 403 and the <Image> component's onError falls back to the
-// placeholder asset.
-const TURN14_THUMB_PATTERN =
-  /^(https?:\/\/d32vzsop7y1h3k\.cloudfront\.net\/[A-Za-z0-9-]+)S(\.(?:JPG|PNG|jpg|png))$/;
-
 function upgradeSupplierImage(src: string) {
   // do88 thumbnails (`/bilder/artiklar/liten/<sku>_S.jpg`) have a larger
   // un-suffixed counterpart (`/bilder/artiklar/<sku>.jpg`) — ~50% larger and
@@ -45,11 +31,6 @@ function upgradeSupplierImage(src: string) {
   const do88Match = src.match(DO88_THUMB_PATTERN);
   if (do88Match) {
     return `https://www.do88.se/bilder/artiklar/${do88Match[1]}.jpg`;
-  }
-  // Turn14 CDN: upgrade …S.(JPG|PNG) to …L.$1 for HD product photos.
-  const turn14Match = src.match(TURN14_THUMB_PATTERN);
-  if (turn14Match) {
-    return `${turn14Match[1]}L${turn14Match[2]}`;
   }
   // Shopify-CDN stale-uuid normalisation. Only applies when the host is
   // shopify CDN so we don't accidentally rewrite something else.
@@ -77,11 +58,6 @@ export function ShopProductImage({
 }: ShopProductImageProps) {
   const normalizedSrc = normalizeImageSrc(src);
   const normalizedFallback = normalizeImageSrc(fallbackSrc) || DEFAULT_FALLBACK_SRC;
-  const rawSrc = String(src ?? "").trim();
-  // If we upgraded a Turn14 thumbnail to HD, keep the original small variant
-  // as the intermediate fallback so missing L.JPG → graceful step-down to
-  // S.JPG rather than straight to the placeholder.
-  const originalIfDifferent = rawSrc && rawSrc !== normalizedSrc ? rawSrc : null;
   const [currentSrc, setCurrentSrc] = useState(normalizedSrc || normalizedFallback);
   const shouldBypassOptimization =
     props.unoptimized ?? (isBlobStorageUrl(currentSrc) || isAbsoluteHttpUrl(currentSrc));
@@ -97,9 +73,7 @@ export function ShopProductImage({
       alt={alt}
       unoptimized={shouldBypassOptimization}
       onError={() => {
-        if (originalIfDifferent && currentSrc !== originalIfDifferent) {
-          setCurrentSrc(originalIfDifferent);
-        } else if (currentSrc !== normalizedFallback) {
+        if (currentSrc !== normalizedFallback) {
           setCurrentSrc(normalizedFallback);
         }
       }}

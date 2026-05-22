@@ -14,7 +14,6 @@ import { buildShopProductPathGirodisc } from "@/lib/girodiscCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import GirodiscSpotlightGrid from "./GirodiscSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
@@ -897,24 +896,43 @@ export default function GirodiscVehicleFilter({
 
                             {/* Price */}
                             <div className="mt-auto">
-                              <ShopCardPriceTag
-                                locale={locale}
-                                b2cPrice={product.price}
-                                b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
-                                brand={product.brand ?? null}
-                                variant="compact"
-                                classNames={{
-                                  root: "flex items-baseline gap-2 flex-wrap",
-                                  price:
-                                    "text-[11px] sm:text-[18px] tracking-wider sm:tracking-widest font-light text-foreground dark:text-white group-hover:text-red-500 transition-colors duration-300 tabular-nums",
-                                  retail:
-                                    "text-xs text-foreground/55 dark:text-white/40 line-through font-light",
-                                  badge:
-                                    "inline-flex items-center rounded-sm bg-red-600/15 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-red-500",
-                                }}
-                                requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
-                              />
+                              {computed.usd === 0 ? (
+                                <span className="text-[9px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.15em] uppercase font-medium text-foreground/55 dark:text-white/40">
+                                  {isUa ? "Ціна за запитом" : "Price on Request"}
+                                </span>
+                              ) : (
+                                <div className="flex flex-col p-1 pl-0">
+                                  {pricing.effectiveCompareAt?.usd &&
+                                    pricing.effectiveCompareAt.usd > computed.usd && (
+                                      <span className="text-xs text-foreground/55 dark:text-white/40 line-through mb-1 font-light">
+                                        {currency === "USD" &&
+                                          formatPrice(
+                                            locale,
+                                            pricing.effectiveCompareAt.usd,
+                                            "USD"
+                                          )}
+                                        {currency === "EUR" &&
+                                          formatPrice(
+                                            locale,
+                                            pricing.effectiveCompareAt.usd *
+                                              (rates?.USD ? rates.EUR / rates.USD : 1),
+                                            "EUR"
+                                          )}
+                                        {currency === "UAH" &&
+                                          formatPrice(
+                                            locale,
+                                            pricing.effectiveCompareAt.usd * (rates?.USD || 1),
+                                            "UAH"
+                                          )}
+                                      </span>
+                                    )}
+                                  <span className="text-[11px] sm:text-[18px] tracking-wider sm:tracking-widest font-light text-foreground dark:text-white group-hover:text-red-500 transition-colors duration-300">
+                                    {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                                    {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                                    {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
 

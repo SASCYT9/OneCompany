@@ -12,7 +12,6 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 
 type AdroCollectionProductGridProps = {
   locale: SupportedLocale;
@@ -142,23 +141,24 @@ export default function AdroCollectionProductGrid({
 
                       <div className="grow"></div>
 
-                      <div className="mb-5">
-                        <ShopCardPriceTag
-                          locale={locale}
-                          b2cPrice={product.price}
-                          b2bExplicit={product.b2bPrice ?? null}
-                          compareAt={product.compareAt ?? null}
-                          brand={product.brand ?? null}
-                          variant="compact"
-                          classNames={{
-                            root: "flex items-baseline gap-2 flex-wrap",
-                            price: `text-sm tracking-wide tabular-nums ${isB2B ? "text-emerald-500 font-medium" : "text-foreground font-light"}`,
-                            retail: "text-[10px] text-zinc-600 line-through tracking-wider",
-                            badge:
-                              "inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-500",
-                          }}
-                          requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
-                        />
+                      <div className="flex flex-col gap-1 mb-5">
+                        {isB2B && comparePrice ? (
+                          <span className="text-[10px] text-zinc-600 line-through tracking-wider">
+                            {comparePrice}
+                          </span>
+                        ) : null}
+
+                        {!hasPrice || !primaryPrice ? (
+                          <span className="text-sm font-light text-zinc-500 tracking-wide">
+                            {isUa ? "Ціна за запитом" : "Price on Request"}
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-500 font-medium" : "text-foreground font-light"}`}
+                          >
+                            {primaryPrice}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>

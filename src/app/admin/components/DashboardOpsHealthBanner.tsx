@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
+const CARBON_WEAVE_STYLE: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%), repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px)",
+  backgroundBlendMode: "normal, overlay, overlay",
+};
+
 export type HealthLevel = "green" | "amber" | "red";
 
 export type HealthLight = {
@@ -17,16 +23,16 @@ export type HealthLight = {
  */
 export function DashboardOpsHealthBanner({ lights }: { lights: HealthLight[] }) {
   return (
-    <section className="relative overflow-hidden rounded-none border border-white/5 bg-[#171717]">
-      <div className="flex items-center gap-2.5 border-b border-white/5 px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold tracking-tight text-zinc-100">
-          Стан операцій
+    <section
+      className="relative overflow-hidden rounded-none border border-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_1px_2px_rgba(0,0,0,0.6)]"
+      style={CARBON_WEAVE_STYLE}
+    >
+      <div className="flex items-center gap-3 border-b border-white/5 px-4 py-2.5">
+        <span className="h-3 w-[3px] rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-100">
+          Operations health
         </h3>
-        <span className="font-display flex items-center gap-1.5 text-[12px] text-zinc-500">
-          <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-            <span className="absolute inset-0 rounded-full bg-blue-500 motion-safe:animate-ping" />
-            <span className="relative h-1.5 w-1.5 rounded-full bg-blue-500" />
-          </span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
           live
         </span>
       </div>
@@ -59,16 +65,19 @@ function HealthLightCell({ light }: { light: HealthLight }) {
     light.level === "green" ? "Healthy" : light.level === "amber" ? "Warning" : "Critical";
 
   const inner = (
-    <div className="relative h-full px-4 py-3.5 transition-colors hover:bg-white/[0.025]">
-      <span className={cn("absolute left-0 top-0 h-full w-px", stripeClass)} aria-hidden="true" />
+    <div className="relative h-full px-4 py-3.5 transition-colors hover:bg-white/2.5">
+      <span
+        className={cn("absolute left-0 top-0 h-full w-[2px]", stripeClass)}
+        aria-hidden="true"
+      />
       <div className="flex items-center gap-2">
         <span className={cn("h-2 w-2 rounded-full", dotClass)} aria-hidden="true" />
-        <span className="font-display text-[12px] font-medium text-zinc-200">{light.label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-300">
+          {light.label}
+        </span>
         <span className="sr-only">: status {statusText}.</span>
       </div>
-      <div className="font-display mt-1.5 text-[12px] leading-tight text-zinc-400">
-        {light.detail}
-      </div>
+      <div className="mt-1.5 text-xs leading-5 text-zinc-400">{light.detail}</div>
     </div>
   );
 

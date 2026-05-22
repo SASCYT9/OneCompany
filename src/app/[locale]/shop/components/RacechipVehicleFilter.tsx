@@ -12,7 +12,6 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
@@ -657,29 +656,9 @@ export default function RacechipVehicleFilter({
 
                           {/* Price — primary + all currencies */}
                           <div className="mt-auto pt-2 pb-4">
-                            {priceData ? (
-                              <ShopCardPriceTag
-                                locale={locale}
-                                b2cPrice={product.price}
-                                b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
-                                brand={product.brand ?? null}
-                                variant="compact"
-                                classNames={{
-                                  root: "flex items-baseline gap-2 flex-wrap",
-                                  price:
-                                    "text-lg tracking-widest font-thin text-foreground dark:text-white tabular-nums",
-                                  retail:
-                                    "text-xs font-light line-through text-foreground/45 dark:text-zinc-500",
-                                  badge:
-                                    "inline-flex items-center rounded-sm bg-primary/15 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-primary",
-                                }}
-                              />
-                            ) : (
-                              <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
-                                ОЧІКУЄТЬСЯ
-                              </span>
-                            )}
+                            <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
+                              {priceData ? priceData.primary : "ОЧІКУЄТЬСЯ"}
+                            </span>
                             {priceData && (
                               <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-foreground/40 dark:text-zinc-600">
                                 <span

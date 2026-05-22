@@ -14,7 +14,6 @@ import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 
 /** Lower-case + strip diacritics for tolerant matching. */
 function normalizeForSearch(value: string | null | undefined) {
@@ -347,22 +346,26 @@ export default function Do88CollectionProductGrid({
                     </h3>
                     <div className="urban-product-grid__meta">
                       <p className="urban-product-grid__collection">{productCollection || title}</p>
-                      <ShopCardPriceTag
-                        locale={locale}
-                        b2cPrice={product.price}
-                        b2bExplicit={product.b2bPrice ?? null}
-                        compareAt={product.compareAt ?? null}
-                        brand={product.brand ?? null}
-                        variant="compact"
-                        classNames={{
-                          root: "urban-product-grid__price flex items-baseline gap-2 flex-wrap",
-                          price: "text-foreground font-medium tabular-nums",
-                          retail:
-                            "urban-product-grid__compare-at line-through text-foreground/55 dark:text-foreground/30 text-sm font-light",
-                          badge:
-                            "inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-400",
-                        }}
-                      />
+                      <div className="urban-product-grid__price">
+                        {isB2B && computedCompare && (
+                          <span className="urban-product-grid__compare-at line-through text-foreground/55 dark:text-foreground/30 mr-2 text-sm">
+                            {formatPrice(
+                              locale,
+                              computedCompare[
+                                currency.toLowerCase() as keyof typeof computedCompare
+                              ],
+                              currency as any
+                            )}
+                          </span>
+                        )}
+                        <span className={isB2B ? "text-emerald-400 font-bold" : "text-foreground"}>
+                          {formatPrice(
+                            locale,
+                            computed[currency.toLowerCase() as keyof typeof computed],
+                            currency as any
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="urban-product-grid__actions" style={{ zIndex: 10 }}>

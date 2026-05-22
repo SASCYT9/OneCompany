@@ -1230,111 +1230,24 @@ export function AdminEditorSection({
   description,
   children,
   className,
-  hidden,
 }: {
   id: string;
   title: string;
   description: string;
   children: ReactNode;
   className?: string;
-  /** When true, the section is hidden via CSS — form state is preserved. */
-  hidden?: boolean;
 }) {
   return (
     <section
       id={id}
-      hidden={hidden}
-      className={cn(
-        "scroll-mt-24 rounded-none border bg-[#171717] p-4 sm:p-5 md:p-6",
-        BORDER,
-        className
-      )}
+      className={cn("scroll-mt-24 rounded-none border bg-[#171717] p-5 md:p-6", BORDER, className)}
     >
-      <div className="mb-4 max-w-2xl space-y-1 sm:mb-5 sm:space-y-1.5">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-50 sm:text-xl">{title}</h2>
-        <p className="text-xs leading-5 text-zinc-400 sm:text-sm sm:leading-6">{description}</p>
+      <div className="mb-5 max-w-2xl space-y-1.5">
+        <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
+        <p className="text-sm leading-6 text-zinc-400">{description}</p>
       </div>
       {children}
     </section>
-  );
-}
-
-/**
- * Tab strip for long editor forms. Horizontally scrollable on mobile, sticky
- * under the top bar so it stays visible while the user fills out a section.
- *
- * Pair with conditional section rendering — render only the active tab's
- * content. All form state stays in React state, so switching tabs doesn't
- * lose unsaved values.
- */
-export type AdminEditorTab = {
-  id: string;
-  label: string;
-  /** Optional small count/badge shown next to the label (e.g. "3 errors"). */
-  badge?: ReactNode;
-};
-
-export function AdminEditorTabs({
-  tabs,
-  activeId,
-  onChange,
-  className,
-}: {
-  tabs: AdminEditorTab[];
-  activeId: string;
-  onChange: (id: string) => void;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "sticky top-[52px] z-20 -mx-4 mb-4 border-b border-white/5 bg-[#0A0A0A]/92 backdrop-blur-xl md:-mx-8 md:top-[60px] xl:-mx-10",
-        className
-      )}
-    >
-      <div
-        role="tablist"
-        aria-label="Розділи редактора"
-        className="flex gap-1 overflow-x-auto px-4 md:px-8 xl:px-10 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-      >
-        {tabs.map((tab) => {
-          const active = tab.id === activeId;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls={`editor-tab-${tab.id}`}
-              onClick={() => onChange(tab.id)}
-              className={cn(
-                "relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:py-3",
-                active ? "text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <span>{tab.label}</span>
-              {tab.badge ? (
-                <span
-                  className={cn(
-                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
-                    active ? "bg-blue-600 text-white" : "bg-white/8 text-zinc-300"
-                  )}
-                >
-                  {tab.badge}
-                </span>
-              ) : null}
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "absolute inset-x-2 -bottom-px h-0.5 transition-all",
-                  active ? "bg-blue-500" : "bg-transparent"
-                )}
-              />
-            </button>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 

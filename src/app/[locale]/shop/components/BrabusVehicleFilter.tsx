@@ -14,7 +14,6 @@ import { buildShopProductPathBrabus } from "@/lib/brabusCollectionMatcher";
 import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
 import {
@@ -628,24 +627,17 @@ export default function BrabusVehicleFilter({
                             {productTitle}
                           </h3>
                           <div className="mt-auto">
-                            <ShopCardPriceTag
-                              locale={locale}
-                              b2cPrice={product.price}
-                              b2bExplicit={product.b2bPrice ?? null}
-                              compareAt={product.compareAt ?? null}
-                              brand={product.brand ?? null}
-                              variant="compact"
-                              classNames={{
-                                root: "flex items-baseline gap-2 flex-wrap",
-                                price:
-                                  "text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white tabular-nums",
-                                retail:
-                                  "text-[9px] sm:text-[10px] font-light line-through text-foreground/45 dark:text-white/35",
-                                badge:
-                                  "inline-flex items-center rounded-sm bg-[#c29d59]/20 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#c29d59]",
-                              }}
-                              requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
-                            />
+                            {computed.eur === 0 ? (
+                              <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-foreground/65 dark:text-white/50">
+                                {isUa ? "Ціна за запитом" : "Price on Request"}
+                              </span>
+                            ) : (
+                              <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white">
+                                {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                                {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                                {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                              </span>
+                            )}
                           </div>
                         </div>
 

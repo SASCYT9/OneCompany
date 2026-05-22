@@ -15,7 +15,6 @@ import {
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { resolveUrbanCollectionCardImage } from "@/lib/urbanImageUtils";
 import type { UrbanProductGridConfig } from "../data/urbanCollectionPages";
 
@@ -253,22 +252,22 @@ export default function UrbanCollectionProductGrid({
                         label={isUa ? "Замовити" : "Order"}
                         labelAdded={isUa ? "У кошику" : "In cart"}
                       />
-                      <ShopCardPriceTag
-                        locale={locale}
-                        b2cPrice={product.price}
-                        b2bExplicit={product.b2bPrice ?? null}
-                        compareAt={product.compareAt ?? null}
-                        brand={product.brand ?? null}
-                        variant="compact"
-                        classNames={{
-                          root: "urban-product-grid__price-stack flex flex-col items-end gap-1",
-                          price: `urban-product-grid__price tabular-nums ${isB2B ? "text-emerald-400 font-medium" : ""}`,
-                          retail:
-                            "urban-product-grid__price-retail text-[10px] text-foreground/55 dark:text-white/40 line-through",
-                          badge:
-                            "inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-400",
-                        }}
-                      />
+                      <div className="urban-product-grid__price-stack flex flex-col items-end gap-1">
+                        {isB2B && computedCompare ? (
+                          <span className="urban-product-grid__price-retail text-[10px] text-foreground/55 dark:text-white/40 line-through">
+                            {currency === "USD" && formatPrice(locale, computedCompare.usd, "USD")}
+                            {currency === "EUR" && formatPrice(locale, computedCompare.eur, "EUR")}
+                            {currency === "UAH" && formatPrice(locale, computedCompare.uah, "UAH")}
+                          </span>
+                        ) : null}
+                        <span
+                          className={`urban-product-grid__price ${isB2B ? "text-emerald-400 font-medium" : ""}`}
+                        >
+                          {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                          {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                          {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                        </span>
+                      </div>
                       <Link
                         href={buildShopProductPath(locale, product)}
                         className="urban-product-grid__details whitespace-nowrap text-xs text-foreground/85 dark:text-white/70 hover:text-foreground dark:hover:text-white transition-colors uppercase tracking-widest"

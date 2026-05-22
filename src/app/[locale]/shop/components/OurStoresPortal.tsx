@@ -27,7 +27,6 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
     girodisc: `/${locale}/shop/girodisc`,
     ipe: `/${locale}/shop/ipe`,
     adro: `/${locale}/shop/adro`,
-    ilmberger: `/${locale}/shop/ilmberger`,
   };
   return map[store.id] ?? store.href ?? "#";
 }
@@ -174,7 +173,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
     <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-primary/20">
       {/* Ambient */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -top-40 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(192, 200, 208, 0.08)_0%,transparent_70%)]" />
+        <div className="absolute -top-40 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(194,157,89,0.06)_0%,transparent_70%)]" />
       </div>
 
       {/* ─── HERO ─────────────────────────────────────────────── */}

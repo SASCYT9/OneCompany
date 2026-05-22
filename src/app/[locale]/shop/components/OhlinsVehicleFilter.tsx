@@ -23,7 +23,6 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import {
   buildShopSearchText,
   matchesShopSearchQuery,
@@ -844,29 +843,9 @@ export default function OhlinsVehicleFilter({
 
                           {/* Price */}
                           <div className="mt-auto pt-2 pb-4">
-                            {priceData ? (
-                              <ShopCardPriceTag
-                                locale={locale}
-                                b2cPrice={product.price}
-                                b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
-                                brand={product.brand ?? null}
-                                variant="compact"
-                                classNames={{
-                                  root: "flex items-baseline gap-2 flex-wrap",
-                                  price:
-                                    "text-lg tracking-widest font-thin text-foreground dark:text-white tabular-nums",
-                                  retail:
-                                    "text-xs font-light line-through text-zinc-500 dark:text-zinc-600",
-                                  badge:
-                                    "inline-flex items-center rounded-sm px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider",
-                                }}
-                              />
-                            ) : (
-                              <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
-                                {isUa ? "ОЧІКУЄТЬСЯ" : "PENDING"}
-                              </span>
-                            )}
+                            <span className="text-lg tracking-widest font-thin text-foreground dark:text-white">
+                              {priceData ? priceData.primary : isUa ? "ОЧІКУЄТЬСЯ" : "PENDING"}
+                            </span>
                             {priceData && (
                               <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-zinc-600">
                                 {priceData.eur ? (

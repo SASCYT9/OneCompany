@@ -18,7 +18,6 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
@@ -816,24 +815,15 @@ export default function AkrapovicVehicleFilter({
                               {productTitle}
                             </h3>
                             <div className="mt-auto">
-                              <ShopCardPriceTag
-                                locale={locale}
-                                b2cPrice={product.price}
-                                b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
-                                brand={product.brand ?? null}
-                                variant="compact"
-                                classNames={{
-                                  root: "flex items-baseline gap-2 flex-wrap",
-                                  price:
-                                    "text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white tabular-nums",
-                                  retail:
-                                    "text-[9px] sm:text-[10px] font-light line-through text-foreground/45 dark:text-white/35",
-                                  badge:
-                                    "inline-flex items-center rounded-sm bg-[#e50000]/20 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#e50000]",
-                                }}
-                                requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
-                              />
+                              {!hasPrice || !primaryPrice ? (
+                                <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-foreground/65 dark:text-white/50">
+                                  {isUa ? "Ціна за запитом" : "Price on Request"}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white">
+                                  {primaryPrice}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#e50000] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />

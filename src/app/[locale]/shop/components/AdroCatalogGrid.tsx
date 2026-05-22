@@ -19,7 +19,6 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import {
   detectMakesForModel,
   enrichAdroCatalogProduct,
@@ -571,24 +570,9 @@ export default function AdroCatalogGrid({
                           </p>
                           <div className="mt-auto border-t border-foreground/6 pt-3">
                             {hasPrice && primaryPrice ? (
-                              <ShopCardPriceTag
-                                locale={locale}
-                                b2cPrice={product.price}
-                                b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
-                                brand={product.brand ?? null}
-                                variant="compact"
-                                classNames={{
-                                  root: "flex items-baseline gap-2 flex-wrap",
-                                  price:
-                                    "tabular-nums text-sm font-medium tracking-wide text-foreground",
-                                  retail:
-                                    "text-[11px] font-light line-through text-foreground/45 dark:text-foreground/35",
-                                  badge:
-                                    "inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary",
-                                }}
-                                requestLabel={t("priceOnRequest")}
-                              />
+                              <span className="tabular-nums text-sm font-medium tracking-wide text-foreground">
+                                {primaryPrice}
+                              </span>
                             ) : (
                               <span className="text-[10px] uppercase tracking-[0.18em] text-foreground/60 dark:text-foreground/42">
                                 {t("priceOnRequest")}

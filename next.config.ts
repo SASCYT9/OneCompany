@@ -127,24 +127,7 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
 
 const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
   "public/images/shop/urban/**/*",
-  "public/images/shop/ilmberger/**/*",
   "reference/urban-shopify-theme/**/*",
-];
-
-// Broad excludes for admin API routes that don't need any storefront media.
-// Without this, Next.js's output-tracing greedily bundles public/images for
-// any route that touches an asset path, blowing past the 300 MB Function
-// size limit. Forged references route in particular went to 1.04 GB.
-const ADMIN_API_NO_MEDIA_EXCLUDES = [
-  "public/images/**/*",
-  "public/videos/**/*",
-  "public/branding/**/*",
-  "public/models/**/*",
-  "Design/**/*",
-  "backups/**/*",
-  "docs/**/*",
-  "tests/**/*",
-  "wiki/**/*",
 ];
 
 const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isVercel
@@ -169,14 +152,8 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
       }),
   "[locale]/shop/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
   "[locale]/shop/urban/products/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
-  "[locale]/shop/ilmberger/products/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
   "/[locale]/shop/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
   "/[locale]/shop/urban/products/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
-  "/[locale]/shop/ilmberger/products/[slug]": SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
-  // Admin API endpoints that ballooned to 1+ GB when tracing pulled in
-  // every public/images file. Explicit per-route excludes.
-  "api/admin/shop/forged/references": ADMIN_API_NO_MEDIA_EXCLUDES,
-  "api/admin/shop/forged/references/[slug]/generation": ADMIN_API_NO_MEDIA_EXCLUDES,
 };
 
 const nextConfig: NextConfig = {
@@ -409,49 +386,6 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    // 41 brand-detail URLs (`/{locale}/brands/{slug}`) returned 5xx in Jan 2026
-    // when the route existed but Prisma failed; route was later removed so they
-    // now 404. GSC still reports them as 5xx (last crawled Jan 2026). Source:
-    // GSC 5xx drilldown 2026-05-22.
-    const deadBrandSlugs = [
-      "alpha-racing",
-      "are-dry-sump",
-      "arp-racingparts",
-      "arrow",
-      "aston-martin",
-      "borla",
-      "brixton-wheels",
-      "capit",
-      "dinan",
-      "eventuri",
-      "gruppe-m",
-      "harrop",
-      "healtech",
-      "heico",
-      "hm-quickshifter",
-      "ixil",
-      "kline-innovation",
-      "kooks-headers",
-      "mamba-turbo",
-      "modena-engineering",
-      "motiv-motorsport",
-      "mountune",
-      "racefoxx",
-      "rotobox",
-      "ryft",
-      "s2-concept",
-      "silly-rabbit-motorsport",
-      "spool-performance",
-      "starlane",
-      "strasse-wheels",
-      "supersprint",
-      "tss",
-      "valtermoto",
-      "verus-engineering",
-      "vorsteiner",
-      "wald",
-    ];
-
     return [
       {
         source: "/ua/blog/one-company-dtskmdmjfgf",
@@ -468,21 +402,6 @@ const nextConfig: NextConfig = {
         destination: "/ua/blog",
         permanent: true,
       },
-      {
-        source: "/:locale(ua|en)/brands/adro",
-        destination: "/:locale/shop/adro",
-        permanent: true,
-      },
-      {
-        source: "/:locale(ua|en)/brands/one-company-forged",
-        destination: "/:locale/shop/forged",
-        permanent: true,
-      },
-      {
-        source: `/:locale(ua|en)/brands/:slug(${deadBrandSlugs.join("|")})`,
-        destination: "/:locale/brands",
-        permanent: true,
-      },
     ];
   },
 
@@ -492,10 +411,7 @@ const nextConfig: NextConfig = {
     // Smaller server-side React bundle.
     optimizeServerReact: true,
     // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
-    // Reduced from 4 → 2 after adding 286 Ilmberger products: 4 concurrent
-    // workers querying Prisma exhausted the "prisma_migration" role pool on
-    // Vercel build (FATAL: too many connections). 2 workers is the safe ceiling.
-    cpus: 2,
+    cpus: 4,
     // Tree-shake & barrel-optimize popular packages — meaningfully smaller client bundles.
     optimizePackageImports: [
       "framer-motion",

@@ -610,7 +610,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-foreground/10 pt-4 text-lg font-light text-foreground">
-                <span className="text-primary uppercase tracking-widest text-[11px] font-medium">
+                <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">
                   {isUa ? "Разом" : "Total"}
                 </span>
                 <span className="tabular-nums">
@@ -679,7 +679,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <button
             type="submit"
             disabled={submitting || quote?.requiresQuote === true}
-            className="w-full rounded-full border border-primary bg-primary py-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_18px_40px_-18px_rgba(213,0,28,0.45)] dark:hover:shadow-[0_18px_40px_-18px_rgba(192,200,208,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-full border border-primary bg-primary py-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_18px_40px_-18px_rgba(213,0,28,0.45)] dark:hover:shadow-[0_18px_40px_-18px_rgba(194,157,89,0.65)] disabled:opacity-50 disabled:cursor-not-allowed"
             title={
               quote?.requiresQuote
                 ? isUa

@@ -406,10 +406,6 @@ export async function serializeResolvedShopCart(
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
           context,
-          // Variants inherit the parent product's brand (variant.brand is
-          // typically null). Without this, per-brand B2B discount tiers
-          // are bypassed for variant-based cart items.
-          brand: product.brand ?? (product as any).vendor ?? null,
         })
       : resolveShopProductPricing(product, context);
     items.push({

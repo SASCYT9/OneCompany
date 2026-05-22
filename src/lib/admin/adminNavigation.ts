@@ -266,12 +266,6 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "tag",
       },
       {
-        href: "/admin/shop/brand-markups",
-        label: "B2B знижки по брендах",
-        description: "Системна знижка за бренд: Akrapovic −15%, Ilmberger −10%, ...",
-        icon: "pricing",
-      },
-      {
         href: "/admin/marketing/email-rules",
         label: "Email-автоматизація",
         description: "Тригери, шаблони, журнал розсилок.",

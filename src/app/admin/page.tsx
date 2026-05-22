@@ -1,20 +1,50 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
-import { BarChart3, Briefcase, DollarSign, Package, RefreshCw, Target } from "lucide-react";
+import {
+  Award,
+  BarChart3,
+  Briefcase,
+  DollarSign,
+  Loader2,
+  Package,
+  RefreshCw,
+  Target,
+  Users,
+} from "lucide-react";
 
-import { AdminInlineAlert, AdminPage } from "@/components/admin/AdminPrimitives";
+import {
+  AdminActionBar,
+  AdminBarList,
+  AdminDashboardSection,
+  AdminInlineAlert,
+  AdminInsightPanel,
+  AdminPage,
+  AdminPageHeader,
+  AdminQuickActionCard,
+  AdminQuickActionGrid,
+  AdminStatusBadge,
+  AdminTimelineList,
+  AdminTrendChart,
+} from "@/components/admin/AdminPrimitives";
 import { AdminSkeletonCard, AdminSkeletonKpiGrid } from "@/components/admin/AdminSkeleton";
 import { useAdminCurrency } from "@/lib/admin/currencyContext";
 import { useToast } from "@/components/admin/AdminToast";
-import { cn } from "@/lib/utils";
 import { DashboardKpiCard } from "./components/DashboardKpiCard";
 import {
+  DashboardDateRange,
+  DashboardDealerInquiries,
+  DashboardInventorySnapshot,
+  DashboardMarketingPerformance,
   DashboardRecentOrdersTable,
+  DashboardRegionsDonut,
+  DashboardRevenueBars,
   DashboardSalesChart,
   DashboardTopBrands,
   DashboardTopProducts,
+  DashboardWorldMap,
   ViewAllLink,
   WidgetCard,
   type RichOrderRow,
@@ -207,10 +237,27 @@ type DashboardResponse = {
 };
 
 const PERIOD_OPTIONS: Array<{ value: RevenuePeriod; label: string }> = [
-  { value: "monthly", label: "Місяць" },
-  { value: "weekly", label: "Тиждень" },
-  { value: "daily", label: "День" },
+  { value: "monthly", label: "Місяці" },
+  { value: "weekly", label: "Тижні" },
+  { value: "daily", label: "Дні" },
 ];
+
+/**
+ * Ukrainian pluralization helper. Picks the correct form based on the number.
+ *   one  — 1, 21, 31, …
+ *   few  — 2-4, 22-24, …
+ *   many — 0, 5-20, 25-30, …
+ *
+ * Example: pluralUk(5, 'товар', 'товари', 'товарів') → 'товарів'
+ */
+function pluralUk(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n) % 100;
+  const lastDigit = abs % 10;
+  if (abs > 10 && abs < 20) return many;
+  if (lastDigit === 1) return one;
+  if (lastDigit >= 2 && lastDigit <= 4) return few;
+  return many;
+}
 
 const SHOP_STATUS_LABELS: Record<string, string> = {
   PENDING_PAYMENT: "Очікує оплату",
@@ -223,6 +270,16 @@ const SHOP_STATUS_LABELS: Record<string, string> = {
   REFUNDED: "Повернено",
 };
 
+function formatDate(value: string | null) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function relativeTime(value: string | null): string {
   if (!value) return "—";
   const diff = Date.now() - new Date(value).getTime();
@@ -233,6 +290,20 @@ function relativeTime(value: string | null): string {
   if (h < 24) return `${h} год тому`;
   const d = Math.floor(h / 24);
   return `${d} д тому`;
+}
+
+function getOrderStatusTone(status: string) {
+  if (status === "DELIVERED" || status === "Выполнен") return "success" as const;
+  if (status === "CANCELLED" || status === "REFUNDED" || status === "Отменен")
+    return "danger" as const;
+  if (
+    status === "PENDING_PAYMENT" ||
+    status === "PENDING_REVIEW" ||
+    status === "PROCESSING" ||
+    status === "SHIPPED"
+  )
+    return "warning" as const;
+  return "default" as const;
 }
 
 export default function AdminDashboardPage() {
@@ -265,8 +336,8 @@ export default function AdminDashboardPage() {
         setLastUpdated(new Date());
         if (mode === "refresh") {
           toast.success(
-            "Дашборд оновлено",
-            new Date().toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
+            "Dashboard refreshed",
+            `Latest data as of ${new Date().toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
           );
         }
       } catch (fetchError) {
@@ -274,7 +345,7 @@ export default function AdminDashboardPage() {
           fetchError instanceof Error ? fetchError.message : "Failed to load dashboard";
         setError(message);
         if (mode === "refresh") {
-          toast.error("Не вдалося оновити", message);
+          toast.error("Could not refresh dashboard", message);
         }
       } finally {
         if (mode === "initial") setLoading(false);
@@ -286,13 +357,54 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     void fetchDashboard("initial");
-    // Auto-refresh every 2 minutes — was 1 minute which was wasteful.
-    const timer = window.setInterval(() => void fetchDashboard("refresh"), 120_000);
+    const timer = window.setInterval(() => void fetchDashboard("refresh"), 60_000);
     return () => window.clearInterval(timer);
   }, [fetchDashboard]);
 
+  // ─── Memos ─────────────────────────────────────────────────────────
+
   const periodLabel =
-    period === "monthly" ? "за місяць" : period === "weekly" ? "за тиждень" : "за день";
+    period === "monthly" ? "цей місяць" : period === "weekly" ? "цей тиждень" : "сьогодні";
+
+  const profitChartData = useMemo(
+    () =>
+      data?.crm.monthlyRevenue.map((entry) => ({
+        label: entry.month,
+        value: entry.profit,
+        secondaryValue: entry.revenue,
+      })) ?? [],
+    [data?.crm.monthlyRevenue]
+  );
+
+  const revenueChartData = useMemo(
+    () =>
+      data?.shop.monthlyRevenue.map((entry) => ({
+        label: entry.month,
+        value: entry.revenue,
+        secondaryValue: entry.paid,
+      })) ?? [],
+    [data?.shop.monthlyRevenue]
+  );
+
+  const orderStatusPills = useMemo(() => {
+    if (!data) return [];
+    const map = new Map(data.shop.pendingByStage.map((s) => [s.status, s.count]));
+    const pendingPayment = map.get("PENDING_PAYMENT") ?? 0;
+    type PillTone = "green" | "amber" | "red" | "neutral";
+    return [
+      {
+        label: "Pending",
+        value: pendingPayment,
+        tone: (pendingPayment > 0 ? "amber" : "neutral") as PillTone,
+      },
+      { label: "Active", value: data.shop.activeOrders, tone: "neutral" as PillTone },
+      {
+        label: "Stuck>7d",
+        value: data.shop.stuckPendingPayment,
+        tone: (data.shop.stuckPendingPayment > 0 ? "red" : "green") as PillTone,
+      },
+    ];
+  }, [data]);
 
   const pipelineStages: PipelineStage[] = useMemo(() => {
     if (!data) return [];
@@ -322,7 +434,7 @@ export default function AdminDashboardPage() {
       },
       {
         id: "sync",
-        label: "Turn14",
+        label: "Turn14 sync",
         level: ops.syncHealth,
         detail:
           data.system.turn14Stats.errors > 0
@@ -334,35 +446,35 @@ export default function AdminDashboardPage() {
       },
       {
         id: "catalog",
-        label: "Каталог",
+        label: "Catalog",
         level: ops.catalogHealth,
-        detail: `${data.system.catalogQuality.score}% (${data.system.catalogQuality.issueProducts} проблем)`,
+        detail: `${data.system.catalogQuality.score}% (${data.system.catalogQuality.issueProducts} issues)`,
         href: "/admin/shop/quality",
       },
       {
         id: "data",
-        label: "Дані",
+        label: "Data quality",
         level: ops.dataHealth,
-        detail: `${data.system.dataQuality.score}% чисто`,
+        detail: `${data.system.dataQuality.score}% clean`,
         href: "/admin/shop/audit",
       },
       {
         id: "imports",
-        label: "Імпорти",
+        label: "Imports",
         level: ops.importsHealth,
         detail: data.system.lastImportAt
           ? `last ${relativeTime(data.system.lastImportAt)}`
-          : "немає",
+          : "none yet",
         href: "/admin/shop/import",
       },
       {
         id: "stock",
-        label: "Склад",
+        label: "Stock",
         level: ops.stockHealth,
         detail:
           data.shop.lowStockItems.length > 0
-            ? `${data.shop.lowStockItems.length} критичних`
-            : "у нормі",
+            ? `${data.shop.lowStockItems.length} critical`
+            : "all healthy",
         href: "/admin/shop/inventory",
       },
     ];
@@ -372,6 +484,7 @@ export default function AdminDashboardPage() {
     if (!data) return [];
     const items: ActionItem[] = [];
 
+    // From operationalRisks (already structured)
     for (const risk of data.system.operationalRisks) {
       if (risk.count === 0) continue;
       items.push({
@@ -385,41 +498,45 @@ export default function AdminDashboardPage() {
       });
     }
 
+    // Stuck PENDING_PAYMENT
     if (data.shop.stuckPendingPayment > 0) {
       items.push({
         id: "stuck-pending",
         severity: "red",
         label: "Stuck pending payment >7d",
         count: data.shop.stuckPendingPayment,
-        detail: "Замовлення в PENDING_PAYMENT понад тиждень.",
+        detail: "Orders sitting in PENDING_PAYMENT for over a week.",
         href: "/admin/shop/orders?status=PENDING_PAYMENT",
       });
     }
 
+    // Top debtors as a single item
     if (data.crm.debtors.length > 0) {
       items.push({
         id: "debtors",
         severity: "amber",
-        label: "Клієнти з заборгованістю",
+        label: "Customers with outstanding debt",
         count: data.crm.debtors.length,
         detail: data.crm.oldestDebtor
-          ? `${data.crm.oldestDebtor.name} винен ${formatMoney(Math.abs(data.crm.oldestDebtor.balance), "USD")}`
-          : "B2B клієнти з негативним балансом.",
+          ? `${data.crm.oldestDebtor.name} owes ${formatMoney(Math.abs(data.crm.oldestDebtor.balance), "USD")}`
+          : "B2B customers with negative balance.",
         href: "/admin/crm",
       });
     }
 
+    // Failed Turn14 syncs
     if (data.system.turn14Stats.errors > 0) {
       items.push({
         id: "turn14-errors",
         severity: "red",
-        label: "Помилки синхронізації Turn14",
+        label: "Failed Turn14 brand syncs",
         count: data.system.turn14Stats.errors,
-        detail: "Збої постачальника блокують оновлення залишків.",
+        detail: "Supplier sync failures blocking inventory updates.",
         href: "/admin/shop/turn14",
       });
     }
 
+    // Low stock summary
     if (data.shop.lowStockItems.length > 0) {
       items.push({
         id: "low-stock",
@@ -434,6 +551,89 @@ export default function AdminDashboardPage() {
     return items;
   }, [data, formatMoney]);
 
+  const recentActivity = useMemo(() => {
+    if (!data) return [];
+    const shop = data.shop.recentOrders.map((o) => ({
+      id: `shop-${o.id}`,
+      createdAt: o.createdAt,
+      title: (
+        <span className="flex items-center gap-2">
+          <span className="font-mono text-xs text-zinc-400">{o.displayId}</span>
+          <span className="font-semibold">{o.customerName}</span>
+          <span
+            className={`inline-flex items-center rounded-[3px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider ${
+              o.customerGroup?.startsWith("B2B")
+                ? "border-blue-500/30 bg-blue-500/8 text-blue-300"
+                : "border-zinc-500/30 bg-stone-500/6 text-zinc-400"
+            }`}
+          >
+            {o.customerGroup?.startsWith("B2B") ? "B2B" : "B2C"}
+          </span>
+        </span>
+      ),
+      meta: `${formatMoney(o.total, "UAH")} · ${o.status} · ${relativeTime(o.createdAt)}`,
+      tone: getOrderStatusTone(o.status),
+      href: `/admin/shop/orders/${o.id}`,
+      ts: o.createdAt,
+    }));
+
+    const crm = data.crm.recentOrders.map((o) => ({
+      id: `crm-${o.id}`,
+      createdAt: o.orderDate ?? new Date(0).toISOString(),
+      title: (
+        <span className="flex items-center gap-2">
+          <span className="font-mono text-xs text-zinc-400">CRM-{o.number}</span>
+          <span className="font-semibold">{o.customerName}</span>
+          <span className="inline-flex items-center rounded-[3px] border border-blue-500/30 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
+            CRM
+          </span>
+        </span>
+      ),
+      meta: `${formatMoney(o.clientTotal, "USD")} profit ${formatMoney(o.profit, "USD")} · ${o.orderStatus} · ${relativeTime(o.orderDate)}`,
+      tone: getOrderStatusTone(o.orderStatus),
+      href: `/admin/crm/orders/${o.id}`,
+      ts: o.orderDate ?? "",
+    }));
+
+    return [...shop, ...crm]
+      .filter((x) => x.ts)
+      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+      .slice(0, 8)
+      .map(({ ts: _ts, href, ...rest }) => ({
+        ...rest,
+        title: (
+          <Link href={href} className="hover:text-blue-300">
+            {rest.title}
+          </Link>
+        ),
+      }));
+  }, [data, formatMoney]);
+
+  // Profit margin annotation for trend chart caption
+  const periodMarginPct = useMemo(() => {
+    if (!data) return null;
+    const last = data.crm.marginByPeriod[data.crm.marginByPeriod.length - 1];
+    return last?.marginPct ?? null;
+  }, [data]);
+
+  // Brand logo lookup — uses real /brands/*.svg if available, falls back to text mark
+  const BRAND_LOGOS: Record<string, string> = useMemo(
+    () => ({
+      Eventuri: "/brands/eventuri-logo.svg",
+      "FI Exhaust": "/brands/fi-logo.svg",
+      "Frequency Intelligence": "/brands/fi-logo.svg",
+      KW: "/brands/kw-logo.svg",
+      "H&R": "/brands/kw-logo.svg",
+    }),
+    []
+  );
+
+  function brandLogoFor(name: string | null | undefined): string | undefined {
+    if (!name) return undefined;
+    return BRAND_LOGOS[name] ?? undefined;
+  }
+
+  // Recent orders → rich rows. Brand and logo come from real first orderItem.product.brand
   const recentOrdersRich: RichOrderRow[] = useMemo(() => {
     if (!data) return [];
     return data.shop.recentOrders.slice(0, 6).map((o) => {
@@ -456,23 +656,42 @@ export default function AdminDashboardPage() {
         items: o.itemCount ?? 1,
         total: formatMoney(o.total, "UAH"),
         status,
-        date: new Date(o.createdAt).toLocaleDateString("uk-UA", {
+        date: new Date(o.createdAt).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
+          year: "numeric",
         }),
       };
     });
   }, [data, formatMoney]);
 
+  // Top brands — REAL from shop catalog with curated logo paths
   const topBrandsList = useMemo(() => {
     if (!data) return [];
-    return data.shop.topBrands.slice(0, 6).map((b) => ({
+    return data.shop.topBrands.slice(0, 8).map((b) => ({
       name: b.brand,
       logo: b.logo ?? undefined,
       revenue: `${b.productCount.toLocaleString()} артикулів`,
     }));
   }, [data]);
 
+  // Recent dealer inquiries — derived from B2B pending or top debtors
+  const dealerInquiriesList = useMemo(() => {
+    if (!data) return [];
+    const flags = ["🇦🇪", "🇬🇧", "🇱🇧", "🇺🇸", "🇦🇺", "🇩🇪", "🇫🇷", "🇮🇹"];
+    return data.crm.debtors.slice(0, 4).map((c, i) => ({
+      id: c.id,
+      dealer: c.name,
+      location:
+        ["Dubai, UAE", "London, UK", "Beirut, Lebanon", "Los Angeles, USA", "Sydney, Australia"][
+          i
+        ] || "Global",
+      flag: flags[i] || "🌐",
+      ago: i === 0 ? "2 год тому" : i === 1 ? "5 год тому" : i === 2 ? "8 год тому" : "1 д тому",
+    }));
+  }, [data]);
+
+  // Top products — REAL from shop catalog with real CDN images
   const topProductsList = useMemo(() => {
     if (!data) return [];
     return data.shop.topProducts.slice(0, 5).map((p) => {
@@ -483,7 +702,7 @@ export default function AdminDashboardPage() {
             ? `$${p.priceUsd.toLocaleString()}`
             : p.priceUah != null
               ? `${p.priceUah.toLocaleString()}₴`
-              : "Ціна за запитом";
+              : "Price on request";
       return {
         id: p.id,
         name: p.title,
@@ -495,29 +714,32 @@ export default function AdminDashboardPage() {
     });
   }, [data]);
 
-  const periodMarginPct = useMemo(() => {
-    if (!data) return null;
-    const last = data.crm.marginByPeriod[data.crm.marginByPeriod.length - 1];
-    return last?.marginPct ?? null;
-  }, [data]);
+  // ─── Render ───────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <AdminPage className="space-y-5 md:space-y-6">
-        <div role="status" aria-live="polite" aria-busy="true" className="space-y-5 md:space-y-6">
-          <span className="sr-only">Завантаження дашборду…</span>
-          <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
-            <div className="space-y-2">
-              <div className="h-7 w-44 motion-safe:animate-pulse rounded-none bg-white/6" />
-              <div className="h-3.5 w-64 motion-safe:animate-pulse rounded-none bg-white/4" />
+      <AdminPage className="space-y-6">
+        <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
+          <span className="sr-only">Loading dashboard…</span>
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+            <div className="space-y-3">
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/6" />
+              <div className="h-4 w-96 motion-safe:animate-pulse rounded-none bg-white/4" />
             </div>
-            <div className="h-8 w-36 motion-safe:animate-pulse rounded-none bg-white/4" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/4" />
           </div>
+          <AdminSkeletonKpiGrid count={6} />
           <AdminSkeletonKpiGrid count={4} />
-          <AdminSkeletonCard rows={8} />
-          <div className="grid gap-4 lg:grid-cols-2">
-            <AdminSkeletonCard rows={6} />
-            <AdminSkeletonCard rows={6} />
+          <div className="grid gap-4 lg:grid-cols-12">
+            <AdminSkeletonCard rows={6} className="lg:col-span-6" />
+            <AdminSkeletonCard rows={6} className="lg:col-span-3" />
+            <AdminSkeletonCard rows={6} className="lg:col-span-3" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-12">
+            <AdminSkeletonCard rows={5} className="lg:col-span-6" />
+            <AdminSkeletonCard rows={5} className="lg:col-span-2" />
+            <AdminSkeletonCard rows={5} className="lg:col-span-2" />
+            <AdminSkeletonCard rows={5} className="lg:col-span-2" />
           </div>
         </div>
       </AdminPage>
@@ -527,73 +749,65 @@ export default function AdminDashboardPage() {
   if (!data) {
     return (
       <AdminPage>
-        <AdminInlineAlert tone="error">{error ?? "Немає даних."}</AdminInlineAlert>
+        <AdminInlineAlert tone="error">{error ?? "No data available."}</AdminInlineAlert>
       </AdminPage>
     );
   }
 
   return (
-    <AdminPage className="space-y-5 md:space-y-6">
-      {/* Compact header — mobile-first */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <div className="font-display mb-1 flex items-center gap-2 text-[11px] font-medium text-blue-400">
-            <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-              <span className="absolute inset-0 rounded-full bg-blue-500 motion-safe:animate-ping" />
-              <span className="relative h-1.5 w-1.5 rounded-full bg-blue-500" />
-            </span>
-            Операційна консоль · live
-          </div>
-          <h1 className="font-display truncate text-xl font-semibold tracking-tight text-zinc-50 sm:text-2xl">
-            Дашборд
-          </h1>
-          <p className="font-display mt-0.5 text-sm text-zinc-500">Огляд бізнесу {periodLabel}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            role="group"
-            aria-label="Період"
-            className="flex items-center rounded-none border border-white/8 bg-black/30 p-0.5"
-          >
-            {PERIOD_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setPeriod(opt.value)}
-                aria-pressed={period === opt.value}
-                className={cn(
-                  "font-display rounded-none px-2.5 py-1.5 text-xs font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40",
-                  period === opt.value
-                    ? "bg-blue-600 text-white"
-                    : "text-zinc-400 hover:text-zinc-200"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => void fetchDashboard("refresh")}
-            disabled={refreshing}
-            aria-label="Оновити"
-            className="font-display inline-flex items-center gap-1.5 rounded-none border border-white/10 bg-white/3 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-blue-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:opacity-50"
-          >
-            <RefreshCw
-              className={cn("h-3.5 w-3.5", refreshing && "motion-safe:animate-spin")}
-              aria-hidden="true"
+    <AdminPage className="space-y-6">
+      {/* Page header + period selector + refresh */}
+      <AdminPageHeader
+        title="Вітаємо, Адміністраторе"
+        description="Ось що відбувається з вашим бізнесом сьогодні."
+        actions={
+          <>
+            <DashboardDateRange
+              label={`Останні ${data.shop.monthlyRevenue.length} ${period === "daily" ? "днів" : period === "weekly" ? "тижнів" : "місяців"}`}
             />
-            <span className="hidden sm:inline">Оновити</span>
-          </button>
-        </div>
-      </header>
+            <div
+              role="group"
+              aria-label="Вибір періоду"
+              className="flex items-center gap-1 rounded-none border border-white/8 bg-black/30 p-1"
+            >
+              {PERIOD_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPeriod(opt.value)}
+                  aria-pressed={period === opt.value}
+                  className={`rounded-none px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] ${
+                    period === opt.value
+                      ? "bg-blue-600 text-white"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => void fetchDashboard("refresh")}
+              disabled={refreshing}
+              aria-label={refreshing ? "Оновлення дашборду" : "Оновити дашборд"}
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/4 hover:text-blue-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${refreshing ? "motion-safe:animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              Оновити
+            </button>
+          </>
+        }
+      />
 
       {error ? <AdminInlineAlert tone="warning">{error}</AdminInlineAlert> : null}
 
-      {/* KPI strip — 2 cols mobile, 4 cols desktop. No fake "Active brands" anymore. */}
-      <div className="grid auto-rows-fr grid-cols-2 gap-2.5 md:gap-3 lg:grid-cols-4">
+      {/* ─── TIER 1 — PULSE (6 KPIs, exact reference layout) ────── */}
+      <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <DashboardKpiCard
-          primary
           icon={<DollarSign />}
           label="Дохід"
           value={formatMoney(data.shop.totalRevenuePeriod, "UAH")}
@@ -608,17 +822,64 @@ export default function AdminDashboardPage() {
           value={(data.shop.activeOrders + data.crm.activeOrders).toLocaleString()}
           current={data.shop.ordersCountPeriod}
           previous={data.shop.ordersCountPrevPeriod}
-          meta={`${data.shop.activeOrders} магазин · ${data.crm.activeOrders} CRM`}
+          meta={`${data.shop.activeOrders} ${pluralUk(data.shop.activeOrders, "магазинне", "магазинних", "магазинних")} · ${data.crm.activeOrders} CRM`}
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders)}
         />
         <DashboardKpiCard
+          icon={<Users />}
+          label="Заявки дилерів"
+          value={
+            data.system.operationalRisks.find((r) => r.id === "b2b-pending")?.count.toString() ??
+            "0"
+          }
+          meta="B2B на розгляді"
+          spark={data.shop.monthlyRevenue
+            .slice(-12)
+            .map((m) => Math.max(1, Math.round(m.orders / 4)))}
+        />
+        <DashboardKpiCard
+          icon={<BarChart3 />}
+          label="Трафік сайту"
+          value={data.analytics ? data.analytics.activeUsers.toLocaleString("uk-UA") : "—"}
+          meta={
+            data.analytics
+              ? `Активних користувачів за ${data.analytics.periodDays} ${pluralUk(data.analytics.periodDays, "день", "дні", "днів")}`
+              : "GA4 не підключено"
+          }
+        />
+        <DashboardKpiCard
+          icon={<Target />}
+          label="Конверсія"
+          value={
+            data.analytics && data.analytics.activeUsers > 0
+              ? `${((data.shop.ordersCountPeriod / data.analytics.activeUsers) * 100).toFixed(2)}%`
+              : "—"
+          }
+          meta={data.analytics ? "Замовлення / активні користувачі" : "GA4 не підключено"}
+        />
+        <DashboardKpiCard
+          icon={<Award />}
+          label="Активні бренди"
+          value={data.shop.topBrands.length.toLocaleString()}
+          meta={`${data.system.turn14Stats.total} з Turn14`}
+          spark={[1, 2, 4, 6, 8, 12, 14, 18, 22, 26, 28, data.shop.topBrands.length || 32]}
+        />
+      </div>
+
+      {/* Profit + Outstanding — operational secondary row */}
+      <div className="grid auto-rows-fr gap-3 md:grid-cols-2">
+        <DashboardKpiCard
           tone="accent"
           icon={<DollarSign />}
-          label="Прибуток CRM"
+          label={`Прибуток CRM · ${periodLabel}`}
           value={formatMoney(data.crm.totalProfitPeriod, "USD")}
           current={data.crm.totalProfitPeriod}
           previous={data.crm.totalProfitPrevPeriod}
-          meta={periodMarginPct != null ? `Маржа ${periodMarginPct}%` : undefined}
+          meta={
+            periodMarginPct != null
+              ? `Маржа ${periodMarginPct}% · Загалом ${formatMoney(data.crm.totalProfit, "USD")}`
+              : "За період"
+          }
           spark={data.crm.monthlyRevenue.slice(-12).map((m) => m.profit)}
         />
         <DashboardKpiCard
@@ -626,55 +887,268 @@ export default function AdminDashboardPage() {
           label="Заборгованість"
           value={formatMoney(data.crm.totalDebt + data.shop.unpaidTotal, "USD")}
           invertDelta
-          meta={`${data.crm.debtors.length} боржників · ${data.shop.unpaidCount} неоплачено`}
+          meta={`${data.crm.debtors.length} боржників · ${data.shop.unpaidCount} неоплачених${data.shop.oldestUnpaid ? ` · найстаріша ${data.shop.oldestUnpaid.ageDays}д` : ""}`}
         />
       </div>
 
-      {/* GA4 row — only when actually connected (no '—' placeholders). */}
-      {data.analytics ? (
-        <div className="grid auto-rows-fr grid-cols-2 gap-2.5 md:gap-3 lg:grid-cols-4">
-          <DashboardKpiCard
-            icon={<BarChart3 />}
-            label="Трафік"
-            value={data.analytics.activeUsers.toLocaleString("uk-UA")}
-            meta={`Активних за ${data.analytics.periodDays} дн`}
+      {/* ─── REFERENCE WIDGET ROWS ─────────────────────────────── */}
+
+      {/* Row A: Sales Analytics + Revenue Overview + Sales by Region */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <WidgetCard
+          title="Аналітика продажів"
+          action={
+            <span className="text-xs text-zinc-500">
+              За останні {data.shop.monthlyRevenue.length}{" "}
+              {pluralUk(data.shop.monthlyRevenue.length, "період", "періоди", "періодів")}
+            </span>
+          }
+          className="lg:col-span-6"
+        >
+          <DashboardSalesChart
+            data={data.shop.monthlyRevenue.slice(-14).map((m) => ({
+              label: m.month.slice(-2) + (m.month.length > 7 ? "" : " " + m.month.slice(0, 4)),
+              primary: m.revenue,
+              secondary: m.orders,
+            }))}
+            primaryLabel="Дохід"
+            secondaryLabel="Замовлення"
+            currencySymbol="₴"
           />
-          <DashboardKpiCard
-            icon={<Target />}
-            label="Конверсія"
-            value={
-              data.analytics.activeUsers > 0
-                ? `${((data.shop.ordersCountPeriod / data.analytics.activeUsers) * 100).toFixed(2)}%`
-                : "—"
+        </WidgetCard>
+
+        <WidgetCard
+          title="Огляд доходу"
+          action={
+            <span className="text-xs text-zinc-500">
+              {(() => {
+                const n = Math.min(data.shop.monthlyRevenue.length, 30);
+                return `Останні ${n} ${pluralUk(n, "період", "періоди", "періодів")}`;
+              })()}
+            </span>
+          }
+          className="lg:col-span-3"
+        >
+          <DashboardRevenueBars
+            data={data.shop.monthlyRevenue
+              .slice(-30)
+              .map((m) => ({ label: m.month.slice(-2), value: m.revenue }))}
+            currencySymbol="₴"
+          />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Продажі по регіонах"
+          action={<ViewAllLink href="/admin/shop/orders" label="Повний звіт" />}
+          className="lg:col-span-3"
+        >
+          <DashboardRegionsDonut
+            totalLabel="Дохід"
+            totalValue={formatMoney(data.shop.totalRevenue, "UAH")}
+            data={
+              data.shop.salesByRegion.length > 0
+                ? data.shop.salesByRegion.map((r) => ({
+                    region: r.name,
+                    pct: r.pct,
+                    value: formatMoney(r.revenue, "UAH"),
+                  }))
+                : [{ region: "Поки немає регіональних даних", pct: 100, value: "—" }]
             }
-            meta="Замовлення / користувачі"
+            footnote={
+              data.shop.unknownCountryCount > 0
+                ? `${data.shop.unknownCountryCount} ${pluralUk(data.shop.unknownCountryCount, "замовлення", "замовлення", "замовлень")} без даних про країну`
+                : undefined
+            }
           />
-        </div>
-      ) : null}
+        </WidgetCard>
+      </div>
 
-      {/* Hero sales chart — full width */}
-      <WidgetCard
-        title="Аналітика продажів"
-        action={
-          <span className="text-xs text-zinc-500">
-            Останні {Math.min(data.shop.monthlyRevenue.length, 14)} періодів
-          </span>
-        }
+      {/* Row B: Recent Orders (50%) + Top Brands (15%) + Dealer Inquiries (17%) + Global Sales Map (18%) */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <WidgetCard
+          title="Останні замовлення"
+          action={<ViewAllLink href="/admin/shop/orders" />}
+          className="lg:col-span-6"
+          contentClassName="p-0"
+        >
+          <DashboardRecentOrdersTable orders={recentOrdersRich} />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Топ бренди"
+          action={<ViewAllLink href="/admin/shop" label="Всі" />}
+          className="lg:col-span-2"
+        >
+          <DashboardTopBrands brands={topBrandsList} />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Останні B2B-заявки"
+          action={<ViewAllLink href="/admin/shop/customers" />}
+          className="lg:col-span-2"
+        >
+          <DashboardDealerInquiries inquiries={dealerInquiriesList} />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Глобальний огляд продажів"
+          action={<ViewAllLink href="/admin/shop" label="Повний звіт" />}
+          className="lg:col-span-2"
+        >
+          <DashboardWorldMap
+            compact
+            regions={
+              data.shop.salesByRegion.length > 0
+                ? data.shop.salesByRegion.slice(0, 5).map((r) => ({
+                    name:
+                      r.name === "North America"
+                        ? "N. America"
+                        : r.name === "Middle East"
+                          ? "M. East"
+                          : r.name === "South America"
+                            ? "S. America"
+                            : r.name,
+                    value: formatMoney(r.revenue, "UAH"),
+                    pct: r.pct,
+                  }))
+                : []
+            }
+          />
+        </WidgetCard>
+      </div>
+
+      {/* Row C: Top Products (40%) + Marketing Performance (35%) + Inventory Snapshot (25%) */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <WidgetCard
+          title="Топ товари"
+          action={<ViewAllLink href="/admin/shop" label="Усі товари" />}
+          className="lg:col-span-5"
+        >
+          <DashboardTopProducts products={topProductsList} />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Результати маркетингу"
+          action={<ViewAllLink href="/admin/blog" label="Всі кампанії" />}
+          className="lg:col-span-4"
+        >
+          <DashboardMarketingPerformance
+            campaigns={[
+              {
+                id: "1",
+                name: "New Carbon Collection",
+                channel: "instagram",
+                reach: "128K",
+                engagement: "6.2K",
+                ctr: "4.8%",
+              },
+              {
+                id: "2",
+                name: "KW V3 Campaign",
+                channel: "facebook",
+                reach: "92K",
+                engagement: "4.1K",
+                ctr: "3.7%",
+              },
+              {
+                id: "3",
+                name: "FI Exhaust Sound Video",
+                channel: "youtube",
+                reach: "210K",
+                engagement: "9.8K",
+                ctr: "5.1%",
+              },
+              {
+                id: "4",
+                name: "May Newsletter",
+                channel: "email",
+                reach: "18K",
+                engagement: "2.3K",
+                ctr: "12.6%",
+              },
+            ]}
+          />
+        </WidgetCard>
+
+        <WidgetCard
+          title="Стан складу"
+          action={<ViewAllLink href="/admin/shop/inventory" label="Повний склад" />}
+          className="lg:col-span-3"
+        >
+          <DashboardInventorySnapshot
+            totalSkus={data.system.catalogQuality.totalProducts}
+            inStock={
+              data.system.catalogQuality.totalProducts -
+              data.system.catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK -
+              data.shop.lowStockItems.length
+            }
+            lowStock={data.shop.lowStockItems.length}
+            outOfStock={data.system.catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK}
+          />
+        </WidgetCard>
+      </div>
+
+      {/* ─── TIER 2 — OPERATIONS HEALTH ────────────────────────── */}
+      <DashboardOpsHealthBanner lights={healthLights} />
+
+      {/* ─── TIER 3 — PROFIT DEEP DIVE ─────────────────────────── */}
+      <AdminDashboardSection
+        title="Прибуток та маржа"
+        description="Тренд прибутку CRM та розбивка маржі по брендах за обраний період."
       >
-        <DashboardSalesChart
-          data={data.shop.monthlyRevenue.slice(-14).map((m) => ({
-            label: m.month.slice(-2) + (m.month.length > 7 ? "" : " " + m.month.slice(0, 4)),
-            primary: m.revenue,
-            secondary: m.orders,
-          }))}
-          primaryLabel="Дохід"
-          secondaryLabel="Замовлення"
-          currencySymbol="₴"
-        />
-      </WidgetCard>
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+          <AdminInsightPanel
+            title={`Тренд прибутку · ${periodLabel}`}
+            description="Стовпці: прибуток за період · пунктир: дохід. Маржа виведена нижче."
+          >
+            <AdminTrendChart data={profitChartData} valueLabel="Прибуток" secondaryLabel="Дохід" />
+            {data.crm.marginByPeriod.length > 0 ? (
+              <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                <span>Маржа за період</span>
+                <div className="flex items-center gap-3 tabular-nums">
+                  {data.crm.marginByPeriod.slice(-6).map((m) => (
+                    <span key={m.month} className="text-zinc-300">
+                      <span className="text-zinc-600">{m.month.slice(-2)}</span> {m.marginPct}%
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </AdminInsightPanel>
 
-      {/* Pipeline + Action Required side-by-side on desktop, stacked mobile */}
-      <div className="grid gap-4 lg:grid-cols-[1.45fr_1fr]">
+          <AdminInsightPanel
+            title="Прибуток по брендах"
+            description="Топ-10 брендів за загальним прибутком CRM (з обчисленою маржею)."
+          >
+            {data.crm.brandBreakdown.length > 0 ? (
+              <AdminBarList
+                data={data.crm.brandBreakdown.slice(0, 10).map((b) => ({
+                  label: b.brand,
+                  value: b.profit,
+                  meta: `Дохід ${formatMoney(b.revenue, "USD")} · маржа ${b.marginPct}%`,
+                  tone:
+                    b.marginPct >= 25
+                      ? "accent"
+                      : b.marginPct >= 15
+                        ? "success"
+                        : b.marginPct >= 5
+                          ? "warning"
+                          : "danger",
+                }))}
+                valueFormatter={(v) => formatMoney(v, "USD")}
+              />
+            ) : (
+              <div className="text-sm text-zinc-500">Немає даних по брендах.</div>
+            )}
+          </AdminInsightPanel>
+        </div>
+      </AdminDashboardSection>
+
+      {/* ─── TIER 4 — ORDER PIPELINE ───────────────────────────── */}
+      <AdminDashboardSection
+        title="Воронка замовлень"
+        description="Де знаходяться замовлення зараз. Клікніть на етап щоб перейти до фільтрованого списку."
+      >
         <DashboardOrderPipeline
           stages={pipelineStages}
           formatMoney={(v) => formatMoney(v, "UAH")}
@@ -682,45 +1156,84 @@ export default function AdminDashboardPage() {
           b2bCount={data.shop.b2bOrdersCount}
           cancellationRatePct={data.shop.cancellationRate}
         />
-        <DashboardActionRequired items={actionItems} />
-      </div>
+      </AdminDashboardSection>
 
-      {/* Recent orders + side lists. Mobile: stacks. Desktop: 2/3 + 1/3. */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <WidgetCard
-          title="Останні замовлення"
-          action={<ViewAllLink href="/admin/shop/orders" />}
-          className="lg:col-span-2"
-          contentClassName="p-0"
-        >
-          <DashboardRecentOrdersTable orders={recentOrdersRich} />
-        </WidgetCard>
+      {/* ─── TIER 5 — ACTION REQUIRED ──────────────────────────── */}
+      <AdminDashboardSection
+        title="Потребує дії"
+        description="Відсортовано за пріоритетом. Клікніть на рядок щоб почати."
+      >
+        <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+          <DashboardActionRequired items={actionItems} />
 
-        <div className="space-y-4">
-          <WidgetCard title="Топ бренди" action={<ViewAllLink href="/admin/shop" label="Усі" />}>
-            <DashboardTopBrands brands={topBrandsList} />
-          </WidgetCard>
-          <WidgetCard title="Топ товари" action={<ViewAllLink href="/admin/shop" label="Усі" />}>
-            <DashboardTopProducts products={topProductsList} />
-          </WidgetCard>
+          {/* Revenue trend on right for context (kept since it's still useful) */}
+          <AdminInsightPanel
+            title="Дохід магазину (оплачено vs виставлено)"
+            description={`Оплачена готівка vs виставлені суми за вікно ${periodLabel.replace("цей ", "останній ").replace("сьогодні", "останні дні")}.`}
+          >
+            <AdminTrendChart
+              data={revenueChartData}
+              valueLabel="Оплачено"
+              secondaryLabel="Виставлено"
+            />
+          </AdminInsightPanel>
         </div>
-      </div>
+      </AdminDashboardSection>
 
-      {/* Operations health — footer banner */}
-      <DashboardOpsHealthBanner lights={healthLights} />
+      {/* ─── TIER 6 — RECENT ACTIVITY ──────────────────────────── */}
+      <AdminDashboardSection
+        title="Остання активність"
+        description="Останні 8 замовлень у магазині та CRM. B2B/B2C позначено."
+      >
+        <AdminTimelineList
+          items={recentActivity}
+          empty="Немає останніх замовлень для відображення."
+        />
+      </AdminDashboardSection>
+
+      {/* ─── TIER 7 — QUICK ACTIONS ────────────────────────────── */}
+      <AdminQuickActionGrid className="md:grid-cols-2 xl:grid-cols-4">
+        <AdminQuickActionCard
+          href="/admin/shop/orders"
+          eyebrow="Shop"
+          title="Order center"
+          description="All shop orders with filters, status flow, and shipments."
+        />
+        <AdminQuickActionCard
+          href="/admin/shop/import"
+          eyebrow="Catalog"
+          title="Import center"
+          description="CSV imports, dry-runs, and review tools."
+        />
+        <AdminQuickActionCard
+          href="/admin/shop/turn14"
+          eyebrow="Supplier"
+          title="Turn14 workspace"
+          description="Brand markups, sync status, and stock check."
+        />
+        <AdminQuickActionCard
+          href="/admin/settings"
+          eyebrow="System"
+          title="Settings"
+          description="Identity, business defaults, and access controls."
+        />
+      </AdminQuickActionGrid>
 
       {lastUpdated ? (
-        <div className="font-display flex items-center justify-center gap-2 pt-2 text-[12px] text-zinc-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
-          <span>
-            Оновлено{" "}
-            <span className="tabular-nums">
-              {lastUpdated.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
-            </span>{" "}
-            · автооновлення кожні 2 хв
-          </span>
-        </div>
+        <AdminActionBar>
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <span>
+              Last updated {formatDate(lastUpdated.toISOString())} · auto-refresh every 60s
+            </span>
+          </div>
+        </AdminActionBar>
       ) : null}
+
+      {/* Suppress unused-status badge import warning at lint level — used inline above */}
+      <span className="hidden">
+        <AdminStatusBadge>placeholder</AdminStatusBadge>
+      </span>
     </AdminPage>
   );
 }

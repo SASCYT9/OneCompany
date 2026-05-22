@@ -9,10 +9,11 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
-import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
+import {
+  computeShopDisplayPrices,
+  hasAnyShopPrice,
+  pickShopSortableAmount,
+} from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import {
   extractCsfCatalogFitment,
@@ -27,7 +28,6 @@ import "../csf/csf-shop.css";
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
-  viewerContext?: ShopViewerPricingContext;
 };
 
 type SortOrder = "default" | "price_desc" | "price_asc" | "title_asc";
@@ -241,16 +241,8 @@ function csfFieldClass(isActive: boolean, isDisabled?: boolean) {
   return `csf-hf__field${isActive ? " is-active" : ""}${isDisabled ? " is-disabled" : ""}`;
 }
 
-export default function CSFCatalogGrid({
-  locale,
-  products,
-  viewerContext: ssrViewerContext,
-}: Props) {
+export default function CSFCatalogGrid({ locale, products }: Props) {
   const isUa = locale === "ua";
-  // Seed the client-side viewer context from SSR (anon baseline + system
-  // brand map) so the module-level discount cache primes; B2B users get
-  // dealer pricing post-hydration via /api/shop/brand-discounts/me.
-  useShopViewerContext(ssrViewerContext);
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
 
@@ -1087,13 +1079,28 @@ export default function CSFCatalogGrid({
                   product.variants?.find((variant) => variant.isDefault) ??
                   product.variants?.[0] ??
                   null;
-                // ShopCardPriceTag handles 4-tier B2B discount + RRP
-                // strikethrough + −% badge. `hasPrice` is still computed
-                // for the "price on request" fallback branch below.
+                const computedPrice = computeShopDisplayPrices(
+                  product.price,
+                  rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+                );
                 const hasPrice = hasAnyShopPrice(
                   product.price,
                   rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
                 );
+                const primaryPrice =
+                  currency === "EUR" && computedPrice.eur > 0
+                    ? formatPrice(locale, computedPrice.eur, "EUR")
+                    : currency === "USD" && computedPrice.usd > 0
+                      ? formatPrice(locale, computedPrice.usd, "USD")
+                      : currency === "UAH" && computedPrice.uah > 0
+                        ? formatPrice(locale, computedPrice.uah, "UAH")
+                        : computedPrice.uah > 0
+                          ? formatPrice(locale, computedPrice.uah, "UAH")
+                          : computedPrice.usd > 0
+                            ? formatPrice(locale, computedPrice.usd, "USD")
+                            : computedPrice.eur > 0
+                              ? formatPrice(locale, computedPrice.eur, "EUR")
+                              : null;
                 const cleanModels = models.filter((m) => m && m.length <= 22).slice(0, 3);
                 const modelLabel = cleanModels.length > 0 ? cleanModels.join("/") : null;
                 const chassisChip = cleanModels.length === 1 ? chassisCodes[0] : null;
@@ -1148,24 +1155,9 @@ export default function CSFCatalogGrid({
                         </p>
                         <div className="mt-auto border-t border-foreground/10 dark:border-white/4 pt-2 sm:pt-3">
                           {hasPrice ? (
-                            <ShopCardPriceTag
-                              locale={locale}
-                              b2cPrice={product.price}
-                              b2bExplicit={product.b2bPrice ?? null}
-                              compareAt={product.compareAt ?? null}
-                              brand={product.brand ?? null}
-                              variant="compact"
-                              classNames={{
-                                root: "flex items-baseline gap-2 flex-wrap",
-                                price:
-                                  "tabular-nums text-[11px] font-medium tracking-wide text-foreground dark:text-white sm:text-sm",
-                                retail:
-                                  "text-[10px] font-light line-through text-foreground/45 dark:text-white/35",
-                                badge:
-                                  "inline-flex items-center rounded-sm bg-[#c8102e]/15 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#c8102e]",
-                              }}
-                              requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
-                            />
+                            <span className="tabular-nums text-[11px] font-medium tracking-wide text-foreground dark:text-white sm:text-sm">
+                              {primaryPrice}
+                            </span>
                           ) : (
                             <span className="text-[9px] uppercase text-[#c8102e]/60 sm:text-[10px]">
                               {isUa ? "Ціна за запитом" : "Price on request"}

@@ -18,11 +18,7 @@ type Props = {
   globalDiscountPct: number | null;
 };
 
-// Fallback list when the live brand-catalog API is unavailable. The
-// component otherwise auto-loads every whitelisted tuning brand from
-// `/api/shop/stock/brands` so the datalist stays in sync with what we
-// actually sell (Brembo, Remus, Ilmberger Carbon, …).
-const KNOWN_BRANDS_FALLBACK = [
+const KNOWN_BRANDS = [
   "Akrapovic",
   "Brabus",
   "Burger Motorsports",
@@ -34,14 +30,11 @@ const KNOWN_BRANDS_FALLBACK = [
   "GiroDisc",
   "Racechip",
   "Urban",
-  "Remus",
-  "Ilmberger Carbon",
 ];
 
 export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: Props) {
   const toast = useToast();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [knownBrands, setKnownBrands] = useState<string[]>(KNOWN_BRANDS_FALLBACK);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -49,25 +42,6 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
   const [newBrand, setNewBrand] = useState("");
   const [newPct, setNewPct] = useState("");
   const [newNotes, setNewNotes] = useState("");
-
-  // Auto-load brand list so the datalist matches the live catalog
-  // (Brembo, Remus, Ilmberger Carbon, do88, etc.) rather than a hardcoded
-  // 11-entry snapshot.
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/shop/stock/brands?source=all")
-      .then((r) => r.json())
-      .then((res) => {
-        if (!alive || !Array.isArray(res?.data) || res.data.length === 0) return;
-        setKnownBrands(res.data.map((b: { name: string }) => b.name));
-      })
-      .catch(() => {
-        // keep fallback list
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -148,13 +122,13 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-zinc-100">Знижки по брендах</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          Персональна знижка % окремо для кожного бренду цього клієнта. Якщо запис відсутній —
-          застосовується глобальна B2B-знижка клієнта
+          Персональна знижка % окремо для кожного бренду. Якщо запис відсутній — застосовується
+          глобальна B2B-знижка
           {globalDiscountPct != null ? ` (${globalDiscountPct}%)` : " (не задана)"}.
         </p>
-        <p className="mt-1 text-[11px] text-emerald-300/80">
-          ✓ Інтеграція з ціноутворенням активна. Застосовується пріоритет: персональна per-brand
-          знижка → системна per-brand знижка → глобальна знижка клієнта → 0%.
+        <p className="mt-1 text-[11px] text-amber-300/70">
+          ⚠️ Інтеграція з ціноутворенням — у наступному етапі. Поки що ці значення зберігаються, але
+          pricing-логіка не змінюється — використовується глобальна знижка.
         </p>
       </div>
 
@@ -174,7 +148,7 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
                 className="w-full rounded-none border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
               />
               <datalist id="known-brands">
-                {knownBrands.map((b) => (
+                {KNOWN_BRANDS.map((b) => (
                   <option key={b} value={b} />
                 ))}
               </datalist>

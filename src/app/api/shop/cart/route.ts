@@ -8,7 +8,6 @@ import {
 } from "@/lib/shopCart";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { loadBrandDiscountMap, loadCustomerBrandDiscountMap } from "@/lib/shopBrandB2bDiscounts";
 import { prisma } from "@/lib/prisma";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -29,24 +28,12 @@ export async function GET(request: NextRequest) {
       getCurrentShopCustomerSession(),
       getOrCreateShopSettings(prisma),
     ]);
-    // Preload brand-level discount maps so `resolveShopProductPricing` in
-    // `serializeResolvedShopCart` can apply the same 4-tier discount as
-    // detail pages / catalog grids. Without these the cart would only
-    // honor the customer-global b2bDiscountPercent.
-    const [systemBrandMap, customerBrandMap] = await Promise.all([
-      loadBrandDiscountMap(prisma),
-      loadCustomerBrandDiscountMap(prisma, session?.customerId ?? null),
-    ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const context = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      {
-        systemBrandDiscountMap: systemBrandMap,
-        customerBrandDiscountMap: customerBrandMap,
-      }
+      session?.b2bDiscountPercent ?? null
     );
     const { cart, token } = await resolveShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
@@ -85,20 +72,12 @@ export async function POST(request: NextRequest) {
       getCurrentShopCustomerSession(),
       getOrCreateShopSettings(prisma),
     ]);
-    const [systemBrandMap, customerBrandMap] = await Promise.all([
-      loadBrandDiscountMap(prisma),
-      loadCustomerBrandDiscountMap(prisma, session?.customerId ?? null),
-    ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const context = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      {
-        systemBrandDiscountMap: systemBrandMap,
-        customerBrandDiscountMap: customerBrandMap,
-      }
+      session?.b2bDiscountPercent ?? null
     );
     const { cart, token } = await replaceEntireShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
