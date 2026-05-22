@@ -1,6 +1,10 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import {
   // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
   // 2026-05-15: switched from getRacechipProductsServer (~150 MB DB transfer for
@@ -64,9 +68,45 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
   );
 
   const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/racechip/catalog");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "RaceChip",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/racechip")),
+    },
+    {
+      name: isUa ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  // Racechip catalog has 5k+ entries; cap ItemList JSON-LD at 500 so the HTML
+  // payload stays manageable while still giving Google a sizable link graph.
+  // Remaining products are reachable via sitemap and intra-listing pagination.
+  const ITEMLIST_CAP = 500;
+  const itemListEntries = racechipProducts.slice(0, ITEMLIST_CAP).map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог RaceChip" : "RaceChip Catalog",
+    listingPath,
+    itemListEntries
+  );
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden selection:bg-[#ff4a00] selection:text-white font-sans">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Atmospheric layer — dark only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-[#ff4a00] opacity-[0.02] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"></div>
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none z-0 hidden dark:block"></div>

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Zap } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -46,40 +46,47 @@ export default function RacechipVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  // Restore filter state from URL params on mount.
-  // model = modelKey (e.g. "rs6"), chassis = chassisKey (e.g. "c8-from-2019"),
-  // engine = engineSlug. Old URLs with full chassis-level slug in `model=` are
-  // auto-migrated by parsing the slug and splitting model/chassis.
-  const rawModelParam = searchParams?.get("model") || "";
-  const rawChassisParam = searchParams?.get("chassis") || "";
-  let initialModel = "all";
-  let initialChassis = "all";
-  if (rawModelParam) {
-    if (rawChassisParam) {
-      initialModel = rawModelParam;
-      initialChassis = rawChassisParam;
-    } else {
-      // Legacy shape: model=rs6-c8-from-2019 → split into model + chassis
-      const parsed = parseRacechipModelSlug(rawModelParam);
-      initialModel = parsed.modelKey;
-      initialChassis = parsed.chassisKey || "all";
+  // Initial state defaults to "all" — SSR/CSR first render matches. URL
+  // params apply post-mount via window.location so the SSR HTML carries the
+  // full unfiltered grid for Googlebot. Reading useSearchParams here would
+  // bail the page out of static rendering and emit only the Suspense fallback.
+  const [activeMake, setActiveMake] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeChassis, setActiveChassis] = useState<string>("all");
+  const [activeEngine, setActiveEngine] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    // Legacy shape: model=rs6-c8-from-2019 → split into model + chassis.
+    const rawModelParam = params.get("model") || "";
+    const rawChassisParam = params.get("chassis") || "";
+    let urlModel = "all";
+    let urlChassis = "all";
+    if (rawModelParam) {
+      if (rawChassisParam) {
+        urlModel = rawModelParam;
+        urlChassis = rawChassisParam;
+      } else {
+        const parsed = parseRacechipModelSlug(rawModelParam);
+        urlModel = parsed.modelKey;
+        urlChassis = parsed.chassisKey || "all";
+      }
     }
-  }
-  const initialMake = searchParams?.get("make") || "all";
-  const initialEngine = searchParams?.get("engine") || "all";
-  const initialSort =
-    (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
-
-  const [activeMake, setActiveMake] = useState<string>(initialMake);
-  const [activeModel, setActiveModel] = useState<string>(initialModel || "all");
-  const [activeChassis, setActiveChassis] = useState<string>(initialChassis || "all");
-  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+    const urlMake = params.get("make") || "all";
+    const urlEngine = params.get("engine") || "all";
+    const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+    if (urlMake !== "all") setActiveMake(urlMake);
+    if (urlModel !== "all") setActiveModel(urlModel);
+    if (urlChassis !== "all") setActiveChassis(urlChassis);
+    if (urlEngine !== "all") setActiveEngine(urlEngine);
+    if (urlSort !== "default") setSortOrder(urlSort);
+  }, []);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const previousMakeRef = useRef(activeMake);
   const previousModelRef = useRef(activeModel);
@@ -437,7 +444,9 @@ export default function RacechipVehicleFilter({
     </>
   );
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` removed so the SSR HTML
+  // carries the full product grid for Googlebot. `getDisplayPrice` still
+  // returns null on SSR (no rates) — price labels fill in after hydration.
 
   return (
     <section className="bg-transparent text-foreground dark:text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[#ff4a00] selection:text-foreground dark:text-white font-sans overflow-hidden">

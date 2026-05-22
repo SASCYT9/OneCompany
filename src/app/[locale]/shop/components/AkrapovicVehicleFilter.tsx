@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -75,20 +74,28 @@ export default function AkrapovicVehicleFilter({
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
-  const searchParams = useSearchParams();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
-  const [activeBrand, setActiveBrand] = useState<string>(() => searchParams.get("brand") || "all");
-  const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
-  const [activeBody, setActiveBody] = useState<string>(() => searchParams.get("body") || "all");
-  const [activeLine, setActiveLine] = useState<string>(() => searchParams.get("line") || "all");
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
+  // Initial state ignores URL params so SSR and CSR first-render match
+  // (defaults: all/empty). URL params apply after mount via window.location
+  // — this lets Googlebot crawl the unfiltered SSR product list. Reading
+  // useSearchParams() here would force the surrounding <Suspense> boundary
+  // to emit its fallback in the pre-rendered HTML, hiding every product.
+  const [activeBrand, setActiveBrand] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeBody, setActiveBody] = useState<string>("all");
+  const [activeLine, setActiveLine] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const didInitializeBrand = useRef(false);
   const didInitializeModel = useRef(false);
+  // When the post-mount URL-restore effect calls setActiveBrand/setActiveModel,
+  // the brand- and model-change effects below would otherwise interpret it as a
+  // user-driven switch and reset the dependent filters back to "all" — wiping
+  // the URL params we just applied. This flag suppresses those resets for the
+  // duration of the URL-driven update.
+  const applyingUrlState = useRef(false);
 
   const productBrandMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -181,6 +188,7 @@ export default function AkrapovicVehicleFilter({
       didInitializeBrand.current = true;
       return;
     }
+    if (applyingUrlState.current) return;
     setActiveLine("all");
     setActiveModel("all");
     setActiveBody("all");
@@ -191,8 +199,38 @@ export default function AkrapovicVehicleFilter({
       didInitializeModel.current = true;
       return;
     }
+    if (applyingUrlState.current) return;
     setActiveBody("all");
   }, [activeModel]);
+
+  // Restore filter state from URL after mount. Runs once. Sets
+  // applyingUrlState so the cascade-reset effects above don't clobber the
+  // dependent filters we just applied. The flag clears on the next tick,
+  // after React flushes all the URL-driven state updates.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlBrand = params.get("brand");
+    const urlModel = params.get("model");
+    const urlBody = params.get("body");
+    const urlLine = params.get("line");
+    const urlQ = params.get("q");
+    if (!urlBrand && !urlModel && !urlBody && !urlLine && !urlQ) return;
+    applyingUrlState.current = true;
+    if (urlBrand) setActiveBrand(urlBrand);
+    if (urlModel) setActiveModel(urlModel);
+    if (urlBody) setActiveBody(urlBody);
+    if (urlLine) setActiveLine(urlLine);
+    if (urlQ) setSearchQuery(urlQ);
+    // Defer clearing until after the cascade-reset effects have run on the
+    // re-render triggered by these setters. setTimeout(0) fires after the
+    // current React work, so the suppression flag stays live for the full
+    // commit cycle.
+    const timeoutId = setTimeout(() => {
+      applyingUrlState.current = false;
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -299,7 +337,10 @@ export default function AkrapovicVehicleFilter({
     return `/${locale}/shop/akrapovic/collections${query ? `?${query}` : ""}`;
   }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, locale]);
 
-  if (!mounted) return null;
+  // Note: previous `if (!mounted) return null` guard was removed so the full
+  // product grid renders in the initial server HTML (Googlebot crawl). Filter
+  // state restores from URL via the post-mount effect above; first render
+  // shows the unfiltered list, which matches SSR.
 
   if (filterOnly && heroCompact) {
     return (

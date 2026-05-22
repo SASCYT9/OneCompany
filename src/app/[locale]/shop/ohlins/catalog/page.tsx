@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -11,6 +11,8 @@ import {
 } from "@/lib/shopSearch";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
 import OhlinsVehicleFilter from "../../components/OhlinsVehicleFilter";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
@@ -123,12 +125,44 @@ export default async function OhlinsCatalogPage({ params }: Props) {
   }, []);
 
   const isUa = resolvedLocale === "ua";
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/ohlins/catalog");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Öhlins",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/ohlins")),
+    },
+    {
+      name: isUa ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListEntries = ohlinsProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог Öhlins" : "Öhlins Catalog",
+    listingPath,
+    itemListEntries
+  );
 
   return (
     <div
       className="relative min-h-screen bg-background text-foreground overflow-hidden font-sans"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       {/* Stealth Wealth Atmosphere — Öhlins Gold, dark only */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] opacity-[0.03] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"
