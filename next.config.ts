@@ -411,7 +411,10 @@ const nextConfig: NextConfig = {
     // Smaller server-side React bundle.
     optimizeServerReact: true,
     // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
-    cpus: 4,
+    // Reduced from 4 → 2 after adding 286 Ilmberger products: 4 concurrent
+    // workers querying Prisma exhausted the "prisma_migration" role pool on
+    // Vercel build (FATAL: too many connections). 2 workers is the safe ceiling.
+    cpus: 2,
     // Tree-shake & barrel-optimize popular packages — meaningfully smaller client bundles.
     optimizePackageImports: [
       "framer-motion",
