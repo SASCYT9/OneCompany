@@ -115,8 +115,15 @@ function buildWindowedPageList(current: number, total: number): Array<number | "
  * Server-side helper: given the full product list and the current page,
  * returns the slice for the page plus pagination metadata. Use this from
  * each brand's listing page.tsx to keep slicing logic uniform across brands.
+ *
+ * NOTE: 30 (not 60) — must match each filter component's internal
+ * `visibleCount = useState(30)` default. The filter only renders its
+ * `slice(0, visibleCount)` on initial mount, so if we slice the server
+ * payload to 60 the filter renders 30 and the back half is dropped from
+ * the SSR HTML (Googlebot sees half of every paginated page). Aligning
+ * the slice to the filter's window keeps every product crawlable.
  */
-export const COLLECTION_PAGE_SIZE = 60;
+export const COLLECTION_PAGE_SIZE = 30;
 
 export function paginateProducts<T>(
   allProducts: T[],
