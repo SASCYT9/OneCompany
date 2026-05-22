@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { SupportedLocale } from "@/lib/seo";
 import type { AdroHeroVehicleMake } from "@/lib/adroCatalog";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { localizeShopProductTitle } from "@/lib/shopText";
 import { ADRO_PRODUCT_LINES } from "../data/adroHomeData";
 
 import ScrollRevealClient from "./ScrollRevealClient";
@@ -10,15 +12,20 @@ import AdroHeroFilter from "./AdroHeroFilter";
 type Props = {
   locale: SupportedLocale;
   availableVehicles?: AdroHeroVehicleMake[];
+  // Server-rendered featured product list. Sits inside the existing catalog
+  // section so brand-home HTML carries product hrefs for crawl-budget — the
+  // editorial hero alone has no per-product internal links.
+  featuredProducts?: ShopProduct[];
 };
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-export default function AdroHomeSignature({ locale, availableVehicles }: Props) {
+export default function AdroHomeSignature({ locale, availableVehicles, featuredProducts }: Props) {
   const isUa = locale === "ua";
   const vehicles = availableVehicles ?? [];
+  const featured = featuredProducts ?? [];
 
   return (
     <div className="adro" id="AdroHome">
@@ -173,6 +180,39 @@ export default function AdroHomeSignature({ locale, availableVehicles }: Props) 
             </Link>
           ))}
         </div>
+
+        {featured.length > 0 ? (
+          <ul
+            className="mx-auto mt-14 grid w-full max-w-[1700px] list-none grid-cols-2 gap-3 px-6 sm:grid-cols-3 md:px-12 lg:grid-cols-4 lg:px-16 xl:grid-cols-6"
+            data-r
+            aria-label={L(isUa, "Featured ADRO products", "Рекомендовані товари ADRO")}
+          >
+            {featured.map((product) => {
+              const title = localizeShopProductTitle(locale, product);
+              return (
+                <li key={product.slug} className="contents">
+                  <Link
+                    href={`/${locale}/shop/adro/products/${product.slug}`}
+                    className="group flex flex-col gap-2 border border-foreground/8 bg-card/50 p-3 transition-colors hover:border-foreground/25"
+                  >
+                    <div className="relative aspect-square overflow-hidden bg-background/40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={product.image ?? "/images/placeholders/product-fallback.svg"}
+                        alt={title}
+                        loading="lazy"
+                        className="h-full w-full object-contain p-4 opacity-80 transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <span className="line-clamp-2 text-[11px] uppercase tracking-[0.1em] text-foreground/70">
+                      {title}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
       </section>
     </div>
   );

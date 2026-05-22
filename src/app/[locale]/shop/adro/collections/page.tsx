@@ -2,10 +2,14 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getAdroProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import AdroCatalogGrid from "../../components/AdroCatalogGrid";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -50,8 +54,42 @@ export default async function AdroCollectionsPage({ params }: Props) {
     null
   );
 
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/adro/collections");
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Каталог" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "ADRO",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/adro")),
+    },
+    {
+      name: isUa ? "Колекції" : "Collections",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+
+  const itemListEntries = adroProducts.map((product) => ({
+    slug: product.slug,
+    title: localizeShopProductTitle(resolvedLocale, product),
+    path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+    image: product.image ?? null,
+  }));
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? "Каталог ADRO" : "ADRO Catalog",
+    listingPath,
+    itemListEntries
+  );
+
   return (
     <div className="relative min-h-screen bg-background">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/images/shop/adro/adro-m3-front.jpg"
