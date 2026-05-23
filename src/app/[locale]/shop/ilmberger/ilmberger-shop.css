@@ -249,6 +249,7 @@
   margin-bottom: 1.5rem;
 }
 .il-hero__title {
+  color: #ffffff;
   font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 100;
   text-transform: uppercase;
@@ -283,9 +284,12 @@
 .il-hero-filter {
   margin: 2.25rem auto 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(160px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
+      160px,
+      0.7fr
+    );
   gap: 0.6rem;
-  max-width: 820px;
+  max-width: 960px;
 }
 .il-hero-filter__select-wrap {
   position: relative;
@@ -360,9 +364,6 @@
 @media (max-width: 720px) {
   .il-hero-filter {
     grid-template-columns: 1fr 1fr;
-  }
-  .il-hero-filter__select-wrap:nth-child(3) {
-    grid-column: 1 / -1;
   }
   .il-hero-filter__cta {
     grid-column: 1 / -1;
@@ -2202,4 +2203,33 @@
 }
 .light .il-home .il-back__link:hover {
   color: #0a0d12;
+}
+
+/* ═══════════════ ACCORDION PERFORMANCE OPTIMIZATION ═══════════════ */
+.il-accordion-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition:
+    grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease,
+    visibility 0.35s;
+  opacity: 0;
+  visibility: hidden;
+}
+.il-accordion-wrapper.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+}
+.il-accordion-inner {
+  overflow: hidden;
+}
+
+/* ═══════════════ UTILITY CLASSES ═══════════════ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
 }

@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { ILMBERGER_MOCK_PRODUCTS } from "../data/ilmbergerHomeData";
+import { ILMBERGER_MOCK_PRODUCTS, ilmbergerMatchesCategory } from "../data/ilmbergerHomeData";
 import IlmbergerBikePicker from "./IlmbergerBikePicker";
 import IlmbergerSpotlightCard from "./IlmbergerSpotlightCard";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -232,10 +232,12 @@ export default function IlmbergerCatalog({
     }
 
     // Filter by category (fairings / tank-covers / fenders / etc.)
-    // For real products the category id is stored in `tags` (we wrote it
-    // there at import time) and also exists as `productCategory`-like substring.
+    // The exact category-id tag (set at import time) is the primary signal;
+    // ilmbergerMatchesCategory adds an EN/UA part-name keyword fallback so
+    // products tagged "other" or left untagged still surface under the right
+    // chip (e.g. "Windshield" → lighting, "Passenger seat cover" → seats).
     if (category !== "all") {
-      list = list.filter((p) => getSearchableText(p).includes(category.toLowerCase()));
+      list = list.filter((p) => ilmbergerMatchesCategory(getSearchableText(p), category));
     }
 
     // Filter by search query — same text bag
@@ -296,7 +298,7 @@ export default function IlmbergerCatalog({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--il-bg)] via-[var(--il-bg)]/60 to-transparent" />
         </div>
-        <div className="relative z-10 w-full max-w-7xl mx-auto">
+        <div className="relative z-10 w-full max-w-[1600px] mx-auto">
           <nav
             className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase text-[var(--il-titanium)] mb-3"
             aria-label="breadcrumb"
@@ -323,15 +325,40 @@ export default function IlmbergerCatalog({
           </nav>
 
           <h1 className="text-3xl md:text-5xl font-extralight tracking-wider uppercase text-[var(--il-white)] mb-3">
-            {L(isUa, "Ilmberger Catalog", "Каталог Ilmberger")}
+            {model !== "all"
+              ? `${manufacturer === "BMW Motorrad" ? "BMW" : manufacturer} ${model}`
+              : L(isUa, "Ilmberger Catalog", "Каталог Ilmberger")}
           </h1>
           <p className="text-sm font-light text-[var(--il-muted)] max-w-xl leading-relaxed">
-            {L(
-              isUa,
-              `${products.length} carbon parts for BMW S 1000 RR / M 1000 RR`,
-              `${products.length} деталей для BMW S 1000 RR / M 1000 RR`
-            )}
+            {model !== "all"
+              ? L(
+                  isUa,
+                  `Premium prepreg carbon parts for ${manufacturer === "BMW Motorrad" ? "BMW" : manufacturer} ${model}`,
+                  `Преміальні деталі з препрег-карбону для ${manufacturer === "BMW Motorrad" ? "BMW" : manufacturer} ${model}`
+                )
+              : L(
+                  isUa,
+                  `${products.length} carbon parts for BMW S 1000 RR / M 1000 RR`,
+                  `${products.length} деталей для BMW S 1000 RR / M 1000 RR`
+                )}
           </p>
+
+          {model !== "all" && (
+            <button
+              onClick={() => {
+                setManufacturer("all");
+                setModel("all");
+                setYear("all");
+                router.replace(`/${locale}/shop/ilmberger/collections`);
+              }}
+              className="mt-6 inline-flex items-center gap-2.5 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-xs uppercase tracking-widest text-[var(--il-chrome)] hover:text-white transition-all duration-300 font-bold shadow-md backdrop-blur-sm group/btn"
+            >
+              <span className="transition-transform group-hover/btn:-translate-x-1.5 duration-300">
+                ←
+              </span>
+              {L(isUa, "Change Motorcycle", "Змінити мотоцикл")}
+            </button>
+          )}
         </div>
       </header>
 
@@ -340,15 +367,17 @@ export default function IlmbergerCatalog({
           Shows always at the top; clicking a bike sets manufacturer+model
           and smooth-scrolls to the catalog anchor below.
       ════════════════════════════════════════════════════════════════ */}
-      <IlmbergerBikePicker
-        locale={locale}
-        productCountByModel={productCountByModel}
-        onPick={(mfr, mdl) => {
-          setManufacturer(mfr);
-          setModel(mdl);
-          setYear("all");
-        }}
-      />
+      {model === "all" && (
+        <IlmbergerBikePicker
+          locale={locale}
+          productCountByModel={productCountByModel}
+          onPick={(mfr, mdl) => {
+            setManufacturer(mfr);
+            setModel(mdl);
+            setYear("all");
+          }}
+        />
+      )}
 
       {/* Anchor — IlmbergerBikePicker scrolls here on bike click */}
       <div data-il-anchor="catalog" aria-hidden />
@@ -357,27 +386,54 @@ export default function IlmbergerCatalog({
           QUICK CATEGORY CHIPS
       ════════════════════════════════════════════════════════════════ */}
       <div className="bg-[var(--il-bg)]/80 border-b border-[var(--il-faint)] sticky top-0 z-30 backdrop-blur-md">
-        <div className="relative max-w-7xl mx-auto">
-          {/* 11 categories — wrap onto multiple rows so all are visible without
-              horizontal scroll. Smaller padding/font on mobile to fit more
-              per row. */}
-          <div className="px-4 md:px-8 py-3 flex flex-wrap gap-1.5 md:gap-2" role="tablist">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                className={`px-3 md:px-5 py-1.5 md:py-2 text-[9px] md:text-[10px] font-semibold tracking-widest uppercase rounded-sm border transition-all duration-300 ${
-                  category === cat.id
-                    ? "bg-[var(--il-white)] text-[var(--il-bg)] border-[var(--il-white)] shadow-lg shadow-black/5"
-                    : "bg-[var(--il-bg-soft)]/50 text-[var(--il-muted)] border-[var(--il-faint)] hover:text-[var(--il-white)] hover:border-[var(--il-titanium)]"
-                }`}
-                onClick={() => setCategory(cat.id)}
-                role="tab"
-                aria-selected={category === cat.id}
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-3.5">
+          {/* Mobile Category Dropdown: clean, clear, and universally recognizable on mobile screens */}
+          <div className="block md:hidden">
+            <div className="relative flex items-center w-full">
+              <span className="absolute left-4 text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] pointer-events-none select-none">
+                {L(isUa, "Category", "Категорія")}
+              </span>
+              <select
+                className="il-filter__field w-full !h-11 !pl-24 !pr-10 !rounded-full bg-[var(--il-bg-soft)]/90 border border-[var(--il-border-strong)] text-[var(--il-white)] !text-xs !font-bold uppercase tracking-wider outline-none"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
               >
-                {L(isUa, cat.labelEn, cat.labelUa)}
-              </button>
-            ))}
+                {CATEGORIES.map((cat) => (
+                  <option
+                    key={cat.id}
+                    value={cat.id}
+                    className="bg-[var(--il-bg-soft)] text-[var(--il-white)]"
+                  >
+                    {L(isUa, cat.labelEn, cat.labelUa)}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px] select-none">
+                ▼
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop/Tablet Category Pills: wraps automatically for visual ease and speed */}
+          <div className="hidden md:block">
+            <div className="flex flex-wrap gap-2 md:gap-2.5" role="tablist">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-[13px] font-bold tracking-widest uppercase rounded-full border transition-all duration-300 flex-shrink-0 ${
+                    category === cat.id
+                      ? "bg-[var(--il-white)] text-[var(--il-bg)] border-[var(--il-white)] shadow-md scale-[1.03]"
+                      : "bg-[var(--il-bg-soft)]/50 text-[var(--il-muted)] border-[var(--il-border-strong)] hover:text-[var(--il-white)] hover:border-[var(--il-white)]/40 hover:bg-[var(--il-white)]/5 hover:scale-[1.02]"
+                  }`}
+                  onClick={() => setCategory(cat.id)}
+                  role="tab"
+                  aria-selected={category === cat.id}
+                >
+                  {L(isUa, cat.labelEn, cat.labelUa)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -385,165 +441,169 @@ export default function IlmbergerCatalog({
       {/* ════════════════════════════════════════════════════════════════
           CATALOG STOREFRONT LAYOUT
       ════════════════════════════════════════════════════════════════ */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+      <div
+        className={`max-w-[1600px] mx-auto px-4 md:px-8 py-8 ${model === "all" ? "grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8" : "block"}`}
+      >
         {/* ── Filter Sidebar (Themed) ── */}
-        <aside
-          className={`lg:sticky lg:top-[120px] self-start flex flex-col gap-6 p-6 bg-[var(--il-bg-soft)]/50 border border-[var(--il-faint)] rounded-sm max-h-[calc(100vh-140px)] overflow-y-auto ${
-            mobileFilterOpen
-              ? "fixed inset-0 z-50 bg-[var(--il-bg)] border-0 rounded-none max-h-screen translate-x-0"
-              : "hidden lg:flex"
-          }`}
-          aria-label={L(isUa, "Filters", "Фільтри")}
-        >
-          <div className="flex items-center justify-between pb-3 border-b border-[var(--il-faint)]">
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--il-white)]">
-              <SlidersHorizontal size={14} className="text-[var(--il-muted)]" />{" "}
-              {L(isUa, "Store Filters", "Фільтри магазину")}
-            </h2>
-            {mobileFilterOpen && (
+        {model === "all" && (
+          <aside
+            className={`lg:sticky lg:top-[120px] self-start flex flex-col gap-6 p-6 bg-[var(--il-bg-soft)]/50 border border-[var(--il-faint)] rounded-sm max-h-[calc(100vh-140px)] overflow-y-auto ${
+              mobileFilterOpen
+                ? "fixed inset-0 z-50 bg-[var(--il-bg)] border-0 rounded-none max-h-screen translate-x-0"
+                : "hidden lg:flex"
+            }`}
+            aria-label={L(isUa, "Filters", "Фільтри")}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--il-faint)]">
+              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--il-white)]">
+                <SlidersHorizontal size={14} className="text-[var(--il-muted)]" />{" "}
+                {L(isUa, "Store Filters", "Фільтри магазину")}
+              </h2>
+              {mobileFilterOpen && (
+                <button
+                  type="button"
+                  className="p-1.5 hover:bg-[var(--il-faint)] rounded text-[var(--il-muted)] hover:text-[var(--il-white)] transition-colors"
+                  onClick={() => setMobileFilterOpen(false)}
+                  aria-label={L(isUa, "Close filters", "Закрити фільтри")}
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+
+            {/* Make Filter */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
+                {L(isUa, "Manufacturer", "Марка")}
+              </label>
+              <div className="relative">
+                <select
+                  className="il-filter__field w-full h-11"
+                  value={manufacturer}
+                  onChange={(e) => {
+                    setManufacturer(e.target.value);
+                    setModel("all");
+                  }}
+                >
+                  <option value="all">{L(isUa, "All Manufacturers", "Усі марки")}</option>
+                  {Object.keys(MANUFACTURERS).map((mfr) => (
+                    <option key={mfr} value={mfr}>
+                      {mfr}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Model Filter */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
+                {L(isUa, "Model Fitment", "Модель байка")}
+              </label>
+              <div className="relative">
+                <select
+                  className="il-filter__field w-full h-11 disabled:opacity-40 disabled:cursor-not-allowed"
+                  value={model}
+                  onChange={(e) => {
+                    setModel(e.target.value);
+                    setYear("all"); // reset year — narrowing context changes available years
+                  }}
+                  disabled={manufacturer === "all"}
+                >
+                  <option value="all">
+                    {manufacturer === "all"
+                      ? L(isUa, "Select manufacturer first", "Оберіть марку спочатку")
+                      : L(isUa, "All Models", "Усі моделі")}
+                  </option>
+                  {availableModels.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Year Filter */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
+                {L(isUa, "Model Year", "Рік моделі")}
+              </label>
+              <div className="relative">
+                <select
+                  className="il-filter__field w-full h-11 disabled:opacity-40 disabled:cursor-not-allowed"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  disabled={availableYears.length === 0}
+                >
+                  <option value="all">{L(isUa, "All Years", "Усі роки")}</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      MY {y}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Text search */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
+                {L(isUa, "Product Search", "Пошук товарів")}
+              </label>
+              <div className="relative">
+                <Search
+                  size={14}
+                  aria-hidden
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--il-muted)] pointer-events-none"
+                />
+                <input
+                  type="search"
+                  className="il-filter__field w-full h-11 pl-10"
+                  placeholder={L(isUa, "SKU, name, or keywords...", "SKU, назва або серія...")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {hasActiveFilters && (
               <button
                 type="button"
-                className="p-1.5 hover:bg-[var(--il-faint)] rounded text-[var(--il-muted)] hover:text-[var(--il-white)] transition-colors"
-                onClick={() => setMobileFilterOpen(false)}
-                aria-label={L(isUa, "Close filters", "Закрити фільтри")}
+                className="mt-2 h-10 w-full border border-[var(--il-faint)] bg-[var(--il-bg-soft)] hover:bg-[var(--il-bg)] hover:border-[var(--il-chrome)] rounded text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] hover:text-[var(--il-white)] transition-all"
+                onClick={resetFilters}
               >
-                <X size={18} />
+                {L(isUa, "Reset all filters", "Очистити фільтри")}
               </button>
             )}
-          </div>
 
-          {/* Make Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
-              {L(isUa, "Manufacturer", "Марка")}
-            </label>
-            <div className="relative">
-              <select
-                className="il-filter__field w-full h-11"
-                value={manufacturer}
-                onChange={(e) => {
-                  setManufacturer(e.target.value);
-                  setModel("all");
-                }}
+            {/* Quick FAQ / Assistance Panel */}
+            <div className="mt-auto pt-6 border-t border-[var(--il-faint)] text-[11px] text-[var(--il-titanium)] leading-relaxed">
+              <p className="mb-3">
+                {L(
+                  isUa,
+                  "Every panel is autoclaved for maximum fiber-to-resin ratio, yielding up to 50% weight savings over OEM ABS plastics.",
+                  "Кожна деталь запікається в автоклаві під високим тиском, гарантуючи міцність та економію ваги до 50% у порівнянні з OEM-пластиком."
+                )}
+              </p>
+              <Link
+                href={`/${locale}/contact`}
+                className="text-[var(--il-white)] hover:underline underline-offset-4 font-semibold uppercase tracking-wider text-[10px] inline-flex items-center gap-1"
               >
-                <option value="all">{L(isUa, "All Manufacturers", "Усі марки")}</option>
-                {Object.keys(MANUFACTURERS).map((mfr) => (
-                  <option key={mfr} value={mfr}>
-                    {mfr}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
-                ▼
-              </div>
+                {L(isUa, "Direct Atelier Request", "Прямий запит на фабрику")} →
+              </Link>
             </div>
-          </div>
-
-          {/* Model Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
-              {L(isUa, "Model Fitment", "Модель байка")}
-            </label>
-            <div className="relative">
-              <select
-                className="il-filter__field w-full h-11 disabled:opacity-40 disabled:cursor-not-allowed"
-                value={model}
-                onChange={(e) => {
-                  setModel(e.target.value);
-                  setYear("all"); // reset year — narrowing context changes available years
-                }}
-                disabled={manufacturer === "all"}
-              >
-                <option value="all">
-                  {manufacturer === "all"
-                    ? L(isUa, "Select manufacturer first", "Оберіть марку спочатку")
-                    : L(isUa, "All Models", "Усі моделі")}
-                </option>
-                {availableModels.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
-                ▼
-              </div>
-            </div>
-          </div>
-
-          {/* Year Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
-              {L(isUa, "Model Year", "Рік моделі")}
-            </label>
-            <div className="relative">
-              <select
-                className="il-filter__field w-full h-11 disabled:opacity-40 disabled:cursor-not-allowed"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                disabled={availableYears.length === 0}
-              >
-                <option value="all">{L(isUa, "All Years", "Усі роки")}</option>
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>
-                    MY {y}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px]">
-                ▼
-              </div>
-            </div>
-          </div>
-
-          {/* Text search */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
-              {L(isUa, "Product Search", "Пошук товарів")}
-            </label>
-            <div className="relative">
-              <Search
-                size={14}
-                aria-hidden
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--il-muted)] pointer-events-none"
-              />
-              <input
-                type="search"
-                className="il-filter__field w-full h-11 pl-10"
-                placeholder={L(isUa, "SKU, name, or keywords...", "SKU, назва або серія...")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              className="mt-2 h-10 w-full border border-[var(--il-faint)] bg-[var(--il-bg-soft)] hover:bg-[var(--il-bg)] hover:border-[var(--il-chrome)] rounded text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] hover:text-[var(--il-white)] transition-all"
-              onClick={resetFilters}
-            >
-              {L(isUa, "Reset all filters", "Очистити фільтри")}
-            </button>
-          )}
-
-          {/* Quick FAQ / Assistance Panel */}
-          <div className="mt-auto pt-6 border-t border-[var(--il-faint)] text-[11px] text-[var(--il-titanium)] leading-relaxed">
-            <p className="mb-3">
-              {L(
-                isUa,
-                "Every panel is autoclaved for maximum fiber-to-resin ratio, yielding up to 50% weight savings over OEM ABS plastics.",
-                "Кожна деталь запікається в автоклаві під високим тиском, гарантуючи міцність та економію ваги до 50% у порівнянні з OEM-пластиком."
-              )}
-            </p>
-            <Link
-              href={`/${locale}/contact`}
-              className="text-[var(--il-white)] hover:underline underline-offset-4 font-semibold uppercase tracking-wider text-[10px] inline-flex items-center gap-1"
-            >
-              {L(isUa, "Direct Atelier Request", "Прямий запит на фабрику")} →
-            </Link>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* ── Main Catalog Grid ── */}
         <main className="min-w-0">
@@ -564,41 +624,63 @@ export default function IlmbergerCatalog({
           )}
 
           {/* Toolbar */}
-          <div className="flex items-center justify-between gap-4 pb-4 border-b border-[var(--il-faint)] mb-6">
-            <button
-              type="button"
-              className="lg:hidden flex items-center gap-2 h-9 px-4 bg-[var(--il-bg-soft)] border border-[var(--il-faint)] rounded text-xs font-semibold uppercase tracking-wider text-[var(--il-white)]"
-              onClick={() => setMobileFilterOpen(true)}
-            >
-              <Filter size={13} /> {L(isUa, "Filters", "Фільтри")}
-            </button>
-
-            <div className="text-[11px] uppercase tracking-widest text-[var(--il-titanium)]">
-              {L(isUa, "Showing", "Знайдено")}:{" "}
-              <strong className="text-[var(--il-white)] font-bold">
-                {filteredProducts.length}
-              </strong>{" "}
-              {L(isUa, "specifications", "модифікацій")}
-            </div>
-
-            <div className="flex items-center gap-2 text-[var(--il-muted)]">
-              <ArrowUpDown size={12} className="opacity-60" />
-              <select
-                className="il-filter__field h-9 px-3 !text-[10px] !font-semibold"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--il-faint)] mb-6">
+            {model !== "all" ? (
+              <div className="relative w-full md:max-w-xs">
+                <Search
+                  size={14}
+                  aria-hidden
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--il-muted)] pointer-events-none"
+                />
+                <input
+                  type="search"
+                  className="il-filter__field w-full h-9 pl-9 pr-3 !text-[11px] rounded-sm"
+                  placeholder={L(isUa, "Search parts...", "Пошук деталей...")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="lg:hidden flex items-center gap-2 h-9 px-4 bg-[var(--il-bg-soft)] border border-[var(--il-faint)] rounded text-xs font-semibold uppercase tracking-wider text-[var(--il-white)]"
+                onClick={() => setMobileFilterOpen(true)}
               >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {L(isUa, opt.labelEn, opt.labelUa)}
-                  </option>
-                ))}
-              </select>
+                <Filter size={13} /> {L(isUa, "Filters", "Фільтри")}
+              </button>
+            )}
+
+            <div className="flex flex-row items-center justify-between md:justify-end gap-6 flex-grow w-full md:w-auto">
+              <div className="text-[11px] uppercase tracking-widest text-[var(--il-titanium)]">
+                {L(isUa, "Showing", "Знайдено")}:{" "}
+                <strong className="text-[var(--il-white)] font-bold">
+                  {filteredProducts.length}
+                </strong>{" "}
+                {L(isUa, "specifications", "модифікацій")}
+              </div>
+
+              <div className="flex items-center gap-2 text-[var(--il-muted)]">
+                <ArrowUpDown size={12} className="opacity-60" />
+                <select
+                  className="il-filter__field h-9 px-3 !text-[10px] !font-semibold rounded-sm"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {L(isUa, opt.labelEn, opt.labelUa)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Fluid Product Grid */}
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Fluid Product Grid - 2 columns on mobile for a tighter, premium catalog look */}
+          <motion.div
+            layout
+            className={`grid grid-cols-2 ${model !== "all" ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-3.5 sm:gap-6`}
+          >
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((p, i) => {
                 const isMock = !hasRealProducts;
@@ -644,11 +726,11 @@ export default function IlmbergerCatalog({
                     <IlmbergerSpotlightCard spotlightColor="var(--il-chrome)" intensity={0.15}>
                       <Link
                         href={productHref}
-                        className="relative flex flex-col bg-[var(--il-bg-soft)]/40 border border-[var(--il-faint)] group-hover:border-[var(--il-chrome)]/40 rounded-sm overflow-hidden transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[var(--il-bg-soft)] no-underline"
+                        className="relative flex flex-col bg-[var(--il-bg-soft)]/40 border border-[var(--il-faint)] group-hover:border-[var(--il-chrome)]/40 rounded-sm overflow-hidden transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[var(--il-bg-soft)] no-underline h-full"
                       >
                         {/* Media Display Container */}
                         <div className="relative aspect-[4/3] bg-gradient-to-b from-[var(--il-bg-soft)] to-[var(--il-bg)] overflow-hidden">
-                          <div className="absolute top-3.5 left-3.5 z-10 text-[8px] font-bold uppercase tracking-[0.25em] px-2.5 py-1 bg-[var(--il-bg)]/85 border border-[var(--il-faint)] text-[var(--il-white)] rounded">
+                          <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.25em] px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--il-bg)]/85 border border-[var(--il-faint)] text-[var(--il-white)] rounded">
                             {isMock
                               ? L(isUa, "Prepreg", "Препрег")
                               : L(isUa, "In Stock", "В наявності")}
@@ -663,40 +745,40 @@ export default function IlmbergerCatalog({
                           />
 
                           {sku && (
-                            <span className="absolute bottom-3.5 right-3.5 text-[8px] text-[var(--il-muted)] bg-[var(--il-bg)]/60 backdrop-blur-sm px-2 py-0.5 rounded font-mono tracking-widest border border-[var(--il-faint)]">
+                            <span className="absolute bottom-2.5 right-2.5 sm:bottom-3.5 sm:right-3.5 text-[7px] sm:text-[8px] text-[var(--il-muted)] bg-[var(--il-bg)]/60 backdrop-blur-sm px-1.5 py-0.5 rounded font-mono tracking-widest border border-[var(--il-faint)]">
                               {sku}
                             </span>
                           )}
                         </div>
 
                         {/* Product Info & Specs Reveal Panel */}
-                        <div className="p-5 flex flex-col flex-1 gap-3 bg-[var(--il-bg)]/60">
+                        <div className="p-3.5 sm:p-5 flex flex-col flex-1 gap-3 bg-[var(--il-bg)]/60">
                           <div>
                             {cat && (
-                              <span className="block text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--il-titanium)] mb-1">
+                              <span className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--il-titanium)] mb-1">
                                 {cat}
                               </span>
                             )}
-                            <h3 className="text-sm font-medium text-[var(--il-white)] uppercase tracking-wide leading-snug line-clamp-2 min-h-[2.5rem]">
+                            <h3 className="text-xs sm:text-sm font-medium text-[var(--il-white)] uppercase tracking-wide leading-snug line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
                               {title}
                             </h3>
                             {fitment && (
-                              <p className="text-xs text-[var(--il-muted)] font-light mt-1 uppercase tracking-wider">
+                              <p className="text-[10px] sm:text-xs text-[var(--il-muted)] font-light mt-1 uppercase tracking-wider line-clamp-1">
                                 {fitment}
                               </p>
                             )}
                           </div>
 
-                          {/* Card Footer Pricing / Action */}
-                          <div className="flex items-center justify-between pt-3 border-t border-[var(--il-faint)] mt-auto">
+                          {/* Card Footer Pricing / Action - stacks on mobile */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 border-t border-[var(--il-faint)] mt-auto gap-2.5 sm:gap-0">
                             <div>
-                              <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--il-titanium)] mb-0.5">
+                              <span className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--il-titanium)] mb-0.5">
                                 {isMock
                                   ? L(isUa, "Atelier spec", "Специфікація")
                                   : L(isUa, "From", "Від")}
                               </span>
                               {isMockPrice ? (
-                                <span className="text-xs font-semibold text-[var(--il-white)] tracking-wide">
+                                <span className="text-[10px] sm:text-xs font-semibold text-[var(--il-white)] tracking-wide">
                                   {mockPriceFrom || "—"}
                                 </span>
                               ) : (
@@ -708,20 +790,20 @@ export default function IlmbergerCatalog({
                                   brand={(p as ShopProduct).brand ?? null}
                                   variant="ultra-compact"
                                   classNames={{
-                                    root: "flex items-baseline gap-1.5 flex-wrap",
+                                    root: "flex items-baseline gap-1 sm:gap-1.5 flex-wrap",
                                     price:
-                                      "text-xs font-semibold text-[var(--il-white)] tracking-wide tabular-nums",
+                                      "text-[10px] sm:text-xs font-semibold text-[var(--il-white)] tracking-wide tabular-nums",
                                     retail:
-                                      "text-[9px] font-light line-through text-[var(--il-muted)]",
+                                      "text-[8px] sm:text-[9px] font-light line-through text-[var(--il-muted)]",
                                     badge:
-                                      "inline-flex items-center rounded-sm bg-[var(--il-chrome)]/20 px-1 py-0 text-[8px] font-bold tracking-wider text-[var(--il-chrome)]",
+                                      "inline-flex items-center rounded-sm bg-[var(--il-chrome)]/20 px-0.5 py-0 text-[7px] sm:text-[8px] font-bold tracking-wider text-[var(--il-chrome)]",
                                   }}
                                   requestLabel="—"
                                 />
                               )}
                             </div>
 
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--il-muted)] group-hover:text-[var(--il-white)] flex items-center gap-1.5 transition-colors bg-[var(--il-bg-soft)] px-3 py-1.5 rounded-sm border border-[var(--il-faint)] group-hover:border-[var(--il-titanium)]">
+                            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--il-muted)] group-hover:text-[var(--il-white)] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors bg-[var(--il-bg-soft)] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-sm border border-[var(--il-faint)] group-hover:border-[var(--il-titanium)] w-full sm:w-auto text-center">
                               {isMock
                                 ? L(isUa, "Configure", "Конфігурувати")
                                 : L(isUa, "Purchase", "Купити")}

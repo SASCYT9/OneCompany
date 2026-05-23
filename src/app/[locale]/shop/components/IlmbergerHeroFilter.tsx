@@ -4,23 +4,27 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Search } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { ILMBERGER_MOCK_PRODUCTS } from "../data/ilmbergerHomeData";
 
 const MANUFACTURERS: Record<string, string[]> = {
-  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "R 1250 RS", "K 1600"],
-  Ducati: ["Panigale V4", "Panigale V2", "Streetfighter V4"],
-  Aprilia: ["RSV4", "Tuono V4"],
-  Yamaha: ["YZF-R1", "YZF-R6", "MT-10"],
-  Honda: ["CBR1000RR-R Fireblade", "CBR600RR"],
-  Kawasaki: ["ZX-10R", "ZX-6R"],
+  "BMW Motorrad": ["S 1000 RR", "M 1000 RR", "S 1000 R", "M 1000 R", "S 1000 XR", "M 1000 XR"],
+  Ducati: ["Panigale V4", "Streetfighter V4", "Diavel V4", "Diavel 1260", "XDiavel"],
 };
 
 const CATEGORIES = [
+  { id: "all", labelEn: "All", labelUa: "Усі" },
   { id: "fairings", labelEn: "Fairings", labelUa: "Обтічники" },
   { id: "tank-covers", labelEn: "Tank Covers", labelUa: "Накладки на бак" },
   { id: "fenders", labelEn: "Fenders", labelUa: "Крила" },
   { id: "frame-protection", labelEn: "Frame Protection", labelUa: "Захист рами" },
   { id: "wheel-covers", labelEn: "Wheel Covers", labelUa: "Захист колеса" },
   { id: "cockpit", labelEn: "Cockpit", labelUa: "Кокпіт" },
+  { id: "exhaust", labelEn: "Exhaust", labelUa: "Вихлоп" },
+  { id: "engine", labelEn: "Engine Covers", labelUa: "Накладки двигуна" },
+  { id: "air-intake", labelEn: "Air Intake", labelUa: "Повітрозабірник" },
+  { id: "seats", labelEn: "Seats", labelUa: "Сидіння" },
+  { id: "lighting", labelEn: "Headlight & Windshield", labelUa: "Фара та вітрове скло" },
 ];
 
 function L(isUa: boolean, en: string, ua: string) {
@@ -29,14 +33,16 @@ function L(isUa: boolean, en: string, ua: string) {
 
 type Props = {
   locale: SupportedLocale;
+  products?: ShopProduct[];
 };
 
-export default function IlmbergerHeroFilter({ locale }: Props) {
+export default function IlmbergerHeroFilter({ locale, products = [] }: Props) {
   const isUa = locale === "ua";
   const router = useRouter();
 
   const [manufacturer, setManufacturer] = useState("all");
   const [model, setModel] = useState("all");
+  const [year, setYear] = useState("all");
   const [category, setCategory] = useState("all");
 
   const availableModels = useMemo(() => {
@@ -44,12 +50,61 @@ export default function IlmbergerHeroFilter({ locale }: Props) {
     return MANUFACTURERS[manufacturer] ?? [];
   }, [manufacturer]);
 
+  const hasRealProducts = products.length > 0;
+  const sourceList = hasRealProducts ? products : ILMBERGER_MOCK_PRODUCTS;
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    const brandKey = manufacturer !== "all" ? manufacturer.toLowerCase().split(" ")[0] : null;
+
+    for (const p of sourceList) {
+      const text = (() => {
+        if (!hasRealProducts) {
+          return [(p as any).title, (p as any).titleUk, (p as any).category, (p as any).fitment]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+        }
+        const prod = p as ShopProduct;
+        return [
+          prod.title?.en,
+          prod.title?.ua,
+          prod.category?.en,
+          prod.category?.ua,
+          ...(prod.tags ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+      })();
+
+      if (brandKey && !text.includes(brandKey)) continue;
+
+      if (model !== "all" && hasRealProducts) {
+        const tags = ((p as ShopProduct).tags ?? []) as string[];
+        if (!tags.includes(model)) continue;
+      }
+
+      const myMatches = text.match(/my\s+(20\d{2})/g);
+      myMatches?.forEach((m) => years.add(m.replace(/my\s+/i, "")));
+      const shortYearMatches = text.match(/'(\d{2})\b/g);
+      shortYearMatches?.forEach((m) => {
+        const yy = m.replace(/^'/, "");
+        const yyyy = parseInt(yy, 10) > 50 ? `19${yy}` : `20${yy}`;
+        years.add(yyyy);
+      });
+    }
+    return Array.from(years).sort();
+  }, [sourceList, hasRealProducts, manufacturer, model]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (manufacturer !== "all") params.set("manufacturer", manufacturer);
     if (model !== "all") params.set("model", model);
-    if (category !== "all") params.set("category", category);
+    if (year !== "all") params.set("year", year);
+    if (category !== "all" && category !== "all") params.set("category", category);
+
     const qs = params.toString();
     router.push(`/${locale}/shop/ilmberger/collections${qs ? `?${qs}` : ""}`);
   };
@@ -63,6 +118,7 @@ export default function IlmbergerHeroFilter({ locale }: Props) {
           onChange={(e) => {
             setManufacturer(e.target.value);
             setModel("all");
+            setYear("all");
           }}
           aria-label={L(isUa, "Manufacturer", "Марка")}
         >
@@ -80,7 +136,10 @@ export default function IlmbergerHeroFilter({ locale }: Props) {
         <select
           className="il-hero-filter__field"
           value={model}
-          onChange={(e) => setModel(e.target.value)}
+          onChange={(e) => {
+            setModel(e.target.value);
+            setYear("all");
+          }}
           disabled={manufacturer === "all"}
           aria-label={L(isUa, "Model", "Модель")}
         >
@@ -97,11 +156,28 @@ export default function IlmbergerHeroFilter({ locale }: Props) {
       <div className="il-hero-filter__select-wrap">
         <select
           className="il-hero-filter__field"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          disabled={availableYears.length === 0}
+          aria-label={L(isUa, "Year", "Рік")}
+        >
+          <option value="all">{L(isUa, "Year", "Рік")}</option>
+          {availableYears.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="il-hero-filter__chevron" size={14} aria-hidden />
+      </div>
+
+      <div className="il-hero-filter__select-wrap">
+        <select
+          className="il-hero-filter__field"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           aria-label={L(isUa, "Category", "Категорія")}
         >
-          <option value="all">{L(isUa, "Category", "Категорія")}</option>
           {CATEGORIES.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {L(isUa, cat.labelEn, cat.labelUa)}

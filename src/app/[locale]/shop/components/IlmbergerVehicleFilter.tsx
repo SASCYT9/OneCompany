@@ -6,7 +6,7 @@ import { ChevronDown, Info, Search } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { ILMBERGER_MOCK_PRODUCTS } from "../data/ilmbergerHomeData";
+import { ILMBERGER_MOCK_PRODUCTS, ilmbergerMatchesCategory } from "../data/ilmbergerHomeData";
 import IlmbergerSpotlightCard from "./IlmbergerSpotlightCard";
 
 type Props = {
@@ -83,7 +83,7 @@ export default function IlmbergerVehicleFilter({
       list = list.filter((p) => (p.tags ?? []).includes(model));
     }
     if (category !== "all") {
-      list = list.filter((p) => getSearchableText(p).includes(category.toLowerCase()));
+      list = list.filter((p) => ilmbergerMatchesCategory(getSearchableText(p), category));
     }
     if (search.trim()) {
       const q = search.toLowerCase();

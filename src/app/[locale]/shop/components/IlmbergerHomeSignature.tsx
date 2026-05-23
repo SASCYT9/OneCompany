@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // LiquidChrome uses ogl (WebGL) — client-side only.
 const IlmbergerLiquidChrome = dynamic(() => import("./IlmbergerLiquidChrome"), {
@@ -20,7 +21,7 @@ import {
   ILMBERGER_PRODUCT_LINES,
   ILMBERGER_GALLERY,
 } from "../data/ilmbergerHomeData";
-import IlmbergerHeroFilter from "./IlmbergerHeroFilter";
+import IlmbergerBikePicker from "./IlmbergerBikePicker";
 import IlmbergerShinyText from "./IlmbergerShinyText";
 import IlmbergerTiltedCard from "./IlmbergerTiltedCard";
 import IlmbergerScrollReveal from "./IlmbergerScrollReveal";
@@ -41,6 +42,34 @@ export default function IlmbergerHomeSignature({
   viewerContext: _viewerContext,
 }: Props) {
   const isUa = locale === "ua";
+  const router = useRouter();
+
+  const productCountByModel = useMemo(() => {
+    const counts = new Map<string, number>();
+    const hasRealProducts = _products.length > 0;
+    if (!hasRealProducts) return counts;
+    for (const p of _products) {
+      for (const tag of p.tags ?? []) {
+        if (typeof tag !== "string") continue;
+        if (
+          /^(S 1000 (RR|R|XR)|M 1000 (RR|R|XR)|Panigale V4|Streetfighter V4|Diavel V4|Diavel 1260|XDiavel)$/.test(
+            tag
+          )
+        ) {
+          counts.set(tag, (counts.get(tag) ?? 0) + 1);
+        }
+      }
+    }
+    return counts;
+  }, [_products]);
+
+  const handleBikePick = (mfr: string, model: string) => {
+    router.push(
+      `/${locale}/shop/ilmberger/collections?manufacturer=${encodeURIComponent(
+        mfr
+      )}&model=${encodeURIComponent(model)}`
+    );
+  };
 
   /* ── Scroll reveal observer ── */
   useEffect(() => {
@@ -96,49 +125,48 @@ export default function IlmbergerHomeSignature({
             />
           )}
         </div>
-        <div className="il-hero__content">
-          <div className="il-hero__logo-wrapper">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logos/ilmberger-carbon-transparent.webp"
-              alt="Ilmberger Carbon"
-              className="il-hero__logo"
-            />
+        <div className="il-hero__content !max-w-7xl">
+          <div className="max-w-3xl mx-auto">
+            <div className="il-hero__logo-wrapper">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logos/ilmberger-carbon-transparent.webp"
+                alt="Ilmberger Carbon"
+                className="il-hero__logo"
+              />
+            </div>
+
+            <p className="il-hero__overtitle">One Company × Ilmberger Carbon</p>
+
+            <h1 className="sr-only">
+              {L(
+                isUa,
+                "Ilmberger Carbon — Карбонові деталі для спортбайків",
+                "Ilmberger Carbon — Prepreg Carbon for Sportbikes"
+              )}
+            </h1>
+            <p className="il-hero__title">
+              {L(isUa, "Hand-Laid", "Карбон ручної")}{" "}
+              <IlmbergerShinyText
+                text={L(isUa, "Carbon", "роботи")}
+                color="#e5e7eb"
+                shineColor="#ffffff"
+                speed={4}
+                className="il-hero__title-em"
+              />
+            </p>
+
+            <p className="il-hero__subtitle">
+              {L(isUa, ILMBERGER_HERO.subtitle, ILMBERGER_HERO.subtitleUk)}
+            </p>
           </div>
 
-          <p className="il-hero__overtitle">One Company × Ilmberger Carbon</p>
-
-          <h1 className="sr-only">
-            {L(
-              isUa,
-              "Ilmberger Carbon — Карбонові деталі для спортбайків",
-              "Ilmberger Carbon — Prepreg Carbon for Sportbikes"
-            )}
-          </h1>
-          <p className="il-hero__title">
-            {L(isUa, "Hand-Laid", "Карбон ручної")}{" "}
-            <IlmbergerShinyText
-              text={L(isUa, "Carbon", "роботи")}
-              color="#8a929a"
-              shineColor="#ffffff"
-              speed={4}
-              className="il-hero__title-em"
-            />
-          </p>
-
-          <p className="il-hero__subtitle">
-            {L(isUa, ILMBERGER_HERO.subtitle, ILMBERGER_HERO.subtitleUk)}
-          </p>
-
-          <div className="mt-8 flex items-center justify-center">
-            <Link href={`/${locale}/shop/ilmberger/collections`} className="il-btn il-btn--solid">
-              {L(isUa, "Browse Catalog", "Переглянути каталог")}
-              <ArrowRight size={14} aria-hidden />
-            </Link>
-          </div>
-
-          {/* Quick filter — links straight into /collections with query params */}
-          <IlmbergerHeroFilter locale={locale} />
+          <IlmbergerBikePicker
+            locale={locale}
+            productCountByModel={productCountByModel}
+            onPick={handleBikePick}
+            variant="hero"
+          />
         </div>
 
         <div className="il-hero__scroll" aria-hidden>

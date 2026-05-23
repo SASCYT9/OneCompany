@@ -203,7 +203,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Fairings & Bodywork',
     categoryUk: 'Обтічники',
     priceFrom: 'from €3,890',
-    image: '/images/shop/ilmberger/m1000rr.jpg',
+    image: '/images/shop/ilmberger/products/gallery-01-fairing.jpg',
   },
   {
     id: 'panigale-v4-tank-cover',
@@ -215,7 +215,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Tank Covers',
     categoryUk: 'Накладки на бак',
     priceFrom: 'from €489',
-    image: '/images/shop/ilmberger/panigale.jpg',
+    image: '/images/shop/ilmberger/products/tank-cover.jpg',
   },
   {
     id: 'rsv4-front-fender',
@@ -227,7 +227,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Fenders',
     categoryUk: 'Крила',
     priceFrom: 'from €295',
-    image: '/images/shop/ilmberger/showroom.jpg',
+    image: '/images/shop/ilmberger/products/front-fender.jpg',
   },
   {
     id: 's1000rr-frame-protector',
@@ -239,7 +239,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Frame Protection',
     categoryUk: 'Захист рами',
     priceFrom: 'from €420',
-    image: '/images/shop/ilmberger/s1000rr-street.jpg',
+    image: '/images/shop/ilmberger/products/gallery-03-fairing-side.jpg',
   },
   {
     id: 'r1-rear-hugger',
@@ -251,7 +251,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Wheel Covers',
     categoryUk: 'Захист колеса',
     priceFrom: 'from €265',
-    image: '/images/shop/ilmberger/r1300gs.jpg',
+    image: '/images/shop/ilmberger/products/rear-hugger.jpg',
   },
   {
     id: 'cbr-instrument-cover',
@@ -263,7 +263,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Cockpit',
     categoryUk: 'Кокпіт',
     priceFrom: 'from €178',
-    image: '/images/shop/ilmberger/showroom.jpg',
+    image: '/images/shop/ilmberger/products/cockpit-clutch.jpg',
   },
   {
     id: 'panigale-belly-pan',
@@ -275,7 +275,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Fairings & Bodywork',
     categoryUk: 'Обтічники',
     priceFrom: 'from €595',
-    image: '/images/shop/ilmberger/panigale.jpg',
+    image: '/images/shop/ilmberger/products/belly-pan.jpg',
   },
   {
     id: 'zx10r-swingarm',
@@ -287,7 +287,7 @@ export const ILMBERGER_MOCK_PRODUCTS: IlmbergerMockProduct[] = [
     category: 'Frame Protection',
     categoryUk: 'Захист рами',
     priceFrom: 'from €340',
-    image: '/images/shop/ilmberger/hero-banner.avif',
+    image: '/images/shop/ilmberger/products/swingarm.jpg',
   },
 ];
 
@@ -414,6 +414,45 @@ export const ILMBERGER_HERITAGE = {
   descriptionUk:
     'З 1995 року кожна деталь Ilmberger Carbon виготовлена вручну, запечена в автоклаві та оброблена на ЧПУ-станку в Ліндберзі, Баварія. Від паддоків World Superbike до вуличних мотоциклістів — три десятиліття невпинного прагнення до ідеального twill-плетіння. Препрег-укладка, вакуумне пакування та цикли високого тиску в автоклаві забезпечують стабільну орієнтацію волокон та повну відсутність порожнин у кожній панелі.',
 };
+
+/* ─── Category chip matching ──────────────────────────────────────
+   The storefront category filter matches a product against a chip by
+   testing its searchable text (title EN/UA + category + sku + tags).
+   The exact category-id tag (set at import time, e.g. "frame-protection")
+   is the primary signal; the keyword lists below are a resilience layer
+   so products that were never tagged — or imported as "other" — still
+   surface under the right chip via their part name in EN or UA.
+   Keywords are lowercase substrings; keep them specific enough not to
+   collide across categories (e.g. avoid bare "wing", which is a substring
+   of "swingarm"). */
+export const ILMBERGER_CATEGORY_KEYWORDS: Record<string, string[]> = {
+  fairings: ['fairing', 'обтічник', 'winglet', 'bellypan', 'belly pan', 'undertray', 'beak', 'дзьоб'],
+  'tank-covers': ['tank cover', 'tank side', 'tank pad', 'накладка бака', 'бак'],
+  fenders: ['fender', 'hugger', 'крило', 'бризковик', 'mudguard'],
+  'frame-protection': ['frame', 'swingarm', 'swing arm', 'маятник', 'рама'],
+  'wheel-covers': ['wheel cover', 'колесо', 'колеса', 'обід'],
+  cockpit: ['cockpit', 'кокпіт', 'ignition switch', 'ключ запалювання', 'hand protector', 'hand guard', 'захист рук', 'dashboard'],
+  exhaust: ['exhaust', 'muffler', 'silencer', 'вихлоп', 'глушник', 'колектор'],
+  engine: ['engine', 'alternator', 'генератор', 'clutch', 'зчеплення', 'sprocket', 'зірк', 'water pump', 'помп', 'watercooler', 'радіатор', 'rotor', 'ротор'],
+  'air-intake': ['air-intake', 'air intake', 'airbox', 'повітрозабірник', 'intake'],
+  seats: ['seat', 'сидіння', 'passenger seat', 'single seat', 'хвіст'],
+  lighting: ['headlight', 'windshield', 'windscreen', 'light mask', 'фара', 'вітров', 'світлов'],
+};
+
+/**
+ * True if a product (represented by its already-lowercased searchable
+ * text) belongs to the given Ilmberger category chip id. Matches the
+ * exact category-id tag first, then falls back to part-name keywords.
+ */
+export function ilmbergerMatchesCategory(
+  searchableTextLower: string,
+  categoryId: string,
+): boolean {
+  if (categoryId === 'all') return true;
+  if (searchableTextLower.includes(categoryId)) return true;
+  const keywords = ILMBERGER_CATEGORY_KEYWORDS[categoryId];
+  return keywords ? keywords.some((k) => searchableTextLower.includes(k)) : false;
+}
 
 /* ─── Cinematic scroll scenes (used by IlmbergerCinematicScroll) ── */
 export const ILMBERGER_SCROLL_SCENES = [
