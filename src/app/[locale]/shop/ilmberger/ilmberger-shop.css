@@ -2099,6 +2099,9 @@
 .light .il-home .il-about {
   background: var(--il-bg-soft);
 }
+.light .il-home .il-about-shader {
+  display: none !important;
+}
 .light .il-home .il-carbon-bg {
   background-color: #e8e6df; /* Porsche light cream / silver weave */
   background-image:

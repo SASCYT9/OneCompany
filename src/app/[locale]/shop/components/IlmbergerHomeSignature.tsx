@@ -216,7 +216,7 @@ export default function IlmbergerHomeSignature({
       <section className="il-about" data-il-reveal>
         {/* Dynamic WebGL Anisotropic Carbon Fiber Shader Background */}
         <div
-          className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-85"
+          className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-85 il-about-shader"
           aria-hidden
         >
           <IlmbergerCarbonShader interactive={true} />
