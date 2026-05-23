@@ -234,7 +234,7 @@ export default function IlmbergerBikePicker({
   variant = "default",
 }: Props) {
   const isUa = locale === "ua";
-  const [expandedBrand, setExpandedBrand] = useState<string | null>("BMW Motorrad"); // Default open BMW to showcase it nicely
+  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
 
   const isHero = variant === "hero";
 

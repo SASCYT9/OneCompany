@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpDown, Filter, Info, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Filter, Info, Search, SlidersHorizontal, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -38,7 +38,7 @@ const MANUFACTURERS: Record<string, string[]> = {
 };
 
 const CATEGORIES = [
-  { id: "all", labelEn: "All", labelUa: "Усі" },
+  { id: "all", labelEn: "All Parts", labelUa: "Всі деталі" },
   { id: "fairings", labelEn: "Fairings", labelUa: "Обтічники" },
   { id: "tank-covers", labelEn: "Tank Covers", labelUa: "Накладки на бак" },
   { id: "fenders", labelEn: "Fenders", labelUa: "Крила" },
@@ -86,6 +86,7 @@ export default function IlmbergerCatalog({
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
 
   const availableModels = useMemo(() => {
     if (manufacturer === "all") return [];
@@ -285,6 +286,13 @@ export default function IlmbergerCatalog({
 
   return (
     <div className="il-home il-catalog min-h-screen bg-[var(--il-bg)] text-[var(--il-white)] font-sans selection:bg-[var(--il-chrome)] selection:text-[var(--il-bg)] overflow-hidden">
+      {/* Sleek Floating Back Link */}
+      <div className="il-back">
+        <Link href={`/${locale}/shop/ilmberger`} className="il-back__link">
+          ← {L(isUa, "Brand Home", "Головна бренду")}
+        </Link>
+      </div>
+
       {/* ════════════════════════════════════════════════════════════════
           CINEMATIC BRAND HEADER (THEMED)
       ════════════════════════════════════════════════════════════════ */}
@@ -343,7 +351,7 @@ export default function IlmbergerCatalog({
                 )}
           </p>
 
-          {model !== "all" && (
+          {model !== "all" ? (
             <button
               onClick={() => {
                 setManufacturer("all");
@@ -358,6 +366,16 @@ export default function IlmbergerCatalog({
               </span>
               {L(isUa, "Change Motorcycle", "Змінити мотоцикл")}
             </button>
+          ) : (
+            <Link
+              href={`/${locale}/shop/ilmberger`}
+              className="mt-6 inline-flex items-center gap-2.5 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-xs uppercase tracking-widest text-[var(--il-chrome)] hover:text-white transition-all duration-300 font-bold shadow-md backdrop-blur-sm group/btn"
+            >
+              <span className="transition-transform group-hover/btn:-translate-x-1.5 duration-300">
+                ←
+              </span>
+              {L(isUa, "Back to Ilmberger", "Назад до Ilmberger")}
+            </Link>
           )}
         </div>
       </header>
@@ -387,52 +405,62 @@ export default function IlmbergerCatalog({
       ════════════════════════════════════════════════════════════════ */}
       <div className="bg-[var(--il-bg)]/80 border-b border-[var(--il-faint)] sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-3.5">
-          {/* Mobile Category Dropdown: clean, clear, and universally recognizable on mobile screens */}
+          {/* Mobile Category Trigger Button: clean, clear, and opens a premium bottom sheet */}
           <div className="block md:hidden">
-            <div className="relative flex items-center w-full">
-              <span className="absolute left-4 text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] pointer-events-none select-none">
-                {L(isUa, "Category", "Категорія")}
-              </span>
-              <select
-                className="il-filter__field w-full !h-11 !pl-24 !pr-10 !rounded-full bg-[var(--il-bg-soft)]/90 border border-[var(--il-border-strong)] text-[var(--il-white)] !text-xs !font-bold uppercase tracking-wider outline-none"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                {CATEGORIES.map((cat) => (
-                  <option
-                    key={cat.id}
-                    value={cat.id}
-                    className="bg-[var(--il-bg-soft)] text-[var(--il-white)]"
-                  >
-                    {L(isUa, cat.labelEn, cat.labelUa)}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--il-muted)] text-[10px] select-none">
-                ▼
+            <button
+              type="button"
+              onClick={() => setCategorySheetOpen(true)}
+              className="w-full h-11 px-5 flex items-center justify-between rounded-full bg-[var(--il-bg-soft)]/90 border border-[var(--il-border-strong)] text-[var(--il-white)] hover:border-[var(--il-white)]/40 hover:bg-[var(--il-white)]/5 transition-all duration-300 outline-none"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
+                  {L(isUa, "Category", "Категорія")}:
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--il-white)]">
+                  {L(
+                    isUa,
+                    CATEGORIES.find((c) => c.id === category)?.labelEn ?? "",
+                    CATEGORIES.find((c) => c.id === category)?.labelUa ?? ""
+                  )}
+                </span>
               </div>
-            </div>
+              <ChevronDown size={14} className="text-[var(--il-muted)]" />
+            </button>
           </div>
 
-          {/* Desktop/Tablet Category Pills: wraps automatically for visual ease and speed */}
+          {/* Desktop/Tablet Category Navigation: sleek, centered text-only tabs with animated underlines.
+              Wraps gracefully on narrower screens while staying perfectly balanced. */}
           <div className="hidden md:block">
-            <div className="flex flex-wrap gap-2 md:gap-2.5" role="tablist">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-[13px] font-bold tracking-widest uppercase rounded-full border transition-all duration-300 flex-shrink-0 ${
-                    category === cat.id
-                      ? "bg-[var(--il-white)] text-[var(--il-bg)] border-[var(--il-white)] shadow-md scale-[1.03]"
-                      : "bg-[var(--il-bg-soft)]/50 text-[var(--il-muted)] border-[var(--il-border-strong)] hover:text-[var(--il-white)] hover:border-[var(--il-white)]/40 hover:bg-[var(--il-white)]/5 hover:scale-[1.02]"
-                  }`}
-                  onClick={() => setCategory(cat.id)}
-                  role="tab"
-                  aria-selected={category === cat.id}
-                >
-                  {L(isUa, cat.labelEn, cat.labelUa)}
-                </button>
-              ))}
+            <div
+              className="flex flex-wrap justify-center items-center gap-x-5 lg:gap-x-7 gap-y-2.5"
+              role="tablist"
+            >
+              {CATEGORIES.map((cat) => {
+                const isActive = category === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`relative py-1.5 text-[11px] lg:text-xs font-bold tracking-widest uppercase transition-colors duration-300 outline-none flex-shrink-0 ${
+                      isActive
+                        ? "text-[var(--il-white)]"
+                        : "text-[var(--il-titanium)] hover:text-[var(--il-white)]"
+                    }`}
+                    onClick={() => setCategory(cat.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                  >
+                    <span className="relative z-10">{L(isUa, cat.labelEn, cat.labelUa)}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeCategoryUnderline"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--il-white)] z-0"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -846,6 +874,76 @@ export default function IlmbergerCatalog({
           their dedicated PDP at /shop/ilmberger/products/{slug} via Next/Link.
           For users who need a custom build (variant request), the PDP itself
           can host that flow later — out of scope for catalog grid. */}
+
+      {/* Premium Category Bottom Sheet Modal (Mobile) */}
+      <AnimatePresence>
+        {categorySheetOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCategorySheetOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            />
+            {/* Bottom Sheet container */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] bg-[var(--il-bg)] border-t border-[var(--il-border-strong)] rounded-t-2xl flex flex-col shadow-2xl overflow-hidden"
+            >
+              {/* Drag Handle Indicator */}
+              <div className="flex justify-center py-3">
+                <div className="w-12 h-1 bg-[var(--il-border-strong)] rounded-full opacity-60" />
+              </div>
+
+              {/* Header */}
+              <div className="px-6 pb-4 border-b border-[var(--il-faint)] flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--il-white)]">
+                  {L(isUa, "Select Category", "Оберіть категорію")}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setCategorySheetOpen(false)}
+                  className="p-1.5 hover:bg-[var(--il-faint)] rounded-full text-[var(--il-muted)] hover:text-[var(--il-white)] transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Scrollable list of categories */}
+              <div className="overflow-y-auto py-2 px-4 no-scrollbar max-h-[60vh]">
+                <div className="flex flex-col gap-1">
+                  {CATEGORIES.map((cat) => {
+                    const isSelected = category === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setCategory(cat.id);
+                          setCategorySheetOpen(false);
+                        }}
+                        className={`w-full px-4 py-3.5 rounded-lg text-left text-xs font-bold uppercase tracking-wider flex items-center justify-between transition-all duration-200 ${
+                          isSelected
+                            ? "bg-[var(--il-white)] text-[var(--il-bg)] shadow-md"
+                            : "text-[var(--il-muted)] hover:text-[var(--il-white)] hover:bg-white/5"
+                        }`}
+                      >
+                        <span>{L(isUa, cat.labelEn, cat.labelUa)}</span>
+                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -66,47 +66,48 @@
 /* ── Back Link ── */
 .il-back {
   position: fixed;
-  top: 70px;
+  top: 76px;
   left: 0;
   z-index: 90;
-  padding: 1rem 1.5rem;
+  padding: 0 1.5rem;
 }
 .il-back__link {
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--il-titanium);
+  letter-spacing: 0.12em;
+  background: rgba(10, 13, 18, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--il-white);
+  padding: 0.6rem 1rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   text-decoration: none;
-  transition: color 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .il-back__link:hover {
-  color: var(--il-white);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fafaf9;
+  transform: translateX(-3px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* Mobile — bump up + chrome pill so the back-link is visible against
    the hero video instead of melting into the dark scrim. */
 @media (max-width: 767px) {
   .il-back {
-    top: 56px;
-    padding: 0.4rem 0.75rem;
+    top: 60px;
+    padding: 0 0.75rem;
   }
   .il-back__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: rgba(10, 13, 18, 0.7);
-    border: 1px solid rgba(192, 200, 208, 0.4);
-    color: var(--il-white);
-    padding: 0.5rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
-  .il-back__link:hover {
-    background: rgba(10, 13, 18, 0.85);
-    border-color: var(--il-chrome);
+    font-size: 0.65rem;
+    padding: 0.45rem 0.85rem;
   }
 }
 
@@ -793,6 +794,69 @@
   opacity: 0.32;
   pointer-events: none;
   mix-blend-mode: screen;
+}
+/* Carbon Weave background */
+.il-carbon-bg {
+  background-color: #08090c;
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.015) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.015) 75%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.015) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.015) 75%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.4) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.4) 75%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.4) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.4) 75%
+    );
+  background-size: 10px 10px;
+  background-position:
+    0 0,
+    5px 5px,
+    0 0,
+    5px 5px;
+}
+.il-carbon-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.03) 35%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 65%,
+    transparent 85%
+  );
+  background-size: 200% 100%;
+  animation: carbon-shimmer 12s infinite linear;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes carbon-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .il-about__wrap {
   position: relative;
@@ -2035,9 +2099,48 @@
 .light .il-home .il-about {
   background: var(--il-bg-soft);
 }
-.light .il-home .il-about__liquid {
-  opacity: 0.08; /* dramatically softer on cream */
-  mix-blend-mode: multiply;
+.light .il-home .il-carbon-bg {
+  background-color: #e8e6df; /* Porsche light cream / silver weave */
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.015) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.015) 75%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.015) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.015) 75%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.45) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.45) 75%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.45) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.45) 75%
+    );
+  opacity: 0.85;
+}
+.light .il-home .il-carbon-shimmer {
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.25) 35%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.25) 65%,
+    transparent 85%
+  );
 }
 .light .il-home .il-about__title,
 .light .il-home .il-about__lede {
@@ -2199,10 +2302,16 @@
 
 /* Back link */
 .light .il-home .il-back__link {
-  color: rgba(15, 20, 28, 0.45);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(15, 20, 28, 0.15);
+  color: rgba(15, 20, 28, 0.85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 .light .il-home .il-back__link:hover {
+  background: rgba(15, 20, 28, 0.05);
+  border-color: rgba(15, 20, 28, 0.3);
   color: #0a0d12;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* ═══════════════ ACCORDION PERFORMANCE OPTIMIZATION ═══════════════ */

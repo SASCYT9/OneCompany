@@ -5,10 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-// LiquidChrome uses ogl (WebGL) — client-side only.
-const IlmbergerLiquidChrome = dynamic(() => import("./IlmbergerLiquidChrome"), {
-  ssr: false,
-});
 import IlmbergerCollage from "./IlmbergerCollage";
 import { ArrowRight } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
@@ -35,6 +31,10 @@ type Props = {
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
+
+const IlmbergerCarbonShader = dynamic(() => import("./IlmbergerLiquidChrome"), {
+  ssr: false,
+});
 
 export default function IlmbergerHomeSignature({
   locale,
@@ -214,8 +214,15 @@ export default function IlmbergerHomeSignature({
           SECTION 4 — ABOUT ILMBERGER
       ════════════════════════════════════════════════════════════════ */}
       <section className="il-about" data-il-reveal>
-        <div className="il-about__liquid" aria-hidden>
-          <IlmbergerLiquidChrome interactive={false} speed={0.1} amplitude={0.32} />
+        {/* Dynamic WebGL Anisotropic Carbon Fiber Shader Background */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-85"
+          aria-hidden
+        >
+          <IlmbergerCarbonShader interactive={true} />
+          {/* Subtle vertical gradients to blend section edges */}
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[var(--il-bg)] to-transparent opacity-60" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--il-bg)] to-transparent opacity-60" />
         </div>
         <div className="il-about__wrap">
           <div>

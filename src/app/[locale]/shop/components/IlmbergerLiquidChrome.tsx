@@ -1,37 +1,18 @@
-/**
- * Adapted from reactbits.dev (MIT + Commons Clause).
- * Source: https://github.com/DavidHDev/react-bits/tree/main/src/ts-tailwind/Backgrounds/LiquidChrome
- *
- * OGL-based liquid chrome shader. Used as a subtle, non-interactive background
- * layer behind the "About Ilmberger Carbon" section. Replaces our previous
- * three.js liquid background (IlmbergerLiquidBackground/Scene3D).
- *
- * Adapted: removed default white clear (matches our dark scope), shipped with
- * Ilmberger-tuned defaults (cool steel base, smaller amplitude, low speed).
- * Set `interactive={false}` when used as ambient background.
- */
-
 "use client";
 
 import React, { useRef, useEffect } from "react";
 import { Renderer, Program, Mesh, Triangle } from "ogl";
 
-interface IlmbergerLiquidChromeProps extends React.HTMLAttributes<HTMLDivElement> {
-  baseColor?: [number, number, number];
+interface IlmbergerCarbonShaderProps extends React.HTMLAttributes<HTMLDivElement> {
   speed?: number;
-  amplitude?: number;
-  frequencyX?: number;
-  frequencyY?: number;
+  density?: number;
   interactive?: boolean;
 }
 
-const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
-  baseColor = [0.05, 0.06, 0.08],
-  speed = 0.12,
-  amplitude = 0.35,
-  frequencyX = 2.6,
-  frequencyY = 1.8,
-  interactive = false,
+const IlmbergerCarbonShader: React.FC<IlmbergerCarbonShaderProps> = ({
+  speed = 0.5,
+  density = 480.0,
+  interactive = true,
   ...props
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -40,10 +21,9 @@ const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-    const renderer = new Renderer({ antialias: true });
+    const renderer = new Renderer({ antialias: true, alpha: true });
     const gl = renderer.gl;
-    // Match dark scope so the canvas tints into the surrounding panel
-    gl.clearColor(0.04, 0.05, 0.07, 1);
+    gl.clearColor(0, 0, 0, 0); // transparent base
 
     const vertexShader = `
       attribute vec2 position;
@@ -59,43 +39,100 @@ const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
       precision highp float;
       uniform float uTime;
       uniform vec3 uResolution;
-      uniform vec3 uBaseColor;
-      uniform float uAmplitude;
-      uniform float uFrequencyX;
-      uniform float uFrequencyY;
       uniform vec2 uMouse;
+      uniform float uTheme; // 0 for dark, 1 for light
+      uniform float uDensity;
       varying vec2 vUv;
 
-      vec4 renderImage(vec2 uvCoord) {
-          vec2 fragCoord = uvCoord * uResolution.xy;
-          vec2 uv = (2.0 * fragCoord - uResolution.xy) / min(uResolution.x, uResolution.y);
-
-          for (float i = 1.0; i < 10.0; i++){
-              uv.x += uAmplitude / i * cos(i * uFrequencyX * uv.y + uTime + uMouse.x * 3.14159);
-              uv.y += uAmplitude / i * cos(i * uFrequencyY * uv.x + uTime + uMouse.y * 3.14159);
-          }
-
-          vec2 diff = (uvCoord - uMouse);
-          float dist = length(diff);
-          float falloff = exp(-dist * 20.0);
-          float ripple = sin(10.0 * dist - uTime * 2.0) * 0.03;
-          uv += (diff / (dist + 0.0001)) * ripple * falloff;
-
-          vec3 color = uBaseColor / abs(sin(uTime - uv.y - uv.x));
-          return vec4(color, 1.0);
-      }
-
       void main() {
-          vec4 col = vec4(0.0);
-          int samples = 0;
-          for (int i = -1; i <= 1; i++){
-              for (int j = -1; j <= 1; j++){
-                  vec2 offset = vec2(float(i), float(j)) * (1.0 / min(uResolution.x, uResolution.y));
-                  col += renderImage(vUv + offset);
-                  samples++;
-              }
+          vec2 fragCoord = vUv * uResolution.xy;
+          vec2 uv = (fragCoord - 0.5 * uResolution.xy) / min(uResolution.x, uResolution.y);
+          
+          // 45 degree rotation mat
+          float theta = 0.785398;
+          mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
+          vec2 gUv = rot * (uv * uDensity);
+          
+          vec2 cell = floor(gUv);
+          vec2 localUv = fract(gUv);
+          
+          // 2x2 Twill weave pattern checker
+          float pattern = mod(cell.x + cell.y, 4.0);
+          vec2 fiberDir = vec2(0.0);
+          float threadType = 0.0;
+          
+          if (pattern < 2.0) {
+              fiberDir = vec2(1.0, 0.0);
+              threadType = 0.0;
+          } else {
+              fiberDir = vec2(0.0, 1.0);
+              threadType = 1.0;
           }
-          gl_FragColor = col / float(samples);
+          
+          // Micro-fiber texture simulation
+          float micro = sin(localUv.x * 24.0) * sin(localUv.y * 24.0) * 0.12;
+          
+          // Compute normal map of the woven thread curves
+          vec3 normal = vec3(0.0, 0.0, 1.0);
+          if (threadType == 0.0) {
+              normal.y = sin((localUv.y - 0.5) * 3.14159) * 0.35;
+              normal.x = micro;
+          } else {
+              normal.x = sin((localUv.x - 0.5) * 3.14159) * 0.35;
+              normal.y = micro;
+          }
+          normal = normalize(normal);
+          
+          // Rotate normal back to global screen coordinates
+          vec2 normalRot = mat2(cos(-theta), -sin(-theta), sin(-theta), cos(-theta)) * normal.xy;
+          normal = normalize(vec3(normalRot, normal.z));
+          
+          // Light vectors (interactive and auto)
+          vec2 m = (uMouse - 0.5) * 2.0;
+          vec3 lightPos = vec3(m.x * 1.5, m.y * 1.5, 0.85);
+          vec3 viewPos = vec3(0.0, 0.0, 1.25);
+          
+          vec3 fragPos = vec3(uv, 0.0);
+          vec3 lightDir = normalize(lightPos - fragPos);
+          vec3 viewDir = normalize(viewPos - fragPos);
+          vec3 halfDir = normalize(lightDir + viewDir);
+          
+          // Theme-aware base colors
+          vec3 baseColor = (uTheme == 0.0) ? vec3(0.05, 0.055, 0.065) : vec3(0.72, 0.70, 0.67);
+          vec3 ambient = baseColor;
+          
+          // Diffuse shading & edge shadows
+          float diff = max(dot(normal, lightDir), 0.0);
+          float edgeShadow = sin(localUv.x * 3.14159) * sin(localUv.y * 3.14159);
+          edgeShadow = clamp(pow(edgeShadow, 0.32), 0.15, 1.0);
+          
+          // Anisotropic Specular (shimmering perpendicular to fibers)
+          vec2 fiberDirGlobal = mat2(cos(-theta), -sin(-theta), sin(-theta), cos(-theta)) * fiberDir;
+          vec3 T = normalize(vec3(fiberDirGlobal, 0.0));
+          float dotLT = dot(lightDir, T);
+          float dotVT = dot(viewDir, T);
+          float specAniso = sqrt(1.0 - dotLT * dotLT) * sqrt(1.0 - dotVT * dotVT) - dotLT * dotVT;
+          specAniso = max(specAniso, 0.0);
+          float specIntensity = (uTheme == 0.0) ? 0.32 : 0.45;
+          float spec = pow(specAniso, 28.0) * specIntensity;
+          
+          // Clear coat specular highlights (epoxy gloss)
+          float dotNH = max(dot(vec3(0.0, 0.0, 1.0), halfDir), 0.0);
+          float specClear = pow(dotNH, 128.0) * 0.12;
+          
+          // Synthesis
+          vec3 col = baseColor + (diff * baseColor * 0.2);
+          float threadStripe = (threadType == 0.0) ? 1.0 : 0.88;
+          vec3 finalColor = col * threadStripe * edgeShadow;
+          
+          // Add anisotropic spec + clear coat spec
+          finalColor += vec3(spec + specClear);
+          
+          // Subtle ambient shimmer loop
+          float autoSweep = sin(uv.x * 2.5 - uv.y * 1.5 + uTime * 0.6) * 0.012;
+          finalColor += vec3(autoSweep);
+          
+          gl_FragColor = vec4(finalColor, 1.0);
       }
     `;
 
@@ -112,11 +149,9 @@ const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
             gl.canvas.width / gl.canvas.height,
           ]),
         },
-        uBaseColor: { value: new Float32Array(baseColor) },
-        uAmplitude: { value: amplitude },
-        uFrequencyX: { value: frequencyX },
-        uFrequencyY: { value: frequencyY },
-        uMouse: { value: new Float32Array([0, 0]) },
+        uMouse: { value: new Float32Array([0.5, 0.5]) },
+        uTheme: { value: 0 },
+        uDensity: { value: density },
       },
     });
     const mesh = new Mesh(gl, { geometry, program });
@@ -153,9 +188,22 @@ const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
     }
 
     if (interactive) {
-      container.addEventListener("mousemove", handleMouseMove);
-      container.addEventListener("touchmove", handleTouchMove);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("touchmove", handleTouchMove);
     }
+
+    // Sync theme dynamically
+    const updateThemeUniform = () => {
+      const isLight = document.documentElement.classList.contains("light");
+      program.uniforms.uTheme.value = isLight ? 1.0 : 0.0;
+    };
+    updateThemeUniform();
+
+    const observer = new MutationObserver(updateThemeUniform);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     let animationId: number;
     function update(t: number) {
@@ -170,18 +218,19 @@ const IlmbergerLiquidChrome: React.FC<IlmbergerLiquidChromeProps> = ({
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", resize);
+      observer.disconnect();
       if (interactive) {
-        container.removeEventListener("mousemove", handleMouseMove);
-        container.removeEventListener("touchmove", handleTouchMove);
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("touchmove", handleTouchMove);
       }
       if (gl.canvas.parentElement) {
         gl.canvas.parentElement.removeChild(gl.canvas);
       }
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [baseColor, speed, amplitude, frequencyX, frequencyY, interactive]);
+  }, [speed, density, interactive]);
 
   return <div ref={containerRef} className="w-full h-full" {...props} />;
 };
 
-export default IlmbergerLiquidChrome;
+export default IlmbergerCarbonShader;
