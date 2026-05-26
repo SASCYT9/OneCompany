@@ -586,15 +586,14 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                     href={buildShopStorefrontProductPathForProduct(locale, product)}
                     className="group overflow-hidden rounded-[30px] border border-foreground/10 bg-card transition hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-[0_28px_50px_rgba(20,14,8,0.16)]"
                   >
-                    <div className="relative aspect-4/5 overflow-hidden">
+                    <div className="relative aspect-4/5 overflow-hidden bg-white border-b border-zinc-950/10 flex items-center justify-center p-6">
                       <ShopProductImage
                         src={product.image}
                         alt={productTitle}
                         fill
                         sizes="(max-width: 1280px) 100vw, 33vw"
-                        className="object-cover transition duration-700 group-hover:scale-105"
+                        className="object-contain p-8 mix-blend-multiply transition duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-linear-to-b from-transparent via-foreground/10 to-foreground/65" />
 
                       <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-2">
                         <div className="rounded-full border border-white/45 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white">

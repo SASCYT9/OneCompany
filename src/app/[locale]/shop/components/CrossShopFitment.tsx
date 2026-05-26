@@ -250,7 +250,7 @@ function CrossShopCard({ match, locale }: { match: CrossShopMatch; locale: Suppo
       role="listitem"
       className="group flex w-[280px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/[0.03] transition-all duration-300 hover:border-foreground/30 hover:bg-foreground/8 sm:w-[300px]"
     >
-      <div className="relative aspect-4/3 overflow-hidden bg-card/70 dark:bg-black/40">
+      <div className="relative aspect-4/3 overflow-hidden bg-white border-b border-zinc-950/10 flex items-center justify-center p-4">
         {product.image ? (
           <ShopProductImage
             src={product.image}
@@ -258,14 +258,13 @@ function CrossShopCard({ match, locale }: { match: CrossShopMatch; locale: Suppo
             fill
             sizes="(max-width: 768px) 80vw, 320px"
             fallbackSrc="/images/placeholders/product-fallback.svg"
-            className="object-cover transition duration-500 group-hover:scale-[1.04]"
+            className="object-contain p-4 mix-blend-multiply transition duration-500 group-hover:scale-[1.04]"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-foreground/35 dark:text-foreground/15">
+          <div className="flex h-full items-center justify-center text-zinc-400">
             <ShoppingBag size={32} aria-hidden="true" />
           </div>
         )}
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/0 to-black/55" />
         {brandLogo ? (
           <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-2 rounded-full border border-foreground/18 bg-black/60 px-3 backdrop-blur-md">
             {/* eslint-disable-next-line @next/next/no-img-element */}

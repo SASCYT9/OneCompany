@@ -1144,18 +1144,15 @@ export default function CSFCatalogGrid({
                       href={`/${locale}/shop/csf/products/${product.slug}`}
                       className="z-10 flex grow flex-col"
                     >
-                      <div className="relative aspect-square overflow-hidden border-b border-foreground/10 dark:border-white/4 bg-card dark:bg-[#0a0a0c] p-3 sm:p-4">
-                        <div className="relative h-full w-full overflow-hidden rounded-none bg-white">
-                          <div className="absolute inset-[10%]">
-                            <ShopProductImage
-                              src={product.image || "/images/shop/csf/factory-fallback.jpg"}
-                              alt={productTitle}
-                              fill
-                              sizes="(max-width: 768px) 40vw, 25vw"
-                              className="object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.06]"
-                            />
-                          </div>
-                        </div>
+                      {/* Image — clean edge-to-edge white presentation field for premium image blending */}
+                      <div className="relative aspect-square overflow-hidden border-b border-[#000]/10 bg-white flex items-center justify-center p-6">
+                        <ShopProductImage
+                          src={product.image || "/images/shop/csf/factory-fallback.jpg"}
+                          alt={productTitle}
+                          fill
+                          sizes="(max-width: 768px) 40vw, 25vw"
+                          className="object-contain p-6 mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.06]"
+                        />
                         <div className="absolute left-4 top-4 z-20 flex flex-wrap gap-1 sm:left-5 sm:top-5 sm:gap-2">
                           <span className="border border-foreground/15 dark:border-black/10 bg-foreground/88 dark:bg-white/85 px-2 py-0.5 text-[7px] uppercase text-background/85 dark:text-black/70 backdrop-blur-xs sm:px-2.5 sm:py-1 sm:text-[8px]">
                             {categoryLabel}

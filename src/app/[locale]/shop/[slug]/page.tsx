@@ -271,7 +271,7 @@ async function RelatedProductsSection({
               href={buildShopStorefrontProductPathForProduct(locale, item)}
               className="group overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/5 transition hover:border-primary/35"
             >
-              <div className="relative aspect-4/3 overflow-hidden">
+              <div className="relative aspect-4/3 overflow-hidden bg-white border-b border-zinc-950/10 flex items-center justify-center p-4">
                 {image ? (
                   <ShopProductImage
                     src={image}
@@ -279,10 +279,10 @@ async function RelatedProductsSection({
                     fill
                     sizes="(max-width: 1280px) 100vw, 30vw"
                     fallbackSrc="/images/placeholders/product-fallback.svg"
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    className="object-contain p-4 mix-blend-multiply transition duration-500 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-card/70 dark:bg-background/40 text-foreground/10">
+                  <div className="flex h-full w-full items-center justify-center text-zinc-400">
                     <ShoppingBag className="h-12 w-12 opacity-30" />
                   </div>
                 )}

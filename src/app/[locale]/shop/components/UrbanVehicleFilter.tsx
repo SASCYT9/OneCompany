@@ -341,15 +341,14 @@ function ProductCard({
           : "border-foreground/15 dark:border-white/10 bg-foreground/[0.0018] dark:bg-white/[0.018]"
       } shadow-[0_18px_56px_rgba(0,0,0,0.24)] transition duration-500 hover:-translate-y-1 hover:border-foreground/32 dark:hover:border-white/28 hover:bg-foreground/[0.0035] dark:hover:bg-white/[0.035] hover:shadow-[0_26px_72px_rgba(0,0,0,0.62)]`}
     >
-      <div className="relative aspect-16/11 overflow-hidden border-b border-foreground/15 dark:border-white/10 bg-card dark:bg-[#050505]">
+      <div className="relative aspect-16/11 overflow-hidden border-b border-zinc-950/10 bg-white flex items-center justify-center p-4">
         <Image
           src={productImage}
           alt={entry.title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-          className="object-cover transition duration-700 group-hover:scale-[1.04]"
+          className="object-contain p-4 mix-blend-multiply transition duration-700 group-hover:scale-[1.04]"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
         {/* Badges sit on dark-glass over the product photo — always white-on-dark, both themes */}
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {featured ? (

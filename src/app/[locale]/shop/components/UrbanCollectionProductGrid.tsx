@@ -220,18 +220,18 @@ export default function UrbanCollectionProductGrid({
                     className="urban-product-grid__card-link"
                     aria-label={productTitle}
                   />
-                  <div className="urban-product-grid__media group overflow-hidden relative">
+                  <div className="urban-product-grid__media !bg-white after:!hidden flex items-center justify-center p-6 border-b border-zinc-950/10">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.6 }}
-                      className="w-full h-full"
+                      className="relative w-full h-full"
                     >
                       <Image
                         src={safeImageUrl}
                         alt={productTitle}
                         fill
                         sizes="(max-width: 768px) 100vw, 25vw"
-                        className="object-cover"
+                        className="object-contain p-6 mix-blend-multiply transition-transform duration-700"
                       />
                     </motion.div>
                   </div>

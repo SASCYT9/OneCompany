@@ -310,14 +310,14 @@ export default function Do88CollectionProductGrid({
                     className="urban-product-grid__card-link"
                     aria-label={productTitle}
                   />
-                  <div className="urban-product-grid__media">
+                  <div className="urban-product-grid__media !bg-white after:!hidden flex items-center justify-center p-6 border-b border-zinc-950/10">
                     {product.image && product.image.trim().length > 0 ? (
                       <ShopProductImage
                         src={product.image.trim()}
                         alt={productTitle}
                         fill
                         sizes="(max-width: 768px) 100vw, 25vw"
-                        className="object-cover transition duration-700 group-hover:scale-105 group-hover:opacity-90"
+                        className="object-contain p-6 mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.05]"
                       />
                     ) : (
                       <div className="flex w-full h-full items-center justify-center text-foreground/20">
