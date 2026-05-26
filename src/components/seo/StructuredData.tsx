@@ -195,7 +195,7 @@ const SHARED_RETURN_POLICY = {
   returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
   merchantReturnDays: 14,
   returnMethod: "https://schema.org/ReturnByMail",
-  returnFees: "https://schema.org/ReturnShippingFees",
+  returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
 };
 
 const SHARED_SHIPPING_DETAILS = {
@@ -215,7 +215,7 @@ const SHARED_SHIPPING_DETAILS = {
   },
 };
 
-function buildOfferEntry(offer: OfferLike, url: string) {
+function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
   const entry: Record<string, unknown> = {
     "@type": "Offer",
     url,
@@ -229,8 +229,18 @@ function buildOfferEntry(offer: OfferLike, url: string) {
       "@id": "https://onecompany.global/#organization",
     },
     hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
-    shippingDetails: SHARED_SHIPPING_DETAILS,
+    shippingDetails: {
+      ...SHARED_SHIPPING_DETAILS,
+      shippingRate: {
+        "@type": "MonetaryAmount",
+        value: "0.00",
+        currency: offer.priceCurrency,
+      },
+    },
   };
+  if (primaryImage) {
+    entry.image = primaryImage;
+  }
   if (offer.priceValidUntil) entry.priceValidUntil = offer.priceValidUntil;
   if (offer.compareAtPrice && offer.compareAtPrice > offer.price) {
     entry.priceSpecification = [
@@ -278,9 +288,10 @@ export function ProductSchema({
     schema.sku = sku;
     schema.mpn = sku;
   }
+  const primaryImage = Array.isArray(image) ? image[0] : image;
   if (offers && offers.length > 0) {
     if (offers.length === 1) {
-      schema.offers = buildOfferEntry(offers[0], url);
+      schema.offers = buildOfferEntry(offers[0], url, primaryImage);
     } else {
       const sameCurrency = offers.every((o) => o.priceCurrency === offers[0].priceCurrency);
       if (sameCurrency) {
@@ -294,10 +305,10 @@ export function ProductSchema({
           highPrice: Math.max(...allPrices).toFixed(2),
           offerCount: offers.length,
           availability: SCHEMA_AVAILABILITY[primary.availability],
-          offers: offers.map((o) => buildOfferEntry(o, url)),
+          offers: offers.map((o) => buildOfferEntry(o, url, primaryImage)),
         };
       } else {
-        schema.offers = offers.map((o) => buildOfferEntry(o, url));
+        schema.offers = offers.map((o) => buildOfferEntry(o, url, primaryImage));
       }
     }
   }
