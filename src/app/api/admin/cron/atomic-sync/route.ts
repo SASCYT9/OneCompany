@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import Papa from 'papaparse';
-import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
-import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
+import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import Papa from "papaparse";
+import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { matchesBearerSecret, resolveSecret } from "@/lib/requestSecrets";
 
 export const maxDuration = 300; // 5 minutes max duration for Vercel
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
   const candidates = [row.price_uah, row.price, row.retail, row.rrp];
@@ -13,7 +14,7 @@ function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
   for (const candidate of candidates) {
     if (candidate === null || candidate === undefined) continue;
 
-    const normalized = String(candidate).trim().replace(',', '.');
+    const normalized = String(candidate).trim().replace(",", ".");
     if (!normalized) continue;
 
     const parsed = Number.parseFloat(normalized);
@@ -27,26 +28,26 @@ function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
 
 export async function GET(request: Request) {
   try {
-    const cronSecret = resolveSecret('CRON_SECRET');
+    const cronSecret = resolveSecret("CRON_SECRET");
     if (!cronSecret) {
-      return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 });
+      return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 500 });
     }
 
     if (!matchesBearerSecret(request.headers, cronSecret)) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    console.log('Fetching Atomic Feed...');
-    const feedUrl = 'https://feed.atomic-shop.ua/feed_tts.csv';
+    console.log("Fetching Atomic Feed...");
+    const feedUrl = "https://feed.atomic-shop.ua/feed_tts.csv";
     const response = await fetch(feedUrl);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch atomic feed: ${response.statusText}`);
     }
 
     const csvText = await response.text();
-    
-    console.log('Parsing CSV...');
+
+    console.log("Parsing CSV...");
     const parsed = Papa.parse(csvText, {
       header: true,
       skipEmptyLines: true,
@@ -56,11 +57,15 @@ export async function GET(request: Request) {
     console.log(`Parsed ${rows.length} rows.`);
 
     let updatedCount = 0;
-    let notFoundCount = 0;
+    const notFoundCount = 0;
     let createdCount = 0;
 
     function generateSlug(brand: string, sku: string): string {
-      return `${brand.toLowerCase()}-${sku.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
+      return `${brand.toLowerCase()}-${sku
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")}`;
     }
 
     // To prevent hitting pool limits, process in chunks or sequentially
@@ -69,14 +74,18 @@ export async function GET(request: Request) {
 
       const mpn = String(row.mpn).trim();
       const brand = String(row.brand).trim();
-      const stockVal = parseInt(row.stock || '0', 10);
+      const stockVal = parseInt(row.stock || "0", 10);
       const title = row.title || `${brand} ${mpn}`;
       const description = row.description || null;
-      const sanitizedDescriptionHtml = description ? sanitizeRichTextHtml(String(description)) : null;
-      const descriptionText = sanitizedDescriptionHtml ? htmlToPlainText(sanitizedDescriptionHtml) : null;
+      const sanitizedDescriptionHtml = description
+        ? sanitizeRichTextHtml(String(description))
+        : null;
+      const descriptionText = sanitizedDescriptionHtml
+        ? htmlToPlainText(sanitizedDescriptionHtml)
+        : null;
       const categoryName = row.category || null;
       const imgLink = row.img_link || null;
-      
+
       const priceUah = parseAtomicPrice(row);
 
       // Find variant by SKU/MPN
@@ -86,9 +95,9 @@ export async function GET(request: Request) {
           product: {
             brand: {
               equals: brand,
-              mode: 'insensitive',
-            }
-          }
+              mode: "insensitive",
+            },
+          },
         },
       });
 
@@ -97,26 +106,26 @@ export async function GET(request: Request) {
         for (const variant of variants) {
           await prisma.shopProductVariant.update({
             where: { id: variant.id },
-            data: { 
+            data: {
               inventoryQty: isNaN(stockVal) ? 0 : stockVal,
-              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah })
+              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
             },
           });
 
           // Also optionally update product status string to 'inStock' / 'outOfStock' and priceUah
           await prisma.shopProduct.update({
             where: { id: variant.productId },
-            data: { 
-              stock: stockVal > 0 ? 'inStock' : 'outOfStock',
-              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah })
-            }
+            data: {
+              stock: stockVal > 0 ? "inStock" : "outOfStock",
+              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+            },
           });
         }
         updatedCount++;
       } else {
         // Product not found, create new one
         const slug = generateSlug(brand, mpn);
-        
+
         // Ensure slug uniqueness (basic check)
         const existingSlug = await prisma.shopProduct.findUnique({ where: { slug } });
         const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
@@ -126,10 +135,10 @@ export async function GET(request: Request) {
             slug: finalSlug,
             sku: mpn,
             brand,
-            scope: 'auto',
+            scope: "auto",
             isPublished: true,
-            status: 'ACTIVE',
-            stock: stockVal > 0 ? 'inStock' : 'outOfStock',
+            status: "ACTIVE",
+            stock: stockVal > 0 ? "inStock" : "outOfStock",
             titleUa: title,
             titleEn: title,
             seoTitleUa: title,
@@ -146,26 +155,32 @@ export async function GET(request: Request) {
             image: imgLink,
             ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
             variants: {
-              create: [{
-                title: title,
-                sku: mpn,
-                position: 1,
-                inventoryQty: isNaN(stockVal) ? 0 : stockVal,
-                requiresShipping: true,
-                image: imgLink,
-                isDefault: true,
-                ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
-              }]
+              create: [
+                {
+                  title: title,
+                  sku: mpn,
+                  position: 1,
+                  inventoryQty: isNaN(stockVal) ? 0 : stockVal,
+                  requiresShipping: true,
+                  image: imgLink,
+                  isDefault: true,
+                  ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                },
+              ],
             },
-            media: imgLink ? {
-              create: [{
-                src: imgLink,
-                altText: title,
-                position: 1,
-                mediaType: 'IMAGE'
-              }]
-            } : undefined
-          }
+            media: imgLink
+              ? {
+                  create: [
+                    {
+                      src: imgLink,
+                      altText: title,
+                      position: 1,
+                      mediaType: "IMAGE",
+                    },
+                  ],
+                }
+              : undefined,
+          },
         });
         createdCount++;
       }
@@ -174,29 +189,33 @@ export async function GET(request: Request) {
     // Log the sync event
     await prisma.adminAuditLog.create({
       data: {
-        actorEmail: 'cron@system.local',
-        actorName: 'Atomic Feed Cron',
-        action: 'SYNC',
-        scope: 'INVENTORY',
-        entityType: 'ShopProductVariant',
+        actorEmail: "cron@system.local",
+        actorName: "Atomic Feed Cron",
+        action: "SYNC",
+        scope: "INVENTORY",
+        entityType: "ShopProductVariant",
         metadata: { updatedCount, createdCount, total: rows.length },
-      }
+      },
     });
 
     console.log(`Sync complete. Updated: ${updatedCount}. Created: ${createdCount}.`);
-    
+
+    try {
+      // Force-clear the router layouts cache so changes instantly reflect
+      revalidatePath("/", "layout");
+      console.log("Next.js App Router cache cleared successfully after sync.");
+    } catch (e) {
+      console.error("Failed to clear Next.js cache during atomic sync:", e);
+    }
+
     return NextResponse.json({
       success: true,
       updatedCount,
       createdCount,
-      total: rows.length
+      total: rows.length,
     });
-
   } catch (error: any) {
-    console.error('Atomic Feed Sync Error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    console.error("Atomic Feed Sync Error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

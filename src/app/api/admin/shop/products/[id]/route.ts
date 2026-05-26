@@ -1,31 +1,33 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminProductInclude,
   buildAdminProductScalarUpdateData,
   normalizeAdminProductPayload,
   serializeAdminProduct,
-} from '@/lib/shopAdminCatalog';
-import { prisma } from '@/lib/prisma';
-import { planVariantMutations } from '@/lib/shopAdminCatalogMutations';
-import { buildAdminProductArchiveMutation, parseAdminProductDeleteMode } from '@/lib/adminRouteValidation';
+} from "@/lib/shopAdminCatalog";
+import { prisma } from "@/lib/prisma";
+import { planVariantMutations } from "@/lib/shopAdminCatalogMutations";
+import {
+  buildAdminProductArchiveMutation,
+  parseAdminProductDeleteMode,
+} from "@/lib/adminRouteValidation";
 
 const VARIANT_TEMP_POSITION_OFFSET = 10_000;
 
 function collectIncomingIds<T extends { id?: string | null }>(items: T[]) {
-  return Array.from(
-    new Set(
-      items
-        .map((item) => String(item.id ?? '').trim())
-        .filter(Boolean)
-    )
-  );
+  return Array.from(new Set(items.map((item) => String(item.id ?? "").trim()).filter(Boolean)));
 }
 
 function formatVariantDeletionBlockers(
-  blockers: Array<{ id: string; reasons: Array<'inventoryLevels' | 'cartItems' | 'bundleItems' | 'orderItems'> }>
+  blockers: Array<{
+    id: string;
+    reasons: Array<"inventoryLevels" | "cartItems" | "bundleItems" | "orderItems">;
+  }>
 ) {
   return blockers.map((blocker) => ({
     id: blocker.id,
@@ -34,7 +36,7 @@ function formatVariantDeletionBlockers(
 }
 
 function buildVariantWriteData(
-  item: ReturnType<typeof normalizeAdminProductPayload>['data']['variants'][number],
+  item: ReturnType<typeof normalizeAdminProductPayload>["data"]["variants"][number],
   position: number
 ) {
   return {
@@ -50,7 +52,7 @@ function buildVariantWriteData(
     grams: item.grams ?? null,
     inventoryTracker: item.inventoryTracker ?? null,
     inventoryQty: item.inventoryQty ?? 0,
-    inventoryPolicy: item.inventoryPolicy ?? 'CONTINUE',
+    inventoryPolicy: item.inventoryPolicy ?? "CONTINUE",
     fulfillmentService: item.fulfillmentService ?? null,
     priceEur: item.priceEur ?? null,
     priceUsd: item.priceUsd ?? null,
@@ -80,10 +82,7 @@ function buildVariantWriteData(
   };
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
@@ -93,24 +92,21 @@ export async function GET(
       include: adminProductInclude,
     });
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
     return NextResponse.json(serializeAdminProduct(product));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    return NextResponse.json({ error: 'Failed to get product' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to get product" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
@@ -118,7 +114,7 @@ export async function PATCH(
     const body = await request.json();
     const { data, errors } = normalizeAdminProductPayload(body);
     if (errors.length) {
-      return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
+      return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
     }
     const currentProduct = await prisma.shopProduct.findUnique({
       where: { id },
@@ -145,7 +141,7 @@ export async function PATCH(
       },
     });
     if (!currentProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
@@ -153,7 +149,7 @@ export async function PATCH(
         select: { id: true },
       });
       if (!category) {
-        return NextResponse.json({ error: 'Selected category not found' }, { status: 400 });
+        return NextResponse.json({ error: "Selected category not found" }, { status: 400 });
       }
     }
     if (data.slug) {
@@ -161,7 +157,10 @@ export async function PATCH(
         where: { slug: data.slug, NOT: { id } },
       });
       if (existing) {
-        return NextResponse.json({ error: 'Another product with this slug exists' }, { status: 409 });
+        return NextResponse.json(
+          { error: "Another product with this slug exists" },
+          { status: 409 }
+        );
       }
     }
     if (data.collectionIds.length) {
@@ -173,39 +172,44 @@ export async function PATCH(
         },
       });
       if (collectionCount !== data.collectionIds.length) {
-        return NextResponse.json({ error: 'One or more selected collections were not found' }, { status: 400 });
+        return NextResponse.json(
+          { error: "One or more selected collections were not found" },
+          { status: 400 }
+        );
       }
     }
 
     const existingVariantIds = new Set(currentProduct.variants.map((variant) => variant.id));
     const rawIncomingVariantIds = data.variants
-      .map((item) => String(item.id ?? '').trim())
+      .map((item) => String(item.id ?? "").trim())
       .filter(Boolean);
     const incomingVariantIds = collectIncomingIds(data.variants);
     if (rawIncomingVariantIds.length !== incomingVariantIds.length) {
-      return NextResponse.json({ error: 'Duplicate variant id in payload' }, { status: 400 });
+      return NextResponse.json({ error: "Duplicate variant id in payload" }, { status: 400 });
     }
-    const unknownVariantIds = incomingVariantIds.filter((variantId) => !existingVariantIds.has(variantId));
+    const unknownVariantIds = incomingVariantIds.filter(
+      (variantId) => !existingVariantIds.has(variantId)
+    );
     if (unknownVariantIds.length) {
-      return NextResponse.json({ error: 'Unknown variant id in payload' }, { status: 400 });
+      return NextResponse.json({ error: "Unknown variant id in payload" }, { status: 400 });
     }
 
     const existingMediaIds = new Set(currentProduct.media.map((item) => item.id));
     const rawIncomingMediaIds = data.media
-      .map((item) => String(item.id ?? '').trim())
+      .map((item) => String(item.id ?? "").trim())
       .filter(Boolean);
     const incomingMediaIds = collectIncomingIds(data.media);
     if (rawIncomingMediaIds.length !== incomingMediaIds.length) {
-      return NextResponse.json({ error: 'Duplicate media id in payload' }, { status: 400 });
+      return NextResponse.json({ error: "Duplicate media id in payload" }, { status: 400 });
     }
     const unknownMediaIds = incomingMediaIds.filter((mediaId) => !existingMediaIds.has(mediaId));
     if (unknownMediaIds.length) {
-      return NextResponse.json({ error: 'Unknown media id in payload' }, { status: 400 });
+      return NextResponse.json({ error: "Unknown media id in payload" }, { status: 400 });
     }
 
     const orderItemGroups = currentProduct.variants.length
       ? await prisma.shopOrderItem.groupBy({
-          by: ['variantId'],
+          by: ["variantId"],
           where: {
             variantId: {
               in: currentProduct.variants.map((variant) => variant.id),
@@ -219,7 +223,9 @@ export async function PATCH(
     const orderItemCountByVariantId = new Map(
       orderItemGroups
         .filter(
-          (entry): entry is typeof entry & {
+          (
+            entry
+          ): entry is typeof entry & {
             variantId: string;
           } => Boolean(entry.variantId)
         )
@@ -240,7 +246,7 @@ export async function PATCH(
     if (variantMutationPlan.blockers.length) {
       return NextResponse.json(
         {
-          error: 'Cannot remove variants that still have related inventory or order data',
+          error: "Cannot remove variants that still have related inventory or order data",
           blockers: formatVariantDeletionBlockers(variantMutationPlan.blockers),
         },
         { status: 409 }
@@ -284,7 +290,7 @@ export async function PATCH(
           src: item.src,
           altText: item.altText ?? null,
           position: index + 1,
-          mediaType: item.mediaType ?? 'IMAGE',
+          mediaType: item.mediaType ?? "IMAGE",
         };
         if (item.id) {
           await tx.shopProductMedia.update({
@@ -326,7 +332,7 @@ export async function PATCH(
       }
 
       const retainedVariantIds = data.variants
-        .map((item) => String(item.id ?? '').trim())
+        .map((item) => String(item.id ?? "").trim())
         .filter((variantId) => variantUpdateIds.has(variantId));
       for (const [index, variantId] of retainedVariantIds.entries()) {
         await tx.shopProductVariant.update({
@@ -338,7 +344,7 @@ export async function PATCH(
       }
       for (const [index, item] of data.variants.entries()) {
         const variantData = buildVariantWriteData(item, index + 1);
-        const variantId = String(item.id ?? '').trim();
+        const variantId = String(item.id ?? "").trim();
         if (variantId && variantUpdateIds.has(variantId)) {
           await tx.shopProductVariant.update({
             where: { id: variantId },
@@ -365,7 +371,7 @@ export async function PATCH(
             namespace: item.namespace,
             key: item.key,
             value: item.value,
-            valueType: item.valueType ?? 'single_line_text_field',
+            valueType: item.valueType ?? "single_line_text_field",
           })),
         });
       }
@@ -375,13 +381,13 @@ export async function PATCH(
         include: adminProductInclude,
       });
       if (!updatedProduct) {
-        throw new Error('PRODUCT_NOT_FOUND_AFTER_UPDATE');
+        throw new Error("PRODUCT_NOT_FOUND_AFTER_UPDATE");
       }
 
       await writeAdminAuditLog(tx, session, {
-        scope: 'shop',
-        action: 'product.update',
-        entityType: 'shop.product',
+        scope: "shop",
+        action: "product.update",
+        entityType: "shop.product",
         entityId: updatedProduct.id,
         metadata: {
           slug: updatedProduct.slug,
@@ -395,16 +401,37 @@ export async function PATCH(
       return updatedProduct;
     });
 
+    try {
+      const pathUa = buildShopStorefrontProductPath("ua", product);
+      const pathEn = buildShopStorefrontProductPath("en", product);
+      revalidatePath(pathUa);
+      revalidatePath(pathEn);
+      revalidatePath(`/ua/shop/${product.slug}`);
+      revalidatePath(`/en/shop/${product.slug}`);
+
+      if (currentProduct.slug && currentProduct.slug !== product.slug) {
+        const oldProductDummy = { ...product, slug: currentProduct.slug };
+        const oldPathUa = buildShopStorefrontProductPath("ua", oldProductDummy);
+        const oldPathEn = buildShopStorefrontProductPath("en", oldProductDummy);
+        revalidatePath(oldPathUa);
+        revalidatePath(oldPathEn);
+        revalidatePath(`/ua/shop/${currentProduct.slug}`);
+        revalidatePath(`/en/shop/${currentProduct.slug}`);
+      }
+    } catch (e) {
+      console.error("[revalidate] Error:", e);
+    }
+
     return NextResponse.json(serializeAdminProduct(product));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop product update', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    console.error("Admin shop product update", error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
 
@@ -416,19 +443,19 @@ export async function DELETE(
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
-    const deleteMode = parseAdminProductDeleteMode(request.nextUrl.searchParams.get('mode'));
+    const deleteMode = parseAdminProductDeleteMode(request.nextUrl.searchParams.get("mode"));
 
-    if (deleteMode === 'hard') {
+    if (deleteMode === "hard") {
       const product = await prisma.shopProduct.findUnique({
         where: { id },
-        select: { id: true, slug: true, status: true },
+        select: { id: true, slug: true, status: true, brand: true, vendor: true, tags: true },
       });
       if (!product) {
-        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        return NextResponse.json({ error: "Product not found" }, { status: 404 });
       }
-      if (product.status !== 'ARCHIVED') {
+      if (product.status !== "ARCHIVED") {
         return NextResponse.json(
-          { error: 'Archive the product before requesting a hard delete.' },
+          { error: "Archive the product before requesting a hard delete." },
           { status: 409 }
         );
       }
@@ -440,58 +467,82 @@ export async function DELETE(
         });
 
         await writeAdminAuditLog(tx, session, {
-          scope: 'shop',
-          action: 'product.delete',
-          entityType: 'shop.product',
+          scope: "shop",
+          action: "product.delete",
+          entityType: "shop.product",
           entityId: deleted.id,
           metadata: {
             slug: deleted.slug,
-            mode: 'hard',
+            mode: "hard",
           },
         });
       });
 
-      return NextResponse.json({ success: true, mode: 'hard' });
+      try {
+        if (product) {
+          const pathUa = buildShopStorefrontProductPath("ua", product);
+          const pathEn = buildShopStorefrontProductPath("en", product);
+          revalidatePath(pathUa);
+          revalidatePath(pathEn);
+          revalidatePath(`/ua/shop/${product.slug}`);
+          revalidatePath(`/en/shop/${product.slug}`);
+        }
+      } catch (e) {
+        console.error("[revalidate] Error:", e);
+      }
+
+      return NextResponse.json({ success: true, mode: "hard" });
     }
 
     const archived = await prisma.$transaction(async (tx) => {
       const updated = await tx.shopProduct.update({
         where: { id },
         data: buildAdminProductArchiveMutation(),
-        select: { id: true, slug: true, status: true },
+        select: { id: true, slug: true, status: true, brand: true, vendor: true, tags: true },
       });
 
       await writeAdminAuditLog(tx, session, {
-        scope: 'shop',
-        action: 'product.archive',
-        entityType: 'shop.product',
+        scope: "shop",
+        action: "product.archive",
+        entityType: "shop.product",
         entityId: updated.id,
         metadata: {
           slug: updated.slug,
           status: updated.status,
-          mode: 'archive',
+          mode: "archive",
         },
       });
 
       return updated;
     });
 
+    try {
+      const pathUa = buildShopStorefrontProductPath("ua", archived);
+      const pathEn = buildShopStorefrontProductPath("en", archived);
+      revalidatePath(pathUa);
+      revalidatePath(pathEn);
+      revalidatePath(`/ua/shop/${archived.slug}`);
+      revalidatePath(`/en/shop/${archived.slug}`);
+    } catch (e) {
+      console.error("[revalidate] Error:", e);
+    }
+
     return NextResponse.json({
       success: true,
-      mode: 'archive',
+      mode: "archive",
       archived: true,
       status: archived.status,
     });
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    if ((error as { code?: string }).code === 'P2025') {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    if ((error as { code?: string }).code === "P2025") {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

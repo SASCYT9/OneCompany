@@ -2604,16 +2604,115 @@ export function projectShopProductForVehicleCatalog(product: ShopProduct): ShopP
  * SSR pass; with `cache()` the second call returns the memoized first result.
  * Per-request scope only — different requests still hit the DB once.
  */
+const storefrontProductInclude = {
+  category: {
+    select: {
+      id: true,
+      slug: true,
+      titleUa: true,
+      titleEn: true,
+    },
+  },
+  media: {
+    orderBy: { position: "asc" as const },
+    select: {
+      id: true,
+      src: true,
+      position: true,
+    },
+  },
+  variants: {
+    orderBy: { position: "asc" as const },
+    select: {
+      id: true,
+      title: true,
+      sku: true,
+      position: true,
+      option1Value: true,
+      option2Value: true,
+      option3Value: true,
+      inventoryQty: true,
+      image: true,
+      isDefault: true,
+      priceEur: true,
+      priceUsd: true,
+      priceUah: true,
+      priceEurB2b: true,
+      priceUsdB2b: true,
+      priceUahB2b: true,
+      compareAtEur: true,
+      compareAtUsd: true,
+      compareAtUah: true,
+      compareAtEurB2b: true,
+      compareAtUsdB2b: true,
+      compareAtUahB2b: true,
+      weight: true,
+      length: true,
+      width: true,
+      height: true,
+    },
+  },
+  metafields: {
+    orderBy: [{ namespace: "asc" as const }, { key: "asc" as const }],
+    select: {
+      namespace: true,
+      key: true,
+      value: true,
+    },
+  },
+  collections: {
+    orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
+    select: {
+      sortOrder: true,
+      collection: {
+        select: {
+          id: true,
+          handle: true,
+          titleUa: true,
+          titleEn: true,
+          brand: true,
+          isUrban: true,
+        },
+      },
+    },
+  },
+  bundle: {
+    include: {
+      items: {
+        orderBy: { position: "asc" as const },
+        include: {
+          componentProduct: {
+            include: {
+              variants: {
+                orderBy: { position: "asc" as const },
+              },
+              collections: {
+                orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
+                include: {
+                  collection: true,
+                },
+              },
+            },
+          },
+          componentVariant: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.ShopProductInclude;
+
 export const getShopProductBySlugServer = cache(async function getShopProductBySlugServer(
   slug: string
 ): Promise<ShopProduct | undefined> {
   try {
     const row = await prisma.shopProduct.findFirst({
       where: { slug, isPublished: true },
-      include: adminProductInclude,
+      include: storefrontProductInclude,
     });
     if (row) {
-      const product = applyShopProductImageOverrides(mapDbToCatalog(row));
+      const product = applyShopProductImageOverrides(
+        mapDbToCatalog(row as unknown as AdminShopProductRecord)
+      );
       return shouldExposeCatalogProduct(product) ? product : undefined;
     }
   } catch {
@@ -2645,3 +2744,23 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
 
   return applyShopProductImageOverrides(staticProduct);
 });
+
+export async function getTopProductSlugsByBrand(brand: string, limit = 25): Promise<string[]> {
+  try {
+    const rows = await prisma.shopProduct.findMany({
+      where: {
+        isPublished: true,
+        OR: [
+          { brand: { equals: brand, mode: "insensitive" } },
+          { vendor: { equals: brand, mode: "insensitive" } },
+        ],
+      },
+      select: { slug: true },
+      take: limit,
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map((r) => r.slug);
+  } catch {
+    return [];
+  }
+}

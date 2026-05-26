@@ -1,17 +1,19 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminProductInclude,
   adminProductListSelect,
   buildAdminProductCreateData,
   normalizeAdminProductPayload,
   serializeAdminProductListItem,
-} from '@/lib/shopAdminCatalog';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/shopAdminCatalog";
+import { prisma } from "@/lib/prisma";
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,31 +21,31 @@ export async function GET(request: NextRequest) {
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
 
     const searchParams = request.nextUrl.searchParams;
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '50', 10)));
-    const search = searchParams.get('search')?.trim() || '';
-    const brand = searchParams.get('brand')?.trim() || 'ALL';
-    const status = searchParams.get('status')?.trim() || 'ALL';
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "50", 10)));
+    const search = searchParams.get("search")?.trim() || "";
+    const brand = searchParams.get("brand")?.trim() || "ALL";
+    const status = searchParams.get("status")?.trim() || "ALL";
 
     const where: Prisma.ShopProductWhereInput = {};
 
-    if (brand !== 'ALL') {
-      where.brand = { equals: brand, mode: 'insensitive' };
+    if (brand !== "ALL") {
+      where.brand = { equals: brand, mode: "insensitive" };
     }
 
-    if (status !== 'ALL') {
+    if (status !== "ALL") {
       // @ts-expect-error type checking against the Prisma schema status
       where.status = status;
     }
 
     if (search) {
       where.OR = [
-        { slug: { contains: search, mode: 'insensitive' } },
-        { titleEn: { contains: search, mode: 'insensitive' } },
-        { titleUa: { contains: search, mode: 'insensitive' } },
-        { brand: { contains: search, mode: 'insensitive' } },
-        { vendor: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: "insensitive" } },
+        { titleEn: { contains: search, mode: "insensitive" } },
+        { titleUa: { contains: search, mode: "insensitive" } },
+        { brand: { contains: search, mode: "insensitive" } },
+        { vendor: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest) {
       prisma.shopProduct.count({ where }),
       prisma.shopProduct.findMany({
         where,
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updatedAt: "desc" },
         skip,
         take: limit,
         select: adminProductListSelect,
@@ -70,14 +72,14 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop products list', error);
-    return NextResponse.json({ error: 'Failed to list products' }, { status: 500 });
+    console.error("Admin shop products list", error);
+    return NextResponse.json({ error: "Failed to list products" }, { status: 500 });
   }
 }
 
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { data, errors } = normalizeAdminProductPayload(body);
     if (errors.length) {
-      return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
+      return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
     }
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
@@ -96,12 +98,12 @@ export async function POST(request: NextRequest) {
         select: { id: true },
       });
       if (!category) {
-        return NextResponse.json({ error: 'Selected category not found' }, { status: 400 });
+        return NextResponse.json({ error: "Selected category not found" }, { status: 400 });
       }
     }
     const existing = await prisma.shopProduct.findUnique({ where: { slug: data.slug } });
     if (existing) {
-      return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 409 });
+      return NextResponse.json({ error: "Product with this slug already exists" }, { status: 409 });
     }
     const product = await prisma.$transaction(async (tx) => {
       const createdProduct = await tx.shopProduct.create({
@@ -110,9 +112,9 @@ export async function POST(request: NextRequest) {
       });
 
       await writeAdminAuditLog(tx, session, {
-        scope: 'shop',
-        action: 'product.create',
-        entityType: 'shop.product',
+        scope: "shop",
+        action: "product.create",
+        entityType: "shop.product",
         entityId: createdProduct.id,
         metadata: {
           slug: createdProduct.slug,
@@ -122,15 +124,26 @@ export async function POST(request: NextRequest) {
 
       return createdProduct;
     });
+    try {
+      const pathUa = buildShopStorefrontProductPath("ua", product);
+      const pathEn = buildShopStorefrontProductPath("en", product);
+      revalidatePath(pathUa);
+      revalidatePath(pathEn);
+      revalidatePath(`/ua/shop/${product.slug}`);
+      revalidatePath(`/en/shop/${product.slug}`);
+    } catch (e) {
+      console.error("[revalidate] Error:", e);
+    }
+
     return NextResponse.json(serializeAdminProductListItem(product));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop product create', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    console.error("Admin shop product create", error);
+    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
   }
 }

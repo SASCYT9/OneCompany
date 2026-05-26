@@ -1,15 +1,22 @@
 import { resolveLocale } from "@/lib/seo";
+import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
 import ShopProductDetailPage, {
   getShopProductPageMetadata,
 } from "../../../components/ShopProductDetailPage";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-// Cache-bust 2026-05-14: previous Vercel ISR cache held stale 404s for ADRO
-// PDP slugs (likely cached at build-time during the PR #98 → #102 window when
-// the case-sensitive brand filter was producing 0-row Prisma queries).
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const slugs = await getTopProductSlugsByBrand("adro", 25);
+  const params = [];
+  for (const slug of slugs) {
+    params.push({ locale: "ua", slug });
+    params.push({ locale: "en", slug });
+  }
+  return params;
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;

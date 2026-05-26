@@ -37,7 +37,28 @@ import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.shopProduct.findMany({
+      where: { isPublished: true },
+      select: { slug: true },
+      take: 100,
+      orderBy: { updatedAt: "desc" },
+    });
+
+    const params = [];
+    for (const p of products) {
+      params.push({ locale: "ua", slug: p.slug });
+      params.push({ locale: "en", slug: p.slug });
+    }
+    return params;
+  } catch (err) {
+    console.error("[ShopProductPage] generateStaticParams failed:", err);
+    return [];
+  }
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;

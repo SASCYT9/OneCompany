@@ -1,12 +1,22 @@
 import { resolveLocale } from "@/lib/seo";
+import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
 import ShopProductDetailPage, {
   getShopProductPageMetadata,
 } from "../../../components/ShopProductDetailPage";
 
-// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
+// ISR: cache rendered HTML. Public content, no per-user data on server.
 export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const slugs = await getTopProductSlugsByBrand("akrapovic", 25);
+  const params = [];
+  for (const slug of slugs) {
+    params.push({ locale: "ua", slug });
+    params.push({ locale: "en", slug });
+  }
+  return params;
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;

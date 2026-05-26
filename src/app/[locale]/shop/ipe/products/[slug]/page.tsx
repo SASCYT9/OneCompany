@@ -2,7 +2,11 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveLocale, type SupportedLocale } from "@/lib/seo";
-import { getShopProductBySlugServer, getShopProductsServer } from "@/lib/shopCatalogServer";
+import {
+  getShopProductBySlugServer,
+  getShopProductsServer,
+  getTopProductSlugsByBrand,
+} from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
@@ -17,10 +21,19 @@ import { getShopProductPageMetadata } from "../../../components/ShopProductDetai
 import { IpeShopProductDetailLayout } from "../../../components/IpeShopProductDetailLayout";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 
-// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
+// ISR: cache rendered HTML. Public content, no per-user data on server.
 export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const slugs = await getTopProductSlugsByBrand("iPE exhaust", 25);
+  const params = [];
+  for (const slug of slugs) {
+    params.push({ locale: "ua", slug });
+    params.push({ locale: "en", slug });
+  }
+  return params;
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;

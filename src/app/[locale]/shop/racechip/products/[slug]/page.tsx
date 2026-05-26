@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { getShopProductBySlugServer, getShopProductsServer } from "@/lib/shopCatalogServer";
+import {
+  getShopProductBySlugServer,
+  getShopProductsServer,
+  getTopProductSlugsByBrand,
+} from "@/lib/shopCatalogServer";
 import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
 import {
   extractProductFitment,
@@ -17,9 +21,18 @@ import RacechipShopProductDetailLayout from "../../../components/RacechipShopPro
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
-// Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const slugs = await getTopProductSlugsByBrand("racechip", 25);
+  const params = [];
+  for (const slug of slugs) {
+    params.push({ locale: "ua", slug });
+    params.push({ locale: "en", slug });
+  }
+  return params;
+}
 
 export async function generateMetadata({
   params,
