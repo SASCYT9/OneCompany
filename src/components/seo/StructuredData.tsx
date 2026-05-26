@@ -192,27 +192,7 @@ const SCHEMA_AVAILABILITY: Record<Availability, string> = {
 const SHARED_RETURN_POLICY = {
   "@type": "MerchantReturnPolicy",
   applicableCountry: ["UA", "US", "GB", "DE", "FR", "AE"],
-  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-  merchantReturnDays: 14,
-  returnMethod: "https://schema.org/ReturnByMail",
-  returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
-};
-
-const SHARED_SHIPPING_DETAILS = {
-  "@type": "OfferShippingDetails",
-  shippingDestination: [
-    { "@type": "DefinedRegion", addressCountry: "UA" },
-    { "@type": "DefinedRegion", addressCountry: "US" },
-    { "@type": "DefinedRegion", addressCountry: "GB" },
-    { "@type": "DefinedRegion", addressCountry: "DE" },
-    { "@type": "DefinedRegion", addressCountry: "FR" },
-    { "@type": "DefinedRegion", addressCountry: "AE" },
-  ],
-  deliveryTime: {
-    "@type": "ShippingDeliveryTime",
-    handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 3, unitCode: "DAY" },
-    transitTime: { "@type": "QuantitativeValue", minValue: 3, maxValue: 14, unitCode: "DAY" },
-  },
+  returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
 };
 
 function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
@@ -229,14 +209,6 @@ function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
       "@id": "https://onecompany.global/#organization",
     },
     hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
-    shippingDetails: {
-      ...SHARED_SHIPPING_DETAILS,
-      shippingRate: {
-        "@type": "MonetaryAmount",
-        value: "0.00",
-        currency: offer.priceCurrency,
-      },
-    },
   };
   if (primaryImage) {
     entry.image = primaryImage;
