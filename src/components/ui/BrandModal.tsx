@@ -12,6 +12,7 @@ import {
   shouldSmartInvertBrand,
   hasLightBackgroundLogo,
 } from "@/lib/invertBrands";
+import { resolveShopStorefrontSegment } from "@/lib/shopStorefrontRouting";
 
 interface BrandModalProps {
   brand: BrandItem | null;
@@ -23,6 +24,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   const t = useTranslations("brands");
   const locale = useLocale();
   const isLightBg = brand ? hasLightBackgroundLogo(brand.name) : false;
+  const shopSegment = brand ? resolveShopStorefrontSegment({ brand: brand.name }) : null;
 
   // Close on escape key
   useEffect(() => {
@@ -155,6 +157,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
 
               {/* Footer Actions */}
               <div className="mt-auto pt-10 flex flex-col sm:flex-row gap-4 font-sans">
+                {/* Secondary Button: Official Website */}
                 {brand.website ? (
                   <a
                     href={brand.website}
@@ -162,28 +165,11 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-foreground/15 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/25 rounded-xl text-foreground text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-xs"
                   >
-                    <span>
-                      {["Eventuri", "KW Suspension", "FI Exhaust", "Urban Automotive"].includes(
-                        brand.name
-                      )
-                        ? locale === "ua"
-                          ? "Наш магазин"
-                          : "Our Shop"
-                        : t("officialSite")}
-                    </span>
-                    {["Eventuri", "KW Suspension", "FI Exhaust", "Urban Automotive"].includes(
-                      brand.name
-                    ) ? (
-                      <ShoppingBag
-                        size={16}
-                        className="text-foreground/50 group-hover:text-foreground transition-colors"
-                      />
-                    ) : (
-                      <ArrowUpRight
-                        size={16}
-                        className="text-foreground/50 group-hover:text-foreground transition-colors"
-                      />
-                    )}
+                    <span>{t("officialSite")}</span>
+                    <ArrowUpRight
+                      size={16}
+                      className="text-foreground/50 group-hover:text-foreground transition-colors"
+                    />
                   </a>
                 ) : (
                   <button
@@ -194,16 +180,30 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                   </button>
                 )}
 
-                <Link
-                  href={`/contact?inquiry=${encodeURIComponent(brand.name)}`}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground text-sm font-bold transition-all shadow-[0_0_20px_rgba(213,0,28,0.25)] dark:shadow-[0_0_20px_rgba(194,157,89,0.25)] hover:shadow-[0_0_30px_rgba(213,0,28,0.35)] dark:hover:shadow-[0_0_30px_rgba(194,157,89,0.35)] uppercase tracking-wider group"
-                >
-                  <span>{t("order")}</span>
-                  <ChevronRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </Link>
+                {/* Primary Button: Our Shop (if shop page exists) or Order Form (otherwise) */}
+                {shopSegment ? (
+                  <Link
+                    href={`/shop/${shopSegment}`}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground text-sm font-bold transition-all shadow-[0_0_20px_rgba(213,0,28,0.25)] dark:shadow-[0_0_20px_rgba(194,157,89,0.25)] hover:shadow-[0_0_30px_rgba(213,0,28,0.35)] dark:hover:shadow-[0_0_30px_rgba(194,157,89,0.35)] uppercase tracking-wider group"
+                  >
+                    <span>{locale === "ua" ? "Наш магазин" : "Our Shop"}</span>
+                    <ShoppingBag
+                      size={16}
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/contact?inquiry=${encodeURIComponent(brand.name)}`}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground text-sm font-bold transition-all shadow-[0_0_20px_rgba(213,0,28,0.25)] dark:shadow-[0_0_20px_rgba(194,157,89,0.25)] hover:shadow-[0_0_30px_rgba(213,0,28,0.35)] dark:hover:shadow-[0_0_30px_rgba(194,157,89,0.35)] uppercase tracking-wider group"
+                  >
+                    <span>{t("order")}</span>
+                    <ChevronRight
+                      size={16}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>
