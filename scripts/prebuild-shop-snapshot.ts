@@ -17,29 +17,55 @@
  * timeout, etc.) the build proceeds and pages fall back to the original
  * runtime DB path or the layout's hardcoded fallback.
  */
-import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
-const OUTPUT = path.join(process.cwd(), 'data', 'shop-settings.snapshot.json');
+const OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
 
 async function main() {
   const prisma = new PrismaClient();
   try {
-    const settings = await prisma.shopSettings.findUnique({ where: { key: 'shop' } });
+    const [settings, productCount] = await Promise.all([
+      prisma.shopSettings.findUnique({ where: { key: "shop" } }),
+      prisma.shopProduct.count({ where: { isPublished: true } }),
+    ]);
+
     if (!settings) {
-      console.warn('[prebuild-shop-snapshot] no shop settings row found — skipping snapshot');
-      return;
+      console.warn("[prebuild-shop-snapshot] no shop settings row found — skipping snapshot");
+    } else {
+      fs.writeFileSync(OUTPUT, JSON.stringify(settings, null, 2), "utf8");
+      console.log(`[prebuild-shop-snapshot] wrote ${path.relative(process.cwd(), OUTPUT)}`);
     }
-    fs.writeFileSync(OUTPUT, JSON.stringify(settings, null, 2), 'utf8');
-    console.log(`[prebuild-shop-snapshot] wrote ${path.relative(process.cwd(), OUTPUT)}`);
+
+    console.log(
+      `[prebuild-shop-snapshot] verified database contains ${productCount} published products`
+    );
+    if (productCount === 0) {
+      throw new Error(
+        "No published products found in database! Database might be empty or disconnected."
+      );
+    }
   } finally {
     await prisma.$disconnect();
   }
 }
 
 main().catch((err) => {
-  console.warn('[prebuild-shop-snapshot] failed (build will continue):', err?.message || err);
-  // Exit 0 so the build is never blocked by snapshot failure.
-  process.exit(0);
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+  if (isProd) {
+    console.error(
+      "[prebuild-shop-snapshot] CRITICAL BUILD ERROR (failing build):",
+      err?.message || err
+    );
+    process.exit(1);
+  } else {
+    console.warn(
+      "[prebuild-shop-snapshot] failed (dev/local build will continue):",
+      err?.message || err
+    );
+    process.exit(0);
+  }
 });

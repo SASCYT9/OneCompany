@@ -1833,8 +1833,12 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
         orderBy: { updatedAt: "desc" },
         include: adminProductInclude,
       });
-    } catch {
-      // No DB or not migrated — use only static
+    } catch (err) {
+      console.error("[shopCatalogServer] getShopProductsServer DB query failed:", err);
+      if (process.env.NODE_ENV === "production") {
+        throw err;
+      }
+      // No DB or not migrated — use only static in dev
       return normalizeCatalogProducts(STATIC_CATALOG_FALLBACK_PRODUCTS);
     }
 
@@ -1964,8 +1968,15 @@ export async function getShopProductsByBrandServer(
         orderBy: { updatedAt: "desc" },
         include: brandGridProductInclude,
       })) as unknown as AdminShopProductRecord[];
-    } catch {
-      // DB unavailable — fall through to static-only path below.
+    } catch (err) {
+      console.error(
+        `[shopCatalogServer] getShopProductsByBrandServer DB query failed for ${cacheKey}:`,
+        err
+      );
+      if (process.env.NODE_ENV === "production") {
+        throw err;
+      }
+      // DB unavailable — fall through to static-only path below in dev.
     }
 
     const mapped = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
@@ -2114,8 +2125,12 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         },
         orderBy: { updatedAt: "desc" },
       })) as unknown as LightRow[];
-    } catch {
-      // DB unavailable — fall through to static fallback only.
+    } catch (err) {
+      console.error("[shopCatalogServer] getRacechipProductsLightServer DB query failed:", err);
+      if (process.env.NODE_ENV === "production") {
+        throw err;
+      }
+      // DB unavailable — fall through to static fallback only in dev.
     }
 
     // Project each DB row into a light ShopProduct, mirroring the shape of
