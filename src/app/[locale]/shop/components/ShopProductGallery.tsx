@@ -6,16 +6,74 @@ import { ShoppingBag } from "lucide-react";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
+import type { CompatibleVehicle } from "../do88/do88FitmentData";
+
 type Props = {
   images: string[];
   productTitle: string;
   category?: string;
   isInStock?: boolean;
   isUa?: boolean;
+  compatibleVehicles?: CompatibleVehicle[];
 };
 
-export function ShopProductGallery({ images, productTitle, category, isInStock, isUa }: Props) {
+export function ShopProductGallery({
+  images,
+  productTitle,
+  category,
+  isInStock,
+  isUa,
+  compatibleVehicles,
+}: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [preference, setPreference] = useState<{
+    brand?: string;
+    model?: string;
+    chassis?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.sessionStorage.getItem("do88VehiclePreference");
+      if (raw) {
+        setPreference(JSON.parse(raw));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const displayCategory = useMemo(() => {
+    if (!compatibleVehicles || compatibleVehicles.length === 0) return category;
+
+    if (preference) {
+      const match = compatibleVehicles.find(
+        (v) =>
+          (!preference.brand || v.make.toLowerCase() === preference.brand.toLowerCase()) &&
+          (!preference.model || v.model.toLowerCase() === preference.model.toLowerCase()) &&
+          (!preference.chassis || v.chassis.toLowerCase() === preference.chassis.toLowerCase())
+      );
+      if (match) {
+        const modelLabel = match.model.toLowerCase().includes(match.chassis.toLowerCase())
+          ? match.model
+          : `${match.model} (${match.chassis})`;
+        return isUa
+          ? `Для автомобілів > ${match.make} > ${modelLabel}`
+          : `For vehicles > ${match.make} > ${modelLabel}`;
+      }
+    }
+
+    const makes = Array.from(new Set(compatibleVehicles.map((v) => v.make)));
+    if (makes.length > 1) {
+      return isUa
+        ? `Для автомобілів > ${makes.join(" / ")}`
+        : `For vehicles > ${makes.join(" / ")}`;
+    }
+
+    return category;
+  }, [category, compatibleVehicles, preference, isUa]);
+
   const imageKey = useMemo(() => images.join("|"), [images]);
 
   useEffect(() => {
@@ -59,11 +117,11 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
         <div className="pointer-events-none absolute inset-0 rounded-3xl border border-foreground/8 dark:mix-blend-overlay" />
 
         {/* Badges */}
-        {(category || (SHOW_STOCK_BADGE && isInStock !== undefined)) && (
+        {(displayCategory || (SHOW_STOCK_BADGE && isInStock !== undefined)) && (
           <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3 z-10 pointer-events-none">
-            {category ? (
+            {displayCategory ? (
               <span className="rounded-full border border-foreground/25 bg-card/85 dark:bg-black/60 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] text-foreground/95 dark:text-foreground/80 backdrop-blur-md">
-                {category}
+                {displayCategory}
               </span>
             ) : (
               <div />

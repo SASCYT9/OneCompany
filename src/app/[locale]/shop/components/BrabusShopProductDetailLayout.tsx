@@ -17,6 +17,7 @@ import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
@@ -37,13 +38,14 @@ export function BrabusShopProductDetailLayout({
   locale,
   resolvedLocale,
   product,
-  pricing,
+  pricing: ssrPricing,
   viewerContext: ssrViewerContext,
   rates,
   defaultVariant,
   relatedProducts,
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
+  const pricing = resolveShopProductPricing(product, viewerContext);
   const isUa = resolvedLocale === "ua";
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
@@ -526,30 +528,34 @@ export function BrabusShopProductDetailLayout({
         }
         .b-btn-custom {
           width: 100%;
-          background: rgba(194, 157, 89, 0.15) !important;
-          color: var(--b-fg) !important;
-          border: 1px solid rgba(194, 157, 89, 0.5) !important;
-          backdrop-filter: blur(12px);
+          background: #c29d59 !important;
+          color: #000000 !important;
+          border: 1px solid #c29d59 !important;
           padding: 1.25rem !important;
           text-align: center;
           font-size: 0.75rem !important;
-          font-weight: 600 !important;
+          font-weight: 700 !important;
           text-transform: uppercase !important;
           letter-spacing: 0.25em !important;
-          transition: all 0.3s;
+          transition: all 0.3s ease;
           cursor: pointer;
           border-radius: 0;
         }
         .dark .b-btn-custom {
-          background: rgba(194, 157, 89, 0.1) !important;
-          color: #fff !important;
-          border-color: rgba(194, 157, 89, 0.4) !important;
+          background: #c29d59 !important;
+          color: #000000 !important;
+          border-color: #c29d59 !important;
         }
         .b-btn-custom:hover {
-          background: rgba(194, 157, 89, 0.25) !important;
-          border-color: rgba(194, 157, 89, 0.7) !important;
+          background: #e5c17d !important;
+          border-color: #e5c17d !important;
           transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(194, 157, 89, 0.15);
+          box-shadow: 0 0 30px rgba(194, 157, 89, 0.35) !important;
+        }
+        .dark .b-btn-custom:hover {
+          background: #e5c17d !important;
+          border-color: #e5c17d !important;
+          color: #000000 !important;
         }
 
         .b-action-links {
@@ -753,15 +759,15 @@ export function BrabusShopProductDetailLayout({
       `}</style>
 
       <div className="b-pdp">
-        {/* Background Video — cinematic, dark only */}
-        <div className="absolute inset-0 z-0 pointer-events-none hidden dark:block">
+        {/* Background Video — cinematic */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
           <BrabusVideoBackground
             videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
             fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg"
           />
           {/* Blend Masking / Blur */}
-          <div className="absolute inset-0 bg-linear-to-r from-black/85 via-black/80 to-transparent backdrop-blur-[6px]" />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-linear-to-r dark:from-black/85 dark:via-black/80 dark:to-transparent from-transparent via-transparent to-transparent backdrop-blur-[6px]" />
+          <div className="absolute inset-0 bg-transparent dark:bg-black/40 backdrop-blur-md" />
         </div>
 
         <div className="b-pdp__container">
@@ -885,21 +891,19 @@ export function BrabusShopProductDetailLayout({
               </div>
 
               <div className="b-price-box" style={{ marginTop: 12 }}>
-                <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} />
+                <ShopB2BPricingBand pricing={pricing} locale={resolvedLocale} variant="bronze" />
               </div>
 
               {/* Action (Add to Cart) */}
               <div className="b-action">
-                <div style={{ padding: "2px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <AddToCartButton
-                    slug={product.slug}
-                    locale={resolvedLocale}
-                    variantId={defaultVariant?.id ?? null}
-                    productName={productTitle}
-                    className="b-btn-custom"
-                    label={isUa ? "Додати в кошик" : "Add to Cart"}
-                  />
-                </div>
+                <AddToCartButton
+                  slug={product.slug}
+                  locale={resolvedLocale}
+                  variantId={defaultVariant?.id ?? null}
+                  productName={productTitle}
+                  className="b-btn-custom"
+                  label={isUa ? "Додати в кошик" : "Add to Cart"}
+                />
                 <div className="b-action-links">
                   <Link href={`/${resolvedLocale}/contact`}>
                     {isUa ? "Перевірити сумісність" : "Check Compatibility"}

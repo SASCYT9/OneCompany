@@ -17,6 +17,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
@@ -111,11 +112,14 @@ export function BurgerShopProductDetailLayout({
   locale,
   resolvedLocale,
   product,
-  pricing,
+  pricing: ssrPricing,
+  viewerContext: ssrViewerContext,
   rates,
   defaultVariant,
   relatedProducts,
 }: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
+  const pricing = resolveShopProductPricing(product, viewerContext);
   const isUa = resolvedLocale === "ua";
   const title = localizeShopProductTitle(resolvedLocale, product);
 

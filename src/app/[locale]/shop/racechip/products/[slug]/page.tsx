@@ -112,7 +112,7 @@ async function CrossShopFitmentSection({
   const allProducts = await getShopProductsServer();
   const groups = findCrossShopFitmentMatches(product, allProducts, {
     perBrand: 3,
-    totalLimit: 9,
+    totalLimit: 24,
   });
   if (!groups.length) return null;
 

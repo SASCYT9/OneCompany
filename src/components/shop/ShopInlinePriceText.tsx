@@ -16,12 +16,7 @@ function hasValidAmount(value?: number | null) {
   return typeof value === "number" && value > 0;
 }
 
-export function ShopInlinePriceText({
-  locale,
-  price,
-  className,
-  requestLabel,
-}: Props) {
+export function ShopInlinePriceText({ locale, price, className, requestLabel }: Props) {
   const { currency, rates } = useShopCurrency();
 
   let computedUah = price.uah || 0;
@@ -43,8 +38,16 @@ export function ShopInlinePriceText({
     currency === "USD" ? computedUsd : currency === "EUR" ? computedEur : computedUah;
 
   if (!hasValidAmount(displayAmount)) {
-    return <span className={className}>{requestLabel ?? "Price on request"}</span>;
+    return (
+      <span className={className} suppressHydrationWarning={true}>
+        {requestLabel ?? "Price on request"}
+      </span>
+    );
   }
 
-  return <span className={className}>{formatShopMoney(locale, displayAmount, currency)}</span>;
+  return (
+    <span className={className} suppressHydrationWarning={true}>
+      {formatShopMoney(locale, displayAmount, currency)}
+    </span>
+  );
 }

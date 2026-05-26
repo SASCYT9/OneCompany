@@ -1,10 +1,17 @@
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import type { SupportedLocale } from "@/lib/seo";
 import type { CrossShopGroup, CrossShopMatch, Fitment } from "@/lib/crossShopFitment";
-import { buildCrossShopHeading, prettifyVehicleLabel } from "@/lib/crossShopFitment";
+import {
+  buildCrossShopHeading,
+  prettifyVehicleLabel,
+  porsche911SubmodelsCompatible,
+} from "@/lib/crossShopFitment";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { getBrandLogo } from "@/lib/brandLogos";
@@ -15,11 +22,198 @@ type Props = {
   groups: CrossShopGroup[];
 };
 
+type StoredPreference = {
+  brand?: string;
+  model?: string;
+  chassis?: string;
+};
+
+function normalizeBrand(b: string): string {
+  const clean = b.trim().toLowerCase();
+  if (clean === "vw" || clean === "volkswagen" || clean === "vag") return "vw";
+  if (clean === "mercedes" || clean === "mercedes-benz" || clean === "mercedes-amg")
+    return "mercedes";
+  return clean;
+}
+
+function tokenize(str: string): string[] {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function chassisCompatible(prefChassis: string, candChassis: string): boolean {
+  const p = prefChassis.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const c = candChassis.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (p === c) return true;
+  // Handle MQB relationship
+  if (p === "mqb" && (c.startsWith("mk7") || c.startsWith("mk8") || c === "pq35")) return true;
+  if (c === "mqb" && (p.startsWith("mk7") || p.startsWith("mk8") || p === "pq35")) return true;
+  if (p.includes(c) || c.includes(p)) return true;
+  return false;
+}
+
+function fitsPreference(fitment: Fitment, preference: StoredPreference): boolean {
+  // 1. Verify Brand/Make compatibility
+  if (preference.brand) {
+    const prefBrandNorm = normalizeBrand(preference.brand);
+    const candMakeNorm = fitment.make ? normalizeBrand(fitment.make) : "";
+
+    if (candMakeNorm && prefBrandNorm !== candMakeNorm) {
+      return false;
+    }
+  }
+
+  // 2. Verify Model compatibility (if candidate has specific models list)
+  if (preference.model && fitment.models.length > 0) {
+    const isPorscheSubmodelCompatible = fitment.models.every((candModel) =>
+      porsche911SubmodelsCompatible(preference.model!, candModel)
+    );
+    if (!isPorscheSubmodelCompatible) return false;
+
+    const prefModelTokens = tokenize(preference.model);
+    const hasModelOverlap = fitment.models.some((candModel) => {
+      const candModelTokens = tokenize(candModel);
+      return candModelTokens.some(
+        (t) =>
+          prefModelTokens.includes(t) && t !== "gti" && t !== "r" && t !== "class" && t !== "series"
+      );
+    });
+
+    if (!hasModelOverlap) {
+      if (preference.chassis && fitment.chassisCodes.length > 0) {
+        const hasChassisOverlap = fitment.chassisCodes.some((cc) =>
+          chassisCompatible(preference.chassis!, cc)
+        );
+        if (!hasChassisOverlap) return false;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  // 3. Verify Chassis compatibility
+  if (preference.chassis && fitment.chassisCodes.length > 0) {
+    const hasChassisOverlap = fitment.chassisCodes.some((cc) =>
+      chassisCompatible(preference.chassis!, cc)
+    );
+    if (!hasChassisOverlap) return false;
+  }
+
+  return true;
+}
+
+function interleaveByBrand(matches: CrossShopMatch[]): CrossShopMatch[] {
+  const brandGroups = new Map<string, CrossShopMatch[]>();
+  for (const match of matches) {
+    const brand = (match.product.brand ?? "").trim().toLowerCase();
+    let list = brandGroups.get(brand);
+    if (!list) {
+      list = [];
+      brandGroups.set(brand, list);
+    }
+    list.push(match);
+  }
+
+  const result: CrossShopMatch[] = [];
+  const lists = Array.from(brandGroups.values());
+
+  let hasMore = true;
+  let index = 0;
+  while (hasMore) {
+    hasMore = false;
+    for (const list of lists) {
+      if (index < list.length) {
+        result.push(list[index]);
+        hasMore = true;
+      }
+    }
+    index++;
+  }
+
+  return result;
+}
+
 export default function CrossShopFitment({ locale, fitment, groups }: Props) {
-  if (!groups.length) return null;
-  const heading = buildCrossShopHeading(fitment, locale);
-  const matches = groups.flatMap((group) => group.matches);
+  const [preference, setPreference] = useState<StoredPreference | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.sessionStorage.getItem("do88VehiclePreference");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as StoredPreference;
+      if (parsed && (parsed.brand || parsed.model || parsed.chassis)) {
+        setPreference(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const filteredMatches = useMemo(() => {
+    const rawMatches = groups.flatMap((group) => group.matches);
+    const filtered = preference
+      ? rawMatches.filter((match) => fitsPreference(match.fitment, preference))
+      : rawMatches;
+    return interleaveByBrand(filtered);
+  }, [groups, preference]);
+
+  if (!filteredMatches.length) return null;
+
   const isUa = locale === "ua";
+
+  const heading = (() => {
+    // Resolve brand, model, chassis by merging preference and fitment when applicable
+    let displayBrand = preference?.brand;
+    let displayModel = preference?.model;
+    let displayChassis = preference?.chassis;
+
+    if (preference) {
+      const prefBrandNorm = preference.brand ? normalizeBrand(preference.brand) : "";
+      const fitmentMakeNorm = fitment.make ? normalizeBrand(fitment.make) : "";
+
+      if (!prefBrandNorm || prefBrandNorm === fitmentMakeNorm) {
+        if (!displayBrand) displayBrand = fitment.make || undefined;
+        if (!displayModel && fitment.models.length > 0) {
+          displayModel = [...fitment.models].sort((a, b) => b.length - a.length)[0];
+        }
+        if (!displayChassis && fitment.chassisCodes.length > 0) {
+          displayChassis = fitment.chassisCodes[0];
+        }
+      }
+    } else {
+      displayBrand = fitment.make || undefined;
+      if (fitment.models.length > 0) {
+        displayModel = [...fitment.models].sort((a, b) => b.length - a.length)[0];
+      }
+      if (fitment.chassisCodes.length > 0) {
+        displayChassis = fitment.chassisCodes[0];
+      }
+    }
+
+    const parts: string[] = [];
+    if (displayBrand) {
+      parts.push(displayBrand);
+    }
+    if (displayModel) {
+      parts.push(prettifyVehicleLabel(displayModel));
+    }
+    if (displayChassis) {
+      const lastPart = parts[parts.length - 1] || "";
+      if (!lastPart.toLowerCase().includes(displayChassis.toLowerCase())) {
+        parts.push(`(${displayChassis.toUpperCase()})`);
+      }
+    }
+
+    const lead = isUa ? "Також підходить:" : "Also fits:";
+    if (parts.length === 0) {
+      return isUa ? "Може зацікавити з інших магазинів" : "You may also like from other stores";
+    }
+    return `${lead} ${parts.join(" ")}`;
+  })();
 
   return (
     <section aria-label={isUa ? "Підходить також" : "Also fits"} className="space-y-6">
@@ -34,7 +228,7 @@ export default function CrossShopFitment({ locale, fitment, groups }: Props) {
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 scrollbar-thin sm:mx-0 sm:px-0 sm:[scrollbar-color:rgba(255,255,255,0.25)_transparent]"
         role="list"
       >
-        {matches.map((match) => (
+        {filteredMatches.map((match) => (
           <CrossShopCard key={match.product.slug} match={match} locale={locale} />
         ))}
       </div>
@@ -134,10 +328,17 @@ function CrossShopCard({ match, locale }: { match: CrossShopMatch; locale: Suppo
 }
 
 function buildFitmentChips(match: CrossShopMatch): string[] {
-  const chips: string[] = [];
-  if (match.fitment.chassisCodes[0]) chips.push(match.fitment.chassisCodes[0]);
-  if (match.fitment.models[0]) {
-    chips.push(prettifyVehicleLabel(match.fitment.models[0]));
+  const chassis = match.fitment.chassisCodes[0];
+  const model = match.fitment.models[0] ? prettifyVehicleLabel(match.fitment.models[0]) : "";
+
+  if (chassis && model) {
+    if (model.toLowerCase().includes(chassis.toLowerCase())) {
+      return [model];
+    }
+    return [chassis.toUpperCase(), model];
   }
-  return Array.from(new Set(chips)).slice(0, 2);
+
+  if (chassis) return [chassis.toUpperCase()];
+  if (model) return [model];
+  return [];
 }

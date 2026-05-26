@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import type { CustomerGroup } from "@prisma/client";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -27,9 +27,14 @@ const ANON_FALLBACK: ShopViewerPricingContext = {
 export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopViewerPricingContext {
   const { data: session, status } = useSession();
   const baseline = initial ?? ANON_FALLBACK;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return useMemo<ShopViewerPricingContext>(() => {
-    if (status !== "authenticated" || !session?.user) {
+    if (!mounted || status !== "authenticated" || !session?.user) {
       return baseline;
     }
 
@@ -40,5 +45,5 @@ export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopVi
       customerB2BDiscountPercent: user.b2bDiscountPercent ?? baseline.customerB2BDiscountPercent,
       isAuthenticated: true,
     };
-  }, [baseline, session, status]);
+  }, [baseline, session, status, mounted]);
 }

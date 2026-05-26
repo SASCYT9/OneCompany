@@ -62,6 +62,26 @@ export default function Do88VehicleFilter({
     setSelectedCategory(currentCategory);
   }, [currentCategory]);
 
+  // Automatically sync local state selections to sessionStorage.
+  // This acts as the single source of truth for the user's selected vehicle preference,
+  // making sure deep links or deep picker navigation stays in sync on PDPs.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (selectedMake || selectedModel || selectedChassis) {
+          window.sessionStorage.setItem(
+            "do88VehiclePreference",
+            JSON.stringify({ brand: selectedMake, model: selectedModel, chassis: selectedChassis })
+          );
+        } else {
+          window.sessionStorage.removeItem("do88VehiclePreference");
+        }
+      } catch {
+        // sessionStorage can throw in privacy / restricted modes — ignore.
+      }
+    }
+  }, [selectedMake, selectedModel, selectedChassis]);
+
   const pushLiveUpdate = (make: string, model: string, chassis: string, cat: string) => {
     const params = new URLSearchParams(searchParams?.toString() || "");
     if (make) params.set("brand", make);
@@ -76,40 +96,22 @@ export default function Do88VehicleFilter({
     const targetPath = `/${locale}/shop/do88/collections/${cat || "all"}`;
     const targetFull = `${targetPath}${q ? `?${q}` : ""}`;
 
-    // Category change (different path segment) requires real navigation.
-    // Brand/model/chassis change within the same category is a pure URL
-    // sync — use `history.replaceState` so we don't pile up history entries
-    // (otherwise browser-back from a PDP walks through every intermediate
-    // filter state instead of returning to the fully-selected catalog).
     const currentPath = typeof window !== "undefined" ? window.location.pathname : targetPath;
     const isSamePath = currentPath === targetPath;
 
-    // Remember the last (brand, model, chassis) the user picked so the PDP
-    // can highlight the matching chip in its "Compatible models" block. Use
-    // sessionStorage so it survives navigation to a PDP and back, but
-    // doesn't bleed across browser tabs / sessions.
-    if (typeof window !== "undefined") {
-      try {
-        if (make || model || chassis) {
-          window.sessionStorage.setItem(
-            "do88VehiclePreference",
-            JSON.stringify({ brand: make, model, chassis })
-          );
-        } else {
-          window.sessionStorage.removeItem("do88VehiclePreference");
-        }
-      } catch {
-        // sessionStorage can throw in privacy / restricted modes — ignore.
-      }
-    }
-
-    if (isSamePath && typeof window !== "undefined") {
-      window.history.replaceState(window.history.state, "", targetFull);
+    if (isSamePath) {
+      startTransition(() => {
+        router.replace(targetFull, { scroll: false });
+      });
     } else {
       startTransition(() => {
         router.push(targetFull);
       });
     }
+  };
+
+  const handleSearchClick = () => {
+    pushLiveUpdate(selectedMake, selectedModel, selectedChassis, selectedCategory);
   };
 
   const handleMakeChange = (makeValue: string) => {
@@ -299,6 +301,43 @@ export default function Do88VehicleFilter({
             />
           </div>
         )}
+
+        <button
+          onClick={handleSearchClick}
+          className={cn(
+            "do88-glass-button rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] whitespace-nowrap inline-flex items-center justify-center gap-2",
+            isSidebar
+              ? "w-full mt-2"
+              : compact
+                ? "mt-3 md:mt-0 md:self-end h-[42px]"
+                : "w-full mt-4 py-3"
+          )}
+        >
+          {isPending ? (
+            <>
+              <span className="inline-block size-3.5 animate-spin rounded-full border border-foreground/30 border-t-white" />
+              <span>{isUa ? "Завантаження..." : "Searching..."}</span>
+            </>
+          ) : (
+            <>
+              <svg
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <span>{isUa ? "Пошук" : "Search"}</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

@@ -34,6 +34,7 @@ import { MobileProductDisclosure } from "../components/MobileProductDisclosure";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
+import { ShopDefaultProductPricingBlock } from "../components/ShopDefaultProductPricingBlock";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -190,13 +191,12 @@ export default async function ShopProductPage({ params }: Props) {
               </MobileProductDisclosure>
             ) : null}
 
-            <div className="rounded-2xl border border-foreground/15 bg-card/70 dark:bg-background/40 p-5">
-              <ShopPrimaryPriceBox
-                locale={resolvedLocale}
-                isUa={isUa}
-                price={pricing.effectivePrice}
-              />
-            </div>
+            <ShopDefaultProductPricingBlock
+              product={product}
+              ssrViewerContext={viewerContext}
+              locale={resolvedLocale}
+              isUa={isUa}
+            />
 
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">

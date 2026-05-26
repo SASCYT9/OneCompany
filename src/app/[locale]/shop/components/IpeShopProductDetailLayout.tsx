@@ -14,13 +14,16 @@ import {
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { SupportedLocale } from "@/lib/seo";
-import type { ShopResolvedPricing } from "@/lib/shopPricingAudience";
+import type { ShopResolvedPricing, ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 
 type Props = {
   locale: string;
   resolvedLocale: SupportedLocale;
   product: ShopProduct;
   pricing?: ShopResolvedPricing;
+  viewerContext: ShopViewerPricingContext;
 };
 
 // Render-time UA-copy normalizer. Mirrors the import-side `sanitizeIpeUaCopy`
@@ -311,7 +314,15 @@ function variantMatches(variant: ShopProductVariantSummary, selected: string[]):
   return true;
 }
 
-export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pricing }: Props) {
+export function IpeShopProductDetailLayout({
+  locale,
+  resolvedLocale,
+  product,
+  pricing: ssrPricing,
+  viewerContext: ssrViewerContext,
+}: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
+  const pricing = resolveShopProductPricing(product, viewerContext);
   const isUa = resolvedLocale === "ua";
   const variants = product.variants ?? [];
   const optionAxes = useMemo(() => buildOptionAxes(variants), [variants]);
@@ -437,9 +448,20 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
     setMainIdx(0);
   }, [displayedImages, currentVariant, product.image]);
 
-  const priceUsd = currentVariant?.price?.usd ?? product.price?.usd ?? 0;
-  const priceEur = currentVariant?.price?.eur ?? product.price?.eur ?? 0;
-  const priceUah = currentVariant?.price?.uah ?? product.price?.uah ?? 0;
+  const variantPricing = currentVariant
+    ? resolveShopProductPricing(
+        {
+          ...product,
+          price: currentVariant.price,
+          compareAt: currentVariant.compareAt,
+        } as any,
+        viewerContext
+      )
+    : pricing;
+
+  const priceUsd = variantPricing.effectivePrice.usd ?? 0;
+  const priceEur = variantPricing.effectivePrice.eur ?? 0;
+  const priceUah = variantPricing.effectivePrice.uah ?? 0;
 
   return (
     <div className="ipe-pdp">
@@ -805,9 +827,13 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product, pr
               price={{ eur: priceEur, usd: priceUsd, uah: priceUah }}
             />
           </div>
-          {pricing ? (
+          {variantPricing ? (
             <div className="ipe-pdp__b2b">
-              <ShopB2BPricingBand pricing={pricing} locale={locale as any} />
+              <ShopB2BPricingBand
+                pricing={variantPricing}
+                locale={locale as any}
+                variant="bronze"
+              />
             </div>
           ) : null}
           {currentVariant &&

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, X, ChevronDown, ArrowRight } from "lucide-react";
@@ -58,7 +58,7 @@ function computePricesFromEur(
     return {
       eur: baseEur,
       uah: baseUah > 0 ? baseUah : Math.round(baseEur * eurToUah),
-      usd: baseUsd > 0 ? baseUsd : Math.round(baseEur / usdRate),
+      usd: baseUsd > 0 ? baseUsd : Math.round(baseEur * usdRate),
     };
   }
   if (baseUah > 0 && rates) {
@@ -225,12 +225,12 @@ export default function BrabusVehicleFilter({
       if (modelKey) models.set(modelKey, (models.get(modelKey) || 0) + 1);
     }
     return [...models.entries()]
-      .sort((a, b) => b[1] - a[1])
       .map(([key, count]) => ({
         key,
         label: MODEL_LABELS[key]?.[locale] || key.replace("-Klasse", "-Class"),
         count,
-      }));
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, locale));
   }, [activeBrand, products, locale, MODEL_KEYS_SET]);
 
   const availableChassis = useMemo(() => {
@@ -261,17 +261,6 @@ export default function BrabusVehicleFilter({
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, activeModel, activeChassis, products, MODEL_KEYS_SET]);
-
-  const skipModelResetRef = useRef(true);
-  useEffect(() => {
-    if (skipModelResetRef.current) {
-      skipModelResetRef.current = false;
-      return;
-    }
-    setActiveModel("all");
-    setActiveChassis("all");
-    setActiveEngine("all");
-  }, [activeBrand]);
 
   useEffect(() => {
     // Reset chassis if it's no longer available under current brand/model.
@@ -360,26 +349,29 @@ export default function BrabusVehicleFilter({
   // the post-mount useEffect above applies any URL filter state.
 
   return (
-    <section
-      id="catalog"
-      className="bg-transparent text-foreground dark:text-white min-h-screen relative z-30"
-    >
+    <section id="catalog" className="bg-[#080808] text-white min-h-screen relative z-30">
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* ═══ HORIZONTAL FILTER BAR ═══ */}
-        <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-card dark:bg-[#0a0a0a] border-y border-foreground/12 dark:border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-card dark:bg-[#111] [&_option]:text-foreground dark:text-white">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-[170px_160px_140px_180px_1fr_140px_auto] items-center gap-3 py-4">
-            {/* Brand Select */}
-            <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
+        <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0d0d0d] border-b border-zinc-800/60 shadow-[0_4px_40px_rgba(0,0,0,0.9)] [&_option]:bg-[#1a1a1a] [&_option]:text-zinc-200">
+          {/* ── Row 1: Dropdowns + count ── */}
+          <div className="flex items-stretch gap-0 border-b border-zinc-800/50">
+            {/* Brand */}
+            <div className="relative flex-1 border-r border-zinc-800/50">
+              <label className="absolute top-2 left-4 text-[9px] uppercase tracking-[0.18em] text-zinc-600 pointer-events-none font-medium">
                 {isUa ? "Марка" : "Brand"}
               </label>
               <select
                 value={activeBrand}
-                onChange={(e) => setActiveBrand(e.target.value)}
-                className="appearance-none w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-foreground/25 dark:hover:border-white/20"
+                onChange={(e) => {
+                  setActiveBrand(e.target.value);
+                  setActiveModel("all");
+                  setActiveChassis("all");
+                  setActiveEngine("all");
+                }}
+                className="appearance-none w-full bg-transparent text-zinc-200 text-[12px] tracking-wide font-light pl-4 pr-10 pt-8 pb-3 outline-none focus:bg-[#1a1a1a] focus:text-white transition-all duration-200 cursor-pointer hover:bg-[#161616] hover:text-white"
               >
                 <option value="all">
-                  {isUa ? `Всі марки (${totalCount})` : `All Brands (${totalCount})`}
+                  {isUa ? `Всі марки (${totalCount})` : `All brands (${totalCount})`}
                 </option>
                 {availableBrands.map((b) => (
                   <option key={b.key} value={b.key}>
@@ -387,133 +379,85 @@ export default function BrabusVehicleFilter({
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30">
-                <ChevronDown size={12} />
+              <div className="pointer-events-none absolute right-4 bottom-3.5 text-zinc-600">
+                <ChevronDown size={13} />
               </div>
             </div>
 
-            {/* Model Select */}
-            <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
+            {/* Model */}
+            <div className="relative flex-1 border-r border-zinc-800/50">
+              <label className="absolute top-2 left-4 text-[9px] uppercase tracking-[0.18em] text-zinc-600 pointer-events-none font-medium">
                 {isUa ? "Модель" : "Model"}
               </label>
               <select
                 value={activeModel}
                 onChange={(e) => setActiveModel(e.target.value)}
                 disabled={activeBrand === "all" || availableModels.length === 0}
-                className="appearance-none w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-foreground/25 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-transparent text-zinc-200 text-[12px] tracking-wide font-light pl-4 pr-10 pt-8 pb-3 outline-none focus:bg-[#1a1a1a] focus:text-white transition-all duration-200 cursor-pointer hover:bg-[#161616] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <option value="all">{isUa ? "Всі моделі" : "All Models"}</option>
+                <option value="all">{isUa ? "Всі моделі" : "All models"}</option>
                 {availableModels.map((m) => (
                   <option key={m.key} value={m.key}>
                     {m.label} ({m.count})
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30">
-                <ChevronDown size={12} />
+              <div className="pointer-events-none absolute right-4 bottom-3.5 text-zinc-600">
+                <ChevronDown size={13} />
               </div>
             </div>
 
-            {/* Chassis Select */}
-            <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
+            {/* Chassis */}
+            <div className="relative flex-1 border-r border-zinc-800/50">
+              <label className="absolute top-2 left-4 text-[9px] uppercase tracking-[0.18em] text-zinc-600 pointer-events-none font-medium">
                 {isUa ? "Кузов" : "Chassis"}
               </label>
               <select
                 value={activeChassis}
                 onChange={(e) => setActiveChassis(e.target.value)}
                 disabled={availableChassis.length === 0}
-                className="appearance-none w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-foreground/25 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-transparent text-zinc-200 text-[12px] tracking-wide font-light pl-4 pr-10 pt-8 pb-3 outline-none focus:bg-[#1a1a1a] focus:text-white transition-all duration-200 cursor-pointer hover:bg-[#161616] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <option value="all">{isUa ? "Усі кузови" : "All Chassis"}</option>
+                <option value="all">{isUa ? "Усі кузови" : "All chassis"}</option>
                 {availableChassis.map((c) => (
                   <option key={c.key} value={c.key}>
                     {c.label} ({c.count})
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30">
-                <ChevronDown size={12} />
+              <div className="pointer-events-none absolute right-4 bottom-3.5 text-zinc-600">
+                <ChevronDown size={13} />
               </div>
             </div>
 
-            {/* Engine Select */}
-            <div className="relative">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
+            {/* Engine */}
+            <div className="relative flex-1 border-r border-zinc-800/50">
+              <label className="absolute top-2 left-4 text-[9px] uppercase tracking-[0.18em] text-zinc-600 pointer-events-none font-medium">
                 {isUa ? "Двигун" : "Engine"}
               </label>
               <select
                 value={activeEngine}
                 onChange={(e) => setActiveEngine(e.target.value)}
                 disabled={availableEngines.length === 0}
-                className="appearance-none w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-foreground/25 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="appearance-none w-full bg-transparent text-zinc-200 text-[12px] tracking-wide font-light pl-4 pr-10 pt-8 pb-3 outline-none focus:bg-[#1a1a1a] focus:text-white transition-all duration-200 cursor-pointer hover:bg-[#161616] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <option value="all">{isUa ? "Усі двигуни" : "All Engines"}</option>
+                <option value="all">{isUa ? "Усі двигуни" : "All engines"}</option>
                 {availableEngines.map((e) => (
                   <option key={e.key} value={e.key}>
                     {e.label} ({e.count})
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30">
-                <ChevronDown size={12} />
+              <div className="pointer-events-none absolute right-4 bottom-3.5 text-zinc-600">
+                <ChevronDown size={13} />
               </div>
             </div>
 
-            {/* Search */}
-            <div className="relative col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-1">
-              <Search
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 dark:text-white/25"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  isUa
-                    ? "Пошук: назва, кузов (W 463A), двигун (G 63), артикул..."
-                    : "Search: name, chassis (W 463A), engine (G 63), SKU..."
-                }
-                className="w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 pl-10 pr-9 py-3 text-xs text-foreground dark:text-white placeholder:text-foreground/30 dark:placeholder:text-white/30 focus:outline-hidden focus:border-[#c29d59]/50 transition-colors hover:border-foreground/25 dark:hover:border-white/20"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30 hover:text-foreground dark:hover:text-white transition-colors"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            {/* Sort Select */}
-            <div className="relative hidden sm:block">
-              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-foreground/40 dark:text-white/25 pointer-events-none">
-                {isUa ? "Сортування" : "Sort"}
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) =>
-                  setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
-                }
-                className="appearance-none w-full bg-card dark:bg-[#111] border border-foreground/15 dark:border-white/10 text-foreground dark:text-white text-xs uppercase tracking-widest font-medium pl-3 pr-8 pt-4 pb-2.5 outline-hidden focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-foreground/25 dark:hover:border-white/20"
-              >
-                <option value="default">{isUa ? "Популярні" : "Popular"}</option>
-                <option value="price_desc">{isUa ? "Ціна: спадання" : "Price: High → Low"}</option>
-                <option value="price_asc">{isUa ? "Ціна: зростання" : "Price: Low → High"}</option>
-              </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground/45 dark:text-white/30">
-                <ChevronDown size={12} />
-              </div>
-            </div>
-
-            {/* Results Count + Reset */}
-            <div className="hidden lg:flex flex-col items-end gap-0.5">
-              <span className="text-[11px] text-foreground/65 dark:text-white/50 tabular-nums tracking-wide">
-                {filteredProducts.length}{" "}
-                <span className="text-foreground/40 dark:text-white/25">/ {totalCount}</span>
+            {/* Result count + reset */}
+            <div className="flex flex-col items-end justify-center px-5 gap-1 min-w-[100px]">
+              <span className="text-[13px] font-light text-zinc-300 tabular-nums">
+                {filteredProducts.length}
+                <span className="text-zinc-700 text-[11px]"> / {totalCount}</span>
               </span>
               {hasActiveFilters && (
                 <button
@@ -525,7 +469,7 @@ export default function BrabusVehicleFilter({
                     setSearchQuery("");
                     setSortOrder("default");
                   }}
-                  className="flex items-center gap-1 text-[9px] uppercase tracking-[0.14em] text-foreground/45 dark:text-white/30 hover:text-[#c29d59] transition-colors"
+                  className="flex items-center gap-1 text-[9px] uppercase tracking-[0.14em] text-zinc-600 hover:text-[#c29d59] transition-colors"
                 >
                   <X size={9} />
                   {isUa ? "Скинути" : "Reset"}
@@ -534,53 +478,69 @@ export default function BrabusVehicleFilter({
             </div>
           </div>
 
-          {/* Mobile Sort Row (sm only) */}
-          <div className="sm:hidden flex items-center justify-between pb-3 border-t border-foreground/10 dark:border-white/4 pt-3 -mt-1">
-            <span className="text-[11px] text-foreground/55 dark:text-white/40 tabular-nums">
-              {filteredProducts.length} / {totalCount}
-            </span>
-            <div className="flex items-center gap-3">
+          {/* ── Row 2: Search + Sort ── */}
+          <div className="flex items-center gap-0">
+            {/* Search */}
+            <div className="relative flex-1 border-r border-zinc-800/50">
+              <Search
+                size={14}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  isUa
+                    ? "Пошук за назвою, кузовом (W 463A), двигуном (G 63), артикулом..."
+                    : "Search by name, chassis (W 463A), engine (G 63), SKU..."
+                }
+                className="w-full bg-transparent pl-11 pr-10 py-3.5 text-[12px] text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:text-white focus:placeholder:text-zinc-600 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Sort */}
+            <div className="relative shrink-0">
+              <label className="absolute top-1.5 left-4 text-[9px] uppercase tracking-[0.18em] text-zinc-600 pointer-events-none font-medium">
+                {isUa ? "Сортування" : "Sort"}
+              </label>
               <select
                 value={sortOrder}
                 onChange={(e) =>
                   setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")
                 }
-                className="appearance-none bg-transparent text-foreground/75 dark:text-white/60 text-[10px] uppercase tracking-[0.12em] font-medium outline-hidden cursor-pointer"
+                className="appearance-none bg-transparent text-zinc-200 text-[12px] tracking-wide font-light pl-4 pr-12 pt-7 pb-3 outline-none focus:bg-[#1a1a1a] focus:text-white transition-all duration-200 cursor-pointer hover:bg-[#161616] hover:text-white min-w-[180px]"
               >
                 <option value="default">{isUa ? "Популярні" : "Popular"}</option>
-                <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
-                <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
+                <option value="price_desc">{isUa ? "Ціна: спадання" : "High → Low"}</option>
+                <option value="price_asc">{isUa ? "Ціна: зростання" : "Low → High"}</option>
               </select>
-              {hasActiveFilters && (
-                <button
-                  onClick={() => {
-                    setActiveBrand("all");
-                    setActiveModel("all");
-                    setActiveChassis("all");
-                    setActiveEngine("all");
-                    setSearchQuery("");
-                    setSortOrder("default");
-                  }}
-                  className="text-[10px] uppercase tracking-wider text-foreground/45 dark:text-white/30 hover:text-foreground dark:hover:text-white transition-colors"
-                >
-                  <X size={12} />
-                </button>
-              )}
+              <div className="pointer-events-none absolute right-4 bottom-3.5 text-zinc-600">
+                <ChevronDown size={13} />
+              </div>
             </div>
           </div>
         </div>
 
         {/* ═══ PRODUCT GRID (Full Width) ═══ */}
-        <div className="pt-8">
+        <div className="pt-8 pb-4">
           {filteredProducts.length === 0 ? (
-            <div className="py-32 text-center bg-black/40 backdrop-blur-xs border border-foreground/12 dark:border-white/5 rounded-none flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-foreground/8 dark:bg-white/5 flex items-center justify-center mb-6">
-                <Search className="w-6 h-6 text-foreground/35 dark:text-white/20" />
+            <div className="py-32 text-center bg-[#0a0a0a] border border-zinc-900 rounded-2xl flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center mb-6">
+                <Search className="w-6 h-6 text-zinc-600" />
               </div>
-              <h3 className="text-xl font-light text-foreground dark:text-white mb-3">
+              <h3 className="text-xl font-light text-white mb-3">
                 {isUa ? "Нічого не знайдено" : "No Components Found"}
               </h3>
-              <p className="text-foreground/65 dark:text-white/50 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+              <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
                 {searchQuery
                   ? isUa
                     ? `Нічого не знайдено за запитом "${searchQuery}"`
@@ -596,14 +556,14 @@ export default function BrabusVehicleFilter({
                   setSearchQuery("");
                   setSortOrder("default");
                 }}
-                className="px-8 py-3 bg-[#c29d59]/15 backdrop-blur-xl border border-[#c29d59]/40 text-foreground dark:text-white text-[10px] uppercase tracking-widest hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 transition-all duration-500 shadow-lg rounded-none font-medium"
+                className="px-8 py-3 bg-[#c29d59]/15 border border-[#c29d59]/40 text-[#f1d8a5] text-[10px] uppercase tracking-widest hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 transition-all duration-500 rounded-none font-medium"
               >
                 {isUa ? "Скинути фільтри" : "Reset Filters"}
               </button>
             </div>
           ) : (
             <>
-              <BrabusSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+              <BrabusSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {displayedProducts.map((product) => {
                   const pricing = viewerContext
                     ? resolveShopProductPricing(product, viewerContext)
@@ -623,77 +583,64 @@ export default function BrabusVehicleFilter({
                   return (
                     <article
                       key={product.slug}
-                      className="group relative bg-card/65 dark:bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-foreground/10 dark:border-white/4 shadow-2xl rounded-none"
+                      className="group relative bg-[#0e0e0e] overflow-hidden flex flex-col transition-all duration-500 border border-zinc-900 hover:border-zinc-700 hover:shadow-[0_0_32px_rgba(194,157,89,0.08)] rounded-2xl"
                     >
                       <Link
                         href={buildShopProductPathBrabus(locale, product)}
                         className="flex flex-col grow z-10"
                       >
-                        {/* Image */}
-                        <div className="relative aspect-square sm:aspect-4/3 bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-foreground/2 dark:border-white/2">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                          <ShopProductImage
-                            src={product.image || "/images/placeholders/product-fallback.svg"}
-                            fallbackSrc={productFallbackImage}
-                            alt={productTitle}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-contain p-2 sm:p-4 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
-                          />
+                        {/* Image — floating white product card on obsidian field */}
+                        <div className="relative aspect-square sm:aspect-[4/3] bg-[#080808] flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+                          {/* Floating photo mount */}
+                          <div className="relative w-full h-full rounded-xl bg-white shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
+                            <ShopProductImage
+                              src={product.image || "/images/placeholders/product-fallback.svg"}
+                              fallbackSrc={productFallbackImage}
+                              alt={productTitle}
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                              className="object-contain p-4 transition-transform duration-700 group-hover:scale-[1.04]"
+                            />
+                          </div>
+                          {/* Bronze vignette on hover */}
+                          <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_50%,rgba(194,157,89,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                         </div>
 
                         {/* Card Body */}
-                        <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col grow">
-                          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
+                        <div className="px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col grow">
+                          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
                             {product.brand}
                           </p>
-                          <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-foreground dark:text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">
+                          <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4">
                             {productTitle}
                           </h3>
-                          <div className="mt-auto">
-                            {computed.eur === 0 ? (
-                              <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-foreground/65 dark:text-white/50">
-                                {isUa ? "Ціна за запитом" : "Price on Request"}
-                              </span>
-                            ) : (
-                              <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white">
-                                {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
-                                {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
-                                {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
-                              </span>
-                            )}
+
+                          {/* Footer */}
+                          <div className="mt-auto flex items-center justify-between">
+                            <div>
+                              {computed.eur === 0 ? (
+                                <span className="text-[9px] sm:text-[10px] tracking-wider uppercase font-medium text-zinc-500">
+                                  {isUa ? "Ціна за запитом" : "Price on Request"}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] sm:text-xs font-light text-[#f1d8a5] tracking-wider sm:tracking-widest">
+                                  {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
+                                  {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
+                                  {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-[#c29d59] font-medium transition-transform duration-300 group-hover:translate-x-1">
+                              <span>{isUa ? "Деталі" : "Details"}</span>
+                              <ArrowRight size={10} className="stroke-[2.5]" />
+                            </div>
                           </div>
                         </div>
 
-                        {/* Hover top accent */}
-                        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                        {/* Bronze top accent line */}
+                        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[#c29d59]/70 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-full" />
                       </Link>
-
-                      {/* Actions */}
-                      <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
-                        <Link
-                          href={buildShopProductPathBrabus(locale, product)}
-                          className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-none"
-                        >
-                          {isUa ? "Деталі" : "View"}
-                          <ArrowRight
-                            size={11}
-                            strokeWidth={2}
-                            className="hidden min-[390px]:block"
-                          />
-                        </Link>
-                        <AddToCartButton
-                          slug={product.slug}
-                          variantId={null}
-                          locale={locale}
-                          redirect={true}
-                          productName={productTitle}
-                          label={isUa ? "КОШИК" : "CART"}
-                          labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-foreground/15 dark:border-white/10 text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.3em] uppercase font-light text-foreground dark:text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-none"
-                          variant="inline"
-                        />
-                      </div>
                     </article>
                   );
                 })}

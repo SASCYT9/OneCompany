@@ -74,6 +74,7 @@ export default async function IpeProductPage({ params }: Props) {
         resolvedLocale={resolvedLocale}
         product={product}
         pricing={pricing}
+        viewerContext={viewerContext}
       />
       <Suspense fallback={null}>
         <CrossShopFitmentSection product={product} locale={resolvedLocale} />
@@ -96,7 +97,7 @@ async function CrossShopFitmentSection({
   const allProducts = await getShopProductsServer();
   const groups = findCrossShopFitmentMatches(product, allProducts, {
     perBrand: 3,
-    totalLimit: 9,
+    totalLimit: 24,
   });
   if (!groups.length) return null;
 

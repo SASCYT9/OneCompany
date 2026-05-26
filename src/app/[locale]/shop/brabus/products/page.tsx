@@ -105,13 +105,13 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
     <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
-      {/* Cinematic video backdrop — only in dark theme */}
-      <div className="fixed inset-0 z-0 hidden dark:block">
+      {/* Cinematic video backdrop */}
+      <div className="fixed inset-0 z-0">
         <BrabusVideoBackground
           videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
           fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg"
         />
-        <div className="absolute inset-0 bg-black/65 backdrop-blur-xl" />
+        <div className="absolute inset-0 bg-transparent dark:bg-black/65 backdrop-blur-xl" />
       </div>
 
       <div className="relative z-10 pt-[100px]">

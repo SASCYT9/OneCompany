@@ -165,29 +165,35 @@ export default function BrabusCollectionProductGrid({
               return (
                 <article
                   key={product.slug}
-                  className="group bg-card dark:bg-[#0a0a0a] rounded-xl overflow-hidden flex flex-col hover:bg-foreground/[0.06] dark:hover:bg-[#111] transition-colors duration-300 border border-foreground/12 dark:border-[#1f1f1f] hover:border-foreground/20 dark:hover:border-[#333]"
+                  className="group relative bg-[#0e0e0e] overflow-hidden flex flex-col transition-all duration-500 border border-zinc-900 hover:border-zinc-700 hover:shadow-[0_0_32px_rgba(194,157,89,0.08)] rounded-2xl"
                 >
                   <Link
                     href={buildShopProductPathBrabus(locale, product)}
                     className="flex flex-col grow"
                     aria-label={productTitle}
                   >
-                    <div className="relative aspect-4/3 bg-card dark:bg-[#0f0f0f] overflow-hidden flex items-center justify-center">
-                      <ShopProductImage
-                        src={product.image || "/images/placeholders/product-fallback.svg"}
-                        fallbackSrc={productFallbackImage}
-                        alt={productTitle}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className="object-contain p-8 transition-transform duration-700 group-hover:scale-105"
-                      />
+                    {/* Image — floating white product card on obsidian field */}
+                    <div className="relative aspect-4/3 sm:aspect-[4/3] bg-[#080808] flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+                      {/* Floating photo mount */}
+                      <div className="relative w-full h-full rounded-xl bg-white shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
+                        <ShopProductImage
+                          src={product.image || "/images/placeholders/product-fallback.svg"}
+                          fallbackSrc={productFallbackImage}
+                          alt={productTitle}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 25vw"
+                          className="object-contain p-4 transition-transform duration-700 group-hover:scale-[1.04]"
+                        />
+                      </div>
+                      {/* Bronze vignette on hover */}
+                      <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_50%,rgba(194,157,89,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                     </div>
 
-                    <div className="p-6 flex flex-col grow relative z-20">
-                      <p className="text-[10px] font-medium uppercase tracking-widest text-foreground/55 dark:text-white/40 mb-2">
+                    <div className="px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col grow relative">
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
                         {product.brand}
                       </p>
-                      <h3 className="text-sm font-medium text-foreground dark:text-white line-clamp-2 mb-3 tracking-wide leading-relaxed">
+                      <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4">
                         {productTitle}
                       </h3>
 
@@ -203,13 +209,11 @@ export default function BrabusCollectionProductGrid({
                         ) : null}
 
                         {computed.eur === 0 ? (
-                          <span className="text-sm font-normal text-foreground/65 dark:text-white/50 tracking-wide">
+                          <span className="text-[9px] sm:text-[10px] tracking-wider uppercase font-medium text-zinc-500">
                             {isUa ? "Ціна за запитом" : "Price on Request"}
                           </span>
                         ) : (
-                          <span
-                            className={`text-sm tracking-wide ${isB2B ? "text-emerald-400 font-medium" : "text-foreground/95 dark:text-white/90 font-normal"}`}
-                          >
+                          <span className="text-[11px] sm:text-xs font-light text-[#f1d8a5] tracking-wider sm:tracking-widest">
                             {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                             {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
                             {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
@@ -218,42 +222,44 @@ export default function BrabusCollectionProductGrid({
                       </div>
 
                       <div className="mt-auto flex items-center justify-between">
-                        <span className="text-xs uppercase tracking-widest text-foreground/65 dark:text-white/50 font-medium group-hover:text-foreground dark:group-hover:text-white transition-colors">
-                          {isUa ? "Переглянути" : "View Details"}
-                        </span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4 text-foreground/45 dark:text-white/30 group-hover:text-foreground dark:group-hover:text-white group-hover:translate-x-1 transition-all"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M5 12h14" />
-                          <path d="m12 5 7 7-7 7" />
-                        </svg>
+                        <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-[#c29d59] font-medium transition-transform duration-300 group-hover:translate-x-1">
+                          <span>{isUa ? "Деталі" : "Details"}</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-2.5 h-2.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
+                    {/* Bronze top accent line */}
+                    <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[#c29d59]/70 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-full" />
                   </Link>
                 </article>
               );
             })}
           </BrabusSpotlightGrid>
         ) : (
-          <div className="urban-product-grid__empty py-24 text-center border border-foreground/15 dark:border-white/10 bg-foreground/6 dark:bg-black/40">
-            <p className="urban-product-grid__empty-title text-xl text-foreground dark:text-white font-medium mb-4">
+          <div className="py-24 text-center border border-zinc-800 bg-[#0a0a0a] rounded-2xl">
+            <p className="text-xl text-white font-light mb-4">
               {isUa ? "Колекція незабаром у каталозі" : "Collection coming to the catalog"}
             </p>
-            <p className="urban-product-grid__empty-copy text-foreground/75 dark:text-white/60 max-w-2xl mx-auto mb-8">
+            <p className="text-zinc-500 max-w-2xl mx-auto mb-8">
               {isUa
                 ? `Ми завершуємо формування преміум-асортименту Brabus для ${title}. Залиште запит, і наш менеджер підбере тюнінг-програму під ваш автомобіль.`
                 : `We are finalizing the premium Brabus assortment for ${title}. Leave a request and our team will curate a tuning program for your car.`}
             </p>
             <Link
               href={`/${locale}/#contact`}
-              className="urban-product-grid__empty-cta inline-block bg-[#ff0000] text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors duration-300"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-[#c29d59]/15 border border-[#c29d59]/40 text-[#f1d8a5] text-[10px] uppercase tracking-widest hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 transition-all duration-500 rounded-none font-medium"
             >
               {isUa ? "Запитати конфігурацію" : "Request configuration"}
             </Link>

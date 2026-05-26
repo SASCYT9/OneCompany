@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -9,6 +10,8 @@ type ShopBackToCatalogLinkProps = {
   /** Visible label (already including the arrow glyph). */
   label: string;
   className?: string;
+  /** Skip router.back() history navigation and force direct navigation to fallbackHref. */
+  disableHistoryBack?: boolean;
 };
 
 /**
@@ -34,13 +37,35 @@ export function ShopBackToCatalogLink({
   fallbackHref,
   label,
   className,
+  disableHistoryBack = false,
 }: ShopBackToCatalogLinkProps) {
   const router = useRouter();
+  const [actualHref, setActualHref] = useState(fallbackHref);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.sessionStorage.getItem("do88VehiclePreference");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.brand || parsed.model || parsed.chassis)) {
+        const url = new URL(fallbackHref, window.location.origin);
+        if (parsed.brand) url.searchParams.set("brand", parsed.brand);
+        if (parsed.model) url.searchParams.set("model", parsed.model);
+        if (parsed.chassis) url.searchParams.set("chassis", parsed.chassis);
+        setActualHref(url.pathname + url.search);
+      }
+    } catch {
+      // ignore
+    }
+  }, [fallbackHref]);
 
   const onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // Respect modifier-clicks (open in new tab, etc.).
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (event.button !== 0) return;
+
+    if (disableHistoryBack) return;
 
     if (typeof window === "undefined") return;
 
@@ -61,11 +86,10 @@ export function ShopBackToCatalogLink({
       event.preventDefault();
       router.back();
     }
-    // else: let the <Link> navigate to fallbackHref normally.
   };
 
   return (
-    <Link href={fallbackHref} onClick={onClick} className={className}>
+    <Link href={actualHref} onClick={onClick} className={className}>
       {label}
     </Link>
   );

@@ -1,6 +1,6 @@
-import { load } from 'cheerio';
-import type { Element } from 'domhandler';
-import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+import { load } from "cheerio";
+import type { Element } from "domhandler";
+import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 
 export type ShopProductDescriptionSpec = {
   label: string;
@@ -15,7 +15,7 @@ export type ShopProductDescriptionSections = {
   specs: ShopProductDescriptionSpec[];
 };
 
-type SectionKind = 'features' | 'included' | 'excluded';
+type SectionKind = "features" | "included" | "excluded";
 
 const FEATURES_HEADINGS = [
   /^key features:?$/i,
@@ -24,6 +24,10 @@ const FEATURES_HEADINGS = [
   /^основні характеристики:?$/i,
   /^ключові характеристики:?$/i,
   /^ключові переваги:?$/i,
+  /^переваги:?$/i,
+  /^advantages:?$/i,
+  /^advantages of.*$/i,
+  /^переваги високопродуктивного.*$/i,
 ];
 
 const INCLUDED_HEADINGS = [
@@ -101,25 +105,25 @@ const SPEC_LABELS = [
 const SPEC_LABEL_HINT_RE = /^[\p{L}][\p{L}0-9 .,/&()-]{1,40}$/u;
 
 function normalizeText(value: string | null | undefined) {
-  return String(value ?? '')
-    .replace(/\u00a0/g, ' ')
-    .replace(/\s+/g, ' ')
+  return String(value ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function escapeHtml(value: string) {
   return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function pushUnique(target: string[], values: string[]) {
   for (const value of values) {
     const normalized = normalizeText(value)
-      .replace(/^[-*•—–]+\s*/, '')
+      .replace(/^[-*•—–]+\s*/, "")
       .trim();
 
     if (!normalized) {
@@ -136,23 +140,26 @@ function detectSectionHeading(text: string): SectionKind | null {
   const normalized = normalizeText(text);
 
   if (FEATURES_HEADINGS.some((pattern) => pattern.test(normalized))) {
-    return 'features';
+    return "features";
   }
 
   if (INCLUDED_HEADINGS.some((pattern) => pattern.test(normalized))) {
-    return 'included';
+    return "included";
   }
 
   if (EXCLUDED_HEADINGS.some((pattern) => pattern.test(normalized))) {
-    return 'excluded';
+    return "excluded";
   }
 
   return null;
 }
 
-function parseSpec(text: string, options: { lenient?: boolean } = {}): ShopProductDescriptionSpec | null {
+function parseSpec(
+  text: string,
+  options: { lenient?: boolean } = {}
+): ShopProductDescriptionSpec | null {
   const normalized = normalizeText(text);
-  const separatorIndex = normalized.indexOf(':');
+  const separatorIndex = normalized.indexOf(":");
 
   if (separatorIndex <= 0) {
     return null;
@@ -169,7 +176,7 @@ function parseSpec(text: string, options: { lenient?: boolean } = {}): ShopProdu
     return { label, value };
   }
 
-  if (options.lenient && SPEC_LABEL_HINT_RE.test(label) && !value.includes(':')) {
+  if (options.lenient && SPEC_LABEL_HINT_RE.test(label) && !value.includes(":")) {
     return { label, value };
   }
 
@@ -179,7 +186,7 @@ function parseSpec(text: string, options: { lenient?: boolean } = {}): ShopProdu
 function splitInlineItems(value: string) {
   return value
     .split(/\s*(?:\||•|·|;|\n)\s*/)
-    .map((item) => item.replace(/^[-*•—–]+\s*/, ''))
+    .map((item) => item.replace(/^[-*•—–]+\s*/, ""))
     .map((item) => normalizeText(item))
     .filter(Boolean);
 }
@@ -187,9 +194,9 @@ function splitInlineItems(value: string) {
 function parsePrefixedSection(text: string): { section: SectionKind; items: string[] } | null {
   const normalized = normalizeText(text);
   const patterns: Array<{ section: SectionKind; matchers: RegExp[] }> = [
-    { section: 'features', matchers: FEATURES_HEADINGS },
-    { section: 'included', matchers: INCLUDED_HEADINGS },
-    { section: 'excluded', matchers: EXCLUDED_HEADINGS },
+    { section: "features", matchers: FEATURES_HEADINGS },
+    { section: "included", matchers: INCLUDED_HEADINGS },
+    { section: "excluded", matchers: EXCLUDED_HEADINGS },
   ];
 
   for (const { section, matchers } of patterns) {
@@ -211,13 +218,17 @@ function parsePrefixedSection(text: string): { section: SectionKind; items: stri
   return null;
 }
 
-function pushToSection(target: ShopProductDescriptionSections, section: SectionKind, items: string[]) {
-  if (section === 'features') {
+function pushToSection(
+  target: ShopProductDescriptionSections,
+  section: SectionKind,
+  items: string[]
+) {
+  if (section === "features") {
     pushUnique(target.features, items);
     return;
   }
 
-  if (section === 'included') {
+  if (section === "included") {
     pushUnique(target.included, items);
     return;
   }
@@ -227,7 +238,7 @@ function pushToSection(target: ShopProductDescriptionSections, section: SectionK
 
 function createEmptySections(): ShopProductDescriptionSections {
   return {
-    introHtml: '',
+    introHtml: "",
     features: [],
     included: [],
     excluded: [],
@@ -244,10 +255,10 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
   let lastIntroFragmentWasCustomHeading = false;
 
   const visit = (element: Element) => {
-    const tagName = element.tagName?.toLowerCase() ?? '';
+    const tagName = element.tagName?.toLowerCase() ?? "";
     const childElements = $(element).children().toArray();
 
-    if (['div', 'section', 'article'].includes(tagName) && childElements.length > 0) {
+    if (["div", "section", "article"].includes(tagName) && childElements.length > 0) {
       childElements.forEach((child) => visit(child));
       return;
     }
@@ -259,15 +270,15 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
     }
 
     const sectionHeading = detectSectionHeading(text);
-    if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === 'p' || tagName === 'div')) {
+    if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === "p" || tagName === "div")) {
       activeSection = sectionHeading;
       lastIntroFragmentWasCustomHeading = false;
       return;
     }
 
-    if (tagName === 'ul' || tagName === 'ol') {
+    if (tagName === "ul" || tagName === "ol") {
       const items = $(element)
-        .find('li')
+        .find("li")
         .map((__, item) => normalizeText($(item).text()))
         .get()
         .filter(Boolean);
@@ -292,7 +303,11 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
 
         if (parsedSpecs.length >= 2 && parsedSpecs.length >= items.length - 1) {
           parsedSpecs.forEach((spec) => {
-            if (!sections.specs.some((existing) => existing.label === spec.label && existing.value === spec.value)) {
+            if (
+              !sections.specs.some(
+                (existing) => existing.label === spec.label && existing.value === spec.value
+              )
+            ) {
               sections.specs.push(spec);
             }
           });
@@ -326,7 +341,7 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
       return;
     }
 
-    if (activeSection && tagName === 'p') {
+    if (activeSection && tagName === "p") {
       const listItems = splitInlineItems(text);
       if (listItems.length > 1) {
         pushToSection(sections, activeSection, listItems);
@@ -339,12 +354,12 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
     lastIntroFragmentWasCustomHeading = /^h[1-6]$/.test(tagName);
   };
 
-  $('body')
+  $("body")
     .children()
     .toArray()
     .forEach((element) => visit(element));
 
-  sections.introHtml = introFragments.join('').trim();
+  sections.introHtml = introFragments.join("").trim();
   return sections;
 }
 
@@ -385,12 +400,12 @@ function parsePlainTextDescription(source: string): ShopProductDescriptionSectio
       introLines.push(line);
     });
 
-  sections.introHtml = introLines.map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+  sections.introHtml = introLines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
   return sections;
 }
 
 export function extractShopProductDescriptionSections(source: string | null | undefined) {
-  const normalized = String(source ?? '').trim();
+  const normalized = String(source ?? "").trim();
   if (!normalized) {
     return createEmptySections();
   }

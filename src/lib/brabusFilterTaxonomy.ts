@@ -85,3 +85,23 @@ export const BRABUS_MODELS_BY_BRAND: Record<string, string[]> = {
   "Range Rover": ["P530"],
   smart: ["smart #1", "smart #3"],
 };
+
+export const BRABUS_CHASSIS_BY_MODEL: Record<string, string[]> = {
+  "G-Klasse": ["W 463A", "W 465"],
+  "A-Klasse": ["W 177"],
+  "C-Klasse": ["S 206", "W 206"],
+  "CLS-Klasse": ["C 257"],
+  "E-Klasse": ["S 214", "W 214"],
+  EQC: ["N 293"],
+  "EQS-Klasse": ["V 297"],
+  "GLB-Klasse": ["X 247"],
+  "GLC-Klasse": ["X 254"],
+  "GLE-Klasse": ["C 167", "V 167"],
+  "GLS-Klasse": ["X 167"],
+  "GT-Klasse": ["C 192", "X 290"],
+  "S-Klasse": ["A 217", "C 217", "V 223", "W 223", "Z 223"],
+  "SL-Klasse": ["R 232"],
+  "V-Klasse": ["W 447"],
+  "X-Klasse": ["W 470"],
+  P530: ["P 530"],
+};

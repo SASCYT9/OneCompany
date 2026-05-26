@@ -550,6 +550,9 @@ export default function BrabusHomeSignature({ locale }: Props) {
           position: absolute;
           inset: 0;
           z-index: 1;
+          background: transparent;
+        }
+        .dark .br-hero__overlay {
           background: linear-gradient(
             105deg,
             rgba(0, 0, 0, 0.92) 0%,
@@ -561,6 +564,9 @@ export default function BrabusHomeSignature({ locale }: Props) {
           position: absolute;
           inset: 0;
           z-index: 1;
+          background: transparent;
+        }
+        .dark .br-hero__vignette {
           background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 40%);
         }
         .br-hero__accent-line {
@@ -1194,6 +1200,9 @@ export default function BrabusHomeSignature({ locale }: Props) {
         .br-rocket__overlay {
           position: absolute;
           inset: 0;
+          background: transparent;
+        }
+        .dark .br-rocket__overlay {
           background: linear-gradient(
             105deg,
             rgba(0, 0, 0, 0.9) 0%,

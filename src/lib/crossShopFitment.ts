@@ -14,102 +14,340 @@
  * signals don't align with the rest of the lineup.
  */
 
-import type { ShopProduct } from '@/lib/shopCatalog';
-import { detectAdroMakes, detectAdroModels, isAdroProduct } from '@/lib/adroCatalog';
-import { resolveIpeVehicleBrand, resolveIpeVehicleModel } from '@/lib/ipeCatalog';
-import { extractCsfCatalogFitment } from '@/lib/csfCatalog';
-import { detectOhlinsMake } from '@/lib/ohlinsCatalog';
-import { extractVehicleBrand, extractVehicleModel } from '@/lib/akrapovicFilterUtils';
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { detectAdroMakes, detectAdroModels, isAdroProduct } from "@/lib/adroCatalog";
+import { resolveIpeVehicleBrand, resolveIpeVehicleModel } from "@/lib/ipeCatalog";
+import { extractCsfCatalogFitment } from "@/lib/csfCatalog";
+import { detectOhlinsMake } from "@/lib/ohlinsCatalog";
+import { extractVehicleBrand, extractVehicleModel } from "@/lib/akrapovicFilterUtils";
 
 /* ── Excluded brands (no recommendations to or from these) ───── */
 
-const EXCLUDED_BRAND_TOKENS = ['urban', 'brabus', 'turn14', 'turn 14'];
+const EXCLUDED_BRAND_TOKENS = ["urban", "brabus", "turn14", "turn 14"];
 
-export function isExcludedFromCrossShop(product: Pick<ShopProduct, 'brand' | 'vendor'>) {
-  const brand = String(product.brand ?? '').trim().toLowerCase();
-  const vendor = String(product.vendor ?? '').trim().toLowerCase();
-  return EXCLUDED_BRAND_TOKENS.some(
-    (token) => brand.includes(token) || vendor.includes(token)
-  );
+export function isExcludedFromCrossShop(product: Pick<ShopProduct, "brand" | "vendor">) {
+  const brand = String(product.brand ?? "")
+    .trim()
+    .toLowerCase();
+  const vendor = String(product.vendor ?? "")
+    .trim()
+    .toLowerCase();
+  return EXCLUDED_BRAND_TOKENS.some((token) => brand.includes(token) || vendor.includes(token));
 }
 
 /* ── Chassis-code dictionary (shared across brands) ───────────── */
 
 const CHASSIS_CODES = new Set([
   // BMW
-  'E30', 'E36', 'E46', 'E82', 'E87', 'E90', 'E91', 'E92', 'E93',
-  'F06', 'F10', 'F12', 'F13', 'F15', 'F16', 'F20', 'F22', 'F30',
-  'F31', 'F32', 'F33', 'F34', 'F36', 'F40', 'F80', 'F82', 'F83',
-  'F85', 'F86', 'F87', 'F90', 'F91', 'F92', 'F93', 'F95', 'F96',
-  'F97', 'F98',
-  'G01', 'G02', 'G05', 'G06', 'G07', 'G08', 'G11', 'G12', 'G14',
-  'G15', 'G16', 'G20', 'G21', 'G22', 'G23', 'G26', 'G29', 'G30',
-  'G31', 'G32', 'G42', 'G43', 'G70', 'G80', 'G81', 'G82', 'G83',
-  'G87', 'G8X', 'G90',
+  "E30",
+  "E36",
+  "E46",
+  "E82",
+  "E87",
+  "E90",
+  "E91",
+  "E92",
+  "E93",
+  "F06",
+  "F10",
+  "F12",
+  "F13",
+  "F15",
+  "F16",
+  "F20",
+  "F22",
+  "F30",
+  "F31",
+  "F32",
+  "F33",
+  "F34",
+  "F36",
+  "F40",
+  "F80",
+  "F82",
+  "F83",
+  "F85",
+  "F86",
+  "F87",
+  "F90",
+  "F91",
+  "F92",
+  "F93",
+  "F95",
+  "F96",
+  "F97",
+  "F98",
+  "G01",
+  "G02",
+  "G05",
+  "G06",
+  "G07",
+  "G08",
+  "G11",
+  "G12",
+  "G14",
+  "G15",
+  "G16",
+  "G20",
+  "G21",
+  "G22",
+  "G23",
+  "G26",
+  "G29",
+  "G30",
+  "G31",
+  "G32",
+  "G42",
+  "G43",
+  "G70",
+  "G80",
+  "G81",
+  "G82",
+  "G83",
+  "G87",
+  "G8X",
+  "G90",
   // Audi / VW
-  'B7', 'B8', 'B8.5', 'B9', 'B9.5', 'C7', 'C8', 'D5', 'PQ35',
-  '8V', '8V.1', '8V.2',
-  '8Y', '8Y.1', '8Y.2',
-  '8S', '8R', '4M', '4G', '4F',
+  "B7",
+  "B8",
+  "B8.5",
+  "B9",
+  "B9.5",
+  "C7",
+  "C8",
+  "D5",
+  "PQ35",
+  "8V",
+  "8V.1",
+  "8V.2",
+  "8Y",
+  "8Y.1",
+  "8Y.2",
+  "8S",
+  "8R",
+  "4M",
+  "4G",
+  "4F",
   // VW chassis
-  'MQB', 'MK7', 'MK7.5', 'MK8',
+  "MQB",
+  "MK7",
+  "MK7.5",
+  "MK8",
   // Porsche
-  '991', '991.1', '991.2', '992', '992.1', '992.2', '718', '981',
-  '982', '987', '987.1', '987.2', '986', '996', '997', '997.1', '997.2',
-  '9YA', '9Y0', '9YB', '9PA', '95B', '95B.1', '95B.2',
+  "991",
+  "991.1",
+  "991.2",
+  "992",
+  "992.1",
+  "992.2",
+  "718",
+  "981",
+  "982",
+  "987",
+  "987.1",
+  "987.2",
+  "986",
+  "996",
+  "997",
+  "997.1",
+  "997.2",
+  "9YA",
+  "9Y0",
+  "9YB",
+  "9PA",
+  "95B",
+  "95B.1",
+  "95B.2",
   // Mercedes
-  'W124', 'W201', 'W202', 'W203', 'W204', 'W205', 'W206',
-  'W210', 'W211', 'W212', 'W213', 'W214',
-  'W220', 'W221', 'W222', 'W223',
-  'W163', 'W164', 'W166', 'W167',
-  'W463', 'W464', 'W465', 'W176', 'W177', 'W246', 'W247',
-  'C124', 'C140', 'C190', 'C197', 'C217',
-  'C167', 'X167',
-  'R107', 'R129', 'R171', 'R172', 'R230', 'R231', 'R232',
+  "W124",
+  "W201",
+  "W202",
+  "W203",
+  "W204",
+  "W205",
+  "W206",
+  "W210",
+  "W211",
+  "W212",
+  "W213",
+  "W214",
+  "W220",
+  "W221",
+  "W222",
+  "W223",
+  "W163",
+  "W164",
+  "W166",
+  "W167",
+  "W463",
+  "W464",
+  "W465",
+  "W176",
+  "W177",
+  "W246",
+  "W247",
+  "C124",
+  "C140",
+  "C190",
+  "C197",
+  "C217",
+  "C167",
+  "X167",
+  "R107",
+  "R129",
+  "R171",
+  "R172",
+  "R230",
+  "R231",
+  "R232",
   // Range Rover / Land Rover
-  'L405', 'L460', 'L461', 'L462', 'L494', 'L538', 'L551', 'L663',
+  "L405",
+  "L460",
+  "L461",
+  "L462",
+  "L494",
+  "L538",
+  "L551",
+  "L663",
   // Lamborghini / Ferrari / McLaren / others
-  'LP610', 'LP640', 'LP700', 'LP740', 'LP750',
+  "LP610",
+  "LP640",
+  "LP700",
+  "LP740",
+  "LP750",
   // Toyota / Subaru / Honda / Nissan
-  'A90', 'A91', 'GR86', 'AE86', 'JZA80', 'JZA90',
-  'FK8', 'FL5', 'FK7', 'FN2',
-  'NA', 'NB', 'NC', 'ND',
+  "A90",
+  "A91",
+  "GR86",
+  "AE86",
+  "JZA80",
+  "JZA90",
+  "FK8",
+  "FL5",
+  "FK7",
+  "FN2",
+  "NA",
+  "NB",
+  "NC",
+  "ND",
   // Subaru WRX/STI generations
-  'GC', 'GD', 'GE', 'GH', 'GR', 'GV', 'VA', 'VB',
-  'VAB', 'VAG', 'VAF',
+  "GC",
+  "GD",
+  "GE",
+  "GH",
+  "GR",
+  "GV",
+  "VA",
+  "VB",
+  "VAB",
+  "VAG",
+  "VAF",
   // Subaru BRZ / Toyota 86 (sibling chassis)
-  'ZN6', 'ZN8', 'ZD8', 'ZC6', 'ZC32',
-  'JCW',
-  'R35', 'RZ34', 'Z34', 'Z33',
+  "ZN6",
+  "ZN8",
+  "ZD8",
+  "ZC6",
+  "ZC32",
+  "JCW",
+  "R35",
+  "RZ34",
+  "Z34",
+  "Z33",
 ]);
 
 /* ── Make detection (shared) ──────────────────────────────────── */
 
 const MAKE_PATTERNS: Array<{ label: string; patterns: RegExp[] }> = [
-  { label: 'BMW', patterns: [/\bBMW\b/i, /\bM[2-5]\b/i, /\bX[3-6]M\b/i] },
-  { label: 'Porsche', patterns: [/\bporsche\b/i, /\b911\b/i, /\b992\b/i, /\b991\b/i, /\b718\b/i, /\bcayenne\b/i, /\bpanamera\b/i, /\bmacan\b/i, /\btaycan\b/i] },
-  { label: 'Toyota', patterns: [/\btoyota\b/i, /\bsupra\b/i, /\bgr86\b/i, /\bgr\s*yaris\b/i, /\bgr\s*corolla\b/i] },
-  { label: 'Subaru', patterns: [/\bsubaru\b/i, /\bbrz\b/i, /\bsti\b/i, /\bwrx\b/i] },
-  { label: 'Tesla', patterns: [/\btesla\b/i, /\bmodel\s*[3sxy]\b/i] },
-  { label: 'Ford', patterns: [/\bford\b/i, /\bmustang\b/i, /\bfocus\s*rs\b/i] },
-  { label: 'Kia', patterns: [/\bkia\b/i, /\bstinger\b/i] },
-  { label: 'Honda', patterns: [/\bhonda\b/i, /\bcivic\b/i, /\btype[-\s]r\b/i] },
-  { label: 'Hyundai', patterns: [/\bhyundai\b/i, /\belantra\b/i, /\bveloster\b/i, /\bi30\s*n\b/i] },
-  { label: 'Genesis', patterns: [/\bgenesis\b/i, /\bgv70\b/i, /\bgv80\b/i, /\bg70\b/i] },
-  { label: 'Chevrolet', patterns: [/\bchevrolet\b/i, /\bcorvette\b/i, /\bcamaro\b/i] },
-  { label: 'Audi', patterns: [/\baudi\b/i, /\brs[3-7]\b/i, /\brsq[3-8]\b/i, /\br8\b/i, /\btt\s*rs\b/i] },
-  { label: 'Volkswagen', patterns: [/\bvolkswagen\b/i, /\bgolf\s*r\b/i, /\bgolf\s*gti\b/i, /\b\bgolf\b/i] },
-  { label: 'Mercedes-AMG', patterns: [/\bmercedes\s*amg\b/i, /\bamg\s*(c63|e63|gt|s63|cla|gle|gls)\b/i, /\bc63\b/i, /\be63\b/i, /\bg63\b/i, /\bgt\s*63\b/i] },
-  { label: 'Mercedes-Benz', patterns: [/\bmercedes\s*benz\b/i, /\bmercedes-benz\b/i, /\bmercedes\b/i] },
-  { label: 'Lamborghini', patterns: [/\blamborghini\b/i, /\baventador\b/i, /\bhuracan\b/i, /\burus\b/i, /\brevuelto\b/i] },
-  { label: 'McLaren', patterns: [/\bmclaren\b/i, /\b570s\b/i, /\b600lt\b/i, /\b720s\b/i, /\b765lt\b/i, /\bartura\b/i] },
-  { label: 'Ferrari', patterns: [/\bferrari\b/i, /\b458\b/i, /\b488\b/i, /\bf8\b/i, /\b296\b/i, /\b812\b/i, /\bportofino\b/i, /\bpurosangue\b/i, /\broma\b/i] },
-  { label: 'Maserati', patterns: [/\bmaserati\b/i, /\bgranturismo\b/i, /\bgrecale\b/i, /\blevante\b/i] },
-  { label: 'Aston Martin', patterns: [/\baston\s*martin\b/i, /\bvantage\b/i, /\bdb11\b/i, /\bdbx\b/i] },
-  { label: 'Nissan', patterns: [/\bnissan\b/i, /\bgt-r\b/i, /\bgtr\b/i, /\b370z\b/i, /\b350z\b/i, /\bz\s*nismo\b/i] },
-  { label: 'Mitsubishi', patterns: [/\bmitsubishi\b/i, /\blancer\s*evo\b/i] },
-  { label: 'Mazda', patterns: [/\bmazda\b/i, /\bmx[-\s]?5\b/i, /\bmiata\b/i] },
-  { label: 'Lotus', patterns: [/\blotus\b/i, /\belise\b/i, /\bexige\b/i, /\bemira\b/i, /\bevora\b/i] },
+  { label: "BMW", patterns: [/\bBMW\b/i, /\bM[2-5]\b/i, /\bX[3-6]M\b/i] },
+  {
+    label: "Porsche",
+    patterns: [
+      /\bporsche\b/i,
+      /\b911\b/i,
+      /\b992\b/i,
+      /\b991\b/i,
+      /\b718\b/i,
+      /\bcayenne\b/i,
+      /\bpanamera\b/i,
+      /\bmacan\b/i,
+      /\btaycan\b/i,
+    ],
+  },
+  {
+    label: "Toyota",
+    patterns: [/\btoyota\b/i, /\bsupra\b/i, /\bgr86\b/i, /\bgr\s*yaris\b/i, /\bgr\s*corolla\b/i],
+  },
+  { label: "Subaru", patterns: [/\bsubaru\b/i, /\bbrz\b/i, /\bsti\b/i, /\bwrx\b/i] },
+  { label: "Tesla", patterns: [/\btesla\b/i, /\bmodel\s*[3sxy]\b/i] },
+  { label: "Ford", patterns: [/\bford\b/i, /\bmustang\b/i, /\bfocus\s*rs\b/i] },
+  { label: "Kia", patterns: [/\bkia\b/i, /\bstinger\b/i] },
+  { label: "Honda", patterns: [/\bhonda\b/i, /\bcivic\b/i, /\btype[-\s]r\b/i] },
+  { label: "Hyundai", patterns: [/\bhyundai\b/i, /\belantra\b/i, /\bveloster\b/i, /\bi30\s*n\b/i] },
+  { label: "Genesis", patterns: [/\bgenesis\b/i, /\bgv70\b/i, /\bgv80\b/i, /\bg70\b/i] },
+  { label: "Chevrolet", patterns: [/\bchevrolet\b/i, /\bcorvette\b/i, /\bcamaro\b/i] },
+  {
+    label: "Audi",
+    patterns: [/\baudi\b/i, /\brs[3-7]\b/i, /\brsq[3-8]\b/i, /\br8\b/i, /\btt\s*rs\b/i],
+  },
+  {
+    label: "Volkswagen",
+    patterns: [/\bvolkswagen\b/i, /\bgolf\s*r\b/i, /\bgolf\s*gti\b/i, /\b\bgolf\b/i],
+  },
+  {
+    label: "Mercedes-AMG",
+    patterns: [
+      /\bmercedes\s*amg\b/i,
+      /\bamg\s*(c63|e63|gt|s63|cla|gle|gls)\b/i,
+      /\bc63\b/i,
+      /\be63\b/i,
+      /\bg63\b/i,
+      /\bgt\s*63\b/i,
+    ],
+  },
+  {
+    label: "Mercedes-Benz",
+    patterns: [/\bmercedes\s*benz\b/i, /\bmercedes-benz\b/i, /\bmercedes\b/i],
+  },
+  {
+    label: "Lamborghini",
+    patterns: [/\blamborghini\b/i, /\baventador\b/i, /\bhuracan\b/i, /\burus\b/i, /\brevuelto\b/i],
+  },
+  {
+    label: "McLaren",
+    patterns: [/\bmclaren\b/i, /\b570s\b/i, /\b600lt\b/i, /\b720s\b/i, /\b765lt\b/i, /\bartura\b/i],
+  },
+  {
+    label: "Ferrari",
+    patterns: [
+      /\bferrari\b/i,
+      /\b458\b/i,
+      /\b488\b/i,
+      /\bf8\b/i,
+      /\b296\b/i,
+      /\b812\b/i,
+      /\bportofino\b/i,
+      /\bpurosangue\b/i,
+      /\broma\b/i,
+    ],
+  },
+  {
+    label: "Maserati",
+    patterns: [/\bmaserati\b/i, /\bgranturismo\b/i, /\bgrecale\b/i, /\blevante\b/i],
+  },
+  {
+    label: "Aston Martin",
+    patterns: [/\baston\s*martin\b/i, /\bvantage\b/i, /\bdb11\b/i, /\bdbx\b/i],
+  },
+  {
+    label: "Nissan",
+    patterns: [/\bnissan\b/i, /\bgt-r\b/i, /\bgtr\b/i, /\b370z\b/i, /\b350z\b/i, /\bz\s*nismo\b/i],
+  },
+  { label: "Mitsubishi", patterns: [/\bmitsubishi\b/i, /\blancer\s*evo\b/i] },
+  { label: "Mazda", patterns: [/\bmazda\b/i, /\bmx[-\s]?5\b/i, /\bmiata\b/i] },
+  {
+    label: "Lotus",
+    patterns: [/\blotus\b/i, /\belise\b/i, /\bexige\b/i, /\bemira\b/i, /\bevora\b/i],
+  },
 ];
 
 /* ── Public API ───────────────────────────────────────────────── */
@@ -135,10 +373,10 @@ function lower(value: string) {
  *  model label so "S Class W221 2005 To 2013" → "S Class W221". */
 function stripYearNoise(value: string) {
   return value
-    .replace(/\b(?:from|to|до|з)\b/gi, ' ')
-    .replace(/\b(?:19|20)\d{2}\s*[-–—]\s*(?:19|20)?\d{2,4}/g, ' ')
-    .replace(/\b(?:19|20)\d{2}\b/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/\b(?:from|to|до|з)\b/gi, " ")
+    .replace(/\b(?:19|20)\d{2}\s*[-–—]\s*(?:19|20)?\d{2,4}/g, " ")
+    .replace(/\b(?:19|20)\d{2}\b/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -152,9 +390,9 @@ function buildSearchText(product: ShopProduct): string {
     product.slug,
     product.sku,
   ]
-    .map((value) => String(value ?? '').trim())
+    .map((value) => String(value ?? "").trim())
     .filter(Boolean)
-    .join(' | ');
+    .join(" | ");
 }
 
 function detectMakeGeneric(text: string): string | null {
@@ -174,7 +412,10 @@ function extractChassisFromText(text: string): string[] {
     const inside = match[1];
     const tokens = inside.split(/[/,;\s]+/);
     for (const raw of tokens) {
-      const upper = raw.trim().toUpperCase().replace(/[.,]+$/, '');
+      const upper = raw
+        .trim()
+        .toUpperCase()
+        .replace(/[.,]+$/, "");
       if (CHASSIS_CODES.has(upper)) {
         found.add(upper);
       }
@@ -194,9 +435,11 @@ function extractTagModels(product: ShopProduct): string[] {
   const tags = product.tags ?? [];
   const models: string[] = [];
   for (const tag of tags) {
-    const normalized = String(tag ?? '').trim().toLowerCase();
-    if (normalized.startsWith('car_model:')) {
-      models.push(normalized.slice('car_model:'.length).replace(/[-_]/g, ' '));
+    const normalized = String(tag ?? "")
+      .trim()
+      .toLowerCase();
+    if (normalized.startsWith("car_model:")) {
+      models.push(normalized.slice("car_model:".length).replace(/[-_]/g, " "));
     }
   }
   return models;
@@ -206,9 +449,11 @@ function extractTagMake(product: ShopProduct): string | null {
   const tags = product.tags ?? [];
   // Pass 1: prefer the dedicated `car_make:` tag.
   for (const tag of tags) {
-    const normalized = String(tag ?? '').trim().toLowerCase();
-    if (!normalized.startsWith('car_make:')) continue;
-    const slug = normalized.slice('car_make:'.length);
+    const normalized = String(tag ?? "")
+      .trim()
+      .toLowerCase();
+    if (!normalized.startsWith("car_make:")) continue;
+    const slug = normalized.slice("car_make:".length);
     const match = MAKE_PATTERNS.find((entry) => entry.label.toLowerCase() === slug);
     if (match) return match.label;
     return slug.charAt(0).toUpperCase() + slug.slice(1);
@@ -218,9 +463,11 @@ function extractTagMake(product: ShopProduct): string | null {
   // (Girodisc) use `brand:girodisc` for the vendor — that latter case must NOT
   // be misread as a vehicle make.
   for (const tag of tags) {
-    const normalized = String(tag ?? '').trim().toLowerCase();
-    if (!normalized.startsWith('brand:')) continue;
-    const slug = normalized.slice('brand:'.length);
+    const normalized = String(tag ?? "")
+      .trim()
+      .toLowerCase();
+    if (!normalized.startsWith("brand:")) continue;
+    const slug = normalized.slice("brand:".length);
     const match = MAKE_PATTERNS.find((entry) => entry.label.toLowerCase() === slug);
     if (match) return match.label;
   }
@@ -231,9 +478,103 @@ function extractTagMake(product: ShopProduct): string | null {
  * Extract fitment from any product, delegating to the brand-specific
  * extractor when available and falling back to generic detection.
  */
+const MODEL_PATTERNS: Record<string, RegExp[]> = {
+  Porsche: [
+    /\b911\s+gt3\s+rs\b/i,
+    /\b911\s+gt3\b/i,
+    /\b911\s+turbo\s+s\b/i,
+    /\b911\s+turbo\b/i,
+    /\b911\s+carrera\b/i,
+    /\b911\b/i,
+    /\b718\b/i,
+    /\bcayman\b/i,
+    /\bboxster\b/i,
+    /\bmacan\b/i,
+    /\bcayenne\b/i,
+    /\bpanamera\b/i,
+  ],
+  BMW: [
+    /\bm2c\b/i,
+    /\bm2\b/i,
+    /\bm3\b/i,
+    /\bm4\b/i,
+    /\bm5\b/i,
+    /\bm8\b/i,
+    /\bx3m\b/i,
+    /\bx4m\b/i,
+    /\bx5m\b/i,
+    /\bx6m\b/i,
+    /\bm340i\b/i,
+    /\bm440i\b/i,
+    /\bz4\b/i,
+  ],
+  Audi: [
+    /\brs3\b/i,
+    /\brs4\b/i,
+    /\brs5\b/i,
+    /\brs6\b/i,
+    /\brs7\b/i,
+    /\bs3\b/i,
+    /\bs4\b/i,
+    /\bs5\b/i,
+    /\bs6\b/i,
+    /\bs7\b/i,
+    /\ba3\b/i,
+    /\ba4\b/i,
+    /\ba5\b/i,
+    /\ba6\b/i,
+    /\ba7\b/i,
+    /\btt\s*rs\b/i,
+    /\btt\s*s\b/i,
+    /\btt\b/i,
+  ],
+  Volkswagen: [/\bgolf\s*gti\b/i, /\bgolf\s*r\b/i, /\bgolf\b/i],
+  Toyota: [/\bsupra\b/i, /\bgr\s*yaris\b/i, /\bgr\s*corolla\b/i, /\bgr86\b/i, /\bgt86\b/i],
+};
+
+function detectModelsFromText(text: string, make: string | null): string[] {
+  if (!make) return [];
+  const normalizedMake = make === "VW" ? "Volkswagen" : make;
+  const patterns = MODEL_PATTERNS[normalizedMake];
+  if (!patterns) return [];
+
+  const found: string[] = [];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      found.push(match[0].toLowerCase());
+    }
+  }
+  return found;
+}
+
+export function porsche911SubmodelsCompatible(a: string, b: string): boolean {
+  const x = a.toLowerCase();
+  const y = b.toLowerCase();
+  if (x.includes("911") && y.includes("911")) {
+    const gt3A = x.includes("gt3");
+    const gt3B = y.includes("gt3");
+    const turboA = x.includes("turbo");
+    const turboB = y.includes("turbo");
+    const carreraA = x.includes("carrera");
+    const carreraB = y.includes("carrera");
+
+    if (gt3A && (turboB || carreraB)) return false;
+    if (turboA && (gt3B || carreraB)) return false;
+    if (carreraA && (gt3B || turboB)) return false;
+  }
+  return true;
+}
+
+/**
+ * Extract fitment from any product, delegating to the brand-specific
+ * extractor when available and falling back to generic detection.
+ */
 export function extractProductFitment(product: ShopProduct): Fitment {
   const text = buildSearchText(product);
-  const brand = String(product.brand ?? '').trim().toLowerCase();
+  const brand = String(product.brand ?? "")
+    .trim()
+    .toLowerCase();
 
   let make: string | null = null;
   let models: string[] = [];
@@ -241,42 +582,43 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   // 1. Brand-specific extractor first (most accurate)
   if (isAdroProduct(product)) {
-    const adroMakes = detectAdroMakes(product).filter((m) => m && m !== 'Other');
+    const adroMakes = detectAdroMakes(product).filter((m) => m && m !== "Other");
     make = adroMakes[0] ?? null;
-    models = detectAdroModels(product).filter((m) => m && m !== 'Other');
-  } else if (brand.includes('csf')) {
+    models = detectAdroModels(product).filter((m) => m && m !== "Other");
+  } else if (brand.includes("csf")) {
     const fitment = extractCsfCatalogFitment(product);
     make = fitment.make;
     models = fitment.models;
     chassis = fitment.chassisCodes;
-  } else if (brand.includes('ohlins') || brand.includes('öhlins')) {
+  } else if (brand.includes("ohlins") || brand.includes("öhlins")) {
     make = detectOhlinsMake(product);
-  } else if (brand === 'akrapovic' || brand === 'akrapovič') {
-    const tokenBrand = extractVehicleBrand(product.title?.en ?? '');
+  } else if (brand === "akrapovic" || brand === "akrapovič") {
+    const tokenBrand = extractVehicleBrand(product.title?.en ?? "");
     make = tokenBrand;
-    const tokenModel = extractVehicleModel(product.title?.en ?? '');
+    const tokenModel = extractVehicleModel(product.title?.en ?? "");
     if (tokenModel) models = [tokenModel];
-  } else if (brand.includes('ipe') || brand.includes('innotech')) {
+  } else if (brand.includes("ipe") || brand.includes("innotech")) {
     make = resolveIpeVehicleBrand(product);
     const ipeModel = resolveIpeVehicleModel(product);
     if (ipeModel) models = [ipeModel];
-  } else if (brand.includes('girodisc')) {
+  } else if (brand.includes("girodisc")) {
     make = extractTagMake(product);
     models = extractTagModels(product);
   }
 
   // 2. Generic fallbacks for anything still missing
   if (!make) make = extractTagMake(product) ?? detectMakeGeneric(text);
-  if (models.length === 0) models = extractTagModels(product);
+  if (models.length === 0) {
+    models = extractTagModels(product);
+    if (models.length === 0) {
+      models = detectModelsFromText(text, make);
+    }
+  }
   if (chassis.length === 0) chassis = extractChassisFromText(text);
 
   return {
     make,
-    models: uniq(
-      models
-        .map((m) => stripYearNoise(lower(m)))
-        .filter(Boolean)
-    ),
+    models: uniq(models.map((m) => stripYearNoise(lower(m))).filter(Boolean)),
     chassisCodes: uniq(chassis.map((c) => c.toUpperCase()).filter(Boolean)),
   };
 }
@@ -292,9 +634,9 @@ const SCORE_MAKE = 6;
 function normalizeModelKey(value: string): string {
   return value
     .toLowerCase()
-    .replace(/[()/]/g, ' ')
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/[()/]/g, " ")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -304,13 +646,13 @@ function normalizeModelKey(value: string): string {
  *  every "Porsche 911 S". */
 function modelHeadToken(value: string): string {
   const normalized = normalizeModelKey(value);
-  for (const token of normalized.split(' ').filter(Boolean)) {
+  for (const token of normalized.split(" ").filter(Boolean)) {
     if (token.length < 3) continue;
     if (/^(19|20)\d{2}$/.test(token)) continue;
-    if (token === 'class' || token === 'series') continue;
+    if (token === "class" || token === "series") continue;
     return token;
   }
-  return '';
+  return "";
 }
 
 /** Threshold beyond which a candidate is considered "fits-everything" — used
@@ -318,19 +660,69 @@ function modelHeadToken(value: string): string {
 const SPECIFICITY_THRESHOLD = 8;
 const SPECIFICITY_PENALTY = 2;
 
+export function areChassisCompatible(a: string, b: string): boolean {
+  const x = a.toUpperCase();
+  const y = b.toUpperCase();
+  if (x === y) return true;
+
+  // MQB platform compatibility
+  const isMqbA =
+    x === "MQB" ||
+    x === "MK7" ||
+    x === "MK7.5" ||
+    x === "MK8" ||
+    x === "8V" ||
+    x === "8Y" ||
+    x === "8S";
+  const isMqbB =
+    y === "MQB" ||
+    y === "MK7" ||
+    y === "MK7.5" ||
+    y === "MK8" ||
+    y === "8V" ||
+    y === "8Y" ||
+    y === "8S";
+  if (isMqbA && isMqbB) return true;
+
+  // BMW F8X platform compatibility
+  const isF8xA = x === "F80" || x === "F82" || x === "F83" || x === "F87" || x === "F8X";
+  const isF8xB = y === "F80" || y === "F82" || y === "F83" || y === "F87" || y === "F8X";
+  if (isF8xA && isF8xB) return true;
+
+  // BMW G8X platform compatibility
+  const isG8xA =
+    x === "G80" || x === "G81" || x === "G82" || x === "G83" || x === "G87" || x === "G8X";
+  const isG8xB =
+    y === "G80" || y === "G81" || y === "G82" || y === "G83" || y === "G87" || y === "G8X";
+  if (isG8xA && isG8xB) return true;
+
+  // Porsche sub-generations
+  if (x.startsWith(y) || y.startsWith(x)) return true;
+
+  return false;
+}
+
 function scoreMatch(target: Fitment, candidate: Fitment): number {
   let score = 0;
   if (target.make && candidate.make && target.make === candidate.make) {
     score += SCORE_MAKE;
   }
 
-  // Chassis match is the strongest signal — any shared code = same platform.
-  let chassisHits = 0;
+  // Chassis match: add base score once if compatible, and a small bonus for each exact match.
+  let hasChassisCompatibility = false;
+  let exactChassisHits = 0;
   for (const code of target.chassisCodes) {
-    if (candidate.chassisCodes.includes(code)) {
-      score += SCORE_CHASSIS;
-      chassisHits += 1;
+    if (candidate.chassisCodes.some((candCode) => areChassisCompatible(code, candCode))) {
+      hasChassisCompatibility = true;
+      if (candidate.chassisCodes.includes(code)) {
+        exactChassisHits += 1;
+      }
     }
+  }
+
+  if (hasChassisCompatibility) {
+    score += SCORE_CHASSIS;
+    score += exactChassisHits * 10; // exact match bonus
   }
 
   // Model match: exact normalized hit > head-token-only hit
@@ -340,12 +732,18 @@ function scoreMatch(target: Fitment, candidate: Fitment): number {
   let tokenHits = 0;
   for (const key of targetKeys) {
     if (candidateKeys.has(key)) {
-      exactHits += 1;
+      if (porsche911SubmodelsCompatible(key, key)) {
+        exactHits += 1;
+      }
       continue;
     }
     const headToken = modelHeadToken(key);
     if (!headToken) continue;
-    if ([...candidateKeys].some((cand) => modelHeadToken(cand) === headToken)) {
+    if (
+      [...candidateKeys].some(
+        (cand) => modelHeadToken(cand) === headToken && porsche911SubmodelsCompatible(key, cand)
+      )
+    ) {
       tokenHits += 1;
     }
   }
@@ -353,8 +751,8 @@ function scoreMatch(target: Fitment, candidate: Fitment): number {
 
   // Hard constraint: when the target has chassis codes (specific platform like
   // M3 G80), require the candidate to share at least one chassis code OR an
-  // exact-normalized model. Otherwise generic-fit parts (e.g. Burger BMS Boost
-  // Tap for "all M-series") flood out the chassis-specific matches.
+  // exact-normalized model.
+  const chassisHits = hasChassisCompatibility ? 1 : 0;
   if (target.chassisCodes.length > 0 && chassisHits === 0 && exactHits === 0) {
     return 0;
   }
@@ -385,20 +783,20 @@ export type CrossShopGroup = {
 };
 
 const BRAND_DISPLAY_OVERRIDES: Record<string, string> = {
-  ipe: 'iPE',
-  'innotech performance exhaust': 'iPE',
-  ohlins: 'Öhlins',
-  öhlins: 'Öhlins',
-  girodisc: 'GiroDisc',
-  csf: 'CSF Racing',
-  'csf racing': 'CSF Racing',
-  do88: 'DO88',
-  adro: 'ADRO',
-  akrapovic: 'Akrapovič',
-  akrapovič: 'Akrapovič',
-  racechip: 'RaceChip',
-  burger: 'Burger Motorsports',
-  'burger motorsports': 'Burger Motorsports',
+  ipe: "iPE",
+  "innotech performance exhaust": "iPE",
+  ohlins: "Öhlins",
+  öhlins: "Öhlins",
+  girodisc: "GiroDisc",
+  csf: "CSF Racing",
+  "csf racing": "CSF Racing",
+  do88: "DO88",
+  adro: "ADRO",
+  akrapovic: "Akrapovič",
+  akrapovič: "Akrapovič",
+  racechip: "RaceChip",
+  burger: "Burger Motorsports",
+  "burger motorsports": "Burger Motorsports",
 };
 
 function brandDisplay(rawBrand: string): { key: string; label: string } {
@@ -425,11 +823,17 @@ export function findCrossShopFitmentMatches(
   if (isExcludedFromCrossShop(currentProduct)) return [];
 
   const targetFitment = extractProductFitment(currentProduct);
-  if (!targetFitment.make && targetFitment.models.length === 0 && targetFitment.chassisCodes.length === 0) {
+  if (
+    !targetFitment.make &&
+    targetFitment.models.length === 0 &&
+    targetFitment.chassisCodes.length === 0
+  ) {
     return [];
   }
 
-  const currentBrandKey = String(currentProduct.brand ?? '').trim().toLowerCase();
+  const currentBrandKey = String(currentProduct.brand ?? "")
+    .trim()
+    .toLowerCase();
   const seenSlugs = new Set<string>([currentProduct.slug]);
   const allMatches: CrossShopMatch[] = [];
 
@@ -437,7 +841,9 @@ export function findCrossShopFitmentMatches(
     if (!candidate?.slug || seenSlugs.has(candidate.slug)) continue;
     if (isExcludedFromCrossShop(candidate)) continue;
 
-    const candidateBrandKey = String(candidate.brand ?? '').trim().toLowerCase();
+    const candidateBrandKey = String(candidate.brand ?? "")
+      .trim()
+      .toLowerCase();
     if (!candidateBrandKey || candidateBrandKey === currentBrandKey) continue;
 
     const candidateFitment = extractProductFitment(candidate);
@@ -447,15 +853,23 @@ export function findCrossShopFitmentMatches(
     seenSlugs.add(candidate.slug);
     allMatches.push({
       product: candidate,
-      brand: candidate.brand ?? '',
+      brand: candidate.brand ?? "",
       score,
       fitment: candidateFitment,
     });
   }
 
-  // Primary: higher score wins. Tiebreak: prefer the candidate with the
-  // narrower chassis list (i.e. truly platform-specific over multi-chassis).
+  // Primary: higher price wins (prefer premium tuning parts). Secondary: higher score.
+  // Tiebreak: prefer candidate with narrower chassis list.
   allMatches.sort((a, b) => {
+    const priceA = a.product.price
+      ? a.product.price.eur || a.product.price.usd || a.product.price.uah || 0
+      : 0;
+    const priceB = b.product.price
+      ? b.product.price.eur || b.product.price.usd || b.product.price.uah || 0
+      : 0;
+    if (priceB !== priceA) return priceB - priceA;
+
     if (b.score !== a.score) return b.score - a.score;
     return a.fitment.chassisCodes.length - b.fitment.chassisCodes.length;
   });
@@ -510,25 +924,27 @@ function prettifyModelLabel(value: string): string {
  * Convenience helper: returns the headline summarizing what vehicle the
  * cross-shop section is targeting (e.g. "Підходить вашому BMW M3 (G80)").
  */
-export function buildCrossShopHeading(
-  fitment: Fitment,
-  locale: 'ua' | 'en'
-): string {
-  const isUa = locale === 'ua';
-  const lead = isUa ? 'Також підходить:' : 'Also fits:';
+export function buildCrossShopHeading(fitment: Fitment, locale: "ua" | "en"): string {
+  const isUa = locale === "ua";
+  const lead = isUa ? "Також підходить:" : "Also fits:";
   const parts: string[] = [];
   if (fitment.make) parts.push(fitment.make);
 
-  // Pick the most specific model label (longest one likely contains chassis)
   if (fitment.models.length > 0) {
     const best = [...fitment.models].sort((a, b) => b.length - a.length)[0];
     parts.push(prettifyModelLabel(best));
-  } else if (fitment.chassisCodes.length > 0) {
-    parts.push(`(${fitment.chassisCodes[0]})`);
+  }
+
+  if (fitment.chassisCodes.length > 0) {
+    const lastPart = parts[parts.length - 1] || "";
+    const chassis = fitment.chassisCodes[0];
+    if (!lastPart.toLowerCase().includes(chassis.toLowerCase())) {
+      parts.push(`(${chassis.toUpperCase()})`);
+    }
   }
 
   if (parts.length === 0) {
-    return isUa ? 'Може зацікавити з інших магазинів' : 'You may also like from other stores';
+    return isUa ? "Може зацікавити з інших магазинів" : "You may also like from other stores";
   }
-  return `${lead} ${parts.join(' ')}`;
+  return `${lead} ${parts.join(" ")}`;
 }

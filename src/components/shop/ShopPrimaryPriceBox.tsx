@@ -79,11 +79,17 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
       <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-foreground/55 dark:text-foreground/40">
         {isUa ? "Ціна" : "Pricing"}
       </p>
-      <p className="mt-1.5 text-3xl font-light tracking-tight text-foreground sm:text-4xl">
+      <p
+        className="mt-1.5 text-3xl font-light tracking-tight text-foreground sm:text-4xl"
+        suppressHydrationWarning={true}
+      >
         {formatPrice(locale, displayAmount, currency)}
       </p>
       {conversionParts.length > 0 ? (
-        <p className="mt-1 text-[13px] font-light tracking-wide text-foreground/65 dark:text-foreground/55">
+        <p
+          className="mt-1 text-[13px] font-light tracking-wide text-foreground/65 dark:text-foreground/55"
+          suppressHydrationWarning={true}
+        >
           {conversionParts.join(" · ")}
         </p>
       ) : null}

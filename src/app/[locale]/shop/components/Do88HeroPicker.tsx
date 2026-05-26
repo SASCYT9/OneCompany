@@ -109,6 +109,22 @@ export default function Do88HeroPicker({ locale }: Props) {
     if (model) params.set("model", model);
     if (chassis) params.set("chassis", chassis);
     const q = params.toString();
+
+    if (typeof window !== "undefined") {
+      try {
+        if (brand || model || chassis) {
+          window.sessionStorage.setItem(
+            "do88VehiclePreference",
+            JSON.stringify({ brand, model, chassis })
+          );
+        } else {
+          window.sessionStorage.removeItem("do88VehiclePreference");
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     router.push(`/${locale}/shop/do88/collections/all${q ? `?${q}` : ""}`);
   }
 
