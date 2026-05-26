@@ -39,7 +39,10 @@ import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 
 const prismaCached = prisma.$extends(withAccelerate());
 const isAccelerateEnabled =
-  typeof process !== "undefined" && (process.env.DATABASE_URL?.startsWith("prisma://") || false);
+  typeof process !== "undefined" &&
+  (process.env.DATABASE_URL?.startsWith("prisma://") ||
+    process.env.DATABASE_URL?.startsWith("prisma+postgres://") ||
+    false);
 import { resolveUrbanThemeAssetUrl } from "@/lib/urbanThemeAssets";
 import { resolveEnglishCategory } from "@/lib/shopCategoryTranslation";
 import {
