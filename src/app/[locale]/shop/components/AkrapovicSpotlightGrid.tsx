@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 /**
  * A wrapper grid that casts a subtle glassmorphism "spotlight"
@@ -16,32 +16,46 @@ export default function AkrapovicSpotlightGrid({
   style?: React.CSSProperties;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setPosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    containerRef.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    containerRef.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
+  const handleMouseEnter = () => {
+    if (!containerRef.current) return;
+    containerRef.current.style.setProperty("--spotlight-opacity", "1");
+  };
+
+  const handleMouseLeave = () => {
+    if (!containerRef.current) return;
+    containerRef.current.style.setProperty("--spotlight-opacity", "0");
   };
 
   return (
     <div
       ref={containerRef}
       className={`relative group ${className}`}
-      style={style}
+      style={
+        {
+          ...style,
+          "--mouse-x": "0px",
+          "--mouse-y": "0px",
+          "--spotlight-opacity": "0",
+        } as React.CSSProperties
+      }
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div
         className="pointer-events-none absolute inset-0 z-10 transition duration-500 will-change-[background]"
         style={{
-          opacity,
-          background: `radial-gradient(800px circle at ${position.x}px ${position.y}px, rgba(229,0,0,0.08), transparent 40%)`,
+          opacity: "var(--spotlight-opacity)",
+          background:
+            "radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(229,0,0,0.08), transparent 40%)",
         }}
       />
       {children}
