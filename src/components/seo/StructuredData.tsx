@@ -282,18 +282,23 @@ export function ProductSchema({
     if (offers.length === 1) {
       schema.offers = buildOfferEntry(offers[0], url);
     } else {
-      const primary = offers[0];
-      const allPrices = offers.map((o) => o.price);
-      schema.offers = {
-        "@type": "AggregateOffer",
-        url,
-        priceCurrency: primary.priceCurrency,
-        lowPrice: Math.min(...allPrices).toFixed(2),
-        highPrice: Math.max(...allPrices).toFixed(2),
-        offerCount: offers.length,
-        availability: SCHEMA_AVAILABILITY[primary.availability],
-        offers: offers.map((o) => buildOfferEntry(o, url)),
-      };
+      const sameCurrency = offers.every((o) => o.priceCurrency === offers[0].priceCurrency);
+      if (sameCurrency) {
+        const primary = offers[0];
+        const allPrices = offers.map((o) => o.price);
+        schema.offers = {
+          "@type": "AggregateOffer",
+          url,
+          priceCurrency: primary.priceCurrency,
+          lowPrice: Math.min(...allPrices).toFixed(2),
+          highPrice: Math.max(...allPrices).toFixed(2),
+          offerCount: offers.length,
+          availability: SCHEMA_AVAILABILITY[primary.availability],
+          offers: offers.map((o) => buildOfferEntry(o, url)),
+        };
+      } else {
+        schema.offers = offers.map((o) => buildOfferEntry(o, url));
+      }
     }
   }
 
