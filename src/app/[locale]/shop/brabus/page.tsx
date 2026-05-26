@@ -36,9 +36,7 @@ export default async function ShopBrabusPage({ params }: Props) {
       ? "Преміальний тюнінг Brabus. Аеродинамічні обвіси, ковані диски та фірмовий ефект 1-Second-Wow."
       : "Premium Brabus tuning. Aerodynamic kits, forged wheels, and the signature 1-Second-Wow effect.";
 
-  const brabusProducts = (await getBrabusProductsServer())
-    .filter((p) => !isFactoryOnlyProduct(p.sku))
-    .filter((p) => !isBrabusExhaustProduct(p));
+  const brabusProducts = await getBrabusProductsServer();
 
   return (
     <>

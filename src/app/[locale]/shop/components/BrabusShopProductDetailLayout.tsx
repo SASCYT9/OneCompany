@@ -147,7 +147,7 @@ export function BrabusShopProductDetailLayout({
         /* ── Grid Layout ──────────────────────── */
         .b-pdp__container {
           display: grid;
-          grid-template-columns: 62% 38%;
+          grid-template-columns: 54% 46%;
           max-width: 1920px;
           margin: 0 auto;
           position: relative;
@@ -180,7 +180,7 @@ export function BrabusShopProductDetailLayout({
           position: relative;
           width: 100%;
           aspect-ratio: 4/3;
-          background: #f8f8f8;
+          background: #ffffff;
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
@@ -277,7 +277,7 @@ export function BrabusShopProductDetailLayout({
           width: 100px;
           height: 75px;
           flex-shrink: 0;
-          background: #f8f8f8;
+          background: #ffffff;
           border-radius: 8px;
           overflow: hidden;
           cursor: pointer;
@@ -411,7 +411,7 @@ export function BrabusShopProductDetailLayout({
 
         /* ── Right: Sticky Info Panel ─────────── */
         .b-pdp__info {
-          padding: 4rem 3rem 8rem 4rem;
+          padding: 4rem clamp(1.5rem, 3.5vw, 3.5rem) 8rem;
           background: var(--b-info-bg);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
@@ -424,7 +424,7 @@ export function BrabusShopProductDetailLayout({
         }
         @media (max-width: 1200px) {
           .b-pdp__info {
-            padding: 3rem;
+            padding: 3rem clamp(1.25rem, 2.5vw, 2.5rem);
           }
         }
         @media (max-width: 1024px) {

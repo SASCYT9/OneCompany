@@ -738,12 +738,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       : categoryRelatedProducts.length
         ? categoryRelatedProducts.slice(0, 3)
         : findRelatedProducts(product, allProducts, 3);
-  // For Brabus, drop factory-only items from related — they should not appear
-  // in suggestion lists even if matched by category/fitment.
-  const relatedProducts =
-    product.brand === "Brabus" || mode === "brabus"
-      ? relatedProductsRaw.filter((rp) => !isFactoryOnlyProduct(rp.sku))
-      : relatedProductsRaw;
+  const relatedProducts = relatedProductsRaw;
 
   // Cross-shop fitment matches — show parts from OTHER stores that fit the
   // same vehicle (e.g. ADRO M3 G80 bumper → iPE / Akrapovic / Ohlins / CSF

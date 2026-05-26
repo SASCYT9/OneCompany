@@ -59,10 +59,7 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
     null
   );
 
-  const allFilteredBrabusProducts = allBrabusProducts
-    .filter((p) => !isFactoryOnlyProduct(p.sku))
-    .filter((p) => !isBrabusExhaustProduct(p))
-    .map(projectShopProductForListGrid);
+  const allFilteredBrabusProducts = allBrabusProducts.map(projectShopProductForListGrid);
   const {
     pageProducts: brabusProducts,
     currentPage,

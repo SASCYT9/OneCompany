@@ -589,21 +589,18 @@ export default function BrabusVehicleFilter({
                         href={buildShopProductPathBrabus(locale, product)}
                         className="flex flex-col grow z-10"
                       >
-                        {/* Image — floating white product card on obsidian field */}
-                        <div className="relative aspect-square sm:aspect-[4/3] bg-[#080808] flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-                          {/* Floating photo mount */}
-                          <div className="relative w-full h-full rounded-xl bg-white shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
-                            <ShopProductImage
-                              src={product.image || "/images/placeholders/product-fallback.svg"}
-                              fallbackSrc={productFallbackImage}
-                              alt={productTitle}
-                              fill
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                              className="object-contain p-4 transition-transform duration-700 group-hover:scale-[1.04]"
-                            />
-                          </div>
-                          {/* Bronze vignette on hover */}
-                          <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_50%,rgba(194,157,89,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                        {/* Image — clean edge-to-edge white presentation field for premium image blending */}
+                        <div className="relative aspect-square sm:aspect-[4/3] bg-white flex items-center justify-center overflow-hidden border-b border-zinc-950/10">
+                          <ShopProductImage
+                            src={product.image || "/images/placeholders/product-fallback.svg"}
+                            fallbackSrc={productFallbackImage}
+                            alt={productTitle}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 25vw"
+                            className="object-contain p-6 transition-transform duration-700 group-hover:scale-[1.05]"
+                          />
+                          {/* Subtle bronze vignette on hover */}
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(194,157,89,0.03)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                         </div>
 
                         {/* Card Body */}

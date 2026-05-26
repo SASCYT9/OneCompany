@@ -63,9 +63,7 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     null
   );
 
-  const collectionProducts = getProductsForBrabusCollection(products, handle)
-    .filter((p) => !isFactoryOnlyProduct(p.sku))
-    .filter((p) => !isBrabusExhaustProduct(p));
+  const collectionProducts = getProductsForBrabusCollection(products, handle);
 
   // Sort: Body kit / Widestar / Full Kit first, then by price desc.
   // Reason: catalog hero/showcase positions body-kit programmes as the entry point,

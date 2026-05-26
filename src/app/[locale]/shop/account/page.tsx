@@ -1,16 +1,14 @@
-import { PrismaClient } from '@prisma/client';
-import { redirect } from 'next/navigation';
-import type { SupportedLocale } from '@/lib/seo';
-import { buildNoIndexPageMetadata, resolveLocale } from '@/lib/seo';
-import ShopAccountClient from './components/ShopAccountClient';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
+import { redirect } from "next/navigation";
+import type { SupportedLocale } from "@/lib/seo";
+import { buildNoIndexPageMetadata, resolveLocale } from "@/lib/seo";
+import ShopAccountClient from "./components/ShopAccountClient";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import {
   getOrdersForCustomerDisplay,
   serializeShopCustomerProfile,
   shopCustomerProfileIncludeWithoutOrders,
-} from '@/lib/shopCustomers';
-
-const prisma = new PrismaClient();
+} from "@/lib/shopCustomers";
+import { prisma } from "@/lib/prisma";
 
 type Props = {
   params: Promise<{ locale: SupportedLocale }>;
@@ -19,9 +17,12 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildNoIndexPageMetadata(resolvedLocale, 'shop/account', {
-    title: resolvedLocale === 'ua' ? 'Акаунт магазину | One Company' : 'Shop account | One Company',
-    description: resolvedLocale === 'ua' ? 'Приватний кабінет клієнта магазину.' : 'Private customer account for One Company shop.',
+  return buildNoIndexPageMetadata(resolvedLocale, "shop/account", {
+    title: resolvedLocale === "ua" ? "Акаунт магазину | One Company" : "Shop account | One Company",
+    description:
+      resolvedLocale === "ua"
+        ? "Приватний кабінет клієнта магазину."
+        : "Private customer account for One Company shop.",
   });
 }
 
