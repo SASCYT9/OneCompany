@@ -2,8 +2,8 @@ name: Daily Turn14 Sync
 
 on:
   schedule:
-    # Runs at 03:00 UTC every Monday
-    - cron: "0 3 * * 1"
+    # Runs at 03:00 UTC on the 1st of every month
+    - cron: "0 3 1 * *"
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:

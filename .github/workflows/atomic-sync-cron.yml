@@ -2,8 +2,8 @@ name: Hourly Atomic Feed Sync
 
 on:
   schedule:
-    # Weekly on Monday at 04:00 UTC
-    - cron: "0 4 * * 1"
+    # Monthly on the 1st at 04:00 UTC
+    - cron: "0 4 1 * *"
   workflow_dispatch: # manual trigger from GitHub UI
 
 jobs:
