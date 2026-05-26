@@ -492,7 +492,7 @@ const nextConfig: NextConfig = {
     // Smaller server-side React bundle.
     optimizeServerReact: true,
     // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
-    cpus: 4,
+    cpus: 1,
     // Tree-shake & barrel-optimize popular packages — meaningfully smaller client bundles.
     optimizePackageImports: [
       "framer-motion",
