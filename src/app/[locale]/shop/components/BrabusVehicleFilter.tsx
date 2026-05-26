@@ -16,6 +16,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 import {
   BRABUS_BRAND_ORDER as BRAND_ORDER,
   BRABUS_BRAND_LABELS as BRAND_LABELS,
@@ -25,6 +26,10 @@ import {
 type BrabusVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
 };
 
@@ -132,6 +137,10 @@ function isKitProduct(title: string) {
 export default function BrabusVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
 }: BrabusVehicleFilterProps) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
@@ -339,10 +348,12 @@ export default function BrabusVehicleFilter({
     activeChassis !== "all" ||
     activeEngine !== "all" ||
     searchQuery.trim().length > 0;
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts]);
 
   // Note: previous `if (!mounted) return null` removed — the filter renders
   // its full product grid on SSR (Googlebot crawl) with unfiltered defaults;
@@ -687,7 +698,7 @@ export default function BrabusVehicleFilter({
                   );
                 })}
               </BrabusSpotlightGrid>
-              {visibleCount < filteredProducts.length ? (
+              {hasActiveFilters && visibleCount < filteredProducts.length ? (
                 <div className="mt-8 flex justify-center">
                   <button
                     type="button"
@@ -697,6 +708,15 @@ export default function BrabusVehicleFilter({
                     {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
                   </button>
                 </div>
+              ) : null}
+
+              {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+                <ShopPaginationNav
+                  locale={locale}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  basePath={basePath}
+                />
               ) : null}
             </>
           )}

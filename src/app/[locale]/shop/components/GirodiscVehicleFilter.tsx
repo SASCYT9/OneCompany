@@ -17,10 +17,15 @@ import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import GirodiscSpotlightGrid from "./GirodiscSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 
 type GirodiscVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
 };
 
@@ -305,6 +310,10 @@ function computePricesFromEur(
 export default function GirodiscVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
 }: GirodiscVehicleFilterProps) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
@@ -322,6 +331,13 @@ export default function GirodiscVehicleFilter({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    activeCategory !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   useEffect(() => {
@@ -487,10 +503,12 @@ export default function GirodiscVehicleFilter({
     locale,
   ]);
 
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -499,13 +517,6 @@ export default function GirodiscVehicleFilter({
   // Note: previous `if (!mounted) return null` removed so the SSR HTML carries
   // the full product grid for Googlebot. `mounted` is still set by the post-
   // mount effect and used by URL-sync below.
-
-  const hasActiveFilters =
-    activeMake !== "all" ||
-    activeModel !== "all" ||
-    activeCategory !== "all" ||
-    searchQuery.trim().length > 0 ||
-    sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
@@ -981,7 +992,7 @@ export default function GirodiscVehicleFilter({
                     );
                   })}
                 </GirodiscSpotlightGrid>
-                {visibleCount < filteredProducts.length ? (
+                {hasActiveFilters && visibleCount < filteredProducts.length ? (
                   <div className="mt-8 flex justify-center">
                     <button
                       type="button"
@@ -992,6 +1003,15 @@ export default function GirodiscVehicleFilter({
                       )
                     </button>
                   </div>
+                ) : null}
+
+                {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+                  <ShopPaginationNav
+                    locale={locale}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    basePath={basePath}
+                  />
                 ) : null}
               </>
             )}

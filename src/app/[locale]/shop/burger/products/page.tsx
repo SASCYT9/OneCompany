@@ -110,7 +110,11 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
         <Suspense fallback={null}>
           <BurgerVehicleFilter
             locale={resolvedLocale}
-            products={burgerProducts}
+            products={allBurgerProducts}
+            pageProducts={burgerProducts}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/burger/products`}
             viewerContext={viewerContext}
             pickerSlot={
               <Suspense fallback={null}>
@@ -119,13 +123,6 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
             }
           />
         </Suspense>
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath={`/${resolvedLocale}/shop/burger/products`}
-        />
       </div>
     </div>
   );

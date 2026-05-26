@@ -209,19 +209,16 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
           >
             <OhlinsVehicleFilter
               locale={resolvedLocale}
-              products={ohlinsProducts}
+              products={allOhlinsProducts}
+              pageProducts={ohlinsProducts}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath={`/${resolvedLocale}/shop/ohlins/catalog`}
               vehicles={ohlinsHeroVehicles}
               alternativeSearchItems={alternativeSearchItems}
               viewerContext={viewerContext}
             />
           </Suspense>
-
-          <ShopPaginationNav
-            locale={resolvedLocale}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            basePath={`/${resolvedLocale}/shop/ohlins/catalog`}
-          />
         </div>
       </div>
     </div>

@@ -127,16 +127,13 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
 
         <AkrapovicVehicleFilter
           locale={resolvedLocale}
-          products={akrapovicProducts}
-          viewerContext={viewerContext}
-          productPathPrefix={`/${locale}/shop/akrapovic/products`}
-        />
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
+          products={allAkrapovicProducts}
+          pageProducts={akrapovicProducts}
           currentPage={currentPage}
           totalPages={totalPages}
           basePath={`/${resolvedLocale}/shop/akrapovic/collections`}
+          viewerContext={viewerContext}
+          productPathPrefix={`/${locale}/shop/akrapovic/products`}
         />
       </div>
     </div>

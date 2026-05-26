@@ -128,17 +128,14 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
           >
             <GirodiscVehicleFilter
               locale={resolvedLocale}
-              products={girodiscProducts}
+              products={allGirodiscProducts}
+              pageProducts={girodiscProducts}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath={`/${resolvedLocale}/shop/girodisc/catalog`}
               viewerContext={viewerContext}
             />
           </Suspense>
-
-          <ShopPaginationNav
-            locale={resolvedLocale}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            basePath={`/${resolvedLocale}/shop/girodisc/catalog`}
-          />
         </div>
       </div>
     </div>

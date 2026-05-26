@@ -21,10 +21,15 @@ import {
   formatRacechipEngine,
   parseRacechipModelSlug,
 } from "@/lib/racechipFormat";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
 };
 
@@ -40,6 +45,10 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 export default function RacechipVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
@@ -58,6 +67,13 @@ export default function RacechipVehicleFilter({
   const [activeChassis, setActiveChassis] = useState<string>("all");
   const [activeEngine, setActiveEngine] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    activeChassis !== "all" ||
+    activeEngine !== "all" ||
+    sortOrder !== "default";
 
   useEffect(() => {
     setMounted(true);
@@ -280,8 +296,11 @@ export default function RacechipVehicleFilter({
   }, [products, activeMake, activeModel, activeChassis, activeEngine, sortOrder]);
 
   const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
     return filtered.slice(0, visibleCount);
-  }, [filtered, visibleCount]);
+  }, [filtered, visibleCount, hasActiveFilters, pageProducts]);
 
   const getDisplayPrice = (p: ShopProduct) => {
     if (!mounted) return null;
@@ -308,13 +327,6 @@ export default function RacechipVehicleFilter({
             : formatPrice(locale, priceEur, "EUR"),
     };
   };
-
-  const hasActiveFilters =
-    activeMake !== "all" ||
-    activeModel !== "all" ||
-    activeChassis !== "all" ||
-    activeEngine !== "all" ||
-    sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
@@ -741,7 +753,7 @@ export default function RacechipVehicleFilter({
             )}
 
             {/* LOAD MORE BUTTON */}
-            {filtered.length > 0 && visibleCount < filtered.length && (
+            {hasActiveFilters && filtered.length > 0 && visibleCount < filtered.length && (
               <div className="mt-16 flex justify-center w-full relative z-30">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 30)}
@@ -750,6 +762,16 @@ export default function RacechipVehicleFilter({
                   {isUa ? "ЗАВАНТАЖИТИ ЩЕ" : "LOAD MORE"}
                 </button>
               </div>
+            )}
+
+            {/* Server-side pagination for SEO / default state */}
+            {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath && (
+              <ShopPaginationNav
+                locale={locale}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                basePath={basePath}
+              />
             )}
           </main>
         </div>

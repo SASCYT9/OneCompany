@@ -125,15 +125,12 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
         </div>
         <BrabusVehicleFilter
           locale={resolvedLocale}
-          products={brabusProducts}
-          viewerContext={viewerContext}
-        />
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
+          products={allFilteredBrabusProducts}
+          pageProducts={brabusProducts}
           currentPage={currentPage}
           totalPages={totalPages}
           basePath={`/${resolvedLocale}/shop/brabus/products`}
+          viewerContext={viewerContext}
         />
       </div>
     </div>

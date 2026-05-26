@@ -26,10 +26,15 @@ import {
 } from "@/lib/adroCatalog";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
 };
 
@@ -83,6 +88,10 @@ function pickPrimaryPriceLabel(
 export default function AdroCatalogGrid({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
@@ -106,6 +115,13 @@ export default function AdroCatalogGrid({
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(30);
   const previousMakeRef = useRef(activeMake);
+
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    activeCategory !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -274,17 +290,35 @@ export default function AdroCatalogGrid({
     viewerContext,
   ]);
 
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const enrichedProductsBySlug = useMemo(() => {
+    const map = new Map<string, EnrichedAdroCatalogProduct>();
+    for (const ep of enrichedProducts) {
+      map.set(ep.product.slug, ep);
+    }
+    return map;
+  }, [enrichedProducts]);
 
-  const hasActiveFilters =
-    activeMake !== "all" ||
-    activeModel !== "all" ||
-    activeCategory !== "all" ||
-    searchQuery.trim().length > 0 ||
-    sortOrder !== "default";
+  const pageEnrichedProducts = useMemo(() => {
+    if (!pageProducts) return [];
+    return pageProducts.map((p) => {
+      return (
+        enrichedProductsBySlug.get(p.slug) || {
+          product: p,
+          makes: [],
+          models: [],
+          category: { key: "unknown", labelEn: "Unknown", labelUa: "Невідомо" },
+          searchText: "",
+        }
+      );
+    });
+  }, [pageProducts, enrichedProductsBySlug]);
+
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageEnrichedProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts, pageEnrichedProducts]);
 
   const resetFilters = () => {
     setActiveMake("all");
@@ -544,7 +578,7 @@ export default function AdroCatalogGrid({
                   const hasPrice = hasAnyShopPrice(pricing.effectivePrice, displayRates);
                   const primaryPrice = pickPrimaryPriceLabel(locale, currency, computed);
                   const defaultVariant =
-                    product.variants?.find((variant) => variant.isDefault) ??
+                    product.variants?.find((variant: any) => variant.isDefault) ??
                     product.variants?.[0] ??
                     null;
                   const facetLabel = [
@@ -629,7 +663,7 @@ export default function AdroCatalogGrid({
               </div>
             )}
 
-            {filteredProducts.length > visibleCount ? (
+            {hasActiveFilters && filteredProducts.length > visibleCount ? (
               <div className="mt-14 flex justify-center">
                 <button
                   type="button"
@@ -639,6 +673,15 @@ export default function AdroCatalogGrid({
                   {t("loadMore")}
                 </button>
               </div>
+            ) : null}
+
+            {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+              <ShopPaginationNav
+                locale={locale}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                basePath={basePath}
+              />
             ) : null}
           </main>
         </div>

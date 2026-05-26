@@ -24,10 +24,15 @@ import {
 import { splitIpeModelLabel, IPE_HERO_BRAND_PRIORITY } from "@/lib/ipeHeroCatalog";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 
 type IpeVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
   productPathPrefix: string;
 };
@@ -175,6 +180,10 @@ function shouldBypassImageOptimization(reference: string | null | undefined) {
 export default function IpeVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
   productPathPrefix,
 }: IpeVehicleFilterProps) {
@@ -207,6 +216,16 @@ export default function IpeVehicleFilter({
     material: false,
     spec: false,
   });
+
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeLine !== "all" ||
+    activeModel !== "all" ||
+    activeBody !== "all" ||
+    activeMaterial !== "all" ||
+    activeSpec !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
 
   useEffect(() => {
     setMounted(true);
@@ -577,10 +596,12 @@ export default function IpeVehicleFilter({
     locale,
   ]);
 
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -602,15 +623,6 @@ export default function IpeVehicleFilter({
     activeMaterial !== "all" ? MATERIAL_LABELS[activeMaterial]?.[locale] || activeMaterial : null;
   const activeSpecLabel =
     activeSpec !== "all" ? SPEC_LABELS[activeSpec]?.[locale] || activeSpec : null;
-  const hasActiveFilters =
-    activeBrand !== "all" ||
-    activeLine !== "all" ||
-    activeModel !== "all" ||
-    activeBody !== "all" ||
-    activeMaterial !== "all" ||
-    activeSpec !== "all" ||
-    searchQuery.trim().length > 0 ||
-    sortOrder !== "default";
 
   // Note: previous `if (!mounted) return null` removed — full grid renders SSR
   // for Googlebot. URL filter state is restored client-side via the post-mount
@@ -1192,7 +1204,7 @@ export default function IpeVehicleFilter({
                     );
                   })}
                 </div>
-                {visibleCount < filteredProducts.length ? (
+                {hasActiveFilters && visibleCount < filteredProducts.length ? (
                   <div className="mt-8 flex justify-center">
                     <button
                       type="button"
@@ -1203,6 +1215,15 @@ export default function IpeVehicleFilter({
                       )
                     </button>
                   </div>
+                ) : null}
+
+                {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+                  <ShopPaginationNav
+                    locale={locale}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    basePath={basePath}
+                  />
                 ) : null}
               </>
             )}

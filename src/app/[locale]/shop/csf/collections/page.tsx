@@ -108,15 +108,15 @@ export default async function CSFCollectionsPage({ params, searchParams }: Props
             </div>
           }
         >
-          <CSFCatalogGrid locale={resolvedLocale} products={csfProducts} />
+          <CSFCatalogGrid
+            locale={resolvedLocale}
+            products={allCsfProducts}
+            pageProducts={csfProducts}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/csf/collections`}
+          />
         </Suspense>
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath={`/${resolvedLocale}/shop/csf/collections`}
-        />
       </div>
     </div>
   );

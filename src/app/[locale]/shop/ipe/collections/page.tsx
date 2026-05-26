@@ -134,18 +134,15 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
         >
           <IpeVehicleFilter
             locale={resolvedLocale}
-            products={ipeProducts}
+            products={allIpeProducts}
+            pageProducts={ipeProducts}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/ipe/collections`}
             viewerContext={viewerContext}
             productPathPrefix={`/${locale}/shop/ipe/products`}
           />
         </Suspense>
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath={`/${resolvedLocale}/shop/ipe/collections`}
-        />
       </div>
     </div>
   );

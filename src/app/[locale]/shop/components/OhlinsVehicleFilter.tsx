@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Activity } from "lucide-react";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -35,6 +36,10 @@ import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   vehicles?: OhlinsHeroVehicleMake[];
   alternativeSearchItems?: ShopAlternativeSearchItem[];
   viewerContext?: ShopViewerPricingContext;
@@ -69,6 +74,10 @@ function formatResultCount(locale: SupportedLocale, count: number) {
 export default function OhlinsVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   vehicles = [],
   alternativeSearchItems = [],
   viewerContext: ssrViewerContext,
@@ -90,6 +99,14 @@ export default function OhlinsVehicleFilter({
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "" ||
+    activeChassis !== "" ||
+    activeCategory !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
 
   useEffect(() => {
     setMounted(true);
@@ -308,9 +325,34 @@ export default function OhlinsVehicleFilter({
       .slice(0, 8);
   }, [alternativeSearchItems, filtered.length, searchQuery]);
 
+  const enrichedProductsBySlug = useMemo(() => {
+    const map = new Map<string, (typeof enrichedProducts)[number]>();
+    for (const ep of enrichedProducts) {
+      map.set(ep.product.slug, ep);
+    }
+    return map;
+  }, [enrichedProducts]);
+
+  const pageEnrichedProducts = useMemo(() => {
+    if (!pageProducts) return [];
+    return pageProducts.map((p) => {
+      return (
+        enrichedProductsBySlug.get(p.slug) || {
+          product: p,
+          make: detectOhlinsMake(p),
+          category: detectOhlinsCategory(p),
+          searchText: "",
+        }
+      );
+    });
+  }, [pageProducts, enrichedProductsBySlug]);
+
   const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageEnrichedProducts;
+    }
     return filtered.slice(0, visibleCount);
-  }, [filtered, visibleCount]);
+  }, [filtered, visibleCount, hasActiveFilters, pageProducts, pageEnrichedProducts]);
 
   const getDisplayPrice = (p: ShopProduct) => {
     if (!mounted) return null;
@@ -349,13 +391,6 @@ export default function OhlinsVehicleFilter({
   /* Öhlins Gold accent */
   const GOLD = "#c29d59";
   const GOLD_DIM = "rgba(194,157,89,0.25)";
-  const hasActiveFilters =
-    activeMake !== "all" ||
-    activeModel !== "" ||
-    activeChassis !== "" ||
-    activeCategory !== "all" ||
-    searchQuery.trim().length > 0 ||
-    sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
@@ -931,7 +966,7 @@ export default function OhlinsVehicleFilter({
             )}
 
             {/* LOAD MORE BUTTON */}
-            {filtered.length > 0 && visibleCount < filtered.length && (
+            {hasActiveFilters && filtered.length > 0 && visibleCount < filtered.length && (
               <div className="mt-16 flex justify-center w-full relative z-30">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 30)}
@@ -951,6 +986,16 @@ export default function OhlinsVehicleFilter({
                   {isUa ? "ЗАВАНТАЖИТИ ЩЕ" : "LOAD MORE"}
                 </button>
               </div>
+            )}
+
+            {/* Server-side pagination for SEO / default state */}
+            {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath && (
+              <ShopPaginationNav
+                locale={locale}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                basePath={basePath}
+              />
             )}
           </main>
         </div>

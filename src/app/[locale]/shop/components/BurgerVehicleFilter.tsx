@@ -13,6 +13,7 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import fitmentOptions from "../data/burgerFitmentOptions.json";
 import BurgerSelect from "./BurgerSelect";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 
 type FitmentOptionsShape = Record<
   string,
@@ -28,6 +29,10 @@ const FITMENT = fitmentOptions as FitmentOptionsShape;
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
   pickerSlot?: ReactNode;
 };
@@ -83,6 +88,10 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 export default function BurgerVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
   pickerSlot,
 }: Props) {
@@ -420,10 +429,12 @@ export default function BurgerVehicleFilter({
     activeEngine !== "all" ||
     searchQuery.trim().length > 0 ||
     sortOrder !== "default";
-  const displayedProducts = useMemo(
-    () => filtered.slice(0, visibleCount),
-    [filtered, visibleCount]
-  );
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
+    return filtered.slice(0, visibleCount);
+  }, [filtered, visibleCount, hasActiveFilters, pageProducts]);
 
   // Note: previous `if (!mounted) return null` removed so the SSR HTML carries
   // the full product grid for Googlebot. `getDisplayPrice` still checks
@@ -682,7 +693,7 @@ export default function BurgerVehicleFilter({
                   );
                 })}
               </div>
-              {visibleCount < filtered.length ? (
+              {hasActiveFilters && visibleCount < filtered.length ? (
                 <div className="mt-8 flex justify-center">
                   <button
                     type="button"
@@ -692,6 +703,15 @@ export default function BurgerVehicleFilter({
                     {isUa ? "Показати ще" : "Show more"} ({filtered.length - visibleCount})
                   </button>
                 </div>
+              ) : null}
+
+              {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+                <ShopPaginationNav
+                  locale={locale}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  basePath={basePath}
+                />
               ) : null}
             </>
           )}

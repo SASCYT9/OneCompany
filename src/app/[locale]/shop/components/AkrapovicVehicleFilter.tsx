@@ -20,6 +20,7 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 import {
   BRAND_PATTERNS,
   LINE_PATTERNS,
@@ -34,6 +35,10 @@ import {
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
   productPathPrefix: string;
   filterOnly?: boolean;
@@ -64,6 +69,10 @@ function computeDisplayPrices(
 export default function AkrapovicVehicleFilter({
   locale,
   products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
   viewerContext: ssrViewerContext,
   productPathPrefix,
   filterOnly = false,
@@ -87,6 +96,13 @@ export default function AkrapovicVehicleFilter({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeLine !== "all" ||
+    activeModel !== "all" ||
+    activeBody !== "all" ||
+    searchQuery.trim() !== "";
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const didInitializeBrand = useRef(false);
   const didInitializeModel = useRef(false);
@@ -315,17 +331,13 @@ export default function AkrapovicVehicleFilter({
   ]);
 
   const totalCount = products.length;
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts]);
 
-  const hasActiveFilters =
-    activeBrand !== "all" ||
-    activeLine !== "all" ||
-    activeModel !== "all" ||
-    activeBody !== "all" ||
-    searchQuery.trim() !== "";
   const catalogHref = useMemo(() => {
     const params = new URLSearchParams();
     if (activeBrand !== "all") params.set("brand", activeBrand);
@@ -897,7 +909,7 @@ export default function AkrapovicVehicleFilter({
                     );
                   })}
                 </AkrapovicSpotlightGrid>
-                {visibleCount < filteredProducts.length ? (
+                {hasActiveFilters && visibleCount < filteredProducts.length ? (
                   <div className="mt-8 flex justify-center">
                     <button
                       type="button"
@@ -908,6 +920,15 @@ export default function AkrapovicVehicleFilter({
                       )
                     </button>
                   </div>
+                ) : null}
+
+                {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+                  <ShopPaginationNav
+                    locale={locale}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    basePath={basePath}
+                  />
                 ) : null}
               </>
             )}

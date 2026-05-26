@@ -147,17 +147,14 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
           >
             <RacechipVehicleFilter
               locale={resolvedLocale}
-              products={racechipProducts}
+              products={allRacechipProducts}
+              pageProducts={racechipProducts}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath={`/${resolvedLocale}/shop/racechip/catalog`}
               viewerContext={viewerContext}
             />
           </Suspense>
-
-          <ShopPaginationNav
-            locale={resolvedLocale}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            basePath={`/${resolvedLocale}/shop/racechip/catalog`}
-          />
         </div>
       </div>
     </div>

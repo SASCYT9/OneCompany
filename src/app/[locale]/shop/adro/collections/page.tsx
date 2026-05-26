@@ -134,17 +134,14 @@ export default async function AdroCollectionsPage({ params, searchParams }: Prop
         >
           <AdroCatalogGrid
             locale={resolvedLocale}
-            products={adroProducts}
+            products={allAdroProducts}
+            pageProducts={adroProducts}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/${resolvedLocale}/shop/adro/collections`}
             viewerContext={viewerContext}
           />
         </Suspense>
-
-        <ShopPaginationNav
-          locale={resolvedLocale}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath={`/${resolvedLocale}/shop/adro/collections`}
-        />
       </div>
     </div>
   );

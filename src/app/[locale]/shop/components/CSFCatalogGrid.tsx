@@ -15,6 +15,8 @@ import {
   pickShopSortableAmount,
 } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
+import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import {
   extractCsfCatalogFitment,
   detectCsfStockState,
@@ -23,11 +25,17 @@ import {
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import { ShopPaginationNav } from "./ShopPaginationNav";
 import "../csf/csf-shop.css";
 
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  pageProducts?: ShopProduct[];
+  currentPage?: number;
+  totalPages?: number;
+  basePath?: string;
+  viewerContext?: ShopViewerPricingContext;
 };
 
 type SortOrder = "default" | "price_desc" | "price_asc" | "title_asc";
@@ -241,7 +249,16 @@ function csfFieldClass(isActive: boolean, isDisabled?: boolean) {
   return `csf-hf__field${isActive ? " is-active" : ""}${isDisabled ? " is-disabled" : ""}`;
 }
 
-export default function CSFCatalogGrid({ locale, products }: Props) {
+export default function CSFCatalogGrid({
+  locale,
+  products,
+  pageProducts,
+  currentPage,
+  totalPages,
+  basePath,
+  viewerContext: ssrViewerContext,
+}: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
@@ -262,6 +279,17 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(30);
+
+  const hasActiveFilters =
+    activeCategory !== "all" ||
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    activeChassis !== "all" ||
+    activeYear !== "all" ||
+    activeStock !== "all" ||
+    activePriceBand !== "all" ||
+    sortOrder !== "default" ||
+    searchQuery.trim().length > 0;
 
   useEffect(() => {
     setMounted(true);
@@ -576,21 +604,41 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     locale,
   ]);
 
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
+  const enrichedProductsBySlug = useMemo(() => {
+    const map = new Map<string, EnrichedProduct>();
+    for (const ep of enrichedProducts) {
+      map.set(ep.product.slug, ep);
+    }
+    return map;
+  }, [enrichedProducts]);
 
-  const hasActiveFilters =
-    activeCategory !== "all" ||
-    activeMake !== "all" ||
-    activeModel !== "all" ||
-    activeChassis !== "all" ||
-    activeYear !== "all" ||
-    activeStock !== "all" ||
-    activePriceBand !== "all" ||
-    sortOrder !== "default" ||
-    searchQuery.trim().length > 0;
+  const pageEnrichedProducts = useMemo(() => {
+    if (!pageProducts) return [];
+    return pageProducts.map((p) => {
+      return (
+        enrichedProductsBySlug.get(p.slug) || {
+          product: p,
+          categoryLabel: "",
+          categoryGroup: "",
+          make: "",
+          models: [],
+          chassisCodes: [],
+          yearStart: null,
+          yearEnd: null,
+          yearLabel: "",
+          stockState: "all" as StockFilter,
+          priceSortValue: 0,
+        }
+      );
+    });
+  }, [pageProducts, enrichedProductsBySlug]);
+
+  const displayedProducts = useMemo(() => {
+    if (!hasActiveFilters && pageProducts) {
+      return pageEnrichedProducts;
+    }
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts, pageEnrichedProducts]);
 
   const resetFilters = () => {
     setActiveCategory("all");
@@ -1055,7 +1103,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                   stripCsfSkuPrefix(localizeShopProductTitle(locale, product), product.sku)
                 );
                 const defaultVariant =
-                  product.variants?.find((variant) => variant.isDefault) ??
+                  product.variants?.find((variant: any) => variant.isDefault) ??
                   product.variants?.[0] ??
                   null;
                 const computedPrice = computeShopDisplayPrices(
@@ -1080,7 +1128,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                             : computedPrice.eur > 0
                               ? formatPrice(locale, computedPrice.eur, "EUR")
                               : null;
-                const cleanModels = models.filter((m) => m && m.length <= 22).slice(0, 3);
+                const cleanModels = models.filter((m: string) => m && m.length <= 22).slice(0, 3);
                 const modelLabel = cleanModels.length > 0 ? cleanModels.join("/") : null;
                 const chassisChip = cleanModels.length === 1 ? chassisCodes[0] : null;
                 const fitmentBadge = [make, modelLabel, chassisChip, yearLabel]
@@ -1114,7 +1162,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                           </span>
                           {SHOW_STOCK_BADGE && stockState !== "all" ? (
                             <span
-                              className={`border px-2 py-0.5 text-[7px] uppercase backdrop-blur-xs sm:px-2.5 sm:py-1 sm:text-[8px] ${STOCK_BADGE_CLASS[stockState]}`}
+                              className={`border px-2 py-0.5 text-[7px] uppercase backdrop-blur-xs sm:px-2.5 sm:py-1 sm:text-[8px] ${STOCK_BADGE_CLASS[stockState as Exclude<StockFilter, "all">]}`}
                             >
                               {getStockLabel(locale, stockState)}
                             </span>
@@ -1177,7 +1225,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
             </div>
           )}
 
-          {filteredProducts.length > visibleCount ? (
+          {hasActiveFilters && filteredProducts.length > visibleCount ? (
             <div className="mt-16 flex justify-center">
               <button
                 type="button"
@@ -1187,6 +1235,15 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 {isUa ? "ЗАВАНТАЖИТИ ЩЕ" : "LOAD MORE"}
               </button>
             </div>
+          ) : null}
+
+          {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
+            <ShopPaginationNav
+              locale={locale}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath={basePath}
+            />
           ) : null}
         </main>
       </div>
