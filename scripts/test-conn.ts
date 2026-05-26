@@ -1,4 +1,7 @@
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 async function testWithUrl(url: string, label: string) {
   console.log(`Testing connection with: "${label}"...`);
@@ -21,20 +24,20 @@ async function testWithUrl(url: string, label: string) {
 }
 
 async function main() {
+  const envUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  if (!envUrl) {
+    console.error("Error: DIRECT_URL or DATABASE_URL environment variable is not defined.");
+    process.exit(1);
+  }
+
   // Test 1: Clean URL
-  const cleanUrl =
-    "postgres://ee3b75a6877bb03685058e92d3d1ee87dcb245bc2d9e7deb21b64e98ef996805:sk_UYiagQHVUi02RCiZ1LQjW@db.prisma.io:5432/postgres?sslmode=require";
-  await testWithUrl(cleanUrl, "Clean URL");
+  await testWithUrl(envUrl, "Clean URL");
 
   // Test 2: URL with \r\n
-  const carriageReturnUrl =
-    "postgres://ee3b75a6877bb03685058e92d3d1ee87dcb245bc2d9e7deb21b64e98ef996805:sk_UYiagQHVUi02RCiZ1LQjW@db.prisma.io:5432/postgres?sslmode=require\r\n";
-  await testWithUrl(carriageReturnUrl, "URL with \\r\\n");
+  await testWithUrl(`${envUrl}\r\n`, "URL with \\r\\n");
 
   // Test 3: URL with \n only
-  const newlineUrl =
-    "postgres://ee3b75a6877bb03685058e92d3d1ee87dcb245bc2d9e7deb21b64e98ef996805:sk_UYiagQHVUi02RCiZ1LQjW@db.prisma.io:5432/postgres?sslmode=require\n";
-  await testWithUrl(newlineUrl, "URL with \\n");
+  await testWithUrl(`${envUrl}\n`, "URL with \\n");
 }
 
 main();
