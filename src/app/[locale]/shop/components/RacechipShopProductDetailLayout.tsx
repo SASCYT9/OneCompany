@@ -14,6 +14,7 @@ import { resolveShopPriceBands, resolveShopProductPricing } from "@/lib/shopPric
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 
 type Props = {
@@ -149,13 +150,16 @@ export default function RacechipShopProductDetailLayout({
       <main className="max-w-[1500px] mx-auto pt-20 sm:pt-24 lg:pt-[120px] pb-12 md:pb-24 px-4 sm:px-6 md:px-12 relative z-10">
         {/* Navigation Breadcrumbs */}
         <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] tracking-widest uppercase font-bold text-foreground/55 dark:text-zinc-500 mb-6 md:mb-12">
-          <Link
-            href={`/${locale}/shop/racechip`}
+          <ShopBackToCatalogLink
+            fallbackHref={`/${locale}/shop/racechip/catalog`}
+            label={
+              <>
+                <ArrowLeft size={14} />
+                {isUa ? "Назад до фільтра" : "Back to Filter"}
+              </>
+            }
             className="hover:text-[#ff4a00] transition-colors flex items-center gap-2"
-          >
-            <ArrowLeft size={14} />
-            {isUa ? "Назад до фільтра" : "Back to Filter"}
-          </Link>
+          />
           <ChevronRight size={12} className="opacity-40" />
           <span className="text-foreground/40 dark:text-zinc-600">{formattedMake}</span>
           {formattedModel && (

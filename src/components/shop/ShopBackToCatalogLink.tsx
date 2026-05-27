@@ -8,7 +8,7 @@ type ShopBackToCatalogLinkProps = {
   /** Static fallback href if there is no usable history entry to return to. */
   fallbackHref: string;
   /** Visible label (already including the arrow glyph). */
-  label: string;
+  label: React.ReactNode;
   className?: string;
   /** Skip router.back() history navigation and force direct navigation to fallbackHref. */
   disableHistoryBack?: boolean;
@@ -45,15 +45,32 @@ export function ShopBackToCatalogLink({
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.sessionStorage.getItem("do88VehiclePreference");
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && (parsed.brand || parsed.model || parsed.chassis)) {
-        const url = new URL(fallbackHref, window.location.origin);
-        if (parsed.brand) url.searchParams.set("brand", parsed.brand);
-        if (parsed.model) url.searchParams.set("model", parsed.model);
-        if (parsed.chassis) url.searchParams.set("chassis", parsed.chassis);
-        setActualHref(url.pathname + url.search);
+      if (fallbackHref.includes("racechip")) {
+        const raw = window.sessionStorage.getItem("racechipVehiclePreference");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed) {
+          const url = new URL(fallbackHref, window.location.origin);
+          if (parsed.make && parsed.make !== "all") url.searchParams.set("make", parsed.make);
+          if (parsed.model && parsed.model !== "all") url.searchParams.set("model", parsed.model);
+          if (parsed.chassis && parsed.chassis !== "all")
+            url.searchParams.set("chassis", parsed.chassis);
+          if (parsed.engine && parsed.engine !== "all")
+            url.searchParams.set("engine", parsed.engine);
+          if (parsed.sort && parsed.sort !== "default") url.searchParams.set("sort", parsed.sort);
+          setActualHref(url.pathname + url.search);
+        }
+      } else {
+        const raw = window.sessionStorage.getItem("do88VehiclePreference");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed.brand || parsed.model || parsed.chassis)) {
+          const url = new URL(fallbackHref, window.location.origin);
+          if (parsed.brand) url.searchParams.set("brand", parsed.brand);
+          if (parsed.model) url.searchParams.set("model", parsed.model);
+          if (parsed.chassis) url.searchParams.set("chassis", parsed.chassis);
+          setActualHref(url.pathname + url.search);
+        }
       }
     } catch {
       // ignore

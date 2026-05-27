@@ -97,16 +97,46 @@ export default function RacechipVehicleFilter({
     const urlMake = params.get("make") || "all";
     const urlEngine = params.get("engine") || "all";
     const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
-    if (urlMake !== "all") setActiveMake(urlMake);
-    if (urlModel !== "all") setActiveModel(urlModel);
-    if (urlChassis !== "all") setActiveChassis(urlChassis);
-    if (urlEngine !== "all") setActiveEngine(urlEngine);
-    if (urlSort !== "default") setSortOrder(urlSort);
+
+    // Fallback to sessionStorage if URL is empty
+    const hasUrlParams =
+      params.has("make") ||
+      params.has("model") ||
+      params.has("chassis") ||
+      params.has("engine") ||
+      params.has("sort");
+
+    let makeToSet = urlMake;
+    let modelToSet = urlModel;
+    let chassisToSet = urlChassis;
+    let engineToSet = urlEngine;
+    let sortToSet = urlSort;
+
+    if (!hasUrlParams) {
+      try {
+        const raw = window.sessionStorage.getItem("racechipVehiclePreference");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed) {
+            if (parsed.make) makeToSet = parsed.make;
+            if (parsed.model) modelToSet = parsed.model;
+            if (parsed.chassis) chassisToSet = parsed.chassis;
+            if (parsed.engine) engineToSet = parsed.engine;
+            if (parsed.sort) sortToSet = parsed.sort;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (makeToSet !== "all") setActiveMake(makeToSet);
+    if (modelToSet !== "all") setActiveModel(modelToSet);
+    if (chassisToSet !== "all") setActiveChassis(chassisToSet);
+    if (engineToSet !== "all") setActiveEngine(engineToSet);
+    if (sortToSet !== "default") setSortOrder(sortToSet);
   }, []);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
-  const previousMakeRef = useRef(activeMake);
-  const previousModelRef = useRef(activeModel);
-  const previousChassisRef = useRef(activeChassis);
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
@@ -140,6 +170,36 @@ export default function RacechipVehicleFilter({
     }, 100);
     return () => clearTimeout(timeout);
   }, [activeMake, activeModel, activeChassis, activeEngine, sortOrder, syncToUrl]);
+
+  // Sync state to sessionStorage for back navigation preservation
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (
+          activeMake !== "all" ||
+          activeModel !== "all" ||
+          activeChassis !== "all" ||
+          activeEngine !== "all" ||
+          sortOrder !== "default"
+        ) {
+          window.sessionStorage.setItem(
+            "racechipVehiclePreference",
+            JSON.stringify({
+              make: activeMake,
+              model: activeModel,
+              chassis: activeChassis,
+              engine: activeEngine,
+              sort: sortOrder,
+            })
+          );
+        } else {
+          window.sessionStorage.removeItem("racechipVehiclePreference");
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [activeMake, activeModel, activeChassis, activeEngine, sortOrder]);
 
   // Reset visible limit whenever a filter changes
   useEffect(() => {
@@ -240,29 +300,6 @@ export default function RacechipVehicleFilter({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [products, activeMake, activeModel, activeChassis]);
 
-  // Cascading reset: changing make resets model+chassis+engine; changing
-  // model resets chassis+engine; changing chassis resets engine.
-  useEffect(() => {
-    if (previousMakeRef.current === activeMake) return;
-    previousMakeRef.current = activeMake;
-    setActiveModel("all");
-    setActiveChassis("all");
-    setActiveEngine("all");
-  }, [activeMake]);
-
-  useEffect(() => {
-    if (previousModelRef.current === activeModel) return;
-    previousModelRef.current = activeModel;
-    setActiveChassis("all");
-    setActiveEngine("all");
-  }, [activeModel]);
-
-  useEffect(() => {
-    if (previousChassisRef.current === activeChassis) return;
-    previousChassisRef.current = activeChassis;
-    setActiveEngine("all");
-  }, [activeChassis]);
-
   // 5. FILTER RESULTS
   const filtered = useMemo(() => {
     let list = products;
@@ -344,7 +381,12 @@ export default function RacechipVehicleFilter({
           placeholder={isUa ? "Виберіть марку" : "Select make"}
           value={activeMake === "all" ? "" : activeMake}
           options={availableMakes.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
-          onChange={(v) => setActiveMake(v || "all")}
+          onChange={(v) => {
+            setActiveMake(v || "all");
+            setActiveModel("all");
+            setActiveChassis("all");
+            setActiveEngine("all");
+          }}
         />
 
         <RacechipSelect
@@ -361,7 +403,11 @@ export default function RacechipVehicleFilter({
           value={activeModel === "all" ? "" : activeModel}
           options={availableModels.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
           disabled={activeMake === "all" || availableModels.length === 0}
-          onChange={(v) => setActiveModel(v || "all")}
+          onChange={(v) => {
+            setActiveModel(v || "all");
+            setActiveChassis("all");
+            setActiveEngine("all");
+          }}
         />
 
         <RacechipSelect
@@ -378,7 +424,10 @@ export default function RacechipVehicleFilter({
           value={activeChassis === "all" ? "" : activeChassis}
           options={availableChassis.map((c) => ({ value: c.key, label: c.label, count: c.count }))}
           disabled={activeMake === "all" || activeModel === "all" || availableChassis.length === 0}
-          onChange={(v) => setActiveChassis(v || "all")}
+          onChange={(v) => {
+            setActiveChassis(v || "all");
+            setActiveEngine("all");
+          }}
         />
 
         <RacechipSelect
