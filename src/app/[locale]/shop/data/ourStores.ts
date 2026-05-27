@@ -77,7 +77,7 @@ export const OUR_STORES: OurStore[] = [
     description: "Hand-crafted titanium & carbon fibre exhaust systems. The sound of perfection since 1990.",
     descriptionUk: "Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.",
     href: "/shop/akrapovic",
-    imageUrl: "/images/shop/akrapovic/auto-moto-action.webp",
+    imageUrl: "/images/shop/akrapovic/auto-moto-action.webp?v=2",
     gridSpan: 'wide',
   },
   {
