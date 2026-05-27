@@ -11,19 +11,19 @@ import {
   Section,
   Text,
   Link,
-} from '@react-email/components';
-import * as React from 'react';
+} from "@react-email/components";
+import * as React from "react";
 
 interface ContactEmailProps {
   name: string;
   contact: string;
   message: string;
-  inquiryType: 'Auto' | 'Moto' | 'General';
+  inquiryType: "Auto" | "Moto" | "General";
   model?: string;
   vin?: string;
   budget?: string;
   phone?: string;
-  contactMethod?: 'telegram' | 'whatsapp';
+  contactMethod?: "telegram" | "whatsapp";
   telegramUsername?: string;
   messageId?: string;
   logoSrc?: string;
@@ -32,8 +32,8 @@ interface ContactEmailProps {
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL}`
   : process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'https://onecompany.global';
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://onecompany.global";
 
 export const ContactEmail = ({
   name,
@@ -50,8 +50,24 @@ export const ContactEmail = ({
   logoSrc,
 }: ContactEmailProps) => (
   <Html>
-    <Head />
-    <Preview>New {inquiryType} Inquiry from {name}</Preview>
+    <Head>
+      <style>{`
+        a {
+          color: #ffffff !important;
+          text-decoration: none !important;
+        }
+        .email-btn {
+          color: #000000 !important;
+          background-color: #ffffff !important;
+        }
+        .footer-link {
+          color: #888888 !important;
+        }
+      `}</style>
+    </Head>
+    <Preview>
+      New {inquiryType} Inquiry from {name}
+    </Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoContainer}>
@@ -66,9 +82,7 @@ export const ContactEmail = ({
 
         <Section style={contentContainer}>
           <Heading style={heading}>New {inquiryType} Inquiry</Heading>
-          <Text style={subheading}>
-            A new request has been submitted via the website.
-          </Text>
+          <Text style={subheading}>A new request has been submitted via the website.</Text>
 
           <Section style={infoSection}>
             <Section style={infoRow}>
@@ -102,7 +116,7 @@ export const ContactEmail = ({
             {telegramUsername && (
               <Section style={infoRow}>
                 <Text style={label}>Telegram User</Text>
-                <Link href={`https://t.me/${telegramUsername.replace('@', '')}`} style={link}>
+                <Link href={`https://t.me/${telegramUsername.replace("@", "")}`} style={link}>
                   {telegramUsername}
                 </Link>
               </Section>
@@ -137,16 +151,15 @@ export const ContactEmail = ({
 
           <Section style={buttonContainer}>
             <Button
+              className="email-btn"
               style={button}
-              href={`${baseUrl}/admin/messages${messageId ? `?id=${messageId}` : ''}`}
+              href={`${baseUrl}/admin/messages${messageId ? `?id=${messageId}` : ""}`}
             >
               Open Dashboard
             </Button>
           </Section>
 
-          {messageId && (
-            <Text style={idText}>ID: {messageId}</Text>
-          )}
+          {messageId && <Text style={idText}>ID: {messageId}</Text>}
         </Section>
 
         <Section style={footer}>
@@ -154,7 +167,9 @@ export const ContactEmail = ({
             © {new Date().getFullYear()} OneCompany. All rights reserved.
           </Text>
           <Text style={footerText}>
-            <Link href="https://onecompany.global" style={footerLink}>onecompany.global</Link>
+            <Link href="https://onecompany.global" className="footer-link" style={footerLink}>
+              onecompany.global
+            </Link>
           </Text>
         </Section>
       </Container>
@@ -165,140 +180,141 @@ export const ContactEmail = ({
 export default ContactEmail;
 
 const main = {
-  backgroundColor: '#000000',
-  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  color: '#ffffff',
+  backgroundColor: "#000000",
+  fontFamily:
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  color: "#ffffff",
 };
 
 const container = {
-  margin: '0 auto',
-  padding: '40px 20px',
-  maxWidth: '600px',
+  margin: "0 auto",
+  padding: "40px 20px",
+  maxWidth: "600px",
 };
 
 const logoContainer = {
-  textAlign: 'center' as const,
-  marginBottom: '32px',
+  textAlign: "center" as const,
+  marginBottom: "32px",
 };
 
 const logo = {
-  margin: '0 auto',
-  display: 'block',
+  margin: "0 auto",
+  display: "block",
 };
 
 const contentContainer = {
-  backgroundColor: '#111111',
-  borderRadius: '12px',
-  border: '1px solid #333333',
-  padding: '40px',
+  backgroundColor: "#111111",
+  borderRadius: "12px",
+  border: "1px solid #333333",
+  padding: "40px",
 };
 
 const heading = {
-  fontSize: '24px',
-  fontWeight: '600',
-  textAlign: 'center' as const,
-  color: '#ffffff',
-  margin: '0 0 16px',
-  letterSpacing: '-0.02em',
+  fontSize: "24px",
+  fontWeight: "600",
+  textAlign: "center" as const,
+  color: "#ffffff",
+  margin: "0 0 16px",
+  letterSpacing: "-0.02em",
 };
 
 const subheading = {
-  fontSize: '16px',
-  lineHeight: '26px',
-  textAlign: 'center' as const,
-  color: '#888888',
-  marginBottom: '32px',
+  fontSize: "16px",
+  lineHeight: "26px",
+  textAlign: "center" as const,
+  color: "#888888",
+  marginBottom: "32px",
 };
 
 const infoSection = {
-  marginBottom: '32px',
+  marginBottom: "32px",
 };
 
 const infoRow = {
-  marginBottom: '20px',
-  borderBottom: '1px solid #222222',
-  paddingBottom: '20px',
+  marginBottom: "20px",
+  borderBottom: "1px solid #222222",
+  paddingBottom: "20px",
 };
 
 const label = {
-  color: '#888888',
-  fontSize: '12px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.1em',
-  marginBottom: '8px',
-  fontWeight: '600',
-  display: 'block',
+  color: "#888888",
+  fontSize: "12px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.1em",
+  marginBottom: "8px",
+  fontWeight: "600",
+  display: "block",
 };
 
 const value = {
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '500',
-  margin: '0',
-  lineHeight: '24px',
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "500",
+  margin: "0",
+  lineHeight: "24px",
 };
 
 const link = {
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '500',
-  textDecoration: 'none',
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "500",
+  textDecoration: "none",
 };
 
 const messageBox = {
-  backgroundColor: '#1a1a1a',
-  borderRadius: '8px',
-  padding: '24px',
-  borderLeft: '4px solid #ffffff',
+  backgroundColor: "#1a1a1a",
+  borderRadius: "8px",
+  padding: "24px",
+  borderLeft: "4px solid #ffffff",
 };
 
 const messageText = {
-  fontSize: '16px',
-  lineHeight: '26px',
-  color: '#ffffff',
-  margin: '0',
-  whiteSpace: 'pre-wrap' as const,
+  fontSize: "16px",
+  lineHeight: "26px",
+  color: "#ffffff",
+  margin: "0",
+  whiteSpace: "pre-wrap" as const,
 };
 
 const buttonContainer = {
-  textAlign: 'center' as const,
-  marginTop: '32px',
+  textAlign: "center" as const,
+  marginTop: "32px",
 };
 
 const button = {
-  backgroundColor: '#ffffff',
-  borderRadius: '9999px',
-  color: '#000000',
-  fontSize: '14px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '14px 32px',
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase' as const,
+  backgroundColor: "#ffffff",
+  borderRadius: "9999px",
+  color: "#000000",
+  fontSize: "14px",
+  fontWeight: "600",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "14px 32px",
+  letterSpacing: "0.05em",
+  textTransform: "uppercase" as const,
 };
 
 const idText = {
-  fontSize: '10px',
-  color: '#444444',
-  marginTop: '24px',
-  textAlign: 'center' as const,
-  fontFamily: 'monospace',
+  fontSize: "10px",
+  color: "#444444",
+  marginTop: "24px",
+  textAlign: "center" as const,
+  fontFamily: "monospace",
 };
 
 const footer = {
-  textAlign: 'center' as const,
-  marginTop: '32px',
+  textAlign: "center" as const,
+  marginTop: "32px",
 };
 
 const footerText = {
-  fontSize: '12px',
-  color: '#666666',
-  margin: '8px 0',
+  fontSize: "12px",
+  color: "#666666",
+  margin: "8px 0",
 };
 
 const footerLink = {
-  color: '#888888',
-  textDecoration: 'none',
+  color: "#888888",
+  textDecoration: "none",
 };
