@@ -69,14 +69,20 @@ export function buildPageMetadata(
   const path = buildLocalizedPath(locale, slug);
   const url = absoluteUrl(path);
   const usingDefaultOg = !meta.image;
-  const ogImage = meta.image
+  const rawImage = meta.image
     ? meta.image.startsWith("http")
       ? meta.image
       : absoluteUrl(meta.image)
     : absoluteUrl(defaultOgImage);
+
+  // Compress external or product images via Next.js Image Optimization so that social media
+  // platforms (like Telegram, which has a 2MB limit) can fetch and render the preview image instantly.
+  const ogImage =
+    meta.image && (meta.image.startsWith("http") || meta.image.startsWith("https"))
+      ? `${siteConfig.url}/_next/image?url=${encodeURIComponent(rawImage)}&w=1200&q=75`
+      : rawImage;
+
   const description = normalizeMetaText(meta.description, 165);
-  // 95 fits Telegram/Twitter/Facebook without visible truncation; the
-  // ellipsis only appears for genuinely runaway titles.
   const title = normalizeMetaText(meta.title, 95);
 
   // Only attach width/height when we control the asset (the default OG image
