@@ -1706,6 +1706,19 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           items: bundleInventory?.items ?? [],
         }
       : null,
+    sounds: (() => {
+      const soundsMeta = (row.metafields ?? []).find(
+        (m) => m.namespace === "akrapovic" && m.key === "sounds"
+      );
+      if (soundsMeta?.value) {
+        try {
+          return JSON.parse(soundsMeta.value);
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    })(),
   };
 }
 

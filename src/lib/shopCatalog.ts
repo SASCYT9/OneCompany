@@ -108,6 +108,12 @@ export interface ShopProduct {
     title: LocalizedText;
   } | null;
   bundle?: ShopBundleSummary | null;
+  sounds?: Array<{
+    Id: number;
+    TypeId: number;
+    Title: string;
+    Url: string;
+  }>;
 }
 
 export const SHOP_PRODUCTS: ShopProduct[] = [];

@@ -75,6 +75,7 @@ import {
 } from "@/lib/crossShopFitment";
 import CrossShopFitment from "./CrossShopFitment";
 import { ShopDefaultProductPricingBlock } from "./ShopDefaultProductPricingBlock";
+import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 
 import type { ShopProduct } from "@/lib/shopCatalog";
 
@@ -949,6 +950,41 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                     />
                   ) : null}
                 </MobileProductDisclosure>
+              ) : null}
+
+              {product.sounds && product.sounds.length > 0 ? (
+                <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/85 dark:text-white/80">
+                    {isUa ? "Звук вихлопної системи" : "Exhaust Sound"}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {product.sounds.map((sound) => {
+                      const title = sound.Title || "";
+                      const titleUk = title
+                        .replace(/Stock exhaust/i, "Стандартний вихлоп")
+                        .replace(/Complete/i, "Повний вихлоп")
+                        .replace(/Evolution Line/i, "Evolution Line")
+                        .replace(/Slip-On/i, "Slip-On Line")
+                        .replace(/Racing Line/i, "Racing Line");
+
+                      return (
+                        <AkrapovicSoundPlayer
+                          key={`product-sound-${sound.Id}`}
+                          entry={{
+                            id: `product-sound-${sound.Id}`,
+                            make: product.brand,
+                            model: isUa ? titleUk : title,
+                            image: product.image,
+                            exhaustType: title,
+                            exhaustTypeUk: titleUk,
+                            soundUrl: sound.Url,
+                          }}
+                          isUa={isUa}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               ) : null}
 
               {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
