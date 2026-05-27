@@ -20,6 +20,7 @@ export default function ContactPageContent() {
   const [type, setType] = useState<FormType>("auto");
   const [formData, setFormData] = useState(() => {
     const base = {
+      name: "",
       model: "",
       vin: "",
       wishes: "",
@@ -42,7 +43,7 @@ export default function ContactPageContent() {
 
   // Progress (percentage of required fields filled)
   // telegramUsername is optional, so it's not in requiredKeys unless we want to force it
-  const requiredKeys: (keyof typeof formData)[] = ["model", "wishes", "email", "phone"];
+  const requiredKeys: (keyof typeof formData)[] = ["name", "model", "wishes", "email", "phone"];
   const completion = Math.round(
     (requiredKeys.filter((k) => (formData[k] as string).trim().length > 0).length /
       requiredKeys.length) *
@@ -81,6 +82,7 @@ export default function ContactPageContent() {
   const handleTypeChange = (newType: FormType) => {
     setType(newType);
     setFormData({
+      name: "",
       model: "",
       vin: "",
       wishes: "",
@@ -101,6 +103,7 @@ export default function ContactPageContent() {
 
     const payload = {
       type,
+      name: formData.name,
       ...(type === "auto" ? { carModel: formData.model } : { motoModel: formData.model }),
       vin: formData.vin,
       wishes: formData.wishes,
@@ -125,6 +128,7 @@ export default function ContactPageContent() {
         setMessage(t("form.success"));
         trackFormSubmission("contact", { form_type: type });
         setFormData({
+          name: "",
           model: "",
           vin: "",
           wishes: "",
@@ -221,6 +225,25 @@ export default function ContactPageContent() {
                 </div>
 
                 <div className="space-y-6 sm:space-y-8">
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className={`mb-2 block font-light uppercase tracking-[0.15em] text-foreground/60 ${typography.badge}`}
+                    >
+                      {t("form.nameLabel")}
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
+                      placeholder={t("form.namePlaceholder")}
+                      required
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2">
                     <div>
                       <label

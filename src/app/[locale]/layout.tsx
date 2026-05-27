@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
@@ -110,7 +110,9 @@ export default async function LocaleLayout({ children, params }: Props) {
               />
             ) : null}
             {/* Font debug overlay removed */}
-            <Header />
+            <Suspense fallback={<div className="h-20 bg-black" />}>
+              <Header />
+            </Suspense>
             <main id="main-content" className="grow relative z-10">
               {children}
             </main>

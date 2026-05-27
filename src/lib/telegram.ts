@@ -37,11 +37,15 @@ function formatContactBody(p: {
   telegramUsername?: string;
   contactMethod?: string;
   wishes?: string;
+  name?: string;
 }): string {
   const lines: string[] = [];
 
   lines.push(`${p.emoji} <b>${p.title}</b>`);
   lines.push("");
+
+  // Client details
+  if (p.name) lines.push(`<b>Name:</b> ${escapeHtml(p.name)}`);
 
   // Vehicle details
   lines.push(`<b>${p.modelLabel}:</b> ${escapeHtml(p.modelValue)}`);
@@ -82,6 +86,7 @@ export function formatAutoMessage(p: AutoPayload): string {
     telegramUsername: p.telegramUsername,
     contactMethod: p.contactMethod,
     wishes: p.wishes,
+    name: p.name,
   });
 }
 
@@ -98,6 +103,7 @@ export function formatMotoMessage(p: MotoPayload): string {
     telegramUsername: p.telegramUsername,
     contactMethod: p.contactMethod,
     wishes: p.wishes,
+    name: p.name,
   });
 }
 

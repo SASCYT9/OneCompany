@@ -465,57 +465,59 @@
     "heroVideoEnabled": "Hero Video Enabled",
     "heroVideoDisabledByAdmin": "Hero video disabled by admin",
     "saveSuccess": "Changes saved successfully",
-    "saveError": "Failed to save changes"
-    ,"mobileVariant":"Mobile variant",
-    "setMobile":"Set mobile video",
-    "poster":"Poster image",
-    "setPoster":"Set poster"
+    "saveError": "Failed to save changes",
+    "mobileVariant": "Mobile variant",
+    "setMobile": "Set mobile video",
+    "poster": "Poster image",
+    "setPoster": "Set poster"
   },
-    "contactPage": {
-      "hero": {
-        "eyebrow": "Ask an expert",
-        "heading": "Get in touch",
-        "subheading": "We will pick the optimal kit for your car or motorcycle. Specify make, model, year and preferences — we will provide a solution."
-      },
-      "info": {
-        "title": "Contact information",
-        "emailLabel": "Email",
-        "phoneLabel": "Phone",
-        "locationLabel": "Location",
-        "locationValue": "Kyiv, Ukraine",
-        "description": "Managers help with part selection, logistics and installation support. Leave a message — we will respond within one business day."
-      },
-      "form": {
-        "typeAuto": "Auto",
-        "typeMoto": "Moto",
-        "modelLabelAuto": "Car make and model",
-        "modelLabelMoto": "Motorcycle make and model",
-        "modelPlaceholderAuto": "e.g., BMW M3 G80",
-        "modelPlaceholderMoto": "e.g., Ducati Panigale V4",
-        "vinLabel": "VIN number",
-        "optional": "(optional)",
-        "vinPlaceholder": "17 characters",
-        "wishesLabel": "Wishlist",
-        "wishesPlaceholder": "Describe what you want to achieve...",
-        "budgetLabel": "Budget",
-        "budgetPlaceholder": "1000-5000 USD",
-        "emailLabel": "Email",
-        "phoneLabel": "Phone",
-        "phonePlaceholder": "+380 XX XXX XX XX",
-        "phoneHint": "Digits and + only",
-        "contactMethodLabel": "Contact Method",
-        "telegramUsernameLabel": "Telegram Username",
-        "telegramUsernamePlaceholder": "@username",
-        "telegram": "Telegram",
-        "whatsapp": "WhatsApp",
-        "progressLabel": "Progress",
-        "submit": "Get in touch",
-        "submitting": "Sending...",
-        "success": "Thank you! Your request has been sent.",
-        "error": "Something went wrong. Please try again.",
-        "connectionError": "Unable to send the request. Please check your connection."
-      }
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Ask an expert",
+      "heading": "Get in touch",
+      "subheading": "We will pick the optimal kit for your car or motorcycle. Specify make, model, year and preferences — we will provide a solution."
     },
+    "info": {
+      "title": "Contact information",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "locationLabel": "Location",
+      "locationValue": "Kyiv, Ukraine",
+      "description": "Managers help with part selection, logistics and installation support. Leave a message — we will respond within one business day."
+    },
+    "form": {
+      "nameLabel": "How should we address you?",
+      "namePlaceholder": "Your name",
+      "typeAuto": "Auto",
+      "typeMoto": "Moto",
+      "modelLabelAuto": "Car make and model",
+      "modelLabelMoto": "Motorcycle make and model",
+      "modelPlaceholderAuto": "e.g., BMW M3 G80",
+      "modelPlaceholderMoto": "e.g., Ducati Panigale V4",
+      "vinLabel": "VIN number",
+      "optional": "(optional)",
+      "vinPlaceholder": "17 characters",
+      "wishesLabel": "Wishlist",
+      "wishesPlaceholder": "Describe what you want to achieve...",
+      "budgetLabel": "Budget",
+      "budgetPlaceholder": "1000-5000 USD",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+380 XX XXX XX XX",
+      "phoneHint": "Digits and + only",
+      "contactMethodLabel": "Contact Method",
+      "telegramUsernameLabel": "Telegram Username",
+      "telegramUsernamePlaceholder": "@username",
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp",
+      "progressLabel": "Progress",
+      "submit": "Get in touch",
+      "submitting": "Sending...",
+      "success": "Thank you! Your request has been sent.",
+      "error": "Something went wrong. Please try again.",
+      "connectionError": "Unable to send the request. Please check your connection."
+    }
+  },
   "contactForm": {
     "title": "Individual Selection",
     "requestType": "Request Type",

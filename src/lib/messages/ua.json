@@ -421,57 +421,59 @@
     "heroVideoEnabled": "Головне відео увімкнено",
     "heroVideoDisabledByAdmin": "Головне відео вимкнено адміністратором",
     "saveSuccess": "Зміни успішно збережені",
-    "saveError": "Не вдалося зберегти зміни"
-    ,"mobileVariant":"Мобільний варіант",
-    "setMobile":"Встановити мобільний відео",
-    "poster":"Постер",
-    "setPoster":"Встановити постер"
+    "saveError": "Не вдалося зберегти зміни",
+    "mobileVariant": "Мобільний варіант",
+    "setMobile": "Встановити мобільний відео",
+    "poster": "Постер",
+    "setPoster": "Встановити постер"
   },
-    "contactPage": {
-      "hero": {
-        "eyebrow": "Запитати експерта",
-        "heading": "Напишіть нам",
-        "subheading": "Підберемо оптимальний комплект для авто чи мото. Вкажіть марку, модель, рік та побажання — ми забезпечимо рішення."
-      },
-      "info": {
-        "title": "Контакти",
-        "emailLabel": "Пошта",
-        "phoneLabel": "Телефон",
-        "locationLabel": "Локація",
-        "locationValue": "Київ, Україна",
-        "description": "Менеджери допомагають з підбором деталей, логістикою та супроводом монтажу. Залиште повідомлення — відповімо протягом робочого дня."
-      },
-      "form": {
-        "typeAuto": "Авто",
-        "typeMoto": "Мото",
-        "modelLabelAuto": "Марка та модель авто",
-        "modelLabelMoto": "Марка та модель мото",
-        "modelPlaceholderAuto": "наприклад, BMW M3 G80",
-        "modelPlaceholderMoto": "наприклад, Ducati Panigale V4",
-        "vinLabel": "VIN-код",
-        "optional": "(необов'язково)",
-        "vinPlaceholder": "17 символів",
-        "wishesLabel": "Побажання",
-        "wishesPlaceholder": "Опишіть, якого результату хочете...",
-        "budgetLabel": "Бюджет",
-        "budgetPlaceholder": "1000-5000 USD",
-        "emailLabel": "Email",
-        "phoneLabel": "Телефон",
-        "phonePlaceholder": "+380 XX XXX XX XX",
-        "phoneHint": "Тільки цифри та +",
-        "contactMethodLabel": "Спосіб зв'язку",
-        "telegramUsernameLabel": "Telegram Username",
-        "telegramUsernamePlaceholder": "@username",
-        "telegram": "Telegram",
-        "whatsapp": "WhatsApp",
-        "progressLabel": "Заповнено",
-        "submit": "Надіслати запит",
-        "submitting": "Надсилаємо...",
-        "success": "Дякуємо! Запит надіслано.",
-        "error": "Щось пішло не так. Спробуйте ще раз.",
-        "connectionError": "Не вдалося надіслати. Перевірте підключення."
-      }
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Запитати експерта",
+      "heading": "Напишіть нам",
+      "subheading": "Підберемо оптимальний комплект для авто чи мото. Вкажіть марку, модель, рік та побажання — ми забезпечимо рішення."
     },
+    "info": {
+      "title": "Контакти",
+      "emailLabel": "Пошта",
+      "phoneLabel": "Телефон",
+      "locationLabel": "Локація",
+      "locationValue": "Київ, Україна",
+      "description": "Менеджери допомагають з підбором деталей, логістикою та супроводом монтажу. Залиште повідомлення — відповімо протягом робочого дня."
+    },
+    "form": {
+      "nameLabel": "Як до Вас звертатись?",
+      "namePlaceholder": "Ваше ім'я",
+      "typeAuto": "Авто",
+      "typeMoto": "Мото",
+      "modelLabelAuto": "Марка та модель авто",
+      "modelLabelMoto": "Марка та модель мото",
+      "modelPlaceholderAuto": "наприклад, BMW M3 G80",
+      "modelPlaceholderMoto": "наприклад, Ducati Panigale V4",
+      "vinLabel": "VIN-код",
+      "optional": "(необов'язково)",
+      "vinPlaceholder": "17 символів",
+      "wishesLabel": "Побажання",
+      "wishesPlaceholder": "Опишіть, якого результату хочете...",
+      "budgetLabel": "Бюджет",
+      "budgetPlaceholder": "1000-5000 USD",
+      "emailLabel": "Email",
+      "phoneLabel": "Телефон",
+      "phonePlaceholder": "+380 XX XXX XX XX",
+      "phoneHint": "Тільки цифри та +",
+      "contactMethodLabel": "Спосіб зв'язку",
+      "telegramUsernameLabel": "Telegram Username",
+      "telegramUsernamePlaceholder": "@username",
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp",
+      "progressLabel": "Заповнено",
+      "submit": "Надіслати запит",
+      "submitting": "Надсилаємо...",
+      "success": "Дякуємо! Запит надіслано.",
+      "error": "Щось пішло не так. Спробуйте ще раз.",
+      "connectionError": "Не вдалося надіслати. Перевірте підключення."
+    }
+  },
   "contactForm": {
     "title": "Індивідуальний підбір",
     "requestType": "Тип запиту",

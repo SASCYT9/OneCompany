@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -17,10 +18,10 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
-import { ShopPaginationNav } from "./ShopPaginationNav";
 import {
   BRAND_PATTERNS,
   LINE_PATTERNS,
@@ -35,10 +36,6 @@ import {
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
-  pageProducts?: ShopProduct[];
-  currentPage?: number;
-  totalPages?: number;
-  basePath?: string;
   viewerContext?: ShopViewerPricingContext;
   productPathPrefix: string;
   filterOnly?: boolean;
@@ -69,10 +66,6 @@ function computeDisplayPrices(
 export default function AkrapovicVehicleFilter({
   locale,
   products,
-  pageProducts,
-  currentPage,
-  totalPages,
-  basePath,
   viewerContext: ssrViewerContext,
   productPathPrefix,
   filterOnly = false,
@@ -83,45 +76,42 @@ export default function AkrapovicVehicleFilter({
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
+  const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // Initial state ignores URL params so SSR and CSR first-render match
-  // (defaults: all/empty). URL params apply after mount via window.location
-  // — this lets Googlebot crawl the unfiltered SSR product list. Reading
-  // useSearchParams() here would force the surrounding <Suspense> boundary
-  // to emit its fallback in the pre-rendered HTML, hiding every product.
-  const [activeBrand, setActiveBrand] = useState<string>("all");
-  const [activeModel, setActiveModel] = useState<string>("all");
-  const [activeBody, setActiveBody] = useState<string>("all");
-  const [activeLine, setActiveLine] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeBrand, setActiveBrand] = useState<string>(() => searchParams.get("brand") || "all");
+  const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
+  const [activeBody, setActiveBody] = useState<string>(
+    () => searchParams.get("body") || searchParams.get("year") || "all"
+  );
+  const [activeLine, setActiveLine] = useState<string>(() => searchParams.get("line") || "all");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-
-  const hasActiveFilters =
-    activeBrand !== "all" ||
-    activeLine !== "all" ||
-    activeModel !== "all" ||
-    activeBody !== "all" ||
-    searchQuery.trim() !== "";
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
-  const didInitializeBrand = useRef(false);
-  const didInitializeModel = useRef(false);
-  // When the post-mount URL-restore effect calls setActiveBrand/setActiveModel,
-  // the brand- and model-change effects below would otherwise interpret it as a
-  // user-driven switch and reset the dependent filters back to "all" — wiping
-  // the URL params we just applied. This flag suppresses those resets for the
-  // duration of the URL-driven update.
-  const applyingUrlState = useRef(false);
+  const prevBrandRef = useRef(activeBrand);
+  const prevModelRef = useRef(activeModel);
+
+  const rawScope = searchParams.get("scope") || searchParams.get("segment");
+  const isMoto = rawScope === "moto";
+
+  const scopedProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (isMoto) return p.scope === "moto";
+      return p.scope !== "moto";
+    });
+  }, [products, isMoto]);
 
   const productBrandMap = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const p of products) {
+    for (const p of scopedProducts) {
       const title = p.title?.en || localizeShopProductTitle("en", p);
       const brands = extractVehicleBrands(title);
       if (brands.length > 0) map.set(p.slug, brands);
     }
     return map;
-  }, [products]);
+  }, [scopedProducts]);
 
   const availableBrands = useMemo(() => {
     const counts = new Map<string, number>();
@@ -142,7 +132,7 @@ export default function AkrapovicVehicleFilter({
 
   const availableLines = useMemo(() => {
     const lines = new Map<string, number>();
-    for (const p of products) {
+    for (const p of scopedProducts) {
       if (activeBrand !== "all" && !productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle("en", p);
       const line = extractProductLine(title);
@@ -155,12 +145,12 @@ export default function AkrapovicVehicleFilter({
         label: LINE_PATTERNS.find((l) => l.key === key)?.label ?? key,
         count,
       }));
-  }, [activeBrand, products, productBrandMap]);
+  }, [activeBrand, scopedProducts, productBrandMap]);
 
   const availableModels = useMemo(() => {
     if (activeBrand === "all") return [];
     const models = new Map<string, number>();
-    for (const p of products) {
+    for (const p of scopedProducts) {
       if (!productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle("en", p);
       for (const model of extractVehicleModelNamesForBrand(title, activeBrand)) {
@@ -170,12 +160,12 @@ export default function AkrapovicVehicleFilter({
     return [...models.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([key, count]) => ({ key, label: key, count }));
-  }, [activeBrand, products, productBrandMap]);
+  }, [activeBrand, scopedProducts, productBrandMap]);
 
   const availableBodies = useMemo(() => {
     if (activeBrand === "all") return [];
     const bodies = new Map<string, number>();
-    for (const p of products) {
+    for (const p of scopedProducts) {
       if (!productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle("en", p);
       if (
@@ -183,77 +173,83 @@ export default function AkrapovicVehicleFilter({
         !extractVehicleModelNamesForBrand(title, activeBrand).includes(activeModel)
       )
         continue;
-      // When a model is selected, attribute chassis per-segment so that products
-      // covering multiple models don't leak (e.g. BMW M2 (F87) / M3 (G80) only
-      // contributes F87 under M2 and G80 under M3).
-      const codes =
-        activeModel !== "all"
-          ? extractChassisForBrandAndModel(title, activeBrand, activeModel)
-          : extractVehicleModelsForBrand(title, activeBrand);
-      for (const body of codes) {
-        if (body && body !== "Other") bodies.set(body, (bodies.get(body) || 0) + 1);
+
+      if (isMoto) {
+        // Extract fits-year tags
+        const years = (p.tags || [])
+          .filter((t) => t.startsWith("fits-year:"))
+          .map((t) => t.split(":")[1]);
+        for (const y of years) {
+          if (y) bodies.set(y, (bodies.get(y) || 0) + 1);
+        }
+      } else {
+        // When a model is selected, attribute chassis per-segment so that products
+        // covering multiple models don't leak (e.g. BMW M2 (F87) / M3 (G80) only
+        // contributes F87 under M2 and G80 under M3).
+        const codes =
+          activeModel !== "all"
+            ? extractChassisForBrandAndModel(title, activeBrand, activeModel)
+            : extractVehicleModelsForBrand(title, activeBrand);
+        for (const body of codes) {
+          if (body && body !== "Other") bodies.set(body, (bodies.get(body) || 0) + 1);
+        }
       }
     }
+
+    if (isMoto) {
+      // Sort years descending (newest first)
+      return [...bodies.entries()]
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .map(([key, count]) => ({ key, label: key, count }));
+    }
+
     return [...bodies.entries()]
       .sort((a, b) => compareVehicleModelKeys(a[0], b[0]))
       .map(([key, count]) => ({ key, label: key, count }));
-  }, [activeBrand, activeModel, products, productBrandMap]);
+  }, [activeBrand, activeModel, scopedProducts, productBrandMap, isMoto]);
 
+  // Sync local filter state when the URL changes (e.g. from the home page finder)
   useEffect(() => {
-    if (!didInitializeBrand.current) {
-      didInitializeBrand.current = true;
-      return;
+    const nextBrand = searchParams?.get("brand") || "all";
+    const nextModel = searchParams?.get("model") || "all";
+    const nextBody = searchParams?.get("body") || searchParams?.get("year") || "all";
+    const nextLine = searchParams?.get("line") || "all";
+    const nextQ = searchParams?.get("q") || "";
+
+    prevBrandRef.current = nextBrand;
+    prevModelRef.current = nextModel;
+
+    setActiveBrand(nextBrand);
+    setActiveModel(nextModel);
+    setActiveBody(nextBody);
+    setActiveLine(nextLine);
+    setSearchQuery(nextQ);
+  }, [searchParams]);
+
+  // Reset narrower filters when brand actually changes
+  useEffect(() => {
+    if (prevBrandRef.current !== activeBrand) {
+      prevBrandRef.current = activeBrand;
+      setActiveModel("all");
+      setActiveBody("all");
+      setActiveLine("all");
     }
-    if (applyingUrlState.current) return;
-    setActiveLine("all");
-    setActiveModel("all");
-    setActiveBody("all");
   }, [activeBrand]);
 
+  // Reset body when model actually changes
   useEffect(() => {
-    if (!didInitializeModel.current) {
-      didInitializeModel.current = true;
-      return;
+    if (prevModelRef.current !== activeModel) {
+      prevModelRef.current = activeModel;
+      setActiveBody("all");
     }
-    if (applyingUrlState.current) return;
-    setActiveBody("all");
   }, [activeModel]);
-
-  // Restore filter state from URL after mount. Runs once. Sets
-  // applyingUrlState so the cascade-reset effects above don't clobber the
-  // dependent filters we just applied. The flag clears on the next tick,
-  // after React flushes all the URL-driven state updates.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const urlBrand = params.get("brand");
-    const urlModel = params.get("model");
-    const urlBody = params.get("body");
-    const urlLine = params.get("line");
-    const urlQ = params.get("q");
-    if (!urlBrand && !urlModel && !urlBody && !urlLine && !urlQ) return;
-    applyingUrlState.current = true;
-    if (urlBrand) setActiveBrand(urlBrand);
-    if (urlModel) setActiveModel(urlModel);
-    if (urlBody) setActiveBody(urlBody);
-    if (urlLine) setActiveLine(urlLine);
-    if (urlQ) setSearchQuery(urlQ);
-    // Defer clearing until after the cascade-reset effects have run on the
-    // re-render triggered by these setters. setTimeout(0) fires after the
-    // current React work, so the suppression flag stays live for the full
-    // commit cycle.
-    const timeoutId = setTimeout(() => {
-      applyingUrlState.current = false;
-    }, 0);
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, sortOrder]);
 
   const filteredProducts = useMemo(() => {
-    let result = products;
+    let result = scopedProducts;
     if (activeBrand !== "all")
       result = result.filter((p) => productBrandMap.get(p.slug)?.includes(activeBrand));
     if (activeModel !== "all" && activeBrand !== "all")
@@ -263,6 +259,12 @@ export default function AkrapovicVehicleFilter({
       });
     if (activeBody !== "all" && activeBrand !== "all")
       result = result.filter((p) => {
+        if (isMoto) {
+          const years = (p.tags || [])
+            .filter((t) => t.startsWith("fits-year:"))
+            .map((t) => t.split(":")[1]);
+          return years.includes(activeBody);
+        }
         const t = p.title?.en || localizeShopProductTitle("en", p);
         const codes =
           activeModel !== "all"
@@ -322,7 +324,7 @@ export default function AkrapovicVehicleFilter({
     activeLine,
     searchQuery,
     sortOrder,
-    products,
+    scopedProducts,
     productBrandMap,
     locale,
     viewerContext,
@@ -330,29 +332,33 @@ export default function AkrapovicVehicleFilter({
     rates,
   ]);
 
-  const totalCount = products.length;
-  const displayedProducts = useMemo(() => {
-    if (!hasActiveFilters && pageProducts) {
-      return pageProducts;
-    }
-    return filteredProducts.slice(0, visibleCount);
-  }, [filteredProducts, visibleCount, hasActiveFilters, pageProducts]);
+  const totalCount = scopedProducts.length;
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
 
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeLine !== "all" ||
+    activeModel !== "all" ||
+    activeBody !== "all" ||
+    searchQuery.trim() !== "";
   const catalogHref = useMemo(() => {
     const params = new URLSearchParams();
     if (activeBrand !== "all") params.set("brand", activeBrand);
     if (activeModel !== "all") params.set("model", activeModel);
-    if (activeBody !== "all") params.set("body", activeBody);
+    if (activeBody !== "all") {
+      params.set(isMoto ? "year" : "body", activeBody);
+    }
     if (activeLine !== "all") params.set("line", activeLine);
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
+    if (isMoto) params.set("scope", "moto");
     const query = params.toString();
     return `/${locale}/shop/akrapovic/collections${query ? `?${query}` : ""}`;
-  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, locale]);
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, locale, isMoto]);
 
-  // Note: previous `if (!mounted) return null` guard was removed so the full
-  // product grid renders in the initial server HTML (Googlebot crawl). Filter
-  // state restores from URL via the post-mount effect above; first render
-  // shows the unfiltered list, which matches SSR.
+  if (!mounted) return null;
 
   if (filterOnly && heroCompact) {
     return (
@@ -401,10 +407,26 @@ export default function AkrapovicVehicleFilter({
             value={activeBody}
             onChange={(e) => setActiveBody(e.target.value)}
             className="ak-hero-filter__field"
-            aria-label={isUa ? "Оберіть кузов" : "Choose chassis"}
+            aria-label={
+              isUa
+                ? isMoto
+                  ? "Оберіть рік"
+                  : "Оберіть кузов"
+                : isMoto
+                  ? "Choose year"
+                  : "Choose chassis"
+            }
             disabled={activeBrand === "all" || availableBodies.length === 0}
           >
-            <option value="all">{isUa ? "Оберіть кузов" : "Choose chassis"}</option>
+            <option value="all">
+              {isUa
+                ? isMoto
+                  ? "Оберіть рік"
+                  : "Оберіть кузов"
+                : isMoto
+                  ? "Choose year"
+                  : "Choose chassis"}
+            </option>
             {availableBodies.map((body) => (
               <option key={body.key} value={body.key}>
                 {body.label}
@@ -441,7 +463,13 @@ export default function AkrapovicVehicleFilter({
       {/* Brand select */}
       <div>
         <label className="text-[10px] text-foreground/65 dark:text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
-          {isUa ? "Марка авто" : "Vehicle Brand"}
+          {isUa
+            ? isMoto
+              ? "Марка мотоцикла"
+              : "Марка авто"
+            : isMoto
+              ? "Motorcycle Brand"
+              : "Vehicle Brand"}
         </label>
         <div className="relative">
           <select
@@ -492,11 +520,11 @@ export default function AkrapovicVehicleFilter({
         </div>
       )}
 
-      {/* Body / Chassis select (generation code: 992, G80, C8…) */}
+      {/* Body / Chassis / Year select */}
       {availableBodies.length > 0 && (
         <div>
           <label className="text-[10px] text-foreground/65 dark:text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
-            {isUa ? "Кузов" : "Chassis"}
+            {isUa ? (isMoto ? "Рік" : "Кузов") : isMoto ? "Year" : "Chassis"}
           </label>
           <div className="relative">
             <select
@@ -504,7 +532,9 @@ export default function AkrapovicVehicleFilter({
               onChange={(e) => setActiveBody(e.target.value)}
               className={selectCls}
             >
-              <option value="all">{isUa ? "Всі кузови" : "All Chassis"}</option>
+              <option value="all">
+                {isUa ? (isMoto ? "Всі роки" : "Всі кузови") : isMoto ? "All Years" : "All Chassis"}
+              </option>
               {availableBodies.map((b) => (
                 <option key={b.key} value={b.key}>
                   {b.label} ({b.count})
@@ -566,8 +596,12 @@ export default function AkrapovicVehicleFilter({
                     ? "Підбір системи"
                     : "System Finder"
                   : isUa
-                    ? "Каталог"
-                    : "Catalog"}
+                    ? isMoto
+                      ? "Мото каталог"
+                      : "Авто каталог"
+                    : isMoto
+                      ? "Moto Catalog"
+                      : "Auto Catalog"}
               </h2>
               <span className="text-foreground/55 dark:text-white/40 text-xs tracking-wide whitespace-nowrap">
                 {filteredProducts.length} {isUa ? "з" : "of"} {totalCount}
@@ -868,15 +902,24 @@ export default function AkrapovicVehicleFilter({
                               {productTitle}
                             </h3>
                             <div className="mt-auto">
-                              {!hasPrice || !primaryPrice ? (
-                                <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-foreground/65 dark:text-white/50">
-                                  {isUa ? "Ціна за запитом" : "Price on Request"}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white">
-                                  {primaryPrice}
-                                </span>
-                              )}
+                              <ShopCardPriceTag
+                                locale={locale}
+                                b2cPrice={product.price}
+                                b2bExplicit={product.b2bPrice ?? null}
+                                compareAt={product.compareAt ?? null}
+                                brand={product.brand ?? null}
+                                variant="compact"
+                                classNames={{
+                                  root: "flex items-baseline gap-2 flex-wrap",
+                                  price:
+                                    "text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-foreground dark:text-white tabular-nums",
+                                  retail:
+                                    "text-[9px] sm:text-[10px] font-light line-through text-foreground/45 dark:text-white/35",
+                                  badge:
+                                    "inline-flex items-center rounded-sm bg-[#e50000]/20 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[#e50000]",
+                                }}
+                                requestLabel={isUa ? "Ціна за запитом" : "Price on Request"}
+                              />
                             </div>
                           </div>
                           <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#e50000] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -909,7 +952,7 @@ export default function AkrapovicVehicleFilter({
                     );
                   })}
                 </AkrapovicSpotlightGrid>
-                {hasActiveFilters && visibleCount < filteredProducts.length ? (
+                {visibleCount < filteredProducts.length ? (
                   <div className="mt-8 flex justify-center">
                     <button
                       type="button"
@@ -920,15 +963,6 @@ export default function AkrapovicVehicleFilter({
                       )
                     </button>
                   </div>
-                ) : null}
-
-                {!hasActiveFilters && pageProducts && currentPage && totalPages && basePath ? (
-                  <ShopPaginationNav
-                    locale={locale}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    basePath={basePath}
-                  />
                 ) : null}
               </>
             )}

@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname, useSelectedLayoutSegments } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useSelectedLayoutSegments,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -31,6 +37,20 @@ export function Header() {
   const tNav = useTranslations("nav");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isShopRoute = segments[0] === "shop";
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const segmentParam = searchParams.get("segment");
+
+  const handleSegmentChange = (seg: string | null) => {
+    const newParams = new URLSearchParams(window.location.search);
+    if (seg) {
+      newParams.set("segment", seg);
+    } else {
+      newParams.delete("segment");
+    }
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
 
   const currentBrand = segments[1];
   const isBrandPortal =
@@ -78,9 +98,15 @@ export function Header() {
                   ? `/${locale}/shop/girodisc/catalog`
                   : ["brabus", "burger", "urban"].includes(currentBrand)
                     ? `/${locale}/shop/${currentBrand}/products`
-                    : ["do88", "akrapovic", "adro", "csf", "ipe"].includes(currentBrand)
-                      ? `/${locale}/shop/${currentBrand}/collections`
-                      : `/${locale}/shop/${currentBrand}#catalog`,
+                    : currentBrand === "akrapovic"
+                      ? `/${locale}/shop/akrapovic/collections${
+                          segmentParam === "moto" || searchParams.get("scope") === "moto"
+                            ? "?scope=moto"
+                            : ""
+                        }`
+                      : ["do88", "adro", "csf", "ipe"].includes(currentBrand)
+                        ? `/${locale}/shop/${currentBrand}/collections`
+                        : `/${locale}/shop/${currentBrand}#catalog`,
             label: isUa
               ? `Каталог ${formatBrandName(currentBrand)}`
               : `${formatBrandName(currentBrand)} Catalog`,
@@ -92,13 +118,7 @@ export function Header() {
           {
             key: "stock",
             href: `/${locale}/shop/stock`,
-            label: isUa
-              ? isBrandPortal
-                ? "B2B Склад"
-                : "B2B Каталог"
-              : isBrandPortal
-                ? "B2B Stock"
-                : "B2B Catalog",
+            label: "B2B",
           },
         ]
       : []),
@@ -229,6 +249,36 @@ export function Header() {
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
+
+          {/* Akrapovič Dynamic Island Switcher */}
+          {currentBrand === "akrapovic" && (segmentParam === "auto" || segmentParam === "moto") && (
+            <div className="ak-dynamic-island">
+              <button
+                type="button"
+                onClick={() => handleSegmentChange(null)}
+                className="ak-dynamic-island__back"
+                title={isUa ? "Вибір розділу" : "Select Division"}
+                aria-label={isUa ? "Вибір розділу" : "Select Division"}
+              >
+                ←
+              </button>
+              <div className="ak-dynamic-island__divider" />
+              <button
+                type="button"
+                onClick={() => handleSegmentChange("auto")}
+                className={cn("ak-dynamic-island__btn", segmentParam === "auto" && "active")}
+              >
+                {isUa ? "Авто" : "Auto"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSegmentChange("moto")}
+                className={cn("ak-dynamic-island__btn", segmentParam === "moto" && "active")}
+              >
+                {isUa ? "Мото" : "Moto"}
+              </button>
+            </div>
+          )}
         </div>
 
         <AnimatePresence>

@@ -171,12 +171,17 @@ export async function POST(req: NextRequest) {
         wishes: sanitize(body.wishes),
         budget: sanitize(body.budget),
         email: sanitize(body.email),
-        name: sanitize(body.name) || sanitize(body.email),
+        name: sanitize(body.name),
         phone: sanitize(body.phone),
         contactMethod: body.contactMethod || "telegram",
         telegramUsername: sanitize(body.telegramUsername),
       };
-      if (!autoFormData.carModel || !autoFormData.email || !autoFormData.phone) {
+      if (
+        !autoFormData.name ||
+        !autoFormData.carModel ||
+        !autoFormData.email ||
+        !autoFormData.phone
+      ) {
         return new Response(JSON.stringify({ error: "Missing required auto fields" }), {
           status: 400,
         });
@@ -192,12 +197,17 @@ export async function POST(req: NextRequest) {
         wishes: sanitize(body.wishes),
         budget: sanitize(body.budget),
         email: sanitize(body.email),
-        name: sanitize(body.name) || sanitize(body.email),
+        name: sanitize(body.name),
         phone: sanitize(body.phone),
         contactMethod: body.contactMethod || "telegram",
         telegramUsername: sanitize(body.telegramUsername),
       };
-      if (!motoFormData.motoModel || !motoFormData.email || !motoFormData.phone) {
+      if (
+        !motoFormData.name ||
+        !motoFormData.motoModel ||
+        !motoFormData.email ||
+        !motoFormData.phone
+      ) {
         return new Response(JSON.stringify({ error: "Missing required moto fields" }), {
           status: 400,
         });

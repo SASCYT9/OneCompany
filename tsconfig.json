@@ -34,10 +34,10 @@
     "node_modules",
     "scripts",
     "src/scripts",
-    "tmp",
     "temp_pgsql",
     "temp-skills",
     "archive",
-    "**/*.figma.tsx"
+    "**/*.figma.tsx",
+    "tmp"
   ]
 }

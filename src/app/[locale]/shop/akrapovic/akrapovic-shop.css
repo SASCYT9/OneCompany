@@ -177,6 +177,7 @@
   height: 50px; /* Base height for the logo */
   width: auto;
   max-width: 100%;
+  color: #fff;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
 }
 @media (min-width: 768px) {
@@ -812,3 +813,288 @@
    correctly inside this page even when `<html>` carries `.light`.
    The `--ak-*` palette above lives on `:root` only, so it stays
    dark regardless of the global toggle. */
+
+/* ═══════════════ PORTAL ═══════════════ */
+.ak-portal {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 10;
+  display: flex;
+  background: #000;
+  font-family: "Inter", sans-serif;
+  overflow: hidden;
+}
+.ak-portal__side {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: flex-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ak-portal__side:hover {
+  flex-grow: 1.4;
+}
+.ak-portal__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ak-portal__bg--auto {
+  background-image: url("/images/shop/akrapovic/portal-auto.webp?v=3");
+}
+.ak-portal__bg--moto {
+  background-image: url("/images/shop/akrapovic/portal-moto.webp?v=6");
+}
+.ak-portal__side:hover .ak-portal__bg {
+  transform: scale(1.05);
+}
+.ak-portal__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+  transition: background 0.4s ease;
+}
+.ak-portal__side:hover .ak-portal__overlay {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%);
+}
+.ak-portal__side-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ak-portal__subtitle {
+  font-size: 0.75rem;
+  font-weight: 550;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+}
+.ak-portal__title {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 200;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 1rem;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+}
+.ak-portal__side--auto:hover .ak-portal__title {
+  color: #c5a880;
+  text-shadow: 0 0 20px rgba(197, 168, 128, 0.4);
+}
+.ak-portal__side--moto:hover .ak-portal__title {
+  color: #e50000;
+  text-shadow: 0 0 20px rgba(229, 0, 0, 0.4);
+}
+.ak-portal__cta-text {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ak-portal__side:hover .ak-portal__cta-text {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ak-portal__logo-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 3rem;
+  backdrop-filter: blur(12px);
+  border-radius: 4px;
+}
+.ak-portal__logo {
+  height: 36px;
+  width: auto;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .ak-portal {
+    flex-direction: column;
+  }
+  .ak-portal__side:hover {
+    flex-grow: 1.2;
+  }
+  .ak-portal__logo-wrap {
+    padding: 1rem 2rem;
+  }
+  .ak-portal__logo {
+    height: 24px;
+  }
+}
+
+/* Portal Footer */
+.ak-portal__footer {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  pointer-events: auto;
+}
+.ak-portal__footer-link {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.ak-portal__footer-link:hover {
+  color: #fff;
+}
+.ak-portal__footer-divider {
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .ak-portal__footer {
+    bottom: 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  .ak-portal__footer-divider {
+    display: none;
+  }
+}
+
+/* ── Dynamic Island Switcher ── */
+.ak-dynamic-island {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, calc(100% + 12px));
+  z-index: 45; /* Floating below header card, on top of hero content */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(10, 10, 12, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px; /* Capsule shape */
+  padding: 6px 14px 6px 8px; /* Balanced padding for pill design */
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ak-dynamic-island:hover {
+  transform: translate(-50%, calc(100% + 12px)) scale(1.04);
+  box-shadow:
+    0 14px 45px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.ak-dynamic-island__back {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ak-dynamic-island__back:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ak-dynamic-island__divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  margin: 0 4px;
+}
+
+.ak-dynamic-island__btn {
+  font-family: "Inter", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 9999px; /* Capsule buttons */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ak-dynamic-island__btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ak-dynamic-island__btn.active {
+  background: #e50000;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(229, 0, 0, 0.5);
+}
+
+/* Push hero content down when Dynamic Island is active to prevent logo overlap */
+.ak-home--has-switcher .ak-hero__content {
+  padding-top: 60px;
+  transition: padding-top 0.4s ease;
+}
+
+@media (max-width: 640px) {
+  .ak-dynamic-island {
+    transform: translate(-50%, calc(100% + 8px)); /* Hover spacing closer on mobile */
+    padding: 5px 10px 5px 6px;
+  }
+  .ak-dynamic-island:hover {
+    transform: translate(-50%, calc(100% + 8px)) scale(1.03);
+  }
+  .ak-dynamic-island__btn {
+    font-size: 9px;
+    padding: 4px 10px;
+  }
+  .ak-home--has-switcher .ak-hero__content {
+    padding-top: 90px; /* Leave more room on small screen mobile layout */
+  }
+}
