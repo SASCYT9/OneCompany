@@ -18,6 +18,10 @@ export type OurStore = {
   isHidden?: boolean;
   /** URL зображення для картки магазину */
   imageUrl?: string;
+  /** Collage images if the card contains side-by-side images */
+  collageImages?: string[];
+  /** Object positions for each collage image */
+  collagePositions?: string[];
   /** Grid layout span: 'feature' = 2-col wide hero, 'wide' = 2-col in mixed row, 'standard' = 1-col */
   gridSpan?: 'feature' | 'wide' | 'standard';
 };
@@ -77,7 +81,12 @@ export const OUR_STORES: OurStore[] = [
     description: "Hand-crafted titanium & carbon fibre exhaust systems. The sound of perfection since 1990.",
     descriptionUk: "Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.",
     href: "/shop/akrapovic",
-    imageUrl: "/images/shop/akrapovic/auto-moto-action.webp?v=2",
+    imageUrl: "/images/shop/akrapovic/auto-moto-collage.webp",
+    collageImages: [
+      "/images/shop/akrapovic/portal-auto.webp",
+      "/images/shop/akrapovic/portal-moto.webp"
+    ],
+    collagePositions: ["center", "right"],
     gridSpan: 'wide',
   },
   {

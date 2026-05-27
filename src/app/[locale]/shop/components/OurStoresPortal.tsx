@@ -110,7 +110,32 @@ function StoreCard({
         />
       )}
 
-      {store.imageUrl && (
+      {store.collageImages && store.collageImages.length === 2 ? (
+        <div className="absolute inset-0 flex w-full h-full overflow-hidden select-none">
+          <div className="relative w-1/2 h-full overflow-hidden border-r border-white/10">
+            <Image
+              src={store.collageImages[0]}
+              alt=""
+              fill
+              sizes={sizes ? "(max-width: 768px) 50vw, 17vw" : undefined}
+              className="object-cover transition-all duration-700 ease-out group-hover:scale-[1.03] opacity-90 group-hover:opacity-100"
+              style={{ objectPosition: store.collagePositions?.[0] ?? "center" }}
+              loading={eager ? "eager" : "lazy"}
+            />
+          </div>
+          <div className="relative w-1/2 h-full overflow-hidden">
+            <Image
+              src={store.collageImages[1]}
+              alt=""
+              fill
+              sizes={sizes ? "(max-width: 768px) 50vw, 17vw" : undefined}
+              className="object-cover transition-all duration-700 ease-out group-hover:scale-[1.03] opacity-90 group-hover:opacity-100"
+              style={{ objectPosition: store.collagePositions?.[1] ?? "center" }}
+              loading={eager ? "eager" : "lazy"}
+            />
+          </div>
+        </div>
+      ) : store.imageUrl ? (
         <Image
           src={store.imageUrl}
           alt=""
@@ -122,7 +147,7 @@ function StoreCard({
           loading={eager ? "eager" : "lazy"}
           unoptimized={isLogoAsset}
         />
-      )}
+      ) : null}
 
       <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-black/10 transition-opacity duration-500 group-hover:from-black/75" />
 
