@@ -15,6 +15,7 @@ const STATIC_REMOTE_IMAGE_HOSTS = [
   "www.burgertuning.com",
   "www.jb4tech.com",
   "www.do88.se",
+  "www.do88performance.eu",
   "gp-portal.eu",
   "images.unsplash.com",
   "kwsuspension.shop",
@@ -31,6 +32,9 @@ const STATIC_REMOTE_IMAGE_HOSTS = [
   "onecompany.global",
   "one-company.com.ua",
   "d3pd3d30e33rxi.cloudfront.net",
+  "d1sfhav1wboke3.azureedge.net",
+  "cdn.sanity.io",
+  "houseofurban.co.uk",
 ];
 
 function parseHostname(value: string | null | undefined) {
@@ -91,6 +95,7 @@ const CONTENT_SECURITY_POLICY = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
+  "media-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://d1sfhav1wboke3.azureedge.net",
   "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://c.clarity.ms https://bank.gov.ua",
   "frame-src 'self' https://www.googletagmanager.com https://player.vimeo.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
   "upgrade-insecure-requests",
