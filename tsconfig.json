@@ -38,6 +38,7 @@
     "temp-skills",
     "archive",
     "**/*.figma.tsx",
-    "tmp"
+    "tmp",
+    "scratch"
   ]
 }
