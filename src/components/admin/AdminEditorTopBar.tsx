@@ -45,7 +45,7 @@ export function AdminEditorTopBar({
   return (
     <div
       className={cn(
-        "sticky top-0 z-30 -mx-4 mb-6 border-b border-white/6 bg-[#0F0F0F]/92 px-4 py-3 backdrop-blur-xl md:-mx-8 md:px-8 xl:-mx-10 xl:px-10",
+        "relative z-30 -mx-4 mb-6 border-b border-white/6 bg-[#0F0F0F] px-4 py-3 md:-mx-8 md:px-8 xl:-mx-10 xl:px-10",
         className
       )}
     >

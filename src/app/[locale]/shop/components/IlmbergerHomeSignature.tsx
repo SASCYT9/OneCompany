@@ -32,10 +32,6 @@ function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-const IlmbergerCarbonShader = dynamic(() => import("./IlmbergerLiquidChrome"), {
-  ssr: false,
-});
-
 export default function IlmbergerHomeSignature({
   locale,
   products: _products,
@@ -214,16 +210,6 @@ export default function IlmbergerHomeSignature({
           SECTION 4 — ABOUT ILMBERGER
       ════════════════════════════════════════════════════════════════ */}
       <section className="il-about" data-il-reveal>
-        {/* Dynamic WebGL Anisotropic Carbon Fiber Shader Background */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-85 il-about-shader"
-          aria-hidden
-        >
-          <IlmbergerCarbonShader interactive={true} />
-          {/* Subtle vertical gradients to blend section edges */}
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[var(--il-bg)] to-transparent opacity-60" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--il-bg)] to-transparent opacity-60" />
-        </div>
         <div className="il-about__wrap">
           <div>
             <span className="il-label">{L(isUa, "About", "Про бренд")}</span>

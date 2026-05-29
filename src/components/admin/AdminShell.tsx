@@ -1113,6 +1113,25 @@ function SidebarHeroCar() {
 
 function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
   const { currency, setCurrency, rates, ratesLoading } = useAdminCurrency();
+  const [shopRates, setShopRates] = useState<{ EUR: number; USD: number; UAH: number } | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (collapsed) return;
+    async function loadShopRates() {
+      try {
+        const response = await fetch("/api/admin/shop/settings");
+        const data = await response.json();
+        if (response.ok && data.currencyRates) {
+          setShopRates(data.currencyRates);
+        }
+      } catch (err) {
+        console.error("Failed to load shop settings for currency display:", err);
+      }
+    }
+    void loadShopRates();
+  }, [collapsed]);
 
   if (collapsed) {
     const currentIndex = CURRENCY_OPTIONS.findIndex((option) => option.value === currency);
@@ -1132,7 +1151,7 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="rounded-none border border-white/5 bg-black/30 p-1">
+    <div className="rounded-none border border-white/5 bg-black/30 p-1.5">
       <div className="grid grid-cols-3 gap-1">
         {CURRENCY_OPTIONS.map((option) => (
           <button
@@ -1150,11 +1169,24 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
           </button>
         ))}
       </div>
-      {!ratesLoading && rates.updatedAt ? (
-        <div className="mt-1.5 px-1 text-center text-[10px] tabular-nums text-zinc-500">
-          1$ = {rates.USD.toFixed(1)}₴ · 1€ = {rates.EUR.toFixed(1)}₴
-        </div>
-      ) : null}
+      <div className="mt-2 space-y-1 px-1 text-[10px] tabular-nums text-zinc-500">
+        {shopRates ? (
+          <div className="flex justify-between items-center text-zinc-400">
+            <span className="font-semibold text-blue-400">Курс сайту:</span>
+            <span>
+              1$ = {(shopRates.UAH / shopRates.USD).toFixed(2)}₴ · 1€ = {shopRates.UAH.toFixed(1)}₴
+            </span>
+          </div>
+        ) : null}
+        {!ratesLoading && rates.updatedAt ? (
+          <div className="flex justify-between items-center text-[9px] text-zinc-600">
+            <span>Курс НБУ:</span>
+            <span>
+              1$ = {rates.USD.toFixed(1)}₴ · 1€ = {rates.EUR.toFixed(1)}₴
+            </span>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

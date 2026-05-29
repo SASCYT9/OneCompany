@@ -34,7 +34,7 @@ export function AdminPage({
   return (
     <div
       className={cn(
-        "mx-auto w-full px-4 py-6 md:px-8 xl:px-10",
+        "mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-8 xl:px-10",
         wide ? "max-w-none" : "max-w-[1640px]",
         className
       )}
@@ -109,7 +109,7 @@ export function AdminEntityToolbar({
   return (
     <section
       className={cn(
-        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
+        "relative z-20 rounded-none border border-white/8 bg-[#171717] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.15)]",
         className
       )}
     >
@@ -782,11 +782,9 @@ export function AdminSettingsShell({
 }) {
   return (
     <div className={cn("grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_300px]", className)}>
-      <aside className="xl:sticky xl:top-24 xl:self-start">{navigation}</aside>
+      <aside className="xl:relative xl:self-start">{navigation}</aside>
       <div className="min-w-0 space-y-6">{content}</div>
-      {sidebar ? (
-        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside>
-      ) : null}
+      {sidebar ? <aside className="space-y-4 xl:relative xl:self-start">{sidebar}</aside> : null}
     </div>
   );
 }
@@ -844,7 +842,7 @@ export function AdminStickyActionBar({
   return (
     <section
       className={cn(
-        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
+        "relative z-20 rounded-none border border-white/8 bg-[#171717] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.15)]",
         className
       )}
     >
@@ -889,7 +887,7 @@ export function AdminSplitDetailShell({
   return (
     <div className={cn("grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <div className="min-w-0 space-y-6">{main}</div>
-      <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">{sidebar}</aside>
+      <aside className="space-y-4 lg:relative lg:self-start">{sidebar}</aside>
     </div>
   );
 }
@@ -1189,7 +1187,7 @@ export function AdminEditorShell({
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">{children}</div>
-          <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+          <aside className="space-y-4 xl:relative xl:self-start">
             {summary}
             <div className={cn("rounded-none border bg-[#171717] p-4", BORDER)}>
               <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -1288,51 +1286,56 @@ export function AdminEditorTabs({
   return (
     <div
       className={cn(
-        "sticky top-[52px] z-20 -mx-4 mb-4 border-b border-white/5 bg-[#0A0A0A]/92 backdrop-blur-xl md:-mx-8 md:top-[60px] xl:-mx-10",
+        "relative z-20 -mx-4 mb-4 border-b border-white/5 bg-[#0A0A0A] md:-mx-8 xl:-mx-10",
         className
       )}
     >
-      <div
-        role="tablist"
-        aria-label="Розділи редактора"
-        className="flex gap-1 overflow-x-auto px-4 md:px-8 xl:px-10 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-      >
-        {tabs.map((tab) => {
-          const active = tab.id === activeId;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls={`editor-tab-${tab.id}`}
-              onClick={() => onChange(tab.id)}
-              className={cn(
-                "relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:py-3",
-                active ? "text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <span>{tab.label}</span>
-              {tab.badge ? (
-                <span
-                  className={cn(
-                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
-                    active ? "bg-blue-600 text-white" : "bg-white/8 text-zinc-300"
-                  )}
-                >
-                  {tab.badge}
-                </span>
-              ) : null}
-              <span
-                aria-hidden="true"
+      <div className="relative w-full">
+        {/* Right fade indicator for horizontal scroll on mobile */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-30 w-10 bg-gradient-to-l from-[#0A0A0A] to-transparent md:hidden" />
+
+        <div
+          role="tablist"
+          aria-label="Розділи редактора"
+          className="flex gap-1 overflow-x-auto px-4 pr-12 md:px-8 xl:px-10 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+        >
+          {tabs.map((tab) => {
+            const active = tab.id === activeId;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={`editor-tab-${tab.id}`}
+                onClick={() => onChange(tab.id)}
                 className={cn(
-                  "absolute inset-x-2 -bottom-px h-0.5 transition-all",
-                  active ? "bg-blue-500" : "bg-transparent"
+                  "relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:py-3",
+                  active ? "text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
                 )}
-              />
-            </button>
-          );
-        })}
+              >
+                <span>{tab.label}</span>
+                {tab.badge ? (
+                  <span
+                    className={cn(
+                      "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
+                      active ? "bg-blue-600 text-white" : "bg-white/8 text-zinc-300"
+                    )}
+                  >
+                    {tab.badge}
+                  </span>
+                ) : null}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute inset-x-2 -bottom-px h-0.5 transition-all",
+                    active ? "bg-blue-500" : "bg-transparent"
+                  )}
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

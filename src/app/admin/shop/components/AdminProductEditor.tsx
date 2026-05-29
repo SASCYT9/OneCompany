@@ -220,6 +220,8 @@ type ProductFormState = {
   isDimensionsEstimated: boolean;
 };
 
+const DEFAULT_RATES = { EUR: 1, USD: 1.08, UAH: 45 };
+
 type ProductResponse = {
   id: string;
   slug: string;
@@ -833,6 +835,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [success, setSuccess] = useState("");
   const [slugTouched, setSlugTouched] = useState(isEditing);
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
+  const [rates, setRates] = useState<Record<string, number>>(DEFAULT_RATES);
+  const [autoConvert, setAutoConvert] = useState<boolean>(true);
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
   const [availableCollections, setAvailableCollections] = useState<CollectionOption[]>([]);
   const [collectionsExpanded, setCollectionsExpanded] = useState(false);
@@ -877,8 +881,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       }
     }
 
+    async function loadSettings() {
+      try {
+        const response = await fetch("/api/admin/shop/settings");
+        const data = await response.json();
+        if (response.ok && data.currencyRates && !cancelled) {
+          setRates(data.currencyRates);
+        }
+      } catch (loadError) {
+        console.error("Failed to load shop settings for currency rates:", loadError);
+      }
+    }
+
     void loadCategories();
     void loadCollections();
+    void loadSettings();
 
     return () => {
       cancelled = true;
@@ -927,6 +944,45 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const updateField = <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((current) => {
       const next = { ...current, [key]: value };
+
+      if (autoConvert) {
+        const valStr = String(value);
+        const priceTrios = [
+          ["priceEur", "priceUsd", "priceUah"],
+          ["compareAtEur", "compareAtUsd", "compareAtUah"],
+          ["priceEurB2b", "priceUsdB2b", "priceUahB2b"],
+          ["compareAtEurB2b", "compareAtUsdB2b", "compareAtUahB2b"],
+        ] as const;
+
+        for (const [eurKey, usdKey, uahKey] of priceTrios) {
+          if (key === eurKey || key === usdKey || key === uahKey) {
+            const val = parseFloat(valStr);
+            if (isNaN(val) || val <= 0) {
+              next[eurKey] = valStr;
+              next[usdKey] = "";
+              next[uahKey] = "";
+            } else {
+              const usdRate = rates.USD || 1.08;
+              const uahRate = rates.UAH || 45;
+
+              if (key === eurKey) {
+                next[usdKey] = String(Math.round(val * usdRate * 100) / 100);
+                next[uahKey] = String(Math.round(val * uahRate));
+              } else if (key === usdKey) {
+                const inEur = val / usdRate;
+                next[eurKey] = String(Math.round(inEur * 100) / 100);
+                next[uahKey] = String(Math.round(inEur * uahRate));
+              } else if (key === uahKey) {
+                const inEur = val / uahRate;
+                next[eurKey] = String(Math.round(inEur * 100) / 100);
+                next[usdKey] = String(Math.round(inEur * usdRate * 100) / 100);
+              }
+            }
+            break;
+          }
+        }
+      }
+
       if ((key === "titleEn" || key === "titleUa") && !slugTouched) {
         const base =
           key === "titleEn" ? String(value || current.titleUa) : String(current.titleEn || value);
@@ -937,6 +993,48 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     if (key === "slug") {
       setSlugTouched(true);
     }
+  };
+
+  const updateVariantBulkField = (key: keyof VariantBulkState, value: string) => {
+    setVariantBulk((current) => {
+      const next = { ...current, [key]: value };
+      if (autoConvert) {
+        const val = parseFloat(value);
+        const priceTrios = [
+          ["priceEur", "priceUsd", "priceUah"],
+          ["compareAtEur", "compareAtUsd", "compareAtUah"],
+          ["priceEurB2b", "priceUsdB2b", "priceUahB2b"],
+          ["compareAtEurB2b", "compareAtUsdB2b", "compareAtUahB2b"],
+        ] as const;
+
+        for (const [eurKey, usdKey, uahKey] of priceTrios) {
+          if (key === eurKey || key === usdKey || key === uahKey) {
+            if (isNaN(val) || val <= 0) {
+              next[eurKey] = value;
+              next[usdKey] = "";
+              next[uahKey] = "";
+            } else {
+              const usdRate = rates.USD || 1.08;
+              const uahRate = rates.UAH || 45;
+              if (key === eurKey) {
+                next[usdKey] = String(Math.round(val * usdRate * 100) / 100);
+                next[uahKey] = String(Math.round(val * uahRate));
+              } else if (key === usdKey) {
+                const inEur = val / usdRate;
+                next[eurKey] = String(Math.round(inEur * 100) / 100);
+                next[uahKey] = String(Math.round(inEur * uahRate));
+              } else if (key === uahKey) {
+                const inEur = val / uahRate;
+                next[eurKey] = String(Math.round(inEur * 100) / 100);
+                next[usdKey] = String(Math.round(inEur * usdRate * 100) / 100);
+              }
+            }
+            break;
+          }
+        }
+      }
+      return next;
+    });
   };
 
   const updateListItem = <
@@ -1741,6 +1839,27 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     : "ще не встановлено"}
                 </div>
               </div>
+
+              {/* Мобільна секція тегів (прихована на десктопі, бо є в бічній панелі) */}
+              {isEditing && productId ? (
+                <div className="mt-6 border-t border-white/5 pt-6 lg:hidden">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                    Теги
+                  </div>
+                  <AdminTagInput
+                    entityType="shop.product"
+                    entityId={productId}
+                    suggestions={[
+                      "featured",
+                      "new-arrival",
+                      "clearance",
+                      "discontinued",
+                      "staff-pick",
+                      "bestseller",
+                    ]}
+                  />
+                </div>
+              ) : null}
             </AdminEditorSection>
 
             <AdminEditorSection
@@ -1809,6 +1928,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               title="Ціни"
               description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
             >
+              <div className="mb-4 rounded-none border border-white/10 bg-zinc-950/40 p-4">
+                <CheckboxField
+                  label="Автоматичний перерахунок цін за курсом"
+                  checked={autoConvert}
+                  onChange={setAutoConvert}
+                  helper={`При зміні однієї валюти інші оновлюються автоматично. Курс: 1 EUR = ${rates.USD} USD = ${rates.UAH} UAH`}
+                />
+              </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <InputField
                   label="Ціна EUR"
@@ -2218,108 +2345,84 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       type="number"
                       step="0.01"
                       value={variantBulk.priceEur}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceEur: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceEur", value)}
                     />
                     <InputField
                       label="Bulk price USD"
                       type="number"
                       step="0.01"
                       value={variantBulk.priceUsd}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceUsd: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceUsd", value)}
                     />
                     <InputField
                       label="Bulk price UAH"
                       type="number"
                       step="0.01"
                       value={variantBulk.priceUah}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceUah: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceUah", value)}
                     />
                     <InputField
                       label="Масово B2B EUR"
                       type="number"
                       step="0.01"
                       value={variantBulk.priceEurB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceEurB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceEurB2b", value)}
                     />
                     <InputField
                       label="Масово B2B USD"
                       type="number"
                       step="0.01"
                       value={variantBulk.priceUsdB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceUsdB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceUsdB2b", value)}
                     />
                     <InputField
                       label="Масово B2B UAH"
                       type="number"
                       step="0.01"
                       value={variantBulk.priceUahB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, priceUahB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("priceUahB2b", value)}
                     />
                     <InputField
                       label="Bulk compare-at EUR"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtEur}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtEur: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtEur", value)}
                     />
                     <InputField
                       label="Bulk compare-at USD"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtUsd}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtUsd: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtUsd", value)}
                     />
                     <InputField
                       label="Bulk compare-at UAH"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtUah}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtUah: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtUah", value)}
                     />
                     <InputField
                       label="Масово B2B порівн. EUR"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtEurB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtEurB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtEurB2b", value)}
                     />
                     <InputField
                       label="Масово B2B порівн. USD"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtUsdB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtUsdB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtUsdB2b", value)}
                     />
                     <InputField
                       label="Масово B2B порівн. UAH"
                       type="number"
                       step="0.01"
                       value={variantBulk.compareAtUahB2b}
-                      onChange={(value) =>
-                        setVariantBulk((current) => ({ ...current, compareAtUahB2b: value }))
-                      }
+                      onChange={(value) => updateVariantBulkField("compareAtUahB2b", value)}
                     />
                     <InputField
                       label="Bulk image URL"
@@ -2367,6 +2470,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       onUpdate={(patch) => updateListItem("variants", index, patch)}
                       onRemove={() => removeListItem("variants", index)}
                       onSetDefault={() => setDefaultVariant(index)}
+                      rates={rates}
+                      autoConvert={autoConvert}
                     />
                   ))}
                 </div>
@@ -2518,7 +2623,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           </div>
 
           {/* Right sidebar — Shopify-style organization & quick actions (desktop only). */}
-          <aside className="hidden space-y-4 lg:block lg:sticky lg:top-20 lg:self-start">
+          <aside className="hidden space-y-4 lg:block lg:relative lg:self-start">
             <div className="border border-white/5 bg-[#171717] p-5">
               <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                 Стан каталогу
@@ -2583,8 +2688,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             ) : null}
           </aside>
         </div>
-        <div className="h-20 md:hidden" aria-hidden />
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-xs safe-area-pb md:hidden">
+        <div className="mt-8 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900 px-4 py-3 md:hidden">
           <button
             type="submit"
             disabled={saving}
