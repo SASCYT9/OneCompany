@@ -189,4 +189,16 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/adro/adro-m4-profile.webp",
     gridSpan: 'wide',
   },
+  {
+    id: "ilmberger",
+    name: "Ilmberger Carbon",
+    nameUk: "Ilmberger Carbon",
+    description:
+      "Autoclaved prepreg carbon for sportbikes. Hand-laid in Lindberg, Germany since 1995.",
+    descriptionUk:
+      "Автоклавний препрег-карбон для спортбайків. Ручна укладка в Ліндберзі, Німеччина з 1995 року.",
+    href: "/shop/ilmberger",
+    imageUrl: "/images/shop/ilmberger/products/gallery-12-alternator-bike.jpg",
+    gridSpan: 'standard',
+  },
 ];

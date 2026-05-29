@@ -12,9 +12,11 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminResponsiveTable,
   AdminStatusBadge,
   AdminTableShell,
 } from "@/components/admin/AdminPrimitives";
+import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
 
 type DraftRow = {
@@ -189,96 +191,141 @@ export default function AdminDraftsPage() {
           }
         />
       ) : (
-        <AdminTableShell>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-4 font-medium">Номер</th>
-                  <th className="px-4 py-4 font-medium">Клієнт</th>
-                  <th className="px-4 py-4 font-medium">Стан котирування</th>
-                  <th className="px-4 py-4 font-medium">Позицій</th>
-                  <th className="px-4 py-4 font-medium">Сума</th>
-                  <th className="px-4 py-4 font-medium">Дійсність</th>
-                  <th className="px-4 py-4 font-medium">Створено</th>
-                  <th className="px-4 py-4 font-medium">Відкрити</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/6">
-                {drafts.map((d) => {
-                  const stage = quoteStage(d);
-                  const expired = d.draftValidUntil && new Date(d.draftValidUntil) < new Date();
-                  return (
-                    <tr key={d.id} className="align-top transition hover:bg-white/3">
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />
-                          <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
-                            {d.orderNumber}
-                          </span>
-                        </div>
-                        {d.customerGroupSnapshot.startsWith("B2B") ? (
-                          <div className="mt-1 inline-block rounded-full border border-blue-500/25 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
-                            {d.customerGroupSnapshot.replace("B2B_", "B2B ")}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="font-medium text-zinc-100">{d.customerName}</div>
-                        <div className="mt-0.5 text-xs text-zinc-500">{d.email}</div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <AdminStatusBadge tone={stage.tone}>
-                          {stage.tone === "success" ? (
-                            <Check className="mr-1 inline-block h-3 w-3" />
-                          ) : null}
-                          {stage.tone === "warning" ? (
-                            <Send className="mr-1 inline-block h-3 w-3" />
-                          ) : null}
-                          {stage.tone === "default" ? (
-                            <Clock className="mr-1 inline-block h-3 w-3" />
-                          ) : null}
-                          {stage.label}
-                        </AdminStatusBadge>
-                        {d.quoteSentAt && !d.quoteAcceptedAt ? (
-                          <div className="mt-1 text-[11px] text-zinc-500">
-                            Надіслано {new Date(d.quoteSentAt).toLocaleDateString()}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4 text-zinc-300">{d.itemsCount}</td>
-                      <td className="px-4 py-4 font-medium text-zinc-100 tabular-nums">
-                        {formatMoney(d.total, d.currency)}
-                      </td>
-                      <td className="px-4 py-4 text-xs">
-                        {d.draftValidUntil ? (
-                          <span className={expired ? "text-red-400" : "text-zinc-400"}>
-                            До {new Date(d.draftValidUntil).toLocaleDateString()}
-                            {expired ? " · сплив" : ""}
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
+              {drafts.map((d) => {
+                const stage = quoteStage(d);
+                const expired = d.draftValidUntil && new Date(d.draftValidUntil) < new Date();
+                return (
+                  <AdminMobileCard
+                    key={d.id}
+                    title={
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-400" aria-hidden="true" />
+                        <span className="font-mono text-xs">{d.orderNumber}</span>
+                      </span>
+                    }
+                    subtitle={d.customerName}
+                    badge={<AdminStatusBadge tone={stage.tone}>{stage.label}</AdminStatusBadge>}
+                    rows={[
+                      { label: "Клієнт Email", value: d.email },
+                      { label: "Сума", value: formatMoney(d.total, d.currency) },
+                      { label: "Позицій", value: d.itemsCount },
+                      {
+                        label: "Дійсність",
+                        value: d.draftValidUntil ? (
+                          <span className={expired ? "text-red-400 font-medium" : ""}>
+                            до {new Date(d.draftValidUntil).toLocaleDateString()}{" "}
+                            {expired ? "(сплив)" : ""}
                           </span>
                         ) : (
-                          <span className="text-zinc-600">Без терміну</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-xs text-zinc-500">
-                        {new Date(d.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-4">
-                        <Link
-                          href={`/admin/shop/drafts/${d.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
-                        >
-                          Редагувати
-                          <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                        </Link>
-                      </td>
+                          "Без терміну"
+                        ),
+                      },
+                    ]}
+                    href={`/admin/shop/drafts/${d.id}`}
+                  />
+                );
+              })}
+            </div>
+          }
+          desktop={
+            <AdminTableShell>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1080px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                      <th className="px-4 py-4 font-medium">Номер</th>
+                      <th className="px-4 py-4 font-medium">Клієнт</th>
+                      <th className="px-4 py-4 font-medium">Стан котирування</th>
+                      <th className="px-4 py-4 font-medium">Позицій</th>
+                      <th className="px-4 py-4 font-medium">Сума</th>
+                      <th className="px-4 py-4 font-medium">Дійсність</th>
+                      <th className="px-4 py-4 font-medium">Створено</th>
+                      <th className="px-4 py-4 font-medium">Відкрити</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </AdminTableShell>
+                  </thead>
+                  <tbody className="divide-y divide-white/6">
+                    {drafts.map((d) => {
+                      const stage = quoteStage(d);
+                      const expired = d.draftValidUntil && new Date(d.draftValidUntil) < new Date();
+                      return (
+                        <tr key={d.id} className="align-top transition hover:bg-white/3">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <FileText
+                                className="h-4 w-4 shrink-0 text-blue-400"
+                                aria-hidden="true"
+                              />
+                              <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
+                                {d.orderNumber}
+                              </span>
+                            </div>
+                            {d.customerGroupSnapshot.startsWith("B2B") ? (
+                              <div className="mt-1 inline-block rounded-full border border-blue-500/25 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
+                                {d.customerGroupSnapshot.replace("B2B_", "B2B ")}
+                              </div>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="font-medium text-zinc-100">{d.customerName}</div>
+                            <div className="mt-0.5 text-xs text-zinc-500">{d.email}</div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <AdminStatusBadge tone={stage.tone}>
+                              {stage.tone === "success" ? (
+                                <Check className="mr-1 inline-block h-3 w-3" />
+                              ) : null}
+                              {stage.tone === "warning" ? (
+                                <Send className="mr-1 inline-block h-3 w-3" />
+                              ) : null}
+                              {stage.tone === "default" ? (
+                                <Clock className="mr-1 inline-block h-3 w-3" />
+                              ) : null}
+                              {stage.label}
+                            </AdminStatusBadge>
+                            {d.quoteSentAt && !d.quoteAcceptedAt ? (
+                              <div className="mt-1 text-[11px] text-zinc-500">
+                                Надіслано {new Date(d.quoteSentAt).toLocaleDateString()}
+                              </div>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-4 text-zinc-300">{d.itemsCount}</td>
+                          <td className="px-4 py-4 font-medium text-zinc-100 tabular-nums">
+                            {formatMoney(d.total, d.currency)}
+                          </td>
+                          <td className="px-4 py-4 text-xs">
+                            {d.draftValidUntil ? (
+                              <span className={expired ? "text-red-400" : "text-zinc-400"}>
+                                До {new Date(d.draftValidUntil).toLocaleDateString()}
+                                {expired ? " · сплив" : ""}
+                              </span>
+                            ) : (
+                              <span className="text-zinc-600">Без терміну</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 text-xs text-zinc-500">
+                            {new Date(d.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-4">
+                            <Link
+                              href={`/admin/shop/drafts/${d.id}`}
+                              className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
+                            >
+                              Редагувати
+                              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </AdminTableShell>
+          }
+        />
       )}
     </AdminPage>
   );

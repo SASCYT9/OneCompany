@@ -115,7 +115,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       id="main-content"
       className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]"
     >
-      <div className="mx-auto max-w-2xl px-4 pb-20 pt-28 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 pb-20 pt-36 sm:px-6 md:pt-40 lg:pt-44">
         <div className="rounded-[28px] border border-foreground/10 bg-foreground/5 p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
           <div
             className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300"

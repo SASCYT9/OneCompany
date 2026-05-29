@@ -15,7 +15,9 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
+  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
+import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type Brand = {
   id: string;
@@ -271,17 +273,66 @@ export default function BrandMarkupsPage() {
           }
         />
       ) : (
-        <AdminTableShell>
-          <table className="min-w-full text-left text-sm text-zinc-200">
-            <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Brand</th>
-                <th className="px-4 py-3 font-medium">Markup %</th>
-                <th className="px-4 py-3 font-medium">Multiplier</th>
-                <th className="px-4 py-3 font-medium text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody>
+        <AdminResponsiveTable
+          desktop={
+            <AdminTableShell>
+              <table className="min-w-full text-left text-sm text-zinc-200">
+                <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Brand</th>
+                    <th className="px-4 py-3 font-medium">Markup %</th>
+                    <th className="px-4 py-3 font-medium">Multiplier</th>
+                    <th className="px-4 py-3 font-medium text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayBrands.map((brand) => {
+                    const markup = getMarkupForBrand(brand.id);
+                    const isEdited = editedMarkups[brand.id] !== undefined;
+                    const isCustom = isCustomMarkup(brand.id);
+                    const multiplier = 1 + markup / 100;
+
+                    return (
+                      <tr key={brand.id} className="border-t border-white/8">
+                        <td className="px-4 py-4">
+                          <div className="font-medium text-zinc-100">{brand.name}</div>
+                          <div className="mt-1 text-xs text-zinc-500">ID: {brand.id}</div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <input
+                            type="number"
+                            min={0}
+                            max={500}
+                            step={1}
+                            value={markup}
+                            onChange={(e) => handleMarkupChange(brand.id, Number(e.target.value))}
+                            className="w-28 rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
+                          />
+                        </td>
+                        <td className="px-4 py-4 font-mono text-zinc-200">
+                          ×{multiplier.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex justify-end gap-2">
+                            {isEdited ? (
+                              <AdminStatusBadge tone="warning">Edited</AdminStatusBadge>
+                            ) : null}
+                            {isCustom ? (
+                              <AdminStatusBadge>Custom rule</AdminStatusBadge>
+                            ) : (
+                              <AdminStatusBadge tone="success">Default</AdminStatusBadge>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </AdminTableShell>
+          }
+          mobile={
+            <div className="space-y-2">
               {displayBrands.map((brand) => {
                 const markup = getMarkupForBrand(brand.id);
                 const isEdited = editedMarkups[brand.id] !== undefined;
@@ -289,25 +340,12 @@ export default function BrandMarkupsPage() {
                 const multiplier = 1 + markup / 100;
 
                 return (
-                  <tr key={brand.id} className="border-t border-white/8">
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-zinc-100">{brand.name}</div>
-                      <div className="mt-1 text-xs text-zinc-500">ID: {brand.id}</div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <input
-                        type="number"
-                        min={0}
-                        max={500}
-                        step={1}
-                        value={markup}
-                        onChange={(e) => handleMarkupChange(brand.id, Number(e.target.value))}
-                        className="w-28 rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
-                      />
-                    </td>
-                    <td className="px-4 py-4 font-mono text-zinc-200">×{multiplier.toFixed(2)}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
+                  <AdminMobileCard
+                    key={brand.id}
+                    title={brand.name}
+                    subtitle={`ID: ${brand.id}`}
+                    badge={
+                      <div className="flex gap-1">
                         {isEdited ? (
                           <AdminStatusBadge tone="warning">Edited</AdminStatusBadge>
                         ) : null}
@@ -317,13 +355,30 @@ export default function BrandMarkupsPage() {
                           <AdminStatusBadge tone="success">Default</AdminStatusBadge>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    }
+                    rows={[
+                      {
+                        label: "Markup %",
+                        value: (
+                          <input
+                            type="number"
+                            min={0}
+                            max={500}
+                            step={1}
+                            value={markup}
+                            onChange={(e) => handleMarkupChange(brand.id, Number(e.target.value))}
+                            className="w-24 rounded-none border border-white/10 bg-[#0F0F0F] px-2 py-1 text-right text-sm text-zinc-100 focus:border-white/20 focus:outline-hidden"
+                          />
+                        ),
+                      },
+                      { label: "Multiplier", value: `×${multiplier.toFixed(2)}` },
+                    ]}
+                  />
                 );
               })}
-            </tbody>
-          </table>
-        </AdminTableShell>
+            </div>
+          }
+        />
       )}
     </AdminPage>
   );

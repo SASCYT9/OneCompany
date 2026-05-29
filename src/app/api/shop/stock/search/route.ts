@@ -3,39 +3,83 @@ import { searchTurn14Items, findTurn14BrandIdByName } from "@/lib/turn14";
 import { prisma } from "@/lib/prisma";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { calcItemPrice } from "@/lib/shippingCalc";
+import { isTurn14Enabled } from "@/lib/shopFeatureFlags";
+import {
+  loadBrandDiscountMap,
+  loadCustomerBrandDiscountMap,
+  resolveBrandDiscount,
+} from "@/lib/shopBrandB2bDiscounts";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+
+function emptyTurn14Response(meta: { page?: number } = {}) {
+  return NextResponse.json({
+    data: [],
+    meta: { page: meta.page ?? 1, totalPages: 0, totalItems: 0, source: "turn14" },
+    filters: { categories: [] },
+  });
+}
 
 const DEFAULT_MARKUP_PCT = 25;
+
+export type StockSortMode = "newest" | "price-asc" | "price-desc" | "name-asc";
+
+function parseSort(value: string | null | undefined): StockSortMode {
+  const v = (value || "").toLowerCase();
+  if (v === "price-asc" || v === "price-desc" || v === "name-asc" || v === "newest") {
+    return v;
+  }
+  return "newest";
+}
+
+function isTrue(value: string | null | undefined) {
+  if (!value) return false;
+  return value === "1" || value === "true" || value === "yes";
+}
 
 /**
  * GET /api/shop/stock/search
  *
- * Unified stock search across Turn14 (live API) and local DB distributors (IND, etc.).
+ * Unified stock search across:
+ *  - "shop"   — our own ShopProduct catalog (published+active)
+ *  - "turn14" — Turn14 distributor catalog (cached in Turn14Item)
+ *  - "local"  — other local distributors (StockProduct, e.g. IND)
+ *  - "all"    — union of all three (shop first, then turn14, then local)
  *
  * Query params:
- *   source   — "turn14" | "local" | "all" (default: "turn14" for backward compat)
+ *   source   — "shop" | "turn14" | "local" | "all" (default: "all")
  *   q        — search keyword
- *   brand    — brand filter
- *   category — category filter (local only)
- *   year, make, model, submodel — fitment filters (Turn14 only)
+ *   brand    — brand filter (matches brand OR vendor for shop items)
+ *   category — category filter
  *   page     — pagination
- *   distributor — filter by distributor name for local source (e.g., "IND")
+ *   distributor — filter by distributor name for local source
+ *   sort     — "newest" | "price-asc" | "price-desc" | "name-asc" (default: "newest")
+ *   inStock  — "1" to filter only available items
+ *   showAll  — "1" to include turn14 items with price=0 (default: hide them)
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const source = (searchParams.get("source") || "turn14").toLowerCase();
+  const source = (searchParams.get("source") || "all").toLowerCase();
 
   const session = await getCurrentShopCustomerSession();
   const b2bDiscountPercent = session ? Number(session.b2bDiscountPercent || 0) : 0;
+  const customerId = session?.customerId ?? null;
+
+  if (source === "shop") {
+    return handleShopSearch(searchParams, b2bDiscountPercent, customerId);
+  }
 
   if (source === "local") {
     return handleLocalSearch(searchParams, b2bDiscountPercent);
   }
 
   if (source === "all") {
-    return handleCombinedSearch(searchParams, b2bDiscountPercent);
+    return handleCombinedSearch(searchParams, b2bDiscountPercent, customerId);
   }
 
-  // Default: Turn14 live API
+  // Turn14 live cache — gated behind TURN14_ENABLED feature flag.
+  if (!isTurn14Enabled()) {
+    return emptyTurn14Response({ page: Number(searchParams.get("page")) || 1 });
+  }
   return handleTurn14Search(searchParams, b2bDiscountPercent);
 }
 
@@ -50,11 +94,17 @@ async function handleTurn14Search(searchParams: URLSearchParams, b2bDiscountPerc
     const model = searchParams.get("model") || "";
     const submodel = searchParams.get("submodel") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
+    const sort = parseSort(searchParams.get("sort"));
+    const inStockOnly = isTrue(searchParams.get("inStock"));
     const limit = 24;
 
     const where: any = {};
 
     if (brand) where.brand = { contains: brand, mode: "insensitive" };
+    if (inStockOnly) where.inStock = true;
+    // Note: items with price=0 are kept visible — the UI surfaces them as
+    // "Ціна за запитом" with a Quote CTA so dealers can still discover and
+    // request brands like REMUS whose Turn14 pricing hasn't been synced yet.
 
     // Fitment filter across the relation
     if (year || make || model || submodel) {
@@ -78,6 +128,18 @@ async function handleTurn14Search(searchParams: URLSearchParams, b2bDiscountPerc
       ];
     }
 
+    // Sort: always float priced items above quote-only items so the in-stock,
+    // priced inventory dominates the first pages of a search. Within each
+    // tier, respect the requested sort.
+    const orderBy: any[] =
+      sort === "price-asc"
+        ? [{ inStock: "desc" }, { price: "asc" }]
+        : sort === "price-desc"
+          ? [{ inStock: "desc" }, { price: "desc" }]
+          : sort === "name-asc"
+            ? [{ inStock: "desc" }, { name: "asc" }]
+            : [{ inStock: "desc" }, { price: "desc" }, { name: "asc" }];
+
     let items: any[] = [];
     let total = 0;
 
@@ -85,7 +147,7 @@ async function handleTurn14Search(searchParams: URLSearchParams, b2bDiscountPerc
       [items, total] = await Promise.all([
         prisma.turn14Item.findMany({
           where,
-          orderBy: [{ inStock: "desc" }, { name: "asc" }],
+          orderBy,
           skip: (page - 1) * limit,
           take: limit,
         }),
@@ -184,6 +246,8 @@ async function handleLocalSearch(searchParams: URLSearchParams, b2bDiscountPerce
     const brand = searchParams.get("brand")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const sort = parseSort(searchParams.get("sort"));
+    const inStockOnly = isTrue(searchParams.get("inStock"));
     const limit = 24;
 
     const where: any = {};
@@ -191,6 +255,7 @@ async function handleLocalSearch(searchParams: URLSearchParams, b2bDiscountPerce
     if (distributor) where.distributor = distributor;
     if (brand) where.brand = { contains: brand, mode: "insensitive" };
     if (category) where.category = { contains: category, mode: "insensitive" };
+    if (inStockOnly) where.inStock = true;
 
     if (q) {
       where.OR = [
@@ -201,13 +266,22 @@ async function handleLocalSearch(searchParams: URLSearchParams, b2bDiscountPerce
       ];
     }
 
+    const orderBy: any[] =
+      sort === "price-asc"
+        ? [{ inStock: "desc" }, { price: "asc" }]
+        : sort === "price-desc"
+          ? [{ inStock: "desc" }, { price: "desc" }]
+          : sort === "name-asc"
+            ? [{ inStock: "desc" }, { name: "asc" }]
+            : [{ inStock: "desc" }, { name: "asc" }];
+
     let items: any[] = [];
     let total = 0;
     try {
       [items, total] = await Promise.all([
         prisma.stockProduct.findMany({
           where,
-          orderBy: [{ inStock: "desc" }, { name: "asc" }],
+          orderBy,
           skip: (page - 1) * limit,
           take: limit,
         }),
@@ -302,20 +376,302 @@ async function handleLocalSearch(searchParams: URLSearchParams, b2bDiscountPerce
   }
 }
 
-// ─── Combined search (Turn14 + local) ─────────────────────────────
+// ─── Own catalog search (ShopProduct) ─────────────────────────────
 
-async function handleCombinedSearch(searchParams: URLSearchParams, b2bDiscountPercent: number) {
+async function handleShopSearch(
+  searchParams: URLSearchParams,
+  b2bDiscountPercent: number,
+  customerId: string | null = null
+) {
   try {
-    const [turn14Res, localRes] = await Promise.allSettled([
-      handleTurn14Search(searchParams, b2bDiscountPercent).then((r) => r.json()),
+    const q = searchParams.get("q")?.trim() || "";
+    const brand = searchParams.get("brand")?.trim() || "";
+    const category = searchParams.get("category")?.trim() || "";
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const sort = parseSort(searchParams.get("sort"));
+    const inStockOnly = isTrue(searchParams.get("inStock"));
+    // Vehicle fitment cascade — slugs (lowercased) from structured fitment
+    // tags emitted by the REMUS importer (`fits-make:vw`, etc.).
+    const vMake = (searchParams.get("make") || "").trim().toLowerCase();
+    const vModel = (searchParams.get("model") || "").trim().toLowerCase();
+    const vTrim = (searchParams.get("trim") || "").trim().toLowerCase();
+    const limit = 24;
+
+    const where: any = { isPublished: true, status: "ACTIVE" };
+    if (inStockOnly) {
+      where.NOT = [{ stock: "outOfStock" }];
+    }
+
+    // Vehicle fitment via tag containment. Most specific wins: trim ⊃
+    // model ⊃ make. We apply only the most specific one because a trim
+    // tag implies its model and make are already covered.
+    const fitTagsRequired: string[] = [];
+    if (vMake && vModel && vTrim) {
+      fitTagsRequired.push(`fits-trim:${vMake}:${vModel}:${vTrim}`);
+    } else if (vMake && vModel) {
+      fitTagsRequired.push(`fits-model:${vMake}:${vModel}`);
+    } else if (vMake) {
+      fitTagsRequired.push(`fits-make:${vMake}`);
+    }
+    if (fitTagsRequired.length > 0) {
+      where.tags = { hasEvery: fitTagsRequired };
+    }
+
+    if (brand) {
+      where.OR = [
+        { brand: { contains: brand, mode: "insensitive" } },
+        { vendor: { contains: brand, mode: "insensitive" } },
+      ];
+    }
+    if (category) {
+      where.AND = [
+        ...(where.AND ?? []),
+        {
+          OR: [
+            { categoryEn: { contains: category, mode: "insensitive" } },
+            { categoryUa: { contains: category, mode: "insensitive" } },
+            { productCategory: { contains: category, mode: "insensitive" } },
+          ],
+        },
+      ];
+    }
+    if (q) {
+      // Multi-token search: each whitespace-separated word must appear in at
+      // least one searchable field (case-insensitive). Lets "porsche 911"
+      // match "Porsche 911 Carrera S" even when tokens are out of order, and
+      // lets "bmw m2 carbon" intersect title+category+description.
+      //
+      // Skip tokens of length 1 (single-letter "B" / "M" would match too much)
+      // and special-case tokens that look like flat-form fits tags (slug or
+      // "make:model") so we can do an O(1) array index hit too.
+      const tokens = q
+        .trim()
+        .split(/\s+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 2)
+        .slice(0, 8); // cap — avoid 100-token DoS query
+
+      for (const token of tokens) {
+        const lower = token.toLowerCase();
+        where.AND = [
+          ...(where.AND ?? []),
+          {
+            OR: [
+              { titleEn: { contains: token, mode: "insensitive" } },
+              { titleUa: { contains: token, mode: "insensitive" } },
+              { sku: { contains: token, mode: "insensitive" } },
+              { brand: { contains: token, mode: "insensitive" } },
+              { vendor: { contains: token, mode: "insensitive" } },
+              { shortDescEn: { contains: token, mode: "insensitive" } },
+              { shortDescUa: { contains: token, mode: "insensitive" } },
+              { longDescEn: { contains: token, mode: "insensitive" } },
+              { longDescUa: { contains: token, mode: "insensitive" } },
+              { categoryEn: { contains: token, mode: "insensitive" } },
+              { categoryUa: { contains: token, mode: "insensitive" } },
+              { collectionEn: { contains: token, mode: "insensitive" } },
+              { collectionUa: { contains: token, mode: "insensitive" } },
+              { productCategory: { contains: token, mode: "insensitive" } },
+              { productType: { contains: token, mode: "insensitive" } },
+              // Exact-tag hit: matches flat tags like `bmw-m2`, `remus`,
+              // `akrapovic`, or any slug stored in `tags[]`. Hugely cheaper
+              // than the regex-on-tags substring path (uses the GIN index).
+              { tags: { has: lower } },
+            ],
+          },
+        ];
+      }
+    }
+
+    // Prisma can't sort by the COALESCE of priceUsdB2b/priceUsd/priceEur.
+    // Use priceUsd as the primary sort key — it's set for the vast majority
+    // of products. Items with null priceUsd land at the end naturally.
+    const orderBy: any[] =
+      sort === "price-asc"
+        ? [{ priceUsd: "asc" }, { updatedAt: "desc" }]
+        : sort === "price-desc"
+          ? [{ priceUsd: "desc" }, { updatedAt: "desc" }]
+          : sort === "name-asc"
+            ? [{ titleEn: "asc" }]
+            : [{ updatedAt: "desc" }];
+
+    let items: any[] = [];
+    let total = 0;
+    try {
+      [items, total] = await Promise.all([
+        prisma.shopProduct.findMany({
+          where,
+          orderBy,
+          skip: (page - 1) * limit,
+          take: limit,
+          select: {
+            id: true,
+            slug: true,
+            sku: true,
+            brand: true,
+            vendor: true,
+            tags: true,
+            titleEn: true,
+            titleUa: true,
+            shortDescEn: true,
+            shortDescUa: true,
+            image: true,
+            stock: true,
+            priceEur: true,
+            priceUsd: true,
+            priceUah: true,
+            priceUsdB2b: true,
+            priceEurB2b: true,
+            priceUahB2b: true,
+            compareAtUsd: true,
+            compareAtEur: true,
+            compareAtUah: true,
+          },
+        }),
+        prisma.shopProduct.count({ where }),
+      ]);
+    } catch (dbErr) {
+      console.warn("[Shop Catalog Search] DB query failed", dbErr);
+    }
+
+    // 3-tier discount resolution + currency rates loaded ONCE per request.
+    // Rates are needed to derive USD/EUR for UAH-only-priced products (CSF,
+    // Akrapovic, Ohlins, ADRO — ~1,300 rows in DB). Without this fallback
+    // those products render as "On request" on /shop/stock.
+    const [systemBrandMap, customerBrandMap, settingsRecord] = await Promise.all([
+      loadBrandDiscountMap(prisma).catch(() => new Map<string, number>()),
+      loadCustomerBrandDiscountMap(prisma, customerId).catch(() => new Map<string, number>()),
+      getOrCreateShopSettings(prisma).catch(() => null),
+    ]);
+    const rates = settingsRecord ? getShopSettingsRuntime(settingsRecord).currencyRates : null;
+    const usdPerUah = rates && rates.UAH > 0 && rates.USD > 0 ? rates.USD / rates.UAH : 0;
+    const eurPerUah = rates && rates.UAH > 0 && rates.EUR > 0 ? rates.EUR / rates.UAH : 0;
+
+    const sanitizedItems = items.map((p) => {
+      const name = p.titleEn || p.titleUa || "Product";
+      const description = p.shortDescEn || p.shortDescUa || "";
+      // Convert UAH → USD when neither USD nor EUR is set on the product.
+      // This unblocks Ohlins / Akrapovic / CSF / ADRO (UAH-only catalogs,
+      // ~1,300 products) that otherwise rendered as "On request".
+      const uahToUsd = (uah: unknown) => {
+        const n = Number(uah ?? 0);
+        if (!Number.isFinite(n) || n <= 0 || usdPerUah <= 0) return null;
+        return Math.round(n * usdPerUah * 100) / 100;
+      };
+      const uahToEur = (uah: unknown) => {
+        const n = Number(uah ?? 0);
+        if (!Number.isFinite(n) || n <= 0 || eurPerUah <= 0) return null;
+        return Math.round(n * eurPerUah * 100) / 100;
+      };
+
+      // Resolve retail (B2C) in USD: prefer priceUsd, then EUR-derived USD,
+      // then UAH-derived USD. Same logic for compareAt + B2B.
+      const retail = p.priceUsd ?? p.priceEur ?? uahToUsd(p.priceUah);
+      const b2bPrice =
+        p.priceUsdB2b ?? p.priceEurB2b ?? uahToUsd((p as { priceUahB2b?: unknown }).priceUahB2b);
+      const compareAt =
+        p.compareAtUsd ??
+        p.compareAtEur ??
+        uahToUsd((p as { compareAtUah?: unknown }).compareAtUah);
+      const basePrice = Number(retail ?? 0);
+
+      // Effective discount % for this brand: customer-brand > system-brand
+      // > customer-global. See src/lib/shopBrandB2bDiscounts.ts.
+      const effDiscount = resolveBrandDiscount(
+        p.brand ?? p.vendor ?? null,
+        customerBrandMap,
+        systemBrandMap,
+        b2bDiscountPercent
+      );
+      const effectivePct = effDiscount.pct;
+
+      let finalPrice: number | null = null;
+      let originalPrice: number | null = null;
+      if (b2bPrice != null) {
+        finalPrice = Number(b2bPrice);
+        originalPrice = Number(retail ?? compareAt ?? b2bPrice);
+      } else if (retail != null) {
+        const retailNum = Number(retail);
+        originalPrice = Number(compareAt ?? retailNum);
+        finalPrice =
+          effectivePct > 0
+            ? Math.round(retailNum * (1 - effectivePct / 100) * 100) / 100
+            : retailNum;
+      }
+      // Silence "unused" lint — kept for symmetric ergonomic helper that may
+      // be useful when the UI shifts default display currency to EUR.
+      void uahToEur;
+
+      return {
+        id: p.id,
+        name,
+        brand: p.brand || p.vendor || "Unknown",
+        partNumber: p.sku || "",
+        category: null as string | null,
+        description,
+        thumbnail: p.image || null,
+        inStock: (p.stock || "inStock") !== "outOfStock",
+        basePrice,
+        price: finalPrice,
+        originalPrice: effectivePct > 0 || b2bPrice != null ? originalPrice : null,
+        markupPct: 0,
+        // Expose the resolved discount % + its source so the UI can show
+        // "B2B -10% (per brand)" tooltips on cards if useful later.
+        discountPct: effectivePct,
+        discountSource: effDiscount.source,
+        turn14Id: "",
+        slug: p.slug,
+        // Forward vendor + tags so the storefront URL builder can pick the
+        // right brand-shop segment via buildShopStorefrontProductPath().
+        vendor: p.vendor ?? null,
+        tags: p.tags ?? [],
+        source: "shop" as const,
+      };
+    });
+
+    return NextResponse.json({
+      data: sanitizedItems,
+      meta: {
+        page,
+        totalPages: Math.ceil(total / limit) || 1,
+        totalItems: total,
+        source: "shop",
+      },
+      filters: { categories: [], brands: [] },
+    });
+  } catch (error: any) {
+    console.error("[Shop Catalog Search Error]", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ─── Combined search (Shop + Turn14 + local) ──────────────────────
+
+async function handleCombinedSearch(
+  searchParams: URLSearchParams,
+  b2bDiscountPercent: number,
+  customerId: string | null = null
+) {
+  try {
+    // NOTE: parallel reads against the same pgbouncer pool — fine here because
+    // each handler runs at most ~2-3 sequential queries, well under the pool.
+    // Turn14 is gated by feature flag; when disabled we synthesize an empty
+    // settled result so the rest of the merge stays simple.
+    const turn14Task = isTurn14Enabled()
+      ? handleTurn14Search(searchParams, b2bDiscountPercent).then((r) => r.json())
+      : Promise.resolve({ data: [] });
+    const [shopRes, turn14Res, localRes] = await Promise.allSettled([
+      handleShopSearch(searchParams, b2bDiscountPercent, customerId).then((r) => r.json()),
+      turn14Task,
       handleLocalSearch(searchParams, b2bDiscountPercent).then((r) => r.json()),
     ]);
 
+    const shopData = shopRes.status === "fulfilled" ? shopRes.value.data || [] : [];
     const turn14Data = turn14Res.status === "fulfilled" ? turn14Res.value.data || [] : [];
     const localData = localRes.status === "fulfilled" ? localRes.value.data || [] : [];
 
-    // Local products first, then Turn14
-    const combined = [...localData, ...turn14Data];
+    // Our own catalog first (best margins, in-house inventory), then Turn14,
+    // then other local distributors.
+    const combined = [...shopData, ...turn14Data, ...localData];
 
     return NextResponse.json({
       data: combined,
@@ -324,6 +680,7 @@ async function handleCombinedSearch(searchParams: URLSearchParams, b2bDiscountPe
         totalPages: 1,
         totalItems: combined.length,
         source: "all",
+        shopCount: shopData.length,
         turn14Count: turn14Data.length,
         localCount: localData.length,
       },

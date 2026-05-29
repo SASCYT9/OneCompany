@@ -233,7 +233,7 @@ export default function PriceSimulatorPage() {
 
           {/* Results Section */}
           <div className="w-full lg:w-[400px] space-y-6">
-            <div className="sticky top-10">
+            <div className="relative">
               <motion.div
                 layout
                 className="rounded-none-[40px] border border-white/10 bg-zinc-900/50 backdrop-blur-3xl overflow-hidden shadow-2xl"

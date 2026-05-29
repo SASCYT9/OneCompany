@@ -527,7 +527,7 @@ export default function AdminOrderDetailPage() {
   const outstanding = Math.max(0, order.total - order.amountPaid);
 
   return (
-    <AdminPage className="space-y-6 pb-24 lg:pb-0">
+    <AdminPage className="space-y-6">
       <AdminPageHeader
         eyebrow="Order Detail"
         title={order.orderNumber}

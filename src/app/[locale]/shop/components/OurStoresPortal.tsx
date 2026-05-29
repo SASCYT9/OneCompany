@@ -43,12 +43,10 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
 /* ══════════════════════════════════════════════════════════════ */
 
 const HERO_IDS = ["urban", "akrapovic", "brabus"];
-const BOTTOM_IDS = ["kw", "fi", "eventuri"];
 
 /* Layout:
    Row 1 (3-col hero): Urban + Akrapovič + Brabus
-   Rows 2-3 (4-col):   DO88, Burger, RaceChip, CSF, Öhlins, GiroDisc, iPE, ADRO
-   Row 4 (3-col):      KW, FI, Eventuri
+   Rows 2-4 (4-col):   DO88, Burger, RaceChip, CSF, Öhlins, GiroDisc, iPE, ADRO, KW, FI, Eventuri, Ilmberger
 */
 const STORE_ORDER = [
   "urban",
@@ -59,12 +57,13 @@ const STORE_ORDER = [
   "racechip",
   "csf",
   "ohlins",
-  "girodisc",
+  "ilmberger",
   "ipe",
   "adro",
-  "kw",
+  "girodisc",
   "fi",
   "eventuri",
+  "kw",
 ];
 
 /* ── Reusable store card ─────────────────────────────────────── */
@@ -189,8 +188,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
   ) as (typeof OUR_STORES)[number][];
 
   const heroStores = ordered.filter((s) => HERO_IDS.includes(s.id));
-  const mainStores = ordered.filter((s) => !HERO_IDS.includes(s.id) && !BOTTOM_IDS.includes(s.id));
-  const bottomStores = ordered.filter((s) => BOTTOM_IDS.includes(s.id));
+  const mainStores = ordered.filter((s) => !HERO_IDS.includes(s.id));
 
   const exploreLabel = isUa ? "Дослідити" : "Explore";
 
@@ -281,7 +279,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
             ))}
           </div>
 
-          {/* Rows 2–3 — main: 4 columns */}
+          {/* Rows 2–4 — main: 4 columns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {mainStores.map((store) => (
               <StoreCard
@@ -292,21 +290,6 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                 exploreLabel={exploreLabel}
                 height="h-[260px] sm:h-[320px] lg:h-[420px]"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              />
-            ))}
-          </div>
-
-          {/* Row 4 — bottom: KW + FI + Eventuri (3 col) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3">
-            {bottomStores.map((store) => (
-              <StoreCard
-                key={store.id}
-                store={store}
-                locale={locale}
-                isUa={isUa}
-                exploreLabel={exploreLabel}
-                height="h-[260px] sm:h-[320px] lg:h-[400px]"
-                sizes="(max-width: 640px) 100vw, 33vw"
               />
             ))}
           </div>

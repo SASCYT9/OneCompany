@@ -17,8 +17,10 @@ import {
   AdminSplitDetailShell,
   AdminStatusBadge,
   AdminTableShell,
+  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
 import { AdminCheckboxField, AdminInputField } from "@/components/admin/AdminFormFields";
+import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type AdminRole = {
   id: string;
@@ -411,60 +413,100 @@ export default function AdminUsersPage() {
               description="Adjust the access filter or create a new admin account to populate the workbench."
             />
           ) : (
-            <AdminTableShell>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                    <tr>
-                      <th className="px-5 py-4 font-medium">User</th>
-                      <th className="px-5 py-4 font-medium">Roles</th>
-                      <th className="px-5 py-4 font-medium">Status</th>
-                      <th className="px-5 py-4 font-medium">Last login</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => {
-                      const selected = user.id === selectedUserId;
-                      return (
-                        <tr
-                          key={user.id}
-                          className={`cursor-pointer border-b border-white/6 transition hover:bg-white/3 ${
-                            selected ? "bg-blue-500/6" : "bg-transparent"
-                          }`}
-                          onClick={() => setSelectedUserId(user.id)}
-                        >
-                          <td className="px-5 py-4">
-                            <div className="text-sm font-medium text-zinc-100">
-                              {user.name || "Unnamed manager"}
-                            </div>
-                            <div className="mt-1 text-xs text-zinc-500">{user.email}</div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex flex-wrap gap-2">
-                              {user.roles.length ? (
-                                user.roles.map((role) => (
-                                  <AdminStatusBadge key={role.id}>{role.name}</AdminStatusBadge>
-                                ))
-                              ) : (
-                                <span className="text-xs text-zinc-500">No roles</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <AdminStatusBadge tone={user.isActive ? "success" : "danger"}>
-                              {user.isActive ? "Active" : "Inactive"}
-                            </AdminStatusBadge>
-                          </td>
-                          <td className="px-5 py-4 text-sm text-zinc-400">
-                            {formatDate(user.lastLoginAt)}
-                          </td>
+            <AdminResponsiveTable
+              desktop={
+                <AdminTableShell>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
+                      <thead className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                        <tr>
+                          <th className="px-5 py-4 font-medium">User</th>
+                          <th className="px-5 py-4 font-medium">Roles</th>
+                          <th className="px-5 py-4 font-medium">Status</th>
+                          <th className="px-5 py-4 font-medium">Last login</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </AdminTableShell>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user) => {
+                          const selected = user.id === selectedUserId;
+                          return (
+                            <tr
+                              key={user.id}
+                              className={`cursor-pointer border-b border-white/6 transition hover:bg-white/3 ${
+                                selected ? "bg-blue-500/6" : "bg-transparent"
+                              }`}
+                              onClick={() => setSelectedUserId(user.id)}
+                            >
+                              <td className="px-5 py-4">
+                                <div className="text-sm font-medium text-zinc-100">
+                                  {user.name || "Unnamed manager"}
+                                </div>
+                                <div className="mt-1 text-xs text-zinc-500">{user.email}</div>
+                              </td>
+                              <td className="px-5 py-4">
+                                <div className="flex flex-wrap gap-2">
+                                  {user.roles.length ? (
+                                    user.roles.map((role) => (
+                                      <AdminStatusBadge key={role.id}>{role.name}</AdminStatusBadge>
+                                    ))
+                                  ) : (
+                                    <span className="text-xs text-zinc-500">No roles</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-5 py-4">
+                                <AdminStatusBadge tone={user.isActive ? "success" : "danger"}>
+                                  {user.isActive ? "Active" : "Inactive"}
+                                </AdminStatusBadge>
+                              </td>
+                              <td className="px-5 py-4 text-sm text-zinc-400">
+                                {formatDate(user.lastLoginAt)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </AdminTableShell>
+              }
+              mobile={
+                <div className="space-y-2">
+                  {filteredUsers.map((user) => {
+                    const selected = user.id === selectedUserId;
+                    return (
+                      <AdminMobileCard
+                        key={user.id}
+                        title={user.name || "Unnamed manager"}
+                        subtitle={user.email}
+                        badge={
+                          <AdminStatusBadge tone={user.isActive ? "success" : "danger"}>
+                            {user.isActive ? "Active" : "Inactive"}
+                          </AdminStatusBadge>
+                        }
+                        onClick={() => setSelectedUserId(user.id)}
+                        tone={selected ? "accent" : "default"}
+                        rows={[
+                          {
+                            label: "Roles",
+                            value: user.roles.length ? (
+                              <div className="flex flex-wrap gap-1 justify-end">
+                                {user.roles.map((role) => (
+                                  <AdminStatusBadge key={role.id}>{role.name}</AdminStatusBadge>
+                                ))}
+                              </div>
+                            ) : (
+                              "No roles"
+                            ),
+                          },
+                          { label: "Last login", value: formatDate(user.lastLoginAt) },
+                        ]}
+                      />
+                    );
+                  })}
+                </div>
+              }
+            />
           )
         }
         sidebar={

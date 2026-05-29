@@ -12,10 +12,12 @@ import {
   AdminPage,
   AdminPageHeader,
   AdminTableShell,
+  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
 import { useToast } from "@/components/admin/AdminToast";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type SegmentRow = {
   id: string;
@@ -197,79 +199,133 @@ export default function AdminSegmentsPage() {
           }
         />
       ) : (
-        <AdminTableShell>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                <th className="px-4 py-4 font-medium">Сегмент</th>
-                <th className="px-4 py-4 font-medium">Правила</th>
-                <th className="px-4 py-4 font-medium">Клієнтів</th>
-                <th className="px-4 py-4 font-medium">Останній перерахунок</th>
-                <th className="px-4 py-4 font-medium">Дії</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/6">
+        <AdminResponsiveTable
+          desktop={
+            <AdminTableShell>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                    <th className="px-4 py-4 font-medium">Сегмент</th>
+                    <th className="px-4 py-4 font-medium">Правила</th>
+                    <th className="px-4 py-4 font-medium">Клієнтів</th>
+                    <th className="px-4 py-4 font-medium">Останній перерахунок</th>
+                    <th className="px-4 py-4 font-medium">Дії</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/6">
+                  {filtered.map((s) => (
+                    <tr key={s.id} className="align-top transition hover:bg-white/3">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 shrink-0 text-blue-400" />
+                          <span className="font-medium text-zinc-100">{s.name}</span>
+                        </div>
+                        {s.description ? (
+                          <div className="mt-1 max-w-md truncate text-xs text-zinc-500">
+                            {s.description}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-4 text-xs text-zinc-400">
+                        <span className="rounded-full border border-white/8 bg-white/3 px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                          {s.rulesJson?.match === "any" ? "Будь-яка з умов" : "Усі умови"}
+                        </span>
+                        <div className="mt-1 text-[10px] text-zinc-600">
+                          {s.rulesJson?.conditions?.length ?? 0} умов
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 font-medium text-zinc-100 tabular-nums">
+                        {s.customerCount}
+                      </td>
+                      <td className="px-4 py-4 text-xs text-zinc-500">
+                        {s.lastComputedAt ? new Date(s.lastComputedAt).toLocaleString() : "—"}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void recompute(s.id)}
+                            disabled={recomputing === s.id}
+                            className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-blue-300 disabled:opacity-50"
+                            aria-label="Перерахувати"
+                            title="Перерахувати"
+                          >
+                            <RefreshCcw className="h-3.5 w-3.5" />
+                          </button>
+                          <Link
+                            href={`/admin/shop/customers/segments/${s.id}`}
+                            className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
+                            aria-label="Відкрити"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => void deleteSegment(s)}
+                            className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
+                            aria-label="Видалити"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </AdminTableShell>
+          }
+          mobile={
+            <div className="space-y-2">
               {filtered.map((s) => (
-                <tr key={s.id} className="align-top transition hover:bg-white/3">
-                  <td className="px-4 py-4">
+                <AdminMobileCard
+                  key={s.id}
+                  title={
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 shrink-0 text-blue-400" />
                       <span className="font-medium text-zinc-100">{s.name}</span>
                     </div>
-                    {s.description ? (
-                      <div className="mt-1 max-w-md truncate text-xs text-zinc-500">
-                        {s.description}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-4 text-xs text-zinc-400">
-                    <span className="rounded-full border border-white/8 bg-white/3 px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      {s.rulesJson?.match === "any" ? "Будь-яка з умов" : "Усі умови"}
+                  }
+                  subtitle={s.description}
+                  badge={
+                    <span className="rounded-full border border-white/8 bg-white/3 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      {s.rulesJson?.match === "any" ? "Будь-яка" : "Усі умови"}
                     </span>
-                    <div className="mt-1 text-[10px] text-zinc-600">
-                      {s.rulesJson?.conditions?.length ?? 0} умов
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 font-medium text-zinc-100 tabular-nums">
-                    {s.customerCount}
-                  </td>
-                  <td className="px-4 py-4 text-xs text-zinc-500">
-                    {s.lastComputedAt ? new Date(s.lastComputedAt).toLocaleString() : "—"}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-1">
+                  }
+                  href={`/admin/shop/customers/segments/${s.id}`}
+                  rows={[
+                    { label: "Клієнтів", value: s.customerCount },
+                    {
+                      label: "Перерахунок",
+                      value: s.lastComputedAt ? new Date(s.lastComputedAt).toLocaleString() : "—",
+                    },
+                  ]}
+                  footer={
+                    <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => void recompute(s.id)}
                         disabled={recomputing === s.id}
-                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-blue-300 disabled:opacity-50"
-                        aria-label="Перерахувати"
-                        title="Перерахувати"
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6 disabled:opacity-50"
                       >
                         <RefreshCcw className="h-3.5 w-3.5" />
+                        Перерахувати
                       </button>
-                      <Link
-                        href={`/admin/shop/customers/segments/${s.id}`}
-                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
-                        aria-label="Відкрити"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
                       <button
                         type="button"
                         onClick={() => void deleteSegment(s)}
-                        className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
-                        aria-label="Видалити"
+                        className="inline-flex items-center gap-1.5 rounded-none border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-red-400 transition hover:bg-red-500/10"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
+                        Видалити
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  }
+                />
               ))}
-            </tbody>
-          </table>
-        </AdminTableShell>
+            </div>
+          }
+        />
       )}
     </AdminPage>
   );

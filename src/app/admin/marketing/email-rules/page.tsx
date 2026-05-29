@@ -13,7 +13,9 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
+  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
+import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
 import {
   AdminInputField,
@@ -292,67 +294,114 @@ export default function AdminEmailRulesPage() {
             }
           />
         ) : (
-          <AdminTableShell>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-4 font-medium">Правило</th>
-                  <th className="px-4 py-4 font-medium">Тригер</th>
-                  <th className="px-4 py-4 font-medium">Шаблон</th>
-                  <th className="px-4 py-4 font-medium">Статус</th>
-                  <th className="px-4 py-4 font-medium">Надіслань</th>
-                  <th className="px-4 py-4 font-medium">Дії</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/6">
+          <AdminResponsiveTable
+            mobile={
+              <div className="space-y-2">
                 {rules.map((r) => (
-                  <tr key={r.id} className="align-top transition hover:bg-white/3">
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-zinc-100">{r.name}</div>
-                      {r.description ? (
-                        <div className="mt-0.5 text-xs text-zinc-500">{r.description}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-4 text-xs">
-                      <span className="font-mono text-blue-300">{TRIGGER_LABELS[r.trigger]}</span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-zinc-200">{r.template.name}</div>
-                      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-zinc-600">
-                        {r.template.locale} · {r.template.key}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
+                  <AdminMobileCard
+                    key={r.id}
+                    title={r.name}
+                    subtitle={r.description || undefined}
+                    badge={
                       <AdminStatusBadge tone={r.isActive ? "success" : "default"}>
                         {r.isActive ? "Активне" : "Вимкнено"}
                       </AdminStatusBadge>
-                    </td>
-                    <td className="px-4 py-4 text-zinc-300 tabular-nums">{r.sendsCount}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-1">
+                    }
+                    rows={[
+                      { label: "Тригер", value: TRIGGER_LABELS[r.trigger] },
+                      { label: "Шаблон", value: r.template.name },
+                      { label: "Надіслань", value: r.sendsCount },
+                    ]}
+                    footer={
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setEditingRule(r)}
-                          className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
-                          aria-label="Редагувати правило"
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:bg-white/6"
                         >
                           <FileEdit className="h-3.5 w-3.5" />
+                          Редагувати
                         </button>
                         <button
                           type="button"
                           onClick={() => void deleteRule(r.id, r.name)}
-                          className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
-                          aria-label="Видалити правило"
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-red-500/25 bg-red-950/20 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-950/30"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
+                          Видалити
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    }
+                  />
                 ))}
-              </tbody>
-            </table>
-          </AdminTableShell>
+              </div>
+            }
+            desktop={
+              <AdminTableShell>
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                      <th className="px-4 py-4 font-medium">Правило</th>
+                      <th className="px-4 py-4 font-medium">Тригер</th>
+                      <th className="px-4 py-4 font-medium">Шаблон</th>
+                      <th className="px-4 py-4 font-medium">Статус</th>
+                      <th className="px-4 py-4 font-medium">Надіслань</th>
+                      <th className="px-4 py-4 font-medium">Дії</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/6">
+                    {rules.map((r) => (
+                      <tr key={r.id} className="align-top transition hover:bg-white/3">
+                        <td className="px-4 py-4">
+                          <div className="font-medium text-zinc-100">{r.name}</div>
+                          {r.description ? (
+                            <div className="mt-0.5 text-xs text-zinc-500">{r.description}</div>
+                          ) : null}
+                        </td>
+                        <td className="px-4 py-4 text-xs">
+                          <span className="font-mono text-blue-300">
+                            {TRIGGER_LABELS[r.trigger]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-zinc-200">{r.template.name}</div>
+                          <div className="mt-0.5 text-[10px] uppercase tracking-wider text-zinc-600">
+                            {r.template.locale} · {r.template.key}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <AdminStatusBadge tone={r.isActive ? "success" : "default"}>
+                            {r.isActive ? "Активне" : "Вимкнено"}
+                          </AdminStatusBadge>
+                        </td>
+                        <td className="px-4 py-4 text-zinc-300 tabular-nums">{r.sendsCount}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingRule(r)}
+                              className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
+                              aria-label="Редагувати правило"
+                            >
+                              <FileEdit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteRule(r.id, r.name)}
+                              className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
+                              aria-label="Видалити правило"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </AdminTableShell>
+            }
+          />
         )
       ) : templates.length === 0 ? (
         <AdminEmptyState
@@ -370,61 +419,113 @@ export default function AdminEmailRulesPage() {
           }
         />
       ) : (
-        <AdminTableShell>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                <th className="px-4 py-4 font-medium">Ключ</th>
-                <th className="px-4 py-4 font-medium">Назва</th>
-                <th className="px-4 py-4 font-medium">Мова</th>
-                <th className="px-4 py-4 font-medium">Тема</th>
-                <th className="px-4 py-4 font-medium">Використовують</th>
-                <th className="px-4 py-4 font-medium">Дії</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/6">
+        <AdminResponsiveTable
+          mobile={
+            <div className="space-y-2">
               {templates.map((t) => (
-                <tr key={t.id} className="align-top transition hover:bg-white/3">
-                  <td className="px-4 py-4">
+                <AdminMobileCard
+                  key={t.id}
+                  title={t.name}
+                  subtitle={
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-zinc-100">{t.key}</span>
+                      <span className="font-mono text-[11px] text-zinc-400">{t.key}</span>
                       {t.isSystem ? (
                         <span className="rounded-full border border-blue-500/25 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
                           Системний
                         </span>
                       ) : null}
                     </div>
-                  </td>
-                  <td className="px-4 py-4 text-zinc-200">{t.name}</td>
-                  <td className="px-4 py-4 text-xs uppercase text-zinc-400">{t.locale}</td>
-                  <td className="px-4 py-4 text-xs text-zinc-400">{t.subject}</td>
-                  <td className="px-4 py-4 text-zinc-300 tabular-nums">{t.rulesCount} правил</td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-1">
+                  }
+                  rows={[
+                    { label: "Мова", value: <span className="uppercase">{t.locale}</span> },
+                    { label: "Тема", value: t.subject },
+                    { label: "Правил", value: `${t.rulesCount} правил` },
+                  ]}
+                  footer={
+                    <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setEditingTemplate(t)}
-                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
-                        aria-label="Редагувати шаблон"
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:bg-white/6"
                       >
                         <FileEdit className="h-3.5 w-3.5" />
+                        Редагувати
                       </button>
                       <button
                         type="button"
                         onClick={() => void deleteTemplate(t)}
                         disabled={t.isSystem}
-                        className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-30"
-                        aria-label="Видалити шаблон"
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-red-500/25 bg-red-950/20 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-950/30 disabled:opacity-30"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
+                        Видалити
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  }
+                />
               ))}
-            </tbody>
-          </table>
-        </AdminTableShell>
+            </div>
+          }
+          desktop={
+            <AdminTableShell>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                    <th className="px-4 py-4 font-medium">Ключ</th>
+                    <th className="px-4 py-4 font-medium">Назва</th>
+                    <th className="px-4 py-4 font-medium">Мова</th>
+                    <th className="px-4 py-4 font-medium">Тема</th>
+                    <th className="px-4 py-4 font-medium">Використовують</th>
+                    <th className="px-4 py-4 font-medium">Дії</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/6">
+                  {templates.map((t) => (
+                    <tr key={t.id} className="align-top transition hover:bg-white/3">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-zinc-100">{t.key}</span>
+                          {t.isSystem ? (
+                            <span className="rounded-full border border-blue-500/25 bg-blue-500/8 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-blue-300">
+                              Системний
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-zinc-200">{t.name}</td>
+                      <td className="px-4 py-4 text-xs uppercase text-zinc-400">{t.locale}</td>
+                      <td className="px-4 py-4 text-xs text-zinc-400">{t.subject}</td>
+                      <td className="px-4 py-4 text-zinc-300 tabular-nums">
+                        {t.rulesCount} правил
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingTemplate(t)}
+                            className="rounded-none p-1.5 text-zinc-500 hover:bg-white/6 hover:text-zinc-200"
+                            aria-label="Редагувати шаблон"
+                          >
+                            <FileEdit className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void deleteTemplate(t)}
+                            disabled={t.isSystem}
+                            className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-30"
+                            aria-label="Видалити шаблон"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </AdminTableShell>
+          }
+        />
       )}
 
       {/* Rule editor dialogs */}
