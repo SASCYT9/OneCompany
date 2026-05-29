@@ -24,9 +24,7 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
-import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type ProductFeedLocale = "ua" | "en";
 type ProductFeedCurrency = "EUR" | "USD" | "UAH";
@@ -365,78 +363,48 @@ export default function AdminFeedExportsPage() {
             </p>
           </div>
           {preview?.items.length ? (
-            <AdminResponsiveTable
-              desktop={
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[880px] text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                        <th className="px-4 py-4 font-medium">Product</th>
-                        <th className="px-4 py-4 font-medium">Brand</th>
-                        <th className="px-4 py-4 font-medium">SKU</th>
-                        <th className="px-4 py-4 font-medium">Stock</th>
-                        <th className="px-4 py-4 font-medium">RRP</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/6">
-                      {preview.items.slice(0, 12).map((item) => (
-                        <tr key={item.airtableId} className="align-top transition hover:bg-white/3">
-                          <td className="px-4 py-4">
-                            <div className="font-medium text-zinc-100">{item.title || "-"}</div>
-                            <div className="mt-1 font-mono text-xs text-zinc-500">
-                              {item.airtableId}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 text-zinc-300">{item.brand || "-"}</td>
-                          <td className="px-4 py-4">
-                            <div className="font-mono text-xs text-zinc-300">
-                              {item.ourSku || "-"}
-                            </div>
-                            <div className="mt-1 font-mono text-xs text-zinc-500">
-                              {item.sku || "-"}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <AdminStatusBadge
-                              tone={item.stockStatus === "in_stock" ? "success" : "warning"}
-                            >
-                              {item.stockQuantity} · {item.stockStatus.replace(/_/g, " ")}
-                            </AdminStatusBadge>
-                          </td>
-                          <td className="px-4 py-4 text-zinc-300">
-                            {formatMoney(item.price, item.priceCurrencyHint)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              }
-              mobile={
-                <div className="divide-y divide-white/6 px-4">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[880px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                    <th className="px-4 py-4 font-medium">Product</th>
+                    <th className="px-4 py-4 font-medium">Brand</th>
+                    <th className="px-4 py-4 font-medium">SKU</th>
+                    <th className="px-4 py-4 font-medium">Stock</th>
+                    <th className="px-4 py-4 font-medium">RRP</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/6">
                   {preview.items.slice(0, 12).map((item) => (
-                    <AdminMobileCard
-                      key={item.airtableId}
-                      className="border-none bg-transparent px-0 py-3"
-                      title={item.title || "-"}
-                      subtitle={item.airtableId}
-                      badge={
+                    <tr key={item.airtableId} className="align-top transition hover:bg-white/3">
+                      <td className="px-4 py-4">
+                        <div className="font-medium text-zinc-100">{item.title || "-"}</div>
+                        <div className="mt-1 font-mono text-xs text-zinc-500">
+                          {item.airtableId}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-zinc-300">{item.brand || "-"}</td>
+                      <td className="px-4 py-4">
+                        <div className="font-mono text-xs text-zinc-300">{item.ourSku || "-"}</div>
+                        <div className="mt-1 font-mono text-xs text-zinc-500">
+                          {item.sku || "-"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
                         <AdminStatusBadge
                           tone={item.stockStatus === "in_stock" ? "success" : "warning"}
                         >
                           {item.stockQuantity} · {item.stockStatus.replace(/_/g, " ")}
                         </AdminStatusBadge>
-                      }
-                      rows={[
-                        { label: "Brand", value: item.brand || "-" },
-                        { label: "SKU", value: item.ourSku || item.sku || "-" },
-                        { label: "RRP", value: formatMoney(item.price, item.priceCurrencyHint) },
-                      ]}
-                    />
+                      </td>
+                      <td className="px-4 py-4 text-zinc-300">
+                        {formatMoney(item.price, item.priceCurrencyHint)}
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              }
-            />
+                </tbody>
+              </table>
+            </div>
           ) : (
             <AdminEmptyState
               className="rounded-none border-0 bg-transparent"

@@ -34,7 +34,7 @@ export function AdminPage({
   return (
     <div
       className={cn(
-        "mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-8 xl:px-10",
+        "mx-auto w-full px-4 py-6 md:px-8 xl:px-10",
         wide ? "max-w-none" : "max-w-[1640px]",
         className
       )}
@@ -109,7 +109,7 @@ export function AdminEntityToolbar({
   return (
     <section
       className={cn(
-        "relative z-20 rounded-none border border-white/8 bg-[#171717] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.15)]",
+        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         className
       )}
     >
@@ -782,9 +782,11 @@ export function AdminSettingsShell({
 }) {
   return (
     <div className={cn("grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_300px]", className)}>
-      <aside className="xl:relative xl:self-start">{navigation}</aside>
+      <aside className="xl:sticky xl:top-24 xl:self-start">{navigation}</aside>
       <div className="min-w-0 space-y-6">{content}</div>
-      {sidebar ? <aside className="space-y-4 xl:relative xl:self-start">{sidebar}</aside> : null}
+      {sidebar ? (
+        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside>
+      ) : null}
     </div>
   );
 }
@@ -842,7 +844,7 @@ export function AdminStickyActionBar({
   return (
     <section
       className={cn(
-        "relative z-20 rounded-none border border-white/8 bg-[#171717] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.15)]",
+        "sticky top-4 z-20 rounded-none border border-white/8 bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         className
       )}
     >
@@ -887,7 +889,7 @@ export function AdminSplitDetailShell({
   return (
     <div className={cn("grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <div className="min-w-0 space-y-6">{main}</div>
-      <aside className="space-y-4 lg:relative lg:self-start">{sidebar}</aside>
+      <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">{sidebar}</aside>
     </div>
   );
 }
@@ -1187,7 +1189,7 @@ export function AdminEditorShell({
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">{children}</div>
-          <aside className="space-y-4 xl:relative xl:self-start">
+          <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
             {summary}
             <div className={cn("rounded-none border bg-[#171717] p-4", BORDER)}>
               <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -1228,116 +1230,24 @@ export function AdminEditorSection({
   description,
   children,
   className,
-  hidden,
 }: {
   id: string;
   title: string;
   description: string;
   children: ReactNode;
   className?: string;
-  /** When true, the section is hidden via CSS — form state is preserved. */
-  hidden?: boolean;
 }) {
   return (
     <section
       id={id}
-      hidden={hidden}
-      className={cn(
-        "scroll-mt-24 rounded-none border bg-[#171717] p-4 sm:p-5 md:p-6",
-        BORDER,
-        className
-      )}
+      className={cn("scroll-mt-24 rounded-none border bg-[#171717] p-5 md:p-6", BORDER, className)}
     >
-      <div className="mb-4 max-w-2xl space-y-1 sm:mb-5 sm:space-y-1.5">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-50 sm:text-xl">{title}</h2>
-        <p className="text-xs leading-5 text-zinc-400 sm:text-sm sm:leading-6">{description}</p>
+      <div className="mb-5 max-w-2xl space-y-1.5">
+        <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
+        <p className="text-sm leading-6 text-zinc-400">{description}</p>
       </div>
       {children}
     </section>
-  );
-}
-
-/**
- * Tab strip for long editor forms. Horizontally scrollable on mobile, sticky
- * under the top bar so it stays visible while the user fills out a section.
- *
- * Pair with conditional section rendering — render only the active tab's
- * content. All form state stays in React state, so switching tabs doesn't
- * lose unsaved values.
- */
-export type AdminEditorTab = {
-  id: string;
-  label: string;
-  /** Optional small count/badge shown next to the label (e.g. "3 errors"). */
-  badge?: ReactNode;
-};
-
-export function AdminEditorTabs({
-  tabs,
-  activeId,
-  onChange,
-  className,
-}: {
-  tabs: AdminEditorTab[];
-  activeId: string;
-  onChange: (id: string) => void;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative z-20 -mx-4 mb-4 border-b border-white/5 bg-[#0A0A0A] md:-mx-8 xl:-mx-10",
-        className
-      )}
-    >
-      <div className="relative w-full">
-        {/* Right fade indicator for horizontal scroll on mobile */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-30 w-10 bg-gradient-to-l from-[#0A0A0A] to-transparent md:hidden" />
-
-        <div
-          role="tablist"
-          aria-label="Розділи редактора"
-          className="flex gap-1 overflow-x-auto px-4 pr-12 md:px-8 xl:px-10 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-        >
-          {tabs.map((tab) => {
-            const active = tab.id === activeId;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                aria-controls={`editor-tab-${tab.id}`}
-                onClick={() => onChange(tab.id)}
-                className={cn(
-                  "relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:py-3",
-                  active ? "text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
-                )}
-              >
-                <span>{tab.label}</span>
-                {tab.badge ? (
-                  <span
-                    className={cn(
-                      "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
-                      active ? "bg-blue-600 text-white" : "bg-white/8 text-zinc-300"
-                    )}
-                  >
-                    {tab.badge}
-                  </span>
-                ) : null}
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute inset-x-2 -bottom-px h-0.5 transition-all",
-                    active ? "bg-blue-500" : "bg-transparent"
-                  )}
-                />
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
   );
 }
 

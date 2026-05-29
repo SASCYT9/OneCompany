@@ -168,7 +168,13 @@ export function AdminMobileBottomBar({
   className?: string;
 }) {
   return (
-    <div className={cn("mt-8 border-t border-white/8 bg-[#0F0F0F] px-4 py-3 lg:hidden", className)}>
+    <div
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-[#0F0F0F]/95 backdrop-blur-xl lg:hidden",
+        "px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]",
+        className
+      )}
+    >
       <div className="flex items-center gap-2">{children}</div>
     </div>
   );

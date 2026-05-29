@@ -297,7 +297,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       id="main-content"
       className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]"
     >
-      <div className="mx-auto max-w-3xl px-4 pb-20 pt-36 sm:px-6 md:pt-40 lg:pt-44">
+      <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
         <Link
           href={`/${locale}/shop/cart`}
           className="mb-6 inline-flex items-center gap-2 text-sm text-foreground/70 dark:text-foreground/55 transition hover:text-foreground"

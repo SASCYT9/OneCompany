@@ -14,10 +14,8 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
-import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type ReturnStatus =
   | "REQUESTED"
@@ -219,118 +217,81 @@ export default function AdminReturnsPage() {
           description="Коли клієнт запитає повернення, воно з'явиться тут. Також ви можете створити RMA зі сторінки будь-якого замовлення."
         />
       ) : (
-        <AdminResponsiveTable
-          desktop={
-            <AdminTableShell>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1080px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                      <th className="px-4 py-4 font-medium">RMA</th>
-                      <th className="px-4 py-4 font-medium">Замовлення</th>
-                      <th className="px-4 py-4 font-medium">Статус</th>
-                      <th className="px-4 py-4 font-medium">Причина</th>
-                      <th className="px-4 py-4 font-medium">Сума</th>
-                      <th className="px-4 py-4 font-medium">Позицій</th>
-                      <th className="px-4 py-4 font-medium">Створено</th>
-                      <th className="px-4 py-4 font-medium">Відкрити</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/6">
-                    {returns.map((r) => (
-                      <tr key={r.id} className="align-top transition hover:bg-white/3">
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            <PackageX
-                              className="h-4 w-4 shrink-0 text-amber-300"
-                              aria-hidden="true"
-                            />
-                            <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
-                              {r.rmaNumber}
-                            </span>
-                          </div>
-                          {r.refundMethod !== "NONE" ? (
-                            <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-600">
-                              {r.refundMethod.replace(/_/g, " ")}
-                            </div>
-                          ) : null}
-                        </td>
-                        <td className="px-4 py-4">
-                          <Link
-                            href={`/admin/shop/orders/${r.orderId}`}
-                            className="font-mono text-xs font-semibold text-blue-300 hover:text-blue-200"
-                          >
-                            {r.order.orderNumber}
-                          </Link>
-                          <div className="mt-1 text-sm text-zinc-200">{r.order.customerName}</div>
-                          <div className="mt-0.5 text-xs text-zinc-500">{r.order.email}</div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <AdminStatusBadge tone={statusTone(r.status)}>
-                            {r.status.replace(/_/g, " ")}
-                          </AdminStatusBadge>
-                        </td>
-                        <td className="px-4 py-4 text-xs text-zinc-300">
-                          {r.reason.replace(/_/g, " ").toLowerCase()}
-                        </td>
-                        <td className="px-4 py-4">
-                          <div
-                            className={`font-medium tabular-nums ${r.status === "REFUNDED" ? "text-emerald-300" : "text-zinc-100"}`}
-                          >
-                            {formatMoney(r.refundAmount, r.currency)}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-zinc-300">{r.itemsCount}</td>
-                        <td className="px-4 py-4 text-xs text-zinc-500">
-                          {new Date(r.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-4">
-                          <Link
-                            href={`/admin/shop/returns/${r.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
-                          >
-                            Керувати
-                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AdminTableShell>
-          }
-          mobile={
-            <div className="space-y-2">
-              {returns.map((r) => (
-                <AdminMobileCard
-                  key={r.id}
-                  title={
-                    <div className="flex items-center gap-2">
-                      <PackageX className="h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
-                      <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
-                        {r.rmaNumber}
-                      </span>
-                    </div>
-                  }
-                  subtitle={`${r.order.orderNumber} · ${r.order.customerName}`}
-                  badge={
-                    <AdminStatusBadge tone={statusTone(r.status)}>
-                      {r.status.replace(/_/g, " ")}
-                    </AdminStatusBadge>
-                  }
-                  href={`/admin/shop/returns/${r.id}`}
-                  rows={[
-                    { label: "Причина", value: r.reason.replace(/_/g, " ").toLowerCase() },
-                    { label: "Сума", value: formatMoney(r.refundAmount, r.currency) },
-                    { label: "Позицій", value: r.itemsCount },
-                    { label: "Створено", value: new Date(r.createdAt).toLocaleDateString() },
-                  ]}
-                />
-              ))}
-            </div>
-          }
-        />
+        <AdminTableShell>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1080px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <th className="px-4 py-4 font-medium">RMA</th>
+                  <th className="px-4 py-4 font-medium">Замовлення</th>
+                  <th className="px-4 py-4 font-medium">Статус</th>
+                  <th className="px-4 py-4 font-medium">Причина</th>
+                  <th className="px-4 py-4 font-medium">Сума</th>
+                  <th className="px-4 py-4 font-medium">Позицій</th>
+                  <th className="px-4 py-4 font-medium">Створено</th>
+                  <th className="px-4 py-4 font-medium">Відкрити</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/6">
+                {returns.map((r) => (
+                  <tr key={r.id} className="align-top transition hover:bg-white/3">
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <PackageX className="h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
+                        <span className="font-mono text-xs font-bold tracking-wide text-zinc-100">
+                          {r.rmaNumber}
+                        </span>
+                      </div>
+                      {r.refundMethod !== "NONE" ? (
+                        <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-600">
+                          {r.refundMethod.replace(/_/g, " ")}
+                        </div>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-4">
+                      <Link
+                        href={`/admin/shop/orders/${r.orderId}`}
+                        className="font-mono text-xs font-semibold text-blue-300 hover:text-blue-200"
+                      >
+                        {r.order.orderNumber}
+                      </Link>
+                      <div className="mt-1 text-sm text-zinc-200">{r.order.customerName}</div>
+                      <div className="mt-0.5 text-xs text-zinc-500">{r.order.email}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <AdminStatusBadge tone={statusTone(r.status)}>
+                        {r.status.replace(/_/g, " ")}
+                      </AdminStatusBadge>
+                    </td>
+                    <td className="px-4 py-4 text-xs text-zinc-300">
+                      {r.reason.replace(/_/g, " ").toLowerCase()}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div
+                        className={`font-medium tabular-nums ${r.status === "REFUNDED" ? "text-emerald-300" : "text-zinc-100"}`}
+                      >
+                        {formatMoney(r.refundAmount, r.currency)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-zinc-300">{r.itemsCount}</td>
+                    <td className="px-4 py-4 text-xs text-zinc-500">
+                      {new Date(r.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-4">
+                      <Link
+                        href={`/admin/shop/returns/${r.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
+                      >
+                        Керувати
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </AdminTableShell>
       )}
     </AdminPage>
   );

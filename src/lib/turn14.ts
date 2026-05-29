@@ -3,10 +3,14 @@
  * Documentation: https://turn14.com/api_settings.php
  */
 
-const TURN14_API_BASE = "https://api.turn14.com/v1";
+const TURN14_API_BASE = 'https://api.turn14.com/v1';
 
 const CLIENT_ID = process.env.TURN14_CLIENT_ID;
 const CLIENT_SECRET = process.env.TURN14_CLIENT_SECRET;
+
+if (process.env.NODE_ENV === 'production' && (!CLIENT_ID || !CLIENT_SECRET)) {
+  throw new Error('TURN14_CLIENT_ID and TURN14_CLIENT_SECRET are required in production');
+}
 
 // Simple in-memory token cache for the Node process
 let cachedToken: string | null = null;
@@ -18,30 +22,28 @@ export async function getTurn14AccessToken(): Promise<string> {
   }
 
   if (!CLIENT_ID || !CLIENT_SECRET) {
-    throw new Error(
-      "Turn14 API credentials are not configured (TURN14_CLIENT_ID / TURN14_CLIENT_SECRET)"
-    );
+    throw new Error('Turn14 API credentials are not configured (TURN14_CLIENT_ID / TURN14_CLIENT_SECRET)');
   }
 
-  console.log("[Turn14] Fetching new OAuth token...");
+  console.log('[Turn14] Fetching new OAuth token...');
 
   const response = await fetch(`${TURN14_API_BASE}/token`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: new URLSearchParams({
-      grant_type: "client_credentials",
+      grant_type: 'client_credentials',
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
     }),
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
     const err = await response.text();
-    console.error("[Turn14] Token error:", err);
-    throw new Error("Failed to fetch Turn14 token");
+    console.error('[Turn14] Token error:', err);
+    throw new Error('Failed to fetch Turn14 token');
   }
 
   const data = await response.json();
@@ -56,18 +58,18 @@ export async function fetchTurn14Brands() {
   const token = await getTurn14AccessToken();
   const response = await fetch(`${TURN14_API_BASE}/brands`, {
     headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch Turn14 brands");
+    throw new Error('Failed to fetch Turn14 brands');
   }
 
   return response.json();
 }
 
 /**
- * Searches items in Turn14 catalog.
+ * Searches items in Turn14 catalog. 
  * Supports various filters depending on the API specs.
  */
 /**
@@ -77,7 +79,7 @@ export async function findTurn14BrandIdByName(brandName: string): Promise<string
   const brandsRes = await fetchTurn14Brands();
   const items = brandsRes.data || (Array.isArray(brandsRes) ? brandsRes : []);
   const match = items.find((b: any) => {
-    const name = b.attributes?.name || b.name || "";
+    const name = b.attributes?.name || b.name || '';
     return name.toLowerCase() === brandName.toLowerCase();
   });
   return match?.id || null;
@@ -87,18 +89,15 @@ export async function findTurn14BrandIdByName(brandName: string): Promise<string
  * Fetch ALL items for a given Brand ID, page by page.
  * Returns the raw items array and pagination meta.
  */
-export async function fetchTurn14ItemsByBrand(
-  brandId: string,
-  page = 1
-): Promise<{ data: any[]; meta: any }> {
+export async function fetchTurn14ItemsByBrand(brandId: string, page = 1): Promise<{ data: any[]; meta: any }> {
   const token = await getTurn14AccessToken();
   const url = new URL(`${TURN14_API_BASE}/items`);
-  url.searchParams.set("brand_id", brandId);
-  url.searchParams.set("page", page.toString());
+  url.searchParams.set('brand_id', brandId);
+  url.searchParams.set('page', page.toString());
 
   const response = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -116,7 +115,7 @@ export async function fetchTurn14ItemDetail(itemId: string): Promise<any> {
   const token = await getTurn14AccessToken();
   const response = await fetch(`${TURN14_API_BASE}/items/${itemId}`, {
     headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -134,50 +133,39 @@ export async function fetchTurn14ItemPricing(itemId: string): Promise<any> {
   const token = await getTurn14AccessToken();
   const response = await fetch(`${TURN14_API_BASE}/pricing/${itemId}`, {
     headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) return null; // Pricing may not always exist
   return response.json();
 }
 
-export async function searchTurn14Items(
-  keyword: string,
-  page = 1,
-  filters: {
-    brand?: string;
-    brandId?: string;
-    make?: string;
-    model?: string;
-    year?: string;
-    submodel?: string;
-  } = {}
-) {
+export async function searchTurn14Items(keyword: string, page = 1, filters: { brand?: string, brandId?: string, make?: string, model?: string, year?: string, submodel?: string } = {}) {
   const token = await getTurn14AccessToken();
   const url = new URL(`${TURN14_API_BASE}/items`);
 
   // Page
-  url.searchParams.set("page", page.toString());
+  url.searchParams.set('page', page.toString());
 
   // Vehicle fitment filters (these are the params Turn14 items API actually uses)
-  if (filters.year) url.searchParams.set("year", filters.year);
-  if (filters.make) url.searchParams.set("make", filters.make);
-  if (filters.model) url.searchParams.set("model", filters.model);
-  if (filters.submodel) url.searchParams.set("submodel", filters.submodel);
+  if (filters.year) url.searchParams.set('year', filters.year);
+  if (filters.make) url.searchParams.set('make', filters.make);
+  if (filters.model) url.searchParams.set('model', filters.model);
+  if (filters.submodel) url.searchParams.set('submodel', filters.submodel);
 
   // Brand filter — Turn14 uses brand_id (numeric), not brand name
   if (filters.brandId) {
-    url.searchParams.set("brand_id", filters.brandId);
+    url.searchParams.set('brand_id', filters.brandId);
   }
 
   // Keyword search — only add if present
-  if (keyword) url.searchParams.set("keyword", keyword);
+  if (keyword) url.searchParams.set('keyword', keyword);
 
-  console.log("[Turn14 Search]", url.toString().replace(TURN14_API_BASE, ""));
+  console.log('[Turn14 Search]', url.toString().replace(TURN14_API_BASE, ''));
 
   const response = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -209,13 +197,13 @@ export async function fetchTurn14ShippingQuote(payload: {
 }): Promise<any> {
   const token = await getTurn14AccessToken();
   const response = await fetch(`${TURN14_API_BASE}/quote`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}` 
     },
     body: JSON.stringify(payload),
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -225,3 +213,4 @@ export async function fetchTurn14ShippingQuote(payload: {
 
   return response.json();
 }
+

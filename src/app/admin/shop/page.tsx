@@ -802,7 +802,7 @@ function AdminShopPageContent() {
           desktop={
             <AdminTableShell>
               <table className="w-full min-w-[1080px] text-left text-sm">
-                <thead className="bg-[#171717]">
+                <thead className="sticky top-0 z-20 bg-[#171717]/95 backdrop-blur-md">
                   <tr className="border-b border-white/10">
                     <th className="w-12 px-4 py-3">
                       <input
@@ -831,7 +831,7 @@ function AdminShopPageContent() {
                     <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
                       Оновлено
                     </th>
-                    <th className="w-[180px] bg-[#171717] px-4 py-3 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-500 whitespace-nowrap">
+                    <th className="sticky right-0 z-10 w-[180px] bg-[#171717]/95 px-4 py-3 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-500 whitespace-nowrap backdrop-blur-md">
                       Дії
                     </th>
                   </tr>
@@ -932,11 +932,9 @@ function AdminShopPageContent() {
                         </td>
                         <td
                           className={cn(
-                            "px-4 whitespace-nowrap",
+                            "sticky right-0 z-10 px-4 whitespace-nowrap",
                             rowPad,
-                            isSelected
-                              ? "bg-[#0F1B33]/45"
-                              : "bg-[#171717]/45 group-hover:bg-[#1B1B1B]/45"
+                            isSelected ? "bg-[#0F1B33]" : "bg-[#171717] group-hover:bg-[#1B1B1B]"
                           )}
                         >
                           <div className="flex items-center justify-end gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">

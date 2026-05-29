@@ -838,7 +838,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {selectedOrders.length ? (
-        <AdminActionBar className="relative z-30 bg-[#171717]">
+        <AdminActionBar className="sticky top-4 z-30 bg-[#171717]/95 backdrop-blur-xl">
           <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-300">
             <ShoppingCart className="h-4 w-4 text-blue-300" />
             {selectedOrders.length} вибрано

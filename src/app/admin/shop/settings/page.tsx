@@ -1024,7 +1024,7 @@ export default function AdminShopSettingsPage() {
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
       {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-      <AdminActionBar className="relative z-30 bg-[#171717]">
+      <AdminActionBar className="sticky top-4 z-30 bg-[#171717]/95 backdrop-blur-xl">
         <div className="space-y-1">
           <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-400">
             Settings actions

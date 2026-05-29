@@ -71,8 +71,6 @@ export function AdminProductVariantCard({
   onRemove,
   onSetDefault,
   defaultOpen = false,
-  rates = { EUR: 1, USD: 1.08, UAH: 45 },
-  autoConvert = true,
 }: {
   variant: VariantCardData;
   index: number;
@@ -82,8 +80,6 @@ export function AdminProductVariantCard({
   onRemove: () => void;
   onSetDefault: () => void;
   defaultOpen?: boolean;
-  rates?: Record<string, number>;
-  autoConvert?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [tab, setTab] = useState<Tab>("general");
@@ -229,7 +225,7 @@ export function AdminProductVariantCard({
           <div
             role="tablist"
             aria-label="Variant sections"
-            className="mb-4 flex gap-1 rounded-none border border-white/6 bg-black/30 p-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+            className="mb-4 flex gap-1 rounded-none border border-white/6 bg-black/30 p-1"
           >
             {(["general", "pricing", "inventory", "shipping"] as Tab[]).map((t) => (
               <button
@@ -242,7 +238,7 @@ export function AdminProductVariantCard({
                   setTab(t);
                 }}
                 className={cn(
-                  "flex-none sm:flex-1 shrink-0 rounded-none px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all",
+                  "flex-1 rounded-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all",
                   "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#171717]",
                   tab === t
                     ? "bg-linear-to-b from-white/8 to-white/3 text-zinc-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -337,8 +333,6 @@ export function AdminProductVariantCard({
                 usd={variant.priceUsd}
                 uah={variant.priceUah}
                 onChange={(p) => onUpdate({ priceEur: p.eur, priceUsd: p.usd, priceUah: p.uah })}
-                rates={rates}
-                autoConvert={autoConvert}
               />
               <PricingGroup
                 title="B2B — Wholesale"
@@ -349,8 +343,6 @@ export function AdminProductVariantCard({
                 onChange={(p) =>
                   onUpdate({ priceEurB2b: p.eur, priceUsdB2b: p.usd, priceUahB2b: p.uah })
                 }
-                rates={rates}
-                autoConvert={autoConvert}
               />
               <PricingGroup
                 title="B2C — Compare-at"
@@ -361,8 +353,6 @@ export function AdminProductVariantCard({
                 onChange={(p) =>
                   onUpdate({ compareAtEur: p.eur, compareAtUsd: p.usd, compareAtUah: p.uah })
                 }
-                rates={rates}
-                autoConvert={autoConvert}
               />
               <PricingGroup
                 title="B2B — Compare-at"
@@ -377,8 +367,6 @@ export function AdminProductVariantCard({
                     compareAtUahB2b: p.uah,
                   })
                 }
-                rates={rates}
-                autoConvert={autoConvert}
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField
@@ -523,8 +511,6 @@ function PricingGroup({
   usd,
   uah,
   onChange,
-  rates = { EUR: 1, USD: 1.08, UAH: 45 },
-  autoConvert = true,
 }: {
   title: string;
   description?: string;
@@ -532,54 +518,7 @@ function PricingGroup({
   usd: string;
   uah: string;
   onChange: (p: { eur: string; usd: string; uah: string }) => void;
-  rates?: Record<string, number>;
-  autoConvert?: boolean;
 }) {
-  const handleEurChange = (v: string) => {
-    if (!autoConvert) {
-      onChange({ eur: v, usd, uah });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: v, usd: "", uah: "" });
-      return;
-    }
-    const usdVal = String(Math.round(val * rates.USD * 100) / 100);
-    const uahVal = String(Math.round(val * rates.UAH));
-    onChange({ eur: v, usd: usdVal, uah: uahVal });
-  };
-
-  const handleUsdChange = (v: string) => {
-    if (!autoConvert) {
-      onChange({ eur, usd: v, uah });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: "", usd: v, uah: "" });
-      return;
-    }
-    const eurVal = String(Math.round((val / rates.USD) * 100) / 100);
-    const uahVal = String(Math.round((val / rates.USD) * rates.UAH));
-    onChange({ eur: eurVal, usd: v, uah: uahVal });
-  };
-
-  const handleUahChange = (v: string) => {
-    if (!autoConvert) {
-      onChange({ eur, usd, uah: v });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: "", usd: "", uah: v });
-      return;
-    }
-    const eurVal = String(Math.round((val / rates.UAH) * 100) / 100);
-    const usdVal = String(Math.round((val / rates.UAH) * rates.USD * 100) / 100);
-    onChange({ eur: eurVal, usd: usdVal, uah: v });
-  };
-
   return (
     <div className="rounded-none border border-white/6 bg-black/20 p-4">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -595,7 +534,7 @@ function PricingGroup({
           type="number"
           step="0.01"
           value={eur}
-          onChange={handleEurChange}
+          onChange={(v) => onChange({ eur: v, usd, uah })}
         />
         <InputField
           label="USD"
@@ -603,7 +542,7 @@ function PricingGroup({
           type="number"
           step="0.01"
           value={usd}
-          onChange={handleUsdChange}
+          onChange={(v) => onChange({ eur, usd: v, uah })}
         />
         <InputField
           label="UAH"
@@ -611,7 +550,7 @@ function PricingGroup({
           type="number"
           step="0.01"
           value={uah}
-          onChange={handleUahChange}
+          onChange={(v) => onChange({ eur, usd, uah: v })}
         />
       </div>
     </div>

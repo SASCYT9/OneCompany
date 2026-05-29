@@ -15,9 +15,7 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
   AdminTableShell,
-  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
-import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type Turn14Item = {
   id: string;
@@ -332,139 +330,18 @@ export default function Turn14AdminPage() {
           }
         />
       ) : (
-        <AdminResponsiveTable
-          desktop={
-            <AdminTableShell>
-              <table className="min-w-full text-left text-sm text-zinc-200">
-                <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Item</th>
-                    <th className="px-4 py-3 font-medium">Part number</th>
-                    <th className="px-4 py-3 font-medium">Availability</th>
-                    <th className="px-4 py-3 font-medium">Pricing</th>
-                    <th className="px-4 py-3 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((item) => {
-                    const attributes: any = item.attributes || item;
-                    const itemId = item.id;
-                    const itemName =
-                      attributes.product_name ||
-                      attributes.item_name ||
-                      attributes.name ||
-                      "Unknown Part";
-                    const partNumber =
-                      attributes.part_number ||
-                      attributes.mfr_part_number ||
-                      attributes.internal_part_number ||
-                      "N/A";
-                    const brand =
-                      attributes.brand || attributes.brand_short_description || "Turn14";
-                    const price =
-                      attributes.dealer_price ||
-                      attributes.jobber_price ||
-                      item.dealer_price ||
-                      item.jobber_price ||
-                      0;
-                    const weight = attributes.weight || item.weight;
-                    const stockInfo = partNumber !== "N/A" ? stockMap[partNumber] : null;
-
-                    return (
-                      <tr key={itemId} className="border-t border-white/8 align-top">
-                        <td className="px-4 py-4">
-                          <div className="font-medium text-zinc-100">{itemName}</div>
-                          <div className="mt-1 text-xs text-zinc-500">{brand}</div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="font-mono text-zinc-200">{partNumber}</div>
-                          <div className="mt-1 text-xs text-zinc-500">
-                            {weight ? `${weight} lbs` : "Weight unknown"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          {stockInfo ? (
-                            <div className="space-y-2">
-                              <AdminStatusBadge tone="success">In One Company</AdminStatusBadge>
-                              <div className="text-xs text-zinc-500">{stockInfo.title}</div>
-                            </div>
-                          ) : (
-                            <AdminStatusBadge tone="warning">
-                              Missing in One Company
-                            </AdminStatusBadge>
-                          )}
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="text-zinc-100">${Number(price).toFixed(2)}</div>
-                          <div className="mt-1 text-xs text-zinc-500">
-                            {stockInfo ? stockInfo.sku : "No local SKU"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setOrderModalOpen(true);
-                              }}
-                              className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
-                            >
-                              Quick order
-                            </button>
-                            {stockInfo ? (
-                              <Link
-                                href={`/admin/shop/${stockInfo.productId}`}
-                                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
-                              >
-                                Open
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </Link>
-                            ) : null}
-                            <button
-                              type="button"
-                              disabled={importingIds[itemId] || importedStatuses[itemId]}
-                              onClick={async () => {
-                                setImportingIds((prev) => ({ ...prev, [itemId]: true }));
-                                try {
-                                  const res = await fetch("/api/admin/shop/turn14/import", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(item),
-                                  });
-                                  const data = await res.json();
-                                  if (!res.ok) throw new Error(data.error);
-                                  setImportedStatuses((prev) => ({ ...prev, [itemId]: true }));
-                                } catch (err: any) {
-                                  alert(`Import error: ${err.message}`);
-                                } finally {
-                                  setImportingIds((prev) => ({ ...prev, [itemId]: false }));
-                                }
-                              }}
-                              className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-2 text-xs font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
-                            >
-                              {importedStatuses[itemId] ? (
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                              ) : (
-                                <PackagePlus className="h-3.5 w-3.5" />
-                              )}
-                              {importedStatuses[itemId]
-                                ? "Imported"
-                                : importingIds[itemId]
-                                  ? "Importing..."
-                                  : "Import"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </AdminTableShell>
-          }
-          mobile={
-            <div className="space-y-2">
+        <AdminTableShell>
+          <table className="min-w-full text-left text-sm text-zinc-200">
+            <thead className="bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Item</th>
+                <th className="px-4 py-3 font-medium">Part number</th>
+                <th className="px-4 py-3 font-medium">Availability</th>
+                <th className="px-4 py-3 font-medium">Pricing</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredItems.map((item) => {
                 const attributes: any = item.attributes || item;
                 const itemId = item.id;
@@ -489,42 +366,52 @@ export default function Turn14AdminPage() {
                 const stockInfo = partNumber !== "N/A" ? stockMap[partNumber] : null;
 
                 return (
-                  <AdminMobileCard
-                    key={itemId}
-                    title={itemName}
-                    subtitle={brand}
-                    badge={
-                      stockInfo ? (
-                        <AdminStatusBadge tone="success">In OC</AdminStatusBadge>
+                  <tr key={itemId} className="border-t border-white/8 align-top">
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-zinc-100">{itemName}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{brand}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="font-mono text-zinc-200">{partNumber}</div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        {weight ? `${weight} lbs` : "Weight unknown"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      {stockInfo ? (
+                        <div className="space-y-2">
+                          <AdminStatusBadge tone="success">In One Company</AdminStatusBadge>
+                          <div className="text-xs text-zinc-500">{stockInfo.title}</div>
+                        </div>
                       ) : (
-                        <AdminStatusBadge tone="warning">Missing</AdminStatusBadge>
-                      )
-                    }
-                    rows={[
-                      { label: "Part number", value: partNumber },
-                      { label: "Weight", value: weight ? `${weight} lbs` : "—" },
-                      { label: "Price", value: `$${Number(price).toFixed(2)}` },
-                      { label: "Local SKU", value: stockInfo ? stockInfo.sku : "—" },
-                    ]}
-                    footer={
-                      <div className="flex flex-wrap gap-2 justify-end">
+                        <AdminStatusBadge tone="warning">Missing in One Company</AdminStatusBadge>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-zinc-100">${Number(price).toFixed(2)}</div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        {stockInfo ? stockInfo.sku : "No local SKU"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedItem(item);
                             setOrderModalOpen(true);
                           }}
-                          className="inline-flex items-center rounded-none border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5"
+                          className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                         >
                           Quick order
                         </button>
                         {stockInfo ? (
                           <Link
                             href={`/admin/shop/${stockInfo.productId}`}
-                            className="inline-flex items-center gap-1.5 rounded-none border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                           >
                             Open
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-3.5 w-3.5" />
                           </Link>
                         ) : null}
                         <button
@@ -547,7 +434,7 @@ export default function Turn14AdminPage() {
                               setImportingIds((prev) => ({ ...prev, [itemId]: false }));
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-none bg-zinc-100 px-3 py-1.5 text-xs font-medium text-black hover:bg-stone-200 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-2 text-xs font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
                         >
                           {importedStatuses[itemId] ? (
                             <CheckCircle2 className="h-3.5 w-3.5" />
@@ -561,13 +448,13 @@ export default function Turn14AdminPage() {
                               : "Import"}
                         </button>
                       </div>
-                    }
-                  />
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-          }
-        />
+            </tbody>
+          </table>
+        </AdminTableShell>
       )}
 
       {orderModalOpen && selectedItem ? (

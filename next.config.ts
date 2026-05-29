@@ -145,18 +145,11 @@ const ADMIN_API_NO_MEDIA_EXCLUDES = [
   "public/videos/**/*",
   "public/branding/**/*",
   "public/models/**/*",
-  // public/forged is 264MB of AI reference imagery — the forged/references
-  // generation route only needs DB metadata + Blob URLs, not the local assets.
-  "public/forged/**/*",
-  "public/logos/**/*",
-  "public/media/**/*",
   "Design/**/*",
   "backups/**/*",
   "docs/**/*",
   "tests/**/*",
   "wiki/**/*",
-  "reference/**/*",
-  "artifacts/**/*",
 ];
 
 const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isVercel

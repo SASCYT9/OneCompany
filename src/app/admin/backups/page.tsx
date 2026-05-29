@@ -17,9 +17,7 @@ import {
   AdminSplitDetailShell,
   AdminStatusBadge,
   AdminTableShell,
-  AdminResponsiveTable,
 } from "@/components/admin/AdminPrimitives";
-import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 type BackupItem = {
   filename: string;
@@ -232,55 +230,30 @@ export default function AdminBackupsPage() {
               }
             />
           ) : (
-            <AdminResponsiveTable
-              desktop={
-                <AdminTableShell>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                        <tr>
-                          <th className="px-5 py-4 font-medium">Filename</th>
-                          <th className="px-5 py-4 font-medium">Size</th>
-                          <th className="px-5 py-4 font-medium">Created</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item) => (
-                          <tr
-                            key={item.filename}
-                            className="border-b border-white/6 hover:bg-white/3"
-                          >
-                            <td className="px-5 py-4 font-mono text-xs text-zinc-200">
-                              {item.filename}
-                            </td>
-                            <td className="px-5 py-4 text-zinc-400">
-                              {formatBytes(item.sizeBytes)}
-                            </td>
-                            <td className="px-5 py-4 text-zinc-400">
-                              {formatDate(item.createdAt)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </AdminTableShell>
-              }
-              mobile={
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <AdminMobileCard
-                      key={item.filename}
-                      title={item.filename}
-                      rows={[
-                        { label: "Size", value: formatBytes(item.sizeBytes) },
-                        { label: "Created", value: formatDate(item.createdAt) },
-                      ]}
-                    />
-                  ))}
-                </div>
-              }
-            />
+            <AdminTableShell>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                    <tr>
+                      <th className="px-5 py-4 font-medium">Filename</th>
+                      <th className="px-5 py-4 font-medium">Size</th>
+                      <th className="px-5 py-4 font-medium">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => (
+                      <tr key={item.filename} className="border-b border-white/6 hover:bg-white/3">
+                        <td className="px-5 py-4 font-mono text-xs text-zinc-200">
+                          {item.filename}
+                        </td>
+                        <td className="px-5 py-4 text-zinc-400">{formatBytes(item.sizeBytes)}</td>
+                        <td className="px-5 py-4 text-zinc-400">{formatDate(item.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </AdminTableShell>
           )
         }
         sidebar={

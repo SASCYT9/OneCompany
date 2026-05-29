@@ -1,34 +1,37 @@
-import type { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import type { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import {
   buildCustomerDisplayName,
   findCustomerAccountByEmail,
   markCustomerLogin,
   verifyShopCustomerPassword,
-} from "@/lib/shopCustomers";
-import { consumeRateLimit } from "@/lib/shopPublicRateLimit";
-import { prisma } from "@/lib/prisma";
+} from '@/lib/shopCustomers';
+import { consumeRateLimit } from '@/lib/shopPublicRateLimit';
+import { prisma } from '@/lib/prisma';
 
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX_PER_WINDOW = 12;
-const NEXTAUTH_SECRET = (process.env.NEXTAUTH_SECRET || "").trim();
+const NEXTAUTH_SECRET = (process.env.NEXTAUTH_SECRET || '').trim();
+
+if (process.env.NODE_ENV === 'production' && !NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET is required in production');
+}
 
 function getRequestIpFromNextAuthRequest(request: unknown) {
-  const headers = (request as { headers?: Headers | Record<string, string | string[] | undefined> })
-    ?.headers;
-  if (!headers) return "unknown";
-  if (typeof (headers as Headers).get === "function") {
-    const forwarded = (headers as Headers).get("x-forwarded-for");
-    if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
-    return (headers as Headers).get("x-real-ip")?.trim() || "unknown";
+  const headers = (request as { headers?: Headers | Record<string, string | string[] | undefined> })?.headers;
+  if (!headers) return 'unknown';
+  if (typeof (headers as Headers).get === 'function') {
+    const forwarded = (headers as Headers).get('x-forwarded-for');
+    if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown';
+    return (headers as Headers).get('x-real-ip')?.trim() || 'unknown';
   }
 
-  const forwarded = (headers as Record<string, string | string[] | undefined>)["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
+  const forwarded = (headers as Record<string, string | string[] | undefined>)['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0]?.trim() || 'unknown';
   }
-  const realIp = (headers as Record<string, string | string[] | undefined>)["x-real-ip"];
-  return typeof realIp === "string" && realIp.trim() ? realIp.trim() : "unknown";
+  const realIp = (headers as Record<string, string | string[] | undefined>)['x-real-ip'];
+  return typeof realIp === 'string' && realIp.trim() ? realIp.trim() : 'unknown';
 }
 
 async function loadCurrentCustomerTokenState(customerId: string) {
@@ -56,10 +59,9 @@ async function loadCurrentCustomerTokenState(customerId: string) {
     email: customer.email,
     name: buildCustomerDisplayName(customer),
     group: customer.group,
-    b2bDiscountPercent:
-      customer.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null,
+    b2bDiscountPercent: customer.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null,
     discountTier: null as any, // Removed from select, setting to null
-    currencyPref: "USD" as any, // Removed from select, setting to default
+    currencyPref: 'USD' as any, // Removed from select, setting to default
     balance: 0,
     preferredLocale: customer.preferredLocale,
     companyName: customer.companyName ?? null,
@@ -69,26 +71,24 @@ async function loadCurrentCustomerTokenState(customerId: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-  secret: NEXTAUTH_SECRET || "dev-shop-customer-secret",
+  secret: NEXTAUTH_SECRET || 'dev-shop-customer-secret',
   pages: {
-    signIn: "/en/shop/account/login",
-    error: "/en/shop/account/login",
+    signIn: '/en/shop/account/login',
+    error: '/en/shop/account/login',
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   providers: [
     CredentialsProvider({
-      name: "Customer credentials",
+      name: 'Customer credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, request) {
-        const email = String(credentials?.email ?? "")
-          .trim()
-          .toLowerCase();
-        const password = String(credentials?.password ?? "");
+        const email = String(credentials?.email ?? '').trim().toLowerCase();
+        const password = String(credentials?.password ?? '');
 
         if (!email || !password) {
           return null;
@@ -96,7 +96,7 @@ export const authOptions: NextAuthOptions = {
 
         if (
           !(await consumeRateLimit({
-            keyParts: ["shop-login", getRequestIpFromNextAuthRequest(request), email],
+            keyParts: ['shop-login', getRequestIpFromNextAuthRequest(request), email],
             windowMs: LOGIN_WINDOW_MS,
             maxPerWindow: LOGIN_MAX_PER_WINDOW,
           }))
@@ -117,12 +117,12 @@ export const authOptions: NextAuthOptions = {
         if (account.customer.archivedAt) {
           // Archived/soft-deleted accounts are treated the same as deactivated
           // ones from the customer's perspective.
-          throw new Error("ACCOUNT_DISABLED");
+          throw new Error('ACCOUNT_DISABLED');
         }
         if (!account.customer.isActive) {
           // Distinct error code so the login UI can show a clear message instead
           // of the generic "invalid credentials" copy.
-          throw new Error("ACCOUNT_DISABLED");
+          throw new Error('ACCOUNT_DISABLED');
         }
 
         await markCustomerLogin(prisma, account.customer.id);
@@ -135,12 +135,9 @@ export const authOptions: NextAuthOptions = {
           name: buildCustomerDisplayName(account.customer),
           customerId: account.customer.id,
           group: account.customer.group,
-          b2bDiscountPercent:
-            account.customer.b2bDiscountPercent != null
-              ? Number(account.customer.b2bDiscountPercent)
-              : null,
+          b2bDiscountPercent: account.customer.b2bDiscountPercent != null ? Number(account.customer.b2bDiscountPercent) : null,
           discountTier: null, // Removed from account.customer, setting to null
-          currencyPref: "USD", // Removed from account.customer, setting to default
+          currencyPref: 'USD', // Removed from account.customer, setting to default
           balance: 0,
           preferredLocale: account.customer.preferredLocale,
           companyName: account.customer.companyName,
@@ -159,7 +156,7 @@ export const authOptions: NextAuthOptions = {
         token.group = user.group;
         token.b2bDiscountPercent = user.b2bDiscountPercent ?? null;
         token.discountTier = user.discountTier ?? null;
-        token.currencyPref = user.currencyPref ?? "EUR";
+        token.currencyPref = user.currencyPref ?? 'EUR';
         token.balance = user.balance ?? 0;
         token.preferredLocale = user.preferredLocale;
         token.companyName = user.companyName ?? null;
@@ -210,12 +207,12 @@ export const authOptions: NextAuthOptions = {
         session.user.group = token.group;
         session.user.b2bDiscountPercent = token.b2bDiscountPercent ?? null;
         session.user.discountTier = token.discountTier ?? null;
-        session.user.currencyPref = token.currencyPref ?? "EUR";
+        session.user.currencyPref = token.currencyPref ?? 'EUR';
         session.user.balance = token.balance ?? 0;
-        session.user.preferredLocale = token.preferredLocale ?? "en";
+        session.user.preferredLocale = token.preferredLocale ?? 'en';
         session.user.companyName = token.companyName ?? null;
-        session.user.firstName = token.firstName ?? "";
-        session.user.lastName = token.lastName ?? "";
+        session.user.firstName = token.firstName ?? '';
+        session.user.lastName = token.lastName ?? '';
       }
       return session;
     },

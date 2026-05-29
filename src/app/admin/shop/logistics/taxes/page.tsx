@@ -18,8 +18,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
-import { AdminResponsiveTable } from "@/components/admin/AdminPrimitives";
-import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
 // ─── Interfaces ───
 
@@ -235,311 +233,151 @@ export default function TaxRegionPage() {
             Ще немає податкових правил. Додайте перший регіон.
           </div>
         ) : (
-          <AdminResponsiveTable
-            desktop={
-              <div className="overflow-hidden rounded-none border border-white/6 bg-black/60 backdrop-blur-2xl shadow-2xl">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-white/6 bg-white/2">
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
-                        Регіон
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
-                        Тип
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-28">
-                        Ставка %
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-28">
-                        Мито %
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
-                        Мітка
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 text-center">
-                        Inclusive
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 text-center">
-                        Активно
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
-                        Нотатки
-                      </th>
-                      <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-32">
-                        Дії
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/4">
-                    {filtered.map((r, i) => {
-                      const realIdx = rules.findIndex((x) => x.regionCode === r.regionCode);
-                      const typeInfo = TAX_TYPES.find((t) => t.value === r.taxType) || TAX_TYPES[0];
-
-                      return (
-                        <tr
-                          key={r.id || r.regionCode}
-                          className="hover:bg-white/2 transition-colors"
-                        >
-                          <td className="px-5 py-4">
-                            <div className="font-medium text-white/90">
-                              {r.regionNameUa || r.regionName}
-                            </div>
-                            <div className="text-[10px] text-white/25 font-mono mt-0.5">
-                              {r.regionCode}
-                            </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            <select
-                              value={r.taxType}
-                              onChange={(e) => updateField(realIdx, "taxType", e.target.value)}
-                              className="bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden focus:border-rose-500/40 text-xs text-white/70"
-                            >
-                              {TAX_TYPES.map((t) => (
-                                <option
-                                  key={t.value}
-                                  value={t.value}
-                                  className="bg-zinc-900 text-white"
-                                >
-                                  {t.label}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={r.taxRate}
-                                onChange={(e) =>
-                                  updateField(realIdx, "taxRate", parseFloat(e.target.value) || 0)
-                                }
-                                className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden text-right text-white/70 focus:border-rose-500/40"
-                              />
-                              <span className="text-white/20 text-xs">%</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={r.customsDutyPct}
-                                onChange={(e) =>
-                                  updateField(
-                                    realIdx,
-                                    "customsDutyPct",
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                                className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden text-right text-white/70 focus:border-rose-500/40"
-                              />
-                              <span className="text-white/20 text-xs">%</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            <input
-                              value={r.taxLabelUa || r.taxLabel || ""}
-                              placeholder="ПДВ 20%"
-                              onChange={(e) =>
-                                updateField(realIdx, "taxLabelUa", e.target.value || null)
-                              }
-                              className="w-full bg-transparent border-b border-white/5 text-sm text-white/60 placeholder-white/15 px-0 py-1 focus:outline-hidden focus:border-white/20"
-                            />
-                          </td>
-                          <td className="px-5 py-3 text-center">
-                            <button
-                              onClick={() => updateField(realIdx, "isInclusive", !r.isInclusive)}
-                              className="text-white/40 hover:text-white/80 transition-colors"
-                            >
-                              {r.isInclusive ? (
-                                <ToggleRight className="w-6 h-6 text-rose-400" />
-                              ) : (
-                                <ToggleLeft className="w-6 h-6" />
-                              )}
-                            </button>
-                          </td>
-                          <td className="px-5 py-3 text-center">
-                            <input
-                              type="checkbox"
-                              checked={r.isActive}
-                              onChange={(e) => updateField(realIdx, "isActive", e.target.checked)}
-                              className="w-4 h-4 cursor-pointer accent-rose-500"
-                            />
-                          </td>
-                          <td className="px-5 py-3">
-                            <input
-                              value={r.notes || ""}
-                              placeholder="B2B exempt..."
-                              onChange={(e) =>
-                                updateField(realIdx, "notes", e.target.value || null)
-                              }
-                              className="w-full bg-transparent border-b border-white/5 text-xs text-white/40 placeholder-white/10 px-0 py-1 focus:outline-hidden focus:border-white/20"
-                            />
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => saveRule(r)}
-                                disabled={savingKey === r.regionCode}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-none text-[10px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
-                              >
-                                {savingKey === r.regionCode ? (
-                                  <RefreshCw className="w-3 h-3 motion-safe:animate-spin" />
-                                ) : (
-                                  <Save className="w-3 h-3" />
-                                )}
-                                Save
-                              </button>
-                              {r.id && (
-                                <button
-                                  onClick={() => deleteRule(r.id!)}
-                                  className="p-1.5 rounded-none hover:bg-blue-950/40/10 text-white/15 hover:text-blue-400 transition-colors"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            }
-            mobile={
-              <div className="space-y-4">
-                {filtered.map((r) => {
+          <div className="overflow-hidden rounded-none border border-white/6 bg-black/60 backdrop-blur-2xl shadow-2xl">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-white/6 bg-white/2">
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
+                    Регіон
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
+                    Тип
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-28">
+                    Ставка %
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-28">
+                    Мито %
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
+                    Мітка
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 text-center">
+                    Inclusive
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 text-center">
+                    Активно
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35">
+                    Нотатки
+                  </th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/35 w-32">
+                    Дії
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/4">
+                {filtered.map((r, i) => {
                   const realIdx = rules.findIndex((x) => x.regionCode === r.regionCode);
+                  const typeInfo = TAX_TYPES.find((t) => t.value === r.taxType) || TAX_TYPES[0];
+
                   return (
-                    <AdminMobileCard
-                      key={r.id || r.regionCode}
-                      className="border border-white/6 bg-black/60 p-4"
-                      title={r.regionNameUa || r.regionName}
-                      subtitle={r.regionCode}
-                      rows={[
-                        {
-                          label: "Тип",
-                          value: (
-                            <select
-                              value={r.taxType}
-                              onChange={(e) => updateField(realIdx, "taxType", e.target.value)}
-                              className="bg-black/40 border border-white/10 rounded-none px-2 py-1 outline-hidden focus:border-rose-500/40 text-xs text-white/70"
+                    <tr key={r.id || r.regionCode} className="hover:bg-white/2 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="font-medium text-white/90">
+                          {r.regionNameUa || r.regionName}
+                        </div>
+                        <div className="text-[10px] text-white/25 font-mono mt-0.5">
+                          {r.regionCode}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <select
+                          value={r.taxType}
+                          onChange={(e) => updateField(realIdx, "taxType", e.target.value)}
+                          className="bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden focus:border-rose-500/40 text-xs text-white/70"
+                        >
+                          {TAX_TYPES.map((t) => (
+                            <option
+                              key={t.value}
+                              value={t.value}
+                              className="bg-zinc-900 text-white"
                             >
-                              {TAX_TYPES.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                  {t.label}
-                                </option>
-                              ))}
-                            </select>
-                          ),
-                        },
-                        {
-                          label: "Ставка %",
-                          value: (
-                            <div className="flex items-center gap-1 justify-end">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={r.taxRate}
-                                onChange={(e) =>
-                                  updateField(realIdx, "taxRate", parseFloat(e.target.value) || 0)
-                                }
-                                className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1 outline-hidden text-right text-white/70 focus:border-rose-500/40"
-                              />
-                              <span className="text-white/20 text-xs">%</span>
-                            </div>
-                          ),
-                        },
-                        {
-                          label: "Мито %",
-                          value: (
-                            <div className="flex items-center gap-1 justify-end">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={r.customsDutyPct}
-                                onChange={(e) =>
-                                  updateField(
-                                    realIdx,
-                                    "customsDutyPct",
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                                className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1 outline-hidden text-right text-white/70 focus:border-rose-500/40"
-                              />
-                              <span className="text-white/20 text-xs">%</span>
-                            </div>
-                          ),
-                        },
-                        {
-                          label: "Мітка",
-                          value: (
-                            <input
-                              value={r.taxLabelUa || r.taxLabel || ""}
-                              placeholder="ПДВ 20%"
-                              onChange={(e) =>
-                                updateField(realIdx, "taxLabelUa", e.target.value || null)
-                              }
-                              className="w-32 bg-transparent border-b border-white/5 text-sm text-white/60 placeholder-white/15 px-0 py-0.5 text-right focus:outline-hidden focus:border-white/20"
-                            />
-                          ),
-                        },
-                        {
-                          label: "Inclusive",
-                          value: (
-                            <button
-                              onClick={() => updateField(realIdx, "isInclusive", !r.isInclusive)}
-                              className="text-white/40 hover:text-white/80 transition-colors"
-                            >
-                              {r.isInclusive ? (
-                                <ToggleRight className="w-6 h-6 text-rose-400" />
-                              ) : (
-                                <ToggleLeft className="w-6 h-6" />
-                              )}
-                            </button>
-                          ),
-                        },
-                        {
-                          label: "Активно",
-                          value: (
-                            <input
-                              type="checkbox"
-                              checked={r.isActive}
-                              onChange={(e) => updateField(realIdx, "isActive", e.target.checked)}
-                              className="w-4 h-4 cursor-pointer accent-rose-500"
-                            />
-                          ),
-                        },
-                        {
-                          label: "Нотатки",
-                          value: (
-                            <input
-                              value={r.notes || ""}
-                              placeholder="B2B exempt..."
-                              onChange={(e) =>
-                                updateField(realIdx, "notes", e.target.value || null)
-                              }
-                              className="w-32 bg-transparent border-b border-white/5 text-xs text-white/40 placeholder-white/10 px-0 py-0.5 text-right focus:outline-hidden focus:border-white/20"
-                            />
-                          ),
-                        },
-                      ]}
-                      footer={
-                        <div className="flex justify-end gap-2">
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                            value={r.taxRate}
+                            onChange={(e) =>
+                              updateField(realIdx, "taxRate", parseFloat(e.target.value) || 0)
+                            }
+                            className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden text-right text-white/70 focus:border-rose-500/40"
+                          />
+                          <span className="text-white/20 text-xs">%</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                            value={r.customsDutyPct}
+                            onChange={(e) =>
+                              updateField(
+                                realIdx,
+                                "customsDutyPct",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-hidden text-right text-white/70 focus:border-rose-500/40"
+                          />
+                          <span className="text-white/20 text-xs">%</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <input
+                          value={r.taxLabelUa || r.taxLabel || ""}
+                          placeholder="ПДВ 20%"
+                          onChange={(e) =>
+                            updateField(realIdx, "taxLabelUa", e.target.value || null)
+                          }
+                          className="w-full bg-transparent border-b border-white/5 text-sm text-white/60 placeholder-white/15 px-0 py-1 focus:outline-hidden focus:border-white/20"
+                        />
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <button
+                          onClick={() => updateField(realIdx, "isInclusive", !r.isInclusive)}
+                          className="text-white/40 hover:text-white/80 transition-colors"
+                        >
+                          {r.isInclusive ? (
+                            <ToggleRight className="w-6 h-6 text-rose-400" />
+                          ) : (
+                            <ToggleLeft className="w-6 h-6" />
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={r.isActive}
+                          onChange={(e) => updateField(realIdx, "isActive", e.target.checked)}
+                          className="w-4 h-4 cursor-pointer accent-rose-500"
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <input
+                          value={r.notes || ""}
+                          placeholder="B2B exempt..."
+                          onChange={(e) => updateField(realIdx, "notes", e.target.value || null)}
+                          className="w-full bg-transparent border-b border-white/5 text-xs text-white/40 placeholder-white/10 px-0 py-1 focus:outline-hidden focus:border-white/20"
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => saveRule(r)}
                             disabled={savingKey === r.regionCode}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-none text-xs uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-none text-[10px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
                           >
                             {savingKey === r.regionCode ? (
                               <RefreshCw className="w-3 h-3 motion-safe:animate-spin" />
@@ -551,20 +389,19 @@ export default function TaxRegionPage() {
                           {r.id && (
                             <button
                               onClick={() => deleteRule(r.id!)}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-none text-xs uppercase tracking-wider font-semibold transition-colors"
+                              className="p-1.5 rounded-none hover:bg-blue-950/40/10 text-white/15 hover:text-blue-400 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
-                              Delete
                             </button>
                           )}
                         </div>
-                      }
-                    />
+                      </td>
+                    </tr>
                   );
                 })}
-              </div>
-            }
-          />
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Info banner */}

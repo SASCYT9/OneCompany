@@ -2,11 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Search, RefreshCw, User, Phone, Mail, MessageSquare } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import type { SupportedLocale } from "@/lib/seo";
 import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from "@/lib/shopOrderPresentation";
@@ -50,12 +48,6 @@ type Props = {
         title: string;
         image: string | null;
       } | null;
-      items: Array<{
-        slug: string;
-        quantity: number;
-        variantId: string | null;
-        title: string;
-      }>;
     }>;
   };
 };
@@ -73,16 +65,10 @@ function groupLabel(locale: SupportedLocale, group: Props["profile"]["group"]) {
 
 export default function ShopAccountClient({ locale, profile: initialProfile }: Props) {
   const isUa = locale === "ua";
-  const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
   const [submittingB2B, setSubmittingB2B] = useState(false);
   const [b2bMessage, setB2BMessage] = useState("");
   const [profileGroup, setProfileGroup] = useState<Props["profile"]["group"]>(initialProfile.group);
-
-  // Search & Filter states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "web" | "crm" | "active" | "completed">("all");
-  const [reorderingOrderNumber, setReorderingOrderNumber] = useState<string | null>(null);
 
   // Profile edit modal state
   const [editingProfile, setEditingProfile] = useState(false);
@@ -240,91 +226,9 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
     }
   }
 
-  async function handleReorder(orderNumber: string, items: Props["profile"]["orders"][0]["items"]) {
-    if (reorderingOrderNumber) return;
-    setReorderingOrderNumber(orderNumber);
-    try {
-      const payload = {
-        items: items.map((i) => ({
-          slug: i.slug,
-          quantity: i.quantity,
-          variantId: i.variantId || null,
-        })),
-      };
-      const response = await fetch("/api/shop/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (response.ok) {
-        router.push(`/${locale}/shop/cart`);
-        router.refresh();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        alert(
-          data.error || (isUa ? "Не вдалося повторити замовлення" : "Failed to repeat the order")
-        );
-      }
-    } catch (error) {
-      console.error("Reorder error:", error);
-      alert(
-        isUa
-          ? "Виникла помилка при повторенні замовлення"
-          : "An error occurred while repeating the order"
-      );
-    } finally {
-      setReorderingOrderNumber(null);
-    }
-  }
-
-  // Filtered orders
-  const filteredWebOrders = profile.orders.filter((order) => {
-    const matchesSearch =
-      searchQuery.trim() === "" ||
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.previewItem?.title &&
-        order.previewItem.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      order.items.some((item) => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    if (!matchesSearch) return false;
-
-    if (activeTab === "crm") return false;
-    if (activeTab === "active") {
-      return !["DELIVERED", "CANCELLED", "REFUNDED"].includes(order.status);
-    }
-    if (activeTab === "completed") {
-      return ["DELIVERED", "CANCELLED", "REFUNDED"].includes(order.status);
-    }
-    return true;
-  });
-
-  const filteredCrmOrders = crmOrders.filter((order) => {
-    const matchesSearch =
-      searchQuery.trim() === "" ||
-      `#${order.number}`.includes(searchQuery) ||
-      String(order.number).includes(searchQuery) ||
-      order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.items &&
-        order.items.some((item) =>
-          item.productName.toLowerCase().includes(searchQuery.toLowerCase())
-        ));
-
-    if (!matchesSearch) return false;
-
-    if (activeTab === "web") return false;
-    const statusKind = normalizeAirtableOrderStatus(order.orderStatus);
-    if (activeTab === "active") {
-      return statusKind === "in_progress" || statusKind === "unknown";
-    }
-    if (activeTab === "completed") {
-      return statusKind === "completed" || statusKind === "cancelled";
-    }
-    return true;
-  });
-
   return (
     <main className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
-      <div className="mx-auto max-w-6xl px-4 pb-20 pt-36 sm:px-6 md:pt-40 lg:pt-44">
+      <div className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.35em] text-foreground/65 dark:text-foreground/45">
@@ -338,13 +242,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span
-              className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors duration-300 ${
-                profileGroup === "B2B_APPROVED"
-                  ? "border-[#c29d59]/40 bg-[#c29d59]/10 text-[#c29d59]"
-                  : "border-foreground/15 bg-foreground/5 text-foreground/85 dark:text-foreground/70"
-              }`}
-            >
+            <span className="rounded-full border border-foreground/15 bg-foreground/5 px-4 py-2 text-xs uppercase tracking-[0.2em] text-foreground/85 dark:text-foreground/70">
               {groupLabel(locale, profileGroup)}
             </span>
             <button
@@ -454,60 +352,6 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
               ) : null}
             </div>
 
-            {profileGroup === "B2B_APPROVED" && (
-              <div className="rounded-2xl border border-[#c29d59]/25 bg-gradient-to-b from-[#c29d59]/5 to-transparent p-5 relative overflow-hidden shadow-lg">
-                <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-[#c29d59]/5 blur-xl pointer-events-none" />
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#c29d59]/30 bg-[#c29d59]/10 text-[#c29d59] font-light text-lg">
-                    {isUa ? "ОК" : "AK"}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-foreground tracking-wide">
-                      {isUa ? "Олександр Ковальчук" : "Alex Kovalchuk"}
-                    </h3>
-                    <p className="text-[10px] uppercase tracking-wider text-[#c29d59]/75 font-semibold">
-                      {isUa ? "Персональний B2B менеджер" : "Personal B2B Manager"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5">
-                  <a
-                    href="tel:+380671234567"
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 transition text-xs text-foreground/80 hover:text-foreground"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-[#c29d59]/80" />
-                    <span>+380 (67) 123-45-67</span>
-                  </a>
-                  <a
-                    href="mailto:b2b@onecompany.global"
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 transition text-xs text-foreground/80 hover:text-foreground"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[#c29d59]/80" />
-                    <span>b2b@onecompany.global</span>
-                  </a>
-                  <div className="grid grid-cols-2 gap-2">
-                    <a
-                      href="https://t.me/onecompany_b2b"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 transition text-xs text-foreground/80 hover:text-foreground"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
-                      <span>Telegram</span>
-                    </a>
-                    <a
-                      href="viber://chat?number=%2B380671234567"
-                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 transition text-xs text-foreground/80 hover:text-foreground"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-violet-400" />
-                      <span>Viber</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div>
               <h2 className="text-lg font-medium text-foreground">{isUa ? "Баланс" : "Balance"}</h2>
               <p className="mt-1 text-xs text-foreground/60 dark:text-foreground/40">
@@ -537,10 +381,10 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                 </div>
 
                 {/* CRM (Airtable) card */}
-                <div className="rounded-2xl border border-[#c29d59]/15 bg-[#c29d59]/3 p-5">
+                <div className="rounded-2xl border border-indigo-500/15 bg-indigo-500/4 p-5">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-[#c29d59]/80 rounded-full" />
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#c29d59]/70">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-indigo-200/55">
                       {isUa ? "CRM (Sales)" : "CRM (Sales)"}
                     </p>
                   </div>
@@ -620,7 +464,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-foreground/10 bg-foreground/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] flex flex-col">
+          <section className="rounded-[28px] border border-foreground/10 bg-foreground/5 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-medium text-foreground">
@@ -637,366 +481,196 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                 {isUa ? "До покупок" : "Continue shopping"}
               </Link>
             </div>
-
-            {/* Search Input */}
-            <div className="mt-6 relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Search className="h-4 w-4 text-foreground/45 dark:text-foreground/30" />
-              </div>
-              <input
-                type="text"
-                placeholder={
-                  isUa
-                    ? "Пошук замовлень за номером чи товаром..."
-                    : "Search orders by number or item..."
-                }
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-2xl border border-foreground/10 bg-card/40 dark:bg-black/25 pl-11 pr-16 py-3 text-sm text-foreground placeholder:text-foreground/45 transition-all focus:border-[#c29d59]/50 focus:bg-card/70 dark:focus:bg-black/45 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/30"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs text-foreground/45 hover:text-foreground transition-colors"
-                >
-                  {isUa ? "Очистити" : "Clear"}
-                </button>
-              )}
-            </div>
-
-            {/* Sliding Tabs */}
-            <div className="mt-4 flex flex-wrap gap-1 border-b border-foreground/10 pb-2">
-              {(
-                [
-                  { id: "all", label: isUa ? "Усі" : "All" },
-                  { id: "web", label: isUa ? "З сайту" : "Web" },
-                  { id: "crm", label: isUa ? "CRM" : "CRM" },
-                  { id: "active", label: isUa ? "Активні" : "Active" },
-                  { id: "completed", label: isUa ? "Виконані" : "Completed" },
-                ] as const
-              ).map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative px-4.5 py-2 text-xs uppercase tracking-wider rounded-xl transition-all duration-200 focus:outline-none ${
-                      isActive
-                        ? "text-[#c29d59] font-medium"
-                        : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
-                    }`}
+            {profile.orders.length ? (
+              <ul className="mt-4 space-y-3">
+                {profile.orders.map((order) => (
+                  <li
+                    key={order.orderNumber}
+                    className="overflow-hidden rounded-[26px] border border-foreground/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-px hover:border-foreground/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]"
                   >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabPill"
-                        className="absolute inset-0 rounded-xl bg-[#c29d59]/10 border border-[#c29d59]/30 z-0"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative z-10">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Orders Feed */}
-            <div className="mt-6 space-y-6">
-              <AnimatePresence mode="popLayout">
-                {filteredWebOrders.length > 0 && (
-                  <motion.div
-                    key="web-orders-section"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex items-center gap-2 mb-3 px-1">
-                      <div className="w-1.5 h-1.5 bg-[#c29d59] rounded-full" />
-                      <h3 className="text-[10px] uppercase tracking-widest text-foreground/55 dark:text-foreground/35 font-medium">
-                        {isUa ? "Замовлення з сайту" : "Web Orders"}
-                      </h3>
-                      <span className="text-[9px] text-foreground/45 dark:text-foreground/25 font-mono">
-                        ({filteredWebOrders.length})
-                      </span>
-                    </div>
-                    <ul className="space-y-3">
-                      {filteredWebOrders.map((order) => (
-                        <motion.li
-                          key={order.orderNumber}
-                          layout
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.98 }}
-                          transition={{ duration: 0.25 }}
-                          className="overflow-hidden rounded-[26px] border border-foreground/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01))] p-4 shadow-md transition-all hover:border-foreground/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02))]"
-                        >
-                          <Link
-                            href={`/${locale}/shop/account/orders/${order.orderNumber}`}
-                            className="block group/link"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex min-w-0 items-start gap-4">
-                                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[22px] border border-foreground/10 bg-foreground/5 shadow-inner">
-                                  {order.previewItem?.image ? (
-                                    <Image
-                                      src={order.previewItem.image}
-                                      alt={order.previewItem.title}
-                                      fill
-                                      className="object-cover transition-transform duration-500 group-hover/link:scale-105"
-                                      sizes="72px"
-                                    />
-                                  ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.22em] text-foreground/45 dark:text-foreground/30">
-                                      OC
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <div className="font-mono text-sm text-foreground group-hover/link:text-[#c29d59] transition-colors">
-                                      {order.orderNumber}
-                                    </div>
-                                    <span className="text-[10px] text-foreground/30">•</span>
-                                    <div className="text-[11px] uppercase tracking-[0.18em] text-foreground/60 dark:text-foreground/45">
-                                      {new Intl.DateTimeFormat(
-                                        locale === "ua" ? "uk-UA" : "en-US",
-                                        {
-                                          year: "numeric",
-                                          month: "short",
-                                          day: "numeric",
-                                        }
-                                      ).format(new Date(order.createdAt))}
-                                    </div>
-                                  </div>
-                                  <div className="mt-2 line-clamp-2 text-[14px] leading-relaxed text-foreground dark:text-foreground/80 group-hover/link:text-foreground transition-colors">
-                                    {order.previewItem?.title ||
-                                      (isUa
-                                        ? "Замовлення без прев’ю товару"
-                                        : "Order without preview item")}
-                                  </div>
-                                  {order.itemCount > 1 && (
-                                    <div className="mt-1.5 text-xs uppercase tracking-[0.18em] text-foreground/50">
-                                      {isUa
-                                        ? `Ще ${order.itemCount - 1} позицій`
-                                        : `${order.itemCount - 1} more items`}
-                                    </div>
-                                  )}
-                                  <div className="mt-3">
-                                    <span
-                                      className={`inline-flex rounded-full border px-2.5 py-0.5 text-[9px] uppercase tracking-[0.18em] font-semibold ${shopOrderStatusBadgeClass(order.status)}`}
-                                    >
-                                      {formatShopOrderStatus(locale, order.status)}
-                                    </span>
-                                  </div>
-                                </div>
+                    <Link
+                      href={`/${locale}/shop/account/orders/${order.orderNumber}`}
+                      className="block"
+                    >
+                      <div className="mb-4 h-px w-full bg-[linear-gradient(90deg,rgba(201,168,106,0.35),rgba(255,255,255,0.08),transparent)]" />
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[22px] border border-foreground/10 bg-foreground/5 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+                            {order.previewItem?.image ? (
+                              <Image
+                                src={order.previewItem.image}
+                                alt={order.previewItem.title}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.22em] text-foreground/55 dark:text-foreground/30">
+                                OC
                               </div>
-
-                              <div className="text-right shrink-0">
-                                <div className="text-[10px] uppercase tracking-[0.2em] text-foreground/45">
-                                  {isUa ? "Разом" : "Total"}
-                                </div>
-                                <div className="mt-1 text-base font-semibold text-foreground">
-                                  {formatShopMoney(
-                                    locale,
-                                    order.total,
-                                    order.currency as ShopCurrencyCode
-                                  )}
-                                </div>
-                                <div className="mt-1 text-xs text-foreground/55">
-                                  {order.itemCount}{" "}
-                                  {isUa
-                                    ? order.itemCount === 1
-                                      ? "товар"
-                                      : "товари"
-                                    : order.itemCount === 1
-                                      ? "item"
-                                      : "items"}
-                                </div>
-                              </div>
-                            </div>
-                          </Link>
-
-                          <div className="mt-4 pt-3 border-t border-foreground/5 flex items-center justify-between gap-3">
-                            <Link
-                              href={`/${locale}/shop/account/orders/${order.orderNumber}`}
-                              className="text-xs uppercase tracking-[0.18em] text-foreground/60 hover:text-foreground transition-colors"
-                            >
-                              {isUa ? "Деталі замовлення →" : "Order details →"}
-                            </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => void handleReorder(order.orderNumber, order.items)}
-                              disabled={reorderingOrderNumber !== null}
-                              className="inline-flex items-center gap-2 rounded-full border border-[#c29d59]/30 hover:border-[#c29d59]/60 bg-[#c29d59]/10 hover:bg-[#c29d59]/20 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-[#c29d59] transition-all disabled:opacity-50"
-                            >
-                              {reorderingOrderNumber === order.orderNumber ? (
-                                <RefreshCw className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <RefreshCw className="w-3 h-3" />
-                              )}
-                              <span>{isUa ? "Повторити" : "Reorder"}</span>
-                            </button>
+                            )}
                           </div>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
-
-                {filteredCrmOrders.length > 0 && (
-                  <motion.div
-                    key="crm-orders-section"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex items-center gap-2 mb-3 px-1">
-                      <div className="w-1.5 h-1.5 bg-[#c29d59]/60 rounded-full" />
-                      <h3 className="text-[10px] uppercase tracking-widest text-foreground/55 dark:text-foreground/35 font-medium">
-                        {isUa ? "CRM Замовлення (Sales)" : "CRM Orders (Sales)"}
-                      </h3>
-                      <span className="text-[9px] text-foreground/45 dark:text-foreground/25 font-mono">
-                        ({filteredCrmOrders.length})
-                      </span>
-                    </div>
-                    <ul className="space-y-2">
-                      {filteredCrmOrders.map((o) => {
-                        const statusKind = normalizeAirtableOrderStatus(o.orderStatus);
-                        const statusLabel = formatAirtableOrderStatus(
-                          statusKind,
-                          locale,
-                          o.orderStatus
-                        );
-                        const statusBadgeClass = airtableOrderStatusBadgeClass(statusKind);
-                        const isExpanded = expandedCrmOrder === o.id;
-
-                        return (
-                          <motion.li
-                            key={o.id}
-                            layout
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            className="rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-4 cursor-pointer transition hover:bg-foreground/[0.04] hover:border-[#c29d59]/25"
-                            onClick={() => setExpandedCrmOrder(isExpanded ? null : o.id)}
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono text-sm text-foreground font-semibold">
-                                    #{o.number}
-                                  </span>
-                                  <span
-                                    className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border font-bold ${statusBadgeClass}`}
-                                  >
-                                    {statusLabel}
-                                  </span>
-                                </div>
-                                <p className="mt-1 text-xs text-foreground/75 dark:text-foreground/60 truncate">
-                                  {o.name}
-                                </p>
-                                {o.orderDate && (
-                                  <p className="text-[10px] text-foreground/45 dark:text-foreground/30 mt-1">
-                                    {new Date(o.orderDate).toLocaleDateString(
-                                      locale === "ua" ? "uk-UA" : "en-US",
-                                      {
-                                        year: "numeric",
-                                        month: "short",
-                                        day: "numeric",
-                                      }
-                                    )}
-                                  </p>
-                                )}
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="font-mono text-sm text-foreground hover:text-primary">
+                                {order.orderNumber}
                               </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-sm font-semibold text-foreground">
-                                  ${o.clientTotal.toLocaleString()}
-                                </div>
-                                <div className="text-[10px] text-foreground/55 mt-0.5">
-                                  {o.itemCount}{" "}
-                                  {isUa
-                                    ? o.itemCount === 1
-                                      ? "позиція"
-                                      : "позицій"
-                                    : o.itemCount === 1
-                                      ? "item"
-                                      : "items"}
-                                </div>
-                                <div className="text-[9px] text-[#c29d59]/70 mt-1.5 transition-transform duration-300">
-                                  {isExpanded ? "▲" : "▼"}
-                                </div>
+                              <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/45 dark:text-foreground/25">
+                                •
+                              </span>
+                              <div className="text-[11px] uppercase tracking-[0.18em] text-foreground/60 dark:text-foreground/40">
+                                {new Intl.DateTimeFormat(locale === "ua" ? "uk-UA" : "en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }).format(new Date(order.createdAt))}
                               </div>
                             </div>
+                            <div className="mt-3 line-clamp-2 text-[15px] leading-6 text-foreground dark:text-foreground/85">
+                              {order.previewItem?.title ||
+                                (isUa
+                                  ? "Замовлення без прев’ю товару"
+                                  : "Order without preview item")}
+                            </div>
+                            {order.itemCount > 1 ? (
+                              <div className="mt-2 text-xs uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
+                                {isUa
+                                  ? `Ще ${order.itemCount - 1} позицій`
+                                  : `${order.itemCount - 1} more items`}
+                              </div>
+                            ) : null}
+                            <div
+                              className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${shopOrderStatusBadgeClass(order.status)}`}
+                            >
+                              {formatShopOrderStatus(locale, order.status)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-foreground/85 dark:text-foreground/70">
+                          <div className="text-[11px] uppercase tracking-[0.2em] text-foreground/55 dark:text-foreground/35">
+                            {isUa ? "Разом" : "Total"}
+                          </div>
+                          <div className="mt-2 text-base font-medium text-foreground">
+                            {formatShopMoney(
+                              locale,
+                              order.total,
+                              order.currency as ShopCurrencyCode
+                            )}
+                          </div>
+                          <div className="mt-2 text-xs text-foreground/65 dark:text-foreground/45">
+                            {order.itemCount} {isUa ? "позицій" : "items"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between border-t border-foreground/10 pt-4 text-xs uppercase tracking-[0.18em] text-foreground/60 dark:text-foreground/45">
+                        <span>{isUa ? "Відкрити замовлення" : "Open order"}</span>
+                        <span aria-hidden>→</span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-foreground/70 dark:text-foreground/55">
+                {isUa ? "Замовлень поки немає." : "No orders yet."}
+              </p>
+            )}
 
-                            <AnimatePresence initial={false}>
-                              {isExpanded && o.items && o.items.length > 0 && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.25, ease: "easeInOut" }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="mt-3 pt-3 border-t border-[#c29d59]/10 space-y-2.5">
-                                    {o.items.map((item, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="flex items-center justify-between gap-3 text-xs"
-                                      >
-                                        <div className="min-w-0 flex-1">
-                                          <span className="text-foreground/90 dark:text-foreground/75 font-medium">
-                                            {item.productName}
-                                          </span>
-                                          {item.brand && (
-                                            <span className="text-foreground/55 dark:text-foreground/35 ml-1.5 text-[10px] uppercase font-mono">
-                                              ({item.brand})
-                                            </span>
-                                          )}
-                                        </div>
-                                        <div className="text-foreground/60 dark:text-foreground/45 shrink-0 text-right">
-                                          {item.quantity} × ${item.price.toLocaleString()}
-                                        </div>
-                                        <div className="text-foreground/90 dark:text-foreground/75 font-semibold shrink-0 w-20 text-right font-mono">
-                                          ${item.total.toLocaleString()}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </motion.li>
-                        );
-                      })}
-                    </ul>
-                  </motion.div>
-                )}
-
-                {filteredWebOrders.length === 0 && filteredCrmOrders.length === 0 && (
-                  <motion.div
-                    key="no-orders"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="text-center py-16 rounded-[28px] border border-dashed border-foreground/10 bg-foreground/2 shadow-inner"
-                  >
-                    <ShoppingBag className="w-8 h-8 text-foreground/30 mx-auto mb-3 stroke-[1.2]" />
-                    <p className="text-sm text-foreground/70 dark:text-foreground/55 font-medium">
-                      {isUa ? "Не знайдено замовлень" : "No orders found"}
-                    </p>
-                    <p className="text-xs text-foreground/45 dark:text-foreground/30 mt-1">
-                      {isUa
-                        ? "Спробуйте змінити запит пошуку або фільтр"
-                        : "Try changing your search query or filter"}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* CRM Orders Section */}
+            {crmLoading ? (
+              <div className="mt-6 text-xs text-foreground/55 dark:text-foreground/30 uppercase tracking-widest">
+                {isUa ? "Завантажую CRM замовлення…" : "Loading CRM orders…"}
+              </div>
+            ) : crmOrders.length > 0 ? (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                  <h3 className="text-[10px] uppercase tracking-widest text-foreground/60 dark:text-foreground/40 font-medium">
+                    {isUa ? "CRM Замовлення (Airtable)" : "CRM Orders (Airtable)"}
+                  </h3>
+                  <span className="text-[9px] text-foreground/45 dark:text-foreground/20">
+                    {crmOrders.length}
+                  </span>
+                </div>
+                <ul className="space-y-2">
+                  {crmOrders.map((o) => {
+                    const statusKind = normalizeAirtableOrderStatus(o.orderStatus);
+                    const statusLabel = formatAirtableOrderStatus(
+                      statusKind,
+                      locale,
+                      o.orderStatus
+                    );
+                    const statusBadgeClass = airtableOrderStatusBadgeClass(statusKind);
+                    return (
+                      <li
+                        key={o.id}
+                        className="rounded-2xl border border-indigo-500/10 bg-indigo-500/3 p-4 cursor-pointer transition hover:bg-indigo-500/6"
+                        onClick={() => setExpandedCrmOrder(expandedCrmOrder === o.id ? null : o.id)}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm text-foreground">#{o.number}</span>
+                              <span
+                                className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${statusBadgeClass}`}
+                              >
+                                {statusLabel}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-foreground/60 dark:text-foreground/40 truncate">
+                              {o.name}
+                            </p>
+                            {o.orderDate && (
+                              <p className="text-[10px] text-foreground/45 dark:text-foreground/20 mt-1">
+                                {new Date(o.orderDate).toLocaleDateString("uk-UA")}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-sm font-medium text-foreground">
+                              ${o.clientTotal.toLocaleString()}
+                            </div>
+                            <div className="text-[10px] text-foreground/55 dark:text-foreground/30">
+                              {o.itemCount} {isUa ? "позицій" : "items"}
+                            </div>
+                            <div className="text-[9px] text-indigo-400/50 mt-1">
+                              {expandedCrmOrder === o.id ? "▲" : "▼"}
+                            </div>
+                          </div>
+                        </div>
+                        {expandedCrmOrder === o.id && o.items && o.items.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-indigo-500/10 space-y-2">
+                            {o.items.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-3 text-xs"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <span className="text-foreground/85 dark:text-foreground/70">
+                                    {item.productName}
+                                  </span>
+                                  {item.brand && (
+                                    <span className="text-foreground/55 dark:text-foreground/30 ml-1">
+                                      ({item.brand})
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-foreground/60 dark:text-foreground/40 shrink-0">
+                                  {item.quantity} × ${item.price.toLocaleString()}
+                                </div>
+                                <div className="text-foreground/85 dark:text-foreground/70 font-medium shrink-0 w-20 text-right">
+                                  ${item.total.toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
           </section>
         </div>
       </div>

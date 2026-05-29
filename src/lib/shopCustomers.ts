@@ -1,6 +1,6 @@
-import crypto from "crypto";
-import { promisify } from "util";
-import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
+import crypto from 'crypto';
+import { promisify } from 'util';
+import { CustomerGroup, Prisma, PrismaClient } from '@prisma/client';
 
 const scryptAsync = promisify(crypto.scrypt);
 const PASSWORD_SETUP_TTL_MS = 1000 * 60 * 60 * 24 * 3;
@@ -8,10 +8,10 @@ const PASSWORD_SETUP_TTL_MS = 1000 * 60 * 60 * 24 * 3;
 export const shopCustomerProfileInclude = {
   account: true,
   addresses: {
-    orderBy: [{ isDefaultShipping: "desc" }, { createdAt: "asc" }],
+    orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
   },
   orders: {
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 20,
     include: {
       items: true,
@@ -23,7 +23,7 @@ export const shopCustomerProfileInclude = {
 export const shopCustomerProfileIncludeWithoutOrders = {
   account: true,
   addresses: {
-    orderBy: [{ isDefaultShipping: "desc" }, { createdAt: "asc" }],
+    orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
   },
 } satisfies Prisma.ShopCustomerInclude;
 
@@ -69,9 +69,12 @@ export async function getOrdersForCustomerDisplay(
   const email = normalizeCustomerEmail(customerEmail);
   return prisma.shopOrder.findMany({
     where: {
-      OR: [{ customerId }, { customerId: null, email: { equals: email, mode: "insensitive" } }],
+      OR: [
+        { customerId },
+        { customerId: null, email: { equals: email, mode: 'insensitive' } },
+      ],
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     include: { items: true },
   });
 }
@@ -104,7 +107,7 @@ type CustomerAddressSnapshot = {
 };
 
 function nullableString(value: unknown) {
-  const normalized = String(value ?? "").trim();
+  const normalized = String(value ?? '').trim();
   return normalized || null;
 }
 
@@ -118,27 +121,27 @@ export function buildCustomerDisplayName(input: {
   email?: string | null;
 }) {
   const fullName = [input.firstName, input.lastName]
-    .map((entry) => String(entry ?? "").trim())
+    .map((entry) => String(entry ?? '').trim())
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 
-  return fullName || String(input.email ?? "").trim() || "Customer";
+  return fullName || String(input.email ?? '').trim() || 'Customer';
 }
 
 export async function hashShopCustomerPassword(password: string) {
-  const salt = crypto.randomBytes(16).toString("hex");
+  const salt = crypto.randomBytes(16).toString('hex');
   const derived = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `s1:${salt}:${derived.toString("hex")}`;
+  return `s1:${salt}:${derived.toString('hex')}`;
 }
 
 export async function verifyShopCustomerPassword(password: string, passwordHash: string) {
-  const [version, salt, expected] = String(passwordHash).split(":");
-  if (version !== "s1" || !salt || !expected) {
+  const [version, salt, expected] = String(passwordHash).split(':');
+  if (version !== 's1' || !salt || !expected) {
     return false;
   }
 
   const derived = (await scryptAsync(password, salt, 64)) as Buffer;
-  const expectedBuffer = Buffer.from(expected, "hex");
+  const expectedBuffer = Buffer.from(expected, 'hex');
   if (expectedBuffer.length !== derived.length) {
     return false;
   }
@@ -146,21 +149,23 @@ export async function verifyShopCustomerPassword(password: string, passwordHash:
   return crypto.timingSafeEqual(derived, expectedBuffer);
 }
 
-export function getDefaultShippingAddress(
-  addresses: Array<{
-    id: string;
-    label: string;
-    line1: string;
-    line2: string | null;
-    city: string;
-    region: string | null;
-    postcode: string | null;
-    country: string;
-    isDefaultShipping: boolean;
-    isDefaultBilling: boolean;
-  }>
-) {
-  return addresses.find((address) => address.isDefaultShipping) ?? addresses[0] ?? null;
+export function getDefaultShippingAddress(addresses: Array<{
+  id: string;
+  label: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  region: string | null;
+  postcode: string | null;
+  country: string;
+  isDefaultShipping: boolean;
+  isDefaultBilling: boolean;
+}>) {
+  return (
+    addresses.find((address) => address.isDefaultShipping) ??
+    addresses[0] ??
+    null
+  );
 }
 
 export async function createShopCustomerRegistration(
@@ -174,7 +179,7 @@ export async function createShopCustomerRegistration(
   });
 
   if (existing) {
-    throw new Error("CUSTOMER_EXISTS");
+    throw new Error('CUSTOMER_EXISTS');
   }
 
   const passwordHash = await hashShopCustomerPassword(input.password);
@@ -184,9 +189,9 @@ export async function createShopCustomerRegistration(
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
       phone: nullableString(input.phone),
-      preferredLocale: nullableString(input.preferredLocale) ?? "en",
+      preferredLocale: nullableString(input.preferredLocale) ?? 'en',
       // currencyPref: input.currencyPref || 'EUR',
-      group: "B2C",
+      group: 'B2C',
       account: {
         create: {
           passwordHash,
@@ -218,7 +223,7 @@ export async function findCustomerAccountByEmail(prisma: PrismaClient, email: st
 }
 
 function hashPasswordSetupToken(token: string) {
-  return crypto.createHash("sha256").update(token).digest("hex");
+  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 /**
@@ -230,13 +235,13 @@ function hashPasswordSetupToken(token: string) {
  *    Gmail/Outlook will mangle into `http:///path`.
  */
 function resolveOutboundBaseUrl(): string {
-  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
+  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
   if (explicit) return explicit;
-  const vercelHost = (process.env.VERCEL_URL || "").trim().replace(/\/$/, "");
+  const vercelHost = (process.env.VERCEL_URL || '').trim().replace(/\/$/, '');
   if (vercelHost) {
-    return vercelHost.startsWith("http") ? vercelHost : `https://${vercelHost}`;
+    return vercelHost.startsWith('http') ? vercelHost : `https://${vercelHost}`;
   }
-  return "https://onecompany.global";
+  return 'https://onecompany.global';
 }
 
 export async function createShopCustomerPasswordSetup(
@@ -248,11 +253,11 @@ export async function createShopCustomerPasswordSetup(
     baseUrl?: string;
   }
 ) {
-  const rawToken = crypto.randomBytes(24).toString("base64url");
+  const rawToken = crypto.randomBytes(24).toString('base64url');
   const tokenHash = hashPasswordSetupToken(rawToken);
   const expiresAt = new Date(Date.now() + PASSWORD_SETUP_TTL_MS);
-  const locale = String(input.preferredLocale ?? "").trim() === "ua" ? "ua" : "en";
-  const baseUrl = (input.baseUrl ?? resolveOutboundBaseUrl()).trim().replace(/\/$/, "");
+  const locale = String(input.preferredLocale ?? '').trim() === 'ua' ? 'ua' : 'en';
+  const baseUrl = (input.baseUrl ?? resolveOutboundBaseUrl()).trim().replace(/\/$/, '');
   const path = `/${locale}/shop/account/setup-password?token=${encodeURIComponent(rawToken)}`;
 
   await prisma.shopCustomerPasswordSetupToken.upsert({
@@ -297,7 +302,7 @@ export async function consumeShopCustomerPasswordSetup(
   });
 
   if (!setupToken || setupToken.expiresAt.getTime() <= Date.now()) {
-    throw new Error("TOKEN_INVALID");
+    throw new Error('TOKEN_INVALID');
   }
 
   const passwordHash = await hashShopCustomerPassword(input.password);
@@ -358,21 +363,21 @@ export async function applyCustomerB2BRequest(prisma: PrismaClient, customerId: 
   });
 
   if (!customer) {
-    throw new Error("CUSTOMER_NOT_FOUND");
+    throw new Error('CUSTOMER_NOT_FOUND');
   }
 
-  if (customer.group === "B2B_APPROVED") {
-    throw new Error("CUSTOMER_ALREADY_APPROVED");
+  if (customer.group === 'B2B_APPROVED') {
+    throw new Error('CUSTOMER_ALREADY_APPROVED');
   }
 
-  if (customer.group === "B2B_PENDING") {
+  if (customer.group === 'B2B_PENDING') {
     return customer;
   }
 
   return prisma.shopCustomer.update({
     where: { id: customer.id },
     data: {
-      group: "B2B_PENDING",
+      group: 'B2B_PENDING',
     },
     select: {
       id: true,
@@ -388,7 +393,7 @@ export async function applyCustomerB2BRequest(prisma: PrismaClient, customerId: 
 export async function approveCustomerB2B(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomer.update({
     where: { id: customerId },
-    data: { group: "B2B_APPROVED" },
+    data: { group: 'B2B_APPROVED' },
   });
 }
 
@@ -409,7 +414,7 @@ export async function restoreShopCustomer(prisma: PrismaClient, customerId: stri
 export async function revertCustomerToB2C(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomer.update({
     where: { id: customerId },
-    data: { group: "B2C" },
+    data: { group: 'B2C' },
   });
 }
 
@@ -444,7 +449,7 @@ export async function upsertCustomerDefaultShippingAddress(
     return prisma.shopCustomerAddress.update({
       where: { id: existing.id },
       data: {
-        label: "Shipping",
+        label: 'Shipping',
         line1: address.line1,
         line2: nullableString(address.line2),
         city: address.city,
@@ -459,7 +464,7 @@ export async function upsertCustomerDefaultShippingAddress(
   return prisma.shopCustomerAddress.create({
     data: {
       customerId,
-      label: "Shipping",
+      label: 'Shipping',
       line1: address.line1,
       line2: nullableString(address.line2),
       city: address.city,
@@ -490,14 +495,14 @@ type AddressInput = {
 };
 
 function sanitizeAddressInput(input: AddressInput) {
-  const line1 = String(input.line1 ?? "").trim();
-  const city = String(input.city ?? "").trim();
-  const country = String(input.country ?? "").trim();
+  const line1 = String(input.line1 ?? '').trim();
+  const city = String(input.city ?? '').trim();
+  const country = String(input.country ?? '').trim();
   if (!line1 || !city || !country) {
-    throw new Error("ADDRESS_MISSING_REQUIRED_FIELDS");
+    throw new Error('ADDRESS_MISSING_REQUIRED_FIELDS');
   }
   return {
-    label: nullableString(input.label) ?? "Shipping",
+    label: nullableString(input.label) ?? 'Shipping',
     line1,
     line2: nullableString(input.line2),
     city,
@@ -512,14 +517,14 @@ function sanitizeAddressInput(input: AddressInput) {
 export async function listShopCustomerAddresses(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomerAddress.findMany({
     where: { customerId },
-    orderBy: [{ isDefaultShipping: "desc" }, { isDefaultBilling: "desc" }, { createdAt: "asc" }],
+    orderBy: [{ isDefaultShipping: 'desc' }, { isDefaultBilling: 'desc' }, { createdAt: 'asc' }],
   });
 }
 
 export async function createShopCustomerAddress(
   prisma: PrismaClient,
   customerId: string,
-  input: AddressInput
+  input: AddressInput,
 ) {
   const data = sanitizeAddressInput(input);
 
@@ -546,14 +551,14 @@ export async function updateShopCustomerAddress(
   prisma: PrismaClient,
   customerId: string,
   addressId: string,
-  input: AddressInput
+  input: AddressInput,
 ) {
   const owned = await prisma.shopCustomerAddress.findFirst({
     where: { id: addressId, customerId },
     select: { id: true },
   });
   if (!owned) {
-    throw new Error("ADDRESS_NOT_FOUND");
+    throw new Error('ADDRESS_NOT_FOUND');
   }
   const data = sanitizeAddressInput(input);
 
@@ -580,14 +585,14 @@ export async function updateShopCustomerAddress(
 export async function deleteShopCustomerAddress(
   prisma: PrismaClient,
   customerId: string,
-  addressId: string
+  addressId: string,
 ) {
   const owned = await prisma.shopCustomerAddress.findFirst({
     where: { id: addressId, customerId },
     select: { id: true },
   });
   if (!owned) {
-    throw new Error("ADDRESS_NOT_FOUND");
+    throw new Error('ADDRESS_NOT_FOUND');
   }
   await prisma.shopCustomerAddress.delete({ where: { id: addressId } });
 }
@@ -619,9 +624,7 @@ function serializeAddress(address: {
 }
 
 export function serializeShopCustomerProfile(
-  record: Omit<ShopCustomerProfileRecord, "orders"> & {
-    orders: ShopCustomerProfileRecord["orders"];
-  }
+  record: Omit<ShopCustomerProfileRecord, 'orders'> & { orders: ShopCustomerProfileRecord['orders'] }
 ) {
   const defaultShippingAddress = getDefaultShippingAddress(record.addresses);
 
@@ -635,8 +638,7 @@ export function serializeShopCustomerProfile(
     companyName: record.companyName,
     vatNumber: record.vatNumber,
     group: record.group,
-    b2bDiscountPercent:
-      record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
+    b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
     isActive: record.isActive,
     notes: record.notes,
     preferredLocale: record.preferredLocale,
@@ -648,9 +650,7 @@ export function serializeShopCustomerProfile(
           emailVerifiedAt: record.account.emailVerifiedAt?.toISOString() ?? null,
         }
       : null,
-    defaultShippingAddress: defaultShippingAddress
-      ? serializeAddress(defaultShippingAddress)
-      : null,
+    defaultShippingAddress: defaultShippingAddress ? serializeAddress(defaultShippingAddress) : null,
     addresses: record.addresses.map(serializeAddress),
     orders: record.orders.map((order) => ({
       id: order.id,
@@ -666,12 +666,6 @@ export function serializeShopCustomerProfile(
             image: order.items[0].image ?? null,
           }
         : null,
-      items: order.items.map((item) => ({
-        slug: item.productSlug,
-        quantity: item.quantity,
-        variantId: item.variantId,
-        title: item.title,
-      })),
     })),
   };
 }
@@ -686,8 +680,7 @@ export function serializeShopCustomerAdminListItem(record: ShopCustomerAdminList
     phone: record.phone,
     companyName: record.companyName,
     group: record.group,
-    b2bDiscountPercent:
-      record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
+    b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
     isActive: record.isActive,
     preferredLocale: record.preferredLocale,
     createdAt: record.createdAt.toISOString(),
@@ -701,5 +694,5 @@ export function serializeShopCustomerAdminListItem(record: ShopCustomerAdminList
 }
 
 export function isB2BApprovedGroup(group: CustomerGroup | null | undefined) {
-  return group === "B2B_APPROVED";
+  return group === 'B2B_APPROVED';
 }
