@@ -10,7 +10,7 @@ import {
 } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
@@ -36,6 +36,11 @@ export function Header() {
   const isUa = locale === "ua";
   const tNav = useTranslations("nav");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const isShopRoute = segments[0] === "shop";
 
   const router = useRouter();
@@ -118,7 +123,7 @@ export function Header() {
           {
             key: "stock",
             href: `/${locale}/shop/stock`,
-            label: "B2B",
+            label: isUa ? "B2B Портал" : "B2B Portal",
           },
         ]
       : []),
@@ -198,7 +203,7 @@ export function Header() {
                   onClick={() => setRegion("EU")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "EU" && "bg-foreground text-background"
+                    mounted && region === "EU" && "bg-foreground text-background"
                   )}
                 >
                   € EUR
@@ -208,7 +213,7 @@ export function Header() {
                   onClick={() => setRegion("US")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "US" && "bg-foreground text-background"
+                    mounted && region === "US" && "bg-foreground text-background"
                   )}
                 >
                   $ USD
@@ -218,7 +223,7 @@ export function Header() {
                   onClick={() => setRegion("UA")}
                   className={cn(
                     "px-2 py-1 rounded-full transition",
-                    region === "UA" && "bg-foreground text-background"
+                    mounted && region === "UA" && "bg-foreground text-background"
                   )}
                 >
                   ₴ UAH

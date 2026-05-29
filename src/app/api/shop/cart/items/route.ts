@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { addItemToShopCart, SHOP_CART_COOKIE, serializeResolvedShopCart } from "@/lib/shopCart";
+import {
+  addItemToShopCart,
+  SHOP_CART_COOKIE,
+  serializeResolvedShopCart,
+  resolveShopCart,
+  replaceEntireShopCart,
+  mergeShopCartItemInputs,
+} from "@/lib/shopCart";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { prisma } from "@/lib/prisma";
@@ -27,6 +34,7 @@ export async function POST(request: NextRequest) {
     variantId?: string | null;
     currency?: string;
     locale?: string;
+    items?: any[];
   };
   try {
     body = (await request.json()) as any;
@@ -77,7 +85,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!finalSlug) {
+    const isBulk = Array.isArray(body.items);
+    if (!isBulk && !finalSlug) {
       return NextResponse.json(
         { error: "slug or turn14Id is required to add an item to the cart" },
         { status: 400 }
@@ -95,21 +104,50 @@ export async function POST(request: NextRequest) {
       Boolean(session),
       session?.b2bDiscountPercent ?? null
     );
-    const { cart, token } = await addItemToShopCart(prisma, {
+
+    const { cart, token } = await resolveShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: body.currency ?? settings.defaultCurrency,
       locale: body.locale ?? session?.preferredLocale ?? "en",
-      item: {
-        slug: finalSlug, // Use the newly hydrated or explicit slug
-        quantity: Number(body.quantity ?? 1),
-        variantId: body.variantId ? String(body.variantId) : null,
-      },
     });
 
-    const payload = await serializeResolvedShopCart(cart, context);
+    const itemsToAdd =
+      isBulk && body.items
+        ? body.items
+            .map((item: any) => ({
+              slug: String(item.slug ?? "").trim(),
+              quantity: Number(item.quantity ?? 1),
+              variantId: item.variantId ? String(item.variantId) : null,
+            }))
+            .filter((item: any) => item.slug)
+        : [
+            {
+              slug: finalSlug,
+              quantity: Number(body.quantity ?? 1),
+              variantId: body.variantId ? String(body.variantId) : null,
+            },
+          ].filter((item) => item.slug);
+
+    const existingInputs = cart.items.map((item) => ({
+      slug: item.productSlug,
+      quantity: item.quantity,
+      variantId: item.variantId,
+    }));
+
+    const nextItems = mergeShopCartItemInputs(existingInputs, itemsToAdd);
+
+    const { cart: refreshed, token: finalToken } = await replaceEntireShopCart(prisma, {
+      cartToken: token,
+      customerId: session?.customerId ?? null,
+      currency: body.currency ?? settings.defaultCurrency,
+      locale: body.locale ?? session?.preferredLocale ?? "en",
+      items: nextItems,
+    });
+
+    const payload = await serializeResolvedShopCart(refreshed, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, token);
+    setCartCookie(response, finalToken);
     return response;
   } catch (error) {
     console.error("Shop cart item add", error);

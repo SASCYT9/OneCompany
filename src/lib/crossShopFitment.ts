@@ -616,8 +616,42 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   }
   if (chassis.length === 0) chassis = extractChassisFromText(text);
 
+  let cleanMake: string | null = null;
+  if (make) {
+    const lowerMake = make.trim().toLowerCase();
+    if (lowerMake === "vw" || lowerMake === "volkswagen") {
+      cleanMake = "Volkswagen";
+    } else if (lowerMake === "seat") {
+      cleanMake = "SEAT";
+    } else if (
+      lowerMake === "mercedes" ||
+      lowerMake === "mercedes benz" ||
+      lowerMake === "mercedes-benz"
+    ) {
+      cleanMake = "Mercedes-Benz";
+    } else if (lowerMake === "mercedes-amg" || lowerMake === "amg") {
+      cleanMake = "Mercedes-AMG";
+    } else if (lowerMake === "land-rover" || lowerMake === "land rover") {
+      cleanMake = "Land Rover";
+    } else if (lowerMake.includes("alfa") && lowerMake.includes("romeo")) {
+      cleanMake = "Alfa Romeo";
+    } else if (lowerMake === "ds") {
+      cleanMake = "DS";
+    } else if (lowerMake === "volkswagen / audi" || lowerMake === "volkswagen/audi") {
+      cleanMake = text.toLowerCase().includes("audi") ? "Audi" : "Volkswagen";
+    } else if (lowerMake === "universal") {
+      cleanMake = null;
+    } else {
+      // Capitalize first letter of each word
+      cleanMake = make.trim().replace(/\b\w/g, (c) => c.toUpperCase());
+      if (cleanMake.toLowerCase() === "ds") cleanMake = "DS";
+      if (cleanMake.toLowerCase() === "bmw") cleanMake = "BMW";
+      if (cleanMake.toLowerCase() === "vw") cleanMake = "Volkswagen";
+    }
+  }
+
   return {
-    make,
+    make: cleanMake,
     models: uniq(models.map((m) => stripYearNoise(lower(m))).filter(Boolean)),
     chassisCodes: uniq(chassis.map((c) => c.toUpperCase()).filter(Boolean)),
   };

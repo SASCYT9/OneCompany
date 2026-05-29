@@ -415,6 +415,14 @@
   }
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer utilities {
   /* Animated Gradient */
   @keyframes gradient-x {

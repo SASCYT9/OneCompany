@@ -1821,8 +1821,22 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
   if (isDev && fs.existsSync(cachePath)) {
     try {
       const stat = fs.statSync(cachePath);
-      // Use file cache if it's less than 3 hours old
-      if (now - stat.mtimeMs < 1000 * 60 * 60 * 3) {
+
+      // Smart cache validation: check if any DB product has been updated since the cache file was generated
+      let latestDbTime = 0;
+      try {
+        const latestDbUpdate = await prisma.shopProduct.aggregate({
+          _max: { updatedAt: true },
+        });
+        latestDbTime = latestDbUpdate._max.updatedAt
+          ? new Date(latestDbUpdate._max.updatedAt).getTime()
+          : 0;
+      } catch {
+        // DB not connected, or tables not migrated yet
+      }
+
+      // Use file cache only if it's less than 3 hours old AND has not been invalidated by newer updates
+      if (now - stat.mtimeMs < 1000 * 60 * 60 * 3 && latestDbTime < stat.mtimeMs) {
         const fileContent = fs.readFileSync(cachePath, "utf8");
         const parsedCache = JSON.parse(fileContent);
         const cachedProducts =
@@ -1848,9 +1862,20 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
 
   globalProductsPromise = (async () => {
     let dbRows: AdminShopProductRecord[] = [];
+    const hiddenDbSlugs = new Set<string>();
     try {
+      // Fetch status & visibility metadata of ALL DB items to ensure we don't fall back to static copies of hidden products
+      const allDbMetadata = await prisma.shopProduct.findMany({
+        select: { slug: true, isPublished: true, status: true },
+      });
+      for (const row of allDbMetadata) {
+        if (!row.isPublished || row.status !== "ACTIVE") {
+          hiddenDbSlugs.add(row.slug);
+        }
+      }
+
       dbRows = await prisma.shopProduct.findMany({
-        where: { isPublished: true },
+        where: { isPublished: true, status: "ACTIVE" },
         orderBy: { updatedAt: "desc" },
         include: adminProductInclude,
       });
@@ -1875,6 +1900,9 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
         .filter((value) => FEED_MANAGED_BRANDS.has(value))
     );
     STATIC_CATALOG_FALLBACK_PRODUCTS.forEach((p) => {
+      if (hiddenDbSlugs.has(p.slug)) {
+        return; // Skip static copy if it's explicitly hidden or unpublished/archived in the database
+      }
       if (!shouldExposeCatalogProduct(p)) {
         return;
       }
@@ -2839,7 +2867,7 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
 ): Promise<ShopProduct | undefined> {
   try {
     const queryParams: any = {
-      where: { slug, isPublished: true },
+      where: { slug, isPublished: true, status: "ACTIVE" },
       include: storefrontProductInclude,
     };
     if (isAccelerateEnabled) {
