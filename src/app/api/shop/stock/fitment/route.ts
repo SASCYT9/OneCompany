@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         if (
           item.fitment.make &&
           item.fitment.make.toLowerCase() === makeLower &&
-          item.fitment.models.some((m) => m.toLowerCase() === modelLower)
+          item.fitment.models.some((m: string) => m.toLowerCase() === modelLower)
         ) {
           for (const code of item.fitment.chassisCodes) {
             chassisSet.add(code);

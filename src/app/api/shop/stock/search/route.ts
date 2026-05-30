@@ -42,10 +42,9 @@ let cachedProductsWithFitment: Array<{
 let cachedTimestamp = 0;
 
 export async function getShopProductsWithFitments() {
-  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
   const snapshotPath = path.join(process.cwd(), "data", "shop-products-fitments.snapshot.json");
 
-  if (isProd && fs.existsSync(snapshotPath)) {
+  if (fs.existsSync(snapshotPath)) {
     try {
       const fileContent = fs.readFileSync(snapshotPath, "utf8");
       const parsed = JSON.parse(fileContent);
@@ -203,7 +202,7 @@ export async function GET(request: NextRequest) {
       const modelLower = model.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.fitment.models.some((m) => m.toLowerCase() === modelLower) ||
+          item.fitment.models.some((m: string) => m.toLowerCase() === modelLower) ||
           item.searchText.includes(modelLower)
       );
     }
@@ -212,8 +211,9 @@ export async function GET(request: NextRequest) {
       const chassisLower = chassis.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.fitment.chassisCodes.some((c) => areChassisCompatible(c, chassis.toUpperCase())) ||
-          item.searchText.includes(chassisLower)
+          item.fitment.chassisCodes.some((c: string) =>
+            areChassisCompatible(c, chassis.toUpperCase())
+          ) || item.searchText.includes(chassisLower)
       );
     }
 

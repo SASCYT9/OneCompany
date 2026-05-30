@@ -1814,11 +1814,10 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     return globalProductsPromise;
   }
 
-  // Load from build-time snapshot in production to avoid connection ceilings & query timeouts
-  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+  // Load from build-time snapshot if available (essential in production, highly recommended in dev to avoid timeouts)
   const snapshotPath = path.join(process.cwd(), "data", "shop-products.snapshot.json");
 
-  if (isProd && fs.existsSync(snapshotPath)) {
+  if (fs.existsSync(snapshotPath)) {
     try {
       const fileContent = fs.readFileSync(snapshotPath, "utf8");
       const parsed = JSON.parse(fileContent);
