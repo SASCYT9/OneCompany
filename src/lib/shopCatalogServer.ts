@@ -1814,6 +1814,24 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     return globalProductsPromise;
   }
 
+  // Load from build-time snapshot in production to avoid connection ceilings & query timeouts
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+  const snapshotPath = path.join(process.cwd(), "data", "shop-products.snapshot.json");
+
+  if (isProd && fs.existsSync(snapshotPath)) {
+    try {
+      const fileContent = fs.readFileSync(snapshotPath, "utf8");
+      const parsed = JSON.parse(fileContent);
+      if (Array.isArray(parsed)) {
+        globalProductsCache = parsed;
+        lastCacheTime = Date.now();
+        return globalProductsCache.map(applyShopProductImageOverrides);
+      }
+    } catch (err) {
+      console.warn("[shopCatalogServer] failed to load products snapshot:", err);
+    }
+  }
+
   // File cache for local development to avoid repeated filesystem checks
   const isDev = process.env.NODE_ENV === "development";
   const cachePath = isDev ? path.join(process.cwd(), ".shop-products-dev-cache.json") : "";

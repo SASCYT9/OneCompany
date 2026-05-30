@@ -9,6 +9,8 @@ import {
   resolveShopProductPricing,
 } from "@/lib/shopPricingAudience";
 import { tokenizeShopSearchQuery, normalizeShopSearchText } from "@/lib/shopSearch";
+import fs from "fs";
+import path from "path";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -40,6 +42,21 @@ let cachedProductsWithFitment: Array<{
 let cachedTimestamp = 0;
 
 export async function getShopProductsWithFitments() {
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+  const snapshotPath = path.join(process.cwd(), "data", "shop-products-fitments.snapshot.json");
+
+  if (isProd && fs.existsSync(snapshotPath)) {
+    try {
+      const fileContent = fs.readFileSync(snapshotPath, "utf8");
+      const parsed = JSON.parse(fileContent);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch (err) {
+      console.error("[search/route] failed to load products-fitments snapshot:", err);
+    }
+  }
+
   const now = Date.now();
   const products = await getShopProductsServer();
 
