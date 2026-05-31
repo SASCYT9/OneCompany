@@ -217,6 +217,10 @@ export default function IpeVehicleFilter({
     spec: false,
   });
 
+  const previousBrandRef = useRef(activeBrand);
+  const previousModelRef = useRef(activeModel);
+  const isRestoringRef = useRef(false);
+
   const hasActiveFilters =
     activeBrand !== "all" ||
     activeLine !== "all" ||
@@ -228,40 +232,61 @@ export default function IpeVehicleFilter({
     sortOrder !== "default";
 
   useEffect(() => {
-    setMounted(true);
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const urlBrand = params.get("brand") || "all";
-    const urlLine = params.get("line") || "all";
-    const urlModelRaw = params.get("model") || "all";
-    const urlBodyParam = params.get("body") || "all";
-    // Hero filter writes `?model=M3 / M4 (G80/G82)` — split that into base +
-    // body so the catalog presents them as two separate facets.
-    const { base: urlModelBase, body: urlBodyFromModel } =
-      urlModelRaw !== "all" ? splitIpeModelLabel(urlModelRaw) : { base: "all", body: null };
-    const urlModel = urlModelBase || "all";
-    const urlBody = urlBodyParam !== "all" ? urlBodyParam : (urlBodyFromModel ?? "all");
-    const urlMaterial = params.get("material") || "all";
-    const urlSpec = params.get("spec") || "all";
-    const urlQ = params.get("q") || "";
-    const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
-    if (urlBrand !== "all") setActiveBrand(urlBrand);
-    if (urlLine !== "all") setActiveLine(urlLine);
-    if (urlModel !== "all") setActiveModel(urlModel);
-    if (urlBody !== "all") setActiveBody(urlBody);
-    if (urlMaterial !== "all") setActiveMaterial(urlMaterial);
-    if (urlSpec !== "all") setActiveSpec(urlSpec);
-    if (urlQ) setSearchQuery(urlQ);
-    if (urlSort !== "default") setSortOrder(urlSort);
-    setOpenSections((prev) => ({
-      ...prev,
-      line: urlLine !== "all" || prev.line,
-      model: urlModel !== "all" || prev.model,
-      body: urlBody !== "all" || prev.body,
-      material: urlMaterial !== "all" || prev.material,
-      spec: urlSpec !== "all" || prev.spec,
-    }));
+    function syncFromUrl() {
+      isRestoringRef.current = true;
+      const params = new URLSearchParams(window.location.search);
+      const urlBrand = params.get("brand") || "all";
+      const urlLine = params.get("line") || "all";
+      const urlModelRaw = params.get("model") || "all";
+      const urlBodyParam = params.get("body") || "all";
+      // Hero filter writes `?model=M3 / M4 (G80/G82)` — split that into base +
+      // body so the catalog presents them as two separate facets.
+      const { base: urlModelBase, body: urlBodyFromModel } =
+        urlModelRaw !== "all" ? splitIpeModelLabel(urlModelRaw) : { base: "all", body: null };
+      const urlModel = urlModelBase || "all";
+      const urlBody = urlBodyParam !== "all" ? urlBodyParam : (urlBodyFromModel ?? "all");
+      const urlMaterial = params.get("material") || "all";
+      const urlSpec = params.get("spec") || "all";
+      const urlQ = params.get("q") || "";
+      const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+
+      // Sync refs to prevent cascading resets when restoring from URL
+      previousBrandRef.current = urlBrand;
+      previousModelRef.current = urlModel;
+
+      setActiveBrand(urlBrand);
+      setActiveLine(urlLine);
+      setActiveModel(urlModel);
+      setActiveBody(urlBody);
+      setActiveMaterial(urlMaterial);
+      setActiveSpec(urlSpec);
+      setSearchQuery(urlQ);
+      setSortOrder(urlSort);
+
+      setOpenSections((prev) => ({
+        ...prev,
+        line: urlLine !== "all" || prev.line,
+        model: urlModel !== "all" || prev.model,
+        body: urlBody !== "all" || prev.body,
+        material: urlMaterial !== "all" || prev.material,
+        spec: urlSpec !== "all" || prev.spec,
+      }));
+
+      setTimeout(() => {
+        isRestoringRef.current = false;
+      }, 0);
+    }
+
+    setMounted(true);
+    syncFromUrl();
+
+    window.addEventListener("popstate", syncFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", syncFromUrl);
+    };
   }, []);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
@@ -476,8 +501,8 @@ export default function IpeVehicleFilter({
 
   // Skip the cascading reset on initial mount so deep-links from the brand-home
   // hero filter (e.g. ?brand=Porsche&model=...&line=...) keep all their params.
-  const previousBrandRef = useRef(activeBrand);
   useEffect(() => {
+    if (isRestoringRef.current) return;
     if (previousBrandRef.current === activeBrand) {
       return;
     }
@@ -490,8 +515,8 @@ export default function IpeVehicleFilter({
     setModelQuery("");
   }, [activeBrand]);
 
-  const previousModelRef = useRef(activeModel);
   useEffect(() => {
+    if (isRestoringRef.current) return;
     if (previousModelRef.current === activeModel) {
       return;
     }
