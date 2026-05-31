@@ -60,6 +60,39 @@ export function ShopBackToCatalogLink({
           if (parsed.sort && parsed.sort !== "default") url.searchParams.set("sort", parsed.sort);
           setActualHref(url.pathname + url.search);
         }
+      } else if (fallbackHref.includes("akrapovic")) {
+        const raw = window.sessionStorage.getItem("akrapovicVehiclePreference");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed) {
+          const url = new URL(fallbackHref, window.location.origin);
+          const isMoto = url.searchParams.get("scope") === "moto";
+          if (parsed.brand && parsed.brand !== "all") url.searchParams.set("brand", parsed.brand);
+          if (parsed.model && parsed.model !== "all") url.searchParams.set("model", parsed.model);
+          if (parsed.body && parsed.body !== "all") {
+            url.searchParams.set(isMoto ? "year" : "body", parsed.body);
+          }
+          if (parsed.line && parsed.line !== "all") url.searchParams.set("line", parsed.line);
+          if (parsed.q && parsed.q.trim()) url.searchParams.set("q", parsed.q.trim());
+          setActualHref(url.pathname + url.search);
+        }
+      } else if (fallbackHref.includes("ipe")) {
+        const raw = window.sessionStorage.getItem("ipeVehiclePreference");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed) {
+          const url = new URL(fallbackHref, window.location.origin);
+          if (parsed.brand && parsed.brand !== "all") url.searchParams.set("brand", parsed.brand);
+          if (parsed.line && parsed.line !== "all") url.searchParams.set("line", parsed.line);
+          if (parsed.model && parsed.model !== "all") url.searchParams.set("model", parsed.model);
+          if (parsed.body && parsed.body !== "all") url.searchParams.set("body", parsed.body);
+          if (parsed.material && parsed.material !== "all")
+            url.searchParams.set("material", parsed.material);
+          if (parsed.spec && parsed.spec !== "all") url.searchParams.set("spec", parsed.spec);
+          if (parsed.sort && parsed.sort !== "default") url.searchParams.set("sort", parsed.sort);
+          if (parsed.q && parsed.q.trim()) url.searchParams.set("q", parsed.q.trim());
+          setActualHref(url.pathname + url.search);
+        }
       } else {
         const raw = window.sessionStorage.getItem("do88VehiclePreference");
         if (!raw) return;

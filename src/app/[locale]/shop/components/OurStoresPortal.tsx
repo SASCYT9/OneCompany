@@ -118,7 +118,7 @@ function StoreCard({
               alt=""
               fill
               sizes={sizes ? "(max-width: 768px) 50vw, 17vw" : undefined}
-              className="object-cover transition-all duration-700 ease-out group-hover:scale-[1.03] opacity-90 group-hover:opacity-100"
+              className="object-contain p-4 md:p-6 transition-all duration-700 ease-out group-hover:scale-[1.05] opacity-90 group-hover:opacity-100"
               style={{ objectPosition: store.collagePositions?.[0] ?? "center" }}
               loading={eager ? "eager" : "lazy"}
             />
@@ -129,7 +129,7 @@ function StoreCard({
               alt=""
               fill
               sizes={sizes ? "(max-width: 768px) 50vw, 17vw" : undefined}
-              className="object-cover transition-all duration-700 ease-out group-hover:scale-[1.03] opacity-90 group-hover:opacity-100"
+              className="object-contain p-4 md:p-6 transition-all duration-700 ease-out group-hover:scale-[1.05] opacity-90 group-hover:opacity-100"
               style={{ objectPosition: store.collagePositions?.[1] ?? "center" }}
               loading={eager ? "eager" : "lazy"}
             />

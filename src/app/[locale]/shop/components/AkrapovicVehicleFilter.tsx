@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -77,6 +77,7 @@ export default function AkrapovicVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -208,13 +209,45 @@ export default function AkrapovicVehicleFilter({
       .map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, activeModel, scopedProducts, productBrandMap, isMoto]);
 
-  // Sync local filter state when the URL changes (e.g. from the home page finder)
+  // Sync local filter state when the URL changes or restore from sessionStorage on mount
   useEffect(() => {
-    const nextBrand = searchParams?.get("brand") || "all";
-    const nextModel = searchParams?.get("model") || "all";
-    const nextBody = searchParams?.get("body") || searchParams?.get("year") || "all";
-    const nextLine = searchParams?.get("line") || "all";
-    const nextQ = searchParams?.get("q") || "";
+    const hasUrlParams =
+      searchParams?.has("brand") ||
+      searchParams?.has("model") ||
+      searchParams?.has("body") ||
+      searchParams?.has("year") ||
+      searchParams?.has("line") ||
+      searchParams?.has("q");
+
+    let nextBrand = "all";
+    let nextModel = "all";
+    let nextBody = "all";
+    let nextLine = "all";
+    let nextQ = "";
+
+    if (hasUrlParams) {
+      nextBrand = searchParams?.get("brand") || "all";
+      nextModel = searchParams?.get("model") || "all";
+      nextBody = searchParams?.get("body") || searchParams?.get("year") || "all";
+      nextLine = searchParams?.get("line") || "all";
+      nextQ = searchParams?.get("q") || "";
+    } else {
+      try {
+        const raw = window.sessionStorage.getItem("akrapovicVehiclePreference");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed) {
+            if (parsed.brand) nextBrand = parsed.brand;
+            if (parsed.model) nextModel = parsed.model;
+            if (parsed.body) nextBody = parsed.body;
+            if (parsed.line) nextLine = parsed.line;
+            if (parsed.q) nextQ = parsed.q;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     prevBrandRef.current = nextBrand;
     prevModelRef.current = nextModel;
@@ -225,6 +258,66 @@ export default function AkrapovicVehicleFilter({
     setActiveLine(nextLine);
     setSearchQuery(nextQ);
   }, [searchParams]);
+
+  // Sync state to sessionStorage for back navigation preservation
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (
+          activeBrand !== "all" ||
+          activeModel !== "all" ||
+          activeBody !== "all" ||
+          activeLine !== "all" ||
+          searchQuery.trim().length > 0
+        ) {
+          window.sessionStorage.setItem(
+            "akrapovicVehiclePreference",
+            JSON.stringify({
+              brand: activeBrand,
+              model: activeModel,
+              body: activeBody,
+              line: activeLine,
+              q: searchQuery,
+            })
+          );
+        } else {
+          window.sessionStorage.removeItem("akrapovicVehiclePreference");
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery]);
+
+  // Sync filter state to URL search params (shallow, no re-render of server component)
+  const syncToUrl = useCallback(
+    (brand: string, model: string, body: string, line: string, q: string) => {
+      if (filterOnly) return;
+      const params = new URLSearchParams();
+      if (brand !== "all") params.set("brand", brand);
+      if (model !== "all") params.set("model", model);
+      if (body !== "all") {
+        params.set(isMoto ? "year" : "body", body);
+      }
+      if (line !== "all") params.set("line", line);
+      if (q.trim()) params.set("q", q.trim());
+      if (isMoto) params.set("scope", "moto");
+      const qs = params.toString();
+      const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
+      if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", nextPath);
+      }
+    },
+    [pathname, filterOnly, isMoto]
+  );
+
+  useEffect(() => {
+    if (filterOnly) return;
+    const timeout = setTimeout(() => {
+      syncToUrl(activeBrand, activeModel, activeBody, activeLine, searchQuery);
+    }, 150);
+    return () => clearTimeout(timeout);
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, syncToUrl, filterOnly]);
 
   // Reset narrower filters when brand actually changes
   useEffect(() => {
@@ -441,7 +534,7 @@ export default function AkrapovicVehicleFilter({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="ak-hero-filter__field ak-hero-filter__search"
-          placeholder="BMW F10, Slip-On…"
+          placeholder={isMoto ? "S1000RR, Slip-On…" : "BMW M5, Slip-On…"}
           aria-label={isUa ? "Пошук" : "Search"}
         />
 
@@ -631,7 +724,7 @@ export default function AkrapovicVehicleFilter({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isUa ? "BMW F10, Slip-On, 911..." : "BMW F10, Slip-On, 911..."}
+                placeholder={isMoto ? "S1000RR, Slip-On…" : "BMW M5, Slip-On, 911…"}
                 className="w-full bg-card dark:bg-[#0a0a0a] border border-foreground/15 dark:border-white/10 rounded-lg pl-9 pr-8 py-2.5 text-xs text-foreground dark:text-white placeholder:text-foreground/30 dark:placeholder:text-white/30 focus:outline-none focus:border-[#e50000]/50 transition-colors"
               />
               {searchQuery && (
@@ -768,7 +861,7 @@ export default function AkrapovicVehicleFilter({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isUa ? "BMW F10, Slip-On..." : "BMW F10, Slip-On..."}
+                placeholder={isMoto ? "S1000RR, Slip-On…" : "BMW M5, Slip-On…"}
                 className="w-full bg-card dark:bg-[#0a0a0a] border border-foreground/15 dark:border-white/10 rounded-lg pl-9 pr-8 py-2.5 text-xs text-foreground dark:text-white placeholder:text-foreground/30 dark:placeholder:text-white/30 focus:outline-none focus:border-[#e50000]/50 transition-colors"
               />
               {searchQuery && (

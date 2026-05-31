@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
@@ -786,7 +787,11 @@ export function IpeShopProductDetailLayout({
           <div className="ipe-pdp__bc">
             <Link href={`/${locale}/shop`}>{isUa ? "Магазин" : "Shop"}</Link>
             <span>/</span>
-            <Link href={`/${locale}/shop/ipe`}>iPE Exhaust</Link>
+            <ShopBackToCatalogLink
+              fallbackHref={`/${locale}/shop/ipe`}
+              label="iPE Exhaust"
+              className="hover:text-foreground transition"
+            />
           </div>
 
           <div className="ipe-pdp__gallery-main">

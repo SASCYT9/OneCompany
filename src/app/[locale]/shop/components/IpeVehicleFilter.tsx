@@ -237,20 +237,61 @@ export default function IpeVehicleFilter({
     function syncFromUrl() {
       isRestoringRef.current = true;
       const params = new URLSearchParams(window.location.search);
-      const urlBrand = params.get("brand") || "all";
-      const urlLine = params.get("line") || "all";
-      const urlModelRaw = params.get("model") || "all";
-      const urlBodyParam = params.get("body") || "all";
+      const hasUrlParams =
+        params.has("brand") ||
+        params.has("line") ||
+        params.has("model") ||
+        params.has("body") ||
+        params.has("material") ||
+        params.has("spec") ||
+        params.has("sort") ||
+        params.has("q");
+
+      let urlBrand = "all";
+      let urlLine = "all";
+      let urlModelRaw = "all";
+      let urlBodyParam = "all";
+      let urlMaterial = "all";
+      let urlSpec = "all";
+      let urlQ = "";
+      let urlSort = "default";
+
+      if (hasUrlParams) {
+        urlBrand = params.get("brand") || "all";
+        urlLine = params.get("line") || "all";
+        urlModelRaw = params.get("model") || "all";
+        urlBodyParam = params.get("body") || "all";
+        urlMaterial = params.get("material") || "all";
+        urlSpec = params.get("spec") || "all";
+        urlQ = params.get("q") || "";
+        urlSort = params.get("sort") || "default";
+      } else {
+        try {
+          const raw = window.sessionStorage.getItem("ipeVehiclePreference");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed) {
+              if (parsed.brand) urlBrand = parsed.brand;
+              if (parsed.line) urlLine = parsed.line;
+              if (parsed.model) urlModelRaw = parsed.model;
+              if (parsed.body) urlBodyParam = parsed.body;
+              if (parsed.material) urlMaterial = parsed.material;
+              if (parsed.spec) urlSpec = parsed.spec;
+              if (parsed.q) urlQ = parsed.q;
+              if (parsed.sort) urlSort = parsed.sort;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       // Hero filter writes `?model=M3 / M4 (G80/G82)` — split that into base +
       // body so the catalog presents them as two separate facets.
       const { base: urlModelBase, body: urlBodyFromModel } =
         urlModelRaw !== "all" ? splitIpeModelLabel(urlModelRaw) : { base: "all", body: null };
       const urlModel = urlModelBase || "all";
       const urlBody = urlBodyParam !== "all" ? urlBodyParam : (urlBodyFromModel ?? "all");
-      const urlMaterial = params.get("material") || "all";
-      const urlSpec = params.get("spec") || "all";
-      const urlQ = params.get("q") || "";
-      const urlSort = (params.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
       // Sync refs to prevent cascading resets when restoring from URL
       previousBrandRef.current = urlBrand;
@@ -263,7 +304,7 @@ export default function IpeVehicleFilter({
       setActiveMaterial(urlMaterial);
       setActiveSpec(urlSpec);
       setSearchQuery(urlQ);
-      setSortOrder(urlSort);
+      setSortOrder(urlSort as "default" | "price_desc" | "price_asc");
 
       setOpenSections((prev) => ({
         ...prev,
@@ -364,6 +405,51 @@ export default function IpeVehicleFilter({
     sortOrder,
     searchQuery,
     syncToUrl,
+  ]);
+
+  // Sync state to sessionStorage for back navigation preservation
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (
+          activeBrand !== "all" ||
+          activeLine !== "all" ||
+          activeModel !== "all" ||
+          activeBody !== "all" ||
+          activeMaterial !== "all" ||
+          activeSpec !== "all" ||
+          sortOrder !== "default" ||
+          searchQuery.trim().length > 0
+        ) {
+          window.sessionStorage.setItem(
+            "ipeVehiclePreference",
+            JSON.stringify({
+              brand: activeBrand,
+              line: activeLine,
+              model: activeModel,
+              body: activeBody,
+              material: activeMaterial,
+              spec: activeSpec,
+              sort: sortOrder,
+              q: searchQuery,
+            })
+          );
+        } else {
+          window.sessionStorage.removeItem("ipeVehiclePreference");
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [
+    activeBrand,
+    activeLine,
+    activeModel,
+    activeBody,
+    activeMaterial,
+    activeSpec,
+    sortOrder,
+    searchQuery,
   ]);
 
   const enrichedProducts = useMemo(() => {

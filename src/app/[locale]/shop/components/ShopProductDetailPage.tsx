@@ -798,6 +798,11 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       ? `${isUa ? "Категорія" : "Category"}: ${do88CollectionCard.title}`
       : null;
     continueShoppingHref = `/${resolvedLocale}/shop/do88/collections`;
+  } else if (mode === "akrapovic" || product.brand === "AKRAPOVIC") {
+    const scopeQuery = product.scope === "moto" ? "?scope=moto" : "";
+    backLinkHref = `/${resolvedLocale}/shop/akrapovic${scopeQuery}`;
+    backLinkLabel = `← ${isUa ? "Назад до каталогу Akrapovič" : "Back to Akrapovič catalog"}`;
+    continueShoppingHref = `/${resolvedLocale}/shop/akrapovic${scopeQuery}`;
   }
 
   return (
@@ -940,10 +945,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
                       const isStock = /stock/i.test(exhaustName);
 
+                      const bikeMake = bikeModel ? bikeModel.split(" ")[0].toUpperCase() : "";
                       const makeLabel = isStock
-                        ? isUa
-                          ? "СТАНДАРТНИЙ ВИХЛОП"
-                          : "STOCK EXHAUST"
+                        ? bikeMake || (isUa ? "СТАНДАРТНИЙ ВИХЛОП" : "STOCK EXHAUST")
                         : "AKRAPOVIČ";
 
                       const modelLabel = isStock

@@ -83,10 +83,10 @@ export const OUR_STORES: OurStore[] = [
     href: "/shop/akrapovic",
     imageUrl: "/images/shop/akrapovic/auto-moto-collage.webp",
     collageImages: [
-      "/images/shop/akrapovic/portal-auto.webp",
-      "/images/shop/akrapovic/portal-moto.webp"
+      "/images/shop/akrapovic/auto-exhaust-transparent.png",
+      "/images/shop/akrapovic/moto-exhaust-transparent.png"
     ],
-    collagePositions: ["center", "right"],
+    collagePositions: ["center", "center"],
     gridSpan: 'wide',
   },
   {

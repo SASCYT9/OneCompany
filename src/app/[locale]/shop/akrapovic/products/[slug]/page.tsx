@@ -25,5 +25,5 @@ export default async function AkrapovicProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <ShopProductDetailPage locale={resolvedLocale} slug={slug} />;
+  return <ShopProductDetailPage locale={resolvedLocale} slug={slug} mode="akrapovic" />;
 }

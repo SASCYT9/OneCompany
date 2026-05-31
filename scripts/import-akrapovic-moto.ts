@@ -12,6 +12,8 @@ const MODEL_IDS = [
   { id: 377, brand: "BMW", canonicalModel: "S 1000 RR" },
   { id: 1389, brand: "BMW", canonicalModel: "M 1000 RR" },
   { id: 375, brand: "BMW", canonicalModel: "S 1000 R / M 1000 R" },
+  { id: 723, brand: "BMW", canonicalModel: "S 1000 XR / M 1000 XR" },
+  { id: 1099, brand: "BMW", canonicalModel: "F 900 R" },
   { id: 1298, brand: "BMW", canonicalModel: "R 1300 GS / ADVENTURE" },
   { id: 1419, brand: "BMW", canonicalModel: "R 1300 R / RS" },
   { id: 1446, brand: "Ducati", canonicalModel: "Panigale / Streetfighter V2" },
