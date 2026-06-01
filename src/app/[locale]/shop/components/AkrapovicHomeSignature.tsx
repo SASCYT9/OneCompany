@@ -372,7 +372,6 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         years?: string;
         filterYear?: string;
         reactKey: string;
-        generations?: { label: string; filterYear: string }[];
       }[]
     >();
     const targetBrands = isMoto
@@ -410,7 +409,6 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         years?: string;
         filterYear?: string;
         reactKey: string;
-        generations?: { label: string; filterYear: string }[];
       }[] = [];
       const extractedList = Array.from(modelsSet).sort((a, b) => a.localeCompare(b));
 
@@ -438,15 +436,21 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           "Multistrada V4 / S / RS / RALLY",
         ];
         if (isMoto && (brand === "BMW" || brand === "Ducati") && splitModels.includes(m)) {
+          // Push 2019-2024 (or 2021-2024 for Ducati) generation card
           sortedModels.push({
             key: m,
             label: m,
-            years: yearsStr || (brand === "Ducati" ? "2021-2026" : "2019-2026"),
-            reactKey: m,
-            generations: [
-              { label: brand === "Ducati" ? "2021-2024" : "2019-2024", filterYear: "2024" },
-              { label: "2025+", filterYear: "2025" },
-            ],
+            years: brand === "Ducati" ? "2021-2024" : "2019-2024",
+            filterYear: "2024",
+            reactKey: `${m}-gen1`,
+          });
+          // Push 2025+ generation card
+          sortedModels.push({
+            key: m,
+            label: m,
+            years: "2025+",
+            filterYear: "2025",
+            reactKey: `${m}-gen2`,
           });
         } else {
           sortedModels.push({
@@ -708,63 +712,10 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                         {allModels.map((m, index) => {
                           const modelHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(
                             b.key
-                          )}&model=${encodeURIComponent(m.key)}${isMoto ? "&scope=moto" : ""}`;
+                          )}&model=${encodeURIComponent(m.key)}${isMoto ? "&scope=moto" : ""}${
+                            m.filterYear ? `&year=${m.filterYear}` : ""
+                          }`;
                           const modelImage = getModelImage(b.key, m.key, b.image);
-
-                          if (m.generations) {
-                            return (
-                              <div
-                                key={m.reactKey}
-                                className="ak-model-grid-card ak-model-grid-card--has-generations cursor-pointer"
-                                style={
-                                  { animationDelay: `${index * 0.05}s` } as React.CSSProperties
-                                }
-                                onClick={(e) => {
-                                  const target = e.target as HTMLElement;
-                                  if (!target.closest(".ak-model-grid-card__gen-btn")) {
-                                    router.push(modelHref);
-                                  }
-                                }}
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={modelImage}
-                                  alt={m.label}
-                                  className="ak-model-grid-card__bg"
-                                />
-                                <div className="ak-model-grid-card__overlay" />
-                                {m.years && (
-                                  <span className="ak-model-grid-card__year-badge">{m.years}</span>
-                                )}
-                                <div className="ak-model-grid-card__info w-full">
-                                  <span className="ak-model-grid-card__name">
-                                    {formatModelLabel(m.label)}
-                                  </span>
-
-                                  <div className="ak-model-grid-card__generations-panel">
-                                    <span className="ak-model-grid-card__gen-title">
-                                      {L(isUa, "Select Year:", "Оберіть рік:")}
-                                    </span>
-                                    <div className="ak-model-grid-card__gen-links">
-                                      {m.generations.map((gen) => {
-                                        const genHref = `${modelHref}&year=${gen.filterYear}`;
-                                        return (
-                                          <Link
-                                            key={gen.filterYear}
-                                            href={genHref}
-                                            className="ak-model-grid-card__gen-btn"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            {gen.label}
-                                          </Link>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          }
 
                           return (
                             <Link

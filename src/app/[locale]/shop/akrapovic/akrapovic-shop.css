@@ -1629,60 +1629,6 @@
   }
 }
 
-/* Generations Panel in Model Cards */
-.ak-model-grid-card--has-generations {
-  cursor: default !important;
-}
-
-.ak-model-grid-card__generations-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  width: 100%;
-  margin-top: 0.4rem;
-  z-index: 10;
-}
-
-.ak-model-grid-card__gen-title {
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--ak-muted);
-  letter-spacing: 0.05em;
-  margin-bottom: 0.1rem;
-}
-
-.ak-model-grid-card__gen-links {
-  display: flex;
-  gap: 0.4rem;
-  width: 100%;
-}
-
-.ak-model-grid-card__gen-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #ffffff;
-  text-decoration: none;
-  text-align: center;
-  transition: all 0.25s ease;
-}
-
-.ak-model-grid-card__gen-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-border);
-  color: var(--accent-title-hover);
-  transform: translateY(-1.5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
 /* Interactive Selector Container Expansions */
 .ak-hero__brands-list-wrapper {
   transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
