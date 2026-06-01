@@ -17,6 +17,7 @@ const MODEL_IDS = [
   { id: 1298, brand: "BMW", canonicalModel: "R 1300 GS / ADVENTURE" },
   { id: 1419, brand: "BMW", canonicalModel: "R 1300 R / RS" },
   { id: 1446, brand: "Ducati", canonicalModel: "Panigale / Streetfighter V2" },
+  { id: 1441, brand: "Ducati", canonicalModel: "Multistrada V4 / S / RS / RALLY" },
 ];
 
 const apiKey = process.env.GEMINI_API_KEY;
