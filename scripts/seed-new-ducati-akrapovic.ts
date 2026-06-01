@@ -10,17 +10,18 @@ const prisma = new PrismaClient();
  * 1. Ducati Diavel 1260 (Sku: S-D12SO1-HZT):
  *    - Real-world equivalent: Termignoni approved silencer kit for Diavel 1260.
  *    - MSRP Reference: ~€1,350 (excl. VAT)
- *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/ducati-performance-diavel-1260-approved-silencer
+ *    - Note: Fictional Akrapovič mockup. Real model uses Termignoni.
+ *    - Verification URL (Termignoni basis): https://amsducati.com/ (search "Diavel 1260 Termignoni")
  *
- * 2. Ducati Diavel V4 (Sku: 96482171BA / 96482172AA):
- *    - Product: Ducati Performance Racing Exhaust by Akrapovič.
- *    - MSRP Reference: ~€3,950 (excl. VAT)
- *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/diavel-v4-akrapovic-racing-exhaust-system
+ * 2. Ducati Diavel V4 (Sku: 96482172AA):
+ *    - Product: Ducati Performance Racing Exhaust by Akrapovič (latest part number).
+ *    - MSRP Reference: ~€3,950 (excl. VAT) / MSRP is $4,699 USD
+ *    - Verification URL: https://amsducati.com/diavel-v4-akrapovic-full-race-exhaust-system
  *
- * 3. Ducati Streetfighter V4 (Sku: 96482321A):
- *    - Product: Ducati Performance Racing Exhaust by Akrapovič.
- *    - MSRP Reference: ~€4,250 (excl. VAT)
- *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/ducati-performance-streetfighter-v4-akrapovic-titanium-racing-exhaust-system
+ * 3. Ducati Streetfighter V4 (Sku: 96482551AA):
+ *    - Product: Ducati Performance Racing Slip-On Exhaust by Akrapovič (latest part number).
+ *    - MSRP Reference: ~€3,250 (excl. VAT) / MSRP is $3,600 USD
+ *    - Verification URL: https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-race-slip-on-exhaust
  */
 const NEW_DUCATI_PRODUCTS = [
   {
@@ -64,7 +65,7 @@ const NEW_DUCATI_PRODUCTS = [
     ],
   },
   {
-    sku: "96482171BA", // Official Ducati part number for Diavel V4 Akrapovič Racing Exhaust
+    sku: "96482172AA", // Official Ducati part number for Diavel V4 Akrapovič Racing Exhaust
     slug: "ducati-performance-racing-exhaust-system-akrapovic-diavel-v4",
     scope: "moto",
     brand: "AKRAPOVIC",
@@ -103,29 +104,29 @@ const NEW_DUCATI_PRODUCTS = [
     ],
   },
   {
-    sku: "96482321A",
+    sku: "96482551AA", // Official Ducati/Akrapovič Slip-On for Streetfighter V4 2025
     slug: "ducati-performance-racing-exhaust-system-akrapovic-streetfighter-v4-2025",
     scope: "moto",
     brand: "AKRAPOVIC",
     vendor: "AKRAPOVIC",
-    titleEn: "Ducati Performance Racing Exhaust System by Akrapovič for Ducati Streetfighter V4",
+    titleEn: "Ducati Performance Racing Slip-On Silencers by Akrapovič for Ducati Streetfighter V4",
     titleUa:
-      "Гоночна вихлопна система Ducati Performance від Akrapovič для Ducati Streetfighter V4",
-    categoryEn: "Full Exhaust Systems",
-    categoryUa: "Повні вихлопні системи",
+      "Гоночні глушники Slip-On Ducati Performance від Akrapovič для Ducati Streetfighter V4",
+    categoryEn: "Slip-On Exhausts",
+    categoryUa: "Глушники Slip-On",
     shortDescEn:
-      "The ultimate racing exhaust for the new Streetfighter V4. Full titanium system with twin underslung mufflers, +12.0 HP gain, and -6.6 kg weight reduction.",
+      "Official Ducati Performance racing slip-on silencer system developed by Akrapovič. Delivers significant weight reduction and an aggressive exhaust note.",
     shortDescUa:
-      "Абсолютний гоночний вихлоп для нового Streetfighter V4. Повністю титанова система з двома глушниками, приростом +12.0 к.с. та зниженням ваги на -6.6 кг.",
+      "Офіційна гоночна вихлопна система Slip-On від Ducati Performance, розроблена Akrapovič. Забезпечує значне зниження ваги та агресивний звук.",
     longDescEn:
-      "Derived directly from MotoGP experience, this full titanium system is engineered for the Streetfighter V4 (2025+). Delivers outstanding weight savings (-6.6 kg), optimizes power output (+12.0 HP, +6.0% Torque) across the rev range, and features the legendary Akrapovič sound note. Fits-year: 2025-2026. Racing use only.",
+      "Constructed from high-grade titanium, these racing slip-on silencers by Akrapovič are designed for the Streetfighter V4 (2025+). Optimizes performance across the power band and saves weight compared to the stock exhaust. Features carbon fiber heat guards. Racing use only.",
     longDescUa:
-      "Створена на основі досвіду MotoGP, ця повністю титанова система розроблена для нового Streetfighter V4 (2025+). Забезпечує колосальне зниження ваги (-6.6 кг), збільшує потужність двигуна на +12.0 к.с. (+6% крутного моменту) та дарує фірмовий звук Akrapovič. Тільки для треку.",
-    priceEur: 4250.0,
+      "Виготовлені з високоякісного титану, ці гоночні глушники Slip-On від Akrapovič розроблені для нового Streetfighter V4 (2025+). Оптимізують крутний момент і потужність у всьому діапазоні обертів, знижують вагу та оснащені карбоновими тепловими екранами. Тільки для треку.",
+    priceEur: 3250.0,
     image: "/images/shop/akrapovic/ducati-streetfighter-v4.webp",
-    weight: 6.4,
-    powerGain: "+12.0 HP",
-    weightReduction: "-6.6 kg",
+    weight: 4.2,
+    powerGain: "+4.5 HP",
+    weightReduction: "-3.5 kg",
     soundLevel: "102 dB (with dB-killer) / 105 dB (without dB-killer)",
     tags: [
       "Akrapovic",
@@ -149,18 +150,20 @@ async function main() {
     console.log(`Processing SKU: ${item.sku} - ${item.titleEn}...`);
 
     // Clean up existing product to prevent unique constraint conflicts
-    // Also cleanup the old slug if the SKU changed (e.g. 96482161A to 96482171BA)
-    const existingSlugs = [item.slug];
-    if (item.sku === "96482171BA") {
-      existingSlugs.push("ducati-performance-racing-exhaust-system-akrapovic-diavel-v4");
-    }
+    // Cleanup old slugs and all possible variations
+    const existingSlugs = [
+      item.slug,
+      "ducati-performance-racing-exhaust-system-akrapovic-diavel-v4",
+      "akrapovic-slip-on-line-titanium-ducati-diavel-1260",
+      "ducati-performance-racing-exhaust-system-akrapovic-streetfighter-v4-2025",
+    ];
 
     for (const slug of existingSlugs) {
       const existing = await prisma.shopProduct.findUnique({
         where: { slug },
       });
 
-      if (existing) {
+      if (existing && existing.slug === item.slug) {
         console.log(`  Product with slug "${slug}" already exists. Cleaning up...`);
         await prisma.shopProductMedia.deleteMany({ where: { productId: existing.id } });
         await prisma.shopProductVariant.deleteMany({ where: { productId: existing.id } });
