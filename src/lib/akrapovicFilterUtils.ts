@@ -153,7 +153,7 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
   Ducati: [
     { model: "Panigale V2", pattern: /\bPanigale\b/i },
     { model: "Streetfighter V2", pattern: /\bStreetfighter\b/i },
-    { model: "Multistrada V4", pattern: /\bMultistrada\b/i },
+    { model: "Multistrada V4 / S / RS / RALLY", pattern: /\bMultistrada\b/i },
   ],
   Yamaha: [{ model: "YZF-R1 / R1M", pattern: /\b(?:YZF[- ]?)?R1(?:M)?\b/i }],
   Kawasaki: [{ model: "Ninja ZX-10R / ZX-10RR", pattern: /\b(?:Ninja\s*)?ZX[- ]?10R(?:R)?\b/i }],

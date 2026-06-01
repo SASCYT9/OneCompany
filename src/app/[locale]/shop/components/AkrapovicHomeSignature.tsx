@@ -432,7 +432,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           "M1000RR",
           "M1000R",
           "M1000XR",
-          "Multistrada V4",
+          "Multistrada V4 / S / RS / RALLY",
         ];
         if (isMoto && (brand === "BMW" || brand === "Ducati") && splitModels.includes(m)) {
           sortedModels.push({
