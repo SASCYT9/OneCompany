@@ -468,13 +468,16 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           { key: "Streetfighter V4 2025", label: "Streetfighter V4 2025", years: "2025+" },
         ];
         for (const item of manualDucati) {
-          if (!sortedModels.some((sm) => sm.key === item.key)) {
+          const existing = sortedModels.find((sm) => sm.key === item.key);
+          if (!existing) {
             sortedModels.push({
               key: item.key,
               label: item.label,
               years: item.years,
               reactKey: item.key,
             });
+          } else if (!existing.years) {
+            existing.years = item.years;
           }
         }
         sortedModels.sort((a, b) => a.label.localeCompare(b.label));
