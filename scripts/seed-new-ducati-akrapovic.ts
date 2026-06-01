@@ -42,7 +42,7 @@ const NEW_DUCATI_PRODUCTS = [
       "High-grade titanium exhaust system designed for the Ducati Diavel 1260. Delivers an outstanding balance of performance, visual enhancement, and deep, resonant Akrapovič sound signature. Featuring high-grade titanium mufflers and carbon fiber components.",
     longDescUa:
       "Високоякісна титанова вихлопна система для Ducati Diavel 1260. Забезпечує ідеальний баланс продуктивності, естетичного вигляду та фірмового глибокого звуку Akrapovič. Виготовлена з титану преміум-класу та оздоблена карбоновими елементами.",
-    priceEur: 1350.0,
+    priceEur: 3158.42,
     image: "/images/shop/akrapovic/ducati-diavel-1260.webp",
     weight: 4.8, // 4.8 kg
     powerGain: "+6.2 HP",
@@ -82,7 +82,7 @@ const NEW_DUCATI_PRODUCTS = [
       "Designed exclusively for the Diavel V4, this racing system features high-grade titanium silencers with carbon fiber heat guards. Removes the catalytic converter to drastically reduce weight (-11.0 kg) and unleash the full power potential (+7% HP, +6% Torque) of the V4 Granturismo engine. Racing use only.",
     longDescUa:
       "Створена спеціально для Diavel V4, ця гоночна система оснащена титановими глушниками з карбоновими захисними екранами. Повністю видаляє каталізатор, зменшуючи вагу на 11.0 кг та розкриваючи повний потенціал двигуна V4 Granturismo (+7% потужності, +6% крутного моменту). Тільки для треку.",
-    priceEur: 3950.0,
+    priceEur: 6088.37,
     image: "/images/shop/akrapovic/ducati-diavel-v4.webp",
     weight: 5.6,
     powerGain: "+7.0% (+11.8 HP)",
@@ -122,7 +122,7 @@ const NEW_DUCATI_PRODUCTS = [
       "Constructed from high-grade titanium, these racing slip-on silencers by Akrapovič are designed for the Streetfighter V4 (2025+). Optimizes performance across the power band and saves weight compared to the stock exhaust. Features carbon fiber heat guards. Racing use only.",
     longDescUa:
       "Виготовлені з високоякісного титану, ці гоночні глушники Slip-On від Akrapovič розроблені для нового Streetfighter V4 (2025+). Оптимізують крутний момент і потужність у всьому діапазоні обертів, знижують вагу та оснащені карбоновими тепловими екранами. Тільки для треку.",
-    priceEur: 3250.0,
+    priceEur: 4696.97,
     image: "/images/shop/akrapovic/ducati-streetfighter-v4.webp",
     weight: 4.2,
     powerGain: "+4.5 HP",
