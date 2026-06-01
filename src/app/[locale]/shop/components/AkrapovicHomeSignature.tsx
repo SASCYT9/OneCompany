@@ -119,7 +119,10 @@ const getModelImage = (brandKey: string, modelKey: string, fallbackBrandImage: s
   }
   if (brandKey === "Ducati") {
     if (modelKey.includes("Panigale")) return "/images/shop/akrapovic/ducati-panigale-v2.webp";
-    if (modelKey.includes("Streetfighter")) return "/images/shop/akrapovic/ducati-panigale-v2.webp";
+    if (modelKey.includes("Streetfighter"))
+      return "/images/shop/akrapovic/ducati-streetfighter-v2.webp";
+    if (modelKey.includes("Multistrada"))
+      return "/images/shop/akrapovic/ducati-multistrada-v4.webp";
   }
   return fallbackBrandImage;
 };
@@ -730,6 +733,9 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                                   className="ak-model-grid-card__bg"
                                 />
                                 <div className="ak-model-grid-card__overlay" />
+                                {m.years && (
+                                  <span className="ak-model-grid-card__year-badge">{m.years}</span>
+                                )}
                                 <div className="ak-model-grid-card__info w-full">
                                   <span className="ak-model-grid-card__name">
                                     {formatModelLabel(m.label)}
@@ -774,14 +780,14 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                                 className="ak-model-grid-card__bg"
                               />
                               <div className="ak-model-grid-card__overlay" />
+                              {m.years && (
+                                <span className="ak-model-grid-card__year-badge">{m.years}</span>
+                              )}
                               <div className="ak-model-grid-card__info">
                                 <span className="ak-model-grid-card__name">
                                   {formatModelLabel(m.label)}
                                 </span>
                                 <div className="ak-model-grid-card__footer">
-                                  {m.years && (
-                                    <span className="ak-model-grid-card__years">{m.years}</span>
-                                  )}
                                   <span className="ak-model-grid-card__cta">
                                     {L(isUa, "Explore Catalog →", "Переглянути каталог →")}
                                   </span>
