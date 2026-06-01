@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -372,6 +372,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         years?: string;
         filterYear?: string;
         reactKey: string;
+        generations?: { label: string; filterYear: string }[];
       }[]
     >();
     const targetBrands = isMoto
@@ -409,6 +410,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         years?: string;
         filterYear?: string;
         reactKey: string;
+        generations?: { label: string; filterYear: string }[];
       }[] = [];
       const extractedList = Array.from(modelsSet).sort((a, b) => a.localeCompare(b));
 
@@ -436,21 +438,15 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           "Multistrada V4 / S / RS / RALLY",
         ];
         if (isMoto && (brand === "BMW" || brand === "Ducati") && splitModels.includes(m)) {
-          // Push 2019-2024 (or 2021-2024 for Ducati) generation card
           sortedModels.push({
             key: m,
             label: m,
-            years: brand === "Ducati" ? "2021-2024" : "2019-2024",
-            filterYear: "2024",
-            reactKey: `${m}-gen1`,
-          });
-          // Push 2025+ generation card
-          sortedModels.push({
-            key: m,
-            label: m,
-            years: "2025+",
-            filterYear: "2025",
-            reactKey: `${m}-gen2`,
+            years: yearsStr || (brand === "Ducati" ? "2021-2026" : "2019-2026"),
+            reactKey: m,
+            generations: [
+              { label: brand === "Ducati" ? "2021-2024" : "2019-2024", filterYear: "2024" },
+              { label: "2025+", filterYear: "2025" },
+            ],
           });
         } else {
           sortedModels.push({
@@ -467,6 +463,13 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
   }, [filteredProducts, productBrandMap, isMoto]);
 
   const [expandedBrands, setExpandedBrands] = useState<Record<string, boolean>>({});
+  const [activeModalModel, setActiveModalModel] = useState<null | {
+    key: string;
+    label: string;
+    brand: string;
+    isMoto: boolean;
+    generations: { label: string; filterYear: string }[];
+  }>(null);
   const isAnyBrandExpanded = useMemo(
     () => Object.values(expandedBrands).some(Boolean),
     [expandedBrands]
@@ -716,6 +719,48 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                             m.filterYear ? `&year=${m.filterYear}` : ""
                           }`;
                           const modelImage = getModelImage(b.key, m.key, b.image);
+
+                          if (m.generations) {
+                            return (
+                              <div
+                                key={m.reactKey}
+                                className="ak-model-grid-card cursor-pointer"
+                                style={
+                                  { animationDelay: `${index * 0.05}s` } as React.CSSProperties
+                                }
+                                onClick={() => {
+                                  setActiveModalModel({
+                                    key: m.key,
+                                    label: m.label,
+                                    brand: b.key,
+                                    isMoto,
+                                    generations: m.generations || [],
+                                  });
+                                }}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={modelImage}
+                                  alt={m.label}
+                                  className="ak-model-grid-card__bg"
+                                />
+                                <div className="ak-model-grid-card__overlay" />
+                                {m.years && (
+                                  <span className="ak-model-grid-card__year-badge">{m.years}</span>
+                                )}
+                                <div className="ak-model-grid-card__info">
+                                  <span className="ak-model-grid-card__name">
+                                    {formatModelLabel(m.label)}
+                                  </span>
+                                  <div className="ak-model-grid-card__footer">
+                                    <span className="ak-model-grid-card__cta">
+                                      {L(isUa, "Select Year →", "Обрати рік →")}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
 
                           return (
                             <Link
@@ -1022,6 +1067,53 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           </svg>
         </Link>
       </div>
+
+      {/* Premium Year Selection Modal */}
+      {activeModalModel && (
+        <div className="ak-modal-backdrop" onClick={() => setActiveModalModel(null)}>
+          <div className="ak-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="ak-modal-close"
+              onClick={() => setActiveModalModel(null)}
+              aria-label={L(isUa, "Close", "Закрити")}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="ak-modal-brand-label">{activeModalModel.brand} MOTORRAD</div>
+
+            <h3 className="ak-modal-model-title">{formatModelLabel(activeModalModel.label)}</h3>
+
+            <div className="ak-modal-divider" />
+
+            <p className="ak-modal-subtitle">
+              {L(isUa, "Select production year:", "Оберіть рік випуску:")}
+            </p>
+
+            <div className="ak-modal-options">
+              {activeModalModel.generations.map((gen) => {
+                const href = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(
+                  activeModalModel.brand
+                )}&model=${encodeURIComponent(activeModalModel.key)}${
+                  activeModalModel.isMoto ? "&scope=moto" : ""
+                }&year=${gen.filterYear}`;
+
+                return (
+                  <Link
+                    key={gen.filterYear}
+                    href={href}
+                    className="ak-modal-option-btn group"
+                    onClick={() => setActiveModalModel(null)}
+                  >
+                    <span className="ak-modal-option-year">{gen.label}</span>
+                    <span className="ak-modal-option-arrow">{L(isUa, "Select →", "Обрати →")}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
