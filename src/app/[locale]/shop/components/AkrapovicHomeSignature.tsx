@@ -833,26 +833,15 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                     <div className="ak-brand-row-card__content">
                       <div className="ak-brand-row-card__title-row">
                         <BrandLogo brandKey={b.key} className="ak-brand-row-card__logo-icon" />
-                        <Link href={brandHref} className="ak-brand-row-card__title">
-                          {b.label}
-                        </Link>
+                        <span className="ak-brand-row-card__title">{b.label}</span>
                       </div>
                       <ul className="ak-brand-row-card__models">
-                        {visibleModels.map((m) => {
-                          const modelHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(
-                            b.key
-                          )}&model=${encodeURIComponent(m.key)}${
-                            isMoto ? "&scope=moto" : ""
-                          }${m.filterYear ? `&year=${m.filterYear}` : ""}`;
-                          return (
-                            <li key={m.reactKey}>
-                              <Link href={modelHref}>
-                                • {formatModelLabel(m.label)}
-                                {m.years ? ` (${m.years})` : ""}
-                              </Link>
-                            </li>
-                          );
-                        })}
+                        {visibleModels.map((m) => (
+                          <li key={m.reactKey}>
+                            • {formatModelLabel(m.label)}
+                            {m.years ? ` (${m.years})` : ""}
+                          </li>
+                        ))}
                         {allModels.length > 3 ? (
                           <li>
                             <button

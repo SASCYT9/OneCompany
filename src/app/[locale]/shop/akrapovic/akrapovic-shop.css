@@ -1208,10 +1208,6 @@
   transition: color 0.3s;
 }
 
-.ak-brand-row-card__title:hover {
-  color: var(--accent-title-hover);
-}
-
 /* Model List */
 .ak-brand-row-card__models {
   display: flex;
@@ -1222,20 +1218,11 @@
   margin: 0;
 }
 
-.ak-brand-row-card__models li a {
+.ak-brand-row-card__models li {
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--ak-muted);
-  text-decoration: none;
-  transition:
-    color 0.25s,
-    transform 0.25s;
   display: inline-block;
-}
-
-.ak-brand-row-card__models li a:hover {
-  color: #ffffff;
-  transform: translateX(1px);
 }
 
 .ak-brand-row-card__more-link,
@@ -1535,9 +1522,9 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(229, 0, 0, 0.18);
-  border: 1px solid rgba(229, 0, 0, 0.45);
-  color: #ff4d4d;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   border-radius: 9999px;
   padding: 2px 9px;
   font-size: 0.65rem;
@@ -1552,10 +1539,10 @@
 }
 
 .ak-model-grid-card:hover .ak-model-grid-card__year-badge {
-  background: #e50000;
-  border-color: #e50000;
-  color: #ffffff;
-  box-shadow: 0 2px 14px rgba(229, 0, 0, 0.65);
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
   transform: scale(1.03);
 }
 
