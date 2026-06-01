@@ -252,3 +252,30 @@ test("determineProductScope accurately distinguishes auto and moto products", ()
     "auto"
   );
 });
+
+test("extractVehicleModelNamesForBrand identifies Ducati Diavel 1260, Diavel V4, and Streetfighter V4/V2 correctly", () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand("Slip-On Line for Ducati Diavel 1260 (2019-2022)", "Ducati"),
+    ["Diavel 1260"]
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand("Exhaust system for Ducati Diavel V4 from 2023", "Ducati"),
+    ["Diavel V4"]
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand("Carbon winglet for Ducati Streetfighter V4 2025", "Ducati"),
+    ["Streetfighter V4 2025"]
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand(
+      "Slip-on Exhaust for Ducati Streetfighter V2 (2022-2024)",
+      "Ducati"
+    ),
+    ["Streetfighter V2"]
+  );
+  // Ensure Streetfighter V4 doesn't trigger Streetfighter V2 matches due to greedy word boundaries
+  const sfV4Title = "Exhaust for Ducati Streetfighter V4 (S) 2025";
+  const sfV4Models = extractVehicleModelNamesForBrand(sfV4Title, "Ducati");
+  assert.ok(sfV4Models.includes("Streetfighter V4 2025"));
+  assert.ok(!sfV4Models.includes("Streetfighter V2"));
+});

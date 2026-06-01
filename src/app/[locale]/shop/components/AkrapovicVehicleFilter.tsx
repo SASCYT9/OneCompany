@@ -158,10 +158,17 @@ export default function AkrapovicVehicleFilter({
         if (model) models.set(model, (models.get(model) || 0) + 1);
       }
     }
-    return [...models.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([key, count]) => ({ key, label: key, count }));
-  }, [activeBrand, scopedProducts, productBrandMap]);
+    const list = [...models.entries()].map(([key, count]) => ({ key, label: key, count }));
+    if (activeBrand === "Ducati" && isMoto) {
+      const manualModels = ["Diavel 1260", "Diavel V4", "Streetfighter V4 2025"];
+      for (const m of manualModels) {
+        if (!list.some((item) => item.key === m)) {
+          list.push({ key: m, label: m, count: 0 });
+        }
+      }
+    }
+    return list.sort((a, b) => a.label.localeCompare(b.label));
+  }, [activeBrand, scopedProducts, productBrandMap, isMoto]);
 
   const availableBodies = useMemo(() => {
     if (activeBrand === "all") return [];
