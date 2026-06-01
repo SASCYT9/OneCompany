@@ -4,6 +4,24 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/**
+ * Ducati Akrapovič & OEM exhaust system prices source information:
+ *
+ * 1. Ducati Diavel 1260 (Sku: S-D12SO1-HZT):
+ *    - Real-world equivalent: Termignoni approved silencer kit for Diavel 1260.
+ *    - MSRP Reference: ~€1,350 (excl. VAT)
+ *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/ducati-performance-diavel-1260-approved-silencer
+ *
+ * 2. Ducati Diavel V4 (Sku: 96482171BA / 96482172AA):
+ *    - Product: Ducati Performance Racing Exhaust by Akrapovič.
+ *    - MSRP Reference: ~€3,950 (excl. VAT)
+ *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/diavel-v4-akrapovic-racing-exhaust-system
+ *
+ * 3. Ducati Streetfighter V4 (Sku: 96482321A):
+ *    - Product: Ducati Performance Racing Exhaust by Akrapovič.
+ *    - MSRP Reference: ~€4,250 (excl. VAT)
+ *    - Verification URL: https://www.ducati.com/ (Official Ducati Configurator) or https://amsducati.com/ducati-performance-streetfighter-v4-akrapovic-titanium-racing-exhaust-system
+ */
 const NEW_DUCATI_PRODUCTS = [
   {
     sku: "S-D12SO1-HZT",
