@@ -425,15 +425,23 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
           yearsStr = min === max ? `${min}` : `${min}-${max}`;
         }
 
-        const splitModels = ["S1000RR", "S1000R", "S1000XR", "M1000RR", "M1000R", "M1000XR"];
-        if (isMoto && brand === "BMW" && splitModels.includes(m)) {
+        const splitModels = [
+          "S1000RR",
+          "S1000R",
+          "S1000XR",
+          "M1000RR",
+          "M1000R",
+          "M1000XR",
+          "Multistrada V4",
+        ];
+        if (isMoto && (brand === "BMW" || brand === "Ducati") && splitModels.includes(m)) {
           sortedModels.push({
             key: m,
             label: m,
-            years: yearsStr || "2019-2026",
+            years: yearsStr || (brand === "Ducati" ? "2021-2026" : "2019-2026"),
             reactKey: m,
             generations: [
-              { label: "2019-2024", filterYear: "2024" },
+              { label: brand === "Ducati" ? "2021-2024" : "2019-2024", filterYear: "2024" },
               { label: "2025+", filterYear: "2025" },
             ],
           });
