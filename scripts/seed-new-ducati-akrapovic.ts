@@ -16,15 +16,19 @@ const NEW_DUCATI_PRODUCTS = [
     categoryEn: "Slip-On Exhausts",
     categoryUa: "Глушники Slip-On",
     shortDescEn:
-      "Premium titanium slip-on exhaust system by Akrapovič for the Ducati Diavel 1260, offering a deep signature sound and significant weight reduction.",
+      "Premium titanium slip-on exhaust system offering a deep signature sound, +6.2 HP power increase, and -6.0 kg weight reduction.",
     shortDescUa:
-      "Преміальний титановий глушник Akrapovič Slip-On Line для Ducati Diavel 1260, що забезпечує глибокий фірмовий звук та значне зниження ваги.",
+      "Преміальний титановий глушник Akrapovič Slip-On Line, що забезпечує глибокий фірмовий звук, приріст потужності +6.2 к.с. та зниження ваги на -6.0 кг.",
     longDescEn:
-      "The Slip-On Line represents the first step in exhaust system tuning. Easy to install, this high-grade titanium muffler delivers an outstanding balance of performance, visual enhancement, and deep, resonant Akrapovič sound.",
+      "High-grade titanium exhaust system designed for the Ducati Diavel 1260. Delivers an outstanding balance of performance, visual enhancement, and deep, resonant Akrapovič sound signature. Featuring high-grade titanium mufflers and carbon fiber components.",
     longDescUa:
-      "Серія Slip-On Line представляє перший крок у тюнінгу вихлопної системи. Простий у встановленні глушник із високоякісного титану забезпечує відмінне поєднання продуктивності, естетичного вигляду та глибокого звуку Akrapovič.",
+      "Високоякісна титанова вихлопна система для Ducati Diavel 1260. Забезпечує ідеальний баланс продуктивності, естетичного вигляду та фірмового глибокого звуку Akrapovič. Виготовлена з титану преміум-класу та оздоблена карбоновими елементами.",
     priceEur: 1350.0,
     image: "/images/shop/akrapovic/ducati-diavel-1260.webp",
+    weight: 4.8, // 4.8 kg
+    powerGain: "+6.2 HP",
+    weightReduction: "-6.0 kg",
+    soundLevel: "103 dB @ 4750 rpm",
     tags: [
       "Akrapovic",
       "Akrapovič",
@@ -42,7 +46,7 @@ const NEW_DUCATI_PRODUCTS = [
     ],
   },
   {
-    sku: "96482161A",
+    sku: "96482171BA", // Official Ducati part number for Diavel V4 Akrapovič Racing Exhaust
     slug: "ducati-performance-racing-exhaust-system-akrapovic-diavel-v4",
     scope: "moto",
     brand: "AKRAPOVIC",
@@ -52,15 +56,19 @@ const NEW_DUCATI_PRODUCTS = [
     categoryEn: "Full Exhaust Systems",
     categoryUa: "Повні вихлопні системи",
     shortDescEn:
-      "Official Ducati Performance full titanium racing exhaust system developed by Akrapovič for the Diavel V4. Maximizes output and provides a raw racing exhaust note.",
+      "Official Ducati Performance full titanium racing exhaust system developed by Akrapovič. Unleashes +7.0% power and drastically reduces weight by -11.0 kg.",
     shortDescUa:
-      "Офіційна повністю титанова гоночна вихлопна система Ducati Performance, розроблена Akrapovič для Diavel V4. Максимізує віддачу двигуна та дарує яскравий гоночний звук.",
+      "Офіційна повністю титанова гоночна вихлопна система Ducati Performance, розроблена Akrapovič. Збільшує потужність на +7.0% та знижує вагу на -11.0 кг.",
     longDescEn:
-      "Designed exclusively for the Diavel V4, this racing system features a high-grade titanium silencer with carbon fiber heat guards. Removes the catalytic converter to drastically reduce weight (-9.0 kg) and unleash the full power potential of the V4 Granturismo engine (+7 HP).",
+      "Designed exclusively for the Diavel V4, this racing system features high-grade titanium silencers with carbon fiber heat guards. Removes the catalytic converter to drastically reduce weight (-11.0 kg) and unleash the full power potential (+7% HP, +6% Torque) of the V4 Granturismo engine. Racing use only.",
     longDescUa:
-      "Розроблена спеціально для Diavel V4, ця гоночна система оснащена глушником із високоякісного титану та карбоновими захисними екранами. Повністю видаляє каталізатор, зменшуючи вагу на 9 кг та вивільняючи потенціал потужності двигуна V4 Granturismo (+7 к.с.).",
+      "Створена спеціально для Diavel V4, ця гоночна система оснащена титановими глушниками з карбоновими захисними екранами. Повністю видаляє каталізатор, зменшуючи вагу на 11.0 кг та розкриваючи повний потенціал двигуна V4 Granturismo (+7% потужності, +6% крутного моменту). Тільки для треку.",
     priceEur: 3950.0,
     image: "/images/shop/akrapovic/ducati-diavel-v4.webp",
+    weight: 5.6,
+    powerGain: "+7.0% (+11.8 HP)",
+    weightReduction: "-11.0 kg",
+    soundLevel: "108 dB (with dB-killer) / 109 dB (without dB-killer)",
     tags: [
       "Akrapovic",
       "Akrapovič",
@@ -88,15 +96,19 @@ const NEW_DUCATI_PRODUCTS = [
     categoryEn: "Full Exhaust Systems",
     categoryUa: "Повні вихлопні системи",
     shortDescEn:
-      "The ultimate racing exhaust for the new generation Streetfighter V4. Full titanium system with twin underslung mufflers, optimized for maximum track performance.",
+      "The ultimate racing exhaust for the new Streetfighter V4. Full titanium system with twin underslung mufflers, +12.0 HP gain, and -6.6 kg weight reduction.",
     shortDescUa:
-      "Абсолютний гоночний вихлоп для нового покоління Streetfighter V4. Повністю титанова система з двома нижніми глушниками, оптимізована для максимальних результатів на треку.",
+      "Абсолютний гоночний вихлоп для нового Streetfighter V4. Повністю титанова система з двома глушниками, приростом +12.0 к.с. та зниженням ваги на -6.6 кг.",
     longDescEn:
-      "Derived directly from MotoGP experience, this full titanium system is engineered for the 2025+ Streetfighter V4. Delivers outstanding weight savings, optimizes power output across the rev range, and features the legendary Akrapovič sound signature.",
+      "Derived directly from MotoGP experience, this full titanium system is engineered for the Streetfighter V4 (2025+). Delivers outstanding weight savings (-6.6 kg), optimizes power output (+12.0 HP, +6.0% Torque) across the rev range, and features the legendary Akrapovič sound note. Fits-year: 2025-2026. Racing use only.",
     longDescUa:
-      "Створена на основі досвіду MotoGP, ця повністю титанова система розроблена для нового Streetfighter V4 (2025+). Забезпечує колосальне зниження ваги двигуна та надає легендарне звукове супроводження Akrapovič.",
+      "Створена на основі досвіду MotoGP, ця повністю титанова система розроблена для нового Streetfighter V4 (2025+). Забезпечує колосальне зниження ваги (-6.6 кг), збільшує потужність двигуна на +12.0 к.с. (+6% крутного моменту) та дарує фірмовий звук Akrapovič. Тільки для треку.",
     priceEur: 4250.0,
     image: "/images/shop/akrapovic/ducati-streetfighter-v4.webp",
+    weight: 6.4,
+    powerGain: "+12.0 HP",
+    weightReduction: "-6.6 kg",
+    soundLevel: "102 dB (with dB-killer) / 105 dB (without dB-killer)",
     tags: [
       "Akrapovic",
       "Akrapovič",
@@ -113,26 +125,49 @@ const NEW_DUCATI_PRODUCTS = [
 ];
 
 async function main() {
-  console.log("=== Seeding New Ducati Akrapovič Products ===");
+  console.log("=== Seeding Updated Ducati Akrapovič Products with Specifications ===");
 
   for (const item of NEW_DUCATI_PRODUCTS) {
     console.log(`Processing SKU: ${item.sku} - ${item.titleEn}...`);
 
     // Clean up existing product to prevent unique constraint conflicts
-    const existing = await prisma.shopProduct.findUnique({
-      where: { slug: item.slug },
-    });
-
-    if (existing) {
-      console.log(`  Product already exists. Cleaning up...`);
-      // Delete child models first
-      await prisma.shopProductMedia.deleteMany({ where: { productId: existing.id } });
-      await prisma.shopProductVariant.deleteMany({ where: { productId: existing.id } });
-      await prisma.shopProduct.delete({ where: { id: existing.id } });
+    // Also cleanup the old slug if the SKU changed (e.g. 96482161A to 96482171BA)
+    const existingSlugs = [item.slug];
+    if (item.sku === "96482171BA") {
+      existingSlugs.push("ducati-performance-racing-exhaust-system-akrapovic-diavel-v4");
     }
 
-    const bodyHtmlEn = `<h2>${item.titleEn}</h2><p>${item.longDescEn}</p><ul><li>Part Number: ${item.sku}</li><li>Brand: Akrapovič</li></ul>`;
-    const bodyHtmlUa = `<h2>${item.titleUa}</h2><p>${item.longDescUa}</p><ul><li>Артикул: ${item.sku}</li><li>Бренд: Akrapovič</li></ul>`;
+    for (const slug of existingSlugs) {
+      const existing = await prisma.shopProduct.findUnique({
+        where: { slug },
+      });
+
+      if (existing) {
+        console.log(`  Product with slug "${slug}" already exists. Cleaning up...`);
+        await prisma.shopProductMedia.deleteMany({ where: { productId: existing.id } });
+        await prisma.shopProductVariant.deleteMany({ where: { productId: existing.id } });
+        await prisma.shopProduct.delete({ where: { id: existing.id } });
+      }
+    }
+
+    const specListEn = `<ul>
+      <li>Part Number: ${item.sku}</li>
+      <li>Brand: Akrapovič</li>
+      <li>Power Gain: ${item.powerGain}</li>
+      <li>Weight Reduction: ${item.weightReduction}</li>
+      <li>Sound Level: ${item.soundLevel}</li>
+    </ul>`;
+
+    const specListUa = `<ul>
+      <li>Артикул: ${item.sku}</li>
+      <li>Бренд: Akrapovič</li>
+      <li>Приріст потужності: ${item.powerGain}</li>
+      <li>Зниження ваги: ${item.weightReduction}</li>
+      <li>Рівень звуку: ${item.soundLevel}</li>
+    </ul>`;
+
+    const bodyHtmlEn = `<h2>${item.titleEn}</h2><p>${item.longDescEn}</p><h3>Specifications:</h3>${specListEn}`;
+    const bodyHtmlUa = `<h2>${item.titleUa}</h2><p>${item.longDescUa}</p><h3>Технічні характеристики:</h3>${specListUa}`;
 
     const product = await prisma.shopProduct.create({
       data: {
@@ -147,8 +182,14 @@ async function main() {
         categoryUa: item.categoryUa,
         shortDescEn: item.shortDescEn,
         shortDescUa: item.shortDescUa,
-        longDescEn: item.longDescEn,
-        longDescUa: item.longDescUa,
+        longDescEn:
+          item.longDescEn +
+          "\n\nSpecifications:\n" +
+          `• Power Gain: ${item.powerGain}\n• Weight Reduction: ${item.weightReduction}\n• Sound Level: ${item.soundLevel}`,
+        longDescUa:
+          item.longDescUa +
+          "\n\nТехнічні характеристики:\n" +
+          `• Приріст потужності: ${item.powerGain}\n• Зниження ваги: ${item.weightReduction}\n• Рівень звуку: ${item.soundLevel}`,
         bodyHtmlEn,
         bodyHtmlUa,
         seoTitleEn: item.titleEn,
@@ -157,6 +198,7 @@ async function main() {
         seoDescriptionUa: item.shortDescUa,
         priceEur: item.priceEur,
         image: item.image,
+        weight: item.weight,
         isPublished: true,
         status: "ACTIVE",
         tags: item.tags,
@@ -187,7 +229,7 @@ async function main() {
     console.log(`  Successfully seeded product ID: ${product.id}`);
   }
 
-  console.log("=== Seeding New Ducati Akrapovič Products Complete! ===");
+  console.log("=== Seeding Updated Ducati Akrapovič Products Complete! ===");
 }
 
 main()
