@@ -29,10 +29,8 @@ const topBrands = [
   "ESS Tuning",
   "Weistec Engineering",
   "RENNtech",
-  // Top moto brands
   "SC-Project",
   "Arrow",
-  "Termignoni",
   "Rotobox",
   "Ilmberger Carbon",
   "CNC Racing",

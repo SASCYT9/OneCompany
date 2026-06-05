@@ -160,7 +160,7 @@ export default function AkrapovicVehicleFilter({
     }
     const list = [...models.entries()].map(([key, count]) => ({ key, label: key, count }));
     if (activeBrand === "Ducati" && isMoto) {
-      const manualModels = ["Diavel 1260", "Diavel V4", "Streetfighter V4 2025"];
+      const manualModels = ["Diavel V4", "Streetfighter V4 2025"];
       for (const m of manualModels) {
         if (!list.some((item) => item.key === m)) {
           list.push({ key: m, label: m, count: 0 });

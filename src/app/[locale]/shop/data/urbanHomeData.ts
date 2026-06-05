@@ -52,7 +52,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Best of British',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender`,
     imageUrl:
       '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
   },

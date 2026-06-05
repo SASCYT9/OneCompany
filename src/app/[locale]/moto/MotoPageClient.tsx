@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
@@ -65,7 +65,6 @@ type PitChecklistItem = {
 const TOP_MOTO_BRANDS = [
   "Akrapovic",
   "SC-Project",
-  "Termignoni",
   "Arrow",
   "Ohlins",
   "Bitubo",
@@ -82,7 +81,6 @@ const TOP_MOTO_BRANDS = [
 const LEGENDARY_MOTO_BRANDS = [
   "Akrapovic",
   "SC-Project",
-  "Termignoni",
   "Brembo",
   "Ohlins",
   "Marchesini",
@@ -120,14 +118,6 @@ const LEGENDARY_MOTO_CONFIG: Record<
     tagline: { en: "MotoGP-proven technology", ua: "Технології з MotoGP" },
     gradient: "from-emerald-500/30 via-teal-500/15 to-transparent",
     glowColor: "rgba(16,185,129,0.3)",
-  },
-  Termignoni: {
-    country: "Italy",
-    flag: "????",
-    category: { en: "Exhaust Systems", ua: "Вихлопні системи" },
-    tagline: { en: "Italian exhaust heritage", ua: "Італійська спадщина вихлопів" },
-    gradient: "from-amber-500/30 via-yellow-500/15 to-transparent",
-    glowColor: "rgba(245,158,11,0.3)",
   },
   Brembo: {
     country: "Italy",
@@ -498,42 +488,6 @@ export default function MotoPage() {
                   </div>
                 </m.button>
 
-                {/* TERMIGNONI - Tall Card */}
-                <m.button
-                  onClick={() => handleBrandClick("Termignoni")}
-                  initial={{ opacity: 0, y: 60 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-4xl sm:rounded-[2.5rem] text-left"
-                >
-                  <div className="absolute inset-0 rounded-4xl sm:rounded-[2.5rem] border border-foreground/20 bg-foreground/10 backdrop-blur-md" />
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                    <div className="absolute -inset-2 bg-linear-to-br from-foreground/10 to-transparent rounded-[3rem] blur-2xl" />
-                  </div>
-                  <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
-                    <div className="flex-1 flex items-center justify-center py-8">
-                      <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
-                        <Image
-                          src={getBrandLogo("Termignoni")}
-                          alt="Termignoni Україна - вихлопні системи мото тюнінг Київ, купити Termignoni OneCompany"
-                          fill
-                          className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110"
-                          unoptimized
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-lg sm:text-xl font-light text-foreground tracking-tight">
-                        Termignoni
-                      </p>
-                      <p className="text-xs sm:text-sm text-foreground/80 dark:text-foreground/60 mt-1">
-                        {locale === "ua" ? "Італійська пристрасть" : "Italian passion"}
-                      </p>
-                    </div>
-                  </div>
-                </m.button>
-
                 {/* BREMBO - Wide Card */}
                 <m.button
                   onClick={() => handleBrandClick("Brembo")}
@@ -568,38 +522,38 @@ export default function MotoPage() {
                   </div>
                 </m.button>
 
-                {/* AKRAPOVIC - Small Card (Moved from Hero) */}
+                {/* AKRAPOVIC - Tall Card */}
                 <m.button
                   onClick={() => handleBrandClick("Akrapovic")}
                   initial={{ opacity: 0, y: 60 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.2 }}
-                  className="group relative cursor-pointer overflow-hidden rounded-3xl sm:rounded-4xl text-left"
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-4xl sm:rounded-[2.5rem] text-left"
                 >
-                  <div className="absolute inset-0 rounded-3xl sm:rounded-4xl border border-foreground/20 bg-foreground/10 backdrop-blur-md" />
-                  <div className="absolute inset-0 bg-linear-to-br from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-                    <div className="flex-1 flex items-center justify-center py-4">
-                      <div className="relative w-full max-w-[200px] h-16 sm:h-20">
+                  <div className="absolute inset-0 rounded-4xl sm:rounded-[2.5rem] border border-foreground/20 bg-foreground/10 backdrop-blur-md" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                    <div className="absolute -inset-2 bg-linear-to-br from-foreground/10 to-transparent rounded-[3rem] blur-2xl" />
+                  </div>
+                  <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
+                    <div className="flex-1 flex items-center justify-center py-8">
+                      <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
                         <Image
                           src={getBrandLogo("Akrapovic")}
                           alt="Akrapovic Україна - вихлопні системи мото тюнінг Київ, купити Akrapovic OneCompany"
                           fill
-                          className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand("Akrapovic") ? "filter invert hue-rotate-180" : shouldInvertBrand("Akrapovic") ? "filter brightness-0 invert" : ""}`}
+                          className={`object-contain transition-all duration-700 group-hover:scale-110 ${shouldSmartInvertBrand("Akrapovic") ? "filter invert hue-rotate-180" : shouldInvertBrand("Akrapovic") ? "filter brightness-0 invert" : ""}`}
                           unoptimized
                         />
                       </div>
                     </div>
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-lg sm:text-xl font-light text-foreground tracking-tight">
-                          Akrapovic
-                        </p>
-                        <p className="text-xs sm:text-sm text-foreground/80 dark:text-foreground/60 mt-1">
-                          {locale === "ua" ? "Вихлопні системи" : "Exhaust systems"}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-lg sm:text-xl font-light text-foreground tracking-tight">
+                        Akrapovic
+                      </p>
+                      <p className="text-xs sm:text-sm text-foreground/80 dark:text-foreground/60 mt-1">
+                        {locale === "ua" ? "Вихлопні системи" : "Exhaust systems"}
+                      </p>
                     </div>
                   </div>
                 </m.button>

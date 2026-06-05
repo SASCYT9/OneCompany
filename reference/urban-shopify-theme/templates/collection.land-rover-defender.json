@@ -1,12 +1,3 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
     "hero": {
@@ -113,8 +104,8 @@
         "badge_uk": "2020+",
         "subtitle": "Redefined by Urban",
         "subtitle_uk": "Переосмислено Urban",
-        "description": "The iconic Urban look for Land Rover Defender, our Widetrack styling programme is designed and built with highest quality components and our own premium handmade carbon ﬁbre. Our ‘OEM plus’ design approach guarantees doses of subtle elegance and bold attitude in all the right places. Get in touch to build yours, our bespoke service is designed to meet your individuality, to create a one-off each time.",
-        "description_uk": "Фірмовий вигляд Urban для Land Rover Defender. Програма стайлінгу Widetrack спроєктована та виготовлена з найякіснішими комплектуючими та нашим власним преміальним карбоном ручної роботи.",
+        "description": "The iconic Urban look for Land Rover Defender 90 / 110 / 130, our Widetrack styling programme is designed and built with highest quality components and our own premium handmade carbon ﬁbre. Our ‘OEM plus’ design approach guarantees doses of subtle elegance and bold attitude in all the right places. Get in touch to build yours, our bespoke service is designed to meet your individuality, to create a one-off each time.",
+        "description_uk": "Фірмовий вигляд Urban для Land Rover Defender 90 / 110 / 130. Програма стайлінгу Widetrack спроєктована та виготовлена з найякіснішими комплектуючими та нашим власним преміальним карбоном ручної роботи. Наш підхід OEM plus гарантує витончену елегантність та сміливий характер у всіх потрібних місцях.",
         "button_label": "Enquire Now",
         "button_label_uk": "Замовити зараз",
         "button_link": "/pages/contact",
@@ -134,140 +125,140 @@
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-1-1920.jpg",
-            "caption": "Urban Defender 130 - Image 1"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 1"
           }
         },
         "slide_2": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-2-1920.jpg",
-            "caption": "Urban Defender 130 - Image 2"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 2"
           }
         },
         "slide_3": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-3-1920.jpg",
-            "caption": "Urban Defender 130 - Image 3"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 3"
           }
         },
         "slide_4": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-4-1920.jpg",
-            "caption": "Urban Defender 130 - Image 4"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 4"
           }
         },
         "slide_5": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-5-1920.jpg",
-            "caption": "Urban Defender 130 - Image 5"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 5"
           }
         },
         "slide_6": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-6-1920.jpg",
-            "caption": "Urban Defender 130 - Image 6"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 6"
           }
         },
         "slide_7": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-7-1920.jpg",
-            "caption": "Urban Defender 130 - Image 7"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 7"
           }
         },
         "slide_8": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-8-1920.jpg",
-            "caption": "Urban Defender 130 - Image 8"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 8"
           }
         },
         "slide_9": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-9-1920.jpg",
-            "caption": "Urban Defender 130 - Image 9"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 9"
           }
         },
         "slide_10": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-10-1920.jpg",
-            "caption": "Urban Defender 130 - Image 10"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 10"
           }
         },
         "slide_11": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-11-1920.jpg",
-            "caption": "Urban Defender 130 - Image 11"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 11"
           }
         },
         "slide_12": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-12-1920.jpg",
-            "caption": "Urban Defender 130 - Image 12"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 12"
           }
         },
         "slide_13": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-13-1920.jpg",
-            "caption": "Urban Defender 130 - Image 13"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 13"
           }
         },
         "slide_14": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-14-1920.jpg",
-            "caption": "Urban Defender 130 - Image 14"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 14"
           }
         },
         "slide_15": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-15-1920.jpg",
-            "caption": "Urban Defender 130 - Image 15"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 15"
           }
         },
         "slide_16": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-16-1920.jpg",
-            "caption": "Urban Defender 130 - Image 16"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 16"
           }
         },
         "slide_17": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-17-1920.jpg",
-            "caption": "Urban Defender 130 - Image 17"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 17"
           }
         },
         "slide_18": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-18-1920.jpg",
-            "caption": "Urban Defender 130 - Image 18"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 18"
           }
         },
         "slide_19": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-19-1920.jpg",
-            "caption": "Urban Defender 130 - Image 19"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 19"
           }
         },
         "slide_20": {
           "type": "slide",
           "settings": {
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/carousel-20-1920.jpg",
-            "caption": "Urban Defender 130 - Image 20"
+            "caption": "Urban Defender 90 / 110 / 130 - Image 20"
           }
         }
       },
@@ -318,7 +309,7 @@
             "subtitle_uk": "Widetrack",
             "button_label": "Build Yours",
             "button_label_uk": "Створити свій",
-            "button_link": "/collections/land-rover-defender-130"
+            "button_link": "/collections/land-rover-defender"
           }
         },
         "banner_2": {
@@ -334,7 +325,7 @@
             "subtitle_uk": "Widetrack",
             "button_label": "Build Yours",
             "button_label_uk": "Створити свій",
-            "button_link": "/collections/land-rover-defender-130"
+            "button_link": "/collections/land-rover-defender"
           }
         },
         "banner_spin": {
@@ -344,8 +335,8 @@
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg",
             "eyebrow": "360° View",
             "eyebrow_uk": "Огляд 360°",
-            "title": "Urban Defender 130",
-            "title_uk": "Urban Defender 130",
+            "title": "Urban Defender 90 / 110 / 130",
+            "title_uk": "Urban Defender 90 / 110 / 130",
             "subtitle": "Complete Kit Overview",
             "subtitle_uk": "Повний огляд комплекту",
             "button_label": "Enquire",
@@ -388,11 +379,11 @@
     "video_pointer": {
       "type": "section-urban-video-pointer",
       "settings": {
-        "video_url": "https://player.vimeo.com/video/636095522?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "video_url": "https://player.vimeo.com/video/645947442?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
         "caption_eyebrow": "Urban Automotive",
         "caption_eyebrow_uk": "Urban Automotive",
-        "caption_title": "Land Rover Defender 130",
-        "caption_title_uk": "Land Rover Defender 130",
+        "caption_title": "Land Rover Defender 90 / 110 / 130",
+        "caption_title_uk": "Land Rover Defender 90 / 110 / 130",
         "full_width": true,
         "max_width": 1900,
         "overlay_top": 10,
@@ -411,8 +402,8 @@
             "position_label": "Front",
             "title_en": "Front Package",
             "title_uk": "Передній пакет",
-            "parts_en": "Front bumper assembly|Carbon fibre bonnet vents|Front grille surround|Canards with DRL",
-            "parts_uk": "Передній бампер|Карбонові вентиляційні отвори капота|Обрамлення передньої решітки|Канарди з ДХО",
+            "parts_en": "Widetrack front arch extensions|Front bumper with integrated LEDs|Carbon fibre bonnet vents|Front grille surround",
+            "parts_uk": "Передні розширення арок Widetrack|Передній бампер з LED|Карбонові вентиляційні отвори капота|Обрамлення передньої решітки",
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/defender2020Plus/front.jpg"
           }
         },
@@ -422,8 +413,8 @@
             "position_label": "Left",
             "title_en": "Side Package",
             "title_uk": "Бічний пакет",
-            "parts_en": "Side arch extensions|Black shadow side steps|Best of British side vents|Door handle surrounds",
-            "parts_uk": "Бічні розширення арок|Бічні підніжки Black Shadow|Бічні вентиляційні накладки|Обрамлення дверних ручок",
+            "parts_en": "Widetrack side arch extensions|Black shadow side steps|Best of British side vents|Door handle surrounds",
+            "parts_uk": "Бічні розширення арок Widetrack|Бічні підніжки Black Shadow|Бічні вентиляційні накладки|Обрамлення дверних ручок",
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/defender2020Plus/left.jpg"
           }
         },
@@ -431,9 +422,9 @@
           "type": "view",
           "settings": {
             "position_label": "Right",
-            "title_en": "Wheel Package",
-            "title_uk": "Пакет коліс",
-            "parts_en": "22\" forged alloy wheels|Performance tyres|LED roof light bar|Premium spare wheel cover",
+            "title_en": "Wheel & Accessories",
+            "title_uk": "Колеса та аксесуари",
+            "parts_en": "22\" forged alloy wheels|Performance tyres|LED roof light bar|Premium wheel cover",
             "parts_uk": "22\" ковані легкосплавні диски|Спортивні шини|Світлова LED панель на дах|Преміальний ковпак запасного колеса",
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/defender2020Plus/right.jpg"
           }
@@ -444,8 +435,8 @@
             "position_label": "Back",
             "title_en": "Rear Package",
             "title_uk": "Задній пакет",
-            "parts_en": "Upper rear spoiler|Rear bumper assembly|Urban badging|Exhaust finishers",
-            "parts_uk": "Верхній задній спойлер|Задній бампер|Значки Urban|Насадки вихлопу",
+            "parts_en": "Widetrack rear arch extensions|Upper rear spoiler|Rear bumper with integrated LEDs|Urban Defender badging",
+            "parts_uk": "Задні розширення арок Widetrack|Верхній задній спойлер|Задній бампер з LED|Значки Urban Defender",
             "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/defender2020Plus/back.jpg"
           }
         }
@@ -461,8 +452,8 @@
         "eyebrow_uk": "Модельний ряд Urban",
         "heading": "The Urban Kit",
         "heading_uk": "Комплект Urban",
-        "subheading": "Land Rover Defender 130",
-        "subheading_uk": "Land Rover Defender 130",
+        "subheading": "Land Rover Defender 90 / 110 / 130",
+        "subheading_uk": "Land Rover Defender 90 / 110 / 130",
         "cta_label": "Enquire Now",
         "cta_label_uk": "Замовити зараз",
         "cta_link": "/pages/contact",

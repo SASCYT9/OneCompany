@@ -39,8 +39,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "The world's most desirable Defender. Wide-body styling, premium carbon fibre, Urban's signature aesthetic.",
     subtitleUk:
       'Найбажаніший Defender у світі. Широкий кузов, преміальний карбон та фірмова естетика Urban.',
-    exploreLink: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`,
-    shopLink: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`,
+    exploreLink: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender`,
+    shopLink: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender`,
     avail: 'Available',
     availUk: 'Доступно',
   },

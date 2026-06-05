@@ -101,6 +101,7 @@ do88-urls.txt
 # Local temp directories (image candidates, one-off scripts, audit caches)
 .tmp/
 tmp/
+scratch/
 .claude/worktrees/
 scripts/_check_*.mjs
 

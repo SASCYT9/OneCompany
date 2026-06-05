@@ -120,13 +120,13 @@ const getModelImage = (brandKey: string, modelKey: string, fallbackBrandImage: s
   if (brandKey === "Ducati") {
     if (modelKey.includes("Panigale")) return "/images/shop/akrapovic/ducati-panigale-v2.webp";
     if (modelKey.includes("Streetfighter V4"))
-      return "/images/shop/akrapovic/ducati-streetfighter-v4.webp";
+      return "/images/shop/akrapovic/ducati-streetfighter-v4.webp?v=3";
     if (modelKey.includes("Streetfighter"))
       return "/images/shop/akrapovic/ducati-streetfighter-v2.webp";
     if (modelKey.includes("Multistrada"))
       return "/images/shop/akrapovic/ducati-multistrada-v4.webp";
     if (modelKey.includes("Diavel 1260")) return "/images/shop/akrapovic/ducati-diavel-1260.webp";
-    if (modelKey.includes("Diavel V4")) return "/images/shop/akrapovic/ducati-diavel-v4.webp";
+    if (modelKey.includes("Diavel V4")) return "/images/shop/akrapovic/ducati-diavel-v4.webp?v=4";
   }
   return fallbackBrandImage;
 };
@@ -463,7 +463,6 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
       }
       if (isMoto && brand === "Ducati") {
         const manualDucati = [
-          { key: "Diavel 1260", label: "Diavel 1260", years: "2019-2023" },
           { key: "Diavel V4", label: "Diavel V4", years: "2023+" },
           { key: "Streetfighter V4 2025", label: "Streetfighter V4 2025", years: "2025+" },
         ];

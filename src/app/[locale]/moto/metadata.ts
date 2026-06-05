@@ -29,7 +29,6 @@ export async function generateMetadata({
       "motorcycle tuning Ukraine",
       "Akrapovic exhaust moto",
       "SC-Project exhaust",
-      "Termignoni",
       "Brembo brakes",
       "Rotobox wheels",
       "carbon motorcycle parts",

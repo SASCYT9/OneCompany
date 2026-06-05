@@ -33,7 +33,6 @@ const featuredBrandOrder = [
   "FI Exhaust",
   "Brembo",
   "HRE wheels",
-  "Termignoni",
   "Ohlins",
   "SC-Project",
   "Rizoma",

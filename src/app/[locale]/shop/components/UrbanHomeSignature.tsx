@@ -415,10 +415,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                 </div>
               </div>
               <Link
-                href={localizeHref(
-                  locale,
-                  `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`
-                )}
+                href={localizeHref(locale, `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender`)}
                 className="uh7-def__cta"
               >
                 {isUa ? "Дослідити Defender" : "Explore Defender"}

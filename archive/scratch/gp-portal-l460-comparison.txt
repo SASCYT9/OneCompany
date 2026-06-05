@@ -1,0 +1,148 @@
+Analyzing L460 Urban Products from GP Portal...
+
+==================================================
+GP Product Handle: urb-log-25353017-v1
+DB Product SKU: URB-LOG-25353017-V1
+DB Product Title: Urban Premium Branding Package for Range Rover L460
+DB Product Image: /images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Front.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Front.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Back.jpg"]
+Found 2 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-LOG-25353017-V1.png
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 2 real photos!)
+==================================================
+GP Product Handle: urb-bod-25353001-v1
+DB Product SKU: URB-BOD-25353001-V1
+DB Product Title: Range Rover L460 URBAN Replacement Bumper Package:
+DB Product Image: /images/shop/urban/products/urus-se/Range_Rover_2022_1.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Range_Rover_2022_1.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Front.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Left.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Back.jpg"]
+Found 5 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-BOD-25353001-V1.png
+  - https://gp-portal.eu/cdn/shop/files/col-image-1-lg-3.jpg
+  - https://gp-portal.eu/cdn/shop/files/URB-BOD-25353001-V1_20Zijaanzicht.png
+  - https://gp-portal.eu/cdn/shop/files/URB-BOD-25353001-V1_20Achteraanzicht.png
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 5 real photos!)
+==================================================
+GP Product Handle: urb-wid-25353015-v1
+DB Product SKU: URB-WID-25353015-V1
+DB Product Title: Urban Widetrack arch set for Range Rover L460 - PUR
+DB Product Image: /images/shop/urban/products/urus-se/Urban_Range_Rover_Widetrack_Arches.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Urban_Range_Rover_Widetrack_Arches.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Left.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Right.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_1.jpg"]
+Found 2 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-WID-25353015-V1.png
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 2 real photos!)
+==================================================
+GP Product Handle: urb-spo-25353021-v1
+DB Product SKU: URB-SPO-25353021-V1
+DB Product Title: Urban rear spoiler for Range Rover L460 - Visual Carbon Fibre
+DB Product Image: https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Lower.png?v=1705046784
+DB Product Gallery: ["https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Lower.png?v=1705046784","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Top.png?v=1705046783"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SPO-25353021-V1_20Achteraanzicht_466edfce-69a1-4e1a-b027-bc7bd3f1e6f3.png
+  - https://gp-portal.eu/cdn/shop/files/BROCHU00005_71172e8b-39a4-4fea-a5ba-0ed065a82a5e.jpg
+=> RECOMMENDATION: SYNC IMAGES (We have images, GP has 3 images. Check if we need to sync.)
+==================================================
+GP Product Handle: urb-sid-25353026-v1
+DB Product SKU: URB-SID-25353026-V1
+DB Product Title: Urban Matrix Fixed Side Steps for Range Rover L460 LWB
+DB Product Image: /images/shop/urban/products/urus-se/Fixed_Side_Steps.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Fixed_Side_Steps.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Right.jpg"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353026-V1.png
+  - https://gp-portal.eu/cdn/shop/files/GRILLE_STEPS_RANGEROVER_SPORT_ONCAR_3_1800x1800_2f547379-7678-47b1-8e5b-5ed8fc5b4a97.jpg
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 3 real photos!)
+==================================================
+GP Product Handle: urb-sid-25353027-v1
+DB Product SKU: URB-SID-25353027-V1
+DB Product Title: Urban Linear Fixed Side Steps for Range Rover L460 LWB
+DB Product Image: /images/shop/urban/products/urus-se/Side_Steps_690303ab-6ea7-4b56-bbd8-eaaa11fe9914.webp
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Side_Steps_690303ab-6ea7-4b56-bbd8-eaaa11fe9914.webp","/images/shop/urban/products/urus-se/Side_Steps.webp","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Right.jpg"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353027-V1.png
+  - https://gp-portal.eu/cdn/shop/files/CLOSE_4_1800x1800_c4dd36e6-2712-402b-93c8-744c8690add4.jpg
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 3 real photos!)
+==================================================
+GP Product Handle: urb-spo-25353016-v1
+DB Product SKU: URB-SPO-25353016-V1
+DB Product Title: Urban rear spoiler for Range Rover L460 - ABS Plastic
+DB Product Image: https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top_c4dfe69c-0365-426f-b7fe-e4c4bc333728.png?v=1704993666
+DB Product Gallery: ["https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top_c4dfe69c-0365-426f-b7fe-e4c4bc333728.png?v=1704993666","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top-2.png?v=1704993666","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/DSC06364.jpg?v=1704993961"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SPO-25353021-V1_20Achteraanzicht.png
+  - https://gp-portal.eu/cdn/shop/files/BROCHU00005.jpg
+=> RECOMMENDATION: SYNC IMAGES (We have images, GP has 3 images. Check if we need to sync.)
+==================================================
+GP Product Handle: urb-sid-25353019-v1
+DB Product SKU: URB-SID-25353019-V1
+DB Product Title: Urban Visual Carbon Fibre Lower Side Sill Kit for Range Rover L460 SWB
+DB Product Image: /images/shop/urban/products/urus-se/Urban_Range_Rover_Carbon_Lower_Sills.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Urban_Range_Rover_Carbon_Lower_Sills.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Left.jpg"]
+Found 2 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353019-V1.png
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 2 real photos!)
+==================================================
+GP Product Handle: urb-sid-25353024-v1
+DB Product SKU: URB-SID-25353024-V1
+DB Product Title: Urban Matrix Fixed Side Steps for Range Rover L460 SWB
+DB Product Image: /images/shop/urban/products/urus-se/Fixed_Side_Steps.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Fixed_Side_Steps.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Left.jpg"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353024-V1.png
+  - https://gp-portal.eu/cdn/shop/files/GRILLE_STEPS_RANGEROVER_SPORT_ONCAR_3_1800x1800_e7bfaead-a102-4796-b81f-bdedbea17543.jpg
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 3 real photos!)
+==================================================
+GP Product Handle: urb-flo-25353028-v1
+DB Product SKU: URB-FLO-25353028-V1
+DB Product Title: Urban Premium Front and Rear Floor Mat Set for Range Rover L460
+DB Product Image: /images/shop/urban/products/urus-se/Urban_Premium_Mat_Set.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Urban_Premium_Mat_Set.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_1.jpg"]
+Found 1 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 1 real photos!)
+==================================================
+GP Product Handle: urb-sid-25353025-v1
+DB Product SKU: URB-SID-25353025-V1
+DB Product Title: Urban Linear Fixed Side Steps for Range Rover L460 SWB
+DB Product Image: /images/shop/urban/products/urus-se/Side_Steps.webp
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Side_Steps.webp","/images/shop/urban/products/urus-se/Fixed_Side_Steps.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Left.jpg"]
+Found 3 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353025-V1.png
+  - https://gp-portal.eu/cdn/shop/files/CLOSE_4_1800x1800_bdc8e856-6ccf-49b2-adcc-dced1a279e35.jpg
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 3 real photos!)
+==================================================
+GP Product Handle: urb-sid-25353020-v1
+DB Product SKU: URB-SID-25353020-V1
+DB Product Title: Urban Visual Carbon Fibre Lower Side Sill Kit for Range Rover L460 LWB
+DB Product Image: /images/shop/urban/products/urus-se/Urban_Range_Rover_Carbon_Lower_Sills_51ca4cfb-c42f-474a-9f8b-a4be6ad6c168.jpg
+DB Product Gallery: ["/images/shop/urban/products/urus-se/Urban_Range_Rover_Carbon_Lower_Sills_51ca4cfb-c42f-474a-9f8b-a4be6ad6c168.jpg","/images/shop/urban/products/urus-se/Range_Rover_2022_Kit_Right.jpg"]
+Found 2 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-25353020-V1.png
+=> RECOMMENDATION: MIGRATE TO BLOB (We have placeholder/local mockup, but GP has 2 real photos!)
+==================================================
+GP Product Handle: urb-sid-26014095-v1
+DB Product SKU: URB-SID-26014095-V1
+DB Product Title: Range Rover L460 Carbon Fibre Side Accent Trim
+DB Product Image: https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_1.png?v=1767968718
+DB Product Gallery: ["https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_1.png?v=1767968718","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_3.png?v=1767968812","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_2.png?v=1767968812","https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRover_L460_Black_UC9_SatinBlack_CarbonSideblade_Location-2copy.jpg?v=1767968812"]
+Found 10 valid images on GP Portal:
+  - https://gp-portal.eu/cdn/shop/files/GPProducts_Logo_20_Years_-_Grey_Red_0fe75947-6482-421c-ae88-5d6eb91f16d3.webp
+  - https://gp-portal.eu/cdn/shop/files/URB-SID-26014095-V1.png
+  - https://gp-portal.eu/cdn/shop/files/urban-range-rover-black-uc9-satin-black-carbon-sideblack-close-side-1920.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_7.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_5.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_6.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_2.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_3.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_1.png
+  - https://gp-portal.eu/cdn/shop/files/440-0229_20-_20L460_20Range_20Rover_20-_20Carbon_20Fibre_20Side_20Accent_20Trim_20-_20LH_4.png
+=> RECOMMENDATION: SYNC IMAGES (We have images, GP has 10 images. Check if we need to sync.)

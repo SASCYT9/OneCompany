@@ -59,9 +59,16 @@ const NON_G_WAGON_IMAGE_MARKERS = [
   "transporter",
 ];
 const URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE: Record<string, string[]> = {
-  "land-rover-defender-110": ["defender", "defender2020plus", "defender-110", "defender110"],
-  "land-rover-defender-90": ["defender", "defender2020plus", "defender-90", "defender90"],
-  "land-rover-defender-130": ["defender", "defender2020plus", "defender-130", "defender130"],
+  "land-rover-defender": [
+    "defender",
+    "defender2020plus",
+    "defender-110",
+    "defender110",
+    "defender-90",
+    "defender90",
+    "defender-130",
+    "defender130",
+  ],
   "land-rover-defender-110-octa": ["defender", "defender2020plus", "octa"],
   "land-rover-discovery-5": ["discovery", "discovery2021plus"],
   "range-rover-l460": ["range-rover", "rangerover", "rangerover2022plus", "l460"],

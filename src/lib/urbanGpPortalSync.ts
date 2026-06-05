@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import type { Prisma, PrismaClient } from '@prisma/client';
-import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import fs from "node:fs/promises";
+import path from "node:path";
+import type { Prisma, PrismaClient } from "@prisma/client";
+import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import {
   buildAdminProductCreateData,
   buildAdminProductUpdateData,
@@ -9,31 +9,31 @@ import {
   type AdminShopProductOptionInput,
   type AdminShopProductPayload,
   type AdminShopProductVariantInput,
-} from '@/lib/shopAdminCatalog';
-import { replaceStorefrontTag } from '@/lib/shopProductStorefront';
+} from "@/lib/shopAdminCatalog";
+import { replaceStorefrontTag } from "@/lib/shopProductStorefront";
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
   type ShopCurrencyCode,
-} from '@/lib/shopAdminSettings';
+} from "@/lib/shopAdminSettings";
 import {
   getUrbanExactCategoryUa,
   getUrbanModelFacetsFromHandles,
   inferUrbanFamilyFromValues,
   structuredUrbanFamilyTag,
   type UrbanCatalogFamily,
-} from '@/lib/urbanCatalogFacets';
+} from "@/lib/urbanCatalogFacets";
 import {
   getUrbanCanonicalCollectionHandleOverride,
   getUrbanProductTitleOverrides,
   getUrbanProgramFallbackImage,
-} from '@/lib/urbanProductOverrides';
-import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+} from "@/lib/urbanProductOverrides";
+import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 
 const GP_PORTAL_COLLECTION_URL =
-  'https://gp-portal.eu/collections/automotive?filter.p.vendor=Urban&sort_by=best-selling';
-const GP_PORTAL_BASE_URL = 'https://gp-portal.eu';
-const URBAN_BRAND = 'Urban Automotive';
+  "https://gp-portal.eu/collections/automotive?filter.p.vendor=Urban&sort_by=best-selling";
+const GP_PORTAL_BASE_URL = "https://gp-portal.eu";
+const URBAN_BRAND = "Urban Automotive";
 const USD_IMPORT_FLOOR = 200;
 const MAX_COLLECTION_PAGES = 30;
 const STOP_AFTER_STALE_PAGES = 2;
@@ -125,7 +125,7 @@ export type PreparedUrbanGpPortalProduct = {
   categoryUa: string | null;
   family: UrbanCatalogFamily;
   tags: string[];
-  stock: 'inStock' | 'preOrder';
+  stock: "inStock" | "preOrder";
   image: string;
   gallery: string[];
   vehicleModelHandles: string[];
@@ -187,26 +187,22 @@ type RunUrbanGpPortalSyncOptions = {
 };
 
 function nowStamp() {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+  return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
 function normalizeWhitespace(value: string) {
-  return value.replace(/\s+/g, ' ').trim();
+  return value.replace(/\s+/g, " ").trim();
 }
 
 function normalizeMatchText(value: string) {
   return normalizeWhitespace(value)
     .toLowerCase()
-    .replace(/&/g, ' and ')
-    .replace(/[./]/g, ' ')
-    .replace(/-/g, ' ')
-    .replace(/[^a-z0-9\s]+/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/&/g, " and ")
+    .replace(/[./]/g, " ")
+    .replace(/-/g, " ")
+    .replace(/[^a-z0-9\s]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
-}
-
-function stripHtml(value: string | null | undefined) {
-  return normalizeWhitespace(String(value ?? '').replace(/<[^>]+>/g, ' '));
 }
 
 function centsToEur(value: number | null | undefined) {
@@ -228,16 +224,14 @@ function defaultSleep(ms: number) {
   });
 }
 
-function normalizeTags(tags: GpPortalProduct['tags']) {
+function normalizeTags(tags: GpPortalProduct["tags"]) {
   if (Array.isArray(tags)) {
-    return tags
-      .map((entry) => normalizeWhitespace(String(entry ?? '')))
-      .filter(Boolean);
+    return tags.map((entry) => normalizeWhitespace(String(entry ?? ""))).filter(Boolean);
   }
 
-  if (typeof tags === 'string') {
+  if (typeof tags === "string") {
     return tags
-      .split(',')
+      .split(",")
       .map((entry) => normalizeWhitespace(entry))
       .filter(Boolean);
   }
@@ -245,20 +239,22 @@ function normalizeTags(tags: GpPortalProduct['tags']) {
   return [];
 }
 
-function normalizeImageUrl(value: string | { src?: string | null; url?: string | null } | null | undefined) {
+function normalizeImageUrl(
+  value: string | { src?: string | null; url?: string | null } | null | undefined
+) {
   if (!value) return null;
   const raw =
-    typeof value === 'string'
+    typeof value === "string"
       ? value
-      : typeof value.src === 'string'
+      : typeof value.src === "string"
         ? value.src
-        : typeof value.url === 'string'
+        : typeof value.url === "string"
           ? value.url
-          : '';
+          : "";
 
   const cleaned = raw.trim();
   if (!cleaned) return null;
-  if (cleaned.startsWith('//')) return `https:${cleaned}`;
+  if (cleaned.startsWith("//")) return `https:${cleaned}`;
   return cleaned;
 }
 
@@ -267,18 +263,20 @@ function stripQueryAndHash(url: string) {
 }
 
 export function isGpPortalPlaceholderImage(image: string | null | undefined) {
-  const normalized = String(image ?? '').trim().toLowerCase();
+  const normalized = String(image ?? "")
+    .trim()
+    .toLowerCase();
   const normalizedPath = stripQueryAndHash(normalized);
   if (!normalized) return true;
 
   if (
     [
-      'image-coming-soon',
-      'coming-soon',
-      'comingsoon',
-      'placeholder',
-      'no-image',
-      'image_coming_soon',
+      "image-coming-soon",
+      "coming-soon",
+      "comingsoon",
+      "placeholder",
+      "no-image",
+      "image_coming_soon",
     ].some((marker) => normalized.includes(marker))
   ) {
     return true;
@@ -286,7 +284,9 @@ export function isGpPortalPlaceholderImage(image: string | null | undefined) {
 
   if (
     normalizedPath.includes("cdn.shopify.com") &&
-    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalizedPath))
+    /\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(
+      normalizedPath
+    )
   ) {
     return true;
   }
@@ -299,7 +299,7 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   const result: string[] = [];
 
   values.forEach((value) => {
-    const normalized = String(value ?? '').trim();
+    const normalized = String(value ?? "").trim();
     if (!normalized || seen.has(normalized)) {
       return;
     }
@@ -311,28 +311,28 @@ function uniqueStrings(values: Array<string | null | undefined>) {
 }
 
 function normalizeVendor(value: string | null | undefined) {
-  return normalizeWhitespace(String(value ?? '')).toLowerCase();
+  return normalizeWhitespace(String(value ?? "")).toLowerCase();
 }
 
 function buildPagedCollectionUrl(collectionUrl: string, page: number) {
   const url = new URL(collectionUrl);
-  url.searchParams.set('page', String(page));
+  url.searchParams.set("page", String(page));
   return url.toString();
 }
 
 function buildRetryableHeaders(accept: string): HeadersInit {
   return {
-    'user-agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
     accept,
-    'accept-language': 'en-GB,en;q=0.9,uk;q=0.8',
+    "accept-language": "en-GB,en;q=0.9,uk;q=0.8",
     referer: `${GP_PORTAL_BASE_URL}/`,
-    'cache-control': 'no-cache',
+    "cache-control": "no-cache",
   };
 }
 
 function getRetryDelayMs(response: Response, attempt: number) {
-  const retryAfter = response.headers.get('retry-after');
+  const retryAfter = response.headers.get("retry-after");
   if (retryAfter) {
     const retryAfterSeconds = Number(retryAfter);
     if (Number.isFinite(retryAfterSeconds)) {
@@ -349,16 +349,16 @@ function getRetryDelayMs(response: Response, attempt: number) {
 }
 
 function exactCategoryFromProduct(product: GpPortalProduct, family: UrbanCatalogFamily) {
-  const value = normalizeWhitespace(String(product.type ?? product.product_type ?? ''));
+  const value = normalizeWhitespace(String(product.type ?? product.product_type ?? ""));
   if (value) return value;
 
   const fallbackByFamily: Record<UrbanCatalogFamily, string> = {
-    bodykits: 'Bodykits',
-    exterior: 'Exterior Components',
-    wheels: 'Wheels',
-    exhaust: 'Exhaust',
-    interior: 'Interior',
-    accessories: 'Accessories',
+    bodykits: "Bodykits",
+    exterior: "Exterior Components",
+    wheels: "Wheels",
+    exhaust: "Exhaust",
+    interior: "Interior",
+    accessories: "Accessories",
   };
 
   return fallbackByFamily[family];
@@ -374,21 +374,24 @@ function buildStructuredTags({
   vehicleBrand: string;
 }) {
   const slugifiedBrand = normalizeUrbanCatalogTagValue(vehicleBrand);
-  return replaceStorefrontTag([
-    ...rawTags,
-    structuredUrbanFamilyTag(family),
-    'urban-source:gp-portal',
-    `urban-vehicle-brand:${slugifiedBrand}`,
-    'urban-manufacturer:urban-automotive',
-  ], 'urban');
+  return replaceStorefrontTag(
+    [
+      ...rawTags,
+      structuredUrbanFamilyTag(family),
+      "urban-source:gp-portal",
+      `urban-vehicle-brand:${slugifiedBrand}`,
+      "urban-manufacturer:urban-automotive",
+    ],
+    "urban"
+  );
 }
 
 function normalizeUrbanCatalogTagValue(value: string) {
   return normalizeWhitespace(value)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function extractSequenceHandles(text: string, marker: RegExp, lookup: Record<string, string>) {
@@ -396,7 +399,7 @@ function extractSequenceHandles(text: string, marker: RegExp, lookup: Record<str
   const handles: string[] = [];
 
   matches.forEach((match) => {
-    const token = normalizeMatchText(match[0] ?? '');
+    const token = normalizeMatchText(match[0] ?? "");
     const handle = lookup[token];
     if (handle && !handles.includes(handle)) {
       handles.push(handle);
@@ -427,7 +430,7 @@ function getUrbanFallbackImage(handles: string[]) {
 }
 
 function inferCollectionHandlesFromSource(title: string, tags: string[]) {
-  const haystack = normalizeMatchText(`${title} ${tags.join(' ')}`);
+  const haystack = normalizeMatchText(`${title} ${tags.join(" ")}`);
   const handles: string[] = [];
   const add = (handle: string | null | undefined) => {
     if (handle && !handles.includes(handle)) {
@@ -436,51 +439,43 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
   };
 
   if (/\bdefender\b|\bl663\b/.test(haystack)) {
-    const defenderHandles = extractSequenceHandles(haystack, /\b(?:90|110|130|octa)\b/g, {
-      '90': 'land-rover-defender-90',
-      '110': 'land-rover-defender-110',
-      '130': 'land-rover-defender-130',
-      octa: 'land-rover-defender-110-octa',
+    const defenderHandles = extractSequenceHandles(haystack, /\bocta\b/g, {
+      octa: "land-rover-defender-110-octa",
     });
     defenderHandles.forEach(add);
 
-    if (!defenderHandles.length && /\bl663\b/.test(haystack)) {
-      add('land-rover-defender-90');
-      add('land-rover-defender-110');
-      add('land-rover-defender-130');
-    } else if (!defenderHandles.length && /\bdefender\b/.test(haystack) && !/\bclassic\b/.test(haystack)) {
-      add('land-rover-defender-90');
-      add('land-rover-defender-110');
-      add('land-rover-defender-130');
+    if (!defenderHandles.length) {
+      add("land-rover-defender");
     }
   }
 
   extractSequenceHandles(haystack, /\bl460\b|\bl461\b|\bl494\b/g, {
-    l460: 'range-rover-l460',
-    l461: 'range-rover-sport-l461',
-    l494: 'range-rover-sport-l494',
+    l460: "range-rover-l460",
+    l461: "range-rover-sport-l461",
+    l494: "range-rover-sport-l494",
   }).forEach(add);
 
-  if (/\bdiscovery\b/.test(haystack) && /\b5\b/.test(haystack)) add('land-rover-discovery-5');
+  if (/\bdiscovery\b/.test(haystack) && /\b5\b/.test(haystack)) add("land-rover-discovery-5");
   if (/\burus\b/.test(haystack)) {
     if (/\bperformante\b/.test(haystack)) {
-      add('lamborghini-urus-performante');
+      add("lamborghini-urus-performante");
     } else if (/\bse\b/.test(haystack)) {
-      add('lamborghini-urus-se');
+      add("lamborghini-urus-se");
     } else if (/\burus s\b|\bs urus\b/.test(haystack)) {
-      add('lamborghini-urus-s');
+      add("lamborghini-urus-s");
     } else {
-      add('lamborghini-urus');
+      add("lamborghini-urus");
     }
   }
 
-  if (/\baventador\b/.test(haystack)) add('lamborghini-aventador-s');
+  if (/\baventador\b/.test(haystack)) add("lamborghini-aventador-s");
 
   if (/\bcullinan\b/.test(haystack)) {
-    add(/\bseries ii\b/.test(haystack) ? 'rolls-royce-cullinan-series-ii' : 'rolls-royce-cullinan');
+    add(/\bseries ii\b/.test(haystack) ? "rolls-royce-cullinan-series-ii" : "rolls-royce-cullinan");
   }
 
-  if (/\bghost\b/.test(haystack) && /\bseries ii\b/.test(haystack)) add('rolls-royce-ghost-series-ii');
+  if (/\bghost\b/.test(haystack) && /\bseries ii\b/.test(haystack))
+    add("rolls-royce-ghost-series-ii");
 
   if (/\bg[\s-]?wagon\b|\bg[\s-]?class\b|\bg63\b|\bw463a\b|\bw465\b/.test(haystack)) {
     const hasSoftkit = /\bw463a\b|\bsoft\s?kit\b|\bsoftkit\b/.test(haystack);
@@ -489,48 +484,48 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
     const hasW465 = /\bw465\b/.test(haystack);
 
     if (hasSoftkit) {
-      add('mercedes-g-wagon-softkit');
+      add("mercedes-g-wagon-softkit");
     } else {
       if (hasAerokit) {
-        add('mercedes-g-wagon-w465-aerokit');
+        add("mercedes-g-wagon-w465-aerokit");
       }
 
       if (hasWidetrack || (hasW465 && !hasAerokit)) {
-        add('mercedes-g-wagon-w465-widetrack');
+        add("mercedes-g-wagon-w465-widetrack");
       }
 
       if (!hasAerokit && !hasWidetrack && !hasW465) {
-        add('mercedes-g-wagon-w465-aerokit');
+        add("mercedes-g-wagon-w465-aerokit");
       }
     }
   }
 
-  if (/\beqc\b/.test(haystack)) add('mercedes-eqc');
+  if (/\beqc\b/.test(haystack)) add("mercedes-eqc");
 
   if (/\brsq8\b/.test(haystack)) {
     const preFaceliftPattern = /\bpre[\s-]?facelift\b/i;
     const hasPreFacelift = preFaceliftPattern.test(haystack);
-    const haystackWithoutPreFacelift = haystack.replace(/\bpre[\s-]?facelift\b/gi, ' ');
+    const haystackWithoutPreFacelift = haystack.replace(/\bpre[\s-]?facelift\b/gi, " ");
     const hasFacelift = /\bfacelift\b|\b2024\b|\b2025\b/.test(haystackWithoutPreFacelift);
 
     if (hasPreFacelift && hasFacelift) {
-      add('audi-rsq8');
-      add('audi-rsq8-facelift');
+      add("audi-rsq8");
+      add("audi-rsq8-facelift");
     } else if (hasPreFacelift) {
-      add('audi-rsq8');
+      add("audi-rsq8");
     } else if (hasFacelift) {
-      add('audi-rsq8-facelift');
+      add("audi-rsq8-facelift");
     } else {
-      add('audi-rsq8');
+      add("audi-rsq8");
     }
   }
 
-  if (/\brs6\b|\brs7\b/.test(haystack)) add('audi-rs6-rs7');
-  if (/\brs4\b/.test(haystack)) add('audi-rs4');
-  if (/\brs3\b/.test(haystack)) add('audi-rs3');
-  if (/\bcontinental gt\b|\bcontinental gtc\b/.test(haystack)) add('bentley-continental-gt');
-  if (/\bgolf r\b/.test(haystack)) add('volkswagen-golf-r');
-  if (/\bt6 1\b|\bt6\.1\b|\btransporter\b/.test(haystack)) add('volkswagen-transporter-t6-1');
+  if (/\brs6\b|\brs7\b/.test(haystack)) add("audi-rs6-rs7");
+  if (/\brs4\b/.test(haystack)) add("audi-rs4");
+  if (/\brs3\b/.test(haystack)) add("audi-rs3");
+  if (/\bcontinental gt\b|\bcontinental gtc\b/.test(haystack)) add("bentley-continental-gt");
+  if (/\bgolf r\b/.test(haystack)) add("volkswagen-golf-r");
+  if (/\bt6 1\b|\bt6\.1\b|\btransporter\b/.test(haystack)) add("volkswagen-transporter-t6-1");
 
   return handles;
 }
@@ -539,30 +534,34 @@ function buildCollectionLabel(handles: string[]) {
   return handles
     .map((handle) => getUrbanCard(handle)?.title ?? null)
     .filter((label): label is string => Boolean(label))
-    .join(' / ');
+    .join(" / ");
 }
 
 function isUrbanImageMismatchForCollection(image: string | null | undefined, handles: string[]) {
-  const normalized = stripQueryAndHash(String(image ?? '').trim().toLowerCase());
+  const normalized = stripQueryAndHash(
+    String(image ?? "")
+      .trim()
+      .toLowerCase()
+  );
   if (!normalized) {
     return false;
   }
 
-  const hasGwagonHandle = handles.some((handle) => handle.startsWith('mercedes-g-wagon'));
-  if (hasGwagonHandle && normalized.includes('defender')) {
+  const hasGwagonHandle = handles.some((handle) => handle.startsWith("mercedes-g-wagon"));
+  if (hasGwagonHandle && normalized.includes("defender")) {
     return true;
   }
 
-  if (handles.includes('mercedes-g-wagon-softkit')) {
-    return normalized.includes('gwagonwidetrack2024') || normalized.includes('gwagonaerokit2024');
+  if (handles.includes("mercedes-g-wagon-softkit")) {
+    return normalized.includes("gwagonwidetrack2024") || normalized.includes("gwagonaerokit2024");
   }
 
-  if (handles.includes('mercedes-g-wagon-w465-widetrack')) {
-    return normalized.includes('gwagonsoftkit') || normalized.includes('gwagonaerokit2024');
+  if (handles.includes("mercedes-g-wagon-w465-widetrack")) {
+    return normalized.includes("gwagonsoftkit") || normalized.includes("gwagonaerokit2024");
   }
 
-  if (handles.includes('mercedes-g-wagon-w465-aerokit')) {
-    return normalized.includes('gwagonsoftkit') || normalized.includes('gwagonwidetrack2024');
+  if (handles.includes("mercedes-g-wagon-w465-aerokit")) {
+    return normalized.includes("gwagonsoftkit") || normalized.includes("gwagonwidetrack2024");
   }
 
   return false;
@@ -574,7 +573,9 @@ function remediateUrbanPreparedImages(params: {
   collectionHandles: string[];
 }) {
   const filteredGallery = uniqueStrings(
-    params.gallery.filter((url) => !isUrbanImageMismatchForCollection(url, params.collectionHandles))
+    params.gallery.filter(
+      (url) => !isUrbanImageMismatchForCollection(url, params.collectionHandles)
+    )
   );
   const fallbackImage =
     params.collectionHandles
@@ -596,16 +597,16 @@ function normalizeGalleryImages(product: GpPortalProduct) {
   return uniqueStrings([
     normalizeImageUrl(product.featured_image),
     ...(product.images ?? []).map((image) => normalizeImageUrl(image)),
-    ...((product.variants ?? []).map((variant) => normalizeImageUrl(variant.featured_image))),
+    ...(product.variants ?? []).map((variant) => normalizeImageUrl(variant.featured_image)),
   ]).filter((image) => !isGpPortalPlaceholderImage(image));
 }
 
-function normalizeOptions(options: GpPortalProduct['options']) {
-  const normalizedOptions: Array<AdminShopProductOptionInput | null> = (options ?? [])
-    .map((option, index) => {
-      if (typeof option === 'string') {
+function normalizeOptions(options: GpPortalProduct["options"]) {
+  const normalizedOptions: Array<AdminShopProductOptionInput | null> = (options ?? []).map(
+    (option, index) => {
+      if (typeof option === "string") {
         const normalizedName = normalizeWhitespace(option);
-        if (!normalizedName || normalizedName === 'Title') return null;
+        if (!normalizedName || normalizedName === "Title") return null;
 
         return {
           name: normalizedName,
@@ -614,17 +615,20 @@ function normalizeOptions(options: GpPortalProduct['options']) {
         } satisfies AdminShopProductOptionInput;
       }
 
-      const name = normalizeWhitespace(String(option?.name ?? ''));
-      if (!name || name === 'Title') return null;
+      const name = normalizeWhitespace(String(option?.name ?? ""));
+      if (!name || name === "Title") return null;
 
       return {
         name,
         position: Number(option?.position ?? index + 1) || index + 1,
-        values: uniqueStrings((option?.values ?? []).map((value) => String(value ?? '').trim())),
+        values: uniqueStrings((option?.values ?? []).map((value) => String(value ?? "").trim())),
       } satisfies AdminShopProductOptionInput;
-    });
+    }
+  );
 
-  return normalizedOptions.filter((option): option is AdminShopProductOptionInput => option !== null);
+  return normalizedOptions.filter(
+    (option): option is AdminShopProductOptionInput => option !== null
+  );
 }
 
 function buildMedia(gallery: string[], title: string) {
@@ -634,13 +638,13 @@ function buildMedia(gallery: string[], title: string) {
         src,
         altText: title,
         position: index + 1,
-        mediaType: 'IMAGE',
+        mediaType: "IMAGE",
       }) satisfies AdminShopProductMediaInput
   );
 }
 
 function productAvailable(product: GpPortalProduct, variants: GpPortalVariant[]) {
-  if (typeof product.available === 'boolean') {
+  if (typeof product.available === "boolean") {
     return product.available;
   }
 
@@ -658,9 +662,11 @@ function buildVariant(
   currencyRates: CurrencyRates
 ) {
   const rawPriceEur = centsToEur(variant.price ?? null);
-  const rawCompareAtEur = variant.compare_at_price == null ? null : centsToEur(variant.compare_at_price);
+  const rawCompareAtEur =
+    variant.compare_at_price == null ? null : centsToEur(variant.compare_at_price);
   const price = buildUrbanGpPortalPriceSet(rawPriceEur, currencyRates);
-  const compareAt = rawCompareAtEur != null ? buildUrbanGpPortalPriceSet(rawCompareAtEur, currencyRates) : null;
+  const compareAt =
+    rawCompareAtEur != null ? buildUrbanGpPortalPriceSet(rawCompareAtEur, currencyRates) : null;
   const inventoryQty = Number.isFinite(variant.inventory_quantity ?? NaN)
     ? Number(variant.inventory_quantity)
     : variant.available === false
@@ -670,24 +676,24 @@ function buildVariant(
   const usableVariantImage =
     variantImage && !isGpPortalPlaceholderImage(variantImage) ? variantImage : fallbackImage;
   const inventoryPolicy = normalizeWhitespace(
-    String(variant.inventory_policy ?? variant.inventory_management ?? '')
+    String(variant.inventory_policy ?? variant.inventory_management ?? "")
   ).toLowerCase();
 
   return {
-    title: normalizeWhitespace(String(variant.title ?? 'Default Title')) || 'Default Title',
-    sku: normalizeWhitespace(String(variant.sku ?? '')) || null,
+    title: normalizeWhitespace(String(variant.title ?? "Default Title")) || "Default Title",
+    sku: normalizeWhitespace(String(variant.sku ?? "")) || null,
     position: index + 1,
-    option1Value: variant.option1 && variant.option1 !== 'Default Title' ? variant.option1 : null,
+    option1Value: variant.option1 && variant.option1 !== "Default Title" ? variant.option1 : null,
     option1LinkedTo: null,
     option2Value: variant.option2 ?? null,
     option2LinkedTo: null,
     option3Value: variant.option3 ?? null,
     option3LinkedTo: null,
     grams: Number.isFinite(variant.weight ?? NaN) ? Number(variant.weight) : null,
-    inventoryTracker: normalizeWhitespace(String(variant.inventory_management ?? '')) || null,
+    inventoryTracker: normalizeWhitespace(String(variant.inventory_management ?? "")) || null,
     inventoryQty,
-    inventoryPolicy: inventoryPolicy === 'deny' ? 'DENY' : 'CONTINUE',
-    fulfillmentService: 'manual',
+    inventoryPolicy: inventoryPolicy === "deny" ? "DENY" : "CONTINUE",
+    fulfillmentService: "manual",
     priceEur: price.eur,
     priceUsd: price.usd,
     priceUah: price.uah,
@@ -696,7 +702,7 @@ function buildVariant(
     compareAtUah: compareAt?.uah ?? null,
     requiresShipping: variant.requires_shipping !== false,
     taxable: variant.taxable !== false,
-    barcode: normalizeWhitespace(String(variant.barcode ?? '')) || null,
+    barcode: normalizeWhitespace(String(variant.barcode ?? "")) || null,
     image: usableVariantImage,
     weightUnit: null,
     taxCode: null,
@@ -705,19 +711,23 @@ function buildVariant(
   } satisfies AdminShopProductVariantInput;
 }
 
-function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: string[], now: Date): AdminShopProductPayload {
+function buildAdminPayload(
+  item: PreparedUrbanGpPortalProduct,
+  collectionIds: string[],
+  now: Date
+): AdminShopProductPayload {
   return {
     slug: item.slug,
     sku: item.sku,
-    scope: 'auto',
-    storefront: 'urban',
+    scope: "auto",
+    storefront: "urban",
     brand: item.vehicleBrand,
     vendor: item.vendor,
     productType: item.productType,
     productCategory: item.exactCategory,
-    tags: replaceStorefrontTag(item.tags, 'urban'),
+    tags: replaceStorefrontTag(item.tags, "urban"),
     collectionIds,
-    status: 'ACTIVE',
+    status: "ACTIVE",
     titleUa: item.titleUa,
     titleEn: item.titleEn,
     categoryUa: item.categoryUa,
@@ -753,58 +763,58 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
     variants: item.variants,
     metafields: [
       {
-        namespace: 'custom',
-        key: 'gp_portal_handle',
+        namespace: "custom",
+        key: "gp_portal_handle",
         value: item.sourceHandle,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'urban_sync_source',
-        value: 'gp-portal',
-        valueType: 'single_line_text_field',
+        namespace: "custom",
+        key: "urban_sync_source",
+        value: "gp-portal",
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'vehicle_brand',
+        namespace: "custom",
+        key: "vehicle_brand",
         value: item.vehicleBrand,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'vehicle_model_handles',
-        value: item.vehicleModelHandles.join(','),
-        valueType: 'multi_line_text_field',
+        namespace: "custom",
+        key: "vehicle_model_handles",
+        value: item.vehicleModelHandles.join(","),
+        valueType: "multi_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'vehicle_family',
+        namespace: "custom",
+        key: "vehicle_family",
         value: item.family,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'manufacturer',
+        namespace: "custom",
+        key: "manufacturer",
         value: item.manufacturer,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'source_vendor',
-        value: item.sourceVendor ?? '',
-        valueType: 'single_line_text_field',
+        namespace: "custom",
+        key: "source_vendor",
+        value: item.sourceVendor ?? "",
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'source_type',
-        value: item.sourceType ?? '',
-        valueType: 'single_line_text_field',
+        namespace: "custom",
+        key: "source_type",
+        value: item.sourceType ?? "",
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'source_tags',
-        value: item.sourceTags.join('\n'),
-        valueType: 'multi_line_text_field',
+        namespace: "custom",
+        key: "source_tags",
+        value: item.sourceTags.join("\n"),
+        valueType: "multi_line_text_field",
       },
     ],
   };
@@ -812,22 +822,22 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
 
 function getUrbanCatalogWhere() {
   return {
-    scope: 'auto',
+    scope: "auto",
     metafields: {
       some: {
-        namespace: 'custom',
-        key: 'urban_sync_source',
-        value: 'gp-portal',
+        namespace: "custom",
+        key: "urban_sync_source",
+        value: "gp-portal",
       },
     },
   };
 }
 
 async function defaultBackupCurrentCatalog(catalog: unknown[]) {
-  const directory = path.join(process.cwd(), 'backups', 'urban-gp-portal');
+  const directory = path.join(process.cwd(), "backups", "urban-gp-portal");
   await fs.mkdir(directory, { recursive: true });
   const filePath = path.join(directory, `urban-gp-portal-backup-${nowStamp()}.json`);
-  await fs.writeFile(filePath, JSON.stringify(catalog, null, 2), 'utf8');
+  await fs.writeFile(filePath, JSON.stringify(catalog, null, 2), "utf8");
   return filePath;
 }
 
@@ -873,7 +883,7 @@ export function extractGpPortalProductHandles(html: string) {
   const rx = /\/(?:collections\/[^"'?#]+\/)?products\/([^"'?#/]+)(?=[?#"'\/]|$)/gi;
 
   for (const match of html.matchAll(rx)) {
-    const handle = String(match[1] ?? '').trim();
+    const handle = String(match[1] ?? "").trim();
     if (!handle || seen.has(handle)) {
       continue;
     }
@@ -912,7 +922,10 @@ export function prepareUrbanGpPortalProducts(
   const unmappedVehicleBrands = new Set<string>();
   const unmappedVehicleModels = new Set<string>();
   const unmappedCategories = new Set<string>();
-  const priceFloorEur = usdImportFloorToEur(options.usdImportFloor ?? USD_IMPORT_FLOOR, options.currencyRates);
+  const priceFloorEur = usdImportFloorToEur(
+    options.usdImportFloor ?? USD_IMPORT_FLOOR,
+    options.currencyRates
+  );
 
   products.forEach((product) => {
     const tags = normalizeTags(product.tags);
@@ -935,14 +948,16 @@ export function prepareUrbanGpPortalProducts(
       skippedItems.push({
         handle: product.handle,
         title: product.title,
-        reason: 'hidden: no Urban collection match',
+        reason: "hidden: no Urban collection match",
       });
       return;
     }
 
     const modelFacets = getUrbanModelFacetsFromHandles(collectionHandles);
     const primaryModelHandle =
-      collectionHandles.find((handle) => Boolean(getUrbanCard(handle))) ?? collectionHandles[0] ?? null;
+      collectionHandles.find((handle) => Boolean(getUrbanCard(handle))) ??
+      collectionHandles[0] ??
+      null;
     const primaryModel = primaryModelHandle ? getUrbanCard(primaryModelHandle) : null;
     const vehicleBrand = primaryModel?.brand ?? modelFacets[0]?.brand ?? null;
     if (!vehicleBrand) {
@@ -950,7 +965,7 @@ export function prepareUrbanGpPortalProducts(
       skippedItems.push({
         handle: product.handle,
         title: product.title,
-        reason: 'hidden: no vehicle brand match from Urban collection handles',
+        reason: "hidden: no vehicle brand match from Urban collection handles",
       });
       return;
     }
@@ -975,16 +990,16 @@ export function prepareUrbanGpPortalProducts(
       skippedItems.push({
         handle: product.handle,
         title: product.title,
-        reason: 'hidden: no usable product image or fallback image available',
+        reason: "hidden: no usable product image or fallback image available",
       });
       return;
     }
 
-    const descriptionHtml = sanitizeRichTextHtml(String(product.description ?? '').trim());
+    const descriptionHtml = sanitizeRichTextHtml(String(product.description ?? "").trim());
     const descriptionText = htmlToPlainText(descriptionHtml) || normalizeWhitespace(product.title);
     const price = buildUrbanGpPortalPriceSet(sourcePriceEur, options.currencyRates);
     const family = inferUrbanFamilyFromValues([
-      String(product.type ?? product.product_type ?? ''),
+      String(product.type ?? product.product_type ?? ""),
       product.title,
       ...tags,
       buildCollectionLabel(collectionHandles),
@@ -994,14 +1009,17 @@ export function prepareUrbanGpPortalProducts(
     if (exactCategoryUa.isFallback) {
       unmappedCategories.add(exactCategory);
     }
-    const sourceCompareAtEur = product.compare_at_price == null ? null : centsToEur(product.compare_at_price);
+    const sourceCompareAtEur =
+      product.compare_at_price == null ? null : centsToEur(product.compare_at_price);
     const compareAt =
-      sourceCompareAtEur != null ? buildUrbanGpPortalPriceSet(sourceCompareAtEur, options.currencyRates) : null;
+      sourceCompareAtEur != null
+        ? buildUrbanGpPortalPriceSet(sourceCompareAtEur, options.currencyRates)
+        : null;
     const variants = (product.variants ?? []).length
       ? (product.variants ?? [])
       : [
           {
-            title: 'Default Title',
+            title: "Default Title",
             sku: null,
             available: product.available ?? true,
             price: product.price ?? null,
@@ -1017,7 +1035,7 @@ export function prepareUrbanGpPortalProducts(
 
     importableItems.push({
       slug: product.handle,
-      sku: normalizeWhitespace(String(normalizedVariants[0]?.sku ?? '')) || null,
+      sku: normalizeWhitespace(String(normalizedVariants[0]?.sku ?? "")) || null,
       title: titleEn,
       titleUa,
       titleEn,
@@ -1027,7 +1045,7 @@ export function prepareUrbanGpPortalProducts(
       vehicleBrand,
       brand: vehicleBrand,
       vendor: URBAN_BRAND,
-      productType: normalizeWhitespace(String(product.type ?? product.product_type ?? '')) || null,
+      productType: normalizeWhitespace(String(product.type ?? product.product_type ?? "")) || null,
       exactCategory,
       categoryUa: exactCategoryUa.label,
       family,
@@ -1036,7 +1054,7 @@ export function prepareUrbanGpPortalProducts(
         family,
         vehicleBrand,
       }),
-      stock: productAvailable(product, variants) ? 'inStock' : 'preOrder',
+      stock: productAvailable(product, variants) ? "inStock" : "preOrder",
       image,
       gallery: itemGallery,
       vehicleModelHandles: collectionHandles,
@@ -1054,7 +1072,7 @@ export function prepareUrbanGpPortalProducts(
       media: buildMedia(itemGallery, titleEn),
       sourceHandle: product.handle,
       sourceVendor: product.vendor ?? null,
-      sourceType: normalizeWhitespace(String(product.type ?? product.product_type ?? '')) || null,
+      sourceType: normalizeWhitespace(String(product.type ?? product.product_type ?? "")) || null,
       sourceTags: tags,
       sourcePriceEur,
       sourceCompareAtEur,
@@ -1087,7 +1105,9 @@ export async function applyUrbanGpPortalSnapshot(
   }
 
   if (input.blockers.length) {
-    throw new Error(`Cannot commit Urban GP Portal sync while blockers remain (${input.blockers.length})`);
+    throw new Error(
+      `Cannot commit Urban GP Portal sync while blockers remain (${input.blockers.length})`
+    );
   }
 
   const existingCatalog = await prisma.shopProduct.findMany({
@@ -1104,15 +1124,14 @@ export async function applyUrbanGpPortalSnapshot(
       metafields: true,
     },
   });
-  const backupPath = await (input.backupCurrentCatalog ?? defaultBackupCurrentCatalog)(existingCatalog);
-  const now = input.now ?? new Date();
-  const collectionIdByHandle = await prisma.$transaction(
-    async (tx) => ensureUrbanCollections(tx),
-    {
-      timeout: URBAN_SYNC_TRANSACTION_TIMEOUT_MS,
-      maxWait: URBAN_SYNC_TRANSACTION_MAX_WAIT_MS,
-    }
+  const backupPath = await (input.backupCurrentCatalog ?? defaultBackupCurrentCatalog)(
+    existingCatalog
   );
+  const now = input.now ?? new Date();
+  const collectionIdByHandle = await prisma.$transaction(async (tx) => ensureUrbanCollections(tx), {
+    timeout: URBAN_SYNC_TRANSACTION_TIMEOUT_MS,
+    maxWait: URBAN_SYNC_TRANSACTION_MAX_WAIT_MS,
+  });
 
   for (const item of input.items) {
     const collectionIds = uniqueStrings(
@@ -1142,7 +1161,7 @@ export async function applyUrbanGpPortalSnapshot(
           ],
         },
         data: {
-          status: 'ARCHIVED',
+          status: "ARCHIVED",
           isPublished: false,
           publishedAt: null,
         },
@@ -1235,7 +1254,7 @@ export async function crawlGpPortalCollectionProducts({
   for (let page = 1; page <= maxPages; page += 1) {
     const response = await fetchWithRetry({
       url: buildPagedCollectionUrl(collectionUrl, page),
-      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       fetchImpl,
       sleepImpl,
       retryState,
@@ -1255,13 +1274,13 @@ export async function crawlGpPortalCollectionProducts({
 
       const productResponse = await fetchWithRetry({
         url: `${baseUrl}/products/${handle}.js`,
-        accept: 'application/json,text/plain;q=0.9,*/*;q=0.8',
+        accept: "application/json,text/plain;q=0.9,*/*;q=0.8",
         fetchImpl,
         sleepImpl,
         retryState,
       });
       const product = (await productResponse.json()) as GpPortalProduct;
-      if (normalizeVendor(product.vendor) !== 'urban') {
+      if (normalizeVendor(product.vendor) !== "urban") {
         continue;
       }
 

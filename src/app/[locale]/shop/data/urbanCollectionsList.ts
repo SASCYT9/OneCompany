@@ -24,13 +24,11 @@ export const URBAN_COLLECTIONS_GRID_SETTINGS = {
 } as const;
 
 export const URBAN_COLLECTION_CARDS: UrbanCollectionCard[] = [
-  { title: 'Defender 110', brand: 'Land Rover', collectionHandle: 'land-rover-defender-110', externalImageUrl: '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp' },
+  { title: 'Defender 90 / 110 / 130', brand: 'Land Rover', collectionHandle: 'land-rover-defender', externalImageUrl: '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp' },
   { title: 'Urus', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus', externalImageUrl: '/images/shop/urban/carousel/models/urus/carousel-1-1920.jpg' },
   { title: 'Cullinan Series II', brand: 'Rolls-Royce', collectionHandle: 'rolls-royce-cullinan-series-ii', externalImageUrl: '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-1-2560.webp' },
   { title: 'G-Wagon Widetrack', brand: 'Mercedes-Benz', collectionHandle: 'mercedes-g-wagon-w465-widetrack', externalImageUrl: '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp' },
   { title: 'RS6 / RS7', brand: 'Audi', collectionHandle: 'audi-rs6-rs7', externalImageUrl: '/images/shop/urban/carousel/models/rs6/carousel-1-1920.jpg' },
-  { title: 'Defender 90', brand: 'Land Rover', collectionHandle: 'land-rover-defender-90', externalImageUrl: '/images/shop/urban/banners/models/defender2020Plus/2025Updates/webp/banner-1-1920.webp' },
-  { title: 'Defender 130', brand: 'Land Rover', collectionHandle: 'land-rover-defender-130', externalImageUrl: '/images/shop/urban/carousel/models/defender2020Plus/carousel-13-1920.jpg', imgFit: 'contain' },
   { title: 'Defender Octa', brand: 'Land Rover', collectionHandle: 'land-rover-defender-110-octa', externalImageUrl: '/images/shop/urban/gallery/models/defenderOcta/webp/urban-automotive-defender-octa-2-2560.webp' },
   { title: 'Urus S', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus-s', externalImageUrl: '/images/shop/urban/hero/models/urusS/hero-1-1920.jpg' },
   { title: 'Urus Performante', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus-performante', externalImageUrl: '/images/shop/urban/hero/models/urusPerformante/hero-1-1920.jpg' },

@@ -43,13 +43,21 @@ const HANDLE_VARIANT_EXCLUSIONS: Record<string, string[]> = {
   "lamborghini-urus": ["Urus SE", "Urus S", "Urus Performante"],
   "rolls-royce-cullinan": ["Cullinan Series II"],
   "rolls-royce-ghost": ["Ghost Series II"],
-  "land-rover-defender-110": ["Defender 110 OCTA", "Defender Octa"],
+  "land-rover-defender": ["Defender 110 OCTA", "Defender Octa"],
 };
 
 const HANDLE_TO_ALIASES: Record<string, string[]> = {
-  "land-rover-defender-110": ["Land Rover Defender 110", "Defender 110"],
-  "land-rover-defender-90": ["Land Rover Defender 90", "Defender 90"],
-  "land-rover-defender-130": ["Land Rover Defender 130", "Defender 130"],
+  "land-rover-defender": [
+    "Land Rover Defender 110",
+    "Defender 110",
+    "Land Rover Defender 90",
+    "Defender 90",
+    "Land Rover Defender 130",
+    "Defender 130",
+    "Land Rover Defender",
+    "Defender",
+    "Defender 90 / 110 / 130",
+  ],
   "land-rover-defender-110-octa": [
     "Land Rover Defender 110 OCTA",
     "Defender 110 OCTA",
@@ -106,9 +114,10 @@ const HANDLE_TO_ALIASES: Record<string, string[]> = {
 };
 
 const EXACT_COLLECTION_TO_HANDLE: Record<string, string> = {
-  "land rover defender 110": "land-rover-defender-110",
-  "land rover defender 90": "land-rover-defender-90",
-  "land rover defender 130": "land-rover-defender-130",
+  "land rover defender 110": "land-rover-defender",
+  "land rover defender 90": "land-rover-defender",
+  "land rover defender 130": "land-rover-defender",
+  "land rover defender": "land-rover-defender",
   "land rover defender 110 octa": "land-rover-defender-110-octa",
   "land rover discovery 5": "land-rover-discovery-5",
   "range rover l460": "range-rover-l460",
@@ -317,7 +326,17 @@ function getUrbanMatchScore(
     const matchesVariant = (candidate: string) =>
       normalizedExclusions.some((excl) => containsAsWord(candidate, excl));
     if (collectionCandidates.some(matchesVariant) || supportCandidates.some(matchesVariant)) {
-      return 0;
+      // Universal parts (like side steps, spoilers, light bars) that fit both standard
+      // Defenders (90/110/130) and the high-end Defender Octa often list both in their
+      // titles or tags. If a Defender product explicitly mentions "90", "110", or "130"
+      // in its candidates, it is a universal part and must NOT be excluded from the base page.
+      const isUniversalDefenderPart =
+        handle === "land-rover-defender" &&
+        supportCandidates.some((candidate) => /\b(90|110|130)\b/.test(candidate));
+
+      if (!isUniversalDefenderPart) {
+        return 0;
+      }
     }
   }
 

@@ -198,7 +198,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                     alt={
                       experience.label === "AUTO" || experience.label === "АВТО"
                         ? "Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна"
-                        : "Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ"
+                        : "Мото тюнінг Україна - Akrapovic, Ohlins, SC-Project Київ"
                     }
                     fill
                     className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block -translate-y-[30%] sm:translate-y-0`}

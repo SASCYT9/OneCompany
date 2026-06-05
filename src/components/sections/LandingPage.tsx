@@ -38,7 +38,6 @@ const topMotoBrands = [
   { name: "Brembo", logo: "/logos/brembo.png" },
   { name: "Marchesini", logo: "/logos/marchesini.png" },
   { name: "OZ Racing", logo: "/logos/oz-racing.png" },
-  { name: "Termignoni", logo: "/logos/termignoni.png" },
   { name: "Arrow", logo: "/logos/arrow.png" },
   { name: "SparkExhaust", logo: "/logos/sparkexhaust.png" },
   { name: "Bitubo", logo: "/logos/bitubo.svg" },
