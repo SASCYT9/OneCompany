@@ -29,7 +29,7 @@ export const RACECHIP_FLAGSHIP = {
   description:
     'GTS 5 Black is the new flagship of the RaceChip line-up. A 7-channel piggyback computer that reads live data from your engine\'s sensors, calculates a safer fuel-and-boost map than the factory ECU, and feeds it back without overwriting any original software. Optimised in real-world test drives at the RaceChip headquarters in Göppingen, Germany — and shipped with App Control already included.',
   descriptionUk:
-    'GTS 5 Black — новий флагман модельного ряду RaceChip. 7-канальний piggyback-комп\'ютер зчитує живі дані з датчиків двигуна, формує безпечніший паливо-наддувний мапу, ніж заводський ECU, та повертає їх назад, не перезаписуючи оригінальне ПЗ. Налаштовано у реальних тестових поїздках у штаб-квартирі RaceChip у Гьоппінгені, Німеччина, і поставляється з App Control у комплекті.',
+    'GTS 5 Black — новий флагман модельного ряду RaceChip. 7-канальний piggyback-комп\'ютер зчитує живі дані з датчиків двигуна, формує безпечнішу паливно-наддувну карту, ніж заводський ECU, та повертає їх назад, не перезаписуючи оригінальне ПЗ. Налаштовано у реальних тестових поїздках у штаб-квартирі RaceChip у Гьоппінгені, Німеччина, і поставляється з App Control у комплекті.',
   imageUrl: 'https://www.racechip.eu/media/wysiwyg/product_overlay/gts-black-three-quarter.png',
   // Highlight bullets (official-style spec list)
   highlights: [

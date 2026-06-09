@@ -123,7 +123,7 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     name: 'Link Pipe Set',
     nameUk: 'Link Pipe Set',
     description: 'Connecting pipes that complete the system. Remove factory catalysts for track-only use.',
-    descriptionUk: 'Зєднувальні труби для завершення системи. Видалення заводських каталізаторів для використання на трасі.',
+    descriptionUk: 'З\'єднувальні труби для завершення системи. Видалення заводських каталізаторів для використання на трасі.',
     badge: 'Track',
     badgeUk: 'Трек',
     image: '/images/shop/akrapovic/line-link-pipe-official.png',

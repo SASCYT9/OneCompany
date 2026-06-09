@@ -53,7 +53,7 @@ export const OHLINS_HERITAGE = {
   title: "Engineered to a single standard.",
   titleUa: "Створено за єдиним стандартом.",
   description: "Designed, machined, dyno-tested in Upplands Väsby, Sweden. The same atelier that supplies factory racing programmes ships every retail damper to the same tolerance.",
-  descriptionUa: "Розроблено, оброблено та випробувано на дино в Upplands Väsby, Швеція. Те саме ательє, що постачає заводські гоночні програми, відвантажує кожен амортизатор за єдиним допуском.",
+  descriptionUa: "Розроблено, оброблено та випробувано на диностенді в Upplands Väsby, Швеція. Те саме ательє, що постачає заводські гоночні програми, відвантажує кожен амортизатор за єдиним допуском.",
   image: "/images/shop/ohlins/factory-fallback.jpg"
 };
 
@@ -77,7 +77,7 @@ export const OHLINS_PILLARS = [
     label: "Aerospace Alloy",
     labelUa: "Авіаційний Сплав",
     body: "Gold anodising over aerospace-grade aluminium. Heat sheds faster, finish stays Öhlins.",
-    bodyUa: "Золоте анодування поверх авіаційного алюмінію. Тепло сходить швидше, фірмовий вигляд лишається."
+    bodyUa: "Золоте анодування поверх авіаційного алюмінію. Тепло відводиться швидше, фірмовий вигляд лишається."
   },
   {
     icon: "sweden",
