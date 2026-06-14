@@ -159,8 +159,10 @@ export async function GET(request: NextRequest) {
     const getProductPriceForSort = (product: any) => {
       const pricing = resolveShopProductPricing(product, pricingContext);
       if (pricing.effectivePrice.usd > 0) return pricing.effectivePrice.usd;
-      if (pricing.effectivePrice.eur > 0) return pricing.effectivePrice.eur * 1.08;
-      if (pricing.effectivePrice.uah > 0) return pricing.effectivePrice.uah / 40.0;
+      const usdRate = settings.currencyRates.USD || 1.152174;
+      const uahRate = settings.currencyRates.UAH || 53.0;
+      if (pricing.effectivePrice.eur > 0) return pricing.effectivePrice.eur * usdRate;
+      if (pricing.effectivePrice.uah > 0) return pricing.effectivePrice.uah / (uahRate / usdRate);
       return 0;
     };
 
@@ -334,11 +336,13 @@ export async function GET(request: NextRequest) {
     const sanitizedItems = paginatedItems.map(({ product, fitment }) => {
       const pricing = resolveShopProductPricing(product, pricingContext);
 
+      const usdRate = settings.currencyRates.USD || 1.152174;
+
       const dealerPrice =
         pricing.effectivePrice.usd > 0
           ? pricing.effectivePrice.usd
           : pricing.effectivePrice.eur > 0
-            ? pricing.effectivePrice.eur * 1.08
+            ? pricing.effectivePrice.eur * usdRate
             : 0;
 
       const msrp =
@@ -347,7 +351,7 @@ export async function GET(request: NextRequest) {
           : pricing.bands?.b2c?.price?.usd > 0
             ? pricing.bands.b2c.price.usd
             : pricing.bands?.b2c?.price?.eur > 0
-              ? pricing.bands.b2c.price.eur * 1.08
+              ? pricing.bands.b2c.price.eur * usdRate
               : null;
 
       const defaultVariant =

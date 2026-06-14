@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
-dotenv.config({ path: '.env' });
-import fs from 'fs';
-import path from 'path';
-import { PrismaClient } from '@prisma/client';
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local", override: true });
+dotenv.config({ path: ".env" });
+import fs from "fs";
+import path from "path";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL,
@@ -39,20 +39,20 @@ interface ScrapedProduct {
   image: string | null;
   gallery: string[];
   available: boolean;
-  category: 'rotors' | 'pads' | 'shields' | 'hardware';
+  category: "rotors" | "pads" | "shields" | "hardware";
   publishedAt: string;
   createdAt: string;
   scrapedAt: string;
 }
 
 // ── Pricing ───────────────────────────────────────────────
-const DISCOUNT = 0.10;        // 10% off atomic-shop.ua price
-const UAH_TO_EUR = 52;        // 1 EUR = 52 UAH
-const UAH_TO_USD = 45;        // 1 USD = 45 UAH
+const DISCOUNT = 0.1; // 10% off atomic-shop.ua price
+const UAH_TO_EUR = 53; // 1 EUR = 53 UAH
+const UAH_TO_USD = 45; // 1 USD = 45 UAH
 
 function calculatePrices(priceUah: number | null) {
   if (!priceUah || priceUah <= 0) return { uah: null, eur: null, usd: null };
-  const discountedUah = priceUah * (1 - DISCOUNT);  // -10%
+  const discountedUah = priceUah * (1 - DISCOUNT); // -10%
   return {
     uah: discountedUah.toFixed(2),
     eur: (discountedUah / UAH_TO_EUR).toFixed(2),
@@ -62,23 +62,23 @@ function calculatePrices(priceUah: number | null) {
 
 // ── Collection IDs ────────────────────────────────────────
 const COLLECTION_MAP: Record<string, string> = {
-  main: 'col_girodisc_main',
-  rotors: 'col_girodisc_rotors',
-  pads: 'col_girodisc_pads',
-  shields: 'col_girodisc_shields',
-  hardware: 'col_girodisc_hardware',
+  main: "col_girodisc_main",
+  rotors: "col_girodisc_rotors",
+  pads: "col_girodisc_pads",
+  shields: "col_girodisc_shields",
+  hardware: "col_girodisc_hardware",
 };
 
 // ── Helpers ────────────────────────────────────────────────
 function generateSlug(p: ScrapedProduct): string {
   // Use the Shopify handle, prefixed with girodisc- if not already
   let slug = p.handle;
-  if (!slug.startsWith('girodisc-')) {
+  if (!slug.startsWith("girodisc-")) {
     slug = `girodisc-${slug}`;
   }
   return slug
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/-+/g, '-')
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
     .substring(0, 200);
 }
 
@@ -92,62 +92,58 @@ function generateTitleEn(p: ScrapedProduct): string {
   // If title is already in Ukrainian, create English version
   // Basic transliteration for common words
   return title
-    .replace(/Комплект передніх гальмівних дисків/gi, 'Front Brake Rotor Kit')
-    .replace(/Комплект задніх гальмівних дисків/gi, 'Rear Brake Rotor Kit')
-    .replace(/Комплект змінних кілець переднього гальмівного диска/gi, 'Front Replacement Ring Kit')
-    .replace(/Комплект змінних кілець заднього гальмівного диска/gi, 'Rear Replacement Ring Kit')
-    .replace(/Комплект змінних кілець гальмівного диска/gi, 'Replacement Ring Kit')
-    .replace(/Комплект сменных колец переднего тормозного диска/gi, 'Front Replacement Ring Kit')
-    .replace(/Передні гальмівні колодки/gi, 'Front Brake Pads')
-    .replace(/Задні гальмівні колодки/gi, 'Rear Brake Pads')
-    .replace(/Гальмівні колодки/gi, 'Brake Pads')
-    .replace(/для /gi, 'for ')
-    .replace(/мм/g, 'mm');
+    .replace(/Комплект передніх гальмівних дисків/gi, "Front Brake Rotor Kit")
+    .replace(/Комплект задніх гальмівних дисків/gi, "Rear Brake Rotor Kit")
+    .replace(/Комплект змінних кілець переднього гальмівного диска/gi, "Front Replacement Ring Kit")
+    .replace(/Комплект змінних кілець заднього гальмівного диска/gi, "Rear Replacement Ring Kit")
+    .replace(/Комплект змінних кілець гальмівного диска/gi, "Replacement Ring Kit")
+    .replace(/Комплект сменных колец переднего тормозного диска/gi, "Front Replacement Ring Kit")
+    .replace(/Передні гальмівні колодки/gi, "Front Brake Pads")
+    .replace(/Задні гальмівні колодки/gi, "Rear Brake Pads")
+    .replace(/Гальмівні колодки/gi, "Brake Pads")
+    .replace(/для /gi, "for ")
+    .replace(/мм/g, "mm");
 }
 
 function generateCategoryLabels(category: string): { categoryUa: string; categoryEn: string } {
   switch (category) {
-    case 'rotors':
-      return { categoryUa: 'Гальмівні диски', categoryEn: 'Brake Rotors' };
-    case 'pads':
-      return { categoryUa: 'Гальмівні колодки', categoryEn: 'Brake Pads' };
-    case 'shields':
-      return { categoryUa: 'Теплові щити', categoryEn: 'Heat Shields' };
-    case 'hardware':
-      return { categoryUa: 'Кріплення', categoryEn: 'Hardware' };
+    case "rotors":
+      return { categoryUa: "Гальмівні диски", categoryEn: "Brake Rotors" };
+    case "pads":
+      return { categoryUa: "Гальмівні колодки", categoryEn: "Brake Pads" };
+    case "shields":
+      return { categoryUa: "Теплові щити", categoryEn: "Heat Shields" };
+    case "hardware":
+      return { categoryUa: "Кріплення", categoryEn: "Hardware" };
     default:
-      return { categoryUa: 'Гальмівні компоненти', categoryEn: 'Brake Components' };
+      return { categoryUa: "Гальмівні компоненти", categoryEn: "Brake Components" };
   }
 }
 
 function generateShortDescUa(p: ScrapedProduct): string {
-  const sku = p.sku || '';
-  if (p.category === 'pads') {
+  const sku = p.sku || "";
+  if (p.category === "pads") {
     return `Гоночні гальмівні колодки GiroDisc ${sku} — преміальний фрикційний склад для треку`;
   }
-  if (p.category === 'shields') {
+  if (p.category === "shields") {
     return `Тепловий щит GiroDisc ${sku} — захист від перегріву гальмівної системи`;
   }
   return `Двокомпонентний гальмівний диск GiroDisc ${sku} — пряма заміна штатного ротора`;
 }
 
 function generateShortDescEn(p: ScrapedProduct): string {
-  const sku = p.sku || '';
-  if (p.category === 'pads') {
+  const sku = p.sku || "";
+  if (p.category === "pads") {
     return `GiroDisc ${sku} Racing Brake Pads — premium friction compound for track use`;
   }
-  if (p.category === 'shields') {
+  if (p.category === "shields") {
     return `GiroDisc ${sku} Heat Shield — thermal protection for braking system`;
   }
   return `GiroDisc ${sku} 2-Piece Brake Rotor — direct replacement for OEM rotor`;
 }
 
 function generateTags(p: ScrapedProduct): string[] {
-  const tags: string[] = [
-    'brand:girodisc',
-    `category:${p.category}`,
-  ];
-
+  const tags: string[] = ["brand:girodisc", `category:${p.category}`];
 
   if (p.sku) {
     tags.push(`sku:${p.sku}`);
@@ -158,22 +154,39 @@ function generateTags(p: ScrapedProduct): string[] {
 
   // Extract car make from title
   const makePatterns = [
-    'BMW', 'PORSCHE', 'FERRARI', 'LAMBORGHINI', 'AUDI', 'MERCEDES',
-    'CHEVROLET', 'DODGE', 'FORD', 'HONDA', 'NISSAN', 'TOYOTA',
-    'LOTUS', 'MCLAREN', 'MASERATI', 'ALFA ROMEO', 'SUBARU',
-    'VOLKSWAGEN', 'MITSUBISHI', 'LEXUS', 'CORVETTE',
+    "BMW",
+    "PORSCHE",
+    "FERRARI",
+    "LAMBORGHINI",
+    "AUDI",
+    "MERCEDES",
+    "CHEVROLET",
+    "DODGE",
+    "FORD",
+    "HONDA",
+    "NISSAN",
+    "TOYOTA",
+    "LOTUS",
+    "MCLAREN",
+    "MASERATI",
+    "ALFA ROMEO",
+    "SUBARU",
+    "VOLKSWAGEN",
+    "MITSUBISHI",
+    "LEXUS",
+    "CORVETTE",
   ];
 
   for (const make of makePatterns) {
     if (p.title.toUpperCase().includes(make)) {
-      tags.push(`car_make:${make.toLowerCase().replace(/\s+/g, '_')}`);
+      tags.push(`car_make:${make.toLowerCase().replace(/\s+/g, "_")}`);
       break;
     }
   }
 
   // Source tags
   for (const tag of p.tags) {
-    if (tag.startsWith('__label')) continue; // Skip Shopify internal labels
+    if (tag.startsWith("__label")) continue; // Skip Shopify internal labels
     tags.push(`source:${tag}`);
   }
 
@@ -182,24 +195,24 @@ function generateTags(p: ScrapedProduct): string[] {
 
 // ── Main ──────────────────────────────────────────────────
 async function main() {
-  const jsonPath = path.join(process.cwd(), 'data', 'girodisc-products.json');
+  const jsonPath = path.join(process.cwd(), "data", "girodisc-products.json");
   if (!fs.existsSync(jsonPath)) {
     console.error(`❌ File not found: ${jsonPath}`);
-    console.error('Run the scraper first: node scripts/scrape-girodisc.mjs');
+    console.error("Run the scraper first: node scripts/scrape-girodisc.mjs");
     return;
   }
 
-  const products: ScrapedProduct[] = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  const products: ScrapedProduct[] = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
   console.log(`📦 Found ${products.length} GiroDisc products to import...`);
 
   // Verify collections exist (lookup by ID prefix)
   const collections = await prisma.shopCollection.findMany({
-    where: { id: { startsWith: 'col_girodisc_' } },
+    where: { id: { startsWith: "col_girodisc_" } },
   });
   console.log(`📁 Found ${collections.length} GiroDisc collections in DB`);
 
   if (collections.length === 0) {
-    console.error('❌ No GiroDisc collections found! Create them first.');
+    console.error("❌ No GiroDisc collections found! Create them first.");
     return;
   }
 
@@ -252,9 +265,9 @@ async function main() {
         create: {
           slug,
           sku: p.sku,
-          scope: 'SHOP',
-          brand: 'GiroDisc',
-          vendor: 'GiroDisc',
+          scope: "SHOP",
+          brand: "GiroDisc",
+          vendor: "GiroDisc",
           titleUa: cleanTitle(p.title),
           titleEn: generateTitleEn(p),
           categoryUa,
@@ -268,16 +281,16 @@ async function main() {
           compareAtEur: comparePrices.eur,
           compareAtUsd: comparePrices.usd,
           isPublished: true,
-          status: 'ACTIVE',
-          stock: 'inStock',
+          status: "ACTIVE",
+          stock: "inStock",
           longDescUa: p.bodyHtml,
           longDescEn: p.bodyHtml, // Ukrainian HTML for now, SEO can handle EN later
           bodyHtmlUa: p.bodyHtml,
           bodyHtmlEn: p.bodyHtml,
           tags: generateTags(p),
           image: p.image,
-          supplier: 'atomic-shop.ua',
-          originCountry: 'US',
+          supplier: "atomic-shop.ua",
+          originCountry: "US",
         },
       });
 
@@ -297,7 +310,7 @@ async function main() {
           data: {
             productId: shopProduct.id,
             sku: p.sku,
-            title: 'Default',
+            title: "Default",
             priceUah: prices.uah,
             priceEur: prices.eur,
             priceUsd: prices.usd,
@@ -305,7 +318,7 @@ async function main() {
             compareAtEur: comparePrices.eur,
             compareAtUsd: comparePrices.usd,
             inventoryQty: 0,
-            inventoryPolicy: 'CONTINUE',
+            inventoryPolicy: "CONTINUE",
             isDefault: true,
           },
         });
@@ -374,7 +387,7 @@ async function main() {
             await prisma.shopProductMedia.create({
               data: {
                 productId: shopProduct.id,
-                mediaType: 'IMAGE',
+                mediaType: "IMAGE",
                 src: p.gallery[imgIdx],
                 altText: `${p.title} - Image ${imgIdx + 1}`,
                 position: imgIdx + 1,

@@ -71,7 +71,7 @@ export function AdminProductVariantCard({
   onRemove,
   onSetDefault,
   defaultOpen = false,
-  rates = { EUR: 1, USD: 1.08, UAH: 45 },
+  rates = { EUR: 1, USD: 1.152174, UAH: 53 },
   autoConvert = true,
 }: {
   variant: VariantCardData;
@@ -523,7 +523,7 @@ function PricingGroup({
   usd,
   uah,
   onChange,
-  rates = { EUR: 1, USD: 1.08, UAH: 45 },
+  rates = { EUR: 1, USD: 1.152174, UAH: 53 },
   autoConvert = true,
 }: {
   title: string;

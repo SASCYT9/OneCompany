@@ -220,7 +220,7 @@ type ProductFormState = {
   isDimensionsEstimated: boolean;
 };
 
-const DEFAULT_RATES = { EUR: 1, USD: 1.08, UAH: 45 };
+const DEFAULT_RATES = { EUR: 1, USD: 1.152174, UAH: 53 };
 
 type ProductResponse = {
   id: string;
@@ -962,8 +962,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               next[usdKey] = "";
               next[uahKey] = "";
             } else {
-              const usdRate = rates.USD || 1.08;
-              const uahRate = rates.UAH || 45;
+              const usdRate = rates.USD || 1.152174;
+              const uahRate = rates.UAH || 53;
 
               if (key === eurKey) {
                 next[usdKey] = String(Math.round(val * usdRate * 100) / 100);
@@ -1014,8 +1014,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               next[usdKey] = "";
               next[uahKey] = "";
             } else {
-              const usdRate = rates.USD || 1.08;
-              const uahRate = rates.UAH || 45;
+              const usdRate = rates.USD || 1.152174;
+              const uahRate = rates.UAH || 53;
               if (key === eurKey) {
                 next[usdKey] = String(Math.round(val * usdRate * 100) / 100);
                 next[uahKey] = String(Math.round(val * uahRate));

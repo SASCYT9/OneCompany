@@ -1,26 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const shop = req.nextUrl.searchParams.get('shop');
-  
+  const shop = req.nextUrl.searchParams.get("shop");
+
   if (!shop) {
-    return new NextResponse('Missing shop parameter.', { status: 400 });
+    return new NextResponse("Missing shop parameter.", { status: 400 });
   }
 
   // Format: myshop.myshopify.com
-  const sanitizedShop = shop.replace(/https?:\/\//, '').replace(/\/$/, '');
+  const sanitizedShop = shop.replace(/https?:\/\//, "").replace(/\/$/, "");
 
-  const clientId = process.env.SHOPIFY_CLIENT_ID;
+  let clientId = process.env.SHOPIFY_CLIENT_ID;
+  if (sanitizedShop.includes("kwsuspension") || sanitizedShop.includes("dhs4v6")) {
+    clientId = process.env.SHOPIFY_CLIENT_ID_DHS4V6 || "a795b3fdf7bb15e55876368a298dc142";
+  }
   const baseUrl = req.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/shopify/auth/callback`;
 
   if (!clientId) {
-    console.error('SHOPIFY_CLIENT_ID is missing');
-    return new NextResponse('Server configuration error.', { status: 500 });
+    console.error("SHOPIFY_CLIENT_ID is missing");
+    return new NextResponse("Server configuration error.", { status: 500 });
   }
 
-  const scopes = 'write_orders,read_orders';
-  
+  const scopes = "write_orders,read_orders";
+
   // Create a random nonce for security
   const nonce = Math.random().toString(36).substring(2, 15);
 

@@ -354,8 +354,8 @@ function createEmptyForm(): ShopSettingsFormState {
     enabledCurrencies: ["EUR", "USD", "UAH"],
     currencyRates: {
       EUR: "1",
-      USD: "1.08",
-      UAH: "45",
+      USD: "1.152174",
+      UAH: "53",
     },
     shippingZones: [createShippingZoneForm(1)],
     brandShippingRules: [],
@@ -469,8 +469,8 @@ function formToPayload(form: ShopSettingsFormState) {
     enabledCurrencies: form.enabledCurrencies,
     currencyRates: {
       EUR: parseNumber(form.currencyRates.EUR, 1),
-      USD: parseNumber(form.currencyRates.USD, 1.08),
-      UAH: parseNumber(form.currencyRates.UAH, 45),
+      USD: parseNumber(form.currencyRates.USD, 1.152174),
+      UAH: parseNumber(form.currencyRates.UAH, 53),
     },
     shippingZones: form.shippingZones.map((zone) => ({
       id: zone.id.trim(),
@@ -1224,7 +1224,7 @@ export default function AdminShopSettingsPage() {
                 Оновити з НБУ
               </button>
               <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
-                <div>Приклад: 1 EUR = {form.currencyRates.USD || "1.08"} USD</div>
+                <div>Приклад: 1 EUR = {form.currencyRates.USD || "1.152174"} USD</div>
                 {currencySyncMeta ? (
                   <div className="mt-1 text-[11px] text-white/35">
                     НБУ: {currencySyncMeta.exchangedAt}

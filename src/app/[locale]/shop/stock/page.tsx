@@ -8,6 +8,7 @@ import { Search, ChevronDown, Package, Loader2, X, Check, Copy } from "lucide-re
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { DEFAULT_CURRENCY_RATES } from "@/lib/shopAdminSettings";
 
 type StockItem = {
   id: string;
@@ -284,7 +285,7 @@ function StockPageContent() {
 
     const rows = exportItems.map((item) => {
       const usdPrice = item.priceUsd || item.price || 0;
-      const eurPrice = item.priceEur || (item.price ? item.price / 1.08 : 0);
+      const eurPrice = item.priceEur || (item.price ? item.price / DEFAULT_CURRENCY_RATES.USD : 0);
 
       return [
         item.partNumber,

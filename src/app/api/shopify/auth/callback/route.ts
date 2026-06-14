@@ -1,41 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const shop = url.searchParams.get('shop');
-  const code = url.searchParams.get('code');
-  const hmac = url.searchParams.get('hmac');
+  const shop = url.searchParams.get("shop");
+  const code = url.searchParams.get("code");
+  const hmac = url.searchParams.get("hmac");
 
   if (!shop || !code || !hmac) {
-    return new NextResponse('Missing parameters.', { status: 400 });
+    return new NextResponse("Missing parameters.", { status: 400 });
   }
 
-  const clientId = process.env.SHOPIFY_CLIENT_ID;
-  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET;
+  let clientId = process.env.SHOPIFY_CLIENT_ID;
+  let clientSecret = process.env.SHOPIFY_CLIENT_SECRET;
+
+  if (shop.includes("kwsuspension") || shop.includes("dhs4v6")) {
+    clientId = process.env.SHOPIFY_CLIENT_ID_DHS4V6 || "a795b3fdf7bb15e55876368a298dc142";
+    clientSecret = process.env.SHOPIFY_CLIENT_SECRET_DHS4V6;
+  }
 
   if (!clientId || !clientSecret) {
-    console.error('SHOPIFY_CLIENT_ID or SHOPIFY_CLIENT_SECRET is missing');
-    return new NextResponse('Server configuration error.', { status: 500 });
+    console.error("SHOPIFY_CLIENT_ID or SHOPIFY_CLIENT_SECRET is missing");
+    return new NextResponse("Server configuration error.", { status: 500 });
   }
 
   // 1. Verify HMAC (Security requirement by Shopify)
   const queryParams = Array.from(url.searchParams.entries())
-    .filter(([key]) => key !== 'hmac')
+    .filter(([key]) => key !== "hmac")
     .map(([key, value]) => `${key}=${value}`)
     .sort()
-    .join('&');
+    .join("&");
 
-  const generatedHash = crypto
-    .createHmac('sha256', clientSecret)
-    .update(queryParams)
-    .digest('hex');
+  const generatedHash = crypto.createHmac("sha256", clientSecret).update(queryParams).digest("hex");
 
   // We should do a timing safe equal here, but simple string check is ok for basic validation
   if (generatedHash !== hmac) {
-    console.error('[Shopify OAuth] HMAC validation failed');
-    return new NextResponse('HMAC validation failed.', { status: 400 });
+    console.error("[Shopify OAuth] HMAC validation failed");
+    return new NextResponse("HMAC validation failed.", { status: 400 });
   }
 
   // 2. Exchange code for access token
@@ -48,10 +50,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const tokenResponse = await fetch(tokenUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(tokenPayload),
     });
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
     if (!tokenResponse.ok) {
       const errText = await tokenResponse.text();
       console.error(`[Shopify OAuth] Token exchange failed: ${errText}`);
-      return new NextResponse('Token exchange failed.', { status: 502 });
+      return new NextResponse("Token exchange failed.", { status: 502 });
     }
 
     const tokenData = await tokenResponse.json();
@@ -67,8 +69,8 @@ export async function GET(req: NextRequest) {
     const scopes = tokenData.scope;
 
     if (!accessToken) {
-      console.error('[Shopify OAuth] No access token received', tokenData);
-      return new NextResponse('No access token received.', { status: 502 });
+      console.error("[Shopify OAuth] No access token received", tokenData);
+      return new NextResponse("No access token received.", { status: 502 });
     }
 
     // 3. Save to database
@@ -107,11 +109,10 @@ export async function GET(req: NextRequest) {
     `;
 
     return new NextResponse(htmlResponse, {
-      headers: { 'Content-Type': 'text/html' },
+      headers: { "Content-Type": "text/html" },
     });
-
   } catch (error: any) {
-    console.error('[Shopify OAuth] Exception during token exchange:', error);
-    return new NextResponse('Internal Server Error.', { status: 500 });
+    console.error("[Shopify OAuth] Exception during token exchange:", error);
+    return new NextResponse("Internal Server Error.", { status: 500 });
   }
 }

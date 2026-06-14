@@ -49,7 +49,12 @@ async function run() {
   const discountPercent = settings?.appAtomicDiscountPercent
     ? Number(settings.appAtomicDiscountPercent)
     : 0.0;
-  console.log(`[Atomic Sync] Using Atomic Shop discount: ${discountPercent}%`);
+  const uahRate = (settings?.currencyRates as any)?.UAH
+    ? Number((settings.currencyRates as any).UAH)
+    : 53;
+  console.log(
+    `[Atomic Sync] Using Atomic Shop discount: ${discountPercent}%, UAH/EUR rate: ${uahRate}`
+  );
 
   const response = await fetch(feedUrl);
   if (!response.ok) {
@@ -104,7 +109,7 @@ async function run() {
     const rawPriceUah = parseAtomicPrice(row);
     let priceEur = undefined;
     if (rawPriceUah !== undefined && !isNaN(rawPriceUah)) {
-      priceEur = Math.round((rawPriceUah / 52) * (1 - currentDiscount / 100));
+      priceEur = Math.round((rawPriceUah / uahRate) * (1 - currentDiscount / 100));
     }
 
     if (variants.length > 0) {
@@ -224,7 +229,7 @@ async function run() {
       if (scraped) {
         const currentDiscount = product.scope === "moto" ? 5.0 : discountPercent;
         const discountedPriceEur = Math.round(
-          (scraped.priceUah / 52) * (1 - currentDiscount / 100)
+          (scraped.priceUah / uahRate) * (1 - currentDiscount / 100)
         );
 
         for (const variant of product.variants) {

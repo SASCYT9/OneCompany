@@ -1,6 +1,6 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from "@prisma/client";
 
-export const SHOP_CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
+export const SHOP_CURRENCIES = ["EUR", "USD", "UAH"] as const;
 export type ShopCurrencyCode = (typeof SHOP_CURRENCIES)[number];
 
 export type ShopShippingZone = {
@@ -8,7 +8,7 @@ export type ShopShippingZone = {
   name: string;
   countries: string[];
   regions: string[];
-  calcMode: 'flat' | 'volumetric';
+  calcMode: "flat" | "volumetric";
   baseRate: number;
   perItemRate: number;
   ratePerKg: number;
@@ -27,12 +27,12 @@ export type ShopShippingZone = {
 };
 
 export const SHOP_BRAND_SHIPPING_MODES = [
-  'fixed',
-  'multiplier',
-  'free',
-  'tiered',
-  'percent',
-  'manual_quote',
+  "fixed",
+  "multiplier",
+  "free",
+  "tiered",
+  "percent",
+  "manual_quote",
 ] as const;
 export type ShopBrandShippingMode = (typeof SHOP_BRAND_SHIPPING_MODES)[number];
 
@@ -71,7 +71,7 @@ export type ShopRegionalPricingRule = {
   name: string;
   countries: string[];
   regions: string[];
-  mode: 'percent' | 'fixed';
+  mode: "percent" | "fixed";
   value: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
@@ -162,17 +162,17 @@ export type ShopSettingsPayload = {
 
 export const DEFAULT_CURRENCY_RATES: Record<ShopCurrencyCode, number> = {
   EUR: 1,
-  USD: 1.08,
-  UAH: 45,
+  USD: 1.152174,
+  UAH: 53,
 };
 
 export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
   {
-    id: 'ua-standard',
-    name: 'Ukraine',
-    countries: ['Ukraine', 'UA'],
+    id: "ua-standard",
+    name: "Ukraine",
+    countries: ["Ukraine", "UA"],
     regions: [],
-    calcMode: 'flat',
+    calcMode: "flat",
     baseRate: 0,
     perItemRate: 0,
     ratePerKg: 1.5,
@@ -184,17 +184,17 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     fallbackHeight: 15,
     freeOver: 0,
     minimumSubtotal: null,
-    currency: 'UAH',
+    currency: "UAH",
     enabled: true,
     etaMinDays: 1,
     etaMaxDays: 3,
   },
   {
-    id: 'worldwide-standard',
-    name: 'Worldwide',
-    countries: ['*'],
+    id: "worldwide-standard",
+    name: "Worldwide",
+    countries: ["*"],
     regions: [],
-    calcMode: 'flat',
+    calcMode: "flat",
     baseRate: 0,
     perItemRate: 0,
     ratePerKg: 10,
@@ -206,7 +206,7 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     fallbackHeight: 10,
     freeOver: null,
     minimumSubtotal: null,
-    currency: 'EUR',
+    currency: "EUR",
     enabled: true,
     etaMinDays: 7,
     etaMaxDays: 14,
@@ -217,18 +217,46 @@ export const DEFAULT_BRAND_SHIPPING_RULES: ShopBrandShippingRule[] = [];
 
 export const DEFAULT_TAX_REGIONS: ShopTaxRegion[] = [
   {
-    id: 'ua-vat',
-    name: 'Ukraine VAT',
-    countries: ['Ukraine', 'UA'],
+    id: "ua-vat",
+    name: "Ukraine VAT",
+    countries: ["Ukraine", "UA"],
     regions: [],
     rate: 0.2,
     appliesToShipping: true,
     enabled: false,
   },
   {
-    id: 'eu-vat',
-    name: 'EU VAT',
-    countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'],
+    id: "eu-vat",
+    name: "EU VAT",
+    countries: [
+      "AT",
+      "BE",
+      "BG",
+      "CY",
+      "CZ",
+      "DE",
+      "DK",
+      "EE",
+      "ES",
+      "FI",
+      "FR",
+      "GR",
+      "HR",
+      "HU",
+      "IE",
+      "IT",
+      "LT",
+      "LU",
+      "LV",
+      "MT",
+      "NL",
+      "PL",
+      "PT",
+      "RO",
+      "SE",
+      "SI",
+      "SK",
+    ],
     regions: [],
     rate: 0.2,
     appliesToShipping: true,
@@ -238,7 +266,7 @@ export const DEFAULT_TAX_REGIONS: ShopTaxRegion[] = [
 
 export const DEFAULT_REGIONAL_PRICING_RULES: ShopRegionalPricingRule[] = [];
 
-function stringValue(value: unknown, fallback = ''): string {
+function stringValue(value: unknown, fallback = ""): string {
   return String(value ?? fallback).trim();
 }
 
@@ -248,7 +276,7 @@ function nullableString(value: unknown): string | null {
 }
 
 function nullableNumber(value: unknown): number | null {
-  if (value == null || value === '') return null;
+  if (value == null || value === "") return null;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
   return parsed;
@@ -256,16 +284,19 @@ function nullableNumber(value: unknown): number | null {
 
 function stringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.map((entry) => String(entry ?? '').trim()).filter(Boolean);
+    return value.map((entry) => String(entry ?? "").trim()).filter(Boolean);
   }
-  if (typeof value === 'string') {
-    return value.split(',').map((entry) => entry.trim()).filter(Boolean);
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
   }
   return [];
 }
 
 function asNumberRecord(value: unknown): Record<string, number> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return { ...DEFAULT_CURRENCY_RATES };
   }
 
@@ -286,12 +317,20 @@ function asNumberRecord(value: unknown): Record<string, number> {
 
 function asObjectArray(value: unknown): Array<Record<string, unknown>> {
   if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry));
+  return value.filter(
+    (entry): entry is Record<string, unknown> =>
+      Boolean(entry) && typeof entry === "object" && !Array.isArray(entry)
+  );
 }
 
-function normalizeCurrencyCode(value: unknown, fallback: ShopCurrencyCode = 'EUR'): ShopCurrencyCode {
+function normalizeCurrencyCode(
+  value: unknown,
+  fallback: ShopCurrencyCode = "EUR"
+): ShopCurrencyCode {
   const normalized = stringValue(value, fallback).toUpperCase();
-  return (SHOP_CURRENCIES as readonly string[]).includes(normalized) ? (normalized as ShopCurrencyCode) : fallback;
+  return (SHOP_CURRENCIES as readonly string[]).includes(normalized)
+    ? (normalized as ShopCurrencyCode)
+    : fallback;
 }
 
 function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
@@ -307,22 +346,23 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
     const fallbackLength = Number(entry.fallbackLength ?? 30);
     const fallbackWidth = Number(entry.fallbackWidth ?? 20);
     const fallbackHeight = Number(entry.fallbackHeight ?? 15);
-    const calcMode = entry.calcMode === 'volumetric' ? 'volumetric' : 'flat';
-    
+    const calcMode = entry.calcMode === "volumetric" ? "volumetric" : "flat";
+
     const freeOverRaw = entry.freeOver;
     const minimumSubtotalRaw = entry.minimumSubtotal;
-    const freeOver = freeOverRaw == null || freeOverRaw === '' ? null : Number(freeOverRaw);
-    const minimumSubtotal = minimumSubtotalRaw == null || minimumSubtotalRaw === '' ? null : Number(minimumSubtotalRaw);
+    const freeOver = freeOverRaw == null || freeOverRaw === "" ? null : Number(freeOverRaw);
+    const minimumSubtotal =
+      minimumSubtotalRaw == null || minimumSubtotalRaw === "" ? null : Number(minimumSubtotalRaw);
 
     const etaMinDaysRaw = entry.etaMinDays;
     const etaMaxDaysRaw = entry.etaMaxDays;
-    const etaMinDays = etaMinDaysRaw == null || etaMinDaysRaw === '' ? null : Number(etaMinDaysRaw);
-    const etaMaxDays = etaMaxDaysRaw == null || etaMaxDaysRaw === '' ? null : Number(etaMaxDaysRaw);
+    const etaMinDays = etaMinDaysRaw == null || etaMinDaysRaw === "" ? null : Number(etaMinDaysRaw);
+    const etaMaxDays = etaMaxDaysRaw == null || etaMaxDaysRaw === "" ? null : Number(etaMaxDaysRaw);
 
     return {
       id: stringValue(entry.id, `zone-${index + 1}`) || `zone-${index + 1}`,
       name: stringValue(entry.name, `Zone ${index + 1}`) || `Zone ${index + 1}`,
-      countries: countries.length ? countries : ['*'],
+      countries: countries.length ? countries : ["*"],
       regions,
       calcMode,
       baseRate: Number.isFinite(baseRate) ? baseRate : 0,
@@ -335,8 +375,9 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
       fallbackWidth: Number.isFinite(fallbackWidth) ? fallbackWidth : 20,
       fallbackHeight: Number.isFinite(fallbackHeight) ? fallbackHeight : 15,
       freeOver: freeOver != null && Number.isFinite(freeOver) ? freeOver : null,
-      minimumSubtotal: minimumSubtotal != null && Number.isFinite(minimumSubtotal) ? minimumSubtotal : null,
-      currency: normalizeCurrencyCode(entry.currency, 'EUR'),
+      minimumSubtotal:
+        minimumSubtotal != null && Number.isFinite(minimumSubtotal) ? minimumSubtotal : null,
+      currency: normalizeCurrencyCode(entry.currency, "EUR"),
       enabled: entry.enabled !== false,
       etaMinDays: etaMinDays != null && Number.isFinite(etaMinDays) ? etaMinDays : null,
       etaMaxDays: etaMaxDays != null && Number.isFinite(etaMaxDays) ? etaMaxDays : null,
@@ -349,10 +390,13 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
 function normalizeShopBrandShippingBrackets(value: unknown): ShopBrandShippingBracket[] {
   if (!Array.isArray(value)) return [];
   const brackets = value
-    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+    .filter(
+      (entry): entry is Record<string, unknown> =>
+        Boolean(entry) && typeof entry === "object" && !Array.isArray(entry)
+    )
     .map((entry) => {
       const rawMax = entry.maxAmount;
-      const max = rawMax === null || rawMax === undefined || rawMax === '' ? null : Number(rawMax);
+      const max = rawMax === null || rawMax === undefined || rawMax === "" ? null : Number(rawMax);
       const fee = Number(entry.fee ?? 0);
       return {
         maxAmount: max !== null && Number.isFinite(max) && max > 0 ? max : null,
@@ -360,7 +404,9 @@ function normalizeShopBrandShippingBrackets(value: unknown): ShopBrandShippingBr
       } satisfies ShopBrandShippingBracket;
     });
   // Sort ascending; null (open-ended) goes last. Drop intermediate nulls.
-  const finite = brackets.filter((b) => b.maxAmount !== null).sort((a, b) => (a.maxAmount as number) - (b.maxAmount as number));
+  const finite = brackets
+    .filter((b) => b.maxAmount !== null)
+    .sort((a, b) => (a.maxAmount as number) - (b.maxAmount as number));
   const openEnded = brackets.find((b) => b.maxAmount === null);
   return openEnded ? [...finite, openEnded] : finite;
 }
@@ -373,25 +419,28 @@ function normalizeShopBrandShippingBrackets(value: unknown): ShopBrandShippingBr
  * Saving the default in-place avoids adding a Prisma column and keeps the
  * JSON write path / hooks identical for default and per-brand entries.
  */
-export const SHOP_BRAND_DEFAULT_RULE_ID = '__default__';
+export const SHOP_BRAND_DEFAULT_RULE_ID = "__default__";
 
 function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[] {
   const rules = asObjectArray(value).map((entry, index) => {
-    const modeRaw = stringValue(entry.mode, 'fixed');
-    const mode: ShopBrandShippingMode = (SHOP_BRAND_SHIPPING_MODES as readonly string[]).includes(modeRaw)
+    const modeRaw = stringValue(entry.mode, "fixed");
+    const mode: ShopBrandShippingMode = (SHOP_BRAND_SHIPPING_MODES as readonly string[]).includes(
+      modeRaw
+    )
       ? (modeRaw as ShopBrandShippingMode)
-      : 'fixed';
+      : "fixed";
     const valueNum = Number(entry.value ?? 0);
     const warehouseRatePerKgNum = Number(entry.warehouseRatePerKg ?? 0);
-    const brackets = mode === 'tiered' ? normalizeShopBrandShippingBrackets(entry.brackets) : undefined;
+    const brackets =
+      mode === "tiered" ? normalizeShopBrandShippingBrackets(entry.brackets) : undefined;
 
     return {
       id: stringValue(entry.id, `brand-rule-${index + 1}`) || `brand-rule-${index + 1}`,
-      brandName: stringValue(entry.brandName, ''),
+      brandName: stringValue(entry.brandName, ""),
       mode,
       value: Number.isFinite(valueNum) ? valueNum : 0,
       warehouseRatePerKg: Number.isFinite(warehouseRatePerKgNum) ? warehouseRatePerKgNum : 0,
-      currency: normalizeCurrencyCode(entry.currency, 'EUR'),
+      currency: normalizeCurrencyCode(entry.currency, "EUR"),
       enabled: entry.enabled !== false,
       ...(brackets ? { brackets } : {}),
     } satisfies ShopBrandShippingRule;
@@ -411,7 +460,7 @@ function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
     return {
       id: stringValue(entry.id, `tax-${index + 1}`) || `tax-${index + 1}`,
       name: stringValue(entry.name, `Tax rule ${index + 1}`) || `Tax rule ${index + 1}`,
-      countries: countries.length ? countries : ['*'],
+      countries: countries.length ? countries : ["*"],
       regions: ruleRegions,
       rate: Number.isFinite(rate) ? rate : 0,
       appliesToShipping: entry.appliesToShipping !== false,
@@ -426,28 +475,33 @@ function normalizeShopRegionalPricingRules(value: unknown): ShopRegionalPricingR
   return asObjectArray(value).map((entry, index) => {
     const countries = stringArray(entry.countries);
     const regions = stringArray(entry.regions);
-    const mode = stringValue(entry.mode, 'percent') === 'fixed' ? 'fixed' : 'percent';
+    const mode = stringValue(entry.mode, "percent") === "fixed" ? "fixed" : "percent";
     const parsedValue = Number(entry.value ?? 0);
 
     return {
       id: stringValue(entry.id, `regional-rule-${index + 1}`) || `regional-rule-${index + 1}`,
       name: stringValue(entry.name, `Regional rule ${index + 1}`) || `Regional rule ${index + 1}`,
-      countries: countries.length ? countries : ['*'],
+      countries: countries.length ? countries : ["*"],
       regions,
       mode,
       value: Number.isFinite(parsedValue) ? parsedValue : 0,
-      currency: normalizeCurrencyCode(entry.currency, 'EUR'),
+      currency: normalizeCurrencyCode(entry.currency, "EUR"),
       enabled: entry.enabled === true,
     } satisfies ShopRegionalPricingRule;
   });
 }
 
-function normalizeEnabledCurrencies(value: unknown, fallback: ShopCurrencyCode): ShopCurrencyCode[] {
+function normalizeEnabledCurrencies(
+  value: unknown,
+  fallback: ShopCurrencyCode
+): ShopCurrencyCode[] {
   const values = Array.from(
     new Set(
       stringArray(value)
         .map((entry) => entry.toUpperCase())
-        .filter((entry): entry is ShopCurrencyCode => (SHOP_CURRENCIES as readonly string[]).includes(entry))
+        .filter((entry): entry is ShopCurrencyCode =>
+          (SHOP_CURRENCIES as readonly string[]).includes(entry)
+        )
     )
   );
 
@@ -455,16 +509,20 @@ function normalizeEnabledCurrencies(value: unknown, fallback: ShopCurrencyCode):
 }
 
 export function normalizeShopSettingsPayload(input: unknown) {
-  const source = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
-  const defaultCurrency = normalizeCurrencyCode(source.defaultCurrency, 'EUR');
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const defaultCurrency = normalizeCurrencyCode(source.defaultCurrency, "EUR");
 
-  const b2bVis = stringValue(source.b2bVisibilityMode, 'approved_only');
+  const b2bVis = stringValue(source.b2bVisibilityMode, "approved_only");
 
   const payload: ShopSettingsPayload = {
-    b2bVisibilityMode: ['approved_only', 'public_dual', 'request_quote'].includes(b2bVis) ? b2bVis : 'approved_only',
+    b2bVisibilityMode: ["approved_only", "public_dual", "request_quote"].includes(b2bVis)
+      ? b2bVis
+      : "approved_only",
     defaultB2bDiscountPercent: nullableNumber(source.defaultB2bDiscountPercent),
     defaultCurrency,
-    enabledCurrencies: stringArray(source.enabledCurrencies).map((c) => normalizeCurrencyCode(c, 'EUR')),
+    enabledCurrencies: stringArray(source.enabledCurrencies).map((c) =>
+      normalizeCurrencyCode(c, "EUR")
+    ),
     currencyRates: asNumberRecord(source.currencyRates),
     shippingZones: asObjectArray(source.shippingZones),
     brandShippingRules: asObjectArray(source.brandShippingRules),
@@ -514,11 +572,11 @@ export function buildShopSettingsRuntimeFromPayload(
     updatedAt?: Date;
   }
 ): ShopSettingsRuntime {
-  const defaultCurrency = normalizeCurrencyCode(payload.defaultCurrency, 'EUR');
+  const defaultCurrency = normalizeCurrencyCode(payload.defaultCurrency, "EUR");
   const enabledCurrencies = normalizeEnabledCurrencies(payload.enabledCurrencies, defaultCurrency);
 
   return {
-    key: overrides?.key ?? 'shop',
+    key: overrides?.key ?? "shop",
     b2bVisibilityMode: payload.b2bVisibilityMode,
     defaultB2bDiscountPercent: payload.defaultB2bDiscountPercent,
     defaultCurrency,
@@ -611,15 +669,15 @@ async function loadShopSettingsSnapshot(): Promise<ShopSettingsRecord | null> {
     // Dynamic node-prefixed imports keep fs/path out of the client bundle
     // (this module is transitively imported by client components for types).
     const [{ default: fs }, { default: path }] = await Promise.all([
-      import('node:fs'),
-      import('node:path'),
+      import("node:fs"),
+      import("node:path"),
     ]);
-    const filePath = path.join(process.cwd(), 'data', 'shop-settings.snapshot.json');
+    const filePath = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
     if (fs.existsSync(filePath)) {
-      const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      if (raw && typeof raw === 'object') {
-        if (typeof raw.createdAt === 'string') raw.createdAt = new Date(raw.createdAt);
-        if (typeof raw.updatedAt === 'string') raw.updatedAt = new Date(raw.updatedAt);
+      const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (raw && typeof raw === "object") {
+        if (typeof raw.createdAt === "string") raw.createdAt = new Date(raw.createdAt);
+        if (typeof raw.updatedAt === "string") raw.updatedAt = new Date(raw.updatedAt);
         cachedShopSettingsSnapshot = raw as ShopSettingsRecord;
         return cachedShopSettingsSnapshot;
       }
@@ -635,7 +693,7 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
   // Build phase: prefer pre-fetched snapshot to avoid DB connection storm
   // during static prerender of dozens of shop pages × locales. The snapshot
   // is produced by `scripts/prebuild-shop-snapshot.ts` before `next build`.
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
     const snap = await loadShopSettingsSnapshot();
     if (snap) {
       cachedShopSettingsRecord = snap;
@@ -656,7 +714,7 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
   // FAST PATH: Prevent massive transactional upserts during Vercel static build
   cachedShopSettingsPromise = (async () => {
     const existing = await prisma.shopSettings.findUnique({
-      where: { key: 'shop' }
+      where: { key: "shop" },
     });
     if (existing) {
       cachedShopSettingsRecord = existing;
@@ -666,14 +724,14 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
 
     // FALLBACK: create if it completely doesn't exist
     const created = await prisma.shopSettings.upsert({
-      where: { key: 'shop' },
+      where: { key: "shop" },
       update: {},
       create: {
-        key: 'shop',
-        b2bVisibilityMode: 'approved_only',
+        key: "shop",
+        b2bVisibilityMode: "approved_only",
         defaultB2bDiscountPercent: null,
-        defaultCurrency: 'EUR',
-        enabledCurrencies: ['EUR', 'USD', 'UAH'],
+        defaultCurrency: "EUR",
+        enabledCurrencies: ["EUR", "USD", "UAH"],
         currencyRates: DEFAULT_CURRENCY_RATES,
         shippingZones: DEFAULT_SHIPPING_ZONES,
         brandShippingRules: DEFAULT_BRAND_SHIPPING_RULES as unknown as Prisma.InputJsonValue,
