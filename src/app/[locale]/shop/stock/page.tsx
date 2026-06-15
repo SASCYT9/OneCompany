@@ -4,7 +4,17 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Search, ChevronDown, Package, Loader2, X, Check, Copy } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  Package,
+  Loader2,
+  X,
+  Check,
+  Copy,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
@@ -78,14 +88,14 @@ function SkuCopy({ sku, isUa }: { sku: string; isUa: boolean }) {
           setTimeout(() => setCopied(false), 1500);
         }
       }}
-      className="inline-flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-indigo-400 active:scale-95 transition-all duration-300 group/copy cursor-pointer"
+      className="inline-flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-white active:scale-95 transition-all duration-300 group/copy cursor-pointer"
       title={isUa ? "Копіювати артикул" : "Copy part number"}
     >
       <span>#{sku}</span>
       {copied ? (
         <Check className="w-3 h-3 text-emerald-400 shrink-0" />
       ) : (
-        <Copy className="w-2.5 h-2.5 text-zinc-600 group-hover/copy:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all duration-300 shrink-0" />
+        <Copy className="w-2.5 h-2.5 text-zinc-600 group-hover/copy:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 shrink-0" />
       )}
     </span>
   );
@@ -135,11 +145,11 @@ function CatalogHeader({ isUa }: { isUa: boolean }) {
       className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 mb-8"
     >
       {isB2B ? (
-        <div className="relative group overflow-hidden rounded-[32px] border border-foreground/10 bg-foreground/[0.03] backdrop-blur-3xl p-8 shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] pointer-events-none" />
+        <div className="relative group overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.03] backdrop-blur-3xl p-8 shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[100px] pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Dealer Tier: B2B Partner
               </div>
@@ -153,20 +163,10 @@ function CatalogHeader({ isUa }: { isUa: boolean }) {
                   : "Your personalized B2B stock and logistics portal."}
               </p>
             </div>
-            {user.b2bDiscountPercent != null && (
-              <div className="px-6 py-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 shrink-0 self-start md:self-auto">
-                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">
-                  {isUa ? "Ваша знижка" : "Your Discount"}
-                </div>
-                <div className="text-3xl font-light text-emerald-400">
-                  {user.b2bDiscountPercent}%
-                </div>
-              </div>
-            )}
           </div>
         </div>
       ) : (
-        <div className="relative group overflow-hidden rounded-[32px] border border-foreground/10 bg-foreground/[0.01] backdrop-blur-3xl p-8">
+        <div className="relative group overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.01] backdrop-blur-3xl p-8">
           <div className="relative z-10 space-y-2 text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-light tracking-tight text-foreground">
               {isUa ? "B2B Портал" : "B2B Portal"}
@@ -183,6 +183,25 @@ function CatalogHeader({ isUa }: { isUa: boolean }) {
   );
 }
 
+/* ========= Search Query Sync Helpers ========= */
+function removeTerm(queryStr: string, termToRemove: string): string {
+  if (!termToRemove) return queryStr;
+  const escaped = termToRemove.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const regex = new RegExp(`\\b${escaped}\\b`, "gi");
+  const result = queryStr.replace(regex, "");
+  return result.replace(/\s+/g, " ").trim();
+}
+
+function appendTerm(queryStr: string, termToAppend: string): string {
+  if (!termToAppend) return queryStr;
+  const escaped = termToAppend.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const regex = new RegExp(`\\b${escaped}\\b`, "i");
+  if (regex.test(queryStr)) {
+    return queryStr;
+  }
+  return queryStr ? `${queryStr} ${termToAppend}` : termToAppend;
+}
+
 /* ========= Main Stock Page ========= */
 function StockPageContent() {
   const params = useParams();
@@ -193,6 +212,25 @@ function StockPageContent() {
   const { data: session } = useSession();
   const user = session?.user as any;
   const isB2B = user?.group === "B2B_APPROVED";
+
+  // View mode state with local storage persistence
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("onecompany_stock_view");
+      if (saved === "grid" || saved === "list") {
+        setViewMode(saved);
+      }
+    }
+  }, []);
+
+  const handleSetViewMode = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("onecompany_stock_view", mode);
+    }
+  };
 
   // Multi-selection states
   const [selectedItems, setSelectedItems] = useState<StockItem[]>([]);
@@ -352,6 +390,59 @@ function StockPageContent() {
     });
   };
 
+  // Synchronize dropdown filters to physical search query input text
+  const prevFiltersRef = useRef<{
+    make: string;
+    model: string;
+    chassis: string;
+    brands: string[];
+  }>({ make: "", model: "", chassis: "", brands: [] });
+
+  useEffect(() => {
+    const prev = prevFiltersRef.current;
+    let newQuery = query;
+
+    // Handle brands
+    const removedBrands = prev.brands.filter((b) => !selectedBrands.includes(b));
+    removedBrands.forEach((b) => {
+      newQuery = removeTerm(newQuery, b);
+    });
+    const addedBrands = selectedBrands.filter((b) => !prev.brands.includes(b));
+    addedBrands.forEach((b) => {
+      newQuery = appendTerm(newQuery, b);
+    });
+
+    // Handle make
+    if (prev.make && prev.make !== make) {
+      newQuery = removeTerm(newQuery, prev.make);
+    }
+    if (make && prev.make !== make) {
+      newQuery = appendTerm(newQuery, make);
+    }
+
+    // Handle model
+    if (prev.model && prev.model !== model) {
+      newQuery = removeTerm(newQuery, prev.model);
+    }
+    if (model && prev.model !== model) {
+      newQuery = appendTerm(newQuery, model);
+    }
+
+    // Handle chassis
+    if (prev.chassis && prev.chassis !== chassis) {
+      newQuery = removeTerm(newQuery, prev.chassis);
+    }
+    if (chassis && prev.chassis !== chassis) {
+      newQuery = appendTerm(newQuery, chassis);
+    }
+
+    if (newQuery !== query) {
+      setQuery(newQuery);
+    }
+
+    prevFiltersRef.current = { make, model, chassis, brands: [...selectedBrands] };
+  }, [make, model, chassis, selectedBrands, query]);
+
   // Load initial makes and filter metadata
   useEffect(() => {
     Promise.all([
@@ -481,7 +572,7 @@ function StockPageContent() {
       {/* ════ B2B DEALER HUB ════ */}
       <div className="pt-32 pb-6 relative overflow-hidden">
         {/* Background glow effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] max-w-[1400px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] max-w-[1400px] h-[500px] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.02] pointer-events-none mix-blend-screen" />
 
         <CatalogHeader isUa={isUa} />
@@ -496,14 +587,14 @@ function StockPageContent() {
             exit={{ opacity: 0, height: 0 }}
             className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 mb-8 overflow-hidden"
           >
-            <div className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-[#0d0d12]/50 backdrop-blur-3xl p-6 shadow-[0_12px_40px_rgba(99,102,241,0.08)]">
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-[#0d0d12]/50 backdrop-blur-3xl p-6 shadow-[0_12px_40px_rgba(197,168,128,0.08)]">
               <div className="flex items-center justify-between mb-4 border-b border-foreground/5 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                  <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
                   <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300">
                     {isUa ? "Вибрано для пакетної дії" : "Selected for Bulk Action"}
                   </h3>
-                  <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold">
+                  <span className="px-2 py-0.5 rounded-none bg-white/5 border border-white/20 text-white text-xs font-bold">
                     {selectedItems.length}
                   </span>
                 </div>
@@ -522,20 +613,20 @@ function StockPageContent() {
                   return (
                     <div
                       key={item.id}
-                      className="group relative flex items-center gap-3 w-72 shrink-0 rounded-2xl border border-foreground/5 bg-foreground/[0.01] hover:bg-foreground/[0.03] p-3 transition-all duration-300"
+                      className="group relative flex items-center gap-3 w-72 shrink-0 rounded-none border border-foreground/5 bg-foreground/[0.01] hover:bg-foreground/[0.03] p-3 transition-all duration-300"
                     >
                       {/* Deselect trigger */}
                       <button
                         type="button"
                         onClick={() => handleToggleSelectItem(item)}
-                        className="absolute -top-1.5 -right-1.5 z-10 w-5 h-5 rounded-full border border-foreground/10 bg-[#0a0a0c] hover:bg-rose-500 hover:text-white hover:border-rose-400 text-zinc-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 cursor-pointer"
+                        className="absolute -top-1.5 -right-1.5 z-10 w-5 h-5 rounded-none border border-foreground/10 bg-[#0a0a0c] hover:bg-rose-500 hover:text-white hover:border-rose-400 text-zinc-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 cursor-pointer"
                         title={isUa ? "Видалити" : "Remove"}
                       >
                         <X className="w-3 h-3" />
                       </button>
 
                       {/* Mini image */}
-                      <div className="w-12 h-12 rounded-xl bg-foreground/[0.02] flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="w-12 h-12 rounded-none bg-foreground/[0.02] flex items-center justify-center overflow-hidden shrink-0">
                         <SafeProductImage
                           src={item.thumbnail}
                           alt={item.name}
@@ -553,7 +644,7 @@ function StockPageContent() {
                         <h4 className="text-[11px] font-medium text-foreground leading-snug truncate">
                           {item.name}
                         </h4>
-                        <div className="text-[10px] font-mono text-indigo-400 font-bold">
+                        <div className="text-[10px] font-mono text-white font-bold">
                           ${item.price?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
                       </div>
@@ -567,10 +658,10 @@ function StockPageContent() {
       </AnimatePresence>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 mb-12">
-        <div className="relative overflow-hidden rounded-[32px] border border-foreground/10 bg-zinc-900/10 backdrop-blur-3xl p-6 sm:p-8">
+        <div className="relative overflow-hidden rounded-none border border-foreground/10 bg-zinc-900/10 backdrop-blur-3xl p-6 sm:p-8">
           <form onSubmit={handleSearch} className="space-y-6">
             {/* Search Input Row */}
-            <div className="relative flex items-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] focus-within:border-indigo-500/40 focus-within:bg-foreground/[0.04] transition-all h-12 px-4">
+            <div className="relative flex items-center rounded-none border border-foreground/10 bg-foreground/[0.02] focus-within:border-white/40 focus-within:bg-foreground/[0.04] transition-all h-12 px-4">
               <Search className="w-5 h-5 text-zinc-500 shrink-0" />
               <input
                 type="text"
@@ -600,7 +691,7 @@ function StockPageContent() {
                 {selectedBrands.map((b) => (
                   <span
                     key={b}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-[10px] font-medium tracking-wide"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-white/5 text-white text-[10px] font-medium tracking-wide"
                   >
                     {isUa ? `Бренд: ${b}` : `Brand: ${b}`}
                     <button
@@ -613,7 +704,7 @@ function StockPageContent() {
                   </span>
                 ))}
                 {make && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-[10px] font-medium tracking-wide">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-white/5 text-white text-[10px] font-medium tracking-wide">
                     {isUa ? `Марка: ${make}` : `Make: ${make}`}
                     <button
                       type="button"
@@ -625,7 +716,7 @@ function StockPageContent() {
                   </span>
                 )}
                 {model && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-[10px] font-medium tracking-wide">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-white/5 text-white text-[10px] font-medium tracking-wide">
                     {isUa ? `Модель: ${model}` : `Model: ${model}`}
                     <button
                       type="button"
@@ -637,7 +728,7 @@ function StockPageContent() {
                   </span>
                 )}
                 {chassis && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-[10px] font-medium tracking-wide">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-white/5 text-white text-[10px] font-medium tracking-wide">
                     {isUa ? `Кузов: ${chassis}` : `Chassis: ${chassis}`}
                     <button
                       type="button"
@@ -649,7 +740,7 @@ function StockPageContent() {
                   </span>
                 )}
                 {localCategory && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-[10px] font-medium tracking-wide">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-white/5 text-white text-[10px] font-medium tracking-wide">
                     {isUa ? `Категорія: ${localCategory}` : `Category: ${localCategory}`}
                     <button
                       type="button"
@@ -672,9 +763,9 @@ function StockPageContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedBrands([])}
-                  className={`group px-5 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`group px-5 py-3 rounded-none text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border flex items-center justify-center gap-2 cursor-pointer ${
                     selectedBrands.length === 0
-                      ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
+                      ? "bg-white/10 border-white/35 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                       : "bg-foreground/[0.02] text-zinc-500 border-foreground/5 hover:border-foreground/15 hover:text-foreground"
                   }`}
                 >
@@ -688,9 +779,9 @@ function StockPageContent() {
                       key={b}
                       type="button"
                       onClick={() => handleToggleBrand(b)}
-                      className={`group px-5 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border flex items-center gap-2.5 justify-center cursor-pointer ${
+                      className={`group px-5 py-3 rounded-none text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 border flex items-center gap-2.5 justify-center cursor-pointer ${
                         isSelected
-                          ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
+                          ? "bg-white/10 border-white/35 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                           : "bg-foreground/[0.02] text-zinc-500 border-foreground/10 hover:border-foreground/20 hover:text-foreground"
                       }`}
                     >
@@ -726,7 +817,7 @@ function StockPageContent() {
                   <select
                     value={make}
                     onChange={(e) => setMake(e.target.value)}
-                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-indigo-500/30 rounded-xl text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden"
+                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-white/30 rounded-none text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden"
                   >
                     <option value="" className="bg-[#121216]">
                       {isUa ? "Марка авто" : "Car Make"}
@@ -746,7 +837,7 @@ function StockPageContent() {
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     disabled={!make}
-                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-indigo-500/30 rounded-xl text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-white/30 rounded-none text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <option value="" className="bg-[#121216]">
                       {make
@@ -772,7 +863,7 @@ function StockPageContent() {
                     value={chassis}
                     onChange={(e) => setChassis(e.target.value)}
                     disabled={!model}
-                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-indigo-500/30 rounded-xl text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 focus:border-white/30 rounded-none text-xs text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-hidden disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <option value="" className="bg-[#121216]">
                       {model
@@ -805,7 +896,7 @@ function StockPageContent() {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="w-full sm:w-auto h-11 px-6 rounded-xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto h-11 px-6 rounded-none border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                   {isUa ? "Скинути" : "Reset"}
@@ -814,7 +905,7 @@ function StockPageContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto h-11 px-10 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-400 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto h-11 px-10 rounded-none bg-[#c5a880]/15 hover:bg-[#c5a880]/25 border border-[#c5a880]/30 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -827,7 +918,7 @@ function StockPageContent() {
                 <button
                   type="button"
                   onClick={() => handleExportCSV(items)}
-                  className="w-full sm:w-auto h-11 px-6 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto h-11 px-6 rounded-none border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isUa ? "Експорт CSV" : "Export CSV"}
                 </button>
@@ -849,9 +940,9 @@ function StockPageContent() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs tracking-wide flex items-start gap-3 shadow-lg"
+            className="mb-6 p-4 rounded-none border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs tracking-wide flex items-start gap-3 shadow-lg"
           >
-            <div className="w-5 h-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-5 h-5 rounded-none bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
               <span className="font-bold text-xs">!</span>
             </div>
             <div>
@@ -880,23 +971,23 @@ function StockPageContent() {
             {Array.from({ length: 12 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-zinc-900/20 border border-primary/6 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 flex flex-col h-[380px]"
+                className="bg-zinc-900/20 border border-primary/6 rounded-none sm:rounded-3xl p-4 sm:p-5 md:p-6 flex flex-col h-[380px]"
               >
-                <div className="aspect-square bg-foreground/5 mb-6 animate-pulse rounded-2xl" />
+                <div className="aspect-square bg-foreground/5 mb-6 animate-pulse rounded-none" />
                 <div className="h-2 bg-foreground/5 animate-pulse w-10 mb-2" />
                 <div className="h-4 bg-foreground/5 animate-pulse w-full mb-1" />
                 <div className="h-4 bg-foreground/5 animate-pulse w-2/3 mb-3" />
                 <div className="mt-auto flex items-center justify-between pt-4 border-t border-foreground/5">
                   <div className="h-5 bg-foreground/5 animate-pulse w-16" />
-                  <div className="h-8 bg-foreground/5 animate-pulse w-24 rounded-lg" />
+                  <div className="h-8 bg-foreground/5 animate-pulse w-24 rounded-none" />
                 </div>
               </div>
             ))}
           </div>
         ) : !hasSearched ? (
-          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-2xl">
-            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
-              <Package className="w-8 h-8 text-indigo-500/40" />
+          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-none">
+            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
+              <Package className="w-8 h-8 text-zinc-500" />
             </div>
             <h3 className="text-xl font-light text-foreground mb-3 tracking-wide">
               {isUa ? "Каталог нашого магазину" : "Our Shop Catalog"}
@@ -908,8 +999,8 @@ function StockPageContent() {
             </p>
           </div>
         ) : hasSearched && items.length === 0 ? (
-          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-2xl">
-            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10">
+          <div className="text-center py-32 bg-linear-to-b from-transparent to-foreground/[0.02] border border-foreground/5 rounded-none">
+            <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-white/10">
               <Package className="w-8 h-8 text-foreground/55 dark:text-foreground/30" />
             </div>
             <h3 className="text-xl font-light text-foreground mb-3 tracking-wide">
@@ -936,165 +1027,211 @@ function StockPageContent() {
                 {totalPages > 1 && `• ${isUa ? "Сторінка" : "Page"} ${page}/${totalPages}`}
               </p>
 
-              {items.length > 0 && (
-                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                  {/* Select All on Page */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const allSelectedOnPage = items.every((item) =>
-                        selectedItems.some((x) => x.id === item.id)
-                      );
-                      if (allSelectedOnPage) {
-                        // Deselect all items of this page
-                        setSelectedItems((prev) =>
-                          prev.filter((x) => !items.some((item) => item.id === x.id))
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full lg:w-auto">
+                {items.length > 0 && (
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    {/* Select All on Page */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allSelectedOnPage = items.every((item) =>
+                          selectedItems.some((x) => x.id === item.id)
                         );
-                      } else {
-                        // Select all items of this page (avoiding duplicates)
-                        setSelectedItems((prev) => {
-                          const next = [...prev];
-                          items.forEach((item) => {
-                            if (!next.some((x) => x.id === item.id)) {
-                              next.push(item);
-                            }
+                        if (allSelectedOnPage) {
+                          // Deselect all items of this page
+                          setSelectedItems((prev) =>
+                            prev.filter((x) => !items.some((item) => item.id === x.id))
+                          );
+                        } else {
+                          // Select all items of this page (avoiding duplicates)
+                          setSelectedItems((prev) => {
+                            const next = [...prev];
+                            items.forEach((item) => {
+                              if (!next.some((x) => x.id === item.id)) {
+                                next.push(item);
+                              }
+                            });
+                            return next;
                           });
-                          return next;
-                        });
-                      }
-                    }}
-                    className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-2 cursor-pointer border border-indigo-500/25 bg-indigo-500/5 px-4 py-2 rounded-xl hover:bg-indigo-500/10 active:scale-95 transition-all flex-1 sm:flex-none justify-center"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    {items.every((item) => selectedItems.some((x) => x.id === item.id))
-                      ? isUa
-                        ? "Зняти виділення сторінки"
-                        : "Deselect All on Page"
-                      : isUa
-                        ? "Вибрати всі на сторінці"
-                        : "Select All on Page"}
-                  </button>
+                        }
+                      }}
+                      className="text-[10px] font-bold uppercase tracking-wider text-white hover:text-white transition-colors flex items-center gap-2 cursor-pointer border border-white/20 bg-white/5 px-4 py-2 rounded-none hover:bg-white/10 active:scale-95 transition-all flex-1 sm:flex-none justify-center"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {items.every((item) => selectedItems.some((x) => x.id === item.id))
+                        ? isUa
+                          ? "Зняти виділення сторінки"
+                          : "Deselect All on Page"
+                        : isUa
+                          ? "Вибрати всі на сторінці"
+                          : "Select All on Page"}
+                    </button>
 
-                  {/* Select All Matching Results */}
+                    {/* Select All Matching Results */}
+                    <button
+                      type="button"
+                      disabled={selectingAll}
+                      onClick={handleSelectAllResults}
+                      className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2 cursor-pointer border border-emerald-500/25 bg-emerald-500/5 px-4 py-2 rounded-none hover:bg-emerald-500/10 active:scale-95 transition-all flex-1 sm:flex-none justify-center disabled:opacity-50"
+                    >
+                      {selectingAll ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      {isUa
+                        ? `Вибрати всі знайдені (${totalItems})`
+                        : `Select All Found (${totalItems})`}
+                    </button>
+                  </div>
+                )}
+
+                {/* View Mode Toggle Group */}
+                <div className="flex border border-foreground/10 p-0.5 rounded-none bg-foreground/[0.01] self-end sm:self-auto shrink-0">
                   <button
                     type="button"
-                    disabled={selectingAll}
-                    onClick={handleSelectAllResults}
-                    className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2 cursor-pointer border border-emerald-500/25 bg-emerald-500/5 px-4 py-2 rounded-xl hover:bg-emerald-500/10 active:scale-95 transition-all flex-1 sm:flex-none justify-center disabled:opacity-50"
+                    onClick={() => handleSetViewMode("grid")}
+                    className={`p-1.5 rounded-none transition-all cursor-pointer ${
+                      viewMode === "grid"
+                        ? "bg-white/10 border border-white/30 text-white"
+                        : "text-zinc-500 hover:text-foreground border border-transparent"
+                    }`}
+                    title={isUa ? "Сітка" : "Grid"}
                   >
-                    {selectingAll ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )}
-                    {isUa
-                      ? `Вибрати всі знайдені (${totalItems})`
-                      : `Select All Found (${totalItems})`}
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetViewMode("list")}
+                    className={`p-1.5 rounded-none transition-all cursor-pointer ${
+                      viewMode === "list"
+                        ? "bg-white/10 border border-white/30 text-white"
+                        : "text-zinc-500 hover:text-foreground border border-transparent"
+                    }`}
+                    title={isUa ? "Список" : "List"}
+                  >
+                    <List className="w-4 h-4" />
                   </button>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Product Grid — full width */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {items.map((item) => {
-                const msrp = item.originalPrice || (item.price ? item.price * 1.3 : null);
-                const dealerPrice = item.price;
+            {viewMode === "grid" ? (
+              /* Product Grid — full width */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {items.map((item) => {
+                  const msrp = item.originalPrice || (item.price ? item.price * 1.3 : null);
+                  const dealerPrice = item.price;
 
-                return (
-                  <motion.div
-                    layout
-                    key={item.id}
-                    className="group relative flex flex-col rounded-2xl sm:rounded-[32px] border border-primary/6 bg-zinc-900/20 backdrop-blur-xs p-4 sm:p-5 md:p-6 hover:bg-zinc-900/40 hover:border-foreground/10 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,0,0,0.3)]"
-                  >
-                    {/* Selection Checkbox */}
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleToggleSelectItem(item);
-                        }}
-                        className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
-                          selectedItems.some((x) => x.id === item.id)
-                            ? "bg-indigo-500 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]"
-                            : "border-foreground/15 bg-black/40 hover:border-foreground/30 text-transparent hover:text-foreground/25"
-                        }`}
-                      >
-                        <Check className="w-3 h-3 stroke-[3px]" />
-                      </button>
-                    </div>
-
-                    {/* Status Badges */}
-                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2">
-                      {SHOW_STOCK_BADGE && item.inStock && (
-                        <div className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md">
-                          <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                            {isUa ? "В наявності" : "In Stock"}
-                          </span>
-                        </div>
-                      )}
-                      {(make || model || chassis) && (
-                        <div className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md">
-                          <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-1">
-                            <Check className="w-2.5 h-2.5" />
-                            {isUa ? "Підходить" : "Fits"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Link wrapping Image & Titles */}
-                    <Link
-                      href={`/${locale}/shop/${item.slug}`}
-                      className="flex-1 flex flex-col cursor-pointer"
+                  return (
+                    <motion.div
+                      layout
+                      key={item.id}
+                      className="group relative flex flex-col rounded-none sm:rounded-none border border-primary/6 bg-zinc-900/20 backdrop-blur-xs p-4 sm:p-5 md:p-6 hover:bg-zinc-900/40 hover:border-foreground/10 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,0,0,0.3)]"
                     >
-                      {/* Image Container */}
-                      <div className="aspect-square rounded-2xl bg-foreground/[0.03] mb-6 flex items-center justify-center overflow-hidden relative group-hover:bg-foreground/5 transition-colors">
-                        <SafeProductImage
-                          src={item.thumbnail}
-                          alt={item.name}
-                          className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out"
-                        />
+                      {/* Selection Checkbox */}
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleSelectItem(item);
+                          }}
+                          className={`w-6 h-6 rounded-none border flex items-center justify-center transition-all cursor-pointer ${
+                            selectedItems.some((x) => x.id === item.id)
+                              ? "bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                              : "border-foreground/15 bg-black/40 hover:border-foreground/30 text-transparent hover:text-foreground/25"
+                          }`}
+                        >
+                          <Check className="w-3 h-3 stroke-[3px]" />
+                        </button>
                       </div>
 
-                      {/* Brand & Name */}
-                      <div className="flex-1 space-y-2 mb-6">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                            {item.brand}
-                          </span>
-                          <SkuCopy sku={item.partNumber} isUa={isUa} />
-                        </div>
-                        {item.category && (
-                          <div className="text-[9px] text-indigo-400/70 font-semibold uppercase tracking-wider">
-                            {item.category}
+                      {/* Status Badges */}
+                      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2">
+                        {SHOW_STOCK_BADGE && item.inStock && (
+                          <div className="px-2 py-1 rounded-none bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md">
+                            <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              {isUa ? "В наявності" : "In Stock"}
+                            </span>
                           </div>
                         )}
-                        <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
-                          {item.name}
-                        </h3>
+                        {(make || model || chassis) && (
+                          <div className="px-2 py-1 rounded-none bg-white/5 border border-white/20 backdrop-blur-md">
+                            <span className="text-[8px] font-bold text-white uppercase tracking-widest flex items-center gap-1">
+                              <Check className="w-2.5 h-2.5" />
+                              {isUa ? "Підходить" : "Fits"}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </Link>
 
-                    {/* Pricing Block */}
-                    <div className="space-y-4 pt-4 border-t border-foreground/5">
-                      {isB2B ? (
-                        <>
+                      {/* Link wrapping Image & Titles */}
+                      <Link
+                        href={`/${locale}/shop/${item.slug}`}
+                        className="flex-1 flex flex-col cursor-pointer"
+                      >
+                        {/* Image Container */}
+                        <div className="aspect-square rounded-none bg-foreground/[0.03] mb-6 flex items-center justify-center overflow-hidden relative group-hover:bg-foreground/5 transition-colors">
+                          <SafeProductImage
+                            src={item.thumbnail}
+                            alt={item.name}
+                            className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out"
+                          />
+                        </div>
+
+                        {/* Brand & Name */}
+                        <div className="flex-1 space-y-2 mb-6">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                              {item.brand}
+                            </span>
+                            <SkuCopy sku={item.partNumber} isUa={isUa} />
+                          </div>
+                          {item.category && (
+                            <div className="text-[9px] text-zinc-400 font-semibold uppercase tracking-wider">
+                              {item.category}
+                            </div>
+                          )}
+                          <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-white transition-colors">
+                            {item.name}
+                          </h3>
+                        </div>
+                      </Link>
+
+                      {/* Pricing Block */}
+                      <div className="space-y-4 pt-4 border-t border-foreground/5">
+                        {isB2B ? (
+                          <>
+                            <div className="flex flex-row flex-wrap items-end justify-between gap-2">
+                              <div className="space-y-1">
+                                <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
+                                  {isUa ? "РРЦ (MSRP)" : "MSRP"}
+                                </div>
+                                <div className="text-sm text-zinc-500 line-through font-mono">
+                                  ${msrp?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </div>
+                              </div>
+                              <div className="text-right space-y-1">
+                                <div className="text-[9px] uppercase tracking-widest text-emerald-500 font-bold">
+                                  {isUa ? "Ваша Ціна" : "Dealer Price"}
+                                </div>
+                                <div className="text-2xl font-light text-foreground tracking-tight font-mono">
+                                  $
+                                  {dealerPrice?.toLocaleString(undefined, {
+                                    maximumFractionDigits: 0,
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
                           <div className="flex flex-row flex-wrap items-end justify-between gap-2">
                             <div className="space-y-1">
                               <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
-                                {isUa ? "РРЦ (MSRP)" : "MSRP"}
-                              </div>
-                              <div className="text-sm text-zinc-500 line-through font-mono">
-                                ${msrp?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </div>
-                            </div>
-                            <div className="text-right space-y-1">
-                              <div className="text-[9px] uppercase tracking-widest text-emerald-500 font-bold">
-                                {isUa ? "Ваша Ціна" : "Dealer Price"}
+                                {isUa ? "Ціна" : "Price"}
                               </div>
                               <div className="text-2xl font-light text-foreground tracking-tight font-mono">
                                 $
@@ -1104,51 +1241,316 @@ function StockPageContent() {
                               </div>
                             </div>
                           </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-row flex-wrap items-end justify-between gap-2">
-                          <div className="space-y-1">
-                            <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
-                              {isUa ? "Ціна" : "Price"}
-                            </div>
-                            <div className="text-2xl font-light text-foreground tracking-tight font-mono">
-                              $
-                              {dealerPrice?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                            </div>
+                        )}
+
+                        <AddToCartButton
+                          slug={item.slug}
+                          variantId={item.variantId}
+                          locale={locale as string}
+                          variant="minimal"
+                          label={
+                            isB2B
+                              ? isUa
+                                ? "Додати до замовлення"
+                                : "Add to Order"
+                              : isUa
+                                ? "Додати в кошик"
+                                : "Add to Cart"
+                          }
+                          labelAdded={
+                            isB2B
+                              ? isUa
+                                ? "В замовленні ✓"
+                                : "In Order ✓"
+                              : isUa
+                                ? "В кошику ✓"
+                                : "In Cart ✓"
+                          }
+                          className="w-full h-12 rounded-none bg-card text-primary-foreground text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Premium B2B Table/List Layout */
+              <div className="space-y-4">
+                {/* Desktop View */}
+                <div className="hidden md:block w-full border border-foreground/10 bg-zinc-900/10 backdrop-blur-xs">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-[auto_80px_140px_1fr_120px_160px_160px] items-center gap-4 px-6 py-3 border-b border-foreground/10 text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                    <div className="w-6" /> {/* Checkbox placeholder */}
+                    <div>{isUa ? "Фото" : "Image"}</div>
+                    <div>{isUa ? "Бренд / Артикул" : "Brand / SKU"}</div>
+                    <div>{isUa ? "Назва деталі" : "Product Name"}</div>
+                    <div className="text-center">{isUa ? "Наявність" : "Availability"}</div>
+                    <div className="text-right">
+                      {isB2B ? (isUa ? "РРЦ / Дилер" : "MSRP / Dealer") : isUa ? "Ціна" : "Price"}
+                    </div>
+                    <div className="text-right">{isUa ? "Дія" : "Action"}</div>
+                  </div>
+                  {/* Table Rows */}
+                  <div className="divide-y divide-foreground/5">
+                    {items.map((item) => {
+                      const msrp = item.originalPrice || (item.price ? item.price * 1.3 : null);
+                      const dealerPrice = item.price;
+                      const isSelected = selectedItems.some((x) => x.id === item.id);
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`grid grid-cols-[auto_80px_140px_1fr_120px_160px_160px] items-center gap-4 px-6 py-4 hover:bg-foreground/[0.02] transition-all duration-300 border-l-2 ${
+                            isSelected ? "border-l-white bg-white/[0.02]" : "border-l-transparent"
+                          }`}
+                        >
+                          {/* Checkbox */}
+                          <div className="flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelectItem(item)}
+                              className={`w-5 h-5 rounded-none border flex items-center justify-center transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                                  : "border-foreground/15 bg-black/40 hover:border-foreground/30 text-transparent hover:text-foreground/25"
+                              }`}
+                            >
+                              <Check className="w-3 h-3 stroke-[3px]" />
+                            </button>
+                          </div>
+
+                          {/* Thumbnail Image */}
+                          <div className="w-14 h-14 bg-foreground/[0.03] flex items-center justify-center overflow-hidden border border-foreground/5">
+                            <SafeProductImage
+                              src={item.thumbnail}
+                              alt={item.name}
+                              className="w-full h-full object-contain p-2 hover:scale-110 transition-transform duration-500"
+                              isMini
+                            />
+                          </div>
+
+                          {/* Brand & Part Number */}
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">
+                              {item.brand}
+                            </span>
+                            <SkuCopy sku={item.partNumber} isUa={isUa} />
+                          </div>
+
+                          {/* Product Title & Category */}
+                          <div className="flex flex-col gap-1 min-w-0 pr-4">
+                            {item.category && (
+                              <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest">
+                                {item.category}
+                              </span>
+                            )}
+                            <Link
+                              href={`/${locale}/shop/${item.slug}`}
+                              className="text-sm font-medium text-foreground hover:text-white transition-colors truncate block"
+                              title={item.name}
+                            >
+                              {item.name}
+                            </Link>
+                          </div>
+
+                          {/* Stock Status & Fitment */}
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            {item.inStock ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-400 uppercase tracking-widest">
+                                <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                                {isUa ? "Склад" : "Stock"}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-zinc-500/10 border border-zinc-500/20 text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                                {isUa ? "Немає" : "Out"}
+                              </span>
+                            )}
+                            {(make || model || chassis) && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-none bg-white/5 border border-white/20 text-[8px] font-bold text-white uppercase tracking-widest">
+                                <Check className="w-2 h-2" />
+                                {isUa ? "Підходить" : "Fits"}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Pricing */}
+                          <div className="text-right">
+                            {isB2B ? (
+                              <div className="flex flex-col items-end gap-0.5 font-mono">
+                                <span className="text-[10px] text-zinc-500 line-through">
+                                  ${msrp?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </span>
+                                <span className="text-base font-semibold text-emerald-400">
+                                  $
+                                  {dealerPrice?.toLocaleString(undefined, {
+                                    maximumFractionDigits: 0,
+                                  })}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="font-mono text-base text-foreground">
+                                $
+                                {dealerPrice?.toLocaleString(undefined, {
+                                  maximumFractionDigits: 0,
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Add to Cart button */}
+                          <div className="flex justify-end">
+                            <AddToCartButton
+                              slug={item.slug}
+                              variantId={item.variantId}
+                              locale={locale as string}
+                              variant="minimal"
+                              label={isB2B ? (isUa ? "Додати" : "Add") : isUa ? "Кошик" : "Cart"}
+                              labelAdded={
+                                isB2B
+                                  ? isUa
+                                    ? "Додано ✓"
+                                    : "Added ✓"
+                                  : isUa
+                                    ? "В кошику ✓"
+                                    : "In Cart ✓"
+                              }
+                              className="h-9 w-full rounded-none bg-card text-primary-foreground text-[10px] font-bold uppercase tracking-wider hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-1"
+                            />
                           </div>
                         </div>
-                      )}
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      <AddToCartButton
-                        slug={item.slug}
-                        variantId={item.variantId}
-                        locale={locale as string}
-                        variant="minimal"
-                        label={
-                          isB2B
-                            ? isUa
-                              ? "Додати до замовлення"
-                              : "Add to Order"
-                            : isUa
-                              ? "Додати в кошик"
-                              : "Add to Cart"
-                        }
-                        labelAdded={
-                          isB2B
-                            ? isUa
-                              ? "В замовленні ✓"
-                              : "In Order ✓"
-                            : isUa
-                              ? "В кошику ✓"
-                              : "In Cart ✓"
-                        }
-                        className="w-full h-12 rounded-xl bg-card text-primary-foreground text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                {/* Mobile/Tablet view */}
+                <div className="md:hidden space-y-3">
+                  {items.map((item) => {
+                    const msrp = item.originalPrice || (item.price ? item.price * 1.3 : null);
+                    const dealerPrice = item.price;
+                    const isSelected = selectedItems.some((x) => x.id === item.id);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`relative flex flex-col p-4 rounded-none border border-foreground/10 bg-zinc-900/20 hover:bg-zinc-900/40 transition-all duration-300 ${
+                          isSelected ? "border-l-2 border-l-white bg-white/[0.01]" : ""
+                        }`}
+                      >
+                        {/* Top info row */}
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          {/* Checkbox and brand/SKU */}
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelectItem(item)}
+                              className={`w-5 h-5 rounded-none border flex items-center justify-center transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-white border-white text-black"
+                                  : "border-foreground/15 bg-black/40 text-transparent"
+                              }`}
+                            >
+                              <Check className="w-3 h-3 stroke-[3px]" />
+                            </button>
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                                {item.brand}
+                              </span>
+                              <SkuCopy sku={item.partNumber} isUa={isUa} />
+                            </div>
+                          </div>
+
+                          {/* Status/Badge */}
+                          <div className="flex gap-1.5">
+                            {item.inStock && (
+                              <span className="px-1.5 py-0.5 rounded-none bg-emerald-500/10 border border-emerald-500/20 text-[7px] font-bold text-emerald-400 uppercase tracking-wider">
+                                {isUa ? "В наявності" : "Stock"}
+                              </span>
+                            )}
+                            {(make || model || chassis) && (
+                              <span className="px-1.5 py-0.5 rounded-none bg-white/5 border border-white/20 text-[7px] font-bold text-white uppercase tracking-wider">
+                                {isUa ? "Підходить" : "Fits"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Middle row: Name & Thumbnail */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 bg-foreground/[0.03] flex items-center justify-center overflow-hidden shrink-0 border border-foreground/5">
+                            <SafeProductImage
+                              src={item.thumbnail}
+                              alt={item.name}
+                              className="w-full h-full object-contain p-1.5"
+                              isMini
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            {item.category && (
+                              <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-wider">
+                                {item.category}
+                              </span>
+                            )}
+                            <Link
+                              href={`/${locale}/shop/${item.slug}`}
+                              className="text-xs font-medium text-foreground hover:text-white transition-colors line-clamp-2 leading-tight"
+                            >
+                              {item.name}
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Bottom action row: Price & Buy button */}
+                        <div className="flex items-center justify-between border-t border-foreground/5 pt-3 mt-auto">
+                          <div>
+                            {isB2B ? (
+                              <div className="flex flex-row items-baseline gap-2 font-mono">
+                                <span className="text-[10px] text-zinc-500 line-through">
+                                  ${msrp?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </span>
+                                <span className="text-sm font-semibold text-emerald-400">
+                                  $
+                                  {dealerPrice?.toLocaleString(undefined, {
+                                    maximumFractionDigits: 0,
+                                  })}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="font-mono text-sm text-foreground">
+                                $
+                                {dealerPrice?.toLocaleString(undefined, {
+                                  maximumFractionDigits: 0,
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="w-32">
+                            <AddToCartButton
+                              slug={item.slug}
+                              variantId={item.variantId}
+                              locale={locale as string}
+                              variant="minimal"
+                              label={isB2B ? (isUa ? "Додати" : "Add") : isUa ? "Кошик" : "Cart"}
+                              labelAdded={
+                                isB2B
+                                  ? isUa
+                                    ? "Додано ✓"
+                                    : "Added ✓"
+                                  : isUa
+                                    ? "В кошику ✓"
+                                    : "In Cart ✓"
+                              }
+                              className="h-8 w-full rounded-none bg-card text-primary-foreground text-[9px] font-bold uppercase tracking-wider hover:bg-zinc-200 transition-all flex items-center justify-center"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -1184,7 +1586,7 @@ function StockPageContent() {
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             exit={{ y: 80, opacity: 0, x: "-50%" }}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
-            className="fixed bottom-6 left-1/2 z-50 w-[92%] sm:w-auto max-w-4xl -translate-x-1/2 rounded-[28px] border border-indigo-500/30 bg-[#0a0a0c]/85 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t-indigo-500/40"
+            className="fixed bottom-6 left-1/2 z-50 w-[92%] sm:w-auto max-w-4xl -translate-x-1/2 rounded-none border border-[#c5a880]/30 bg-[#0a0a0c]/85 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t-white/30"
           >
             {/* Left: item count & bulk clear */}
             <div className="flex items-center gap-4">
@@ -1193,14 +1595,14 @@ function StockPageContent() {
                   {isUa ? "Вибрані товари" : "Selected Items"}
                 </div>
                 <div className="text-lg font-light text-foreground flex items-center gap-2">
-                  <span className="font-semibold text-indigo-400">{selectedItems.length}</span>
+                  <span className="font-semibold text-white">{selectedItems.length}</span>
                   <span className="text-zinc-500 text-xs">{isUa ? "дет." : "pcs."}</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedItems([])}
-                className="h-8 px-3 rounded-lg border border-foreground/10 hover:bg-foreground/5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-foreground transition-all shrink-0"
+                className="h-8 px-3 rounded-none border border-foreground/10 hover:bg-foreground/5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-foreground transition-all shrink-0"
               >
                 {isUa ? "Очистити" : "Clear"}
               </button>
@@ -1226,10 +1628,10 @@ function StockPageContent() {
                   </div>
 
                   <div className="space-y-0.5">
-                    <div className="text-[8px] uppercase font-bold tracking-widest text-indigo-400">
+                    <div className="text-[8px] uppercase font-bold tracking-widest text-white">
                       {isUa ? "Сума B2B Partner" : "Total Dealer"}
                     </div>
-                    <div className="text-sm font-mono text-indigo-300 font-bold">
+                    <div className="text-sm font-mono text-white font-bold">
                       $
                       {selectedItems
                         .reduce((acc, curr) => acc + (curr.price || 0), 0)
@@ -1257,7 +1659,7 @@ function StockPageContent() {
               <button
                 type="button"
                 onClick={() => handleExportCSV(selectedItems)}
-                className="flex-1 md:flex-none h-11 px-4 rounded-xl border border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-300 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none h-11 px-4 rounded-none border border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-300 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 {isUa ? "Експорт CSV" : "Export CSV"}
               </button>
@@ -1266,7 +1668,7 @@ function StockPageContent() {
                 type="button"
                 onClick={handleBulkAddToCart}
                 disabled={bulkAdding}
-                className="flex-1 md:flex-none h-11 px-6 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] border border-indigo-400/20"
+                className="flex-1 md:flex-none h-11 px-6 rounded-none bg-[#c5a880] text-white hover:bg-[#b0926a] disabled:opacity-50 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(197,168,128,0.3)] hover:shadow-[0_0_25px_rgba(197,168,128,0.5)] border border-white/20"
               >
                 {bulkAdding ? (
                   <Loader2 className="w-4 h-4 animate-spin text-white" />

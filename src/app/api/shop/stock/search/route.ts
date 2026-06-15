@@ -192,30 +192,30 @@ export async function GET(request: NextRequest) {
     }
 
     if (make) {
-      const makeLower = make.toLowerCase();
+      const makeNorm = normalizeShopSearchText(make);
       filtered = filtered.filter(
         (item) =>
-          (item.fitment.make && item.fitment.make.toLowerCase() === makeLower) ||
-          item.searchText.includes(makeLower)
+          (item.fitment.make && normalizeShopSearchText(item.fitment.make) === makeNorm) ||
+          item.searchText.includes(makeNorm)
       );
     }
 
     if (model) {
-      const modelLower = model.toLowerCase();
+      const modelNorm = normalizeShopSearchText(model);
       filtered = filtered.filter(
         (item) =>
-          item.fitment.models.some((m: string) => m.toLowerCase() === modelLower) ||
-          item.searchText.includes(modelLower)
+          item.fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm) ||
+          item.searchText.includes(modelNorm)
       );
     }
 
     if (chassis) {
-      const chassisLower = chassis.toLowerCase();
+      const chassisNorm = normalizeShopSearchText(chassis);
       filtered = filtered.filter(
         (item) =>
           item.fitment.chassisCodes.some((c: string) =>
             areChassisCompatible(c, chassis.toUpperCase())
-          ) || item.searchText.includes(chassisLower)
+          ) || item.searchText.includes(chassisNorm)
       );
     }
 
@@ -265,22 +265,13 @@ export async function GET(request: NextRequest) {
     let paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
     let fallbackApplied: "fitment" | "all" | null = null;
 
-    if (totalItems === 0 && q && (make || model || chassis || brand || category)) {
+    if (totalItems === 0 && q && (make || model || chassis || brand)) {
       // Fallback 1: Ignore vehicle fitment filters
       let fallbackFiltered = productsWithFitments;
       if (brand) {
         const brandLower = brand.toLowerCase();
         fallbackFiltered = fallbackFiltered.filter(
           (item) => getProductDisplayBrand(item.product.brand).toLowerCase() === brandLower
-        );
-      }
-      if (category) {
-        const categoryLower = category.toLowerCase();
-        fallbackFiltered = fallbackFiltered.filter(
-          (item) =>
-            (item.product.category?.ua &&
-              item.product.category.ua.toLowerCase() === categoryLower) ||
-            (item.product.category?.en && item.product.category.en.toLowerCase() === categoryLower)
         );
       }
 
@@ -305,7 +296,7 @@ export async function GET(request: NextRequest) {
         totalItems = fallbackScored.length;
         totalPages = Math.ceil(totalItems / limit);
         paginatedItems = fallbackScored.slice((page - 1) * limit, page * limit);
-      } else if (brand || category) {
+      } else if (brand) {
         // Fallback 2: Ignore brand/category as well (global query match)
         const globalScored = productsWithFitments
           .map((item) => {

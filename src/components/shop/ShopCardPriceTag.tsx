@@ -193,7 +193,7 @@ export function ShopCardPriceTag({
     <span className={rootClass}>
       <span className={priceClass}>{formatPrice(locale, displayAmount, currency)}</span>
       {retailDisplay ? <span className={retailClass}>{retailDisplay}</span> : null}
-      {showBadge ? <span className={badgeClass}>−{resolved.discountPct}%</span> : null}
+      {showBadge ? <span className={badgeClass}>B2B</span> : null}
     </span>
   );
 }

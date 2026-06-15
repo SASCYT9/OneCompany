@@ -322,13 +322,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
                       ? "Подайте заявку, щоб отримати схвалений B2B доступ і B2B pricing."
                       : "Apply to unlock approved B2B access and B2B pricing."}
               </p>
-              {profileGroup === "B2B_APPROVED" && profile.b2bDiscountPercent != null ? (
-                <p className="mt-3 text-sm text-foreground/80 dark:text-foreground/65">
-                  {isUa
-                    ? `Персональна B2B знижка: ${profile.b2bDiscountPercent}%`
-                    : `Personal B2B discount: ${profile.b2bDiscountPercent}%`}
-                </p>
-              ) : null}
+
               {profileGroup === "B2C" ? (
                 <button
                   type="button"

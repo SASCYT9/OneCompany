@@ -141,16 +141,12 @@ export function ShopB2BPricingBand({ pricing, locale, className, variant }: Prop
 
       {explicitDiscount != null ? (
         <div className="pl-7">
-          <span className={explicitDiscountBadgeClass}>
-            {isUa ? `Знижка -${explicitDiscount}%` : `Discount -${explicitDiscount}%`}
-          </span>
+          <span className={explicitDiscountBadgeClass}>{isUa ? "B2B Знижка" : "B2B Discount"}</span>
         </div>
       ) : baseB2BDiscount != null ? (
         <div className="pl-7">
           <span className={discountBadgeClass}>
-            {isUa
-              ? `Базова B2B знижка -${baseB2BDiscount}%`
-              : `Base B2B discount -${baseB2BDiscount}%`}
+            {isUa ? "Базова B2B знижка" : "Base B2B discount"}
           </span>
         </div>
       ) : null}

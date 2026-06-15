@@ -210,7 +210,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                       i.originalPrice && (
                         <div className="mt-1.5 flex items-center gap-2">
                           <span className="inline-flex items-center rounded-sm bg-cyan-950/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/20">
-                            B2B -{i.discountPercent}%
+                            B2B
                           </span>
                           <span className="text-[10px] text-foreground/55 dark:text-foreground/30 line-through">
                             {formatShopMoney(
