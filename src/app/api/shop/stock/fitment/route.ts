@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
+import { isExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,7 +49,9 @@ export async function GET(request: NextRequest) {
           item.fitment.models.some((m: string) => m.toLowerCase() === modelLower)
         ) {
           for (const code of item.fitment.chassisCodes) {
-            chassisSet.add(code);
+            if (isExpectedChassisForMakeModel(make, model, code)) {
+              chassisSet.add(code);
+            }
           }
         }
       }

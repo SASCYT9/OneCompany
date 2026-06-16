@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
-import { extractProductFitment, areChassisCompatible, type Fitment } from "@/lib/crossShopFitment";
+import {
+  extractProductFitment,
+  areChassisCompatible,
+  isExpectedChassisForMakeModel,
+  type Fitment,
+} from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
@@ -8,9 +13,19 @@ import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
 } from "@/lib/shopPricingAudience";
-import { tokenizeShopSearchQuery, normalizeShopSearchText } from "@/lib/shopSearch";
-import fs from "fs";
-import path from "path";
+import {
+  buildShopSearchText,
+  tokenizeShopSearchQuery,
+  normalizeShopSearchText,
+} from "@/lib/shopSearch";
+import {
+  buildVehicleSearchDebug,
+  compactShopCode,
+  expandVehicleAliases,
+  isStructuredPartQuery,
+  scoreVehicleSearchItem,
+  type ShopVehicleSearchExpansion,
+} from "@/lib/shopVehicleSearch";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -38,24 +53,14 @@ let cachedProductsWithFitment: Array<{
   product: any;
   fitment: Fitment;
   searchText: string;
+  titleText: string;
+  skuText: string;
+  compactSkuText: string;
+  fitmentText: string;
 }> | null = null;
 let cachedTimestamp = 0;
 
 export async function getShopProductsWithFitments() {
-  const snapshotPath = path.join(process.cwd(), "data", "shop-products-fitments.snapshot.json");
-
-  if (fs.existsSync(snapshotPath)) {
-    try {
-      const fileContent = fs.readFileSync(snapshotPath, "utf8");
-      const parsed = JSON.parse(fileContent);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    } catch (err) {
-      console.error("[search/route] failed to load products-fitments snapshot:", err);
-    }
-  }
-
   const now = Date.now();
   const products = await getShopProductsServer();
 
@@ -67,9 +72,25 @@ export async function getShopProductsWithFitments() {
     cachedProductsWithFitment = products.map((product) => {
       const fitment = extractProductFitment(product);
       const displayBrand = getProductDisplayBrand(product.brand);
+      const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
+      const skuText = buildShopSearchText([
+        product.sku,
+        ...(product.variants ?? []).flatMap((variant: any) => [variant.sku, variant.title]),
+      ]);
+      const compactSkuText = [
+        product.sku,
+        ...(product.variants ?? []).map((variant: any) => variant.sku),
+      ]
+        .map((value) => compactShopCode(value))
+        .filter(Boolean)
+        .join(" ");
+      const fitmentText = buildShopSearchText([
+        fitment.make,
+        ...fitment.models,
+        ...fitment.chassisCodes,
+      ]);
 
-      // Build text for matches search
-      const searchText = [
+      const searchText = buildShopSearchText([
         product.title?.en,
         product.title?.ua,
         product.sku,
@@ -81,16 +102,36 @@ export async function getShopProductsWithFitments() {
         product.category?.en,
         product.collection?.ua,
         product.collection?.en,
+        product.shortDescription?.ua,
+        product.shortDescription?.en,
+        product.longDescription?.ua,
+        product.longDescription?.en,
+        ...(product.highlights ?? []).flatMap((item: any) => [item.ua, item.en]),
+        ...(product.collections ?? []).flatMap((item: any) => [
+          item.handle,
+          item.title?.ua,
+          item.title?.en,
+          item.brand,
+        ]),
+        ...(product.variants ?? []).flatMap((variant: any) => [
+          variant.sku,
+          variant.title,
+          variant.optionValues?.join(" "),
+        ]),
+        fitment.make,
+        ...fitment.models,
+        ...fitment.chassisCodes,
         ...(product.tags ?? []),
-      ]
-        .map((value) => String(value ?? "").trim())
-        .filter(Boolean)
-        .join(" ");
+      ]);
 
       return {
         product,
         fitment,
-        searchText: normalizeShopSearchText(searchText),
+        searchText,
+        titleText,
+        skuText,
+        compactSkuText,
+        fitmentText,
       };
     });
     cachedTimestamp = now;
@@ -99,33 +140,109 @@ export async function getShopProductsWithFitments() {
   return cachedProductsWithFitment;
 }
 
-function computeRelevanceScore(
-  searchText: string,
+function computeRelevanceScoreWithReasons(
+  item: {
+    searchText: string;
+    titleText: string;
+    skuText: string;
+    compactSkuText: string;
+    fitmentText: string;
+  },
   queryTokens: string[],
+  rawQuery: string,
+  expandedQuery: ShopVehicleSearchExpansion,
   brand?: string,
   titleEn?: string,
   titleUa?: string
 ) {
+  const vehicleScore = scoreVehicleSearchItem(item, expandedQuery);
+  const compactQuery = compactShopCode(rawQuery);
+  if (isStructuredPartQuery(rawQuery) && item.compactSkuText.includes(compactQuery)) {
+    return { score: 1000, reasons: ["sku:exact"] };
+  }
+
   let score = 0;
+  let matchedTokens = 0;
+  const normalizedBrand = normalizeShopSearchText(brand);
+  const normalizedTitleEn = normalizeShopSearchText(titleEn);
+  const normalizedTitleUa = normalizeShopSearchText(titleUa);
 
   for (const token of queryTokens) {
-    if (searchText.includes(token)) {
-      score += 1.0;
+    if (!item.searchText.includes(token)) {
+      continue;
+    }
 
-      // Boost if token matches brand or title directly
-      if (brand && brand.toLowerCase().includes(token)) {
-        score += 0.5;
-      }
-      if (titleEn && titleEn.toLowerCase().includes(token)) {
-        score += 0.5;
-      }
-      if (titleUa && titleUa.toLowerCase().includes(token)) {
-        score += 0.5;
-      }
+    matchedTokens += 1;
+    score += 1.0;
+
+    if (item.fitmentText.includes(token)) {
+      score += 3.0;
+    }
+    if (
+      item.titleText.includes(token) ||
+      normalizedTitleEn.includes(token) ||
+      normalizedTitleUa.includes(token)
+    ) {
+      score += 1.5;
+    }
+    if (item.skuText.includes(token)) {
+      score += 2.0;
+    }
+    if (normalizedBrand.includes(token)) {
+      score += 1.0;
     }
   }
 
-  return score / queryTokens.length;
+  if (matchedTokens === 0) {
+    return vehicleScore.score > 0 ? vehicleScore : { score: 0, reasons: [] };
+  }
+
+  const coverage = matchedTokens / queryTokens.length;
+
+  // For multi-token vehicle/SKU searches, avoid ranking one-token coincidences
+  // above real fitment matches. The fallback path still broadens when strict
+  // filters produce no results.
+  if (queryTokens.length >= 2 && coverage < 0.5) {
+    return vehicleScore.score > 0 ? vehicleScore : { score: 0, reasons: [] };
+  }
+
+  const textScore = score * coverage;
+  if (vehicleScore.score > 0) {
+    return {
+      score: vehicleScore.score + textScore,
+      reasons: [...vehicleScore.reasons, `text:${textScore.toFixed(2)}`].slice(0, 8),
+    };
+  }
+  return { score: textScore, reasons: [`text:${textScore.toFixed(2)}`] };
+}
+
+function narrowVehicleSearchResults<T extends { searchText: string; score: number }>(
+  items: T[],
+  expandedQuery: ShopVehicleSearchExpansion
+) {
+  if (expandedQuery.intent !== "vehicle" && expandedQuery.intent !== "mixed") {
+    return items;
+  }
+
+  let narrowed = items;
+
+  if (expandedQuery.requiredTokens.length > 0) {
+    const fullRequiredMatches = items.filter((item) =>
+      expandedQuery.requiredTokens.every((token) => item.searchText.includes(token))
+    );
+    const partialRequiredMatches = items.filter((item) =>
+      expandedQuery.requiredTokens.some((token) => item.searchText.includes(token))
+    );
+    if (fullRequiredMatches.length > 0) {
+      narrowed = fullRequiredMatches;
+    } else if (partialRequiredMatches.length > 0) {
+      narrowed = partialRequiredMatches;
+    }
+  }
+
+  const minimumScore = expandedQuery.requiredTokens.length > 0 ? 12 : 8;
+  const strongMatches = narrowed.filter((item) => item.score >= minimumScore);
+  return strongMatches.length > 0 ? strongMatches : narrowed;
 }
 
 export async function GET(request: NextRequest) {
@@ -140,6 +257,7 @@ export async function GET(request: NextRequest) {
     const locale = searchParams.get("locale")?.trim() || "ua";
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const all = searchParams.get("all") === "true";
+    const debug = searchParams.get("debug") === "true";
     const limit = 24;
 
     const [settingsRecord, session, productsWithFitments] = await Promise.all([
@@ -211,34 +329,58 @@ export async function GET(request: NextRequest) {
 
     if (chassis) {
       const chassisNorm = normalizeShopSearchText(chassis);
-      filtered = filtered.filter(
-        (item) =>
-          item.fitment.chassisCodes.some((c: string) =>
-            areChassisCompatible(c, chassis.toUpperCase())
-          ) || item.searchText.includes(chassisNorm)
-      );
+      if (make && model && !isExpectedChassisForMakeModel(make, model, chassis)) {
+        filtered = [];
+      } else {
+        filtered = filtered.filter(
+          (item) =>
+            item.fitment.chassisCodes.some((c: string) =>
+              areChassisCompatible(c, chassis.toUpperCase())
+            ) || item.searchText.includes(chassisNorm)
+        );
+      }
     }
 
     // 2. Search query with relevance scoring
     const queryTokens = tokenizeShopSearchQuery(q);
+    const expandedQuery = q ? expandVehicleAliases(q) : null;
+    const compactQuery = compactShopCode(q);
+    const structuredPartQuery = isStructuredPartQuery(q);
     let scoredItems = filtered.map((item) => {
       let score = 1;
+      let scoreReasons: string[] = [];
       const displayBrand = getProductDisplayBrand(item.product.brand);
       if (q && queryTokens.length > 0) {
-        score = computeRelevanceScore(
-          item.searchText,
+        const scored = computeRelevanceScoreWithReasons(
+          item,
           queryTokens,
+          q,
+          expandedQuery!,
           displayBrand,
           item.product.title?.en,
           item.product.title?.ua
         );
+        score = scored.score;
+        scoreReasons = scored.reasons;
       }
-      return { ...item, score };
+      return { ...item, score, scoreReasons };
     });
 
     if (q && queryTokens.length > 0) {
       // Keep only matches
       scoredItems = scoredItems.filter((item) => item.score > 0);
+      if (structuredPartQuery) {
+        const exactSkuMatches = scoredItems.filter((item) =>
+          item.compactSkuText.includes(compactQuery)
+        );
+        if (exactSkuMatches.length > 0) {
+          scoredItems = exactSkuMatches;
+        } else if (expandedQuery) {
+          scoredItems = narrowVehicleSearchResults(scoredItems, expandedQuery);
+        }
+      } else if (expandedQuery) {
+        scoredItems = narrowVehicleSearchResults(scoredItems, expandedQuery);
+      }
       // Sort by relevance score descending
       scoredItems.sort((a, b) => b.score - a.score);
     } else if (brand) {
@@ -278,16 +420,25 @@ export async function GET(request: NextRequest) {
       const fallbackScored = fallbackFiltered
         .map((item) => {
           const displayBrand = getProductDisplayBrand(item.product.brand);
-          const score = computeRelevanceScore(
-            item.searchText,
+          const scored = computeRelevanceScoreWithReasons(
+            item,
             queryTokens,
+            q,
+            expandedQuery!,
             displayBrand,
             item.product.title?.en,
             item.product.title?.ua
           );
-          return { ...item, score };
+          return { ...item, score: scored.score, scoreReasons: scored.reasons };
         })
         .filter((item) => item.score > 0);
+      if (expandedQuery) {
+        fallbackScored.splice(
+          0,
+          fallbackScored.length,
+          ...narrowVehicleSearchResults(fallbackScored, expandedQuery)
+        );
+      }
 
       fallbackScored.sort((a, b) => b.score - a.score);
 
@@ -301,16 +452,25 @@ export async function GET(request: NextRequest) {
         const globalScored = productsWithFitments
           .map((item) => {
             const displayBrand = getProductDisplayBrand(item.product.brand);
-            const score = computeRelevanceScore(
-              item.searchText,
+            const scored = computeRelevanceScoreWithReasons(
+              item,
               queryTokens,
+              q,
+              expandedQuery!,
               displayBrand,
               item.product.title?.en,
               item.product.title?.ua
             );
-            return { ...item, score };
+            return { ...item, score: scored.score, scoreReasons: scored.reasons };
           })
           .filter((item) => item.score > 0);
+        if (expandedQuery) {
+          globalScored.splice(
+            0,
+            globalScored.length,
+            ...narrowVehicleSearchResults(globalScored, expandedQuery)
+          );
+        }
 
         globalScored.sort((a, b) => b.score - a.score);
 
@@ -404,6 +564,19 @@ export async function GET(request: NextRequest) {
         totalItems,
         source: "local",
         fallbackApplied,
+        ...(debug && q
+          ? {
+              debug: {
+                query: buildVehicleSearchDebug(expandedQuery ?? expandVehicleAliases(q)),
+                topReasons: paginatedItems.slice(0, 10).map((item: any) => ({
+                  slug: item.product.slug,
+                  sku: item.product.sku,
+                  score: item.score,
+                  reasons: item.scoreReasons ?? [],
+                })),
+              },
+            }
+          : {}),
       },
       filters: {
         brands,

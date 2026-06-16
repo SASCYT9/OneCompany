@@ -89,15 +89,28 @@ async function main() {
         title: product.title,
         category: product.category,
         shortDescription: product.shortDescription,
+        longDescription: product.longDescription,
+        leadTime: product.leadTime,
         stock: product.stock,
         collection: product.collection,
+        collections: product.collections,
+        tags: product.tags,
         price: product.price,
         b2bPrice: product.b2bPrice,
         compareAt: product.compareAt,
         b2bCompareAt: product.b2bCompareAt,
         image: product.image,
+        highlights: product.highlights,
         variants: defaultVariant
-          ? [{ id: defaultVariant.id, sku: defaultVariant.sku, isDefault: true }]
+          ? [
+              {
+                id: defaultVariant.id,
+                title: defaultVariant.title,
+                sku: defaultVariant.sku,
+                optionValues: defaultVariant.optionValues,
+                isDefault: true,
+              },
+            ]
           : [],
       };
     });
@@ -141,13 +154,29 @@ async function main() {
         title: product.title,
         category: product.category,
         shortDescription: product.shortDescription,
+        longDescription: product.longDescription,
+        collection: product.collection,
+        collections: product.collections,
+        productType: product.productType,
+        tags: product.tags,
+        highlights: product.highlights,
         image: product.image,
         stock: product.stock,
         price: product.price,
         b2bPrice: product.b2bPrice,
         compareAt: product.compareAt,
         b2bCompareAt: product.b2bCompareAt,
-        variants: defaultVariant ? [{ id: defaultVariant.id, isDefault: true }] : [],
+        variants: defaultVariant
+          ? [
+              {
+                id: defaultVariant.id,
+                title: defaultVariant.title,
+                sku: defaultVariant.sku,
+                optionValues: defaultVariant.optionValues,
+                isDefault: true,
+              },
+            ]
+          : [],
       };
 
       return {

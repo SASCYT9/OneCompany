@@ -49,6 +49,7 @@ const CHASSIS_CODES = new Set([
   "E36",
   "E39",
   "E46",
+  "E84",
   "E60",
   "E63",
   "E64",
@@ -75,7 +76,9 @@ const CHASSIS_CODES = new Set([
   "F33",
   "F34",
   "F36",
+  "F39",
   "F40",
+  "F48",
   "F80",
   "F82",
   "F83",
@@ -123,6 +126,8 @@ const CHASSIS_CODES = new Set([
   "G8X",
   "G90",
   "G99",
+  "U10",
+  "U11",
   // Audi / VW
   "B5",
   "B7",
@@ -673,6 +678,7 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "E36",
     "E39",
     "E46",
+    "E84",
     "E60",
     "E63",
     "E64",
@@ -699,7 +705,9 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "F33",
     "F34",
     "F36",
+    "F39",
     "F40",
+    "F48",
     "F80",
     "F82",
     "F83",
@@ -747,6 +755,8 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "G8X",
     "G90",
     "G99",
+    "U10",
+    "U11",
   ]),
   Porsche: new Set([
     "991",
@@ -1595,9 +1605,29 @@ function buildSearchText(product: ShopProduct): string {
   return [
     product.title?.en,
     product.title?.ua,
+    product.shortDescription?.en,
+    product.shortDescription?.ua,
+    product.longDescription?.en,
+    product.longDescription?.ua,
     product.collection?.en,
     product.collection?.ua,
+    product.category?.en,
+    product.category?.ua,
+    product.productType,
+    product.vendor,
     ...(product.tags ?? []),
+    ...(product.highlights ?? []).flatMap((item) => [item.en, item.ua]),
+    ...(product.collections ?? []).flatMap((item) => [
+      item.handle,
+      item.title?.en,
+      item.title?.ua,
+      item.brand,
+    ]),
+    ...(product.variants ?? []).flatMap((variant) => [
+      variant.title,
+      variant.sku,
+      variant.optionValues?.join(" "),
+    ]),
     product.slug,
     product.sku,
   ]
@@ -2403,6 +2433,192 @@ function inferModelFromChassis(make: string, chassis: string): string | null {
     if (upper === "C197") return "SLS";
   }
   return null;
+}
+
+const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> = {
+  BMW: {
+    "1 Series": ["E81", "E82", "E87", "E88", "F20", "F21", "F40"],
+    "2 Series": ["F22", "F23", "G42"],
+    "3 Series": ["E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21"],
+    "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
+    "5 Series": ["E34", "E39", "E60", "F10", "G30", "G31"],
+    "6 Series": ["E63", "E64", "F06", "F12", "F13", "G32"],
+    "7 Series": ["G11", "G12", "G70"],
+    "8 Series": ["G14", "G15", "G16"],
+    M2: ["F87", "F87N", "G87"],
+    M3: ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
+    M4: ["F82", "F83", "G82", "G83"],
+    M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90"],
+    M6: ["E63", "E64", "F06", "F12", "F13"],
+    M8: ["F91", "F92", "F93"],
+    "M135i/M140i": ["F20", "F21", "F40"],
+    "M235i/M240i": ["F22", "F23", "G42"],
+    "M340i/M340d": ["G20", "G21"],
+    "M440i/M440d": ["G22", "G23"],
+    M550i: ["G30"],
+    M850i: ["G14", "G15", "G16"],
+    Z4: ["G29"],
+    X1: ["E84", "F48", "U11"],
+    X2: ["F39", "U10"],
+    X3: ["G01", "G08"],
+    X4: ["G02"],
+    X5: ["G05"],
+    X6: ["G06"],
+    X7: ["G07"],
+    "X3 M": ["F97"],
+    "X4 M": ["F98"],
+    "X5 M": ["F95"],
+    "X6 M": ["F96"],
+    Xm: ["G09"],
+  },
+  Porsche: {
+    "911": ["930", "964", "993", "996", "997", "991", "991.1", "991.2", "992", "992.1", "992.2"],
+    "718 Boxster/Cayman": ["718", "981", "982", "987", "986"],
+    Cayenne: ["955", "957", "958", "E3", "9YA", "9Y0", "9YB", "9PA"],
+    Macan: ["95B", "95B.1", "95B.2", "536"],
+    Panamera: ["970", "971", "972"],
+    Taycan: ["J1"],
+    GT4: ["718", "981", "982"],
+    GT4RS: ["718", "982"],
+    "914-6": ["914"],
+  },
+  Audi: {
+    A3: ["8P", "8V", "8V.1", "8V.2", "8Y", "8Y.1", "8Y.2"],
+    S3: ["8V", "8Y"],
+    RS3: ["8V", "8V.1", "8V.2", "8Y", "8Y.1", "8Y.2"],
+    A4: ["B5", "B6", "B7", "B8", "B8.5", "B9", "B9.5"],
+    S4: ["B5", "B6", "B7", "B8", "B8.5", "B9", "B9.5"],
+    RS4: ["B5", "B7", "B8", "B9", "B9.5"],
+    A5: ["8T", "F5", "B8", "B8.5", "B9", "B9.5"],
+    S5: ["8T", "F5", "B8", "B8.5", "B9", "B9.5"],
+    RS5: ["8T", "F5", "B8", "B9", "B9.5"],
+    A6: ["C5", "C6", "C7", "C8"],
+    S6: ["C6", "C7", "C8"],
+    RS6: ["C5", "C6", "C7", "C8"],
+    A7: ["4G", "4K", "C7", "C8"],
+    S7: ["4G", "4K", "C7", "C8"],
+    RS7: ["4G", "4K", "C7", "C8"],
+    TT: ["8J", "8S"],
+    TTS: ["8J", "8S"],
+    "TT-RS": ["8J", "8S"],
+    Q3: ["8U", "F3"],
+    RSQ3: ["8U", "F3"],
+    "RS Q3": ["8U", "F3"],
+    Q5: ["8R", "FY"],
+    SQ5: ["8R", "FY"],
+    Q7: ["4M"],
+    SQ7: ["4M"],
+    Q8: ["4M", "F1"],
+    SQ8: ["4M", "F1"],
+    RSQ8: ["4M", "F1"],
+    "RS Q8": ["4M", "F1"],
+  },
+  "Mercedes-Benz": {
+    "A-Class": ["W176", "W177", "W247"],
+    A45: ["W176", "W177"],
+    "CLA-Class": ["C117", "X117", "C118", "X118"],
+    "G-Class": ["W463", "W463A", "W464", "W465"],
+    "G-Wagon": ["W463", "W463A", "W465"],
+    "GLC-Class": ["X253", "C253", "X254"],
+    "GLE-Class": ["W166", "W167", "C167"],
+    GLS: ["X166", "X167"],
+    "S-Class": ["W220", "W221", "W222", "W223"],
+    "C-Class": ["W202", "W203", "W204", "W205", "W206"],
+    "E-Class": ["W210", "W211", "W212", "W213", "W214"],
+    SL: ["R230", "R231", "R232"],
+    SLK: ["R170", "R171", "R172"],
+    "AMG GT": ["C190"],
+    "190e": ["W201"],
+  },
+  "Mercedes-AMG": {
+    A45: ["W176", "W177"],
+    CLA45: ["C117", "X117", "C118", "X118"],
+    G500: ["W463", "W463A", "W464", "W465"],
+    G63: ["W463", "W463A", "W465"],
+    S63: ["W221", "W222", "W223"],
+    C63: ["W204", "C204", "S204", "W205", "C205", "S205", "A205", "W206", "S206"],
+    E53: ["W213", "S213", "W167", "C167"],
+    E63: ["W211", "S211", "W212", "S212", "W213", "S213"],
+    "AMG GT": ["C190", "C192", "X290"],
+  },
+  "Land Rover": {
+    Defender: ["L663"],
+  },
+  "Range Rover": {
+    Sport: ["L494", "L461"],
+    Vogue: ["L405", "L460"],
+    L405: ["L405"],
+    L460: ["L460"],
+    L494: ["L494"],
+  },
+  Toyota: {
+    "GR Supra": ["A90", "A91", "JZA90"],
+    GT86: ["ZN6"],
+    GR86: ["ZN8"],
+    "GR Yaris": ["GXPA16"],
+    "GR Corolla": ["GZEA14", "E210"],
+  },
+  Subaru: {
+    brz: ["ZC6", "ZD8"],
+    BRZ: ["ZC6", "ZD8"],
+    wrx: ["VA", "VB"],
+    sti: ["VA", "VAB"],
+  },
+  Nissan: {
+    "gt-r": ["R35"],
+    GTR: ["R35"],
+    "skyline gt-r": ["R32", "R33", "R34"],
+    "350z": ["Z33"],
+    "370z": ["Z34"],
+    "rz34 400z": ["RZ34"],
+    Note: [],
+  },
+  Honda: {
+    civic: ["FK8", "FL5"],
+    "civic type r": ["FK8", "FL5"],
+    "civic si": ["FE1"],
+  },
+  Volkswagen: {
+    Golf: ["MK7", "MK7.5", "MK8", "MQB"],
+    GTI: ["MK7", "MK7.5", "MK8", "MQB"],
+    Arteon: ["MQB"],
+    Passat: ["MQB"],
+    Tiguan: ["MQB"],
+  },
+  Mini: {
+    Cooper: ["R56", "R57", "R58", "R59", "F54", "F55", "F56", "F57", "F60"],
+  },
+};
+
+function normalizeFitmentKey(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+export function getExpectedChassisForMakeModel(make: string, model: string): string[] | null {
+  const makeEntry =
+    EXPECTED_CHASSIS_BY_MAKE_MODEL[make] ??
+    EXPECTED_CHASSIS_BY_MAKE_MODEL[
+      Object.keys(EXPECTED_CHASSIS_BY_MAKE_MODEL).find(
+        (key) => normalizeFitmentKey(key) === normalizeFitmentKey(make)
+      ) ?? ""
+    ];
+  if (!makeEntry) return null;
+
+  const modelKey = Object.keys(makeEntry).find(
+    (key) => normalizeFitmentKey(key) === normalizeFitmentKey(model)
+  );
+  return modelKey ? makeEntry[modelKey] : null;
+}
+
+export function isExpectedChassisForMakeModel(
+  make: string,
+  model: string,
+  chassis: string
+): boolean {
+  const expected = getExpectedChassisForMakeModel(make, model);
+  if (!expected) return true;
+  const normalizedChassis = chassis.trim().toUpperCase();
+  return expected.some((code) => code.toUpperCase() === normalizedChassis);
 }
 
 /**
