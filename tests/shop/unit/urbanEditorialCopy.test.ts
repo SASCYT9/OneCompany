@@ -8,7 +8,9 @@ import {
   type UrbanEditorialProductInput,
 } from '../../../src/lib/urbanEditorialCopy';
 
-function makeProduct(overrides: Partial<UrbanEditorialProductInput> = {}): UrbanEditorialProductInput {
+function makeProduct(
+  overrides: Partial<UrbanEditorialProductInput> = {}
+): UrbanEditorialProductInput {
   return {
     slug: 'urb-spo-25353021-v1',
     titleEn: 'Range Rover L460 Visual Carbon Fibre Rear Spoiler',
@@ -65,12 +67,48 @@ test('buildUrbanEditorialCopy formats wheel specifications for Ukrainian storefr
     })
   );
 
-  assert.equal(copy.titleUa, 'Диск Urban WX2-R 22" Satin Black для Land Rover Defender 110');
+  assert.equal(
+    copy.titleUa,
+    'Кований диск Urban WX2-R 22" Satin Black для Land Rover Defender 110'
+  );
   assert.match(copy.shortDescUa, /22"/);
+  assert.match(copy.shortDescUa, /кований легкосплавний диск/i);
   assert.match(copy.bodyHtmlUa, /5x120/);
   assert.match(copy.bodyHtmlUa, /ET25/);
   assert.match(copy.bodyHtmlUa, /задня вісь/i);
   assert.match(copy.bodyHtmlUa, /Defender 110/);
+  assert.match(copy.bodyHtmlUa, /WX2-R \/ WX Works forged/);
+});
+
+test('buildUrbanEditorialCopy keeps UCR wheel code and full polished finish in UA copy', () => {
+  const copy = buildUrbanEditorialCopy(
+    makeProduct({
+      slug: 'urb-whe-26009231-v1',
+      titleEn: '19" UCR - 5x112 - ET45 - Gloss Black & Polished Face (Golf R)',
+      titleUa: '19" UCR - 5x112 - ET45 - Gloss Black & Polished Face (Golf R)',
+      shortDescEn: null,
+      shortDescUa: null,
+      bodyHtmlEn: '<p>Wheel for Golf R.</p>',
+      bodyHtmlUa: null,
+      brand: 'Volkswagen',
+      categoryEn: 'Wheels',
+      categoryUa: 'Диски',
+      productType: 'Wheels',
+      collectionEn: 'Golf R',
+      collectionUa: 'Golf R',
+      tags: ['urban-family:wheels'],
+    })
+  );
+
+  assert.equal(
+    copy.titleUa,
+    'Литий диск Urban UCR 19" Gloss Black & Polished Face для Volkswagen Golf R'
+  );
+  assert.match(copy.shortDescUa, /UC-R \/ Urban Cast/);
+  assert.match(copy.shortDescUa, /литий легкосплавний диск/i);
+  assert.match(copy.bodyHtmlUa, /Gloss Black &amp; Polished Face/);
+  assert.match(copy.bodyHtmlUa, /5x112/);
+  assert.match(copy.bodyHtmlUa, /ET45/);
 });
 
 test('buildUrbanEditorialCopy translates fitment notes for premium grille copy', () => {
@@ -127,7 +165,10 @@ test('buildUrbanEditorialCopy creates specific UA titles for Urus SE bodykit com
     })
   );
 
-  assert.equal(front.titleUa, 'Нижня накладка переднього бампера Visual Carbon Fibre для Lamborghini Urus SE');
+  assert.equal(
+    front.titleUa,
+    'Нижня накладка переднього бампера Visual Carbon Fibre для Lamborghini Urus SE'
+  );
   assert.equal(sills.titleUa, 'Розширення порогів Visual Carbon Fibre для Lamborghini Urus SE');
 });
 
@@ -234,7 +275,8 @@ test('computeUrbanUaEditorialUpdate treats mixed Cyrillic plus brand tokens as a
       titleEn: '22" WX2-R - 5x120 - ET25 - Satin Black - Rear (L663)',
       titleUa: 'Диск Urban WX2-R 22" Satin Black для Land Rover Defender 110',
       shortDescEn: null,
-      shortDescUa: 'Офіційна колісна специфікація Urban Automotive WX2-R 22" Satin Black для Land Rover Defender 110.',
+      shortDescUa:
+        'Офіційна колісна специфікація Urban Automotive WX2-R 22" Satin Black для Land Rover Defender 110.',
       bodyHtmlEn: '<p>Wheel for the Defender platform.</p>',
       bodyHtmlUa:
         '<p>Офіційна колісна специфікація Urban Automotive для Land Rover Defender 110.</p><ul><li><strong>PCD:</strong> 5x120</li></ul>',
@@ -252,7 +294,8 @@ test('computeUrbanUaEditorialUpdate treats mixed Cyrillic plus brand tokens as a
   );
 
   assert.deepEqual(update, {
-    longDescUa: 'Офіційна колісна специфікація Urban Automotive для Land Rover Defender 110. PCD: 5x120',
+    longDescUa:
+      'Офіційна колісна специфікація Urban Automotive для Land Rover Defender 110. PCD: 5x120',
   });
 });
 

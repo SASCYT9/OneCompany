@@ -12,8 +12,26 @@ const prisma = new PrismaClient();
 const args = new Set(process.argv.slice(2));
 const COMMIT = args.has('--commit');
 const DRY_RUN = !COMMIT || args.has('--dry-run');
+const FORCE_WHEELS = args.has('--force-wheels');
+const ONLY_WHEELS = args.has('--only-wheels');
 const LIMIT_ARG = process.argv.find((arg) => arg.startsWith('--limit='));
 const LIMIT = LIMIT_ARG ? Number(LIMIT_ARG.split('=')[1]) : null;
+
+function normalizeWhitespace(value: string | null | undefined) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isWheelLikeProduct(product: UrbanEditorialProductInput) {
+  const category = normalizeWhitespace(product.categoryEn || product.productType).toLowerCase();
+  if (category === 'wheels' || category === 'диски') return true;
+
+  return (
+    /\b\d{2}"\b/.test(product.titleEn) &&
+    (/\b\d+x\d+\b/i.test(product.titleEn) || /\bET\s?-?\d+\b/i.test(product.titleEn))
+  );
+}
 
 async function main() {
   const rows = await prisma.shopProduct.findMany({
@@ -50,7 +68,21 @@ async function main() {
   const updates = rows
     .map((row) => {
       const input: UrbanEditorialProductInput = row;
-      const data = computeUrbanUaEditorialUpdate(input);
+      const wheelLike = isWheelLikeProduct(input);
+      if (ONLY_WHEELS && !wheelLike) return null;
+
+      const generated = buildUrbanEditorialCopy(input);
+      const data =
+        FORCE_WHEELS && wheelLike
+          ? {
+              titleUa: generated.titleUa,
+              shortDescUa: generated.shortDescUa,
+              longDescUa: generated.longDescUa,
+              bodyHtmlUa: generated.bodyHtmlUa,
+              seoTitleUa: generated.seoTitleUa,
+              seoDescriptionUa: generated.seoDescriptionUa,
+            }
+          : computeUrbanUaEditorialUpdate(input);
 
       if (!data) return null;
 
@@ -58,7 +90,7 @@ async function main() {
         id: row.id,
         slug: row.slug,
         data,
-        preview: buildUrbanEditorialCopy(input),
+        preview: generated,
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
@@ -74,6 +106,8 @@ async function main() {
     JSON.stringify(
       {
         mode: DRY_RUN ? 'dry-run' : 'commit',
+        forceWheels: FORCE_WHEELS,
+        onlyWheels: ONLY_WHEELS,
         totalActiveUrban: rows.length,
         updates: updates.length,
         fieldCounts,

@@ -43,7 +43,12 @@ type WheelSpec = {
   et: string | null;
   finish: string | null;
   axle: string | null;
+  series: string;
+  construction: string;
+  material: string;
 };
+
+type WheelConstructionInfo = Pick<WheelSpec, 'series' | 'construction' | 'material'>;
 
 const CATEGORY_UA_MAP: Record<string, string> = {
   accessories: 'Аксесуари',
@@ -86,8 +91,7 @@ const FAMILY_VALUE_SENTENCE: Record<UrbanCatalogFamily, string> = {
     'Деталь додає кузову стриманий і дорогий акцент у дусі OEM Plus без візуального перевантаження.',
   wheels:
     'Специфікація побудована навколо правильного fitment, stance та преміальної подачі автомобіля.',
-  exhaust:
-    'Елемент завершує задню частину в типовій для Urban стриманій, технічній манері.',
+  exhaust: 'Елемент завершує задню частину в типовій для Urban стриманій, технічній манері.',
   interior:
     'Рішення переносить мову зовнішнього пакета в салон і підсилює відчуття цілісної збірки.',
   accessories:
@@ -117,7 +121,9 @@ const FINISH_TOKENS = [
   'Exposed Carbon',
   'Carbon Fibre',
   'Billet Aluminium',
+  'Gloss Black & Polished Face',
   'Satin Black',
+  'Satin Grey',
   'Gloss Black',
   'Black Shadow',
   'RAW',
@@ -246,7 +252,10 @@ function normalizeLocalizedWhitespace(value: string) {
   );
 }
 
-function isWeakLocalizedField(current: string | null | undefined, referenceEn: string | null | undefined) {
+function isWeakLocalizedField(
+  current: string | null | undefined,
+  referenceEn: string | null | undefined
+) {
   const normalizedCurrent = normalizeWhitespace(current);
   if (!normalizedCurrent) return true;
 
@@ -260,7 +269,10 @@ function isWeakLocalizedField(current: string | null | undefined, referenceEn: s
   return cyrillicRatio(normalizedCurrent) < 0.18;
 }
 
-function isWeakLocalizedTitle(current: string | null | undefined, referenceEn: string | null | undefined) {
+function isWeakLocalizedTitle(
+  current: string | null | undefined,
+  referenceEn: string | null | undefined
+) {
   const normalizedCurrent = normalizeWhitespace(current);
   if (!normalizedCurrent) return true;
 
@@ -276,7 +288,10 @@ function sentenceCase(value: string) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function categoryUaFromValue(categoryEn: string | null | undefined, categoryUa: string | null | undefined) {
+function categoryUaFromValue(
+  categoryEn: string | null | undefined,
+  categoryUa: string | null | undefined
+) {
   if (normalizeWhitespace(categoryUa)) return normalizeWhitespace(categoryUa);
   const key = normalizeWhitespace(categoryEn).toLowerCase();
   return CATEGORY_UA_MAP[key] ?? normalizeWhitespace(categoryEn) ?? 'Компонент';
@@ -287,13 +302,20 @@ function resolveFamily(product: UrbanEditorialProductInput): UrbanCatalogFamily 
     [product.categoryEn, product.categoryUa, product.productType, product.titleEn].join(' ')
   ).toLowerCase();
 
-  if (/(^|\b)(arch|archs|arches|wheel arch|wheel archs|wheel arches|арки)(\b|$)/i.test(explicitTypeHaystack)) {
+  if (
+    /(^|\b)(arch|archs|arches|wheel arch|wheel archs|wheel arches|арки)(\b|$)/i.test(
+      explicitTypeHaystack
+    )
+  ) {
     return 'bodykits';
   }
 
   const tag = (product.tags ?? []).find((value) => value.startsWith('urban-family:'));
   const tagged = tag?.slice('urban-family:'.length) as UrbanCatalogFamily | undefined;
-  if (tagged && ['bodykits', 'exterior', 'wheels', 'exhaust', 'interior', 'accessories'].includes(tagged)) {
+  if (
+    tagged &&
+    ['bodykits', 'exterior', 'wheels', 'exhaust', 'interior', 'accessories'].includes(tagged)
+  ) {
     return tagged;
   }
 
@@ -307,7 +329,11 @@ function resolveFamily(product: UrbanEditorialProductInput): UrbanCatalogFamily 
     ].join(' ')
   ).toLowerCase();
 
-  if (/(body\s?kit|bodykit|widetrack|wide\s?track|aero kit|replacement bumper package|arch|archs|arches|wheel arch|wheel archs|wheel arches)/i.test(haystack)) {
+  if (
+    /(body\s?kit|bodykit|widetrack|wide\s?track|aero kit|replacement bumper package|arch|archs|arches|wheel arch|wheel archs|wheel arches)/i.test(
+      haystack
+    )
+  ) {
     return 'bodykits';
   }
   if (/(wheel|pcd|et\d+|rim|spacer)/i.test(haystack)) {
@@ -337,7 +363,8 @@ function buildVehicleLabel(product: UrbanEditorialProductInput) {
   const brandLower = brand.toLowerCase();
 
   if (collectionLower.includes(brandLower)) return collection;
-  if (brand === 'Range Rover' && collectionLower.startsWith('sport ')) return `${brand} ${collection}`;
+  if (brand === 'Range Rover' && collectionLower.startsWith('sport '))
+    return `${brand} ${collection}`;
   if (brand === 'Land Rover' && /^defender\b/i.test(collection)) return `Land Rover ${collection}`;
   if (brand === 'Land Rover' && /^discovery\b/i.test(collection)) return `Land Rover ${collection}`;
   if (brand === 'Mercedes-Benz' && /^g-wagon\b/i.test(collection)) return `${brand} ${collection}`;
@@ -372,7 +399,11 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function removeLeadingVehicle(title: string, product: UrbanEditorialProductInput, vehicleLabel: string) {
+function removeLeadingVehicle(
+  title: string,
+  product: UrbanEditorialProductInput,
+  vehicleLabel: string
+) {
   const brand = normalizeWhitespace(product.brand);
   const collection = normalizeWhitespace(product.collectionEn || product.collectionUa);
   const candidates = [
@@ -465,7 +496,8 @@ function translateConfigTokens(title: string) {
   if (/\bSWB\b/i.test(title)) notes.push('конфігурація SWB');
   if (/\bLWB\b/i.test(title)) notes.push('конфігурація LWB');
   if (/\b2013\s*-\s*2017\b/.test(title)) notes.push('версія 2013-2017');
-  if (/\b2018\s*-\s*2022\b/.test(title) || /\b2018-2022\b/.test(title)) notes.push('версія 2018-2022');
+  if (/\b2018\s*-\s*2022\b/.test(title) || /\b2018-2022\b/.test(title))
+    notes.push('версія 2018-2022');
   if (/\b2020\+\b/.test(title)) notes.push('версія 2020+');
   if (/\bRAW\b/i.test(title)) notes.push('виконання RAW');
   if (/\bP400E\b/i.test(title)) notes.push('версія P400E');
@@ -485,7 +517,8 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
   if (/extended arches/i.test(source)) return 'Розширені арки';
   if (/widetrack arch kit/i.test(source)) return 'Комплект арок Widetrack';
   if (/wide track arch kit/i.test(source)) return 'Комплект арок Wide Track';
-  if (/arch extension kit|wheel arch extension kit/i.test(source)) return 'Комплект розширення колісних арок';
+  if (/arch extension kit|wheel arch extension kit/i.test(source))
+    return 'Комплект розширення колісних арок';
   if (/arch kit|arch set|archs|arches/i.test(source)) {
     if (/widetrack/i.test(source)) return 'Комплект арок Widetrack';
     if (/\bPUR\b/i.test(source)) return 'Комплект PUR-арок';
@@ -513,7 +546,8 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
   if (/lower side sills?/i.test(source)) return 'Розширення порогів';
   if (/lower door mouldings inserts?/i.test(source)) return 'Нижні дверні вставки';
   if (/door inserts?/i.test(source)) return 'Вставки дверей';
-  if (/top vent bonnet overlay/i.test(source)) return 'Накладка капота з верхніми вентиляційними елементами';
+  if (/top vent bonnet overlay/i.test(source))
+    return 'Накладка капота з верхніми вентиляційними елементами';
   if (/bonnet assembly/i.test(source)) return 'Капот у зборі';
   if (/bonnet|hood/i.test(source)) return 'Капот';
   if (/side vent overlay/i.test(source)) return 'Накладка бокового вентиляційного елемента';
@@ -551,14 +585,17 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
 
 function buildWheelSpec(title: string): WheelSpec {
   const size = title.match(/\b(\d{2})"/)?.[0] ?? null;
-  const code =
-    title.match(/\b([A-Z]{2,4}\d(?:-?[A-Z])?)\b/i)?.[1]?.toUpperCase() ??
-    title.match(/\b([A-Z]{2,4}\d-[A-Z])\b/i)?.[1]?.toUpperCase() ??
-    null;
+  const code = extractUrbanWheelCode(title);
   const pcd = title.match(/\b(\d+x\d+)\b/i)?.[1]?.replace('X', 'x') ?? null;
   const et = title.match(/\b(ET\s?-?\d+)\b/i)?.[1]?.replace(/\s+/g, '') ?? null;
-  const finish = FINISH_TOKENS.find((token) => new RegExp(escapeRegExp(token), 'i').test(title)) ?? null;
-  const axle = /\brear\b/i.test(title) ? 'задня вісь' : /\bfront\b/i.test(title) ? 'передня вісь' : null;
+  const finish =
+    FINISH_TOKENS.find((token) => new RegExp(escapeRegExp(token), 'i').test(title)) ?? null;
+  const axle = /\brear\b/i.test(title)
+    ? 'задня вісь'
+    : /\bfront\b/i.test(title)
+      ? 'передня вісь'
+      : null;
+  const constructionInfo = inferWheelConstruction(code, title);
 
   return {
     code,
@@ -567,6 +604,106 @@ function buildWheelSpec(title: string): WheelSpec {
     et,
     finish,
     axle,
+    ...constructionInfo,
+  };
+}
+
+function extractUrbanWheelCode(title: string) {
+  const match = title.match(/\b(WX2-?R|UC-?R|UCR|UC\d|WX\d|UF\d|UV\d|HF-?\d|NDS-?\d)\b/i);
+  if (!match) return null;
+
+  return normalizeUrbanWheelCode(match[1]);
+}
+
+function normalizeUrbanWheelCode(code: string) {
+  const normalized = code.toUpperCase().replace(/\s+/g, '').replace('UC-R', 'UCR');
+
+  if (normalized === 'WX2R') return 'WX2-R';
+  if (normalized.startsWith('HF')) return normalized.replace('HF-', 'HF');
+  if (normalized.startsWith('NDS')) return normalized.replace('NDS-', 'NDS');
+
+  return normalized;
+}
+
+function inferWheelConstruction(code: string | null, title: string): WheelConstructionInfo {
+  const source = `${code ?? ''} ${title}`.toUpperCase();
+
+  if (code === 'WX2-R' || code === 'WX5') {
+    return {
+      series: `${code} / WX Works forged`,
+      construction: 'кований легкосплавний диск',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (code === 'WX1' || code === 'WX2') {
+    return {
+      series: `${code} / WX Works`,
+      construction: 'сталевий диск Urban Truck',
+      material: 'сталь',
+    };
+  }
+
+  if (code === 'WX3' || code === 'WX4') {
+    return {
+      series: `${code} / WX Works`,
+      construction: 'легкосплавний диск серії WX Works',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (code === 'UCR' || /^UC\d$/.test(code ?? '')) {
+    return {
+      series: code === 'UCR' ? 'UC-R / Urban Cast' : `${code} / Urban Cast`,
+      construction: 'литий легкосплавний диск',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (/^UF\d$/.test(code ?? '') || /\bURBAN FORGED\b|\bFORGED\b/.test(source)) {
+    return {
+      series: code ? `${code} / Urban Forged` : 'Urban Forged',
+      construction: 'кований легкосплавний диск',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (/^UV\d$/.test(code ?? '')) {
+    return {
+      series: `${code} / Urban x Vossen`,
+      construction: 'кований легкосплавний диск Urban x Vossen',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (/^HF\d$/.test(code ?? '')) {
+    return {
+      series: `${code} / Vossen Hybrid Forged`,
+      construction: 'гібридно-кований легкосплавний диск Vossen',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (/\bCAST\b|\bURBAN CAST\b/.test(source)) {
+    return {
+      series: code ? `${code} / Urban Cast` : 'Urban Cast',
+      construction: 'литий легкосплавний диск',
+      material: 'алюмінієвий сплав',
+    };
+  }
+
+  if (/\bSTEEL\b/.test(source)) {
+    return {
+      series: code ? `${code} / Urban Truck` : 'Urban Truck',
+      construction: 'сталевий диск',
+      material: 'сталь',
+    };
+  }
+
+  return {
+    series: code ? `${code} / Urban Automotive` : 'Urban Automotive',
+    construction: 'легкосплавний диск Urban Automotive; конструкція уточнюється за конкретним SKU',
+    material: 'алюмінієвий сплав',
   };
 }
 
@@ -625,32 +762,61 @@ export function polishUrbanUaCopy(
     .replace(/вихлопу і фірмовим/gi, 'вихлопу та фірмовим')
     .replace(/фірмовими фірмовими/gi, 'фірмовими')
     .replace(/спліттер, задній бампер, дифузор/gi, 'спліттером, заднім бампером і дифузором')
-    .replace(/\bдля версій SV, для non-SV потрібна OEM-решітка\b/gi, 'для версій SV; для non-SV потрібна OEM-решітка');
+    .replace(
+      /\bдля версій SV, для non-SV потрібна OEM-решітка\b/gi,
+      'для версій SV; для non-SV потрібна OEM-решітка'
+    );
 
   if (field === 'html') {
     return polished
       .replace(/\s{2,}/g, ' ')
       .replace(/>\s+</g, '><')
-      .replace(/(<p>)([a-zа-яіїєґ])/giu, (_, open: string, char: string) => open + char.toUpperCase())
+      .replace(
+        /(<p>)([a-zа-яіїєґ])/giu,
+        (_, open: string, char: string) => open + char.toUpperCase()
+      )
       .trim();
   }
 
   return sentenceCase(normalizeLocalizedWhitespace(polished));
 }
 
-function buildWheelCopy(product: UrbanEditorialProductInput, vehicleLabel: string): UrbanEditorialCopy {
+function buildWheelTitleNoun(construction: string) {
+  if (/^кований/i.test(construction)) return 'Кований диск';
+  if (/^литий/i.test(construction)) return 'Литий диск';
+  if (/^сталевий/i.test(construction)) return 'Сталевий диск';
+  if (/^легкосплавний/i.test(construction)) return 'Легкосплавний диск';
+
+  return 'Диск';
+}
+
+function buildWheelCopy(
+  product: UrbanEditorialProductInput,
+  vehicleLabel: string
+): UrbanEditorialCopy {
   const spec = buildWheelSpec(product.titleEn);
-  const descriptorParts = [spec.code ? `Urban ${spec.code}` : 'Urban', spec.diameter, spec.finish].filter(Boolean);
-  const titleUa = collapseCommaParts([`Диск ${descriptorParts.join(' ')}`.trim(), null]).replace(/,\s*$/, '');
+  const descriptorParts = [
+    spec.code ? `Urban ${spec.code}` : 'Urban',
+    spec.diameter,
+    spec.finish,
+  ].filter(Boolean);
+  const titleUa = collapseCommaParts([
+    `${buildWheelTitleNoun(spec.construction)} ${descriptorParts.join(' ')}`.trim(),
+    null,
+  ]).replace(/,\s*$/, '');
   const resolvedTitle = `${titleUa} для ${vehicleLabel}`;
+  const specLabel = [spec.code, spec.diameter, spec.finish].filter(Boolean).join(' ');
 
   const shortDescUa = normalizeWhitespace(
-    `Офіційна колісна специфікація Urban Automotive ${[spec.code, spec.diameter, spec.finish].filter(Boolean).join(' ')} для ${vehicleLabel}.`
+    `Офіційна колісна специфікація Urban Automotive ${specLabel} для ${vehicleLabel}. Конструкція: ${spec.construction}; серія: ${spec.series}.`
   );
 
   const bulletItems = [
     `<li><strong>Платформа:</strong> ${escapeHtml(vehicleLabel)}</li>`,
     spec.code ? `<li><strong>Дизайн:</strong> ${escapeHtml(spec.code)}</li>` : '',
+    `<li><strong>Серія:</strong> ${escapeHtml(spec.series)}</li>`,
+    `<li><strong>Конструкція:</strong> ${escapeHtml(spec.construction)}</li>`,
+    `<li><strong>Матеріал:</strong> ${escapeHtml(spec.material)}</li>`,
     spec.diameter ? `<li><strong>Діаметр:</strong> ${escapeHtml(spec.diameter)}</li>` : '',
     spec.pcd ? `<li><strong>PCD:</strong> ${escapeHtml(spec.pcd)}</li>` : '',
     spec.et ? `<li><strong>ET:</strong> ${escapeHtml(spec.et)}</li>` : '',
@@ -660,7 +826,7 @@ function buildWheelCopy(product: UrbanEditorialProductInput, vehicleLabel: strin
 
   const bodyHtmlUa = [
     `<p>Офіційна колісна специфікація Urban Automotive для ${escapeHtml(vehicleLabel)}.</p>`,
-    `<p>Конфігурація ${escapeHtml([spec.code, spec.diameter, spec.finish].filter(Boolean).join(' '))} побудована навколо правильного fitment, пропорції арки та характерної для Urban преміальної stance.</p>`,
+    `<p>За офіційною класифікацією Urban/House of Urban це ${escapeHtml(spec.construction)} із серії ${escapeHtml(spec.series)}. Конфігурація ${escapeHtml(specLabel)} побудована навколо правильного fitment, пропорції арки та характерної для Urban преміальної stance.</p>`,
     bulletItems.length ? `<ul>${bulletItems.join('')}</ul>` : '',
     `<p>${escapeHtml(FAMILY_CLOSING_SENTENCE.wheels)}</p>`,
   ]
@@ -685,7 +851,11 @@ function isWheelLikeProduct(product: UrbanEditorialProductInput) {
   return /\b\d{2}"\b/.test(title) && (/\b\d+x\d+\b/i.test(title) || /\bET\s?-?\d+\b/i.test(title));
 }
 
-function buildGenericCopy(product: UrbanEditorialProductInput, family: UrbanCatalogFamily, vehicleLabel: string) {
+function buildGenericCopy(
+  product: UrbanEditorialProductInput,
+  family: UrbanCatalogFamily,
+  vehicleLabel: string
+) {
   const withoutVehicle = removeLeadingVehicle(product.titleEn, product, vehicleLabel);
   const withNotes = pullParentheticalNotes(withoutVehicle);
   const withFinish = extractFinishTokens(withNotes.title);
@@ -699,10 +869,14 @@ function buildGenericCopy(product: UrbanEditorialProductInput, family: UrbanCata
     [componentTitle, finishPhrase].filter(Boolean).join(' ') + ` для ${vehicleLabel}`
   );
   const categoryUa = categoryUaFromValue(product.categoryEn, product.categoryUa);
-  const noteList = [...new Set([
-    ...withNotes.notes.map(translateFitmentNote),
-    ...translateConfigTokens(product.titleEn),
-  ].filter(Boolean))];
+  const noteList = [
+    ...new Set(
+      [
+        ...withNotes.notes.map(translateFitmentNote),
+        ...translateConfigTokens(product.titleEn),
+      ].filter(Boolean)
+    ),
+  ];
 
   const shortDescUa = normalizeWhitespace(
     `${brandedComponent}${finishPhrase ? ` у виконанні ${finishPhrase}` : ''} для ${vehicleLabel}. ${FAMILY_VALUE_SENTENCE[family]}`
@@ -712,7 +886,9 @@ function buildGenericCopy(product: UrbanEditorialProductInput, family: UrbanCata
   const bulletItems = [
     `<li><strong>Платформа:</strong> ${escapeHtml(vehicleLabel)}</li>`,
     `<li><strong>Категорія:</strong> ${escapeHtml(categoryUa)}</li>`,
-    finishPhrase ? `<li><strong>Матеріал / оздоблення:</strong> ${escapeHtml(finishPhrase)}</li>` : '',
+    finishPhrase
+      ? `<li><strong>Матеріал / оздоблення:</strong> ${escapeHtml(finishPhrase)}</li>`
+      : '',
     noteList.length ? `<li><strong>Fitment:</strong> ${escapeHtml(noteList.join('; '))}</li>` : '',
   ].filter(Boolean);
 
@@ -767,11 +943,14 @@ export function computeUrbanUaEditorialUpdate(product: UrbanEditorialProductInpu
     update.titleUa = generated.titleUa;
   }
 
-  const bodyIsWeak = !preserveCuratedNarrative && isWeakLocalizedField(product.bodyHtmlUa, product.bodyHtmlEn);
-  const shortIsWeak = !preserveCuratedNarrative && isWeakLocalizedField(product.shortDescUa, product.shortDescEn);
+  const bodyIsWeak =
+    !preserveCuratedNarrative && isWeakLocalizedField(product.bodyHtmlUa, product.bodyHtmlEn);
+  const shortIsWeak =
+    !preserveCuratedNarrative && isWeakLocalizedField(product.shortDescUa, product.shortDescEn);
   const seoTitleIsWeak = isWeakLocalizedTitle(product.seoTitleUa, product.titleEn);
   const seoDescriptionIsWeak = isWeakLocalizedField(product.seoDescriptionUa, product.shortDescEn);
-  const longIsWeak = !preserveCuratedNarrative && isWeakLocalizedField(product.longDescUa, product.longDescEn);
+  const longIsWeak =
+    !preserveCuratedNarrative && isWeakLocalizedField(product.longDescUa, product.longDescEn);
 
   if (bodyIsWeak) {
     update.bodyHtmlUa = generated.bodyHtmlUa;
@@ -786,7 +965,8 @@ export function computeUrbanUaEditorialUpdate(product: UrbanEditorialProductInpu
   if (longIsWeak) {
     update.longDescUa = bodyIsWeak
       ? generated.longDescUa
-      : textSourceForLongDescription(product.bodyHtmlUa, product.bodyHtmlEn) || generated.longDescUa;
+      : textSourceForLongDescription(product.bodyHtmlUa, product.bodyHtmlEn) ||
+        generated.longDescUa;
   }
 
   if (seoTitleIsWeak) {
@@ -830,7 +1010,10 @@ export function computeUrbanUaEditorialUpdate(product: UrbanEditorialProductInpu
   }
 
   const polishedSeoDescription = polishUrbanUaCopy(
-    update.seoDescriptionUa ?? product.seoDescriptionUa ?? update.shortDescUa ?? product.shortDescUa,
+    update.seoDescriptionUa ??
+      product.seoDescriptionUa ??
+      update.shortDescUa ??
+      product.shortDescUa,
     'text'
   );
   if (
