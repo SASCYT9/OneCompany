@@ -1,0 +1,739 @@
+{
+  "generatedAt": "2026-06-23T12:06:16.481Z",
+  "mode": "dry-run",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 20,
+    "scannedSkuGroups": 20,
+    "matchedSkuGroups": 9,
+    "skippedSkuGroups": 11,
+    "changedVariants": 9,
+    "changedProducts": 9
+  },
+  "matches": [
+    {
+      "sku": "00710-05",
+      "normalizedSku": "0071005",
+      "variantIds": ["cmnxknm0v01rje90cat0c2drd"],
+      "productIds": ["cmnxknm0v01rie90cy16r4rh4"],
+      "productSlugs": ["ohlins-00710-05"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknm0v01rje90cat0c2drd",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 14.27,
+      "atomic": {
+        "handle": "ohlins-00710-05-c-spanner",
+        "productTitle": "OHLINS 00710-05 C-spanner",
+        "vendor": "OHLINS",
+        "variantId": 44117907833012,
+        "variantSku": "00710-05",
+        "rawPrice": "14.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-00710-05-c-spanner?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "variantId": 44117907833012,
+            "sku": "00710-05",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01-08-28-0001",
+      "normalizedSku": "0108280001",
+      "variantIds": ["cmnxjkljy007me90c4li1fxum"],
+      "productIds": ["cmnxjkljy007le90cro7s8dj5"],
+      "productSlugs": ["akrapovic-01-08-28-0001"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxjkljy007me90c4li1fxum",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 525,
+      "atomic": {
+        "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+        "productTitle": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+        "vendor": "AKRAPOVIC",
+        "variantId": 43872862470324,
+        "variantSku": "01-08-28-0001",
+        "rawPrice": "525.00",
+        "sourceUrl": "https://atomic-shop.eu/products/akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "variantId": 43872862470324,
+            "sku": "01-08-28-0001",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01096-69",
+      "normalizedSku": "0109669",
+      "variantIds": ["cmnxkin3i01kne90cl81vkqr6"],
+      "productIds": ["cmnxkin3h01kme90ce3iwuu52"],
+      "productSlugs": ["ohlins-01096-69"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkin3i01kne90cl81vkqr6",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 57.23,
+      "atomic": {
+        "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+        "productTitle": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 44117907767476,
+        "variantSku": "01096-69",
+        "rawPrice": "57.23",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "variantId": 44117907767476,
+            "sku": "01096-69",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          }
+        ]
+      }
+    },
+    {
+      "sku": "03199-01",
+      "normalizedSku": "0319901",
+      "variantIds": ["cmnxknk4d01rhe90cqw3c9qm9"],
+      "productIds": ["cmnxknk4d01rge90c1xp0y1u7"],
+      "productSlugs": ["ohlins-03199-01"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknk4d01rhe90cqw3c9qm9",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 12.15,
+      "atomic": {
+        "handle": "ohlins-03199-01-preload-adjuster-tool",
+        "productTitle": "OHLINS 03199-01 Preload Adjuster Tool",
+        "vendor": "OHLINS",
+        "variantId": 44117907800244,
+        "variantSku": "03199-01",
+        "rawPrice": "12.15",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-03199-01-preload-adjuster-tool?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "variantId": 44117907800244,
+            "sku": "03199-01",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-02",
+      "normalizedSku": "0517302",
+      "variantIds": ["cmnxkip3j01kqe90clld75h3r"],
+      "productIds": ["cmnxkip3j01kpe90cretmnhnd"],
+      "productSlugs": ["ohlins-05173-02"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkip3j01kqe90clld75h3r",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+        "productTitle": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 43643504656564,
+        "variantSku": "05173-02",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "variantId": 43643504656564,
+            "sku": "05173-02",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-06",
+      "normalizedSku": "0517306",
+      "variantIds": ["cmnxkob3x01sge90cmohsquui"],
+      "productIds": ["cmnxkob3x01sfe90ck6yrxvoz"],
+      "productSlugs": ["ohlins-05173-06"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkob3x01sge90cmohsquui",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-06-helper-spring-67-15-65",
+        "productTitle": "OHLINS 05173-06 Helper Spring 67/15/65",
+        "vendor": "OHLINS",
+        "variantId": 43894483976372,
+        "variantSku": "05173-06",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-06-helper-spring-67-15-65?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "variantId": 43894483976372,
+            "sku": "05173-06",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-07",
+      "normalizedSku": "0517307",
+      "variantIds": ["cmnxkodpq01sie90cdq62gp75"],
+      "productIds": ["cmnxkodpq01she90c83no5137"],
+      "productSlugs": ["ohlins-05173-07"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkodpq01sie90cdq62gp75",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 85.63,
+      "atomic": {
+        "handle": "ohlins-05173-07-helper-spring-57-7-80",
+        "productTitle": "OHLINS 05173-07 Helper Spring 57/7/80",
+        "vendor": "OHLINS",
+        "variantId": 43894484041908,
+        "variantSku": "05173-07",
+        "rawPrice": "85.63",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-07-helper-spring-57-7-80?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "variantId": 43894484041908,
+            "sku": "05173-07",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-11",
+      "normalizedSku": "0517311",
+      "variantIds": ["cmnxkofn401ske90c0dnbnbwt"],
+      "productIds": ["cmnxkofn401sje90cs96choj1"],
+      "productSlugs": ["ohlins-05173-11"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkofn401ske90c0dnbnbwt",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 122.56,
+      "atomic": {
+        "handle": "ohlins-05173-11-helper-spring-67-9-105",
+        "productTitle": "OHLINS 05173-11 Helper Spring 67/9/105",
+        "vendor": "OHLINS",
+        "variantId": 43894484172980,
+        "variantSku": "05173-11",
+        "rawPrice": "122.56",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-11-helper-spring-67-9-105?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "variantId": 43894484172980,
+            "sku": "05173-11",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-12",
+      "normalizedSku": "0517312",
+      "variantIds": ["cmnxk29o200wse90ch6u5qdio"],
+      "productIds": ["cmnxk29o200wre90cs2qzq71k"],
+      "productSlugs": ["ohlins-05173-12"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxk29o200wse90ch6u5qdio",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 97.3,
+      "atomic": {
+        "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+        "productTitle": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+        "vendor": "OHLINS",
+        "variantId": 43643504918708,
+        "variantSku": "05173-12",
+        "rawPrice": "97.30",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-12-helper-spring-60-60-7-5-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "variantId": 43643504918708,
+            "sku": "05173-12",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "sku": "000-100-16",
+      "normalizedSku": "00010016",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewiqqx0e06e9mg5h2kdsmi"],
+      "productIds": ["cmnev288m0073e9mgyydxfmdi"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "variantId": 43415530700980,
+          "sku": "160-13356",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "variantId": 43415523623092,
+          "sku": "160-13357",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "variantId": 43733057962164,
+          "sku": "160-15132",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415522443444,
+          "sku": "160-13359-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415491018932,
+          "sku": "160-13358-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "variantId": 43415588470964,
+          "sku": "160-9239LS",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415664361652,
+          "sku": "160-15876",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415564419252,
+          "sku": "160-15875",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415665410228,
+          "sku": "160-15876-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415655547060,
+          "sku": "160-15875-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        }
+      ]
+    },
+    {
+      "sku": "000-100-17",
+      "normalizedSku": "00010017",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewo6fd0hd5e9mgqg7xptxe"],
+      "productIds": ["cmnev2ef90087e9mg6bz01wkx"],
+      "observations": []
+    },
+    {
+      "sku": "000-100-18",
+      "normalizedSku": "00010018",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewoi840hj3e9mgu8gl7wmu"],
+      "productIds": ["cmnevacym045ee9mgi9en4mzb"],
+      "observations": []
+    },
+    {
+      "sku": "000-545-00-C",
+      "normalizedSku": "00054500C",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnevndu506n0e9mg4h9aoeu8"],
+      "productIds": ["cmnevjk3w060oe9mgoi80tmx5"],
+      "observations": []
+    },
+    {
+      "sku": "000-660-00",
+      "normalizedSku": "00066000",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewi3hz0drbe9mgfqvif8yn"],
+      "productIds": ["cmnew93qw0ciwe9mg745bhzc8"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517048127668,
+          "sku": "912947-0002",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517047734452,
+          "sku": "912944-0002",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517048062132,
+          "sku": "903332-0003",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047668916,
+          "sku": "900543-0006",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047996596,
+          "sku": "903332-0002",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        }
+      ]
+    },
+    {
+      "sku": "000-805-200",
+      "normalizedSku": "000805200",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewesou0dj5e9mgwkfjhkcc"],
+      "productIds": ["cmnev7k2e025te9mg2l6ce8jv"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-210",
+      "normalizedSku": "000805210",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewnq340h4ae9mgcsgml2eg"],
+      "productIds": ["cmnev937t03cfe9mgplat8g2s"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-50",
+      "normalizedSku": "00080550",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewenw80dhee9mg73dtutf2"],
+      "productIds": ["cmnew8g500c9ee9mg6bifjsh0"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-90",
+      "normalizedSku": "00080590",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmn9fbqfk05uae90wq3l2u5to"],
+      "productIds": ["cmn9fbqfk05u9e90wk3i8vp5f"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-91",
+      "normalizedSku": "00080591",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewem8j0dh8e9mg4dzcnij2"],
+      "productIds": ["cmnevq24s07bie9mg01rl0p52"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-93",
+      "normalizedSku": "00080593",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewegqz0dgle9mgvnz5t0z9"],
+      "productIds": ["cmnevpxi5079xe9mg7dvxylnm"],
+      "observations": []
+    }
+  ]
+}

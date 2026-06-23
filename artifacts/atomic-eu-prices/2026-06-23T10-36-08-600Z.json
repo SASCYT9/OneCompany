@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-06-23T10:36:08.600Z",
+  "mode": "dry-run",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 1,
+    "scannedSkuGroups": 1,
+    "matchedSkuGroups": 1,
+    "skippedSkuGroups": 0,
+    "changedVariants": 0,
+    "changedProducts": 0
+  },
+  "matches": [
+    {
+      "sku": "S-ME/T/13H",
+      "normalizedSku": "SMET13H",
+      "variantIds": ["cmnxjxky600pxe90cpo7emig4"],
+      "productIds": ["cmnxjxky600pwe90czxwsda5q"],
+      "productSlugs": ["akrapovic-s-me-t-13h"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxjxky600pxe90cpo7emig4",
+          "priceEurEurope": 7047
+        }
+      ],
+      "nextPriceEurEurope": 7047,
+      "atomic": {
+        "handle": "akrapovic-s-me-t-13h-exhaust-evolution-line-titanium-for-mercedes-benz-amg-g63-w465-2025",
+        "productTitle": "AKRAPOVIC S-ME/T/13H Exhaust Evolution Line (Titanium) for MERCEDES-BENZ AMG G63 (W465) 2025-",
+        "vendor": "AKRAPOVIC",
+        "variantId": 43671732125876,
+        "variantSku": "S-ME/T/13H",
+        "rawPrice": "7047.00",
+        "sourceUrl": "https://atomic-shop.eu/products/akrapovic-s-me-t-13h-exhaust-evolution-line-titanium-for-mercedes-benz-amg-g63-w465-2025?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-s-me-t-13h-exhaust-evolution-line-titanium-for-mercedes-benz-amg-g63-w465-2025",
+            "title": "AKRAPOVIC S-ME/T/13H Exhaust Evolution Line (Titanium) for MERCEDES-BENZ AMG G63 (W465) 2025-",
+            "rawPrice": "7047.00",
+            "parsedPriceEur": 7047
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-s-me-t-13h-exhaust-evolution-line-titanium-for-mercedes-benz-amg-g63-w465-2025",
+            "title": "AKRAPOVIC S-ME/T/13H Exhaust Evolution Line (Titanium) for MERCEDES-BENZ AMG G63 (W465) 2025-",
+            "variantId": 43671732125876,
+            "sku": "S-ME/T/13H",
+            "rawPrice": "7047.00",
+            "parsedPriceEur": 7047
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": []
+}

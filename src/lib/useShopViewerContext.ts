@@ -4,6 +4,11 @@ import { useMemo, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import type { CustomerGroup } from "@prisma/client";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import {
+  getShopPriceCountryForCountry,
+  getShopPriceCountryForRegion,
+  useShopCurrency,
+} from "@/components/shop/CurrencyContext";
 
 const ANON_FALLBACK: ShopViewerPricingContext = {
   customerGroup: null,
@@ -11,6 +16,7 @@ const ANON_FALLBACK: ShopViewerPricingContext = {
   defaultB2BDiscountPercent: null,
   b2bVisibilityMode: "public",
   isAuthenticated: false,
+  priceCountry: null,
 };
 
 /**
@@ -26,6 +32,7 @@ const ANON_FALLBACK: ShopViewerPricingContext = {
  */
 export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopViewerPricingContext {
   const { data: session, status } = useSession();
+  const { country, region } = useShopCurrency();
   const baseline = initial ?? ANON_FALLBACK;
   const [mounted, setMounted] = useState(false);
 
@@ -34,16 +41,26 @@ export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopVi
   }, []);
 
   return useMemo<ShopViewerPricingContext>(() => {
+    const priceCountry = mounted
+      ? (getShopPriceCountryForCountry(country) ??
+        getShopPriceCountryForRegion(region) ??
+        baseline.priceCountry)
+      : baseline.priceCountry;
+    const regionalBaseline = {
+      ...baseline,
+      priceCountry,
+    };
+
     if (!mounted || status !== "authenticated" || !session?.user) {
-      return baseline;
+      return regionalBaseline;
     }
 
     const user = session.user;
     return {
-      ...baseline,
+      ...regionalBaseline,
       customerGroup: (user.group as CustomerGroup | null) ?? baseline.customerGroup,
       customerB2BDiscountPercent: user.b2bDiscountPercent ?? baseline.customerB2BDiscountPercent,
       isAuthenticated: true,
     };
-  }, [baseline, session, status, mounted]);
+  }, [baseline, session, status, mounted, country, region]);
 }

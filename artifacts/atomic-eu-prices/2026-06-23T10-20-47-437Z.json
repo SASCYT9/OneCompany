@@ -1,0 +1,315 @@
+{
+  "generatedAt": "2026-06-23T10:20:47.436Z",
+  "mode": "dry-run",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 5,
+    "scannedSkuGroups": 5,
+    "matchedSkuGroups": 0,
+    "skippedSkuGroups": 5,
+    "changedVariants": 0,
+    "changedProducts": 0
+  },
+  "matches": [],
+  "skipped": [
+    {
+      "sku": "000-100-16",
+      "normalizedSku": "00010016",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewiqqx0e06e9mg5h2kdsmi"],
+      "productIds": ["cmnev288m0073e9mgyydxfmdi"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "variantId": 43415530700980,
+          "sku": "160-13356",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "variantId": 43733057962164,
+          "sku": "160-15132",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415522443444,
+          "sku": "160-13359-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415491018932,
+          "sku": "160-13358-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "variantId": 43415523623092,
+          "sku": "160-13357",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "variantId": 43415588470964,
+          "sku": "160-9239LS",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415664361652,
+          "sku": "160-15876",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415564419252,
+          "sku": "160-15875",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415665410228,
+          "sku": "160-15876-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415655547060,
+          "sku": "160-15875-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        }
+      ]
+    },
+    {
+      "sku": "000-100-17",
+      "normalizedSku": "00010017",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewo6fd0hd5e9mgqg7xptxe"],
+      "productIds": ["cmnev2ef90087e9mg6bz01wkx"],
+      "observations": []
+    },
+    {
+      "sku": "000-100-18",
+      "normalizedSku": "00010018",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewoi840hj3e9mgu8gl7wmu"],
+      "productIds": ["cmnevacym045ee9mgi9en4mzb"],
+      "observations": []
+    },
+    {
+      "sku": "000-545-00-C",
+      "normalizedSku": "00054500C",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnevndu506n0e9mg4h9aoeu8"],
+      "productIds": ["cmnevjk3w060oe9mgoi80tmx5"],
+      "observations": []
+    },
+    {
+      "sku": "000-660-00",
+      "normalizedSku": "00066000",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewi3hz0drbe9mgfqvif8yn"],
+      "productIds": ["cmnew93qw0ciwe9mg745bhzc8"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517048127668,
+          "sku": "912947-0002",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517047734452,
+          "sku": "912944-0002",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517048062132,
+          "sku": "903332-0003",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047668916,
+          "sku": "900543-0006",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047996596,
+          "sku": "903332-0002",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        }
+      ]
+    }
+  ]
+}

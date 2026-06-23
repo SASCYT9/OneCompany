@@ -1,0 +1,1643 @@
+{
+  "generatedAt": "2026-06-23T10:17:41.820Z",
+  "mode": "dry-run",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 50,
+    "scannedSkuGroups": 43,
+    "matchedSkuGroups": 26,
+    "skippedSkuGroups": 17,
+    "changedVariants": 26,
+    "changedProducts": 0
+  },
+  "matches": [
+    {
+      "sku": "00710-05",
+      "normalizedSku": "0071005",
+      "variantIds": ["cmnxknm0v01rje90cat0c2drd"],
+      "productIds": ["cmnxknm0v01rie90cy16r4rh4"],
+      "productSlugs": ["ohlins-00710-05"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknm0v01rje90cat0c2drd",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 14.27,
+      "atomic": {
+        "handle": "ohlins-00710-05-c-spanner",
+        "productTitle": "OHLINS 00710-05 C-spanner",
+        "vendor": "OHLINS",
+        "variantId": 44117907833012,
+        "variantSku": "00710-05",
+        "rawPrice": "14.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-00710-05-c-spanner?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "variantId": 44117907833012,
+            "sku": "00710-05",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01-08-28-0001",
+      "normalizedSku": "0108280001",
+      "variantIds": ["cmnxjkljy007me90c4li1fxum"],
+      "productIds": ["cmnxjkljy007le90cro7s8dj5"],
+      "productSlugs": ["akrapovic-01-08-28-0001"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxjkljy007me90c4li1fxum",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 525,
+      "atomic": {
+        "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+        "productTitle": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+        "vendor": "AKRAPOVIC",
+        "variantId": 43872862470324,
+        "variantSku": "01-08-28-0001",
+        "rawPrice": "525.00",
+        "sourceUrl": "https://atomic-shop.eu/products/akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "variantId": 43872862470324,
+            "sku": "01-08-28-0001",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01096-69",
+      "normalizedSku": "0109669",
+      "variantIds": ["cmnxkin3i01kne90cl81vkqr6"],
+      "productIds": ["cmnxkin3h01kme90ce3iwuu52"],
+      "productSlugs": ["ohlins-01096-69"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkin3i01kne90cl81vkqr6",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 57.23,
+      "atomic": {
+        "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+        "productTitle": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 44117907767476,
+        "variantSku": "01096-69",
+        "rawPrice": "57.23",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "variantId": 44117907767476,
+            "sku": "01096-69",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          }
+        ]
+      }
+    },
+    {
+      "sku": "03199-01",
+      "normalizedSku": "0319901",
+      "variantIds": ["cmnxknk4d01rhe90cqw3c9qm9"],
+      "productIds": ["cmnxknk4d01rge90c1xp0y1u7"],
+      "productSlugs": ["ohlins-03199-01"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknk4d01rhe90cqw3c9qm9",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 12.15,
+      "atomic": {
+        "handle": "ohlins-03199-01-preload-adjuster-tool",
+        "productTitle": "OHLINS 03199-01 Preload Adjuster Tool",
+        "vendor": "OHLINS",
+        "variantId": 44117907800244,
+        "variantSku": "03199-01",
+        "rawPrice": "12.15",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-03199-01-preload-adjuster-tool?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "variantId": 44117907800244,
+            "sku": "03199-01",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-02",
+      "normalizedSku": "0517302",
+      "variantIds": ["cmnxkip3j01kqe90clld75h3r"],
+      "productIds": ["cmnxkip3j01kpe90cretmnhnd"],
+      "productSlugs": ["ohlins-05173-02"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkip3j01kqe90clld75h3r",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+        "productTitle": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 43643504656564,
+        "variantSku": "05173-02",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "variantId": 43643504656564,
+            "sku": "05173-02",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-06",
+      "normalizedSku": "0517306",
+      "variantIds": ["cmnxkob3x01sge90cmohsquui"],
+      "productIds": ["cmnxkob3x01sfe90ck6yrxvoz"],
+      "productSlugs": ["ohlins-05173-06"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkob3x01sge90cmohsquui",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-06-helper-spring-67-15-65",
+        "productTitle": "OHLINS 05173-06 Helper Spring 67/15/65",
+        "vendor": "OHLINS",
+        "variantId": 43894483976372,
+        "variantSku": "05173-06",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-06-helper-spring-67-15-65?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "variantId": 43894483976372,
+            "sku": "05173-06",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-07",
+      "normalizedSku": "0517307",
+      "variantIds": ["cmnxkodpq01sie90cdq62gp75"],
+      "productIds": ["cmnxkodpq01she90c83no5137"],
+      "productSlugs": ["ohlins-05173-07"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkodpq01sie90cdq62gp75",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 85.63,
+      "atomic": {
+        "handle": "ohlins-05173-07-helper-spring-57-7-80",
+        "productTitle": "OHLINS 05173-07 Helper Spring 57/7/80",
+        "vendor": "OHLINS",
+        "variantId": 43894484041908,
+        "variantSku": "05173-07",
+        "rawPrice": "85.63",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-07-helper-spring-57-7-80?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "variantId": 43894484041908,
+            "sku": "05173-07",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-11",
+      "normalizedSku": "0517311",
+      "variantIds": ["cmnxkofn401ske90c0dnbnbwt"],
+      "productIds": ["cmnxkofn401sje90cs96choj1"],
+      "productSlugs": ["ohlins-05173-11"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkofn401ske90c0dnbnbwt",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 122.56,
+      "atomic": {
+        "handle": "ohlins-05173-11-helper-spring-67-9-105",
+        "productTitle": "OHLINS 05173-11 Helper Spring 67/9/105",
+        "vendor": "OHLINS",
+        "variantId": 43894484172980,
+        "variantSku": "05173-11",
+        "rawPrice": "122.56",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-11-helper-spring-67-9-105?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "variantId": 43894484172980,
+            "sku": "05173-11",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-12",
+      "normalizedSku": "0517312",
+      "variantIds": ["cmnxk29o200wse90ch6u5qdio"],
+      "productIds": ["cmnxk29o200wre90cs2qzq71k"],
+      "productSlugs": ["ohlins-05173-12"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxk29o200wse90ch6u5qdio",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 97.3,
+      "atomic": {
+        "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+        "productTitle": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+        "vendor": "OHLINS",
+        "variantId": 43643504918708,
+        "variantSku": "05173-12",
+        "rawPrice": "97.30",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-12-helper-spring-60-60-7-5-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "variantId": 43643504918708,
+            "sku": "05173-12",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-14",
+      "normalizedSku": "0517314",
+      "variantIds": ["cmnxkohki01sme90crkt9jg0v"],
+      "productIds": ["cmnxkohki01sle90cg27q13lp"],
+      "productSlugs": ["ohlins-05173-14"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkohki01sme90crkt9jg0v",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 122.56,
+      "atomic": {
+        "handle": "ohlins-05173-14-helper-spring-70-30-70",
+        "productTitle": "OHLINS 05173-14 Helper Spring 70/30/70",
+        "vendor": "OHLINS",
+        "variantId": 43894484271284,
+        "variantSku": "05173-14",
+        "rawPrice": "122.56",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-14-helper-spring-70-30-70?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-14-helper-spring-70-30-70",
+            "title": "OHLINS 05173-14 Helper Spring 70/30/70",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-14-helper-spring-70-30-70",
+            "title": "OHLINS 05173-14 Helper Spring 70/30/70",
+            "variantId": 43894484271284,
+            "sku": "05173-14",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-15",
+      "normalizedSku": "0517315",
+      "variantIds": ["cmnxkgppm01i6e90cob9uru2b"],
+      "productIds": ["cmnxkgppm01i5e90ctpi4cqlt"],
+      "productSlugs": ["ohlins-05173-15"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkgppm01i6e90cob9uru2b",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+        "productTitle": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643504951476,
+        "variantSku": "05173-15",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+            "title": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "variantId": 43894483976372,
+            "sku": "05173-06",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+            "title": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+            "variantId": 43643504951476,
+            "sku": "05173-15",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-17",
+      "normalizedSku": "0517317",
+      "variantIds": ["cmnxk21j800wge90cglli6yhi"],
+      "productIds": ["cmnxk21j700wfe90c4u5pzi1q"],
+      "productSlugs": ["ohlins-05173-17"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxk21j800wge90cglli6yhi",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+        "productTitle": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643505180852,
+        "variantSku": "05173-17",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "variantId": 43643505180852,
+            "sku": "05173-17",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-19",
+      "normalizedSku": "0517319",
+      "variantIds": ["cmnxkojhs01soe90c77x0ibfx"],
+      "productIds": ["cmnxkojhs01sne90cbwe15g7i"],
+      "productSlugs": ["ohlins-05173-19"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkojhs01soe90c77x0ibfx",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+        "productTitle": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+        "vendor": "OHLINS",
+        "variantId": 43894484074676,
+        "variantSku": "05173-19",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-19-helper-spring-60-2-66-black?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+            "title": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+            "title": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+            "variantId": 43894484074676,
+            "sku": "05173-19",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-20",
+      "normalizedSku": "0517320",
+      "variantIds": ["cmnxkc42401bae90c7b7tu30k"],
+      "productIds": ["cmnxkc42401b9e90cjovz7ft1"],
+      "productSlugs": ["ohlins-05173-20"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc42401bae90c7b7tu30k",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+        "productTitle": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643505311924,
+        "variantSku": "05173-20",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+            "title": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "search-suggest",
+            "handle": "sparco-05171-wheel-spacer-20mm-for-mercedes-benz",
+            "title": "SPARCO 05171 Wheel Spacer 20mm for MERCEDES-BENZ",
+            "rawPrice": "21.00",
+            "parsedPriceEur": 21
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+            "title": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+            "variantId": 43643505311924,
+            "sku": "05173-20",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "variantId": 43643505180852,
+            "sku": "05173-17",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "sparco-05171-wheel-spacer-20mm-for-mercedes-benz",
+            "title": "SPARCO 05171 Wheel Spacer 20mm for MERCEDES-BENZ",
+            "variantId": 44116231454900,
+            "sku": "05171",
+            "rawPrice": "21.00",
+            "parsedPriceEur": 21
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05925-10",
+      "normalizedSku": "0592510",
+      "variantIds": ["cmnxkiuxc01kye90cvmsjyl8r"],
+      "productIds": ["cmnxkiuxb01kxe90cftk4s63k"],
+      "productSlugs": ["ohlins-05925-10"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkiuxc01kye90cvmsjyl8r",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 323.53,
+      "atomic": {
+        "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+        "productTitle": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+        "vendor": "OHLINS",
+        "variantId": 43643502035124,
+        "variantSku": "05925-10",
+        "rawPrice": "323.53",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "variantId": 43643502035124,
+            "sku": "05925-10",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "variantId": 43643504066740,
+            "sku": "05926-10",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-10",
+      "normalizedSku": "0592610",
+      "variantIds": ["cmnxkc61f01bde90c6288rdc3"],
+      "productIds": ["cmnxkc61f01bce90c8mpcaztv"],
+      "productSlugs": ["ohlins-05926-10"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc61f01bde90c6288rdc3",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+        "productTitle": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+        "vendor": "OHLINS",
+        "variantId": 43643504066740,
+        "variantSku": "05926-10",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-10-rear-top-mount-bmw-m3-e46-set?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "variantId": 43643504066740,
+            "sku": "05926-10",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "variantId": 43643502035124,
+            "sku": "05925-10",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-11",
+      "normalizedSku": "0592611",
+      "variantIds": ["cmnxkc80s01bge90c8jumktbh"],
+      "productIds": ["cmnxkc80s01bfe90cv23gd30b"],
+      "productSlugs": ["ohlins-05926-11"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc80s01bge90c8jumktbh",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+        "productTitle": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+        "vendor": "OHLINS",
+        "variantId": 43643504361652,
+        "variantSku": "05926-11",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+            "title": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "search-suggest",
+            "handle": "pfc-0592-11-15-44-front-brake-pads-for-dodge-viper-8-0-1992-1999-ferrari-f430-f50-360-612-11-compound",
+            "title": "PFC 0592.11.15.44 Front Brake Pads for DODGE Viper 8.0 1992-1999 / Ferrari F430 / F50 / 360 / 612 (11 Compound)",
+            "rawPrice": "414.84",
+            "parsedPriceEur": 414.84
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+            "title": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+            "variantId": 43643504361652,
+            "sku": "05926-11",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "pfc-0592-11-15-44-front-brake-pads-for-dodge-viper-8-0-1992-1999-ferrari-f430-f50-360-612-11-compound",
+            "title": "PFC 0592.11.15.44 Front Brake Pads for DODGE Viper 8.0 1992-1999 / Ferrari F430 / F50 / 360 / 612 (11 Compound)",
+            "variantId": 43627318542516,
+            "sku": "0592.11.15.44",
+            "rawPrice": "414.84",
+            "parsedPriceEur": 414.84
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-12",
+      "normalizedSku": "0592612",
+      "variantIds": ["cmnxkc1za01b7e90cbfhmg39d"],
+      "productIds": ["cmnxkc1za01b6e90c4lh6fluo"],
+      "productSlugs": ["ohlins-05926-12"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc1za01b7e90cbfhmg39d",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+        "productTitle": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+        "vendor": "OHLINS",
+        "variantId": 43643504230580,
+        "variantSku": "05926-12",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+            "title": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+            "title": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+            "variantId": 43643504230580,
+            "sku": "05926-12",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-13",
+      "normalizedSku": "0592613",
+      "variantIds": ["cmnxkms3j01qce90ckz3tkcau"],
+      "productIds": ["cmnxkms3j01qbe90czim0rd2g"],
+      "productSlugs": ["ohlins-05926-13"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkms3j01qce90ckz3tkcau",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+        "productTitle": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+        "vendor": "OHLINS",
+        "variantId": 43643504328884,
+        "variantSku": "05926-13",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+            "title": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+            "title": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+            "variantId": 43643504328884,
+            "sku": "05926-13",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-20",
+      "normalizedSku": "0592620",
+      "variantIds": ["cmnxkca0601bje90clgohg5ts"],
+      "productIds": ["cmnxkca0601bie90c1zonuso6"],
+      "productSlugs": ["ohlins-05926-20"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkca0601bje90clgohg5ts",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500724404,
+        "variantSku": "05926-20",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "search-suggest",
+            "handle": "girodisc-gp40-0592-15-rear-brake-pads-race-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP40-0592.15 Rear Brake Pads RACE for TESLA Model S / Model X 2012-2020",
+            "rawPrice": "470.80",
+            "parsedPriceEur": 470.8
+          },
+          {
+            "source": "search-suggest",
+            "handle": "girodisc-gp10-0592-15-rear-brake-pads-street-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP10-0592.15 Rear Brake Pads STREET for TESLA Model S / Model X 2012-2020",
+            "rawPrice": "428.00",
+            "parsedPriceEur": 428
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+            "variantId": 43643500724404,
+            "sku": "05926-20",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "variantId": 43643500822708,
+            "sku": "05926-25",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "product-json",
+            "handle": "girodisc-gp40-0592-15-rear-brake-pads-race-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP40-0592.15 Rear Brake Pads RACE for TESLA Model S / Model X 2012-2020",
+            "variantId": 43873881194676,
+            "sku": "GP40-0592.15",
+            "rawPrice": "470.80",
+            "parsedPriceEur": 470.8
+          },
+          {
+            "source": "product-json",
+            "handle": "girodisc-gp10-0592-15-rear-brake-pads-street-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP10-0592.15 Rear Brake Pads STREET for TESLA Model S / Model X 2012-2020",
+            "variantId": 43873881063604,
+            "sku": "GP10-0592.15",
+            "rawPrice": "428.00",
+            "parsedPriceEur": 428
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-21",
+      "normalizedSku": "0592621",
+      "variantIds": ["cmnxkcbzk01bme90ct2cmth61"],
+      "productIds": ["cmnxkcbzj01ble90cep4qindq"],
+      "productSlugs": ["ohlins-05926-21"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkcbzk01bme90ct2cmth61",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500757172,
+        "variantSku": "05926-21",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+            "title": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+            "title": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+            "variantId": 43643500757172,
+            "sku": "05926-21",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-22",
+      "normalizedSku": "0592622",
+      "variantIds": ["cmnxkby0j01b1e90c3drvq026"],
+      "productIds": ["cmnxkby0i01b0e90ctiaylm92"],
+      "productSlugs": ["ohlins-05926-22"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkby0j01b1e90c3drvq026",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500658868,
+        "variantSku": "05926-22",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+            "variantId": 43643500658868,
+            "sku": "05926-22",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-24",
+      "normalizedSku": "0592624",
+      "variantIds": ["cmnxkmqac01qae90cxe286uxc"],
+      "productIds": ["cmnxkmqac01q9e90c5avd4qto"],
+      "productSlugs": ["ohlins-05926-24"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkmqac01qae90cxe286uxc",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 1071.43,
+      "atomic": {
+        "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+        "productTitle": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+        "vendor": "OHLINS",
+        "variantId": 43643500789940,
+        "variantSku": "05926-24",
+        "rawPrice": "1071.43",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+            "title": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+            "rawPrice": "1071.43",
+            "parsedPriceEur": 1071.43
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+            "title": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+            "variantId": 43643500789940,
+            "sku": "05926-24",
+            "rawPrice": "1071.43",
+            "parsedPriceEur": 1071.43
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-25",
+      "normalizedSku": "0592625",
+      "variantIds": ["cmnxkjqyc01m8e90c1wqja393"],
+      "productIds": ["cmnxkjqyc01m7e90c6bf58ztu"],
+      "productSlugs": ["ohlins-05926-25"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkjqyc01m8e90c1wqja393",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 436.97,
+      "atomic": {
+        "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+        "productTitle": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+        "vendor": "OHLINS",
+        "variantId": 43643500822708,
+        "variantSku": "05926-25",
+        "rawPrice": "436.97",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "variantId": 43643500822708,
+            "sku": "05926-25",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          }
+        ]
+      }
+    },
+    {
+      "sku": "06245-01",
+      "normalizedSku": "0624501",
+      "variantIds": ["cmnxkl78001ode90creb67g0v"],
+      "productIds": ["cmnxkl78001oce90c4b3d0cuz"],
+      "productSlugs": ["ohlins-06245-01"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkl78001ode90creb67g0v",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 89.03,
+      "atomic": {
+        "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+        "productTitle": "OHLINS 06245-01 Length adjuster for VAG TCR",
+        "vendor": "OHLINS",
+        "variantId": 43643504689332,
+        "variantSku": "06245-01",
+        "rawPrice": "89.03",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-06245-01-length-adjuster-for-vag-tcr?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+            "title": "OHLINS 06245-01 Length adjuster for VAG TCR",
+            "rawPrice": "89.03",
+            "parsedPriceEur": 89.03
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+            "title": "OHLINS 06245-01 Length adjuster for VAG TCR",
+            "variantId": 43643504689332,
+            "sku": "06245-01",
+            "rawPrice": "89.03",
+            "parsedPriceEur": 89.03
+          }
+        ]
+      }
+    },
+    {
+      "sku": "06245-02",
+      "normalizedSku": "0624502",
+      "variantIds": ["cmnxkl94m01ofe90chjjdc03o"],
+      "productIds": ["cmnxkl94m01oee90c55sho1a0"],
+      "productSlugs": ["ohlins-06245-02"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkl94m01ofe90chjjdc03o",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 96.29,
+      "atomic": {
+        "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+        "productTitle": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+        "vendor": "OHLINS",
+        "variantId": 43643505017012,
+        "variantSku": "06245-02",
+        "rawPrice": "96.29",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-06245-02-length-adjuster-for-vag-tcr-2020?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+            "title": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+            "rawPrice": "96.29",
+            "parsedPriceEur": 96.29
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+            "title": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+            "variantId": 43643505017012,
+            "sku": "06245-02",
+            "rawPrice": "96.29",
+            "parsedPriceEur": 96.29
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "sku": "000-100-16",
+      "normalizedSku": "00010016",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewiqqx0e06e9mg5h2kdsmi"],
+      "productIds": ["cmnev288m0073e9mgyydxfmdi"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "variantId": 43415530700980,
+          "sku": "160-13356",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "variantId": 43415523623092,
+          "sku": "160-13357",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "variantId": 43733057962164,
+          "sku": "160-15132",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415522443444,
+          "sku": "160-13359-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415491018932,
+          "sku": "160-13358-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "variantId": 43415588470964,
+          "sku": "160-9239LS",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415664361652,
+          "sku": "160-15876",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415564419252,
+          "sku": "160-15875",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415665410228,
+          "sku": "160-15876-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415655547060,
+          "sku": "160-15875-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        }
+      ]
+    },
+    {
+      "sku": "000-100-17",
+      "normalizedSku": "00010017",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewo6fd0hd5e9mgqg7xptxe"],
+      "productIds": ["cmnev2ef90087e9mg6bz01wkx"],
+      "observations": []
+    },
+    {
+      "sku": "000-100-18",
+      "normalizedSku": "00010018",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewoi840hj3e9mgu8gl7wmu"],
+      "productIds": ["cmnevacym045ee9mgi9en4mzb"],
+      "observations": []
+    },
+    {
+      "sku": "000-545-00-C",
+      "normalizedSku": "00054500C",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnevndu506n0e9mg4h9aoeu8"],
+      "productIds": ["cmnevjk3w060oe9mgoi80tmx5"],
+      "observations": []
+    },
+    {
+      "sku": "000-660-00",
+      "normalizedSku": "00066000",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewi3hz0drbe9mgfqvif8yn"],
+      "productIds": ["cmnew93qw0ciwe9mg745bhzc8"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517048127668,
+          "sku": "912947-0002",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517047734452,
+          "sku": "912944-0002",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517048062132,
+          "sku": "903332-0003",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047668916,
+          "sku": "900543-0006",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047996596,
+          "sku": "903332-0002",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        }
+      ]
+    },
+    {
+      "sku": "000-805-200",
+      "normalizedSku": "000805200",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewesou0dj5e9mgwkfjhkcc"],
+      "productIds": ["cmnev7k2e025te9mg2l6ce8jv"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-210",
+      "normalizedSku": "000805210",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewnq340h4ae9mgcsgml2eg"],
+      "productIds": ["cmnev937t03cfe9mgplat8g2s"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-50",
+      "normalizedSku": "00080550",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewenw80dhee9mg73dtutf2"],
+      "productIds": ["cmnew8g500c9ee9mg6bifjsh0"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-90",
+      "normalizedSku": "00080590",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmn9fbqfk05uae90wq3l2u5to"],
+      "productIds": ["cmn9fbqfk05u9e90wk3i8vp5f"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-91",
+      "normalizedSku": "00080591",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewem8j0dh8e9mg4dzcnij2"],
+      "productIds": ["cmnevq24s07bie9mg01rl0p52"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-93",
+      "normalizedSku": "00080593",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewegqz0dgle9mgvnz5t0z9"],
+      "productIds": ["cmnevpxi5079xe9mg7dvxylnm"],
+      "observations": []
+    },
+    {
+      "sku": "06245-04",
+      "normalizedSku": "0624504",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnxkflrh01gie90cwsq0eu07"],
+      "productIds": ["cmnxkflrh01ghe90c4nqt6ap1"],
+      "observations": []
+    },
+    {
+      "sku": "099-545-00",
+      "normalizedSku": "09954500",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmn9fbq7905j2e90wwbjhxupn"],
+      "productIds": ["cmn9fbq7905j1e90w2mso2nma"],
+      "observations": []
+    },
+    {
+      "sku": "0AA50-NVN0S-2",
+      "normalizedSku": "0AA50NVN0S2",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaewvm9000ce9s0oa26w8at"],
+      "productIds": ["cmoaewvm80000e9s0dpqc7eyp"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-A0N00-3",
+      "normalizedSku": "0AA61A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaex89l001we9s0gqmje47g"],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-B0N00-3",
+      "normalizedSku": "0AA61B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaex89l001xe9s0ahl37qyw"],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-NVN00-2",
+      "normalizedSku": "0AA61NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex89l001ye9s0uyz8io4r",
+        "cmp4isb3500h7th0chhr9rjzy",
+        "cmp4isb4500h9th0cugfmv4xc",
+        "cmp4isb5500hbth0cipj1icb6",
+        "cmp4isb6300hdth0cgkg65e22",
+        "cmp4isb7300hfth0cddbpr6pt",
+        "cmp4isb8300hhth0coq1qp08l",
+        "cmp4isb9500hjth0cjol4scs4"
+      ],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5", "cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    }
+  ]
+}

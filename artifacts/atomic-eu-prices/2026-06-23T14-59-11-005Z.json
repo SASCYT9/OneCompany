@@ -1,0 +1,213 @@
+{
+  "generatedAt": "2026-06-23T14:59:11.004Z",
+  "mode": "commit",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 1,
+    "scannedSkuGroups": 1,
+    "matchedSkuGroups": 1,
+    "skippedSkuGroups": 0,
+    "changedVariants": 1,
+    "changedProducts": 1
+  },
+  "matches": [
+    {
+      "sku": "ME-BM/T/2",
+      "normalizedSku": "MEBMT2",
+      "variantIds": ["cmnxjguer002de90cowe8xyu6"],
+      "productIds": ["cmnxjguer002ce90cfx6tkkan"],
+      "productSlugs": ["akrapovic-me-bm-t-2"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxjguer002de90cowe8xyu6",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 5853,
+      "atomic": {
+        "handle": "akrapovic-me-bm-t-2-exhaustsystem-evolution-line-titanium-for-bmw-m3-e92-e93-2007-2013",
+        "productTitle": "AKRAPOVIC ME-BM/T/2 Exhaust System Evolution Line (Titanium) for BMW M3 (E92 / E93) 2007-2013",
+        "vendor": "AKRAPOVIC",
+        "variantId": 43584199491764,
+        "variantSku": "ME-BM/T/2",
+        "rawPrice": "5853.00",
+        "sourceUrl": "https://atomic-shop.eu/products/akrapovic-me-bm-t-2-exhaustsystem-evolution-line-titanium-for-bmw-m3-e92-e93-2007-2013?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-me-bm-t-2-exhaustsystem-evolution-line-titanium-for-bmw-m3-e92-e93-2007-2013",
+            "title": "AKRAPOVIC ME-BM/T/2 Exhaust System Evolution Line (Titanium) for BMW M3 (E92 / E93) 2007-2013",
+            "rawPrice": "5853.00",
+            "parsedPriceEur": 5853
+          },
+          {
+            "source": "search-suggest",
+            "handle": "bmc-fbtw141-206-air-filter-conical-shape-twin-air-metal-top",
+            "title": "BMC FBTW141-206 AIR FILTER CONICAL SHAPE TWIN AIR METAL TOP",
+            "rawPrice": "97.90",
+            "parsedPriceEur": 97.9
+          },
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-me-bm-t-3-exhaust-system-evolution-line-titanium-for-bmw-1m-coupe-e82-2011-2012",
+            "title": "AKRAPOVIC ME-BM/T/3 Exhaust System Evolution Line (Titanium) for BMW 1M Coupe (E82) 2011-2012",
+            "rawPrice": "4899.00",
+            "parsedPriceEur": 4899
+          },
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-me-bm-t-8h-exhaust-system-evolution-line-titanium-for-bmw-m2-f87-2016-2017-ece-type-approval",
+            "title": "AKRAPOVIC ME-BM/T/8H Exhaust System Evolution Line (Titanium) for BMW M2 (F87) 2016-2017 ECE Type Approval",
+            "rawPrice": "5642.00",
+            "parsedPriceEur": 5642
+          },
+          {
+            "source": "search-suggest",
+            "handle": "supersprint-831821-turbo-downpipe-kit-metallic-catalytic-converter-bmw-f45-serie-2-active-tourer",
+            "title": "SUPERSPRINT 831821 Turbo downpipe kit + Metallic catalytic converter BMW F45 Serie 2 Active Tourer",
+            "rawPrice": "2684.00",
+            "parsedPriceEur": 2684
+          },
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-me-bm-t-5-exhaust-system-evolution-line-titanium-for-bmw-m6-f12-f13-2012-2018-ec-approval",
+            "title": "AKRAPOVIC ME-BM/T/5 Exhaust System Evolution Line (Titanium) for BMW M6 (F12 / F13) 2012-2018 EC Approval",
+            "rawPrice": "6863.00",
+            "parsedPriceEur": 6863
+          },
+          {
+            "source": "search-suggest",
+            "handle": "supersprint-832532-front-pipe-metallic-catalytic-converter-bmw-f45-serie-2-active-tourer",
+            "title": "SUPERSPRINT 832532 Front pipe + Metallic catalytic converter BMW F45 Serie 2 Active Tourer",
+            "rawPrice": "1691.00",
+            "parsedPriceEur": 1691
+          },
+          {
+            "source": "search-suggest",
+            "handle": "titan7-tm202095011511266mg-front-wheel-t-m20-20x9-5-et11-66-5-medalist-gold-for-bmw-g8x-m3-m4",
+            "title": "TITAN7 TM202095011511266MG Front wheel T-M20 20X9.5 ET11 66.5 Medalist Gold for BMW G8X M3/M4",
+            "rawPrice": "917.22",
+            "parsedPriceEur": 917.22
+          },
+          {
+            "source": "search-suggest",
+            "handle": "supersprint-524341-turbo-downpipe-and-metallic-catalytic-200cpsi-for-bmw-1-series-f20-f21",
+            "title": "SUPERSPRINT 524341 Turbo Downpipe and Metallic Catalytic 200CPSI for BMW 1 Series (F20 / F21)",
+            "rawPrice": "2100.00",
+            "parsedPriceEur": 2100
+          },
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-me-bm-t-6h-exhaust-system-evolution-line-titanium-for-bmw-m6-gran-coupe-f06-2013-2018-ec-approval",
+            "title": "AKRAPOVIC ME-BM/T/6H Exhaust System Evolution Line (Titanium) for BMW M6 Gran Coupe (F06) 2013-2018 EC Approval",
+            "rawPrice": "7143.00",
+            "parsedPriceEur": 7143
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-me-bm-t-2-exhaustsystem-evolution-line-titanium-for-bmw-m3-e92-e93-2007-2013",
+            "title": "AKRAPOVIC ME-BM/T/2 Exhaust System Evolution Line (Titanium) for BMW M3 (E92 / E93) 2007-2013",
+            "variantId": 43584199491764,
+            "sku": "ME-BM/T/2",
+            "rawPrice": "5853.00",
+            "parsedPriceEur": 5853
+          },
+          {
+            "source": "product-json",
+            "handle": "bmc-fbtw141-206-air-filter-conical-shape-twin-air-metal-top",
+            "title": "BMC FBTW141-206 AIR FILTER CONICAL SHAPE TWIN AIR METAL TOP",
+            "variantId": 43487668306100,
+            "sku": "FBTW141-206",
+            "rawPrice": "97.90",
+            "parsedPriceEur": 97.9
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-me-bm-t-3-exhaust-system-evolution-line-titanium-for-bmw-1m-coupe-e82-2011-2012",
+            "title": "AKRAPOVIC ME-BM/T/3 Exhaust System Evolution Line (Titanium) for BMW 1M Coupe (E82) 2011-2012",
+            "variantId": 43584203751604,
+            "sku": "ME-BM/T/3",
+            "rawPrice": "4899.00",
+            "parsedPriceEur": 4899
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-me-bm-t-8h-exhaust-system-evolution-line-titanium-for-bmw-m2-f87-2016-2017-ece-type-approval",
+            "title": "AKRAPOVIC ME-BM/T/8H Exhaust System Evolution Line (Titanium) for BMW M2 (F87) 2016-2017 ECE Type Approval",
+            "variantId": 43584198148276,
+            "sku": "ME-BM/T/8H",
+            "rawPrice": "5642.00",
+            "parsedPriceEur": 5642
+          },
+          {
+            "source": "product-json",
+            "handle": "supersprint-831821-turbo-downpipe-kit-metallic-catalytic-converter-bmw-f45-serie-2-active-tourer",
+            "title": "SUPERSPRINT 831821 Turbo downpipe kit + Metallic catalytic converter BMW F45 Serie 2 Active Tourer",
+            "variantId": 44053333377204,
+            "sku": "831821",
+            "rawPrice": "2684.00",
+            "parsedPriceEur": 2684
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-me-bm-t-5-exhaust-system-evolution-line-titanium-for-bmw-m6-f12-f13-2012-2018-ec-approval",
+            "title": "AKRAPOVIC ME-BM/T/5 Exhaust System Evolution Line (Titanium) for BMW M6 (F12 / F13) 2012-2018 EC Approval",
+            "variantId": 43584198246580,
+            "sku": "ME-BM/T/5",
+            "rawPrice": "6863.00",
+            "parsedPriceEur": 6863
+          },
+          {
+            "source": "product-json",
+            "handle": "supersprint-832532-front-pipe-metallic-catalytic-converter-bmw-f45-serie-2-active-tourer",
+            "title": "SUPERSPRINT 832532 Front pipe + Metallic catalytic converter BMW F45 Serie 2 Active Tourer",
+            "variantId": 44053331673268,
+            "sku": "832532",
+            "rawPrice": "1691.00",
+            "parsedPriceEur": 1691
+          },
+          {
+            "source": "product-json",
+            "handle": "titan7-tm202095011511266mg-front-wheel-t-m20-20x9-5-et11-66-5-medalist-gold-for-bmw-g8x-m3-m4",
+            "title": "TITAN7 TM202095011511266MG Front wheel T-M20 20X9.5 ET11 66.5 Medalist Gold for BMW G8X M3/M4",
+            "variantId": 43110031655092,
+            "sku": "TM202095011511266MG",
+            "rawPrice": "917.22",
+            "parsedPriceEur": 917.22
+          },
+          {
+            "source": "product-json",
+            "handle": "supersprint-524341-turbo-downpipe-and-metallic-catalytic-200cpsi-for-bmw-1-series-f20-f21",
+            "title": "SUPERSPRINT 524341 Turbo Downpipe and Metallic Catalytic 200CPSI for BMW 1 Series (F20 / F21)",
+            "variantId": 44053402484916,
+            "sku": "524341",
+            "rawPrice": "2100.00",
+            "parsedPriceEur": 2100
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-me-bm-t-6h-exhaust-system-evolution-line-titanium-for-bmw-m6-gran-coupe-f06-2013-2018-ec-approval",
+            "title": "AKRAPOVIC ME-BM/T/6H Exhaust System Evolution Line (Titanium) for BMW M6 Gran Coupe (F06) 2013-2018 EC Approval",
+            "variantId": 43584197820596,
+            "sku": "ME-BM/T/6H",
+            "rawPrice": "7143.00",
+            "parsedPriceEur": 7143
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": []
+}

@@ -32,6 +32,7 @@ import {
 } from "@/components/admin/AdminFormFields";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
+import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
 
 type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
@@ -285,6 +286,10 @@ function parseNullableNumber(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function hasMoneyAmount(value?: number | null) {
+  return Math.abs(value ?? 0) >= 0.005;
+}
+
 function createShippingZoneForm(seed: number): ShippingZoneForm {
   return {
     id: `zone-${seed}`,
@@ -331,6 +336,18 @@ function createTaxRegionForm(seed: number): TaxRegionForm {
     appliesToShipping: true,
     enabled: false,
   };
+}
+
+function createEuVatTaxRegionForms(): TaxRegionForm[] {
+  return EU_VAT_COUNTRIES.map((country) => ({
+    id: `eu-vat-${country.code.toLowerCase()}`,
+    name: `${country.name} VAT`,
+    countriesText: [country.code, country.name, ...(country.aliases ?? [])].join(", "),
+    regionsText: "",
+    rate: String(country.standardRate),
+    appliesToShipping: true,
+    enabled: true,
+  }));
 }
 
 function createRegionalPricingRuleForm(seed: number): RegionalPricingRuleForm {
@@ -825,6 +842,19 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function loadEuVatTaxRegions() {
+    setForm((current) => ({
+      ...current,
+      taxRegions: [
+        ...current.taxRegions.filter(
+          (region) => region.id !== "eu-vat" && !region.id.startsWith("eu-vat-")
+        ),
+        ...createEuVatTaxRegionForms(),
+      ],
+    }));
+    setSuccess("EU VAT rates loaded into the form. Save settings to apply them at checkout.");
+  }
+
   function addRegionalPricingRule() {
     setForm((current) => ({
       ...current,
@@ -1282,6 +1312,16 @@ export default function AdminShopSettingsPage() {
                 Правила доставки по регіонах. При оформленні замовлення застосовується перша збіжна
                 увімкнена зона.
               </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={loadEuVatTaxRegions}
+                className="inline-flex items-center gap-2 rounded-none border border-emerald-500/30 px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/10"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Load EU VAT rates
+              </button>
             </div>
             <button
               type="button"
@@ -2070,19 +2110,22 @@ export default function AdminShopSettingsPage() {
                       label="Subtotal"
                       value={formatMoney(previewResult.subtotal, previewResult.currency)}
                     />
-                    <SummaryRow
-                      label="Regional adjustment"
-                      value={formatMoney(
-                        previewResult.regionalAdjustmentAmount,
-                        previewResult.currency
-                      )}
-                    />
+                    {previewResult.regionalPricingRule ||
+                    hasMoneyAmount(previewResult.regionalAdjustmentAmount) ? (
+                      <SummaryRow
+                        label="Price adjustment"
+                        value={formatMoney(
+                          previewResult.regionalAdjustmentAmount,
+                          previewResult.currency
+                        )}
+                      />
+                    ) : null}
                     <SummaryRow
                       label="Shipping"
                       value={formatMoney(previewResult.shippingCost, previewResult.currency)}
                     />
                     <SummaryRow
-                      label="Tax"
+                      label="VAT"
                       value={
                         previewResult.taxAmount > 0
                           ? formatMoney(previewResult.taxAmount, previewResult.currency)
@@ -2107,7 +2150,7 @@ export default function AdminShopSettingsPage() {
                       }
                     />
                     <SummaryRow
-                      label="Matched tax rule"
+                      label="Matched VAT rule"
                       value={
                         previewResult.taxRegion
                           ? `${previewResult.taxRegion.name} (${previewResult.taxRegion.id})`

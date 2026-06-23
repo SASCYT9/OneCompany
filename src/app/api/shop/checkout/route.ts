@@ -6,34 +6,36 @@
  * WHITEPAY_FIAT: creates order PENDING_PAYMENT, redirects to WhiteBIT Card Pay; webhook confirms.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { render } from '@react-email/render';
-import { Resend } from 'resend';
-import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
-import { createInitialOrderEvent } from '@/lib/shopAdminOrders';
-import { buildCheckoutQuote } from '@/lib/shopCheckout';
-import { dispatchCrmWebhook } from '@/lib/webhookDispatcher';
-import OrderConfirmationEmail from '@/components/emails/OrderConfirmationEmail';
-import { notifyAdminNewShopOrder } from '@/lib/telegramNotifications';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
-import { upsertCustomerDefaultShippingAddress } from '@/lib/shopCustomers';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { NextRequest, NextResponse } from "next/server";
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+import { generateOrderNumber, generateViewToken } from "@/lib/shopOrder";
+import { createInitialOrderEvent } from "@/lib/shopAdminOrders";
+import { buildCheckoutQuote } from "@/lib/shopCheckout";
+import { dispatchCrmWebhook } from "@/lib/webhookDispatcher";
+import OrderConfirmationEmail from "@/components/emails/OrderConfirmationEmail";
+import { notifyAdminNewShopOrder } from "@/lib/telegramNotifications";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from "@/lib/shopCart";
+import { upsertCustomerDefaultShippingAddress } from "@/lib/shopCustomers";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 
-import { createWhitepayCryptoOrder, createWhitepayFiatOrder } from '@/lib/shopWhitepay';
-import { prisma } from '@/lib/prisma';
+import { createWhitepayCryptoOrder, createWhitepayFiatOrder } from "@/lib/shopWhitepay";
+import { prisma } from "@/lib/prisma";
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
+const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
-const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
+const CURRENCIES = ["EUR", "USD", "UAH"] as const;
 
-const PAYMENT_METHODS = ['FOP', 'WHITEBIT', 'WHITEPAY_FIAT'] as const;
+const PAYMENT_METHODS = ["FOP", "WHITEBIT", "WHITEPAY_FIAT"] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {
-  const v = String(value ?? 'FOP').trim().toUpperCase();
-  return PAYMENT_METHODS.includes(v as PaymentMethod) ? (v as PaymentMethod) : 'FOP';
+  const v = String(value ?? "FOP")
+    .trim()
+    .toUpperCase();
+  return PAYMENT_METHODS.includes(v as PaymentMethod) ? (v as PaymentMethod) : "FOP";
 }
 
 type CheckoutBody = {
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const session = await getCurrentShopCustomerSession();
@@ -65,92 +67,94 @@ export async function POST(req: NextRequest) {
   const activeCart = await resolveShopCart(prisma, {
     cartToken: req.cookies.get(SHOP_CART_COOKIE)?.value,
     customerId: session?.customerId ?? null,
-    locale: session?.preferredLocale ?? 'en',
+    locale: session?.preferredLocale ?? "en",
     currency: body.currency ?? settings.defaultCurrency,
   });
   const requestItems = Array.isArray(body.items) ? body.items : [];
-  const items =
-    session?.customerId
-      ? activeCart.cart.items.map((item) => ({
+  const items = session?.customerId
+    ? activeCart.cart.items.map((item) => ({
+        slug: item.productSlug,
+        quantity: item.quantity,
+        variantId: item.variantId,
+      }))
+    : requestItems.length
+      ? requestItems
+      : activeCart.cart.items.map((item) => ({
           slug: item.productSlug,
           quantity: item.quantity,
           variantId: item.variantId,
-        }))
-      : requestItems.length
-        ? requestItems
-        : activeCart.cart.items.map((item) => ({
-            slug: item.productSlug,
-            quantity: item.quantity,
-            variantId: item.variantId,
-          }));
+        }));
   if (items.length === 0) {
-    return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
+    return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
   }
 
-  const email = typeof body.contact?.email === 'string' ? body.contact.email.trim() : '';
-  const name = typeof body.contact?.name === 'string' ? body.contact.name.trim() : '';
+  const email = typeof body.contact?.email === "string" ? body.contact.email.trim() : "";
+  const name = typeof body.contact?.name === "string" ? body.contact.name.trim() : "";
   if (!email || !name) {
-    return NextResponse.json({ error: 'Email and name are required' }, { status: 400 });
+    return NextResponse.json({ error: "Email and name are required" }, { status: 400 });
   }
 
   const shipping = body.shipping ?? {};
-  const line1 = typeof shipping.line1 === 'string' ? shipping.line1.trim() : '';
-  const city = typeof shipping.city === 'string' ? shipping.city.trim() : '';
-  const country = typeof shipping.country === 'string' ? shipping.country.trim() : '';
+  const line1 = typeof shipping.line1 === "string" ? shipping.line1.trim() : "";
+  const city = typeof shipping.city === "string" ? shipping.city.trim() : "";
+  const country = typeof shipping.country === "string" ? shipping.country.trim() : "";
   if (!line1 || !city || !country) {
-    return NextResponse.json({ error: 'Shipping address (line1, city, country) is required' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Shipping address (line1, city, country) is required" },
+      { status: 400 }
+    );
   }
 
   const quote = await buildCheckoutQuote(prisma, {
     items,
     shippingAddress: {
       line1,
-      line2: typeof shipping.line2 === 'string' ? shipping.line2.trim() : undefined,
+      line2: typeof shipping.line2 === "string" ? shipping.line2.trim() : undefined,
       city,
-      region: typeof shipping.region === 'string' ? shipping.region.trim() : undefined,
-      postcode: typeof shipping.postcode === 'string' ? shipping.postcode.trim() : undefined,
+      region: typeof shipping.region === "string" ? shipping.region.trim() : undefined,
+      postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
       country,
     },
-    currency: CURRENCIES.includes((body.currency ?? 'EUR') as (typeof CURRENCIES)[number])
-      ? (body.currency ?? 'EUR')
-      : 'EUR',
+    currency: CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+      ? (body.currency ?? "EUR")
+      : "EUR",
     customerGroup: session?.group ?? null,
     customerId: session?.customerId ?? null,
     customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
   });
 
   if (quote.items.length === 0) {
-    return NextResponse.json({ error: 'No valid items in cart' }, { status: 400 });
+    return NextResponse.json({ error: "No valid items in cart" }, { status: 400 });
   }
 
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
 
   const orderNumber = await generateOrderNumber();
   const viewToken = generateViewToken();
-  const locale = (body.locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
+  const locale = (body.locale === "ua" ? "ua" : "en") as "ua" | "en";
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://onecompany.global");
 
   const shippingAddress = {
     line1,
-    line2: typeof shipping.line2 === 'string' ? shipping.line2.trim() : undefined,
+    line2: typeof shipping.line2 === "string" ? shipping.line2.trim() : undefined,
     city,
-    region: typeof shipping.region === 'string' ? shipping.region.trim() : undefined,
-    postcode: typeof shipping.postcode === 'string' ? shipping.postcode.trim() : undefined,
+    region: typeof shipping.region === "string" ? shipping.region.trim() : undefined,
+    postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
     country,
   };
 
   const orderData = {
     orderNumber,
-    status: 'PENDING_REVIEW' as const,
+    status: "PENDING_REVIEW" as const,
     paymentMethod,
     customerId: session?.customerId ?? null,
-    customerGroupSnapshot: session?.group ?? 'B2C',
+    customerGroupSnapshot: session?.group ?? "B2C",
     email,
     customerName: name,
-    phone: typeof body.contact?.phone === 'string' ? body.contact.phone.trim() || null : null,
+    phone: typeof body.contact?.phone === "string" ? body.contact.phone.trim() || null : null,
     shippingAddress,
     currency: quote.currency,
     subtotal: quote.subtotal,
@@ -183,10 +187,10 @@ export async function POST(req: NextRequest) {
 
   let redirectUrl: string | undefined = undefined;
 
-  if (paymentMethod === 'WHITEBIT') {
+  if (paymentMethod === "WHITEBIT") {
     try {
       const successUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`;
-      
+
       const wpRes = await createWhitepayCryptoOrder({
         amount: quote.total.toString(),
         currency: quote.currency.toUpperCase(),
@@ -195,24 +199,24 @@ export async function POST(req: NextRequest) {
         successful_link: successUrl,
         failure_link: successUrl,
       });
-      
-      console.log('[Checkout] Whitepay response:', JSON.stringify(wpRes));
-      
+
+      console.log("[Checkout] Whitepay response:", JSON.stringify(wpRes));
+
       if (wpRes.success && wpRes.url) {
         redirectUrl = wpRes.url;
         order = await prisma.shopOrder.update({
           where: { id: order.id },
-          data: { status: 'PENDING_PAYMENT' }
+          data: { status: "PENDING_PAYMENT" },
         });
       } else {
-        console.error('[Checkout] Whitepay redirect generation failed:', wpRes.error, wpRes);
+        console.error("[Checkout] Whitepay redirect generation failed:", wpRes.error, wpRes);
       }
     } catch (wpError) {
-      console.error('[Checkout] Whitepay exception:', wpError);
+      console.error("[Checkout] Whitepay exception:", wpError);
     }
   }
 
-  if (paymentMethod === 'WHITEPAY_FIAT') {
+  if (paymentMethod === "WHITEPAY_FIAT") {
     try {
       // Fiat API only accepts: amount, currency, external_order_id
       // Redirect URLs are configured in Whitepay CRM payment page settings
@@ -221,23 +225,23 @@ export async function POST(req: NextRequest) {
         currency: quote.currency.toUpperCase(),
         external_order_id: String(order.orderNumber),
       });
-      
-      console.log('[Checkout] Whitepay Fiat response:', JSON.stringify(wpRes));
-      
+
+      console.log("[Checkout] Whitepay Fiat response:", JSON.stringify(wpRes));
+
       if (wpRes.success && wpRes.url) {
         redirectUrl = wpRes.url;
         order = await prisma.shopOrder.update({
           where: { id: order.id },
-          data: { status: 'PENDING_PAYMENT', paymentMethod: 'WHITEPAY_FIAT' }
+          data: { status: "PENDING_PAYMENT", paymentMethod: "WHITEPAY_FIAT" },
         });
       } else {
-        console.error('[Checkout] Whitepay Fiat redirect generation failed:', wpRes.error, wpRes);
+        console.error("[Checkout] Whitepay Fiat redirect generation failed:", wpRes.error, wpRes);
       }
     } catch (wpError) {
-      console.error('[Checkout] Whitepay Fiat exception:', wpError);
+      console.error("[Checkout] Whitepay Fiat exception:", wpError);
     }
   }
-  await dispatchCrmWebhook('order.created', order).catch(() => {});
+  await dispatchCrmWebhook("order.created", order).catch(() => {});
 
   await createInitialOrderEvent(prisma, order.id);
   if (session?.customerId) {
@@ -246,7 +250,7 @@ export async function POST(req: NextRequest) {
   await clearShopCart(prisma, {
     cartToken: activeCart.token,
     customerId: session?.customerId ?? null,
-    locale: session?.preferredLocale ?? 'en',
+    locale: session?.preferredLocale ?? "en",
     currency: quote.currency,
   });
 
@@ -272,11 +276,12 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         from: `One Company Shop <${process.env.EMAIL_FROM}>`,
         to: [email],
-        subject: locale === 'ua' ? `Замовлення ${orderNumber} прийнято` : `Order ${orderNumber} confirmed`,
+        subject:
+          locale === "ua" ? `Замовлення ${orderNumber} прийнято` : `Order ${orderNumber} confirmed`,
         html: emailHtml,
       });
     } catch (err) {
-      console.error('Order confirmation email failed (order already created):', err);
+      console.error("Order confirmation email failed (order already created):", err);
     }
   }
 
@@ -290,7 +295,7 @@ export async function POST(req: NextRequest) {
       itemCount: quote.items.reduce((s, i) => s + i.quantity, 0),
     });
   } catch (err) {
-    console.error('Admin shop order notification failed (non-blocking):', err);
+    console.error("Admin shop order notification failed (non-blocking):", err);
   }
 
   const response = NextResponse.json({
@@ -300,6 +305,8 @@ export async function POST(req: NextRequest) {
     subtotal: quote.subtotal,
     regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
     shippingCost: quote.shippingCost,
+    taxableSubtotal: quote.taxableSubtotal,
+    taxableShippingCost: quote.taxableShippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
     currency: quote.currency,
@@ -310,11 +317,11 @@ export async function POST(req: NextRequest) {
     showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
   });
   response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-    path: '/',
+    path: "/",
     maxAge: COOKIE_MAX_AGE,
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
   return response;
 }

@@ -1,11 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import { resolveShopCountry } from "@/lib/shopCountries";
+import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 
 type CurrencyCode = ShopCurrencyCode;
-type RegionCode = "UA" | "EU" | "US";
+export type ShopRegionCode = "UA" | "EU" | "US";
+const DEFAULT_COUNTRY = "Ukraine";
 
 type Rates = {
   base: CurrencyCode;
@@ -15,18 +18,22 @@ type Rates = {
 };
 
 type ShopCurrencyContextValue = {
-  region: RegionCode;
+  region: ShopRegionCode;
+  country: string;
   currency: CurrencyCode;
   rates: Rates | null;
-  setRegion: (region: RegionCode) => void;
+  setRegion: (region: ShopRegionCode) => void;
+  setCountry: (country: string) => void;
   setCurrency: (currency: CurrencyCode) => void;
 };
 
 const DEFAULT_VALUE: ShopCurrencyContextValue = {
   region: "UA",
+  country: DEFAULT_COUNTRY,
   currency: "UAH",
   rates: null,
   setRegion: () => {},
+  setCountry: () => {},
   setCurrency: () => {},
 };
 
@@ -34,14 +41,52 @@ const STORAGE_KEY = "onecompany.shop.currency.v1";
 
 const ShopCurrencyContext = createContext<ShopCurrencyContextValue>(DEFAULT_VALUE);
 
-function currencyToRegion(currency: CurrencyCode): RegionCode {
+function currencyToRegion(currency: CurrencyCode): ShopRegionCode {
   if (currency === "USD") return "US";
   if (currency === "EUR") return "EU";
   return "UA";
 }
 
+function normalizeRegion(value: unknown, fallback: ShopRegionCode): ShopRegionCode {
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase();
+  if (normalized === "UA" || normalized === "EU" || normalized === "US") {
+    return normalized;
+  }
+  return fallback;
+}
+
+function countryToRegion(country: string): ShopRegionCode {
+  if (isEuropePricingCountry(country)) return "EU";
+  if (country === "United States") return "US";
+  return "UA";
+}
+
+function defaultCountryForRegion(region: ShopRegionCode): string {
+  if (region === "EU") return "Germany";
+  if (region === "US") return "United States";
+  return DEFAULT_COUNTRY;
+}
+
+function normalizeCountry(value: unknown, fallback: string): string {
+  return resolveShopCountry(String(value ?? "").trim())?.value ?? fallback;
+}
+
+export function getShopPriceCountryForRegion(region: ShopRegionCode): string | null {
+  return defaultCountryForRegion(region);
+}
+
+export function getShopPriceCountryForCountry(country: string | null | undefined): string | null {
+  const normalized = String(country ?? "").trim();
+  if (!normalized || normalized === "Other") return null;
+  return normalized;
+}
+
 function normalizeCurrency(value: unknown, fallback: CurrencyCode): CurrencyCode {
-  const normalized = String(value ?? "").trim().toUpperCase();
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase();
   if (normalized === "USD" || normalized === "EUR" || normalized === "UAH") {
     return normalized;
   }
@@ -73,7 +118,9 @@ export function ShopCurrencyProvider({
   initialRates,
 }: ShopCurrencyProviderProps) {
   const normalizedDefaultCurrency = normalizeCurrency(defaultCurrency, "UAH");
-  const [region, setRegionState] = useState<RegionCode>(currencyToRegion(normalizedDefaultCurrency));
+  const initialRegion = currencyToRegion(normalizedDefaultCurrency);
+  const [region, setRegionState] = useState<ShopRegionCode>(initialRegion);
+  const [country, setCountryState] = useState<string>(defaultCountryForRegion(initialRegion));
   const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
   const [rates] = useState<Rates | null>(normalizeRates(initialRates));
   const { data: session, status } = useSession();
@@ -82,7 +129,6 @@ export function ShopCurrencyProvider({
     if (status === "authenticated" && session?.user?.currencyPref) {
       const nextCurrency = normalizeCurrency(session.user.currencyPref, normalizedDefaultCurrency);
       setCurrencyState(nextCurrency);
-      setRegionState(currencyToRegion(nextCurrency));
     }
   }, [normalizedDefaultCurrency, session, status]);
 
@@ -91,10 +137,16 @@ export function ShopCurrencyProvider({
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as { region?: RegionCode; currency?: CurrencyCode };
+      const parsed = JSON.parse(raw) as {
+        region?: ShopRegionCode;
+        country?: string;
+        currency?: CurrencyCode;
+      };
       const nextCurrency = normalizeCurrency(parsed.currency, normalizedDefaultCurrency);
-      const nextRegion = parsed.region ?? currencyToRegion(nextCurrency);
+      const nextRegion = normalizeRegion(parsed.region, currencyToRegion(nextCurrency));
+      const nextCountry = normalizeCountry(parsed.country, defaultCountryForRegion(nextRegion));
       setRegionState(nextRegion);
+      setCountryState(nextCountry);
       setCurrencyState(nextCurrency);
     } catch {
       // ignore
@@ -107,29 +159,38 @@ export function ShopCurrencyProvider({
       STORAGE_KEY,
       JSON.stringify({
         region,
+        country,
         currency,
       })
     );
-  }, [region, currency]);
+  }, [region, country, currency]);
 
-  function setRegion(next: RegionCode) {
+  const setRegion = useCallback((next: ShopRegionCode) => {
     setRegionState(next);
-    if (next === "UA") setCurrencyState("UAH");
-    if (next === "EU") setCurrencyState("EUR");
-    if (next === "US") setCurrencyState("USD");
-  }
+    setCountryState(defaultCountryForRegion(next));
+  }, []);
 
-  function setCurrency(next: CurrencyCode) {
+  const setCountry = useCallback((next: string) => {
+    setCountryState((current) => {
+      const normalized = normalizeCountry(next, current);
+      setRegionState(countryToRegion(normalized));
+      return normalized;
+    });
+  }, []);
+
+  const setCurrency = useCallback((next: CurrencyCode) => {
     setCurrencyState(next);
-  }
+  }, []);
 
   return (
     <ShopCurrencyContext.Provider
       value={{
         region,
+        country,
         currency,
         rates,
         setRegion,
+        setCountry,
         setCurrency,
       }}
     >
@@ -141,4 +202,3 @@ export function ShopCurrencyProvider({
 export function useShopCurrency() {
   return useContext(ShopCurrencyContext);
 }
-

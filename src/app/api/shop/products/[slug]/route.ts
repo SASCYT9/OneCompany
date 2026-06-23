@@ -1,15 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
-import { serializePublicShopProduct } from '@/lib/shopPublicProducts';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { serializePublicShopProduct } from "@/lib/shopPublicProducts";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
     const [settingsRecord, session, product] = await Promise.all([
@@ -19,22 +16,25 @@ export async function GET(
     ]);
 
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     const settings = getShopSettingsRuntime(settingsRecord);
+    const country = new URL(request.url).searchParams.get("country");
     const pricingContext = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
     );
 
     return NextResponse.json(serializePublicShopProduct(product, pricingContext));
   } catch (error) {
-    console.error('Shop product detail', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    console.error("Shop product detail", error);
+    return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

@@ -1,5 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
+import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
+
 export const SHOP_CURRENCIES = ["EUR", "USD", "UAH"] as const;
 export type ShopCurrencyCode = (typeof SHOP_CURRENCIES)[number];
 
@@ -225,43 +227,15 @@ export const DEFAULT_TAX_REGIONS: ShopTaxRegion[] = [
     appliesToShipping: true,
     enabled: false,
   },
-  {
-    id: "eu-vat",
-    name: "EU VAT",
-    countries: [
-      "AT",
-      "BE",
-      "BG",
-      "CY",
-      "CZ",
-      "DE",
-      "DK",
-      "EE",
-      "ES",
-      "FI",
-      "FR",
-      "GR",
-      "HR",
-      "HU",
-      "IE",
-      "IT",
-      "LT",
-      "LU",
-      "LV",
-      "MT",
-      "NL",
-      "PL",
-      "PT",
-      "RO",
-      "SE",
-      "SI",
-      "SK",
-    ],
+  ...EU_VAT_COUNTRIES.map((country) => ({
+    id: `eu-vat-${country.code.toLowerCase()}`,
+    name: `${country.name} VAT`,
+    countries: [country.code, country.name, ...(country.aliases ?? [])],
     regions: [],
-    rate: 0.2,
+    rate: country.standardRate,
     appliesToShipping: true,
-    enabled: false,
-  },
+    enabled: true,
+  })),
 ];
 
 export const DEFAULT_REGIONAL_PRICING_RULES: ShopRegionalPricingRule[] = [];
@@ -452,6 +426,10 @@ function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[
 }
 
 function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
+  if (value == null) {
+    return DEFAULT_TAX_REGIONS.map((region) => ({ ...region }));
+  }
+
   const regions = asObjectArray(value).map((entry, index) => {
     const countries = stringArray(entry.countries);
     const ruleRegions = stringArray(entry.regions);
@@ -468,7 +446,7 @@ function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
     } satisfies ShopTaxRegion;
   });
 
-  return regions.length ? regions : DEFAULT_TAX_REGIONS.map((region) => ({ ...region }));
+  return regions;
 }
 
 function normalizeShopRegionalPricingRules(value: unknown): ShopRegionalPricingRule[] {

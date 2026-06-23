@@ -6,8 +6,8 @@ import { useEffect, useState, useRef } from "react";
 import type { SupportedLocale } from "@/lib/seo";
 import { trackBeginCheckout } from "@/lib/analytics";
 import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
-import { SHOP_COUNTRIES } from "@/lib/shopCountries";
-import { ShoppingBag, Loader2 } from "lucide-react";
+import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import { ShopCountryCombobox } from "@/components/shop/ShopCountryCombobox";
 
 type CartItem = {
   id: string;
@@ -40,6 +40,8 @@ type CheckoutQuote = {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  taxableSubtotal?: number;
+  taxableShippingCost?: number;
   taxAmount: number;
   total: number;
   itemCount: number;
@@ -53,6 +55,14 @@ type CheckoutQuote = {
     currency?: string;
   } | null;
   showTaxesIncludedNotice: boolean;
+  items?: Array<{
+    productSlug: string;
+    variantId?: string | null;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    pricingBaseRegion?: "default" | "europe";
+  }>;
   /** True when at least one brand in the cart is `manual_quote`. Backend-driven flag. */
   requiresQuote?: boolean;
   brandsRequiringQuote?: string[];
@@ -75,9 +85,34 @@ function getPrice(price: { eur: number; usd: number; uah: number }, currency: Sh
   return price.uah;
 }
 
+function quoteLineKey(slug: string, variantId?: string | null) {
+  return `${slug}::${variantId ?? ""}`;
+}
+
+function hasMoneyAmount(value?: number | null) {
+  return Math.abs(value ?? 0) >= 0.005;
+}
+
+function formatVatRate(rate?: number | null) {
+  if (typeof rate !== "number" || !Number.isFinite(rate) || rate <= 0) return "";
+  const percent = Math.round(rate * 1000) / 10;
+  return `${Number.isInteger(percent) ? percent.toFixed(0) : percent.toFixed(1)}%`;
+}
+
+function vatSummaryLabel(quote: CheckoutQuote | null) {
+  const rate = formatVatRate(quote?.taxRegion?.rate);
+  return rate ? `VAT (${rate})` : "VAT";
+}
+
 export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
   const router = useRouter();
   const isUa = locale === "ua";
+  const {
+    country: selectedShopCountry,
+    currency: selectedShopCurrency,
+    setCountry: setSelectedShopCountry,
+    setCurrency: setSelectedShopCurrency,
+  } = useShopCurrency();
   const [cart, setCart] = useState<{ items: CartItem[] } | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -97,14 +132,39 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     city: "",
     region: "",
     postcode: "",
-    country: isUa ? "Ukraine" : "Ukraine",
-    currency: isUa ? "UAH" : "EUR",
+    country: selectedShopCountry || "Ukraine",
+    currency: selectedShopCurrency || (isUa ? "UAH" : "EUR"),
     paymentMethod: "FOP" as "FOP" | "WHITEBIT" | "WHITEPAY_FIAT",
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
 
+  useEffect(() => {
+    setForm((current) => {
+      const nextCountry = selectedShopCountry || current.country;
+      const nextCurrency = selectedShopCurrency || current.currency;
+      if (current.country === nextCountry && current.currency === nextCurrency) {
+        return current;
+      }
+      return {
+        ...current,
+        country: nextCountry,
+        currency: nextCurrency,
+      };
+    });
+  }, [selectedShopCountry, selectedShopCurrency]);
+
   const checkoutTrackedRef = useRef(false);
   const quoteRequestRef = useRef(0);
+  const quoteItemsByKey = new Map(
+    (quote?.items ?? []).map((item) => [quoteLineKey(item.productSlug, item.variantId), item])
+  );
+  const quoteCurrency = (quote?.currency || form.currency) as ShopCurrencyCode;
+  const showRegionalAdjustment =
+    Boolean(quote?.regionalPricingRule) || hasMoneyAmount(quote?.regionalAdjustmentAmount);
+  const showVatLine =
+    hasMoneyAmount(quote?.taxAmount) ||
+    (quote?.showTaxesIncludedNotice === true && hasMoneyAmount(quote?.taxableSubtotal));
+
   useEffect(() => {
     Promise.all([
       fetch("/api/shop/cart").then((r) => r.json()),
@@ -135,7 +195,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             city: accountData.defaultShippingAddress?.city || current.city,
             region: accountData.defaultShippingAddress?.region || current.region,
             postcode: accountData.defaultShippingAddress?.postcode || current.postcode,
-            country: accountData.defaultShippingAddress?.country || current.country,
+            country: current.country,
           }));
         }
         if (!cartData.items?.length) setError(isUa ? "Кошик порожній" : "Cart is empty");
@@ -428,22 +488,15 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                   onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
                   className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 />
-                <select
-                  required
-                  aria-label={isUa ? "Країна" : "Country"}
+                <ShopCountryCombobox
+                  locale={locale}
                   value={form.country}
-                  onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                >
-                  <option value="" disabled>
-                    {isUa ? "Оберіть країну" : "Select country"}
-                  </option>
-                  {SHOP_COUNTRIES.map((country) => (
-                    <option key={country.value} value={country.value}>
-                      {isUa ? country.ua : country.en}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel={isUa ? "Країна" : "Country"}
+                  onChange={(nextCountry) => {
+                    setForm((f) => ({ ...f, country: nextCountry }));
+                    setSelectedShopCountry(nextCountry);
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -455,7 +508,11 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             </label>
             <select
               value={form.currency}
-              onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
+              onChange={(e) => {
+                const nextCurrency = e.target.value as ShopCurrencyCode;
+                setForm((f) => ({ ...f, currency: nextCurrency }));
+                setSelectedShopCurrency(nextCurrency);
+              }}
               className="mt-2 w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground backdrop-blur-md transition-all hover:bg-card/85 dark:hover:bg-black/60 focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
             >
               <option value="EUR">EUR (€)</option>
@@ -543,33 +600,33 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             </div>
 
             <ul className="mt-6 space-y-3 text-sm text-foreground dark:text-foreground/80">
-              {(cart.items ?? []).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-4 font-light">
-                  <span className="truncate">
-                    {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} ×{" "}
-                    {item.quantity}
-                    {item.variantTitle ? (
-                      <span className="block text-[11px] text-primary/70 uppercase tracking-widest mt-1">
-                        {item.variantTitle}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </span>
-                  <span className="text-foreground/70 dark:text-foreground/55 tabular-nums">
-                    {item.price
-                      ? formatShopMoney(
-                          locale,
-                          getPrice(
-                            item.price,
-                            (quote?.currency || form.currency) as ShopCurrencyCode
-                          ) * item.quantity,
-                          (quote?.currency || form.currency) as ShopCurrencyCode
-                        )
-                      : "—"}
-                  </span>
-                </li>
-              ))}
+              {(cart.items ?? []).map((item) => {
+                const quoteLine = quoteItemsByKey.get(quoteLineKey(item.slug, item.variantId));
+                const fallbackTotal = item.price
+                  ? getPrice(item.price, quoteCurrency) * item.quantity
+                  : 0;
+
+                return (
+                  <li key={item.id} className="flex items-center justify-between gap-4 font-light">
+                    <span className="truncate">
+                      {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} ×{" "}
+                      {quoteLine?.quantity ?? item.quantity}
+                      {item.variantTitle ? (
+                        <span className="block text-[11px] text-primary/70 uppercase tracking-widest mt-1">
+                          {item.variantTitle}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </span>
+                    <span className="text-foreground/70 dark:text-foreground/55 tabular-nums">
+                      {quoteLine || item.price
+                        ? formatShopMoney(locale, quoteLine?.total ?? fallbackTotal, quoteCurrency)
+                        : "—"}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
 
             {quoteError ? <p className="mt-4 text-sm text-red-400">{quoteError}</p> : null}
@@ -578,23 +635,17 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               <div className="flex items-center justify-between font-light">
                 <span>{isUa ? "Підсумок товарів" : "Subtotal"}</span>
                 <span className="tabular-nums">
-                  {formatShopMoney(
-                    locale,
-                    quote?.subtotal ?? 0,
-                    (quote?.currency || form.currency) as ShopCurrencyCode
-                  )}
+                  {formatShopMoney(locale, quote?.subtotal ?? 0, quoteCurrency)}
                 </span>
               </div>
-              <div className="flex items-center justify-between font-light">
-                <span>{isUa ? "Регіональна корекція" : "Regional adjustment"}</span>
-                <span className="tabular-nums">
-                  {formatShopMoney(
-                    locale,
-                    quote?.regionalAdjustmentAmount ?? 0,
-                    (quote?.currency || form.currency) as ShopCurrencyCode
-                  )}
-                </span>
-              </div>
+              {showRegionalAdjustment ? (
+                <div className="flex items-center justify-between font-light">
+                  <span>{isUa ? "Корекція ціни" : "Price adjustment"}</span>
+                  <span className="tabular-nums">
+                    {formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, quoteCurrency)}
+                  </span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between font-light">
                 <span>{isUa ? "Доставка" : "Shipping"}</span>
                 <span className="tabular-nums">
@@ -602,23 +653,29 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                     ? isUa
                       ? "За тарифами перевізника"
                       : "Calculated by carrier"
-                    : formatShopMoney(
-                        locale,
-                        quote?.shippingCost ?? 0,
-                        (quote?.currency || form.currency) as ShopCurrencyCode
-                      )}
+                    : formatShopMoney(locale, quote?.shippingCost ?? 0, quoteCurrency)}
                 </span>
               </div>
+              {showVatLine ? (
+                <div className="flex items-center justify-between font-light">
+                  <span>{vatSummaryLabel(quote)}</span>
+                  <span className="tabular-nums">
+                    {hasMoneyAmount(quote?.taxAmount)
+                      ? formatShopMoney(locale, quote?.taxAmount ?? 0, quoteCurrency)
+                      : quote?.showTaxesIncludedNotice
+                        ? isUa
+                          ? "VAT включено"
+                          : "VAT included"
+                        : formatShopMoney(locale, quote?.taxAmount ?? 0, quoteCurrency)}
+                  </span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between border-t border-foreground/10 pt-4 text-lg font-light text-foreground">
                 <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">
                   {isUa ? "Разом" : "Total"}
                 </span>
                 <span className="tabular-nums">
-                  {formatShopMoney(
-                    locale,
-                    quote?.total ?? 0,
-                    (quote?.currency || form.currency) as ShopCurrencyCode
-                  )}
+                  {formatShopMoney(locale, quote?.total ?? 0, quoteCurrency)}
                 </span>
               </div>
             </div>

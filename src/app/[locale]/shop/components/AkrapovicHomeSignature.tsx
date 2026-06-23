@@ -624,143 +624,181 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
             heroCompact
           />
 
-          {/* Interactive Brand Selector List (Ilmberger style) */}
-          <div
-            className={`ak-hero__brands-list-wrapper ${isAnyBrandExpanded ? "ak-hero__brands-list-wrapper--expanded" : ""}`}
-          >
-            <span className="ak-hero__brands-title">
-              {L(isUa, "Or select manufacturer", "Або оберіть виробника")}
-            </span>
-            <div className="ak-brands-list">
-              {(isMoto
-                ? [
-                    {
-                      key: "BMW",
-                      label: "BMW Motorrad",
-                      image: "/images/shop/akrapovic/bmw-s1000rr.webp",
-                      accent: "bmw-moto",
-                    },
-                    {
-                      key: "Ducati",
-                      label: "DUCATI",
-                      image: "/images/shop/akrapovic/ducati-panigale-v2.webp",
-                      accent: "ducati",
-                    },
-                  ]
-                : [
-                    {
-                      key: "BMW",
-                      label: "BMW",
-                      image: "/images/shop/akrapovic/sound-bmw-m3.jpg",
-                      accent: "bmw",
-                    },
-                    {
-                      key: "Porsche",
-                      label: "PORSCHE",
-                      image: "/images/shop/akrapovic/sound-porsche-911-v2.jpg",
-                      accent: "porsche",
-                    },
-                    {
-                      key: "Mercedes-AMG",
-                      label: "MERCEDES-AMG",
-                      image: "/images/shop/akrapovic/sound-mercedes-g63-v2.jpg",
-                      accent: "mercedes",
-                    },
-                    {
-                      key: "Audi",
-                      label: "AUDI",
-                      image: "/images/shop/akrapovic/sound-audi-rs6-v2.jpg",
-                      accent: "audi",
-                    },
-                    {
-                      key: "Lamborghini",
-                      label: "LAMBORGHINI",
-                      image: "/images/shop/akrapovic/sound-lamborghini-huracan.jpg",
-                      accent: "lamborghini",
-                    },
-                    {
-                      key: "Ferrari",
-                      label: "FERRARI",
-                      image: "/images/shop/akrapovic/sound-ferrari-488.jpg",
-                      accent: "ferrari",
-                    },
-                  ]
-              ).map((b) => {
-                const brandHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(b.key)}${isMoto ? "&scope=moto" : ""}`;
-                const allModels = brandModelsMap.get(b.key) || [];
-                const isExpanded = expandedBrands[b.key] || false;
-                const visibleModels = isExpanded ? allModels : allModels.slice(0, 3);
+          {isMoto ? (
+            <div
+              className={`ak-hero__brands-list-wrapper ${isAnyBrandExpanded ? "ak-hero__brands-list-wrapper--expanded" : ""}`}
+            >
+              <span className="ak-hero__brands-title">
+                {L(isUa, "Or select manufacturer", "Або оберіть виробника")}
+              </span>
+              <div className="ak-brands-list">
+                {(isMoto
+                  ? [
+                      {
+                        key: "BMW",
+                        label: "BMW Motorrad",
+                        image: "/images/shop/akrapovic/bmw-s1000rr.webp",
+                        accent: "bmw-moto",
+                      },
+                      {
+                        key: "Ducati",
+                        label: "DUCATI",
+                        image: "/images/shop/akrapovic/ducati-panigale-v2.webp",
+                        accent: "ducati",
+                      },
+                    ]
+                  : [
+                      {
+                        key: "BMW",
+                        label: "BMW",
+                        image: "/images/shop/akrapovic/sound-bmw-m3.jpg",
+                        accent: "bmw",
+                      },
+                      {
+                        key: "Porsche",
+                        label: "PORSCHE",
+                        image: "/images/shop/akrapovic/sound-porsche-911-v2.jpg",
+                        accent: "porsche",
+                      },
+                      {
+                        key: "Mercedes-AMG",
+                        label: "MERCEDES-AMG",
+                        image: "/images/shop/akrapovic/sound-mercedes-g63-v2.jpg",
+                        accent: "mercedes",
+                      },
+                      {
+                        key: "Audi",
+                        label: "AUDI",
+                        image: "/images/shop/akrapovic/sound-audi-rs6-v2.jpg",
+                        accent: "audi",
+                      },
+                      {
+                        key: "Lamborghini",
+                        label: "LAMBORGHINI",
+                        image: "/images/shop/akrapovic/sound-lamborghini-huracan.jpg",
+                        accent: "lamborghini",
+                      },
+                      {
+                        key: "Ferrari",
+                        label: "FERRARI",
+                        image: "/images/shop/akrapovic/sound-ferrari-488.jpg",
+                        accent: "ferrari",
+                      },
+                    ]
+                ).map((b) => {
+                  const brandHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(b.key)}${isMoto ? "&scope=moto" : ""}`;
+                  const allModels = brandModelsMap.get(b.key) || [];
+                  const isExpanded = expandedBrands[b.key] || false;
+                  const visibleModels = isExpanded ? allModels : allModels.slice(0, 3);
 
-                if (isExpanded) {
-                  return (
-                    <div
-                      key={b.key}
-                      className={`ak-brand-row-card ak-brand-row-card--${b.accent} ak-brand-row-card--expanded cursor-pointer`}
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        if (
-                          target.tagName !== "A" &&
-                          !target.closest("a") &&
-                          target.tagName !== "BUTTON"
-                        ) {
-                          toggleBrandExpand(b.key);
-                        }
-                      }}
-                    >
-                      {/* Header Row */}
-                      <div className="ak-brand-row-card__header">
-                        <div className="ak-brand-row-card__header-left">
-                          <div className="ak-brand-row-card__title-row">
-                            <BrandLogo brandKey={b.key} className="ak-brand-row-card__logo-icon" />
-                            <span className="ak-brand-row-card__title">{b.label}</span>
-                          </div>
-                          <span className="ak-brand-row-card__subtitle-expanded">
-                            {L(
-                              isUa,
-                              `${allModels.length} models available`,
-                              `Доступно ${allModels.length} моделей`
-                            )}
-                          </span>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
+                  if (isExpanded) {
+                    return (
+                      <div
+                        key={b.key}
+                        className={`ak-brand-row-card ak-brand-row-card--${b.accent} ak-brand-row-card--expanded cursor-pointer`}
+                        onClick={(e) => {
+                          const target = e.target as HTMLElement;
+                          if (
+                            target.tagName !== "A" &&
+                            !target.closest("a") &&
+                            target.tagName !== "BUTTON"
+                          ) {
                             toggleBrandExpand(b.key);
-                          }}
-                          className="ak-brand-row-card__collapse-btn"
-                          aria-label={L(isUa, "Collapse", "Згорнути")}
-                        >
-                          <ChevronUp size={20} />
-                        </button>
-                      </div>
+                          }
+                        }}
+                      >
+                        {/* Header Row */}
+                        <div className="ak-brand-row-card__header">
+                          <div className="ak-brand-row-card__header-left">
+                            <div className="ak-brand-row-card__title-row">
+                              <BrandLogo
+                                brandKey={b.key}
+                                className="ak-brand-row-card__logo-icon"
+                              />
+                              <span className="ak-brand-row-card__title">{b.label}</span>
+                            </div>
+                            <span className="ak-brand-row-card__subtitle-expanded">
+                              {L(
+                                isUa,
+                                `${allModels.length} models available`,
+                                `Доступно ${allModels.length} моделей`
+                              )}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleBrandExpand(b.key);
+                            }}
+                            className="ak-brand-row-card__collapse-btn"
+                            aria-label={L(isUa, "Collapse", "Згорнути")}
+                          >
+                            <ChevronUp size={20} />
+                          </button>
+                        </div>
 
-                      {/* Models Grid */}
-                      <div className="ak-brand-row-card__models-grid">
-                        {allModels.map((m, index) => {
-                          const modelHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(
-                            b.key
-                          )}&model=${encodeURIComponent(m.key)}${isMoto ? "&scope=moto" : ""}${
-                            m.filterYear ? `&year=${m.filterYear}` : ""
-                          }`;
-                          const modelImage = getModelImage(b.key, m.key, b.image);
+                        {/* Models Grid */}
+                        <div className="ak-brand-row-card__models-grid">
+                          {allModels.map((m, index) => {
+                            const modelHref = `/${locale}/shop/akrapovic/collections?brand=${encodeURIComponent(
+                              b.key
+                            )}&model=${encodeURIComponent(m.key)}${isMoto ? "&scope=moto" : ""}${
+                              m.filterYear ? `&year=${m.filterYear}` : ""
+                            }`;
+                            const modelImage = getModelImage(b.key, m.key, b.image);
 
-                          if (m.generations) {
+                            if (m.generations) {
+                              return (
+                                <div
+                                  key={m.reactKey}
+                                  className="ak-model-grid-card cursor-pointer"
+                                  style={
+                                    { animationDelay: `${index * 0.05}s` } as React.CSSProperties
+                                  }
+                                  onClick={() => {
+                                    setActiveModalModel({
+                                      key: m.key,
+                                      label: m.label,
+                                      brand: b.key,
+                                      isMoto,
+                                      generations: m.generations || [],
+                                    });
+                                  }}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={modelImage}
+                                    alt={m.label}
+                                    className="ak-model-grid-card__bg"
+                                  />
+                                  <div className="ak-model-grid-card__overlay" />
+                                  {m.years && (
+                                    <span className="ak-model-grid-card__year-badge">
+                                      {m.years}
+                                    </span>
+                                  )}
+                                  <div className="ak-model-grid-card__info">
+                                    <span className="ak-model-grid-card__name">
+                                      {formatModelLabel(m.label)}
+                                    </span>
+                                    <div className="ak-model-grid-card__footer">
+                                      <span className="ak-model-grid-card__cta">
+                                        {L(isUa, "Select Year →", "Обрати рік →")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
                             return (
-                              <div
+                              <Link
                                 key={m.reactKey}
-                                className="ak-model-grid-card cursor-pointer"
+                                href={modelHref}
+                                className="ak-model-grid-card"
                                 style={
                                   { animationDelay: `${index * 0.05}s` } as React.CSSProperties
                                 }
-                                onClick={() => {
-                                  setActiveModalModel({
-                                    key: m.key,
-                                    label: m.label,
-                                    brand: b.key,
-                                    isMoto,
-                                    generations: m.generations || [],
-                                  });
-                                }}
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
@@ -778,44 +816,83 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                                   </span>
                                   <div className="ak-model-grid-card__footer">
                                     <span className="ak-model-grid-card__cta">
-                                      {L(isUa, "Select Year →", "Обрати рік →")}
+                                      {L(isUa, "Explore Catalog →", "Переглянути каталог →")}
                                     </span>
                                   </div>
                                 </div>
-                              </div>
+                              </Link>
                             );
-                          }
+                          })}
+                        </div>
 
-                          return (
-                            <Link
-                              key={m.reactKey}
-                              href={modelHref}
-                              className="ak-model-grid-card"
-                              style={{ animationDelay: `${index * 0.05}s` } as React.CSSProperties}
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={modelImage}
-                                alt={m.label}
-                                className="ak-model-grid-card__bg"
-                              />
-                              <div className="ak-model-grid-card__overlay" />
-                              {m.years && (
-                                <span className="ak-model-grid-card__year-badge">{m.years}</span>
-                              )}
-                              <div className="ak-model-grid-card__info">
-                                <span className="ak-model-grid-card__name">
-                                  {formatModelLabel(m.label)}
-                                </span>
-                                <div className="ak-model-grid-card__footer">
-                                  <span className="ak-model-grid-card__cta">
-                                    {L(isUa, "Explore Catalog →", "Переглянути каталог →")}
-                                  </span>
-                                </div>
-                              </div>
-                            </Link>
-                          );
-                        })}
+                        {/* Right side: Watermark / Background silhouette image */}
+                        <div className="ak-brand-row-card__watermark-wrap">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={b.image}
+                            alt=""
+                            aria-hidden="true"
+                            className="ak-brand-row-card__watermark"
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={b.key}
+                      className={`ak-brand-row-card ak-brand-row-card--${b.accent} ${allModels.length > 3 ? "ak-brand-row-card--has-chevron" : ""} cursor-pointer`}
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (
+                          target.tagName !== "A" &&
+                          !target.closest("a") &&
+                          target.tagName !== "BUTTON"
+                        ) {
+                          toggleBrandExpand(b.key);
+                        }
+                      }}
+                    >
+                      {/* Left vehicle image */}
+                      <div className="ak-brand-row-card__img-wrap">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={b.image} alt={b.label} className="ak-brand-row-card__img" />
+                      </div>
+
+                      {/* Middle: Brand name + Models list */}
+                      <div className="ak-brand-row-card__content">
+                        <div className="ak-brand-row-card__title-row">
+                          <BrandLogo brandKey={b.key} className="ak-brand-row-card__logo-icon" />
+                          <span className="ak-brand-row-card__title">{b.label}</span>
+                        </div>
+                        <ul className="ak-brand-row-card__models">
+                          {visibleModels.map((m) => (
+                            <li key={m.reactKey}>
+                              • {formatModelLabel(m.label)}
+                              {m.years ? ` (${m.years})` : ""}
+                            </li>
+                          ))}
+                          {allModels.length > 3 ? (
+                            <li>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent card onClick double trigger
+                                  toggleBrandExpand(b.key);
+                                }}
+                                className="ak-brand-row-card__toggle-btn"
+                              >
+                                • {L(isUa, "Show all", "Показати всі")} {allModels.length}
+                              </button>
+                            </li>
+                          ) : allModels.length > 0 ? (
+                            <li>
+                              <Link href={brandHref} className="ak-brand-row-card__more-link">
+                                • {L(isUa, "More models...", "Ще моделі...")}
+                              </Link>
+                            </li>
+                          ) : null}
+                        </ul>
                       </div>
 
                       {/* Right side: Watermark / Background silhouette image */}
@@ -828,88 +905,19 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
                           className="ak-brand-row-card__watermark"
                         />
                       </div>
+
+                      {/* Centered Chevron indicator at the bottom */}
+                      {allModels.length > 3 && (
+                        <div className="ak-brand-row-card__chevron-bar">
+                          <ChevronDown size={14} />
+                        </div>
+                      )}
                     </div>
                   );
-                }
-
-                return (
-                  <div
-                    key={b.key}
-                    className={`ak-brand-row-card ak-brand-row-card--${b.accent} ${allModels.length > 3 ? "ak-brand-row-card--has-chevron" : ""} cursor-pointer`}
-                    onClick={(e) => {
-                      const target = e.target as HTMLElement;
-                      if (
-                        target.tagName !== "A" &&
-                        !target.closest("a") &&
-                        target.tagName !== "BUTTON"
-                      ) {
-                        toggleBrandExpand(b.key);
-                      }
-                    }}
-                  >
-                    {/* Left vehicle image */}
-                    <div className="ak-brand-row-card__img-wrap">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={b.image} alt={b.label} className="ak-brand-row-card__img" />
-                    </div>
-
-                    {/* Middle: Brand name + Models list */}
-                    <div className="ak-brand-row-card__content">
-                      <div className="ak-brand-row-card__title-row">
-                        <BrandLogo brandKey={b.key} className="ak-brand-row-card__logo-icon" />
-                        <span className="ak-brand-row-card__title">{b.label}</span>
-                      </div>
-                      <ul className="ak-brand-row-card__models">
-                        {visibleModels.map((m) => (
-                          <li key={m.reactKey}>
-                            • {formatModelLabel(m.label)}
-                            {m.years ? ` (${m.years})` : ""}
-                          </li>
-                        ))}
-                        {allModels.length > 3 ? (
-                          <li>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent card onClick double trigger
-                                toggleBrandExpand(b.key);
-                              }}
-                              className="ak-brand-row-card__toggle-btn"
-                            >
-                              • {L(isUa, "Show all", "Показати всі")} {allModels.length}
-                            </button>
-                          </li>
-                        ) : allModels.length > 0 ? (
-                          <li>
-                            <Link href={brandHref} className="ak-brand-row-card__more-link">
-                              • {L(isUa, "More models...", "Ще моделі...")}
-                            </Link>
-                          </li>
-                        ) : null}
-                      </ul>
-                    </div>
-
-                    {/* Right side: Watermark / Background silhouette image */}
-                    <div className="ak-brand-row-card__watermark-wrap">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={b.image}
-                        alt=""
-                        aria-hidden="true"
-                        className="ak-brand-row-card__watermark"
-                      />
-                    </div>
-
-                    {/* Centered Chevron indicator at the bottom */}
-                    {allModels.length > 3 && (
-                      <div className="ak-brand-row-card__chevron-bar">
-                        <ChevronDown size={14} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                })}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         {/* Scroll indicator */}

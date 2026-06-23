@@ -78,3 +78,80 @@ test("request_quote hides B2B numeric band for pending users but keeps quote pro
   assert.equal(pricing.b2bVisible, false);
   assert.equal(pricing.requestQuote, true);
 });
+
+test("EU customer uses Europe net price as B2C base when present", () => {
+  const context = buildShopViewerPricingContext(baseSettings, null, false, null, undefined, {
+    priceCountry: "Germany",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 1200, usd: 1300, uah: 60000 },
+    europePrice: { eur: 1000 },
+    context,
+  });
+
+  assert.equal(pricing.audience, "b2c");
+  assert.equal(pricing.source, "b2c");
+  assert.equal(pricing.baseRegion, "europe");
+  assert.deepEqual(pricing.effectivePrice, { eur: 1000, usd: 0, uah: 0 });
+});
+
+test("explicit B2B price overrides Europe net base for approved EU customers", () => {
+  const context = buildShopViewerPricingContext(baseSettings, "B2B_APPROVED", true, 20, undefined, {
+    priceCountry: "PL",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 1200, usd: 1300, uah: 60000 },
+    europePrice: { eur: 1000 },
+    b2bPrice: { eur: 875 },
+    context,
+  });
+
+  assert.equal(pricing.audience, "b2b");
+  assert.equal(pricing.source, "b2b-explicit");
+  assert.equal(pricing.baseRegion, "europe");
+  assert.deepEqual(pricing.effectivePrice, { eur: 875, usd: 0, uah: 0 });
+});
+
+test("B2B discount is applied over Europe net base for approved EU customers", () => {
+  const context = buildShopViewerPricingContext(baseSettings, "B2B_APPROVED", true, 12, undefined, {
+    priceCountry: "Finland",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 1200, usd: 1300, uah: 60000 },
+    europePrice: { eur: 1000 },
+    context,
+  });
+
+  assert.equal(pricing.source, "b2b-discount");
+  assert.equal(pricing.discountPercent, 12);
+  assert.equal(pricing.baseRegion, "europe");
+  assert.deepEqual(pricing.effectivePrice, { eur: 880, usd: 0, uah: 0 });
+});
+
+test("non-EU customer ignores Europe net price and falls back to default B2C base", () => {
+  const context = buildShopViewerPricingContext(baseSettings, null, false, null, undefined, {
+    priceCountry: "Ukraine",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 1200, usd: 1300, uah: 60000 },
+    europePrice: { eur: 1000 },
+    context,
+  });
+
+  assert.equal(pricing.baseRegion, "default");
+  assert.deepEqual(pricing.effectivePrice, { eur: 1200, usd: 1300, uah: 60000 });
+});
+
+test("non-EU European customer uses Europe net base without implying VAT", () => {
+  const context = buildShopViewerPricingContext(baseSettings, null, false, null, undefined, {
+    priceCountry: "Switzerland",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 1200, usd: 1300, uah: 60000 },
+    europePrice: { eur: 1000 },
+    context,
+  });
+
+  assert.equal(pricing.baseRegion, "europe");
+  assert.deepEqual(pricing.effectivePrice, { eur: 1000, usd: 0, uah: 0 });
+});

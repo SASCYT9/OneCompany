@@ -1,9 +1,9 @@
-import type { ShopProduct } from '@/lib/shopCatalog';
+import type { ShopProduct } from "@/lib/shopCatalog";
 import {
   resolveShopPriceBands,
   resolveShopProductPricing,
   type ShopViewerPricingContext,
-} from '@/lib/shopPricingAudience';
+} from "@/lib/shopPricingAudience";
 
 export function serializePublicShopProduct(
   product: ShopProduct,
@@ -49,6 +49,7 @@ export function serializePublicShopProduct(
     pricing: {
       audience: pricing.audience,
       source: pricing.source,
+      baseRegion: pricing.baseRegion,
       b2bVisible: pricing.b2bVisible,
       requestQuote: pricing.requestQuote,
       discountPercent: pricing.discountPercent,
@@ -60,6 +61,7 @@ export function serializePublicShopProduct(
       product.variants?.map((variant) => {
         const variantPricing = resolveShopPriceBands({
           b2cPrice: variant.price,
+          europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
@@ -78,6 +80,7 @@ export function serializePublicShopProduct(
           pricing: {
             audience: variantPricing.audience,
             source: variantPricing.source,
+            baseRegion: variantPricing.baseRegion,
             b2bVisible: variantPricing.b2bVisible,
             requestQuote: variantPricing.requestQuote,
             discountPercent: variantPricing.discountPercent,

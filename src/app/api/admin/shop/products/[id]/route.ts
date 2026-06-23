@@ -55,6 +55,7 @@ function buildVariantWriteData(
     inventoryPolicy: item.inventoryPolicy ?? "CONTINUE",
     fulfillmentService: item.fulfillmentService ?? null,
     priceEur: item.priceEur ?? null,
+    priceEurEurope: item.priceEurEurope ?? null,
     priceUsd: item.priceUsd ?? null,
     priceUah: item.priceUah ?? null,
     priceEurB2b: item.priceEurB2b ?? null,

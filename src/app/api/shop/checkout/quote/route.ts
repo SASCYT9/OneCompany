@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { buildCheckoutQuote, type CheckoutShippingAddress } from '@/lib/shopCheckout';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { buildCheckoutQuote, type CheckoutShippingAddress } from "@/lib/shopCheckout";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { resolveShopCart, SHOP_CART_COOKIE } from "@/lib/shopCart";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { prisma } from "@/lib/prisma";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -13,14 +13,16 @@ type QuoteBody = {
   currency?: string;
 };
 
-function normalizeShippingAddress(input: Partial<CheckoutShippingAddress> | undefined): CheckoutShippingAddress {
+function normalizeShippingAddress(
+  input: Partial<CheckoutShippingAddress> | undefined
+): CheckoutShippingAddress {
   return {
-    line1: String(input?.line1 ?? '').trim(),
-    line2: String(input?.line2 ?? '').trim() || undefined,
-    city: String(input?.city ?? '').trim(),
-    region: String(input?.region ?? '').trim() || undefined,
-    postcode: String(input?.postcode ?? '').trim() || undefined,
-    country: String(input?.country ?? '').trim(),
+    line1: String(input?.line1 ?? "").trim(),
+    line2: String(input?.line2 ?? "").trim() || undefined,
+    city: String(input?.city ?? "").trim(),
+    region: String(input?.region ?? "").trim() || undefined,
+    postcode: String(input?.postcode ?? "").trim() || undefined,
+    country: String(input?.country ?? "").trim(),
   };
 }
 
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const session = await getCurrentShopCustomerSession();
@@ -38,31 +40,32 @@ export async function POST(request: NextRequest) {
   const activeCart = await resolveShopCart(prisma, {
     cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
     customerId: session?.customerId ?? null,
-    locale: session?.preferredLocale ?? 'en',
+    locale: session?.preferredLocale ?? "en",
     currency: body.currency ?? settings.defaultCurrency,
   });
   const requestItems = Array.isArray(body.items) ? body.items : [];
-  const items =
-    session?.customerId
-      ? activeCart.cart.items.map((item) => ({
+  const items = session?.customerId
+    ? activeCart.cart.items.map((item) => ({
+        slug: item.productSlug,
+        quantity: item.quantity,
+        variantId: item.variantId,
+      }))
+    : requestItems.length
+      ? requestItems
+      : activeCart.cart.items.map((item) => ({
           slug: item.productSlug,
           quantity: item.quantity,
           variantId: item.variantId,
-        }))
-      : requestItems.length
-        ? requestItems
-        : activeCart.cart.items.map((item) => ({
-            slug: item.productSlug,
-            quantity: item.quantity,
-            variantId: item.variantId,
-          }));
+        }));
   if (!items.length) {
     const response = NextResponse.json({
-      currency: String(body.currency ?? 'EUR').toUpperCase(),
-      pricingAudience: session?.group === 'B2B_APPROVED' ? 'b2b' : 'b2c',
+      currency: String(body.currency ?? "EUR").toUpperCase(),
+      pricingAudience: session?.group === "B2B_APPROVED" ? "b2b" : "b2c",
       subtotal: 0,
       regionalAdjustmentAmount: 0,
       shippingCost: 0,
+      taxableSubtotal: 0,
+      taxableShippingCost: 0,
       taxAmount: 0,
       total: 0,
       itemCount: 0,
@@ -73,11 +76,11 @@ export async function POST(request: NextRequest) {
       showTaxesIncludedNotice: false,
     });
     response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-      path: '/',
+      path: "/",
       maxAge: COOKIE_MAX_AGE,
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     });
     return response;
   }
@@ -98,6 +101,8 @@ export async function POST(request: NextRequest) {
     subtotal: quote.subtotal,
     regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
     shippingCost: quote.shippingCost,
+    taxableSubtotal: quote.taxableSubtotal,
+    taxableShippingCost: quote.taxableShippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
     itemCount: quote.itemCount,
@@ -108,11 +113,11 @@ export async function POST(request: NextRequest) {
     showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
   });
   response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-    path: '/',
+    path: "/",
     maxAge: COOKIE_MAX_AGE,
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
   return response;
 }

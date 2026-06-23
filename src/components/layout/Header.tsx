@@ -10,15 +10,17 @@ import {
 } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import { ShopCountrySearchList } from "@/components/shop/ShopCountryCombobox";
+import { SHOP_COUNTRIES } from "@/lib/shopCountries";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -26,6 +28,17 @@ const navItems = [
   { key: "shop", href: "/shop" },
   { key: "blog", href: "/blog" },
   { key: "contact", href: "/contact" },
+];
+
+type HeaderCurrencyCode = "EUR" | "USD" | "UAH";
+
+const SHOP_CURRENCIES: Array<{
+  value: HeaderCurrencyCode;
+  label: string;
+}> = [
+  { value: "EUR", label: "EUR" },
+  { value: "USD", label: "USD" },
+  { value: "UAH", label: "UAH" },
 ];
 
 export function Header() {
@@ -37,10 +50,34 @@ export function Header() {
   const tNav = useTranslations("nav");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [shopSelectorOpen, setShopSelectorOpen] = useState(false);
+  const shopSelectorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!shopSelectorOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!shopSelectorRef.current?.contains(event.target as Node)) {
+        setShopSelectorOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setShopSelectorOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [shopSelectorOpen]);
+
   const isShopRoute = segments[0] === "shop";
 
   const router = useRouter();
@@ -142,7 +179,9 @@ export function Header() {
         label: tNav(item.key),
       }));
   const logoHref = `/${locale}`;
-  const { region, setRegion } = useShopCurrency();
+  const { country, currency, setCountry, setCurrency } = useShopCurrency();
+  const activeCountry = SHOP_COUNTRIES.find((item) => item.value === country) ?? SHOP_COUNTRIES[0];
+  const activeCountryLabel = isUa ? activeCountry.ua : activeCountry.en;
 
   return (
     <>
@@ -197,37 +236,82 @@ export function Header() {
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
             {segments[0] === "shop" ? (
-              <div className="hidden items-center gap-1 rounded-full border border-foreground/20 bg-foreground/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-foreground/70 md:flex">
+              <div ref={shopSelectorRef} className="relative hidden md:block">
                 <button
                   type="button"
-                  onClick={() => setRegion("EU")}
-                  className={cn(
-                    "px-2 py-1 rounded-full transition",
-                    mounted && region === "EU" && "bg-foreground text-background"
-                  )}
+                  onClick={() => setShopSelectorOpen((value) => !value)}
+                  aria-expanded={shopSelectorOpen}
+                  className="inline-flex h-9 items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-foreground/75 transition hover:border-foreground/35 hover:bg-foreground/10"
                 >
-                  € EUR
+                  <span
+                    className="max-w-[112px] truncate normal-case tracking-normal"
+                    suppressHydrationWarning
+                  >
+                    {mounted ? activeCountryLabel : isUa ? "Країна" : "Country"}
+                  </span>
+                  <span className="h-3 w-px bg-foreground/20" />
+                  <span suppressHydrationWarning>{mounted ? currency : "EUR"}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform",
+                      shopSelectorOpen && "rotate-180"
+                    )}
+                    strokeWidth={1.8}
+                  />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setRegion("US")}
-                  className={cn(
-                    "px-2 py-1 rounded-full transition",
-                    mounted && region === "US" && "bg-foreground text-background"
-                  )}
-                >
-                  $ USD
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegion("UA")}
-                  className={cn(
-                    "px-2 py-1 rounded-full transition",
-                    mounted && region === "UA" && "bg-foreground text-background"
-                  )}
-                >
-                  ₴ UAH
-                </button>
+                <AnimatePresence>
+                  {shopSelectorOpen ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-72 rounded-2xl border border-foreground/12 bg-card/95 p-3 text-foreground shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#080808]/95"
+                    >
+                      <div>
+                        <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/45">
+                          {isUa ? "Країна" : "Country"}
+                        </p>
+                        <ShopCountrySearchList
+                          locale={locale}
+                          value={country}
+                          onChange={setCountry}
+                          autoFocus
+                          className="mt-2"
+                          listClassName="max-h-72"
+                        />
+                      </div>
+                      <div className="mt-3 border-t border-foreground/10 pt-3">
+                        <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/45">
+                          {isUa ? "Валюта" : "Currency"}
+                        </p>
+                        <div className="mt-2 grid grid-cols-3 gap-1">
+                          {SHOP_CURRENCIES.map((option) => {
+                            const selected = mounted && currency === option.value;
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setCurrency(option.value);
+                                  setShopSelectorOpen(false);
+                                }}
+                                className={cn(
+                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition",
+                                  selected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-foreground/5 text-foreground/75 hover:bg-foreground/10 hover:text-foreground"
+                                )}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
             ) : null}
             <LocaleSwitcher className="hidden shrink-0 md:ml-2 md:flex" />
@@ -294,7 +378,7 @@ export function Header() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "fixed inset-x-0 top-16 z-40 mx-2 rounded-2xl border bg-card/95 backdrop-blur-xl p-6 sm:top-20 sm:mx-auto sm:max-w-md",
+                "fixed inset-x-0 top-16 z-40 mx-2 max-h-[calc(100vh-5rem)] overflow-y-auto rounded-2xl border bg-card/95 p-6 backdrop-blur-xl sm:top-20 sm:mx-auto sm:max-w-md",
                 isShopRoute ? "border-foreground/15" : "border-foreground/10"
               )}
             >
@@ -327,6 +411,45 @@ export function Header() {
                     <LocaleSwitcher />
                     <ThemeToggle />
                   </div>
+                  {segments[0] === "shop" ? (
+                    <div className="w-full rounded-2xl border border-foreground/10 bg-foreground/5 p-3 text-left">
+                      <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/45">
+                        {isUa ? "Країна" : "Country"}
+                      </p>
+                      <ShopCountrySearchList
+                        locale={locale}
+                        value={country}
+                        onChange={setCountry}
+                        className="mt-2"
+                        listClassName="max-h-48"
+                      />
+                      <div className="mt-3 border-t border-foreground/10 pt-3">
+                        <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/45">
+                          {isUa ? "Валюта" : "Currency"}
+                        </p>
+                        <div className="mt-2 grid grid-cols-3 gap-1">
+                          {SHOP_CURRENCIES.map((option) => {
+                            const selected = mounted && currency === option.value;
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => setCurrency(option.value)}
+                                className={cn(
+                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition",
+                                  selected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-foreground/5 text-foreground/75 hover:bg-foreground/10 hover:text-foreground"
+                                )}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   {segments[0] === "shop" ? (
                     <Link
                       href={`/${locale}/shop/account`}

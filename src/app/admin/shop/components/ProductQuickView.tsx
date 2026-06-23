@@ -28,6 +28,7 @@ type ProductDetail = {
   image: string | null;
   gallery: string[];
   priceEur: number | null;
+  priceEurEurope: number | null;
   priceUsd: number | null;
   priceUah: number | null;
   priceEurB2b: number | null;
@@ -232,8 +233,9 @@ export function ProductQuickView({
             <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
               Ціни
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <PriceCell label="EUR" b2c={detail.priceEur} b2b={detail.priceEurB2b} symbol="€" />
+              <PriceCell label="EU net" b2c={detail.priceEurEurope} b2b={null} symbol="€" />
               <PriceCell label="USD" b2c={detail.priceUsd} b2b={detail.priceUsdB2b} symbol="$" />
               <PriceCell label="UAH" b2c={detail.priceUah} b2b={detail.priceUahB2b} symbol="₴" />
             </div>

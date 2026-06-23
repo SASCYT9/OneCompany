@@ -1465,6 +1465,11 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b),
     uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b),
   });
+  const productEuropePrice = moneySet({
+    eur: num(row.priceEurEurope ?? primaryVariant?.priceEurEurope),
+    usd: 0,
+    uah: 0,
+  });
   const bundleInventory = row.bundle
     ? resolveBundleInventory(
         row.bundle.items.map((item) => ({
@@ -1588,6 +1593,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       usd: num(row.priceUsd ?? primaryVariant?.priceUsd),
       uah: num(row.priceUah ?? primaryVariant?.priceUah),
     },
+    europePrice: productEuropePrice.eur > 0 ? productEuropePrice : undefined,
     b2bPrice:
       productB2BPrice.eur > 0 || productB2BPrice.usd > 0 || productB2BPrice.uah > 0
         ? productB2BPrice
@@ -1665,6 +1671,14 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           usd: num(variant.priceUsd),
           uah: num(variant.priceUah),
         }),
+        europePrice:
+          variant.priceEurEurope != null
+            ? moneySet({
+                eur: num(variant.priceEurEurope),
+                usd: 0,
+                uah: 0,
+              })
+            : undefined,
         weightKg: (variant as any).weight != null ? Number((variant as any).weight) : null,
         length: (variant as any).length != null ? Number((variant as any).length) : null,
         width: (variant as any).width != null ? Number((variant as any).width) : null,
@@ -2049,6 +2063,7 @@ export async function getShopProductsByBrandServer(
           collectionEn: true,
           stock: true,
           priceEur: true,
+          priceEurEurope: true,
           priceUsd: true,
           priceUah: true,
           priceEurB2b: true,
@@ -2097,6 +2112,7 @@ export async function getShopProductsByBrandServer(
               option3Value: true,
               inventoryQty: true,
               priceEur: true,
+              priceEurEurope: true,
               priceUsd: true,
               priceUah: true,
               priceEurB2b: true,
@@ -2248,6 +2264,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       stock: string;
       priceUah: unknown;
       priceEur: unknown;
+      priceEurEurope: unknown;
       priceUsd: unknown;
       priceUahB2b: unknown;
       priceEurB2b: unknown;
@@ -2282,6 +2299,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
           stock: true,
           priceUah: true,
           priceEur: true,
+          priceEurEurope: true,
           priceUsd: true,
           priceUahB2b: true,
           priceEurB2b: true,
@@ -2338,6 +2356,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       const carTags = (row.tags ?? []).filter((t) => t.startsWith("car_"));
 
       const b2bPrice = toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b);
+      const europePrice = toMoney(row.priceEurEurope, null, null);
       const compareAt = toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah);
       const b2bCompareAt = toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b);
 
@@ -2360,6 +2379,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         stock: (row.stock === "preOrder" ? "preOrder" : "inStock") as ShopStock,
         collection: empty,
         price: toMoney(row.priceEur, row.priceUsd, row.priceUah),
+        europePrice: anyPositive(europePrice) ? europePrice : undefined,
         // Only attach optional B2B/compare bundles when they have non-zero
         // values; matches existing convention in `mapDbToCatalog` and lets
         // `mergeB2BPriceSet` in shopPricingAudience derive the discount from
@@ -2682,6 +2702,7 @@ export function projectShopProductForListGrid(product: ShopProduct): ShopProduct
         sku: defaultVariant.sku,
         isDefault: defaultVariant.isDefault,
         price: defaultVariant.price,
+        europePrice: defaultVariant.europePrice,
         b2bPrice: defaultVariant.b2bPrice,
         compareAt: defaultVariant.compareAt,
         b2bCompareAt: defaultVariant.b2bCompareAt,
@@ -2704,6 +2725,7 @@ export function projectShopProductForListGrid(product: ShopProduct): ShopProduct
     collection: product.collection ?? empty,
     collections: product.collections,
     price: product.price ?? emptyMoney,
+    europePrice: product.europePrice,
     b2bPrice: product.b2bPrice,
     compareAt: product.compareAt,
     b2bCompareAt: product.b2bCompareAt,
@@ -2762,6 +2784,7 @@ export function projectShopProductForVehicleCatalog(product: ShopProduct): ShopP
     stock: product.stock,
     collection: empty,
     price: product.price ?? emptyMoney,
+    europePrice: product.europePrice,
     b2bPrice: product.b2bPrice,
     compareAt: product.compareAt,
     b2bCompareAt: product.b2bCompareAt,
@@ -2813,6 +2836,7 @@ const storefrontProductInclude = {
       image: true,
       isDefault: true,
       priceEur: true,
+      priceEurEurope: true,
       priceUsd: true,
       priceUah: true,
       priceEurB2b: true,

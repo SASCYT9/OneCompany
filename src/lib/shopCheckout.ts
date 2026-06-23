@@ -1,5 +1,5 @@
-import { CustomerGroup, Prisma, PrismaClient } from '@prisma/client';
-import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
+import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
@@ -10,14 +10,14 @@ import {
   type ShopSettingsRuntime,
   type ShopShippingZone,
   type ShopTaxRegion,
-} from '@/lib/shopAdminSettings';
+} from "@/lib/shopAdminSettings";
 import {
   buildShopViewerPricingContext,
   resolveCheckoutAudience,
   resolveShopPriceBands,
   resolveShopProductPricing,
   type ShopPriceAudience,
-} from '@/lib/shopPricingAudience';
+} from "@/lib/shopPricingAudience";
 
 type CheckoutRequestItem = {
   slug: string;
@@ -44,7 +44,8 @@ type ResolvedCheckoutItem = {
   total: number;
   image: string | null;
   priceSourceCurrency: ShopCurrencyCode;
-  pricingSource: 'b2c' | 'b2b-explicit' | 'b2b-discount';
+  pricingSource: "b2c" | "b2b-explicit" | "b2b-discount";
+  pricingBaseRegion: "default" | "europe";
   discountPercent: number | null;
   brandName: string | null;
   weightKg: number | null;
@@ -61,7 +62,7 @@ type CheckoutRuleSnapshot = {
   regions: string[];
   rate?: number;
   value?: number;
-  mode?: 'percent' | 'fixed';
+  mode?: "percent" | "fixed";
   baseRate?: number;
   perItemRate?: number;
   freeOver?: number | null;
@@ -76,6 +77,8 @@ export type CheckoutQuote = {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  taxableSubtotal: number;
+  taxableShippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
@@ -112,25 +115,27 @@ function roundMoney(value: number) {
 }
 
 function normalizeMatchValue(value?: string | null) {
-  return String(value ?? '')
+  return String(value ?? "")
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, ' ');
+    .replace(/[^A-Z0-9]+/g, " ");
 }
 
 function matchesLocation(ruleValues: string[], candidate?: string | null) {
   if (!ruleValues.length) return true;
   const normalizedCandidate = normalizeMatchValue(candidate);
   return ruleValues.some((entry) => {
-    const rawEntry = String(entry ?? '').trim();
-    if (rawEntry === '*') return true;
+    const rawEntry = String(entry ?? "").trim();
+    if (rawEntry === "*") return true;
     const normalizedEntry = normalizeMatchValue(rawEntry);
     return normalizedEntry === normalizedCandidate;
   });
 }
 
 function resolveRequestedCurrency(settings: ShopSettingsRuntime, requested?: string) {
-  const normalized = String(requested ?? settings.defaultCurrency).toUpperCase() as ShopCurrencyCode;
+  const normalized = String(
+    requested ?? settings.defaultCurrency
+  ).toUpperCase() as ShopCurrencyCode;
   return settings.enabledCurrencies.includes(normalized) ? normalized : settings.defaultCurrency;
 }
 
@@ -142,8 +147,8 @@ function convertAmount(
 ) {
   if (fromCurrency === toCurrency) return roundMoney(amount);
 
-  const amountInEur = fromCurrency === 'EUR' ? amount : amount / rates[fromCurrency];
-  const converted = toCurrency === 'EUR' ? amountInEur : amountInEur * rates[toCurrency];
+  const amountInEur = fromCurrency === "EUR" ? amount : amount / rates[fromCurrency];
+  const converted = toCurrency === "EUR" ? amountInEur : amountInEur * rates[toCurrency];
   return roundMoney(converted);
 }
 
@@ -166,12 +171,7 @@ function resolveUnitPrice(
   }
 
   const fallbacks = Array.from(
-    new Set<ShopCurrencyCode>([
-      settings.defaultCurrency,
-      'EUR',
-      'USD',
-      'UAH',
-    ])
+    new Set<ShopCurrencyCode>([settings.defaultCurrency, "EUR", "USD", "UAH"])
   );
 
   for (const fallbackCurrency of fallbacks) {
@@ -206,10 +206,7 @@ function resolveShippingZone(
   return matched ?? null;
 }
 
-function resolveTaxRegion(
-  settings: ShopSettingsRuntime,
-  address: CheckoutShippingAddress
-) {
+function resolveTaxRegion(settings: ShopSettingsRuntime, address: CheckoutShippingAddress) {
   const matched = settings.taxRegions.find((region) => {
     if (!region.enabled) return false;
     if (!matchesLocation(region.countries, address.country)) return false;
@@ -240,7 +237,10 @@ type ShippingCostResult = {
   brandsRequiringQuote: string[];
 };
 
-function pickTieredFee(brackets: NonNullable<ShopBrandShippingRule['brackets']>, subtotal: number): number {
+function pickTieredFee(
+  brackets: NonNullable<ShopBrandShippingRule["brackets"]>,
+  subtotal: number
+): number {
   // brackets are normalized ascending by maxAmount; null (open-ended) is last.
   for (const b of brackets) {
     if (b.maxAmount === null) return b.fee;
@@ -269,7 +269,7 @@ function calculateShippingCost(
   // Default fallback rule (special id '__default__') applies to any item whose
   // brand has no dedicated rule. Read once up front.
   const defaultRule = settings.brandShippingRules.find(
-    (r) => r.enabled && r.id === SHOP_BRAND_DEFAULT_RULE_ID,
+    (r) => r.enabled && r.id === SHOP_BRAND_DEFAULT_RULE_ID
   );
 
   /** Resolve the rule that should govern shipping for an item: brand-specific
@@ -280,14 +280,14 @@ function calculateShippingCost(
         (r) =>
           r.enabled &&
           r.id !== SHOP_BRAND_DEFAULT_RULE_ID &&
-          r.brandName.toLowerCase() === itemBrandName.toLowerCase(),
+          r.brandName.toLowerCase() === itemBrandName.toLowerCase()
       );
       if (specific) return specific;
     }
     return defaultRule ?? null;
   }
 
-  if (zone.calcMode === 'volumetric') {
+  if (zone.calcMode === "volumetric") {
     // Pre-compute per-brand subtotals (in zone.currency) for cart-level rules
     // (tiered / percent / manual_quote). These rules are applied ONCE per brand,
     // not per item, since they're conceptually about the whole cart line.
@@ -297,12 +297,21 @@ function calculateShippingCost(
       if (!item.brandName) continue;
       const rule = resolveItemRule(item.brandName);
       if (!rule) continue;
-      if (rule.mode !== 'tiered' && rule.mode !== 'percent' && rule.mode !== 'manual_quote') continue;
-      const lineTotalZone = convertAmount(item.total, item.priceSourceCurrency, zone.currency, settings.currencyRates);
+      if (rule.mode !== "tiered" && rule.mode !== "percent" && rule.mode !== "manual_quote")
+        continue;
+      const lineTotalZone = convertAmount(
+        item.total,
+        item.priceSourceCurrency,
+        zone.currency,
+        settings.currencyRates
+      );
       // Key by item.brandName (NOT rule.brandName) — when default applies, each
       // brand still gets its own subtotal bucket so a tiered fallback charges
       // per brand, not once for the whole cart.
-      cartLevelBrandSubtotals.set(item.brandName, (cartLevelBrandSubtotals.get(item.brandName) || 0) + lineTotalZone);
+      cartLevelBrandSubtotals.set(
+        item.brandName,
+        (cartLevelBrandSubtotals.get(item.brandName) || 0) + lineTotalZone
+      );
     }
 
     for (const item of items) {
@@ -331,34 +340,50 @@ function calculateShippingCost(
         // Use the item's brand for cart-level keying so default-rule applications
         // bucket per brand. brandsRequiringQuote messaging also reads better
         // ("Brabus needs a quote") than the literal default-rule label.
-        const brandKey = item.brandName || rule.brandName || 'default';
+        const brandKey = item.brandName || rule.brandName || "default";
 
-        if (rule.mode === 'free') {
+        if (rule.mode === "free") {
           itemCost = 0;
-        } else if (rule.mode === 'fixed') {
-          const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
+        } else if (rule.mode === "fixed") {
+          const fixedFee = convertAmount(
+            rule.value,
+            rule.currency,
+            zone.currency,
+            settings.currencyRates
+          );
           itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
-        } else if (rule.mode === 'multiplier') {
-          itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
-        } else if (rule.mode === 'tiered' || rule.mode === 'percent') {
+        } else if (rule.mode === "multiplier") {
+          itemCost =
+            (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
+        } else if (rule.mode === "tiered" || rule.mode === "percent") {
           // Cart-level rule: apply ONCE per brand, on first occurrence.
           // Subsequent items of the same brand only contribute warehouseRatePerKg.
           if (!cartLevelBrandsSeen.has(brandKey)) {
             cartLevelBrandsSeen.add(brandKey);
             const brandSubtotalZone = cartLevelBrandSubtotals.get(brandKey) || 0;
-            const brandSubtotalRuleCurrency = convertAmount(brandSubtotalZone, zone.currency, rule.currency, settings.currencyRates);
+            const brandSubtotalRuleCurrency = convertAmount(
+              brandSubtotalZone,
+              zone.currency,
+              rule.currency,
+              settings.currencyRates
+            );
             let feeRuleCurrency = 0;
-            if (rule.mode === 'tiered') {
+            if (rule.mode === "tiered") {
               feeRuleCurrency = pickTieredFee(rule.brackets ?? [], brandSubtotalRuleCurrency);
             } else {
               feeRuleCurrency = brandSubtotalRuleCurrency * (rule.value / 100);
             }
-            const feeZone = convertAmount(feeRuleCurrency, rule.currency, zone.currency, settings.currencyRates);
+            const feeZone = convertAmount(
+              feeRuleCurrency,
+              rule.currency,
+              zone.currency,
+              settings.currencyRates
+            );
             itemCost = feeZone + warehouseDeliveryCostForOne * item.quantity;
           } else {
             itemCost = warehouseDeliveryCostForOne * item.quantity;
           }
-        } else if (rule.mode === 'manual_quote') {
+        } else if (rule.mode === "manual_quote") {
           brandsRequiringQuote.add(brandKey);
           itemCost = 0;
         }
@@ -371,7 +396,8 @@ function calculateShippingCost(
       totalCost += itemCost;
     }
   } else {
-    const actualItemCount = items.length > 0 ? items.reduce((sum, item) => sum + item.quantity, 0) : itemCount;
+    const actualItemCount =
+      items.length > 0 ? items.reduce((sum, item) => sum + item.quantity, 0) : itemCount;
     totalCost += zone.perItemRate * actualItemCount;
   }
 
@@ -384,12 +410,30 @@ function calculateShippingCost(
 
 function calculateTaxAmount(
   region: ShopTaxRegion | null,
-  subtotal: number,
-  shippingCost: number
+  taxableSubtotal: number,
+  taxableShippingCost: number
 ) {
   if (!region || region.rate <= 0) return 0;
-  const base = subtotal + (region.appliesToShipping ? shippingCost : 0);
+  const base = taxableSubtotal + (region.appliesToShipping ? taxableShippingCost : 0);
+  if (base <= 0) return 0;
   return roundMoney(base * region.rate);
+}
+
+function calculateEuropeTaxableSubtotal(items: ResolvedCheckoutItem[], subtotal: number) {
+  if (!items.length) return subtotal;
+
+  const taxableSubtotal = items.reduce(
+    (sum, item) => sum + (item.pricingBaseRegion === "europe" ? item.total : 0),
+    0
+  );
+
+  return roundMoney(Math.min(Math.max(0, taxableSubtotal), subtotal));
+}
+
+function calculateProportionalAmount(amount: number, numerator: number, denominator: number) {
+  if (amount <= 0 || numerator <= 0 || denominator <= 0) return 0;
+  const ratio = Math.min(1, numerator / denominator);
+  return roundMoney(amount * ratio);
 }
 
 function calculateRegionalAdjustmentAmount(
@@ -400,7 +444,7 @@ function calculateRegionalAdjustmentAmount(
 ) {
   if (!rule) return 0;
 
-  if (rule.mode === 'percent') {
+  if (rule.mode === "percent") {
     return roundMoney(subtotal * (rule.value / 100));
   }
 
@@ -417,6 +461,8 @@ function buildPricingSnapshot(params: {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  taxableSubtotal: number;
+  taxableShippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
@@ -425,7 +471,23 @@ function buildPricingSnapshot(params: {
   taxRegion: ShopTaxRegion | null;
   regionalPricingRule: ShopRegionalPricingRule | null;
 }): Prisma.InputJsonValue {
-  const { settings, currency, address, subtotal, regionalAdjustmentAmount, shippingCost, taxAmount, total, itemCount, items, shippingZone, taxRegion, regionalPricingRule } = params;
+  const {
+    settings,
+    currency,
+    address,
+    subtotal,
+    regionalAdjustmentAmount,
+    shippingCost,
+    taxableSubtotal,
+    taxableShippingCost,
+    taxAmount,
+    total,
+    itemCount,
+    items,
+    shippingZone,
+    taxRegion,
+    regionalPricingRule,
+  } = params;
 
   return {
     computedAt: new Date().toISOString(),
@@ -450,12 +512,15 @@ function buildPricingSnapshot(params: {
       total: item.total,
       sourceCurrency: item.priceSourceCurrency,
       pricingSource: item.pricingSource,
+      pricingBaseRegion: item.pricingBaseRegion,
       discountPercent: item.discountPercent,
-      })),
+    })),
     itemCount,
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    taxableSubtotal,
+    taxableShippingCost,
     taxAmount,
     total,
     shippingZone: shippingZone
@@ -502,15 +567,39 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const currency = resolveRequestedCurrency(input.settings, input.currency);
   const subtotal = roundMoney(Math.max(0, Number(input.subtotal) || 0));
   const itemCount = Math.max(0, Math.floor(Number(input.itemCount) || 0));
+  const rawTaxableSubtotal = calculateEuropeTaxableSubtotal(input.items, subtotal);
   const regionalPricingRule = resolveRegionalPricingRule(input.settings, input.shippingAddress);
-  const rawRegionalAdjustmentAmount = calculateRegionalAdjustmentAmount(regionalPricingRule, subtotal, currency, input.settings);
+  const rawRegionalAdjustmentAmount = calculateRegionalAdjustmentAmount(
+    regionalPricingRule,
+    subtotal,
+    currency,
+    input.settings
+  );
   const adjustedSubtotal = roundMoney(Math.max(0, subtotal + rawRegionalAdjustmentAmount));
   const regionalAdjustmentAmount = roundMoney(adjustedSubtotal - subtotal);
+  const taxableRegionalAdjustmentAmount = calculateProportionalAmount(
+    regionalAdjustmentAmount,
+    rawTaxableSubtotal,
+    subtotal
+  );
+  const taxableSubtotal = roundMoney(
+    Math.max(0, rawTaxableSubtotal + taxableRegionalAdjustmentAmount)
+  );
   const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, adjustedSubtotal);
-  const shippingResult = calculateShippingCost(shippingZone, currency, input.settings, subtotal, itemCount, input.items);
+  const shippingResult = calculateShippingCost(
+    shippingZone,
+    currency,
+    input.settings,
+    subtotal,
+    itemCount,
+    input.items
+  );
   const shippingCost = shippingResult.cost;
+  const taxableShippingCost = input.items.length
+    ? calculateProportionalAmount(shippingCost, taxableSubtotal, adjustedSubtotal)
+    : shippingCost;
   const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
-  const taxAmount = calculateTaxAmount(taxRegion, adjustedSubtotal, shippingCost);
+  const taxAmount = calculateTaxAmount(taxRegion, taxableSubtotal, taxableShippingCost);
   const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);
 
   const pricingSnapshot = buildPricingSnapshot({
@@ -523,6 +612,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    taxableSubtotal,
+    taxableShippingCost,
     taxAmount,
     total,
     itemCount,
@@ -538,6 +629,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    taxableSubtotal,
+    taxableShippingCost,
     taxAmount,
     total,
     itemCount,
@@ -591,18 +684,54 @@ export function buildCheckoutSettingsPreview(
     currency?: string;
     subtotal: number;
     itemCount: number;
+    items?: Array<{
+      total: number;
+      quantity?: number;
+      pricingBaseRegion: "default" | "europe";
+    }>;
   }
 ) {
+  const currency = resolveRequestedCurrency(settings, input.currency);
+  const previewItems: ResolvedCheckoutItem[] = (input.items ?? []).map((item, index) => {
+    const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+    const total = roundMoney(Math.max(0, Number(item.total) || 0));
+    return {
+      productSlug: `preview-${index + 1}`,
+      productId: null,
+      variantId: null,
+      title: `Preview item ${index + 1}`,
+      quantity,
+      unitPrice: roundMoney(total / quantity),
+      total,
+      image: null,
+      priceSourceCurrency: currency,
+      pricingSource: "b2c",
+      pricingBaseRegion: item.pricingBaseRegion,
+      discountPercent: null,
+      brandName: null,
+      weightKg: null,
+      length: null,
+      width: null,
+      height: null,
+    };
+  });
+  const subtotal = previewItems.length
+    ? roundMoney(previewItems.reduce((sum, item) => sum + item.total, 0))
+    : input.subtotal;
+  const itemCount = previewItems.length
+    ? previewItems.reduce((sum, item) => sum + item.quantity, 0)
+    : input.itemCount;
+
   return buildQuoteFromSummary({
     settings,
     shippingAddress: input.shippingAddress,
-    currency: input.currency,
-    audience: 'b2c',
+    currency,
+    audience: "b2c",
     customerGroup: null,
     customerB2BDiscountPercent: null,
-    subtotal: input.subtotal,
-    itemCount: input.itemCount,
-    items: [],
+    subtotal,
+    itemCount,
+    items: previewItems,
   });
 }
 
@@ -624,7 +753,9 @@ export async function buildCheckoutQuote(
     settings,
     input.customerGroup ?? null,
     Boolean(input.customerId),
-    input.customerB2BDiscountPercent ?? null
+    input.customerB2BDiscountPercent ?? null,
+    undefined,
+    { priceCountry: input.shippingAddress.country }
   );
   const pricingAudience = resolveCheckoutAudience(pricingContext);
 
@@ -643,6 +774,7 @@ export async function buildCheckoutQuote(
     const pricing = variant
       ? resolveShopPriceBands({
           b2cPrice: variant.price,
+          europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
@@ -653,7 +785,7 @@ export async function buildCheckoutQuote(
     const { amount, sourceCurrency } = resolveUnitPrice(pricing.effectivePrice, currency, settings);
     const total = roundMoney(amount * quantity);
     const title =
-      typeof product.title === 'object' && product.title !== null
+      typeof product.title === "object" && product.title !== null
         ? product.title.en || product.title.ua || rawItem.slug
         : String(product.title);
 
@@ -668,6 +800,7 @@ export async function buildCheckoutQuote(
       image: product.image ?? null,
       priceSourceCurrency: sourceCurrency,
       pricingSource: pricing.source,
+      pricingBaseRegion: pricing.baseRegion,
       discountPercent: pricing.discountPercent,
       brandName: product.brand,
       weightKg: variant?.weightKg ?? product.weightKg ?? null,

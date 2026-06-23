@@ -80,6 +80,7 @@ type VariantFormItem = {
   inventoryPolicy: InventoryPolicy;
   fulfillmentService: string;
   priceEur: string;
+  priceEurEurope: string;
   priceUsd: string;
   priceUah: string;
   priceEurB2b: string;
@@ -146,6 +147,7 @@ type CategoryOption = {
 type VariantBulkState = {
   inventoryQty: string;
   priceEur: string;
+  priceEurEurope: string;
   priceUsd: string;
   priceUah: string;
   priceEurB2b: string;
@@ -189,6 +191,7 @@ type ProductFormState = {
   collectionUa: string;
   collectionEn: string;
   priceEur: string;
+  priceEurEurope: string;
   priceUsd: string;
   priceUah: string;
   priceEurB2b: string;
@@ -254,6 +257,7 @@ type ProductResponse = {
   collectionUa: string | null;
   collectionEn: string | null;
   priceEur: number | null;
+  priceEurEurope: number | null;
   priceUsd: number | null;
   priceUah: number | null;
   priceEurB2b: number | null;
@@ -304,6 +308,7 @@ type ProductResponse = {
     inventoryPolicy: InventoryPolicy;
     fulfillmentService: string | null;
     priceEur: number | null;
+    priceEurEurope: number | null;
     priceUsd: number | null;
     priceUah: number | null;
     priceEurB2b: number | null;
@@ -388,6 +393,7 @@ function emptyVariant(position = 1): VariantFormItem {
     inventoryPolicy: "CONTINUE",
     fulfillmentService: "",
     priceEur: "",
+    priceEurEurope: "",
     priceUsd: "",
     priceUah: "",
     priceEurB2b: "",
@@ -423,6 +429,7 @@ function createEmptyVariantBulk(): VariantBulkState {
   return {
     inventoryQty: "",
     priceEur: "",
+    priceEurEurope: "",
     priceUsd: "",
     priceUah: "",
     priceEurB2b: "",
@@ -517,6 +524,7 @@ function createEmptyForm(): ProductFormState {
     collectionUa: "",
     collectionEn: "",
     priceEur: "",
+    priceEurEurope: "",
     priceUsd: "",
     priceUah: "",
     priceEurB2b: "",
@@ -579,6 +587,7 @@ function productToForm(product: ProductResponse): ProductFormState {
     collectionUa: product.collectionUa ?? "",
     collectionEn: product.collectionEn ?? "",
     priceEur: stringNumber(product.priceEur),
+    priceEurEurope: stringNumber(product.priceEurEurope),
     priceUsd: stringNumber(product.priceUsd),
     priceUah: stringNumber(product.priceUah),
     priceEurB2b: stringNumber(product.priceEurB2b),
@@ -637,6 +646,7 @@ function productToForm(product: ProductResponse): ProductFormState {
           inventoryPolicy: item.inventoryPolicy,
           fulfillmentService: item.fulfillmentService ?? "",
           priceEur: stringNumber(item.priceEur),
+          priceEurEurope: stringNumber(item.priceEurEurope),
           priceUsd: stringNumber(item.priceUsd),
           priceUah: stringNumber(item.priceUah),
           priceEurB2b: stringNumber(item.priceEurB2b),
@@ -715,6 +725,7 @@ function buildPayload(form: ProductFormState) {
     collectionUa: form.collectionUa || null,
     collectionEn: form.collectionEn || null,
     priceEur: decimalOrNull(form.priceEur),
+    priceEurEurope: decimalOrNull(form.priceEurEurope),
     priceUsd: decimalOrNull(form.priceUsd),
     priceUah: decimalOrNull(form.priceUah),
     priceEurB2b: decimalOrNull(form.priceEurB2b),
@@ -783,6 +794,7 @@ function buildPayload(form: ProductFormState) {
         inventoryPolicy: item.inventoryPolicy,
         fulfillmentService: item.fulfillmentService.trim() || null,
         priceEur: decimalOrNull(item.priceEur),
+        priceEurEurope: decimalOrNull(item.priceEurEurope),
         priceUsd: decimalOrNull(item.priceUsd),
         priceUah: decimalOrNull(item.priceUah),
         priceEurB2b: decimalOrNull(item.priceEurB2b),
@@ -1255,6 +1267,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         ...item,
         inventoryQty: variantBulk.inventoryQty.trim() || item.inventoryQty,
         priceEur: variantBulk.priceEur.trim() || item.priceEur,
+        priceEurEurope: variantBulk.priceEurEurope.trim() || item.priceEurEurope,
         priceUsd: variantBulk.priceUsd.trim() || item.priceUsd,
         priceUah: variantBulk.priceUah.trim() || item.priceUah,
         priceEurB2b: variantBulk.priceEurB2b.trim() || item.priceEurB2b,
@@ -1278,6 +1291,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       variants: current.variants.map((item) => ({
         ...item,
         priceEur: current.priceEur || item.priceEur,
+        priceEurEurope: current.priceEurEurope || item.priceEurEurope,
         priceUsd: current.priceUsd || item.priceUsd,
         priceUah: current.priceUah || item.priceUah,
         priceEurB2b: current.priceEurB2b || item.priceEurB2b,
@@ -1373,6 +1387,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             taxCode: currentDefault?.taxCode ?? "",
             costPerItem: currentDefault?.costPerItem ?? "",
             priceEur: currentDefault?.priceEur ?? form.priceEur,
+            priceEurEurope: currentDefault?.priceEurEurope ?? form.priceEurEurope,
             priceUsd: currentDefault?.priceUsd ?? form.priceUsd,
             priceUah: currentDefault?.priceUah ?? form.priceUah,
             priceEurB2b: currentDefault?.priceEurB2b ?? form.priceEurB2b,
@@ -1945,6 +1960,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   onChange={(value) => updateField("priceEur", value)}
                 />
                 <InputField
+                  label="Europe net EUR"
+                  type="number"
+                  step="0.01"
+                  value={form.priceEurEurope}
+                  onChange={(value) => updateField("priceEurEurope", value)}
+                />
+                <InputField
                   label="Ціна USD"
                   type="number"
                   step="0.01"
@@ -2346,6 +2368,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       step="0.01"
                       value={variantBulk.priceEur}
                       onChange={(value) => updateVariantBulkField("priceEur", value)}
+                    />
+                    <InputField
+                      label="Bulk Europe net EUR"
+                      type="number"
+                      step="0.01"
+                      value={variantBulk.priceEurEurope}
+                      onChange={(value) => updateVariantBulkField("priceEurEurope", value)}
                     />
                     <InputField
                       label="Bulk price USD"

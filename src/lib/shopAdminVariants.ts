@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, ShopInventoryPolicy } from '@prisma/client';
+import { Prisma, PrismaClient, ShopInventoryPolicy } from "@prisma/client";
 
 export const adminVariantSummarySelect = {
   id: true,
@@ -14,6 +14,7 @@ export const adminVariantSummarySelect = {
     include: { location: true },
   },
   priceEur: true,
+  priceEurEurope: true,
   priceUsd: true,
   priceUah: true,
   priceEurB2b: true,
@@ -41,7 +42,7 @@ export const adminVariantSummarySelect = {
       isPublished: true,
       stock: true,
       collections: {
-        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         select: {
           collectionId: true,
           collection: {
@@ -75,6 +76,7 @@ export type AdminInventoryPatchInput = {
 export type AdminPricingPatchInput = {
   variantIds: string[];
   priceEur?: number | null;
+  priceEurEurope?: number | null;
   priceUsd?: number | null;
   priceUah?: number | null;
   priceEurB2b?: number | null;
@@ -89,6 +91,7 @@ export type AdminPricingPatchInput = {
   /** Множник поточної ціни (наприклад 1.1 = +10%). Застосовується до обраних варіантів, якщо не задано абсолютне значення. */
   multiplyUah?: number | null;
   multiplyEur?: number | null;
+  multiplyEurEurope?: number | null;
   multiplyUsd?: number | null;
   multiplyEurB2b?: number | null;
   multiplyUsdB2b?: number | null;
@@ -115,7 +118,7 @@ export function serializeAdminVariantSummary(record: AdminShopVariantSummaryReco
     inventoryPolicy: record.inventoryPolicy,
     inventoryTracker: record.inventoryTracker,
     fulfillmentService: record.fulfillmentService,
-    inventoryLevels: record.inventoryLevels.map(level => ({
+    inventoryLevels: record.inventoryLevels.map((level) => ({
       id: level.id,
       locationId: level.locationId,
       locationName: level.location.name,
@@ -125,6 +128,7 @@ export function serializeAdminVariantSummary(record: AdminShopVariantSummaryReco
       incomingQuantity: level.incomingQuantity,
     })),
     priceEur: decimalToNumber(record.priceEur),
+    priceEurEurope: decimalToNumber(record.priceEurEurope),
     priceUsd: decimalToNumber(record.priceUsd),
     priceUah: decimalToNumber(record.priceUah),
     priceEurB2b: decimalToNumber(record.priceEurB2b),
@@ -175,6 +179,7 @@ async function syncProductsFromDefaultVariantPricing(prisma: PrismaClient, produ
     select: {
       productId: true,
       priceEur: true,
+      priceEurEurope: true,
       priceUsd: true,
       priceUah: true,
       priceEurB2b: true,
@@ -197,6 +202,7 @@ async function syncProductsFromDefaultVariantPricing(prisma: PrismaClient, produ
         where: { id: variant.productId },
         data: {
           priceEur: variant.priceEur,
+          priceEurEurope: variant.priceEurEurope,
           priceUsd: variant.priceUsd,
           priceUah: variant.priceUah,
           priceEurB2b: variant.priceEurB2b,
@@ -243,14 +249,17 @@ async function syncProductsFromVariantInventory(prisma: PrismaClient, productIds
       prisma.shopProduct.update({
         where: { id: productId },
         data: {
-          stock: byProduct.get(productId) ? 'inStock' : 'preOrder',
+          stock: byProduct.get(productId) ? "inStock" : "preOrder",
         },
       })
     )
   );
 }
 
-export async function applyAdminInventoryPatch(prisma: PrismaClient, input: AdminInventoryPatchInput & { locationId?: string }) {
+export async function applyAdminInventoryPatch(
+  prisma: PrismaClient,
+  input: AdminInventoryPatchInput & { locationId?: string }
+) {
   const variantIds = uniqueStrings(input.variantIds);
   if (!variantIds.length) {
     return { updatedCount: 0, productIds: [] as string[] };
@@ -298,33 +307,42 @@ export async function applyAdminInventoryPatch(prisma: PrismaClient, input: Admi
       where: {
         variantId: { in: variantIds },
         locationId: input.locationId,
-      }
+      },
     });
-    const levelMap = new Map(currentLevels.map(lvl => [`${lvl.variantId}_${lvl.locationId}`, lvl.stockedQuantity]));
+    const levelMap = new Map(
+      currentLevels.map((lvl) => [`${lvl.variantId}_${lvl.locationId}`, lvl.stockedQuantity])
+    );
 
-    const upserts = variants.map(variant => {
-      const variantQty = typeof variant.inventoryQty === 'number' ? variant.inventoryQty : Number(variant.inventoryQty || 0);
-      const existingQuantity = typeof levelMap.get(`${variant.id}_${input.locationId}`) === 'number' ? levelMap.get(`${variant.id}_${input.locationId}`) as number : 0;
-      
-      const targetQuantity = input.inventoryQty != null
-        ? input.inventoryQty 
-        : existingQuantity + (input.inventoryAdjustment || 0);
+    const upserts = variants.map((variant) => {
+      const variantQty =
+        typeof variant.inventoryQty === "number"
+          ? variant.inventoryQty
+          : Number(variant.inventoryQty || 0);
+      const existingQuantity =
+        typeof levelMap.get(`${variant.id}_${input.locationId}`) === "number"
+          ? (levelMap.get(`${variant.id}_${input.locationId}`) as number)
+          : 0;
+
+      const targetQuantity =
+        input.inventoryQty != null
+          ? input.inventoryQty
+          : existingQuantity + (input.inventoryAdjustment || 0);
 
       return prisma.shopInventoryLevel.upsert({
         where: {
           variantId_locationId: {
             variantId: variant.id,
-            locationId: input.locationId as string
-          }
+            locationId: input.locationId as string,
+          },
         },
         create: {
           variantId: variant.id,
           locationId: input.locationId as string,
-          stockedQuantity: targetQuantity
+          stockedQuantity: targetQuantity,
         },
         update: {
-          stockedQuantity: targetQuantity
-        }
+          stockedQuantity: targetQuantity,
+        },
       });
     });
 
@@ -353,6 +371,7 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
   const hasMultiplier =
     input.multiplyUah != null ||
     input.multiplyEur != null ||
+    input.multiplyEurEurope != null ||
     input.multiplyUsd != null ||
     input.multiplyEurB2b != null ||
     input.multiplyUsdB2b != null ||
@@ -364,6 +383,7 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
       id: true,
       productId: true,
       priceEur: true,
+      priceEurEurope: true,
       priceUsd: true,
       priceUah: true,
       priceEurB2b: true,
@@ -386,6 +406,7 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
     variants.map((variant) => {
       const current = {
         priceEur: decimalToNumber(variant.priceEur),
+        priceEurEurope: decimalToNumber(variant.priceEurEurope),
         priceUsd: decimalToNumber(variant.priceUsd),
         priceUah: decimalToNumber(variant.priceUah),
         priceEurB2b: decimalToNumber(variant.priceEurB2b),
@@ -404,6 +425,12 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
             ? input.priceEur
             : hasMultiplier && input.multiplyEur != null && current.priceEur != null
               ? round2(current.priceEur * input.multiplyEur)
+              : undefined,
+        priceEurEurope:
+          input.priceEurEurope !== undefined
+            ? input.priceEurEurope
+            : hasMultiplier && input.multiplyEurEurope != null && current.priceEurEurope != null
+              ? round2(current.priceEurEurope * input.multiplyEurEurope)
               : undefined,
         priceUsd:
           input.priceUsd !== undefined

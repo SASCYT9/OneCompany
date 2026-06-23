@@ -62,6 +62,8 @@ data/.chrome-scraper-profile/
 temp_pgsql/
 temp_env.txt
 *.sql
+!prisma/migrations/20260623123000_add_shop_europe_net_price/migration.sql
+backups/europe-price-migration-2026-06-23T10-15-41-202Z.json
 .env*.local
 .shop-products-dev-cache.json
 data/shop-settings.snapshot.json

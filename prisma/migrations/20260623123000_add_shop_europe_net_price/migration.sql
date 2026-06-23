@@ -1,0 +1,3 @@
+ALTER TABLE "ShopProduct" ADD COLUMN IF NOT EXISTS "priceEurEurope" DECIMAL(12, 2);
+
+ALTER TABLE "ShopProductVariant" ADD COLUMN IF NOT EXISTS "priceEurEurope" DECIMAL(12, 2);

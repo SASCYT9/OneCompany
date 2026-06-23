@@ -142,6 +142,7 @@ export const adminProductListSelect = {
   status: true,
   priceUah: true,
   priceEur: true,
+  priceEurEurope: true,
   priceUsd: true,
   priceUahB2b: true,
   priceEurB2b: true,
@@ -159,6 +160,7 @@ export const adminProductListSelect = {
     select: {
       priceUah: true,
       priceEur: true,
+      priceEurEurope: true,
       priceUsd: true,
       priceUahB2b: true,
       priceEurB2b: true,
@@ -225,6 +227,7 @@ export type AdminShopProductVariantInput = {
   inventoryPolicy?: "DENY" | "CONTINUE";
   fulfillmentService?: string | null;
   priceEur?: number | null;
+  priceEurEurope?: number | null;
   priceUsd?: number | null;
   priceUah?: number | null;
   priceEurB2b?: number | null;
@@ -288,6 +291,7 @@ export type AdminShopProductPayload = {
   collectionUa?: string | null;
   collectionEn?: string | null;
   priceEur?: number | null;
+  priceEurEurope?: number | null;
   priceUsd?: number | null;
   priceUah?: number | null;
   priceEurB2b?: number | null;
@@ -482,6 +486,7 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
         inventoryPolicy: normalizedInventoryPolicy === "DENY" ? "DENY" : "CONTINUE",
         fulfillmentService: nullableString(item.fulfillmentService),
         priceEur: decimalValue(item.priceEur),
+        priceEurEurope: decimalValue(item.priceEurEurope),
         priceUsd: decimalValue(item.priceUsd),
         priceUah: decimalValue(item.priceUah),
         priceEurB2b: decimalValue(item.priceEurB2b),
@@ -590,6 +595,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     collectionUa: nullableString(source.collectionUa),
     collectionEn: nullableString(source.collectionEn),
     priceEur: decimalValue(source.priceEur),
+    priceEurEurope: decimalValue(source.priceEurEurope),
     priceUsd: decimalValue(source.priceUsd),
     priceUah: decimalValue(source.priceUah),
     priceEurB2b: decimalValue(source.priceEurB2b),
@@ -634,6 +640,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
         inventoryQty: 0,
         inventoryPolicy: "CONTINUE",
         priceEur: data.priceEur,
+        priceEurEurope: data.priceEurEurope,
         priceUsd: data.priceUsd,
         priceUah: data.priceUah,
         priceEurB2b: data.priceEurB2b,
@@ -700,6 +707,7 @@ function nestedVariantCreate(variants: AdminShopProductVariantInput[]) {
     inventoryPolicy: item.inventoryPolicy ?? "CONTINUE",
     fulfillmentService: item.fulfillmentService ?? null,
     priceEur: item.priceEur ?? null,
+    priceEurEurope: item.priceEurEurope ?? null,
     priceUsd: item.priceUsd ?? null,
     priceUah: item.priceUah ?? null,
     priceEurB2b: item.priceEurB2b ?? null,
@@ -770,6 +778,7 @@ function buildAdminProductScalarMutationData(data: AdminShopProductPayload) {
     collectionUa: data.collectionUa ?? null,
     collectionEn: data.collectionEn ?? null,
     priceEur: data.priceEur ?? null,
+    priceEurEurope: data.priceEurEurope ?? null,
     priceUsd: data.priceUsd ?? null,
     priceUah: data.priceUah ?? null,
     priceEurB2b: data.priceEurB2b ?? null,
@@ -969,6 +978,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     collectionUa: record.collectionUa,
     collectionEn: record.collectionEn,
     priceEur: decimalToNumber(record.priceEur),
+    priceEurEurope: decimalToNumber(record.priceEurEurope),
     priceUsd: decimalToNumber(record.priceUsd),
     priceUah: decimalToNumber(record.priceUah),
     priceEurB2b: decimalToNumber(record.priceEurB2b),
@@ -1026,6 +1036,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
       inventoryPolicy: item.inventoryPolicy,
       fulfillmentService: item.fulfillmentService,
       priceEur: decimalToNumber(item.priceEur),
+      priceEurEurope: decimalToNumber(item.priceEurEurope),
       priceUsd: decimalToNumber(item.priceUsd),
       priceUah: decimalToNumber(item.priceUah),
       priceEurB2b: decimalToNumber(item.priceEurB2b),
@@ -1115,6 +1126,8 @@ export function serializeAdminProductListItem(
     status: record.status,
     priceUah: decimalToNumber(record.priceUah) ?? decimalToNumber(primaryVariant?.priceUah),
     priceEur: decimalToNumber(record.priceEur) ?? decimalToNumber(primaryVariant?.priceEur),
+    priceEurEurope:
+      decimalToNumber(record.priceEurEurope) ?? decimalToNumber(primaryVariant?.priceEurEurope),
     priceUsd: decimalToNumber(record.priceUsd) ?? decimalToNumber(primaryVariant?.priceUsd),
     priceUahB2b:
       decimalToNumber(record.priceUahB2b) ?? decimalToNumber(primaryVariant?.priceUahB2b),

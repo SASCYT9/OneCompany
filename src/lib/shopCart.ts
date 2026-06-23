@@ -402,6 +402,7 @@ export async function serializeResolvedShopCart(
     const pricing = variant
       ? resolveShopPriceBands({
           b2cPrice: variant.price,
+          europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
@@ -419,6 +420,8 @@ export async function serializeResolvedShopCart(
       compareAt: pricing.effectiveCompareAt,
       pricing: {
         audience: pricing.audience,
+        source: pricing.source,
+        baseRegion: pricing.baseRegion,
         b2bVisible: pricing.b2bVisible,
         requestQuote: pricing.requestQuote,
         bands: pricing.bands,

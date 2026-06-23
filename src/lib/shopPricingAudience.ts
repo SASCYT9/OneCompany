@@ -1,9 +1,11 @@
 import type { CustomerGroup } from "@prisma/client";
 import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 
 export type ShopPriceAudience = "b2c" | "b2b";
 export type ShopResolvedPriceSource = "b2c" | "b2b-explicit" | "b2b-discount";
+export type ShopResolvedPriceBaseRegion = "default" | "europe";
 
 export type ShopViewerPricingContext = {
   customerGroup: CustomerGroup | null;
@@ -11,6 +13,7 @@ export type ShopViewerPricingContext = {
   defaultB2BDiscountPercent: number | null;
   b2bVisibilityMode: string;
   isAuthenticated: boolean;
+  priceCountry: string | null;
   /**
    * Optional pre-loaded discount maps (lowercased brand → discount %)
    * used by the 3-tier per-brand resolution. If absent, only the
@@ -26,6 +29,7 @@ export type ShopViewerPricingContext = {
 export type ShopResolvedPricing = {
   audience: ShopPriceAudience;
   source: ShopResolvedPriceSource;
+  baseRegion: ShopResolvedPriceBaseRegion;
   b2bVisible: boolean;
   requestQuote: boolean;
   discountPercent: number | null;
@@ -228,6 +232,9 @@ export function buildShopViewerPricingContext(
   brandMaps?: {
     systemBrandDiscountMap?: ReadonlyMap<string, number>;
     customerBrandDiscountMap?: ReadonlyMap<string, number>;
+  },
+  options?: {
+    priceCountry?: string | null;
   }
 ): ShopViewerPricingContext {
   return {
@@ -236,6 +243,7 @@ export function buildShopViewerPricingContext(
     defaultB2BDiscountPercent: settings.defaultB2bDiscountPercent,
     b2bVisibilityMode: settings.b2bVisibilityMode,
     isAuthenticated,
+    priceCountry: options?.priceCountry ?? null,
     systemBrandDiscountMap: brandMaps?.systemBrandDiscountMap,
     customerBrandDiscountMap: brandMaps?.customerBrandDiscountMap,
   };
@@ -258,6 +266,7 @@ export function shouldPromptB2BQuote(context: ShopViewerPricingContext) {
 
 export function resolveShopPriceBands(input: {
   b2cPrice: PriceSet;
+  europePrice?: Partial<PriceSet> | null;
   b2cCompareAt?: Partial<PriceSet> | null;
   b2bPrice?: Partial<PriceSet> | null;
   b2bCompareAt?: Partial<PriceSet> | null;
@@ -265,7 +274,10 @@ export function resolveShopPriceBands(input: {
   /** Product brand string — enables per-brand discount lookup. */
   brand?: string | null;
 }): ShopResolvedPricing {
-  const b2cPrice = normalizeMoneySet(input.b2cPrice);
+  const europePrice = normalizeMoneySet(input.europePrice);
+  const useEuropeBase =
+    isEuropePricingCountry(input.context.priceCountry) && hasAnyPositiveValue(input.europePrice);
+  const b2cPrice = useEuropeBase ? europePrice : normalizeMoneySet(input.b2cPrice);
   const b2cCompareAt = normalizeCompareSet(input.b2cCompareAt);
   const effectiveDiscountPercent = resolveEffectiveDiscountPercent(input.context, input.brand);
   const mergedB2B = mergeB2BPriceSet(b2cPrice, input.b2bPrice, effectiveDiscountPercent);
@@ -280,6 +292,7 @@ export function resolveShopPriceBands(input: {
   return {
     audience,
     source: audience === "b2b" && b2bPrice ? mergedB2B.source : "b2c",
+    baseRegion: useEuropeBase ? "europe" : "default",
     b2bVisible: bandVisible,
     requestQuote: shouldPromptB2BQuote(input.context),
     discountPercent: audience === "b2b" && b2bPrice ? mergedB2B.discountPercent : null,
@@ -308,6 +321,7 @@ export function resolveShopProductPricing(product: ShopProduct, context: ShopVie
   const brand = product.brand ?? (product as any).vendor ?? null;
   return resolveShopPriceBands({
     b2cPrice: product.price,
+    europePrice: product.europePrice ?? null,
     b2cCompareAt: product.compareAt ?? null,
     b2bPrice: product.b2bPrice ?? null,
     b2bCompareAt: product.b2bCompareAt ?? null,

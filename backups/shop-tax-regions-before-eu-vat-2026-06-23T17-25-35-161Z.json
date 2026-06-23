@@ -1,0 +1,54 @@
+{
+  "createdAt": "2026-06-23T17:25:35.160Z",
+  "reason": "before-eu-vat-tax-region-activation",
+  "key": "shop",
+  "updatedAt": "2026-06-14T15:20:29.236Z",
+  "taxRegions": [
+    {
+      "id": "ua-vat",
+      "name": "Ukraine VAT",
+      "rate": 0.2,
+      "enabled": false,
+      "regions": [],
+      "countries": ["Ukraine", "UA"],
+      "appliesToShipping": true
+    },
+    {
+      "id": "eu-vat",
+      "name": "EU VAT",
+      "rate": 0.2,
+      "enabled": false,
+      "regions": [],
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FR",
+        "GR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "appliesToShipping": true
+    }
+  ]
+}

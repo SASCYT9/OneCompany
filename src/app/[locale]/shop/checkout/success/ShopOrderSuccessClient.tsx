@@ -22,6 +22,8 @@ type OrderData = {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  taxableSubtotal?: number;
+  taxableShippingCost?: number;
   taxAmount: number;
   total: number;
   showTaxesIncludedNotice: boolean;
@@ -51,6 +53,10 @@ type FopDetails = {
 
 type Props = { locale: SupportedLocale; orderNumber?: string | null; token?: string | null };
 
+function hasMoneyAmount(value?: number | null) {
+  return Math.abs(value ?? 0) >= 0.005;
+}
+
 export default function ShopOrderSuccessClient({ locale, orderNumber, token }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [fopDetails, setFopDetails] = useState<FopDetails | null>(null);
@@ -58,6 +64,12 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   const [error, setError] = useState("");
   const trackedRef = useRef(false);
   const isUa = locale === "ua";
+  const showRegionalAdjustment = Boolean(order && hasMoneyAmount(order.regionalAdjustmentAmount));
+  const showVatLine = Boolean(
+    order &&
+      (hasMoneyAmount(order.taxAmount) ||
+        (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
+  );
 
   useEffect(() => {
     if (!orderNumber || !token) {
@@ -233,26 +245,30 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                 {isUa ? "Товари" : "Subtotal"}:{" "}
                 {formatShopMoney(locale, order.subtotal, order.currency as ShopCurrencyCode)}
               </p>
-              <p>
-                {isUa ? "Регіональна корекція" : "Regional adjustment"}:{" "}
-                {formatShopMoney(
-                  locale,
-                  order.regionalAdjustmentAmount,
-                  order.currency as ShopCurrencyCode
-                )}
-              </p>
+              {showRegionalAdjustment ? (
+                <p>
+                  {isUa ? "Корекція ціни" : "Price adjustment"}:{" "}
+                  {formatShopMoney(
+                    locale,
+                    order.regionalAdjustmentAmount,
+                    order.currency as ShopCurrencyCode
+                  )}
+                </p>
+              ) : null}
               <p>
                 {isUa ? "Доставка" : "Shipping"}:{" "}
                 {formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
               </p>
-              <p>
-                {isUa ? "Податок" : "Tax"}:{" "}
-                {order.taxAmount <= 0 && order.showTaxesIncludedNotice
-                  ? isUa
-                    ? "Податки включено"
-                    : "Taxes included"
-                  : formatShopMoney(locale, order.taxAmount, order.currency as ShopCurrencyCode)}
-              </p>
+              {showVatLine ? (
+                <p>
+                  VAT:{" "}
+                  {order.taxAmount <= 0 && order.showTaxesIncludedNotice
+                    ? isUa
+                      ? "VAT включено"
+                      : "VAT included"
+                    : formatShopMoney(locale, order.taxAmount, order.currency as ShopCurrencyCode)}
+                </p>
+              ) : null}
             </div>
             <p className="mt-4 font-medium text-foreground">
               {isUa ? "Разом" : "Total"}:{" "}

@@ -258,6 +258,7 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const all = searchParams.get("all") === "true";
     const debug = searchParams.get("debug") === "true";
+    const country = searchParams.get("country");
     const limit = 24;
 
     const [settingsRecord, session, productsWithFitments] = await Promise.all([
@@ -271,7 +272,9 @@ export async function GET(request: NextRequest) {
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
     );
 
     const getProductPriceForSort = (product: any) => {

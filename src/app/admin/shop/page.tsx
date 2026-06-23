@@ -66,6 +66,7 @@ type ShopProductListItem = {
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   priceUah: number | null;
   priceEur: number | null;
+  priceEurEurope: number | null;
   priceUsd: number | null;
   isPublished: boolean;
   updatedAt: string;
@@ -84,6 +85,7 @@ function priceLabel(product: ShopProductListItem) {
 
 function priceMeta(product: ShopProductListItem): string | null {
   const parts: string[] = [];
+  if (product.priceEurEurope != null) parts.push(`EU net €${product.priceEurEurope}`);
   if (product.priceEur != null && product.priceUsd != null) parts.push(`$${product.priceUsd}`);
   if (product.priceUah != null) parts.push(`₴${product.priceUah}`);
   return parts.length ? parts.join(" · ") : null;

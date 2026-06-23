@@ -31,6 +31,7 @@ export type ShopProductVariantSummary = {
   image?: string | null;
   isDefault?: boolean;
   price: ShopMoneySet;
+  europePrice?: ShopMoneySet;
   b2bPrice?: ShopMoneySet;
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;
@@ -83,6 +84,7 @@ export interface ShopProduct {
   stock: ShopStock;
   collection: LocalizedText;
   price: ShopMoneySet;
+  europePrice?: ShopMoneySet;
   b2bPrice?: ShopMoneySet;
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;

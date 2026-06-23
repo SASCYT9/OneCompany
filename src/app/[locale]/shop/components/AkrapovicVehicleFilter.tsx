@@ -929,14 +929,7 @@ export default function AkrapovicVehicleFilter({
               <>
                 <AkrapovicSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
                   {displayedProducts.map((product) => {
-                    const pricing = viewerContext
-                      ? resolveShopProductPricing(product, viewerContext)
-                      : {
-                          effectivePrice: product.price,
-                          effectiveCompareAt: product.compareAt,
-                          audience: "b2c",
-                          b2bVisible: false,
-                        };
+                    const pricing = resolveShopProductPricing(product, viewerContext);
                     const displayRates = rates && {
                       EUR: rates.EUR,
                       USD: rates.USD,
@@ -1004,9 +997,9 @@ export default function AkrapovicVehicleFilter({
                             <div className="mt-auto">
                               <ShopCardPriceTag
                                 locale={locale}
-                                b2cPrice={product.price}
+                                b2cPrice={pricing.bands.b2c.price}
                                 b2bExplicit={product.b2bPrice ?? null}
-                                compareAt={product.compareAt ?? null}
+                                compareAt={pricing.bands.b2c.compareAt}
                                 brand={product.brand ?? null}
                                 variant="compact"
                                 classNames={{

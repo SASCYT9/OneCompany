@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SupportedLocale } from "@/lib/seo";
 import { localizeShopText } from "@/lib/shopText";
 import { trackViewCart } from "@/lib/analytics";
-import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import {
+  getShopPriceCountryForCountry,
+  getShopPriceCountryForRegion,
+  useShopCurrency,
+} from "@/components/shop/CurrencyContext";
 import { convertShopMoney } from "@/lib/shopMoneyFormat";
 
 type CartItem = {
@@ -40,6 +44,10 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const isUa = locale === "ua";
+  const { country, currency: contextCurrency, rates, region } = useShopCurrency();
+  const currency = contextCurrency as "EUR" | "USD" | "UAH";
+  const priceCountry =
+    getShopPriceCountryForCountry(country) ?? getShopPriceCountryForRegion(region);
 
   const CartItemImage = ({
     src,
@@ -77,9 +85,10 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     );
   };
 
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     try {
-      const res = await fetch("/api/shop/cart");
+      const query = priceCountry ? `?country=${encodeURIComponent(priceCountry)}` : "";
+      const res = await fetch(`/api/shop/cart${query}`);
       const data = await res.json();
       setCart(data);
     } catch {
@@ -87,11 +96,11 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [priceCountry]);
 
   useEffect(() => {
-    loadCart();
-  }, []);
+    void loadCart();
+  }, [loadCart]);
 
   const setQuantity = async (itemId: string, quantity: number) => {
     if (!cart) return;
@@ -112,8 +121,6 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   };
 
   const items = cart?.items ?? [];
-  const { currency: contextCurrency, rates } = useShopCurrency();
-  const currency = contextCurrency as "EUR" | "USD" | "UAH";
 
   const subtotal = items.reduce(
     (s, i) => s + (i.price ? convertShopMoney(i.price, currency, rates) * i.quantity : 0),

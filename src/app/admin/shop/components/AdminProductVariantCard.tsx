@@ -29,6 +29,7 @@ export type VariantCardData = {
   inventoryPolicy: InventoryPolicy;
   fulfillmentService: string;
   priceEur: string;
+  priceEurEurope: string;
   priceUsd: string;
   priceUah: string;
   priceEurB2b: string;
@@ -340,6 +341,19 @@ export function AdminProductVariantCard({
                 rates={rates}
                 autoConvert={autoConvert}
               />
+              <div className="rounded-none border border-white/10 bg-black/20 p-3">
+                <div className="mb-1 text-sm font-semibold text-zinc-100">Europe net</div>
+                <div className="mb-3 text-xs text-zinc-500">
+                  Net EUR base used for EU destination VAT.
+                </div>
+                <InputField
+                  label="Net EUR"
+                  type="number"
+                  step="0.01"
+                  value={variant.priceEurEurope}
+                  onChange={(v) => onUpdate({ priceEurEurope: v })}
+                />
+              </div>
               <PricingGroup
                 title="B2B — Wholesale"
                 description="Pricing for B2B customers and dealers"

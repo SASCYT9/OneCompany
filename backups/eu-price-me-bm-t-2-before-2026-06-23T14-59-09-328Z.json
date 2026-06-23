@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-23T14:59:09.714Z",
+  "product": {
+    "id": "cmnxjguer002ce90cfx6tkkan",
+    "slug": "akrapovic-me-bm-t-2",
+    "sku": "ME-BM/T/2",
+    "priceEur": "6731",
+    "priceEurEurope": null,
+    "priceUsd": null,
+    "priceUah": null,
+    "priceEurB2b": null,
+    "priceUsdB2b": null,
+    "priceUahB2b": null,
+    "variants": [
+      {
+        "id": "cmnxjguer002de90cowe8xyu6",
+        "sku": "ME-BM/T/2",
+        "priceEur": "6731",
+        "priceEurEurope": null,
+        "priceUsd": null,
+        "priceUah": null,
+        "priceEurB2b": null,
+        "priceUsdB2b": null,
+        "priceUahB2b": null,
+        "isDefault": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,4040 @@
+{
+  "generatedAt": "2026-06-23T10:21:19.778Z",
+  "mode": "dry-run",
+  "source": "https://atomic-shop.eu",
+  "marketCountry": "UA",
+  "exactSkuOnly": true,
+  "createdProducts": 0,
+  "touchedFields": ["ShopProductVariant.priceEurEurope", "ShopProduct.priceEurEurope"],
+  "untouchedFields": [
+    "priceEur",
+    "priceUsd",
+    "priceUah",
+    "priceEurB2b",
+    "priceUsdB2b",
+    "priceUahB2b"
+  ],
+  "totals": {
+    "scannedVariants": 1000,
+    "scannedSkuGroups": 190,
+    "matchedSkuGroups": 26,
+    "skippedSkuGroups": 164,
+    "changedVariants": 26,
+    "changedProducts": 0
+  },
+  "matches": [
+    {
+      "sku": "00710-05",
+      "normalizedSku": "0071005",
+      "variantIds": ["cmnxknm0v01rje90cat0c2drd"],
+      "productIds": ["cmnxknm0v01rie90cy16r4rh4"],
+      "productSlugs": ["ohlins-00710-05"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknm0v01rje90cat0c2drd",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 14.27,
+      "atomic": {
+        "handle": "ohlins-00710-05-c-spanner",
+        "productTitle": "OHLINS 00710-05 C-spanner",
+        "vendor": "OHLINS",
+        "variantId": 44117907833012,
+        "variantSku": "00710-05",
+        "rawPrice": "14.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-00710-05-c-spanner?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-00710-05-c-spanner",
+            "title": "OHLINS 00710-05 C-spanner",
+            "variantId": 44117907833012,
+            "sku": "00710-05",
+            "rawPrice": "14.27",
+            "parsedPriceEur": 14.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01-08-28-0001",
+      "normalizedSku": "0108280001",
+      "variantIds": ["cmnxjkljy007me90c4li1fxum"],
+      "productIds": ["cmnxjkljy007le90cro7s8dj5"],
+      "productSlugs": ["akrapovic-01-08-28-0001"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxjkljy007me90c4li1fxum",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 525,
+      "atomic": {
+        "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+        "productTitle": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+        "vendor": "AKRAPOVIC",
+        "variantId": 43872862470324,
+        "variantSku": "01-08-28-0001",
+        "rawPrice": "525.00",
+        "sourceUrl": "https://atomic-shop.eu/products/akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          },
+          {
+            "source": "product-json",
+            "handle": "akrapovic-01-08-28-0001-rear-lip-carbon-for-porsche-911-gt3-gt3rs-997-fl-2009-2012-w-o-approval",
+            "title": "AKRAPOVIC 01-08-28-0001 Rear Lip (Carbon) for PORSCHE 911 GT3 / GT3RS (997 FL) 2009-2012 W/O Approval",
+            "variantId": 43872862470324,
+            "sku": "01-08-28-0001",
+            "rawPrice": "525.00",
+            "parsedPriceEur": 525
+          }
+        ]
+      }
+    },
+    {
+      "sku": "01096-69",
+      "normalizedSku": "0109669",
+      "variantIds": ["cmnxkin3i01kne90cl81vkqr6"],
+      "productIds": ["cmnxkin3h01kme90ce3iwuu52"],
+      "productSlugs": ["ohlins-01096-69"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkin3i01kne90cl81vkqr6",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 57.23,
+      "atomic": {
+        "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+        "productTitle": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 44117907767476,
+        "variantSku": "01096-69",
+        "rawPrice": "57.23",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-01096-69-spring-57-mm-id-190-mm-length-180-n-mm",
+            "title": "OHLINS 01096-69 Spring (57 mm ID, 190 mm Length, 180 N/mm)",
+            "variantId": 44117907767476,
+            "sku": "01096-69",
+            "rawPrice": "57.23",
+            "parsedPriceEur": 57.23
+          }
+        ]
+      }
+    },
+    {
+      "sku": "03199-01",
+      "normalizedSku": "0319901",
+      "variantIds": ["cmnxknk4d01rhe90cqw3c9qm9"],
+      "productIds": ["cmnxknk4d01rge90c1xp0y1u7"],
+      "productSlugs": ["ohlins-03199-01"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxknk4d01rhe90cqw3c9qm9",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 12.15,
+      "atomic": {
+        "handle": "ohlins-03199-01-preload-adjuster-tool",
+        "productTitle": "OHLINS 03199-01 Preload Adjuster Tool",
+        "vendor": "OHLINS",
+        "variantId": 44117907800244,
+        "variantSku": "03199-01",
+        "rawPrice": "12.15",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-03199-01-preload-adjuster-tool?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-03199-01-preload-adjuster-tool",
+            "title": "OHLINS 03199-01 Preload Adjuster Tool",
+            "variantId": 44117907800244,
+            "sku": "03199-01",
+            "rawPrice": "12.15",
+            "parsedPriceEur": 12.15
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-02",
+      "normalizedSku": "0517302",
+      "variantIds": ["cmnxkip3j01kqe90clld75h3r"],
+      "productIds": ["cmnxkip3j01kpe90cretmnhnd"],
+      "productSlugs": ["ohlins-05173-02"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkip3j01kqe90clld75h3r",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+        "productTitle": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+        "vendor": "OHLINS",
+        "variantId": 43643504656564,
+        "variantSku": "05173-02",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-02-helper-spring-57-mm-id-60-mm-length-30-n-mm",
+            "title": "OHLINS 05173-02 Helper spring (57 mm ID, 60 mm Length, 30 N/mm)",
+            "variantId": 43643504656564,
+            "sku": "05173-02",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-06",
+      "normalizedSku": "0517306",
+      "variantIds": ["cmnxkob3x01sge90cmohsquui"],
+      "productIds": ["cmnxkob3x01sfe90ck6yrxvoz"],
+      "productSlugs": ["ohlins-05173-06"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkob3x01sge90cmohsquui",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 113.32,
+      "atomic": {
+        "handle": "ohlins-05173-06-helper-spring-67-15-65",
+        "productTitle": "OHLINS 05173-06 Helper Spring 67/15/65",
+        "vendor": "OHLINS",
+        "variantId": 43894483976372,
+        "variantSku": "05173-06",
+        "rawPrice": "113.32",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-06-helper-spring-67-15-65?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "variantId": 43894483976372,
+            "sku": "05173-06",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-07",
+      "normalizedSku": "0517307",
+      "variantIds": ["cmnxkodpq01sie90cdq62gp75"],
+      "productIds": ["cmnxkodpq01she90c83no5137"],
+      "productSlugs": ["ohlins-05173-07"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkodpq01sie90cdq62gp75",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 85.63,
+      "atomic": {
+        "handle": "ohlins-05173-07-helper-spring-57-7-80",
+        "productTitle": "OHLINS 05173-07 Helper Spring 57/7/80",
+        "vendor": "OHLINS",
+        "variantId": 43894484041908,
+        "variantSku": "05173-07",
+        "rawPrice": "85.63",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-07-helper-spring-57-7-80?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-07-helper-spring-57-7-80",
+            "title": "OHLINS 05173-07 Helper Spring 57/7/80",
+            "variantId": 43894484041908,
+            "sku": "05173-07",
+            "rawPrice": "85.63",
+            "parsedPriceEur": 85.63
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-11",
+      "normalizedSku": "0517311",
+      "variantIds": ["cmnxkofn401ske90c0dnbnbwt"],
+      "productIds": ["cmnxkofn401sje90cs96choj1"],
+      "productSlugs": ["ohlins-05173-11"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkofn401ske90c0dnbnbwt",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 122.56,
+      "atomic": {
+        "handle": "ohlins-05173-11-helper-spring-67-9-105",
+        "productTitle": "OHLINS 05173-11 Helper Spring 67/9/105",
+        "vendor": "OHLINS",
+        "variantId": 43894484172980,
+        "variantSku": "05173-11",
+        "rawPrice": "122.56",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-11-helper-spring-67-9-105?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-11-helper-spring-67-9-105",
+            "title": "OHLINS 05173-11 Helper Spring 67/9/105",
+            "variantId": 43894484172980,
+            "sku": "05173-11",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-12",
+      "normalizedSku": "0517312",
+      "variantIds": ["cmnxk29o200wse90ch6u5qdio"],
+      "productIds": ["cmnxk29o200wre90cs2qzq71k"],
+      "productSlugs": ["ohlins-05173-12"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxk29o200wse90ch6u5qdio",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 97.3,
+      "atomic": {
+        "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+        "productTitle": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+        "vendor": "OHLINS",
+        "variantId": 43643504918708,
+        "variantSku": "05173-12",
+        "rawPrice": "97.30",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-12-helper-spring-60-60-7-5-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-12-helper-spring-60-60-7-5-mm",
+            "title": "OHLINS 05173-12 Helper Spring 60/60/7.5 mm",
+            "variantId": 43643504918708,
+            "sku": "05173-12",
+            "rawPrice": "97.30",
+            "parsedPriceEur": 97.3
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-14",
+      "normalizedSku": "0517314",
+      "variantIds": ["cmnxkohki01sme90crkt9jg0v"],
+      "productIds": ["cmnxkohki01sle90cg27q13lp"],
+      "productSlugs": ["ohlins-05173-14"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkohki01sme90crkt9jg0v",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 122.56,
+      "atomic": {
+        "handle": "ohlins-05173-14-helper-spring-70-30-70",
+        "productTitle": "OHLINS 05173-14 Helper Spring 70/30/70",
+        "vendor": "OHLINS",
+        "variantId": 43894484271284,
+        "variantSku": "05173-14",
+        "rawPrice": "122.56",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-14-helper-spring-70-30-70?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-14-helper-spring-70-30-70",
+            "title": "OHLINS 05173-14 Helper Spring 70/30/70",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-14-helper-spring-70-30-70",
+            "title": "OHLINS 05173-14 Helper Spring 70/30/70",
+            "variantId": 43894484271284,
+            "sku": "05173-14",
+            "rawPrice": "122.56",
+            "parsedPriceEur": 122.56
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-15",
+      "normalizedSku": "0517315",
+      "variantIds": ["cmnxkgppm01i6e90cob9uru2b"],
+      "productIds": ["cmnxkgppm01i5e90ctpi4cqlt"],
+      "productSlugs": ["ohlins-05173-15"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkgppm01i6e90cob9uru2b",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+        "productTitle": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643504951476,
+        "variantSku": "05173-15",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+            "title": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-06-helper-spring-67-15-65",
+            "title": "OHLINS 05173-06 Helper Spring 67/15/65",
+            "variantId": 43894483976372,
+            "sku": "05173-06",
+            "rawPrice": "113.32",
+            "parsedPriceEur": 113.32
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-15-helper-spring-60mm-id-30mm-length-40-n-mm",
+            "title": "OHLINS 05173-15 Helper Spring 60mm ID / 30mm Length / 40 N/mm",
+            "variantId": 43643504951476,
+            "sku": "05173-15",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-17",
+      "normalizedSku": "0517317",
+      "variantIds": ["cmnxk21j800wge90cglli6yhi"],
+      "productIds": ["cmnxk21j700wfe90c4u5pzi1q"],
+      "productSlugs": ["ohlins-05173-17"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxk21j800wge90cglli6yhi",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+        "productTitle": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643505180852,
+        "variantSku": "05173-17",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "variantId": 43643505180852,
+            "sku": "05173-17",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-19",
+      "normalizedSku": "0517319",
+      "variantIds": ["cmnxkojhs01soe90c77x0ibfx"],
+      "productIds": ["cmnxkojhs01sne90cbwe15g7i"],
+      "productSlugs": ["ohlins-05173-19"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkojhs01soe90c77x0ibfx",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+        "productTitle": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+        "vendor": "OHLINS",
+        "variantId": 43894484074676,
+        "variantSku": "05173-19",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-19-helper-spring-60-2-66-black?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+            "title": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-19-helper-spring-60-2-66-black",
+            "title": "OHLINS 05173-19 Helper Spring 60/2/66 (Black)",
+            "variantId": 43894484074676,
+            "sku": "05173-19",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05173-20",
+      "normalizedSku": "0517320",
+      "variantIds": ["cmnxkc42401bae90c7b7tu30k"],
+      "productIds": ["cmnxkc42401b9e90cjovz7ft1"],
+      "productSlugs": ["ohlins-05173-20"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc42401bae90c7b7tu30k",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 68.68,
+      "atomic": {
+        "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+        "productTitle": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+        "vendor": "OHLINS",
+        "variantId": 43643505311924,
+        "variantSku": "05173-20",
+        "rawPrice": "68.68",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+            "title": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "search-suggest",
+            "handle": "sparco-05171-wheel-spacer-20mm-for-mercedes-benz",
+            "title": "SPARCO 05171 Wheel Spacer 20mm for MERCEDES-BENZ",
+            "rawPrice": "21.00",
+            "parsedPriceEur": 21
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-20-helper-spring-65mm-id-100mm-length-1-5-n-mm",
+            "title": "OHLINS 05173-20 Helper Spring 65mm ID / 100mm Length / 1.5 N/mm",
+            "variantId": 43643505311924,
+            "sku": "05173-20",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05173-17-helper-spring-60mm-id-20mm-length-40-n-mm",
+            "title": "OHLINS 05173-17 Helper Spring 60mm ID / 20mm Length / 40 N/mm",
+            "variantId": 43643505180852,
+            "sku": "05173-17",
+            "rawPrice": "68.68",
+            "parsedPriceEur": 68.68
+          },
+          {
+            "source": "product-json",
+            "handle": "sparco-05171-wheel-spacer-20mm-for-mercedes-benz",
+            "title": "SPARCO 05171 Wheel Spacer 20mm for MERCEDES-BENZ",
+            "variantId": 44116231454900,
+            "sku": "05171",
+            "rawPrice": "21.00",
+            "parsedPriceEur": 21
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05925-10",
+      "normalizedSku": "0592510",
+      "variantIds": ["cmnxkiuxc01kye90cvmsjyl8r"],
+      "productIds": ["cmnxkiuxb01kxe90cftk4s63k"],
+      "productSlugs": ["ohlins-05925-10"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkiuxc01kye90cvmsjyl8r",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 323.53,
+      "atomic": {
+        "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+        "productTitle": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+        "vendor": "OHLINS",
+        "variantId": 43643502035124,
+        "variantSku": "05925-10",
+        "rawPrice": "323.53",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "variantId": 43643502035124,
+            "sku": "05925-10",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "variantId": 43643504066740,
+            "sku": "05926-10",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-10",
+      "normalizedSku": "0592610",
+      "variantIds": ["cmnxkc61f01bde90c6288rdc3"],
+      "productIds": ["cmnxkc61f01bce90c8mpcaztv"],
+      "productSlugs": ["ohlins-05926-10"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc61f01bde90c6288rdc3",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+        "productTitle": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+        "vendor": "OHLINS",
+        "variantId": 43643504066740,
+        "variantSku": "05926-10",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-10-rear-top-mount-bmw-m3-e46-set?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-10-rear-top-mount-bmw-m3-e46-set",
+            "title": "OHLINS 05926-10 Rear top mount BMW M3 E46, set",
+            "variantId": 43643504066740,
+            "sku": "05926-10",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05925-10-lift-adapter-kit-advanced-trackday-for-porsche-991-992-gt3",
+            "title": "OHLINS 05925-10 Lift adapter kit Advanced Trackday for Porsche 991 (992) GT3",
+            "variantId": 43643502035124,
+            "sku": "05925-10",
+            "rawPrice": "323.53",
+            "parsedPriceEur": 323.53
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-11",
+      "normalizedSku": "0592611",
+      "variantIds": ["cmnxkc80s01bge90c8jumktbh"],
+      "productIds": ["cmnxkc80s01bfe90cv23gd30b"],
+      "productSlugs": ["ohlins-05926-11"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc80s01bge90c8jumktbh",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+        "productTitle": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+        "vendor": "OHLINS",
+        "variantId": 43643504361652,
+        "variantSku": "05926-11",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+            "title": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "search-suggest",
+            "handle": "pfc-0592-11-15-44-front-brake-pads-for-dodge-viper-8-0-1992-1999-ferrari-f430-f50-360-612-11-compound",
+            "title": "PFC 0592.11.15.44 Front Brake Pads for DODGE Viper 8.0 1992-1999 / Ferrari F430 / F50 / 360 / 612 (11 Compound)",
+            "rawPrice": "414.84",
+            "parsedPriceEur": 414.84
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-11-rear-top-mount-bmw-m3-e90-e92-set",
+            "title": "OHLINS 05926-11 Rear top mount BMW M3 E90/E92, set",
+            "variantId": 43643504361652,
+            "sku": "05926-11",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "pfc-0592-11-15-44-front-brake-pads-for-dodge-viper-8-0-1992-1999-ferrari-f430-f50-360-612-11-compound",
+            "title": "PFC 0592.11.15.44 Front Brake Pads for DODGE Viper 8.0 1992-1999 / Ferrari F430 / F50 / 360 / 612 (11 Compound)",
+            "variantId": 43627318542516,
+            "sku": "0592.11.15.44",
+            "rawPrice": "414.84",
+            "parsedPriceEur": 414.84
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-12",
+      "normalizedSku": "0592612",
+      "variantIds": ["cmnxkc1za01b7e90cbfhmg39d"],
+      "productIds": ["cmnxkc1za01b6e90c4lh6fluo"],
+      "productSlugs": ["ohlins-05926-12"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkc1za01b7e90cbfhmg39d",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+        "productTitle": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+        "vendor": "OHLINS",
+        "variantId": 43643504230580,
+        "variantSku": "05926-12",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+            "title": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-12-rear-top-mounts-bmw-m2-m3-m4-f87-f80-f82-set-ppp",
+            "title": "OHLINS 05926-12 Rear top mounts BMW M2/M3/M4 F87/F80/F82, set PPP",
+            "variantId": 43643504230580,
+            "sku": "05926-12",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-13",
+      "normalizedSku": "0592613",
+      "variantIds": ["cmnxkms3j01qce90ckz3tkcau"],
+      "productIds": ["cmnxkms3j01qbe90czim0rd2g"],
+      "productSlugs": ["ohlins-05926-13"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkms3j01qce90ckz3tkcau",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 172.27,
+      "atomic": {
+        "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+        "productTitle": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+        "vendor": "OHLINS",
+        "variantId": 43643504328884,
+        "variantSku": "05926-13",
+        "rawPrice": "172.27",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+            "title": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-13-rear-top-mount-set-for-bmw-m2-f87-m3-f80-m4-f82",
+            "title": "OHLINS 05926-13 Rear Top Mount Set for BMW M2 (F87) / M3 (F80) / M4 (F82)",
+            "variantId": 43643504328884,
+            "sku": "05926-13",
+            "rawPrice": "172.27",
+            "parsedPriceEur": 172.27
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-20",
+      "normalizedSku": "0592620",
+      "variantIds": ["cmnxkca0601bje90clgohg5ts"],
+      "productIds": ["cmnxkca0601bie90c1zonuso6"],
+      "productSlugs": ["ohlins-05926-20"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkca0601bje90clgohg5ts",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500724404,
+        "variantSku": "05926-20",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "search-suggest",
+            "handle": "girodisc-gp10-0592-15-rear-brake-pads-street-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP10-0592.15 Rear Brake Pads STREET for TESLA Model S / Model X 2012-2020",
+            "rawPrice": "428.00",
+            "parsedPriceEur": 428
+          },
+          {
+            "source": "search-suggest",
+            "handle": "girodisc-gp40-0592-15-rear-brake-pads-race-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP40-0592.15 Rear Brake Pads RACE for TESLA Model S / Model X 2012-2020",
+            "rawPrice": "470.80",
+            "parsedPriceEur": 470.8
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-20-front-top-mount-bmw-m3-e46-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-20 Front top mount BMW M3 E46, set (sway bar end links included)",
+            "variantId": 43643500724404,
+            "sku": "05926-20",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "variantId": 43643500822708,
+            "sku": "05926-25",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "product-json",
+            "handle": "girodisc-gp10-0592-15-rear-brake-pads-street-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP10-0592.15 Rear Brake Pads STREET for TESLA Model S / Model X 2012-2020",
+            "variantId": 43873881063604,
+            "sku": "GP10-0592.15",
+            "rawPrice": "428.00",
+            "parsedPriceEur": 428
+          },
+          {
+            "source": "product-json",
+            "handle": "girodisc-gp40-0592-15-rear-brake-pads-race-for-tesla-model-s-model-x-2012-2020",
+            "title": "GIRODISC GP40-0592.15 Rear Brake Pads RACE for TESLA Model S / Model X 2012-2020",
+            "variantId": 43873881194676,
+            "sku": "GP40-0592.15",
+            "rawPrice": "470.80",
+            "parsedPriceEur": 470.8
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-21",
+      "normalizedSku": "0592621",
+      "variantIds": ["cmnxkcbzk01bme90ct2cmth61"],
+      "productIds": ["cmnxkcbzj01ble90cep4qindq"],
+      "productSlugs": ["ohlins-05926-21"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkcbzk01bme90ct2cmth61",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500757172,
+        "variantSku": "05926-21",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+            "title": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-21-front-top-mounts-set-for-bmw-m3-e90-e92-sway-bar-end-links-included",
+            "title": "OHLINS 05926-21 Front Top Mounts Set for BMW M3 E90 / E92 (Sway Bar end Links Included)",
+            "variantId": 43643500757172,
+            "sku": "05926-21",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-22",
+      "normalizedSku": "0592622",
+      "variantIds": ["cmnxkby0j01b1e90c3drvq026"],
+      "productIds": ["cmnxkby0i01b0e90ctiaylm92"],
+      "productSlugs": ["ohlins-05926-22"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkby0j01b1e90c3drvq026",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 966.39,
+      "atomic": {
+        "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+        "productTitle": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+        "vendor": "OHLINS",
+        "variantId": 43643500658868,
+        "variantSku": "05926-22",
+        "rawPrice": "966.39",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-22-front-top-mounts-bmw-m2c-m3-m4-f87-f80-f82-set-sway-bar-end-links-included",
+            "title": "OHLINS 05926-22 Front top mounts BMW M2C/M3/M4 F87/F80/F82, set (sway bar end links included)",
+            "variantId": 43643500658868,
+            "sku": "05926-22",
+            "rawPrice": "966.39",
+            "parsedPriceEur": 966.39
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-24",
+      "normalizedSku": "0592624",
+      "variantIds": ["cmnxkmqac01qae90cxe286uxc"],
+      "productIds": ["cmnxkmqac01q9e90c5avd4qto"],
+      "productSlugs": ["ohlins-05926-24"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkmqac01qae90cxe286uxc",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 1071.43,
+      "atomic": {
+        "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+        "productTitle": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+        "vendor": "OHLINS",
+        "variantId": 43643500789940,
+        "variantSku": "05926-24",
+        "rawPrice": "1071.43",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+            "title": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+            "rawPrice": "1071.43",
+            "parsedPriceEur": 1071.43
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-24-front-top-mounts-and-drop-links-for-bmw-m3-g80-m4-g82",
+            "title": "OHLINS 05926-24 Front Top Mounts and Drop Links for BMW M3 (G80) / M4 (G82)",
+            "variantId": 43643500789940,
+            "sku": "05926-24",
+            "rawPrice": "1071.43",
+            "parsedPriceEur": 1071.43
+          }
+        ]
+      }
+    },
+    {
+      "sku": "05926-25",
+      "normalizedSku": "0592625",
+      "variantIds": ["cmnxkjqyc01m8e90c1wqja393"],
+      "productIds": ["cmnxkjqyc01m7e90c6bf58ztu"],
+      "productSlugs": ["ohlins-05926-25"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkjqyc01m8e90c1wqja393",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 436.97,
+      "atomic": {
+        "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+        "productTitle": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+        "vendor": "OHLINS",
+        "variantId": 43643500822708,
+        "variantSku": "05926-25",
+        "rawPrice": "436.97",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-05926-25-top-mounts-set-for-mercedes-amg-gt-c190-2015",
+            "title": "OHLINS 05926-25 Top Mounts Set for MERCEDES AMG GT (C190) 2015-",
+            "variantId": 43643500822708,
+            "sku": "05926-25",
+            "rawPrice": "436.97",
+            "parsedPriceEur": 436.97
+          }
+        ]
+      }
+    },
+    {
+      "sku": "06245-01",
+      "normalizedSku": "0624501",
+      "variantIds": ["cmnxkl78001ode90creb67g0v"],
+      "productIds": ["cmnxkl78001oce90c4b3d0cuz"],
+      "productSlugs": ["ohlins-06245-01"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkl78001ode90creb67g0v",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 89.03,
+      "atomic": {
+        "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+        "productTitle": "OHLINS 06245-01 Length adjuster for VAG TCR",
+        "vendor": "OHLINS",
+        "variantId": 43643504689332,
+        "variantSku": "06245-01",
+        "rawPrice": "89.03",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-06245-01-length-adjuster-for-vag-tcr?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+            "title": "OHLINS 06245-01 Length adjuster for VAG TCR",
+            "rawPrice": "89.03",
+            "parsedPriceEur": 89.03
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-06245-01-length-adjuster-for-vag-tcr",
+            "title": "OHLINS 06245-01 Length adjuster for VAG TCR",
+            "variantId": 43643504689332,
+            "sku": "06245-01",
+            "rawPrice": "89.03",
+            "parsedPriceEur": 89.03
+          }
+        ]
+      }
+    },
+    {
+      "sku": "06245-02",
+      "normalizedSku": "0624502",
+      "variantIds": ["cmnxkl94m01ofe90chjjdc03o"],
+      "productIds": ["cmnxkl94m01oee90c55sho1a0"],
+      "productSlugs": ["ohlins-06245-02"],
+      "oldVariantPrices": [
+        {
+          "variantId": "cmnxkl94m01ofe90chjjdc03o",
+          "priceEurEurope": null
+        }
+      ],
+      "nextPriceEurEurope": 96.29,
+      "atomic": {
+        "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+        "productTitle": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+        "vendor": "OHLINS",
+        "variantId": 43643505017012,
+        "variantSku": "06245-02",
+        "rawPrice": "96.29",
+        "sourceUrl": "https://atomic-shop.eu/products/ohlins-06245-02-length-adjuster-for-vag-tcr-2020?country=UA",
+        "observations": [
+          {
+            "source": "search-suggest",
+            "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+            "title": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+            "rawPrice": "96.29",
+            "parsedPriceEur": 96.29
+          },
+          {
+            "source": "product-json",
+            "handle": "ohlins-06245-02-length-adjuster-for-vag-tcr-2020",
+            "title": "OHLINS 06245-02 Length adjuster for VAG TCR 2020-",
+            "variantId": 43643505017012,
+            "sku": "06245-02",
+            "rawPrice": "96.29",
+            "parsedPriceEur": 96.29
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "sku": "000-100-16",
+      "normalizedSku": "00010016",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewiqqx0e06e9mg5h2kdsmi"],
+      "productIds": ["cmnev288m0073e9mgyydxfmdi"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "search-suggest",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13356-rotor1288-100bk825-000cjcxxxxr-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13356 Rotor1288-100bk825-000cjcxxxxr 12x8.75,48 Cvane,Gt",
+          "variantId": 43415530700980,
+          "sku": "160-13356",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15132-rotor1100-100akxxx-000naexxxxn-5x4-75-front-gm",
+          "title": "WILWOOD 160-15132 Rotor1100-100akxxx-000naexxxxn 5x4.75,Front,Gm",
+          "variantId": 43733057962164,
+          "sku": "160-15132",
+          "rawPrice": "173.70",
+          "parsedPriceEur": 173.7
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13359-bk-rotor1288-100bk825-000cnnxxxxl-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13359-BK Rotor1288-100bk825-000cnnxxxxl 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415522443444,
+          "sku": "160-13359-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13358-bk-rotor1288-100bk825-000cnnxxxxr-12x8-75-48-cvane-srp-black",
+          "title": "WILWOOD 160-13358-BK Rotor1288-100bk825-000cnnxxxxr 12x8.75,48 Cvane,Srp,Black",
+          "variantId": 43415491018932,
+          "sku": "160-13358-BK",
+          "rawPrice": "414.97",
+          "parsedPriceEur": 414.97
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-13357-rotor1288-100bk825-000cjcxxxxl-12x8-75-48-cvane-gt",
+          "title": "WILWOOD 160-13357 Rotor1288-100bk825-000cjcxxxxl 12x8.75,48 Cvane,Gt",
+          "variantId": 43415523623092,
+          "sku": "160-13357",
+          "rawPrice": "368.86",
+          "parsedPriceEur": 368.86
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-9239ls-rotor1050-100akxxx-000naexxxxn-5x5-00-long-studs-front-gm",
+          "title": "WILWOOD 160-9239LS Rotor1050-100akxxx-000naexxxxn 5x5.00,Long Studs,Front,Gm",
+          "variantId": 43415588470964,
+          "sku": "160-9239LS",
+          "rawPrice": "132.13",
+          "parsedPriceEur": 132.13
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-rotor1300-100df812-000tjcxxxxl-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15876 Rotor1300-100df812-000tjcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415664361652,
+          "sku": "160-15876",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-rotor1300-100df812-000tjcxxxxr-12-lugx8-80-snap-ring-48-cvane-spec-37",
+          "title": "WILWOOD 160-15875 Rotor1300-100df812-000tjcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Spec-37",
+          "variantId": 43415564419252,
+          "sku": "160-15875",
+          "rawPrice": "539.55",
+          "parsedPriceEur": 539.55
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15876-b-rotor1300-100df812-000tkcxxxxl-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15876-B Rotor1300-100df812-000tkcxxxxl 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415665410228,
+          "sku": "160-15876-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        },
+        {
+          "source": "product-json",
+          "handle": "wilwood-160-15875-b-rotor1300-100df812-000tkcxxxxr-12-lugx8-80-snap-ring-48-cvane-gt",
+          "title": "WILWOOD 160-15875-B Rotor1300-100df812-000tkcxxxxr 12 Lugx8.80 Snap Ring,48 Cvane,Gt",
+          "variantId": 43415655547060,
+          "sku": "160-15875-B",
+          "rawPrice": "666.11",
+          "parsedPriceEur": 666.11
+        }
+      ]
+    },
+    {
+      "sku": "000-100-17",
+      "normalizedSku": "00010017",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewo6fd0hd5e9mgqg7xptxe"],
+      "productIds": ["cmnev2ef90087e9mg6bz01wkx"],
+      "observations": []
+    },
+    {
+      "sku": "000-100-18",
+      "normalizedSku": "00010018",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewoi840hj3e9mgu8gl7wmu"],
+      "productIds": ["cmnevacym045ee9mgi9en4mzb"],
+      "observations": []
+    },
+    {
+      "sku": "000-545-00-C",
+      "normalizedSku": "00054500C",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnevndu506n0e9mg4h9aoeu8"],
+      "productIds": ["cmnevjk3w060oe9mgoi80tmx5"],
+      "observations": []
+    },
+    {
+      "sku": "000-660-00",
+      "normalizedSku": "00066000",
+      "reason": "no_exact_variant",
+      "message": null,
+      "variantIds": ["cmnewi3hz0drbe9mgfqvif8yn"],
+      "productIds": ["cmnew93qw0ciwe9mg745bhzc8"],
+      "observations": [
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "search-suggest",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912947-0002-turbocharger-seal-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912947-0002 Turbocharger Seal Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517048127668,
+          "sku": "912947-0002",
+          "rawPrice": "6.00",
+          "parsedPriceEur": 6
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-912944-0002-turbocharger-fasteners-kit-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 912944-0002 Turbocharger Fasteners Kit for G25-660 PowerMax Stage 2",
+          "variantId": 43517047734452,
+          "sku": "912944-0002",
+          "rawPrice": "40.00",
+          "parsedPriceEur": 40
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0002-turbocharger-water-inlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0002 Turbocharger Water Inlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047996596,
+          "sku": "903332-0002",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-903332-0003-turbocharger-water-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 903332-0003 Turbocharger Water Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517048062132,
+          "sku": "903332-0003",
+          "rawPrice": "115.00",
+          "parsedPriceEur": 115
+        },
+        {
+          "source": "product-json",
+          "handle": "garrett-900543-0006-turbocharger-oil-outlet-tube-for-g25-660-powermax-stage-2",
+          "title": "GARRETT 900543-0006 Turbocharger Oil Outlet Tube for G25-660 PowerMax Stage 2",
+          "variantId": 43517047668916,
+          "sku": "900543-0006",
+          "rawPrice": "149.00",
+          "parsedPriceEur": 149
+        }
+      ]
+    },
+    {
+      "sku": "000-805-200",
+      "normalizedSku": "000805200",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewesou0dj5e9mgwkfjhkcc"],
+      "productIds": ["cmnev7k2e025te9mg2l6ce8jv"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-210",
+      "normalizedSku": "000805210",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewnq340h4ae9mgcsgml2eg"],
+      "productIds": ["cmnev937t03cfe9mgplat8g2s"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-50",
+      "normalizedSku": "00080550",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewenw80dhee9mg73dtutf2"],
+      "productIds": ["cmnew8g500c9ee9mg6bifjsh0"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-90",
+      "normalizedSku": "00080590",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmn9fbqfk05uae90wq3l2u5to"],
+      "productIds": ["cmn9fbqfk05u9e90wk3i8vp5f"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-91",
+      "normalizedSku": "00080591",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewem8j0dh8e9mg4dzcnij2"],
+      "productIds": ["cmnevq24s07bie9mg01rl0p52"],
+      "observations": []
+    },
+    {
+      "sku": "000-805-93",
+      "normalizedSku": "00080593",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnewegqz0dgle9mgvnz5t0z9"],
+      "productIds": ["cmnevpxi5079xe9mg7dvxylnm"],
+      "observations": []
+    },
+    {
+      "sku": "06245-04",
+      "normalizedSku": "0624504",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmnxkflrh01gie90cwsq0eu07"],
+      "productIds": ["cmnxkflrh01ghe90c4nqt6ap1"],
+      "observations": []
+    },
+    {
+      "sku": "099-545-00",
+      "normalizedSku": "09954500",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmn9fbq7905j2e90wwbjhxupn"],
+      "productIds": ["cmn9fbq7905j1e90w2mso2nma"],
+      "observations": []
+    },
+    {
+      "sku": "0AA50-NVN0S-2",
+      "normalizedSku": "0AA50NVN0S2",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaewvm9000ce9s0oa26w8at"],
+      "productIds": ["cmoaewvm80000e9s0dpqc7eyp"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-A0N00-3",
+      "normalizedSku": "0AA61A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaex89l001we9s0gqmje47g"],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-B0N00-3",
+      "normalizedSku": "0AA61B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaex89l001xe9s0ahl37qyw"],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-NVN00-2",
+      "normalizedSku": "0AA61NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex89l001ye9s0uyz8io4r",
+        "cmp4isb3500h7th0chhr9rjzy",
+        "cmp4isb4500h9th0cugfmv4xc",
+        "cmp4isb5500hbth0cipj1icb6",
+        "cmp4isb6300hdth0cgkg65e22",
+        "cmp4isb7300hfth0cddbpr6pt",
+        "cmp4isb8300hhth0coq1qp08l",
+        "cmp4isb9500hjth0cjol4scs4"
+      ],
+      "productIds": ["cmoaex89l001le9s04dhx3ce5", "cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AA61-NVN00-2-02",
+      "normalizedSku": "0AA61NVN00202",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex89l001ze9s0attd3rl0",
+        "cmoaex28g0016e9s0ald9jkn9",
+        "cmp4isba500hlth0ci6urgd42",
+        "cmp4isbb500hnth0cm7hd4d4n",
+        "cmp4isbc400hpth0cqf1q1ero",
+        "cmp4isbd600hrth0ckqitoen0",
+        "cmp4isbe600htth0cl67r9kuz",
+        "cmp4isbfa00hvth0cmjbsr1zn",
+        "cmp4isbgb00hxth0cinnkcom5"
+      ],
+      "productIds": [
+        "cmoaex89l001le9s04dhx3ce5",
+        "cmoaex28g000qe9s0yf53pel7",
+        "cmoaexx2g005qe9s06n2zpir2"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0AA71-A0N00-3",
+      "normalizedSku": "0AA71A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex28g0013e9s0q86a9s1k",
+        "cmp4isahv00g1th0c132rbj2s",
+        "cmp4isaiv00g3th0ceohb4jcm",
+        "cmp4isajv00g5th0cr50hkmxe",
+        "cmp4isaku00g7th0cjbuwt0ti",
+        "cmp4isalv00g9th0cvsfj2wb7",
+        "cmp4isamu00gbth0cwsfx3ts2",
+        "cmp4isanv00gdth0c99lsowev"
+      ],
+      "productIds": ["cmoaex28g000qe9s0yf53pel7", "cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AA71-A0NM0-3",
+      "normalizedSku": "0AA71A0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex28g0014e9s0fmukdbxx",
+        "cmp4isaox00gfth0ck5uttxcp",
+        "cmp4isapx00ghth0ck3ifea1a",
+        "cmp4isaqw00gjth0cmw76cavd",
+        "cmp4isarw00glth0c3ez5ewid",
+        "cmp4isasx00gnth0cf8477wms",
+        "cmp4isatw00gpth0ci1d9wf4b",
+        "cmp4isauw00grth0ceowxpdzz"
+      ],
+      "productIds": ["cmoaex28g000qe9s0yf53pel7", "cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AA71-NVN00-2",
+      "normalizedSku": "0AA71NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaex28g0015e9s0g063j83a"],
+      "productIds": ["cmoaex28g000qe9s0yf53pel7"],
+      "observations": []
+    },
+    {
+      "sku": "0AA71-NVN00-2-02",
+      "normalizedSku": "0AA71NVN00202",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaex28h001be9s0pix8qn9n",
+        "cmp4isc2v00j5th0cse1uc86h",
+        "cmp4isc3v00j7th0cttlqyrc2",
+        "cmp4isc5100j9th0cnba6zfrj",
+        "cmp4isc6200jbth0cd93rxuvr",
+        "cmp4isc7200jdth0cgwcpt43l",
+        "cmp4isc8200jfth0cc6lk603z",
+        "cmp4isc9500jhth0c61xkcmnk"
+      ],
+      "productIds": ["cmoaex28g000qe9s0yf53pel7", "cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AR30-B0N00-3",
+      "normalizedSku": "0AR30B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mj671000dthjop0ovtyhd",
+        "cmoaexlld0048e9s042ybmyug",
+        "cmp4mj681000fthjogva4lli0"
+      ],
+      "productIds": ["cmoaexji5003le9s07b24dvb7", "cmoaexlld0042e9s0ix0dg4jc"],
+      "observations": []
+    },
+    {
+      "sku": "0AR30-TNVN00-2",
+      "normalizedSku": "0AR30TNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaexlle004ae9s0vtwf0udl",
+        "cmp4mj6az000lthjozg6eyqkz",
+        "cmp4mj6by000nthjoxn6a4euk",
+        "cmp4isca500jjth0c89pybccr",
+        "cmp4iscb600jlth0ceflojuhm",
+        "cmp4iscc500jnth0c0znwuzfb",
+        "cmp4iscd500jpth0cynbm6f95",
+        "cmp4isce600jrth0c34jpihju",
+        "cmp4iscf500jtth0ch8ju9f9g",
+        "cmp4iscg600jvth0c57l3gx03"
+      ],
+      "productIds": [
+        "cmoaexlld0042e9s0ix0dg4jc",
+        "cmoaexji5003le9s07b24dvb7",
+        "cmoaexx2g005qe9s06n2zpir2"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0AR31-BVN00-202",
+      "normalizedSku": "0AR31BVN00202",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4mj5pp0005thjo6qnr4bwn", "cmp4mj5rp0007thjozjy7k57y"],
+      "productIds": ["cmoaexi3m002te9s06rb6ekfq"],
+      "observations": []
+    },
+    {
+      "sku": "0AR32-BVN00-201",
+      "normalizedSku": "0AR32BVN00201",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaexlle0049e9s0rue1cllt",
+        "cmp4mj690000hthjo7cncp23x",
+        "cmp4mj69x000jthjovkwt9g52",
+        "cmp4isbha00hzth0ccwh7bnjp",
+        "cmp4isbic00i1th0c2gpx4je0",
+        "cmp4isbjc00i3th0c6keu5v3d",
+        "cmp4isbkd00i5th0cxyu29wkf",
+        "cmp4isbld00i7th0c43qmyu9k",
+        "cmp4isbme00i9th0chkdx8mf1",
+        "cmp4isbnf00ibth0cm9lpjfzg"
+      ],
+      "productIds": [
+        "cmoaexlld0042e9s0ix0dg4jc",
+        "cmoaexji5003le9s07b24dvb7",
+        "cmoaexx2g005qe9s06n2zpir2"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0AR40-A0NN0-3",
+      "normalizedSku": "0AR40A0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaexspf005ce9s0vprgtavk"],
+      "productIds": ["cmoaexspe0054e9s0anag2qf7"],
+      "observations": []
+    },
+    {
+      "sku": "0AR40-A0NO0-3",
+      "normalizedSku": "0AR40A0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaexspf005ee9s0h9q852dg"],
+      "productIds": ["cmoaexspe0054e9s0anag2qf7"],
+      "observations": []
+    },
+    {
+      "sku": "0AR40-B0NN0-3",
+      "normalizedSku": "0AR40B0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaexspf005de9s0wjkx6l0n"],
+      "productIds": ["cmoaexspe0054e9s0anag2qf7"],
+      "observations": []
+    },
+    {
+      "sku": "0AR40-B0NO0-3",
+      "normalizedSku": "0AR40B0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaexspf005fe9s0s7u6s6z4"],
+      "productIds": ["cmoaexspe0054e9s0anag2qf7"],
+      "observations": []
+    },
+    {
+      "sku": "0AR40-NVN00-2",
+      "normalizedSku": "0AR40NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaexspf005ge9s064rzoqs7"],
+      "productIds": ["cmoaexspe0054e9s0anag2qf7"],
+      "observations": []
+    },
+    {
+      "sku": "0AR61-B0NN0-3",
+      "normalizedSku": "0AR61B0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itx7b02mnth0c8mupwk9t",
+        "cmp4itx8a02mpth0cnnxm4gwo",
+        "cmp4itx9902mrth0czjr45o96"
+      ],
+      "productIds": ["cmoaexohx004je9s0dj7wz490"],
+      "observations": []
+    },
+    {
+      "sku": "0AR61-B0NO0-3",
+      "normalizedSku": "0AR61B0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itxab02mtth0cikys0n9o",
+        "cmp4itxbb02mvth0csqch3grk",
+        "cmp4itxcd02mxth0cfbgdqap0"
+      ],
+      "productIds": ["cmoaexohx004je9s0dj7wz490"],
+      "observations": []
+    },
+    {
+      "sku": "0AR80-NVN00-203",
+      "normalizedSku": "0AR80NVN00203",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is90t00dlth0cd89fyhis",
+        "cmp4is91t00dnth0c659bg3w2",
+        "cmp4is92u00dpth0czhc5yf9y",
+        "cmp4is93u00drth0ccylter7r",
+        "cmp4is94x00dtth0ccs3pcpqi",
+        "cmp4is95w00dvth0cgqtdl5qu",
+        "cmp4is96w00dxth0cy55xeu9g"
+      ],
+      "productIds": ["cmoaexa16002ee9s0apbs7vk9"],
+      "observations": []
+    },
+    {
+      "sku": "0AR82-NVNM0-2",
+      "normalizedSku": "0AR82NVNM02",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is97y00dzth0carogtmdd",
+        "cmp4is98y00e1th0cp4lx54yf",
+        "cmp4is99y00e3th0ckupaynxz",
+        "cmp4is9b000e5th0c7m0t322m",
+        "cmp4is9c000e7th0c4cww8s9d",
+        "cmp4is9d100e9th0c0frvzq41",
+        "cmp4is9e000ebth0c20p6eqvk"
+      ],
+      "productIds": ["cmoaexa16002ee9s0apbs7vk9"],
+      "observations": []
+    },
+    {
+      "sku": "0AS31-NVN00-201",
+      "normalizedSku": "0AS31NVN00201",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isavw00gtth0c8c0cgk8q",
+        "cmp4isawz00gvth0cnzp9oiga",
+        "cmp4isaxz00gxth0cwkk1mqwj",
+        "cmp4isayz00gzth0c4uj506t5",
+        "cmp4isazz00h1th0cgv9rnfyy",
+        "cmp4isb0z00h3th0cfmaczwye",
+        "cmp4isb2600h5th0cjrubamsi"
+      ],
+      "productIds": ["cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AS40-B0N00-3",
+      "normalizedSku": "0AS40B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isa3k00f9th0cilhh955l",
+        "cmp4isa4k00fbth0cdwmec56b",
+        "cmp4isa5j00fdth0cnbydcgbc",
+        "cmp4isa6k00ffth0csd117a7v",
+        "cmp4isa7l00fhth0ca6bue7sj",
+        "cmp4isa8l00fjth0c4wo75fia",
+        "cmp4isa9o00flth0c5oa8cu7e"
+      ],
+      "productIds": ["cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AS40-B0NM0-3",
+      "normalizedSku": "0AS40B0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isaaq00fnth0cn7i9a5pw",
+        "cmp4isabr00fpth0csl02an7d",
+        "cmp4isact00frth0cgteug722",
+        "cmp4isads00ftth0c8egog9j1",
+        "cmp4isaer00fvth0c9ibk34gv",
+        "cmp4isafu00fxth0cie5bq34p",
+        "cmp4isagu00fzth0csmgtapzq"
+      ],
+      "productIds": ["cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AS40-NVN00-2",
+      "normalizedSku": "0AS40NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isboi00idth0cxywor21t",
+        "cmp4isbpk00ifth0cjlplu92t",
+        "cmp4isbqj00ihth0c5bt6cr3u",
+        "cmp4isbrj00ijth0cnchoz11u",
+        "cmp4isbsj00ilth0c11fpby82",
+        "cmp4isbtj00inth0c3kfydxw7",
+        "cmp4isbuo00ipth0cy8qxflam"
+      ],
+      "productIds": ["cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0AS40-NVNM0-2",
+      "normalizedSku": "0AS40NVNM02",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isbvo00irth0c2eims3vu",
+        "cmp4isbwo00itth0cfmo8n848",
+        "cmp4isbxo00ivth0c2fktr1ge",
+        "cmp4isbyq00ixth0c7emmq0c6",
+        "cmp4isbzq00izth0cdjdzmiis",
+        "cmp4isc0t00j1th0c2vi642tg",
+        "cmp4isc1t00j3th0cb3fy7ye7"
+      ],
+      "productIds": ["cmoaexx2g005qe9s06n2zpir2"],
+      "observations": []
+    },
+    {
+      "sku": "0C540-TNNN00-2",
+      "normalizedSku": "0C540TNNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iss28012pth0cm7goz3z6",
+        "cmp4iss3a012rth0c8bn0e7zh",
+        "cmp4iss4b012tth0cngx9abui",
+        "cmp4iss5d012vth0cspq0aumd",
+        "cmp4iss6g012xth0clpve0q11",
+        "cmp4iss7g012zth0c5ek8kwzb",
+        "cmp4iss8i0131th0c3tu5fs48"
+      ],
+      "productIds": ["cmoaf1vl500w8e9s0siceeqzq"],
+      "observations": []
+    },
+    {
+      "sku": "0C600-TNNN00-2",
+      "normalizedSku": "0C600TNNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4issje0137th0c5zlmjk54",
+        "cmp4isskg0139th0c55fvjz75",
+        "cmp4isslf013bth0ce8bu9ni2",
+        "cmp4issmt013dth0ck4umhcq7",
+        "cmp4issns013fth0ch1zx6oat",
+        "cmp4issou013hth0cpaemn1uo",
+        "cmp4isspt013jth0cc7zhs22l"
+      ],
+      "productIds": ["cmoaf21wr00x3e9s0ajom0na6"],
+      "observations": []
+    },
+    {
+      "sku": "0C650-NNN00-2",
+      "normalizedSku": "0C650NNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isynj01bbth0co44glyc8",
+        "cmp4isyok01bdth0c41pzb7qn",
+        "cmp4isypl01bfth0ct7wnfes9",
+        "cmp4isyql01bhth0czi1wp3uk",
+        "cmp4isyrm01bjth0cp5swuazi",
+        "cmp4isysm01blth0cdlby85sk",
+        "cmp4isytl01bnth0cnzps820t"
+      ],
+      "productIds": ["cmoaf25s400xle9s0r6d4aix9"],
+      "observations": []
+    },
+    {
+      "sku": "0C650-TNNN00-2",
+      "normalizedSku": "0C650TNNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isqwd011bth0co07alx4e",
+        "cmp4isqxd011dth0crw5aycyw",
+        "cmp4isqyd011fth0c2zkqpw7m",
+        "cmp4isqze011hth0cmkw524st",
+        "cmp4isr0g011jth0cswiqthvz",
+        "cmp4isr1f011lth0cpytgsenw",
+        "cmp4isr2g011nth0czlsh6j8l"
+      ],
+      "productIds": ["cmoaf272300y4e9s0cgr9v74n"],
+      "observations": []
+    },
+    {
+      "sku": "0C720-A0N00-3",
+      "normalizedSku": "0C720A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it7sx01n7th0chgzsge01",
+        "cmp4itwqa02m5th0c4ellsnxa",
+        "cmp4it7tx01n9th0ct3bw57rk",
+        "cmp4itwrc02m7th0c6jxtf76d",
+        "cmp4itwsc02m9th0ced7cwluk",
+        "cmp4it7ux01nbth0cptes281r",
+        "cmp4it7vw01ndth0crd90a7ri",
+        "cmp4itwtg02mbth0c66hxen7w",
+        "cmp4it7wx01nfth0cmv1uyu1x",
+        "cmp4itwuh02mdth0cbwc1degr",
+        "cmp4itwvh02mfth0cmovqrn7v",
+        "cmp4it7xx01nhth0c1segabf2",
+        "cmp4itwwi02mhth0cwmqz1u6x",
+        "cmp4it7yx01njth0cf5whpus5"
+      ],
+      "productIds": ["cmoaf290300yje9s0i5nzwgxw", "cmoaf2bvd00zhe9s0ljplvxjr"],
+      "observations": []
+    },
+    {
+      "sku": "0C720-B0N00-3",
+      "normalizedSku": "0C720B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itwj702lrth0ckhjacsm8",
+        "cmp4it7lu01mtth0cny62r4uo",
+        "cmp4itwk602ltth0cfd4c24jd",
+        "cmp4it7mu01mvth0cmqebjiv5",
+        "cmp4it7nu01mxth0cneesf9re",
+        "cmp4itwl602lvth0csnznap2o",
+        "cmp4itwm502lxth0cy4na5p3l",
+        "cmp4it7ov01mzth0cnsj3armt",
+        "cmp4it7pv01n1th0c4sssp1br",
+        "cmp4itwn602lzth0c0uftxyxj",
+        "cmp4itwo902m1th0crxsymkfo",
+        "cmp4it7qw01n3th0cajf2f0ur",
+        "cmp4it7ry01n5th0ci4dh1v7d",
+        "cmp4itwpa02m3th0c6o2bch6t"
+      ],
+      "productIds": ["cmoaf2bvd00zhe9s0ljplvxjr", "cmoaf290300yje9s0i5nzwgxw"],
+      "observations": []
+    },
+    {
+      "sku": "0C720-TNNN00-2",
+      "normalizedSku": "0C720TNNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4ist0s013pth0chia836d3",
+        "cmp4ist1s013rth0cd4j0o5sq",
+        "cmp4ist2s013tth0c6lx9snhl",
+        "cmp4ist3t013vth0c4dbrep4l",
+        "cmp4ist4s013xth0c5nhvxrqb",
+        "cmp4ist5s013zth0cpfnyi2t6",
+        "cmp4ist6s0141th0cuf9ul24d"
+      ],
+      "productIds": ["cmoaf2ams00z1e9s0r2jvj4aa"],
+      "observations": []
+    },
+    {
+      "sku": "0CGT0-A0N00-3",
+      "normalizedSku": "0CGT0A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is76t00bbth0cx709nvce",
+        "cmp4isdil00kxth0cua66nxj7",
+        "cmp4isdjl00kzth0c34n84mwn",
+        "cmp4is77u00bdth0c7wtpqhxg",
+        "cmp4is78v00bfth0cojia3wcq",
+        "cmp4isdkl00l1th0cezg002ta",
+        "cmp4isdll00l3th0c448hva3g",
+        "cmp4is79w00bhth0cx4f50own",
+        "cmp4isdml00l5th0chwyptxv3",
+        "cmp4is7ax00bjth0cxcm6abyb",
+        "cmp4is7bw00blth0carcvizdt",
+        "cmp4isdnk00l7th0c1o6s35hw",
+        "cmp4is7cw00bnth0cp9i7p7am",
+        "cmp4isdok00l9th0cyzb6x0e4"
+      ],
+      "productIds": ["cmoaf1tf200vqe9s02im15t66", "cmoaf2e6r00zze9s0burws4qc"],
+      "observations": []
+    },
+    {
+      "sku": "0CGT0-B0N00-3",
+      "normalizedSku": "0CGT0B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isdbh00kjth0c20jpxs3y",
+        "cmp4isdch00klth0cc1ux5q2i",
+        "cmp4isddh00knth0c045o2236",
+        "cmp4isdei00kpth0csl0ftai6",
+        "cmp4isdfi00krth0coej1vue7",
+        "cmp4isdgk00ktth0cexo36a8y",
+        "cmp4isdhk00kvth0cr1kdgq73"
+      ],
+      "productIds": ["cmoaf2e6r00zze9s0burws4qc"],
+      "observations": []
+    },
+    {
+      "sku": "0CGT0-NVN00-2",
+      "normalizedSku": "0CGT0NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isdpl00lbth0cx1q92bc8",
+        "cmp4is7dz00bpth0cfy60y41t",
+        "cmp4is7f000brth0cjx3ok1ja",
+        "cmp4isdql00ldth0crzeuiul0",
+        "cmp4isdrl00lfth0ci98xl9ed",
+        "cmp4is7g000btth0c1t97ve3z",
+        "cmp4isdsl00lhth0cy6unlmx2",
+        "cmp4is7h000bvth0cryoer1o6",
+        "cmp4isdtk00ljth0c5g3iqf9v",
+        "cmp4is7i200bxth0cn56bbavm",
+        "cmp4isduk00llth0carc04o5x",
+        "cmp4is7j200bzth0cd8i7vdvc",
+        "cmp4is7k300c1th0cgei25e23",
+        "cmp4isdvm00lnth0coj5jm5z4"
+      ],
+      "productIds": ["cmoaf2e6r00zze9s0burws4qc", "cmoaf1tf200vqe9s02im15t66"],
+      "observations": []
+    },
+    {
+      "sku": "0CMP4-B0N00-3",
+      "normalizedSku": "0CMP4B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itn85028dth0cnm8nhkqc",
+        "cmp4it74j01mbth0cbpzql64p",
+        "cmp4is6zl00axth0cckplelqo",
+        "cmp4isyer01axth0cq3swmd2s",
+        "cmp4itn96028fth0cf2jdas7l",
+        "cmp4isyfs01azth0c974c0exr",
+        "cmp4is70n00azth0casu29ukb",
+        "cmp4it75j01mdth0c0fzu1jg7",
+        "cmp4isyhj01b1th0clmjtqlx5",
+        "cmp4itna5028hth0cjzjfozvf",
+        "cmp4it76j01mfth0cf8div0s3",
+        "cmp4is71q00b1th0cusilbmbl",
+        "cmp4itnb4028jth0ctcgecbet",
+        "cmp4isyij01b3th0cvdhtrr11",
+        "cmp4it77j01mhth0cgqxftyac",
+        "cmp4is72q00b3th0cijie69qt",
+        "cmp4is73r00b5th0chs5mpmt8",
+        "cmp4isyki01b5th0cny6ye3mp",
+        "cmp4itnc3028lth0c91crtp9z",
+        "cmp4it78i01mjth0c01h84dk9",
+        "cmp4is74s00b7th0cd4ju4e63",
+        "cmp4itnd2028nth0ck4ahmfb7",
+        "cmp4it79p01mlth0c6hmqeule",
+        "cmp4isyli01b7th0cxfanfdmh",
+        "cmp4itne1028pth0cotvqorhv",
+        "cmp4is75s00b9th0cddudxs9j",
+        "cmp4isymi01b9th0cnos0p084",
+        "cmp4it7as01mnth0cb87uwu77"
+      ],
+      "productIds": [
+        "cmoaf2gaw010fe9s0hhnxfikl",
+        "cmoaf1y7s00woe9s0nutl6l99",
+        "cmoaf1tf200vqe9s02im15t66",
+        "cmoaf25s400xle9s0r6d4aix9"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0CMP4-NVN00-2",
+      "normalizedSku": "0CMP4NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itnf1028rth0c4ek7b7wm",
+        "cmp4itng1028tth0cv1sl24li",
+        "cmp4itnh1028vth0copkjd4by",
+        "cmp4itni1028xth0cwxp1az30",
+        "cmp4itnj1028zth0cf30cjq2a",
+        "cmp4itnk00291th0cv7jb4ppc",
+        "cmp4itnl00293th0cem1zzyvr"
+      ],
+      "productIds": ["cmoaf2gaw010fe9s0hhnxfikl"],
+      "observations": []
+    },
+    {
+      "sku": "0F012-N0N00-4",
+      "normalizedSku": "0F012N0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isxxq01alth0c9vht1i8g",
+        "cmp4itki8024hth0c8pbs6lh9",
+        "cmp4isxyp01anth0cigqujf7n",
+        "cmp4itkj8024jth0crf8j3l5o"
+      ],
+      "productIds": ["cmoaf0ciz00lae9s0j7aqqe9p", "cmoaf011d00j5e9s0ujmzoqmx"],
+      "observations": []
+    },
+    {
+      "sku": "0F012-NVN00-4",
+      "normalizedSku": "0F012NVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isxzp01apth0c8ir6d1m8",
+        "cmp4itkk7024lth0ccojjhnog",
+        "cmp4isy0o01arth0c9oyfn7h4",
+        "cmp4itkla024nth0cnkxknw5w"
+      ],
+      "productIds": ["cmoaf0ciz00lae9s0j7aqqe9p", "cmoaf011d00j5e9s0ujmzoqmx"],
+      "observations": []
+    },
+    {
+      "sku": "0F012-TN0N00-4",
+      "normalizedSku": "0F012TN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isq0b010nth0cv8xza4wk",
+        "cmp4itdyx01vjth0ckb9enylm",
+        "cmp4itdzx01vlth0ccuj34f1z",
+        "cmp4isq1d010pth0coyapzptg"
+      ],
+      "productIds": ["cmoaf03e700jwe9s0pypmoc9i", "cmoaf0f8900lve9s0ofjzgp6k"],
+      "observations": []
+    },
+    {
+      "sku": "0F012-TNVN00-4",
+      "normalizedSku": "0F012TNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isq2d010rth0c8al8iwcn",
+        "cmp4ite1301vnth0cakq4um8x",
+        "cmp4isq3g010tth0c3ve8zbta",
+        "cmp4ite2501vpth0cb1cpllr6"
+      ],
+      "productIds": ["cmoaf03e700jwe9s0pypmoc9i", "cmoaf0f8900lve9s0ofjzgp6k"],
+      "observations": []
+    },
+    {
+      "sku": "0F0F8-TNVN00-2",
+      "normalizedSku": "0F0F8TNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isvww017xth0cpcivfzs7",
+        "cmp4isvxx017zth0cfw36xgkj",
+        "cmp4isvyx0181th0cx0ckyp4q",
+        "cmp4isvzw0183th0c4zm7bicf",
+        "cmp4isw0z0185th0c9by5narv",
+        "cmp4isw220187th0c8r8kgjih",
+        "cmp4isw310189th0cfs5b1z6j"
+      ],
+      "productIds": ["cmoaf0ucg00p8e9s0uh484bxn"],
+      "observations": []
+    },
+    {
+      "sku": "0F0FF-TN0N00-4",
+      "normalizedSku": "0F0FFTN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it4o201j9th0cr4s2ndmp",
+        "cmp4it4p301jbth0cwhaexo9u",
+        "cmp4it4q401jdth0ctkb47dat",
+        "cmp4it4r401jfth0cw6jdhin9",
+        "cmp4it4s401jhth0cza30gkeq",
+        "cmp4it4t301jjth0c9osyjirh",
+        "cmp4it4u301jlth0ckftctwil"
+      ],
+      "productIds": ["cmoaf0i5300mge9s0g6bov2b3"],
+      "observations": []
+    },
+    {
+      "sku": "0F0FF-TNVN00-4",
+      "normalizedSku": "0F0FFTNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it4v201jnth0c3q4e3dcn",
+        "cmp4it4w201jpth0c8x6i5471",
+        "cmp4it4x301jrth0cf0in57ty",
+        "cmp4it4y301jtth0c3i92gms3",
+        "cmp4it4z701jvth0cx1xquv6m",
+        "cmp4it50601jxth0c660buryz",
+        "cmp4it51601jzth0cq75p4rmk"
+      ],
+      "productIds": ["cmoaf0i5300mge9s0g6bov2b3"],
+      "observations": []
+    },
+    {
+      "sku": "0F2960-NVN00-4",
+      "normalizedSku": "0F2960NVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk046002vth38l53mwdn3",
+        "cmp4fk055002xth38xvfsjcsh",
+        "cmp4fk066002zth38np3wcl41",
+        "cmp4fk0770031th3822sizxn3"
+      ],
+      "productIds": ["cmoaezpkj00gwe9s0665zjpd2"],
+      "observations": []
+    },
+    {
+      "sku": "0F2960-TNVN00-4",
+      "normalizedSku": "0F2960TNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk002002nth38i0emckk8",
+        "cmp4fk012002pth382tsk6utt",
+        "cmp4fk024002rth38h6uariqt",
+        "cmp4fk035002tth3899csxw8w"
+      ],
+      "productIds": ["cmoaezpkj00gwe9s0665zjpd2"],
+      "observations": []
+    },
+    {
+      "sku": "0F360-A0N00-3",
+      "normalizedSku": "0F360A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4irz4e001nth0cf1hzwc28",
+        "cmp4irz5e001pth0ctlnc7xuq",
+        "cmp4irz6h001rth0cs934qjec",
+        "cmp4irz7k001tth0cnvlmmhat",
+        "cmp4irz8j001vth0cyjczcj0f",
+        "cmp4irz9j001xth0cu44i9emr",
+        "cmp4irzak001zth0c1dlhoetn"
+      ],
+      "productIds": ["cmoaezu1z00hke9s0glrhanzu"],
+      "observations": []
+    },
+    {
+      "sku": "0F360-B0N00-3",
+      "normalizedSku": "0F360B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iryxf0019th0cw589pxol",
+        "cmp4iryyf001bth0corm04g4j",
+        "cmp4iryzf001dth0cjvpdbwil",
+        "cmp4irz0e001fth0cqtyws3k0",
+        "cmp4irz1e001hth0ctefk31hq",
+        "cmp4irz2e001jth0c2zlz8dw1",
+        "cmp4irz3e001lth0cmmymr0wl"
+      ],
+      "productIds": ["cmoaezu1z00hke9s0glrhanzu"],
+      "observations": []
+    },
+    {
+      "sku": "0F360-NVN00-4",
+      "normalizedSku": "0F360NVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4irzir002fth0cbf4dpx7o",
+        "cmp4irzjt002hth0cyie0fw5g",
+        "cmp4irzks002jth0cqxsysru7",
+        "cmp4irzlr002lth0c78swr2vw",
+        "cmp4irzmr002nth0cyu2gpseh",
+        "cmp4irzns002pth0codar3slv",
+        "cmp4irzot002rth0ccidn8y7s"
+      ],
+      "productIds": ["cmoaezu1z00hke9s0glrhanzu"],
+      "observations": []
+    },
+    {
+      "sku": "0F430-N0N00-3",
+      "normalizedSku": "0F430N0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4irzbl0021th0cfoqvjvkd",
+        "cmp4irzcm0023th0c55nbk104",
+        "cmp4irzdm0025th0ci8wy0quz",
+        "cmp4irzem0027th0cehbaxp74",
+        "cmp4irzfn0029th0chfcw7yed",
+        "cmp4irzgr002bth0cjf06ognv",
+        "cmp4irzhs002dth0c8npqrphn"
+      ],
+      "productIds": ["cmoaezu1z00hke9s0glrhanzu"],
+      "observations": []
+    },
+    {
+      "sku": "0F458-TNVN00-5",
+      "normalizedSku": "0F458TNVN005",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4ispj00105th0c67h0iujt",
+        "cmp4ispk10107th0ca2zjb23k",
+        "cmp4ispl00109th0c8vbcj978",
+        "cmp4ispm2010bth0cdy9ioias",
+        "cmp4ispn3010dth0cmlyip7lg",
+        "cmp4ispo5010fth0c77q5b17c",
+        "cmp4ispp4010hth0cqgjs480g"
+      ],
+      "productIds": ["cmoaezydx00ide9s0fg53lmcy"],
+      "observations": []
+    },
+    {
+      "sku": "0F488-TNVF00-2",
+      "normalizedSku": "0F488TNVF002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isvpo017jth0cr0btajrf",
+        "cmp4isvqr017lth0c9ms57arm",
+        "cmp4isvrr017nth0c96tx59xu",
+        "cmp4isvsr017pth0c3ucdamq6",
+        "cmp4isvts017rth0c5edpjti0",
+        "cmp4isvuv017tth0ceeybjj3i",
+        "cmp4isvvu017vth0c2yhond2w"
+      ],
+      "productIds": ["cmoaf0ucg00p8e9s0uh484bxn"],
+      "observations": []
+    },
+    {
+      "sku": "0FG4T-N0N00-4",
+      "normalizedSku": "0FG4TN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4itvgn02kjth0cntg98ydh", "cmp4itvhp02klth0cuz508lzw"],
+      "productIds": ["cmoaf0m5f00mxe9s0rjbikd5u"],
+      "observations": []
+    },
+    {
+      "sku": "0FG4T-NVN00-4",
+      "normalizedSku": "0FG4TNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4itvir02knth0cxs4h42q5", "cmp4itvjr02kpth0csk82xdkh"],
+      "productIds": ["cmoaf0m5f00mxe9s0rjbikd5u"],
+      "observations": []
+    },
+    {
+      "sku": "0FG4T-TN0N00-4",
+      "normalizedSku": "0FG4TTN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4isov100ztth0cepegsirx", "cmp4isow200zvth0cpxahmjwi"],
+      "productIds": ["cmoaf0o5w00nie9s0clsxqybx"],
+      "observations": []
+    },
+    {
+      "sku": "0FG4T-TNVN00-4",
+      "normalizedSku": "0FG4TTNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4isox100zxth0cy216aejo", "cmp4isoy100zzth0cp5s3xzu2"],
+      "productIds": ["cmoaf0o5w00nie9s0clsxqybx"],
+      "observations": []
+    },
+    {
+      "sku": "0FPOR-N0N00-4",
+      "normalizedSku": "0FPORN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4is54a008tth0cfkvt3zii", "cmp4is55d008vth0cnwm803xn"],
+      "productIds": ["cmoaf0rcj00o2e9s0dwy3lwqp"],
+      "observations": []
+    },
+    {
+      "sku": "0FPOR-NVN00-4",
+      "normalizedSku": "0FPORNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4is56f008xth0c7eipklft", "cmp4is57e008zth0cnj22lnvq"],
+      "productIds": ["cmoaf0rcj00o2e9s0dwy3lwqp"],
+      "observations": []
+    },
+    {
+      "sku": "0FPOR-TN0N00-4",
+      "normalizedSku": "0FPORTN0N004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4isqi5010zth0c7odmjqop", "cmp4isqj70111th0cjurng7a8"],
+      "productIds": ["cmoaf0t4o00one9s07hdg0dmt"],
+      "observations": []
+    },
+    {
+      "sku": "0FPOR-TNVN00-4",
+      "normalizedSku": "0FPORTNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4isqkb0113th0cr3ddtdlw", "cmp4isqlb0115th0c5ka28n05"],
+      "productIds": ["cmoaf0t4o00one9s07hdg0dmt"],
+      "observations": []
+    },
+    {
+      "sku": "0FPSG-A0NM0-3",
+      "normalizedSku": "0FPSGA0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4hi4jy0005th10opuwtqsw",
+        "cmp4hi4lu0007th10xs6fepgj",
+        "cmp4hi4mu0009th10vt9jqpik"
+      ],
+      "productIds": ["cmoaf09ke00kme9s06y5y36ht"],
+      "observations": []
+    },
+    {
+      "sku": "0FPSG-AVNM0-1",
+      "normalizedSku": "0FPSGAVNM01",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4hi4qt000hth10tya93x89",
+        "cmp4hi4rr000jth10asr6zq8w",
+        "cmp4hi4so000lth10x86e8kut"
+      ],
+      "productIds": ["cmoaf09ke00kme9s06y5y36ht"],
+      "observations": []
+    },
+    {
+      "sku": "0FPSG-TNVN00-2",
+      "normalizedSku": "0FPSGTNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4hi4nw000bth102wwt4chl",
+        "cmp4hi4oy000dth10xf55sokk",
+        "cmp4hi4pv000fth10hs143dh1"
+      ],
+      "productIds": ["cmoaf09ke00kme9s06y5y36ht"],
+      "observations": []
+    },
+    {
+      "sku": "0KCVC8-B0NN0-3",
+      "normalizedSku": "0KCVC8B0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itoxp02b7th0ckajpdhdb",
+        "cmp4itoyo02b9th0cp95zql1r",
+        "cmp4itozn02bbth0cupvtta89",
+        "cmp4itp0m02bdth0cz55y3lg8",
+        "cmp4itp1n02bfth0chdf8yz1w",
+        "cmp4itp2r02bhth0cy7ehxfjc",
+        "cmp4itp3q02bjth0c864g63ce"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0KCVC8-NNN00-2",
+      "normalizedSku": "0KCVC8NNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itfgg01x3th0c14o3fr6l",
+        "cmp4itfhg01x5th0cje109r7u",
+        "cmp4itfig01x7th0ctrvyw3qh",
+        "cmp4itfjf01x9th0cm4nt2hgj",
+        "cmp4itfkh01xbth0cyvw8vs55",
+        "cmp4itflj01xdth0czwnmqvl9",
+        "cmp4itfmi01xfth0c0v0y1un6"
+      ],
+      "productIds": ["cmoaf30sx013be9s09pnuxoh0"],
+      "observations": []
+    },
+    {
+      "sku": "0KCVC8-NVN00-2",
+      "normalizedSku": "0KCVC8NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itful01xvth0clmmqgipc",
+        "cmp4itfvm01xxth0cjwmdyq3r",
+        "cmp4itfwp01xzth0cb8d9tpjf",
+        "cmp4itfxq01y1th0c150ja5e6",
+        "cmp4itfyr01y3th0cdycva0au",
+        "cmp4itfzr01y5th0c43kudx4u",
+        "cmp4itg0q01y7th0cakthmq4h"
+      ],
+      "productIds": ["cmoaf30sx013be9s09pnuxoh0"],
+      "observations": []
+    },
+    {
+      "sku": "0L610-NVF00-201",
+      "normalizedSku": "0L610NVF00201",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isx9h019pth0c87rjal0x",
+        "cmp4isxaj019rth0c1b23tdf3",
+        "cmp4isxbj019tth0cdtwuf3r5",
+        "cmp4isxcj019vth0crdihogvi",
+        "cmp4isxdj019xth0c4hniop3b",
+        "cmp4isxek019zth0c8g6k3vyd",
+        "cmp4isxfm01a1th0ceatlfmb9"
+      ],
+      "productIds": ["cmoaf19rs00rse9s0p93hocw4"],
+      "observations": []
+    },
+    {
+      "sku": "0L640-A0N00-3",
+      "normalizedSku": "0L640A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itljt025zth0cf8rluk4n",
+        "cmp4itlkt0261th0cru580h39",
+        "cmp4itllz0263th0cpjztpp08",
+        "cmp4itlmz0265th0cxsaw1ulg",
+        "cmp4itlnz0267th0c06msni7g",
+        "cmp4itloz0269th0cz0y80uun",
+        "cmp4itlpz026bth0c6kklui8t"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0L640-B0N00-3",
+      "normalizedSku": "0L640B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itlck025lth0cqet9efxq",
+        "cmp4itldj025nth0cv5k1za56",
+        "cmp4itlem025pth0ctsxvu42g",
+        "cmp4itlfm025rth0colfwxvxn",
+        "cmp4itlgl025tth0cyuv7suft",
+        "cmp4itlhl025vth0c54pjvv61",
+        "cmp4itliq025xth0c28lzb2p0"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0L640-NNN00-2",
+      "normalizedSku": "0L640NNN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it27401frth0cxmfi4ka1",
+        "cmp4it28401ftth0cyxu538bw",
+        "cmp4it29401fvth0cvphuk65y",
+        "cmp4it2a401fxth0cviju983h",
+        "cmp4it2b401fzth0c4fdx3pv0",
+        "cmp4it2c501g1th0cdtqys2gd",
+        "cmp4it2d501g3th0cb3ejk4zh"
+      ],
+      "productIds": ["cmoaf1c1b00sge9s07tlbqyak"],
+      "observations": []
+    },
+    {
+      "sku": "0L700-TB0N00-3",
+      "normalizedSku": "0L700TB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itlyb026rth0ccwawgrhf",
+        "cmp4itlzb026tth0cas3l4jdz",
+        "cmp4itm0b026vth0cpd95js88",
+        "cmp4itm1b026xth0c1co29w9x",
+        "cmp4itm2a026zth0csdkmyi1i",
+        "cmp4itm3a0271th0chkpy854p",
+        "cmp4itm4a0273th0cgv2ixbj2"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0L700-TNVN00-2",
+      "normalizedSku": "0L700TNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iswse0197th0csmcujqmu",
+        "cmp4iswte0199th0ch3th7eo8",
+        "cmp4iswue019bth0c675x43ob",
+        "cmp4iswvg019dth0c3lodiy0l",
+        "cmp4iswwi019fth0c873s9dfq",
+        "cmp4iswxj019hth0cy4q3zzyd",
+        "cmp4iswyj019jth0c9k78sjw9"
+      ],
+      "productIds": ["cmoaf18iv00r2e9s07xkyoz44"],
+      "observations": []
+    },
+    {
+      "sku": "0L750-TNVN00-2",
+      "normalizedSku": "0L750TNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isxgm01a3th0cvfyvs4gq",
+        "cmp4isxho01a5th0c2tshncr9",
+        "cmp4isxir01a7th0clljo0v25",
+        "cmp4isxjq01a9th0cfk3erc7d",
+        "cmp4isxkp01abth0cxzt1739k",
+        "cmp4isxlp01adth0ccspj9ldd",
+        "cmp4isxmq01afth0c12o30n54"
+      ],
+      "productIds": ["cmoaf19rs00rse9s0p93hocw4"],
+      "observations": []
+    },
+    {
+      "sku": "0LHUE-NVNO0-2",
+      "normalizedSku": "0LHUENVNO02",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iswlb018tth0cdh6f25m0",
+        "cmp4iswmb018vth0cqwbntm6a",
+        "cmp4iswnd018xth0cionoe40e",
+        "cmp4iswod018zth0c9ozkrejx",
+        "cmp4iswpc0191th0ch9udg02x",
+        "cmp4iswqd0193th0crujqqasr",
+        "cmp4iswrd0195th0cejznjjoo",
+        "cmp4it2l501gjth0cni1pse09",
+        "cmp4it2m501glth0cwqvovmpu",
+        "cmp4it2n401gnth0c03pi6qtj",
+        "cmp4it2o501gpth0ccv2i87ab",
+        "cmp4it2p501grth0cjawo44uo",
+        "cmp4it2q701gtth0c6ppyiobk",
+        "cmp4it2r701gvth0c0ass6il4"
+      ],
+      "productIds": ["cmoaf18iv00r2e9s07xkyoz44", "cmoaf1c1b00sge9s07tlbqyak"],
+      "observations": []
+    },
+    {
+      "sku": "0LHUP-NVN00-2",
+      "normalizedSku": "0LHUPNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk0ke0035th38l5na64ji",
+        "cmp4iswe8018fth0c1hmdroil",
+        "cmp4iswf9018hth0czn12uu2x",
+        "cmp4fk0lg0037th38kqy2o1pz",
+        "cmp4iswg9018jth0c2gevy1p9",
+        "cmp4iswh9018lth0cgusvoyu0",
+        "cmp4iswi9018nth0cnqk22588",
+        "cmp4iswjc018pth0ce3gt3l9y",
+        "cmp4iswkb018rth0cc8pea679",
+        "cmp4it2e501g5th0cfa8xvnaf",
+        "cmp4it2f401g7th0cpheo5l8k",
+        "cmp4it2g501g9th0csznsqdty",
+        "cmp4it2h501gbth0ctjnzoxon",
+        "cmp4it2i601gdth0ctvc5ni9e",
+        "cmp4it2j601gfth0cb7mj7xgh",
+        "cmp4it2k501ghth0cj5c58544"
+      ],
+      "productIds": [
+        "cmoaf1dh200t0e9s0y8w8vuin",
+        "cmoaf18iv00r2e9s07xkyoz44",
+        "cmoaf1c1b00sge9s07tlbqyak"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0LURS-A0NN0-3",
+      "normalizedSku": "0LURSA0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itlr0026dth0c2gl2hdox",
+        "cmp4itls0026fth0cu3bdl431",
+        "cmp4itlt3026hth0crqkjbsfv",
+        "cmp4itlu3026jth0cnql594jk",
+        "cmp4itlv3026lth0c6yauslqj",
+        "cmp4itlw7026nth0ctgsdr4a8",
+        "cmp4itlx9026pth0ci847yspb"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0LURS-A0NO0-3",
+      "normalizedSku": "0LURSA0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iscs600k1th0c26zui2qy",
+        "cmp4isct600k3th0c1y3i1m8e",
+        "cmp4iscu900k5th0cwpv1nh6v",
+        "cmp4iscv900k7th0ctpiwfbb2",
+        "cmp4iscwa00k9th0c41696q9c",
+        "cmp4iscxc00kbth0c912i6ham",
+        "cmp4iscyd00kdth0c9o068dpo"
+      ],
+      "productIds": ["cmoaf1hed00tee9s0c8tvdx74"],
+      "observations": []
+    },
+    {
+      "sku": "0LURS-B0NN0-3",
+      "normalizedSku": "0LURSB0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itkyh024tth0cb3haxloj",
+        "cmp4itkzh024vth0c2tt53d8r",
+        "cmp4itl0g024xth0c2zaw3out",
+        "cmp4itl1f024zth0cwf33uvag",
+        "cmp4itl2f0251th0ccjpen8mk",
+        "cmp4itl3f0253th0cc7ulxw1p",
+        "cmp4itl4f0255th0c9w4pmiw7"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0LURS-B0NO0-3",
+      "normalizedSku": "0LURSB0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itl5f0257th0cg2115srr",
+        "cmp4itl6f0259th0coqp2j2ak",
+        "cmp4itl7h025bth0cfrn02h45",
+        "cmp4itl8i025dth0cfqwmp0ea",
+        "cmp4itl9j025fth0cl9xucdvd",
+        "cmp4itlak025hth0clybzpjbn",
+        "cmp4itlbk025jth0ctn654dgw"
+      ],
+      "productIds": ["cmoaf12f200q8e9s0i4awnzte"],
+      "observations": []
+    },
+    {
+      "sku": "0M2D0-A0N00-301",
+      "normalizedSku": "0M2D0A0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isodw00zbth0c9ogfnu8d",
+        "cmp4isoex00zdth0clpnmnp9i",
+        "cmp4isofz00zfth0cnt3d97w8",
+        "cmp4isogz00zhth0cr42kur3q",
+        "cmp4isohz00zjth0cor765kom",
+        "cmp4isoiz00zlth0ccitjqvck",
+        "cmp4isok200znth0ctxju06ha"
+      ],
+      "productIds": ["cmoaf1lvy00uje9s0c16sq8c1"],
+      "observations": []
+    },
+    {
+      "sku": "0MGH0-A0N00-3",
+      "normalizedSku": "0MGH0A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is69400a1th0cjah317o3",
+        "cmp4it6gm01lfth0cu6akkn8p",
+        "cmp4it6hm01lhth0cbird0ijm",
+        "cmp4is6a400a3th0cgik5orib",
+        "cmp4is6b300a5th0cclkry34f",
+        "cmp4it6il01ljth0cvkfdkezn",
+        "cmp4it6jm01llth0c8a3nhtig",
+        "cmp4is6ca00a7th0ce9xkm61v",
+        "cmp4it6km01lnth0chg0q844n",
+        "cmp4is6da00a9th0cpca0xydw",
+        "cmp4is6e900abth0cx1l63od2",
+        "cmp4it6lm01lpth0cy90yyes7",
+        "cmp4it6mn01lrth0cnyrxf7to",
+        "cmp4is6f900adth0ccnrealci"
+      ],
+      "productIds": ["cmoaf1qaa00v9e9s05j0td5g7", "cmoaf1k7e00u0e9s0oziniste"],
+      "observations": []
+    },
+    {
+      "sku": "0MGH0-NVN00-2",
+      "normalizedSku": "0MGH0NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it6no01ltth0cnypnmqda",
+        "cmp4it6on01lvth0cwl7xw3j3",
+        "cmp4it6pp01lxth0c41zka8mj",
+        "cmp4it6qo01lzth0cecltgba1",
+        "cmp4it6ro01m1th0ctqr3xgu4",
+        "cmp4it6sn01m3th0c7uw1og2g",
+        "cmp4it6tn01m5th0cqoevlklg"
+      ],
+      "productIds": ["cmoaf1k7e00u0e9s0oziniste"],
+      "observations": []
+    },
+    {
+      "sku": "0MLE0-NVN00-2",
+      "normalizedSku": "0MLE0NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it60x01l3th0cv31z3fx1",
+        "cmp4it61x01l5th0c16xmnepn",
+        "cmp4it62w01l7th0c3zlb4kfe",
+        "cmp4it63v01l9th0cwe89f0qr"
+      ],
+      "productIds": ["cmoaf1ngw00uwe9s03plmg1a7"],
+      "observations": []
+    },
+    {
+      "sku": "0MQP6-NVN00-2",
+      "normalizedSku": "0MQP6NVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is6ga00afth0cuomw9n7g",
+        "cmp4is6hd00ahth0cgtpko2go",
+        "cmp4is6id00ajth0ck51zw5m9",
+        "cmp4is6je00alth0c055agqfo",
+        "cmp4is6ke00anth0cm9rjza8p",
+        "cmp4is6le00apth0ccvruo9xf",
+        "cmp4is6mg00arth0ciq4stsjx"
+      ],
+      "productIds": ["cmoaf1qaa00v9e9s05j0td5g7"],
+      "observations": []
+    },
+    {
+      "sku": "0N400Z-BVN00-1",
+      "normalizedSku": "0N400ZBVN001",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4itv4f02kbth0cyqtukec0", "cmp4itv5i02kdth0cew22qmkc"],
+      "productIds": ["cmoaf4u6501ere9s0cihwp1r7"],
+      "observations": []
+    },
+    {
+      "sku": "0NGR35-A0N00-302",
+      "normalizedSku": "0NGR35A0N00302",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it5gz01kfth0cvdh6rjve",
+        "cmp4it5hz01khth0cjft0u8ud",
+        "cmp4it5iz01kjth0c8kg60hzj",
+        "cmp4it5k001klth0cjil6fvcy",
+        "cmp4it5l001knth0cxpzkrppo"
+      ],
+      "productIds": ["cmoaf4qg001e6e9s0ullzrsdp"],
+      "observations": []
+    },
+    {
+      "sku": "0NGR35-B0N00-302",
+      "normalizedSku": "0NGR35B0N00302",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it5c101k5th0c34qhzark",
+        "cmp4it5d001k7th0crbx0kv52",
+        "cmp4it5e101k9th0cx0pcyq3m",
+        "cmp4it5f001kbth0co1onl3lq",
+        "cmp4it5fz01kdth0c1xzzjvh7"
+      ],
+      "productIds": ["cmoaf4qg001e6e9s0ullzrsdp"],
+      "observations": []
+    },
+    {
+      "sku": "0NGR35-NVN00-202",
+      "normalizedSku": "0NGR35NVN00202",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it5m001kpth0c4k3hlt8a",
+        "cmp4it5n101krth0ce9y5e9hf",
+        "cmp4it5o201ktth0c5fo6sbt8",
+        "cmp4it5p201kvth0cc6wv4ove",
+        "cmp4it5q201kxth0cqdtrn956"
+      ],
+      "productIds": ["cmoaf4qg001e6e9s0ullzrsdp"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-A0N00-301",
+      "normalizedSku": "0P18G4A0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itac101qtth0cmkkgzwho",
+        "cmp4mj8c9003jthjoe6agrb8w",
+        "cmp4mj8d7003lthjou6nzqwk2",
+        "cmp4itad201qvth0cg8q6tx92",
+        "cmp4itae201qxth0cbg4lgyb3",
+        "cmp4mj8e5003nthjobesj33r3",
+        "cmp4itaf201qzth0cnzhstyft",
+        "cmp4mj8f4003pthjo003ol9xg",
+        "cmp4itag201r1th0cuzcivncg",
+        "cmp4mj8g2003rthjoosj6z08q",
+        "cmp4itah201r3th0cbt8ak8d0",
+        "cmp4mj8h0003tthjorpny5qvs",
+        "cmp4mj8hy003vthjotgjqjht1",
+        "cmp4itai301r5th0c8y9qrwlm"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19", "cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-B0N00-301",
+      "normalizedSku": "0P18G4B0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it9xs01q1th0cjxpmg4il",
+        "cmp4it9yt01q3th0cx1bl0l7i",
+        "cmp4it9zt01q5th0cb54gzinr",
+        "cmp4ita0t01q7th0c36dlvtk2",
+        "cmp4ita1s01q9th0cobirubc0",
+        "cmp4ita2s01qbth0ck6wly3jl",
+        "cmp4ita3r01qdth0cdf58e52g",
+        "cmp4mj85j0035thjoe7c4uh1r",
+        "cmp4mj86h0037thjoeaw2uf2c",
+        "cmp4mj87e0039thjo499br35q",
+        "cmp4mj88e003bthjo6gcwgxjc",
+        "cmp4mj89b003dthjomcfcbh4s",
+        "cmp4mj8aa003fthjovpvyp1z8",
+        "cmp4mj8b9003hthjo7i3dlhzm"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19", "cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-N0N00-301",
+      "normalizedSku": "0P18G4N0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mj7ea001lthjo6oyjcq6s",
+        "cmp4mj7f9001nthjo3o9sebu3",
+        "cmp4mj7g8001pthjopen3vn9i",
+        "cmp4mj7h6001rthjo0e18fs0w",
+        "cmp4mj7i4001tthjo9s9ycpnd",
+        "cmp4mj7j1001vthjosy3qja6b",
+        "cmp4mj7k0001xthjos72vtwiw",
+        "cmp4itpbm02bzth0cwycn665g",
+        "cmp4itpcl02c1th0czmigqxwo",
+        "cmp4itpdn02c3th0cn8tnjfzd",
+        "cmp4itpeo02c5th0cbxbjc69n",
+        "cmp4itpfq02c7th0cuqcajmzx",
+        "cmp4itpgr02c9th0c19ky7ko0",
+        "cmp4itphv02cbth0cebft67n6"
+      ],
+      "productIds": ["cmoaf58hq01gse9s0p8zhgs7b", "cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-N0NO0-3",
+      "normalizedSku": "0P18G4N0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isnmi00yfth0cg7xwf0t7",
+        "cmp4isnnj00yhth0crmemg9yu",
+        "cmp4isnok00yjth0clmsj81p4",
+        "cmp4isnpo00ylth0c4bjtuh7g",
+        "cmp4isnqp00ynth0cw2udteax",
+        "cmp4isnrq00ypth0chztyur6q",
+        "cmp4isnsp00yrth0cbm8qsnzh",
+        "cmp4mj7kz001zthjokmypvlt0",
+        "cmp4mj7lx0021thjo7sp5ekh0",
+        "cmp4mj7mu0023thjokisv96hy",
+        "cmp4mj7ns0025thjoo3npqj54",
+        "cmp4mj7oq0027thjo9bs690m8",
+        "cmp4mj7po0029thjo4siyz3mv",
+        "cmp4mj7ql002bthjoi0cy2ni9"
+      ],
+      "productIds": ["cmoaf53og01fwe9s09rp4p5q4", "cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-NVN00-401",
+      "normalizedSku": "0P18G4NVN00401",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mj8iw003xthjo8gy7s526",
+        "cmp4mj8jx003zthjopfc6dky7",
+        "cmp4mj8kv0041thjo14t3u7xh",
+        "cmp4mj8lv0043thjoptrdhcpz",
+        "cmp4mj8my0045thjolige4lu5",
+        "cmp4mj8o00047thjo8oz4ecpf",
+        "cmp4mj8oz0049thjolceg9r1d"
+      ],
+      "productIds": ["cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-TN0NN0-3",
+      "normalizedSku": "0P18G4TN0NN03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it9jk01p9th0c6rbsluql",
+        "cmp4it9kl01pbth0civwb152v",
+        "cmp4it9lk01pdth0ccoq4xn0h",
+        "cmp4it9mp01pfth0ck064rg98",
+        "cmp4it9no01phth0cu0nufdnp",
+        "cmp4it9op01pjth0c4r0ka0fh",
+        "cmp4it9pp01plth0c1nsygkz5",
+        "cmp4mj7rk002dthjo0erfvo3v",
+        "cmp4mj7sj002fthjo8r69dgw8",
+        "cmp4mj7tj002hthjo1t3hcpqn",
+        "cmp4mj7um002jthjot2d4dbu4",
+        "cmp4mj7vk002lthjo9pxcqp9r",
+        "cmp4mj7wj002nthjofktxf5in",
+        "cmp4mj7xg002pthjo5q0t4ug6"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19", "cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-TN0NO0-3",
+      "normalizedSku": "0P18G4TN0NO03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it9qp01pnth0csatqg53n",
+        "cmp4it9rq01ppth0cpx8dm8et",
+        "cmp4it9sq01prth0cwcfp8gv7",
+        "cmp4it9tr01ptth0c2ufoct8p",
+        "cmp4it9us01pvth0cdgo1t802",
+        "cmp4it9vs01pxth0ctrak7007",
+        "cmp4it9ws01pzth0czwrwkizz",
+        "cmp4mj7yf002rthjoyi74iob5",
+        "cmp4mj7zd002tthjorzt62lqc",
+        "cmp4mj80k002vthjoek3vxazd",
+        "cmp4mj81i002xthjoenz7qvti",
+        "cmp4mj82g002zthjof8c85dmc",
+        "cmp4mj83o0031thjoqhsfkhq0",
+        "cmp4mj84m0033thjohyt9l90e"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19", "cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18G4-TNVN00-4",
+      "normalizedSku": "0P18G4TNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mj8pz004bthjokkk03thf",
+        "cmp4mj8qy004dthjojwvu9bdr",
+        "cmp4mj8ry004fthjos8y7phq5",
+        "cmp4mj8sy004hthjo1yyzx4mf",
+        "cmp4mj8tx004jthjo6utslh10",
+        "cmp4mj8uw004lthjo1qla9m9g",
+        "cmp4mj8vv004nthjobuu8odoc"
+      ],
+      "productIds": ["cmoaf58hq01gse9s0p8zhgs7b"],
+      "observations": []
+    },
+    {
+      "sku": "0P18GR-N0NM0-3",
+      "normalizedSku": "0P18GRN0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itaj401r7th0c92e9jlzf",
+        "cmp4itak401r9th0ck3i0qg0f",
+        "cmp4ital501rbth0cvum2yzzm",
+        "cmp4itam501rdth0c12w80lht",
+        "cmp4itan601rfth0cn46ver7h",
+        "cmp4itao801rhth0cncnik8gi",
+        "cmp4itap701rjth0cg4tiu5mp"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19"],
+      "observations": []
+    },
+    {
+      "sku": "0P702N-NVN00-2",
+      "normalizedSku": "0P702NNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is3ty0079th0cogl7hg5i",
+        "cmp4is3uz007bth0c3w3451gm",
+        "cmp4is3vz007dth0c8yqmc2tv"
+      ],
+      "productIds": ["cmoaf864l0206e9s0vf5i6o2o"],
+      "observations": []
+    },
+    {
+      "sku": "0P718N-A0N00-301",
+      "normalizedSku": "0P718NA0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it9cm01ovth0cerw6stv7",
+        "cmp4it9dm01oxth0cqbkz8rzl",
+        "cmp4it9el01ozth0cc10fpwpf",
+        "cmp4it9fl01p1th0cixf8la2j",
+        "cmp4it9gl01p3th0cfb387zev",
+        "cmp4it9hk01p5th0cakj0r0re",
+        "cmp4it9il01p7th0cucb4mmzr"
+      ],
+      "productIds": ["cmoaf7ksc01w3e9s0ndocvr19"],
+      "observations": []
+    },
+    {
+      "sku": "0P718N-NVN00-2-01",
+      "normalizedSku": "0P718NNVN00201",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk1a3003pth38ho259naz",
+        "cmp4fk1b3003rth38j5mxe2mm",
+        "cmp4fk1c3003tth38qqaq5lc7",
+        "cmp4fk1d3003vth38rgb6tpl6",
+        "cmp4fk1e3003xth38czgm1i00",
+        "cmp4fk1f2003zth387h0h9e5z",
+        "cmp4fk1g10041th381013fqw8",
+        "cmp4fk1h20043th38zuq65pzz"
+      ],
+      "productIds": ["cmoaf4wqj01f8e9s05dtfcneo"],
+      "observations": []
+    },
+    {
+      "sku": "0P87FN-A0N00-3",
+      "normalizedSku": "0P87FNA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isgil00pjth0cnfncptk2",
+        "cmp4isgjl00plth0ckiln631a",
+        "cmp4isgkl00pnth0cra4lo8z7"
+      ],
+      "productIds": ["cmoaf7gj501vle9s0b2wt06rw"],
+      "observations": []
+    },
+    {
+      "sku": "0P87FN-NVN00-2",
+      "normalizedSku": "0P87FNNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is0920039th0c8x5f588s",
+        "cmp4is0a2003bth0ckcfhwopq",
+        "cmp4is0b2003dth0cn3v22diw"
+      ],
+      "productIds": ["cmoaf7e4x01uze9s0kk3mpjg3"],
+      "observations": []
+    },
+    {
+      "sku": "0P87RN-A0N00-3",
+      "normalizedSku": "0P87RNA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is05z0033th0ci0jjyihf",
+        "cmp4is0710035th0c6ujqx2vc",
+        "cmp4is0820037th0cb6ksitnh"
+      ],
+      "productIds": ["cmoaf7e4x01uze9s0kk3mpjg3"],
+      "observations": []
+    },
+    {
+      "sku": "0P87RN-B0N00-3",
+      "normalizedSku": "0P87RNB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is02y002xth0cshpx8zde",
+        "cmp4is03y002zth0c77jtcrcp",
+        "cmp4is04y0031th0cg50hdn3d"
+      ],
+      "productIds": ["cmoaf7e4x01uze9s0kk3mpjg3"],
+      "observations": []
+    },
+    {
+      "sku": "0P91G3-TNVN00-2",
+      "normalizedSku": "0P91G3TNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itbm501svth0ccj6pv7ff",
+        "cmp4itbn501sxth0cc0e4auvu",
+        "cmp4itbo501szth0ccggxagjj",
+        "cmp4itbp601t1th0cc3bvrgsh",
+        "cmp4itbq701t3th0c0h2q0spx",
+        "cmp4itbr701t5th0cbdnd9t76",
+        "cmp4itbs801t7th0cde1yb6sc"
+      ],
+      "productIds": ["cmoaf6j6201p8e9s0matv3rcp"],
+      "observations": []
+    },
+    {
+      "sku": "0P91RN-AVN00-2",
+      "normalizedSku": "0P91RNAVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf5wtz01lne9s0ge0tr45r",
+        "cmp4itaq701rlth0camn5znsz",
+        "cmp4itar701rnth0cb9vggef1",
+        "cmp4itas601rpth0chwjaen3j",
+        "cmp4itat601rrth0cccvv6635",
+        "cmp4itau601rtth0c8us5koni",
+        "cmp4itav601rvth0cpn4jhmlu",
+        "cmp4itaw501rxth0clk4qe78k"
+      ],
+      "productIds": ["cmoaf5wtz01l9e9s05nu69a8x", "cmoaf7ksc01w3e9s0ndocvr19"],
+      "observations": []
+    },
+    {
+      "sku": "0P91RN-BVN00-2",
+      "normalizedSku": "0P91RNBVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaf5wtz01lpe9s0nxvb9dcd"],
+      "productIds": ["cmoaf5wtz01l9e9s05nu69a8x"],
+      "observations": []
+    },
+    {
+      "sku": "0P92FN-A0N00-3",
+      "normalizedSku": "0P92FNA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itpx902d5th0c4tykq4y3",
+        "cmp4itpy802d7th0cbzhf7tgh",
+        "cmp4itpz802d9th0c9h75sbac",
+        "cmp4itq0802dbth0c1p272sx3",
+        "cmp4itq1702ddth0cf98mqg7x",
+        "cmp4itq2702dfth0c7w85t3no",
+        "cmp4itq3602dhth0cr1ksj7vd"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P92FN-A0N00-302",
+      "normalizedSku": "0P92FNA0N00302",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itq4502djth0cvols736n",
+        "cmp4itq5502dlth0crs0ioug4",
+        "cmp4itq6502dnth0cry1pq2ct",
+        "cmp4itq7702dpth0cbyov1adw",
+        "cmp4itq8802drth0cf70eadgg",
+        "cmp4itq9c02dtth0cyd17vedi",
+        "cmp4itqac02dvth0cu73fr83v"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P92FN-B0N00-3",
+      "normalizedSku": "0P92FNB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itpq202crth0cmn3ixi2u",
+        "cmp4itpr402ctth0cfciwoppo",
+        "cmp4itps502cvth0co56udz6k",
+        "cmp4itpt602cxth0c0fotsqpj",
+        "cmp4itpu802czth0cw587or17",
+        "cmp4itpv802d1th0c5v942mwj",
+        "cmp4itpw802d3th0cnywacehf"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P92G3-NVPM0-2",
+      "normalizedSku": "0P92G3NVPM02",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk2o3005fth38yoksvblx",
+        "cmp4fk321005rth38n3lcv7ob",
+        "cmp4fk2p3005hth38pe87r1kl",
+        "cmp4fk3kw006dth380ho0a5rq",
+        "cmp4fk3ly006fth381i58u9d8",
+        "cmp4fk3mx006hth386nff58w8",
+        "cmp4fk3nw006jth38czk0jm7j"
+      ],
+      "productIds": [
+        "cmoaf65zz01mje9s0z89hrc6t",
+        "cmoaf6adj01n7e9s0zo7o621b",
+        "cmoaf76i501sxe9s0xnlw23cd"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0P92G3-TNVPM0-2",
+      "normalizedSku": "0P92G3TNVPM02",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4fk2m3005bth38nvddol50", "cmp4fk2n3005dth38x4w83z50"],
+      "productIds": ["cmoaf65zz01mje9s0z89hrc6t"],
+      "observations": []
+    },
+    {
+      "sku": "0P95BN-NVN00-2",
+      "normalizedSku": "0P95BNNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4it89u01npth0c5s0v2mcf",
+        "cmp4it8at01nrth0ckhbndxvu",
+        "cmp4it8bs01ntth0c0jcvrlps"
+      ],
+      "productIds": ["cmoaf80gt01yue9s016lk7dvz"],
+      "observations": []
+    },
+    {
+      "sku": "0P95BN-NVN00-4",
+      "normalizedSku": "0P95BNNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itqbe02dxth0c80vqyxsv",
+        "cmp4itqcg02dzth0cv891ictf",
+        "cmp4itqdh02e1th0cywpi21dj",
+        "cmp4itqeh02e3th0ct60zlv7q",
+        "cmp4itqfh02e5th0carr6ylpf",
+        "cmp4itqgh02e7th0cbbtd4oit",
+        "cmp4itqhh02e9th0cgl5f2rbq"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P970N-A0N00-3",
+      "normalizedSku": "0P970NA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is3eb006xth0cbjz8qtc9",
+        "cmp4is3fb006zth0c237saner",
+        "cmp4is3pu0071th0c1mc0sp8z"
+      ],
+      "productIds": ["cmoaf864l0206e9s0vf5i6o2o"],
+      "observations": []
+    },
+    {
+      "sku": "0P970N-B0N00-3",
+      "normalizedSku": "0P970NB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is3b4006rth0cr9dg299u",
+        "cmp4is3c4006tth0cspazrdg6",
+        "cmp4is3da006vth0csaqoj9xi"
+      ],
+      "productIds": ["cmoaf864l0206e9s0vf5i6o2o"],
+      "observations": []
+    },
+    {
+      "sku": "0P970T-A0N00-3",
+      "normalizedSku": "0P970TA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is3qu0073th0cwubvalr3",
+        "cmp4is3rx0075th0c8btx1w5s",
+        "cmp4is3sy0077th0cabl8p1s8"
+      ],
+      "productIds": ["cmoaf864l0206e9s0vf5i6o2o"],
+      "observations": []
+    },
+    {
+      "sku": "0P971T-B0NM0-3",
+      "normalizedSku": "0P971TB0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itp4r02blth0chvqbba3b",
+        "cmp4itp5q02bnth0c2aznje54",
+        "cmp4itp6p02bpth0cd631xclm",
+        "cmp4itp7p02brth0cclxnhpgh",
+        "cmp4itp8n02btth0cjk3q6lgg",
+        "cmp4itp9m02bvth0cjh8oau27",
+        "cmp4itpam02bxth0c4mswfsri"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P971T-N0N00-3",
+      "normalizedSku": "0P971TN0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itny70299th0cvq3ak3vn",
+        "cmp4itnz6029bth0clevxllcz",
+        "cmp4ito05029dth0c1vfcifuz",
+        "cmp4ito15029fth0cqfm2zttp",
+        "cmp4ito24029hth0cbrspzd6n",
+        "cmp4ito36029jth0c77g21xy7",
+        "cmp4ito45029lth0ci7rvuvvm"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P971T-NVN00-4",
+      "normalizedSku": "0P971TNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is0ny003jth0clb8ukiqw",
+        "cmp4is0oy003lth0cl9yaknwo",
+        "cmp4is0q3003nth0cstpnmwfj"
+      ],
+      "productIds": ["cmoaf833r01zfe9s0tj7caqmo"],
+      "observations": []
+    },
+    {
+      "sku": "0P976T-N0NM0-3",
+      "normalizedSku": "0P976TN0NM03",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itojc02afth0c2lwcth7s",
+        "cmp4itokb02ahth0cui6wcf1k",
+        "cmp4itole02ajth0cgnpxpoyr",
+        "cmp4itome02alth0cyklanfxj",
+        "cmp4itone02anth0czyfush2k",
+        "cmp4itooe02apth0c4370d2mm",
+        "cmp4itopf02arth0cqs8nnah7"
+      ],
+      "productIds": ["cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P97FN-A0N00-3",
+      "normalizedSku": "0P97FNA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4ithdf0201th0ch8twmw93",
+        "cmp4itheh0203th0cure55z6c",
+        "cmoaf8ch2021oe9s0m9e7mhyg",
+        "cmp4ithfh0205th0cr77n7yge",
+        "cmp4ithgh0207th0c1uyg8dnk",
+        "cmp4ithhh0209th0cdh100n24",
+        "cmp4ithij020bth0ca1bzdhxu",
+        "cmp4ithjk020dth0chj5t9ta5"
+      ],
+      "productIds": ["cmoaf5qu101jwe9s0vbacukpt", "cmoaf8ch2021ke9s0ldhba6o4"],
+      "observations": []
+    },
+    {
+      "sku": "0P97FN-B0N00-3",
+      "normalizedSku": "0P97FNB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaf8ch2021pe9s04rvokkme"],
+      "productIds": ["cmoaf8ch2021ke9s0ldhba6o4"],
+      "observations": []
+    },
+    {
+      "sku": "0P97FN-NVN00-4",
+      "normalizedSku": "0P97FNNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf8ch2021qe9s0d43f0nnc",
+        "cmp4isz4o01btth0cg6cb6b0m",
+        "cmp4isz5q01bvth0cbo5ve835",
+        "cmp4isz6p01bxth0ctojyc5kb",
+        "cmp4isz7p01bzth0crvnz58x7",
+        "cmp4isz8q01c1th0chkrp26yp",
+        "cmp4isz9q01c3th0cspbw4x1v",
+        "cmp4iszar01c5th0cpu2y5cga"
+      ],
+      "productIds": ["cmoaf8ch2021ke9s0ldhba6o4", "cmoaf6gje01oje9s01s9bvvpm"],
+      "observations": []
+    },
+    {
+      "sku": "0P97FT-AVN00-2",
+      "normalizedSku": "0P97FTAVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isziu01clth0cuas08r5a",
+        "cmp4iszju01cnth0cii2heeqz",
+        "cmp4iszku01cpth0cynu9c0r1",
+        "cmp4iszlx01crth0cqkffjw98",
+        "cmp4iszmx01ctth0c8oi0il0g",
+        "cmp4iszny01cvth0cyr19d6uu",
+        "cmp4iszp001cxth0cqfl98c93"
+      ],
+      "productIds": ["cmoaf6gje01oje9s01s9bvvpm"],
+      "observations": []
+    },
+    {
+      "sku": "0P97FT-BVN00-2",
+      "normalizedSku": "0P97FTBVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4iszbs01c7th0c1f8spa89",
+        "cmp4iszcs01c9th0cgk3xkn1l",
+        "cmp4iszds01cbth0cruqum0l3",
+        "cmp4iszet01cdth0cg6bbpweh",
+        "cmp4iszft01cfth0c941zgbyt",
+        "cmp4iszgt01chth0cd8bqauvz",
+        "cmp4iszhv01cjth0c7ljiaoww"
+      ],
+      "productIds": ["cmoaf6gje01oje9s01s9bvvpm"],
+      "observations": []
+    },
+    {
+      "sku": "0P97G3-A0N00-3",
+      "normalizedSku": "0P97G3A0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isuz5016nth0c7lh8qcs6",
+        "cmp4isv0a016pth0cfd4k3ilv",
+        "cmp4isv1b016rth0ccntsurb6",
+        "cmp4isv2c016tth0c3lhhljk4",
+        "cmp4isv3c016vth0cy6fat8p6",
+        "cmp4isv4c016xth0cz060384q",
+        "cmp4isv5e016zth0c8mwiwff0"
+      ],
+      "productIds": ["cmoaf6dha01nse9s0z2aslzpo"],
+      "observations": []
+    },
+    {
+      "sku": "0P97G3-B0N00-3",
+      "normalizedSku": "0P97G3B0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isurx0169th0c5guphmk1",
+        "cmp4isusy016bth0ci5hc3wq9",
+        "cmp4isuty016dth0chtbi584j",
+        "cmp4isuuz016fth0ch15t4exl",
+        "cmp4isuw3016hth0c7rqg2vnb",
+        "cmp4isux3016jth0cno5lwcpu",
+        "cmp4isuy4016lth0c8tbyczpx"
+      ],
+      "productIds": ["cmoaf6dha01nse9s0z2aslzpo"],
+      "observations": []
+    },
+    {
+      "sku": "0P97RN-NVN00-2",
+      "normalizedSku": "0P97RNNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4is2tx0069th0c0k1mcykm",
+        "cmp4is2uz006bth0c6ogrzero",
+        "cmp4is2vz006dth0c3a83m87s",
+        "cmp4is2x1006fth0czbh6914y",
+        "cmp4is2y2006hth0crxvhpyp5",
+        "cmp4is2z3006jth0cbtaaa4nr",
+        "cmp4is303006lth0cldzlm8fu"
+      ],
+      "productIds": ["cmoaf609x01lze9s0f6trcfqg"],
+      "observations": []
+    },
+    {
+      "sku": "0P97RT-AVN00-2",
+      "normalizedSku": "0P97RTAVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mja7c0067thjo9w7l91po",
+        "cmp4mjair0069thjo2lqovda0",
+        "cmp4mjajq006bthjoed1ixkvb"
+      ],
+      "productIds": ["cmoaf6w4101rke9s081rzo10x"],
+      "observations": []
+    },
+    {
+      "sku": "0P97RT-BVN00-2",
+      "normalizedSku": "0P97RTBVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4mja4j0061thjom5fzz6s5",
+        "cmp4mja5g0063thjofyecjv6k",
+        "cmp4mja6f0065thjofbna6jm4"
+      ],
+      "productIds": ["cmoaf6w4101rke9s081rzo10x"],
+      "observations": []
+    },
+    {
+      "sku": "0P981N-A0N00-3",
+      "normalizedSku": "0P981NA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isrkx0127th0cffogcb2v",
+        "cmp4isrly0129th0ct87sgxn3",
+        "cmp4isrmz012bth0c4m5567ga",
+        "cmp4isrnz012dth0cr4l1utrt",
+        "cmp4isrp1012fth0c09pjz0h8",
+        "cmp4isrq0012hth0cfquenog1",
+        "cmp4isrr8012jth0c934lrkpc"
+      ],
+      "productIds": ["cmoaf5awk01hne9s0mi84nbtx"],
+      "observations": []
+    },
+    {
+      "sku": "0P981N-B0N00-3",
+      "normalizedSku": "0P981NB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isrdt011tth0c6hg0g28v",
+        "cmp4isrev011vth0cgbsa41td",
+        "cmp4isrfw011xth0c95pix5jx",
+        "cmp4isrgw011zth0cjx3iewab",
+        "cmp4isrhw0121th0cxcsrhkrv",
+        "cmp4isriw0123th0cy7e9rk6m",
+        "cmp4isrjx0125th0cbz2elfcz"
+      ],
+      "productIds": ["cmoaf5awk01hne9s0mi84nbtx"],
+      "observations": []
+    },
+    {
+      "sku": "0P981N-NVN00-2",
+      "normalizedSku": "0P981NNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmp4iti1x020xth0csgf9sy1w", "cmp4iti2x020zth0cdx3ik6um"],
+      "productIds": ["cmoaf7ai901tve9s07pklhc1m"],
+      "observations": []
+    },
+    {
+      "sku": "0P981N-TNVN00-2",
+      "normalizedSku": "0P981NTNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isn5c00xxth0cikqlz3iv",
+        "cmp4isn6c00xzth0cpvxy3r31",
+        "cmp4isn7b00y1th0cwo51xgqr",
+        "cmp4isn8b00y3th0c2jt3axn2",
+        "cmp4isn9b00y5th0csocv6id0",
+        "cmp4isnab00y7th0cmiey6u6l",
+        "cmp4isnbb00y9th0cidexqbdq"
+      ],
+      "productIds": ["cmoaf7bq901uhe9s0uoa18s6s"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-A0N00-3",
+      "normalizedSku": "0P991NA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk1u2004bth38a83offgn",
+        "cmp4fk1wd004fth38fguplhvo",
+        "cmp4fk1yc004jth38cg59vw31",
+        "cmp4fk20c004nth387628tx19",
+        "cmp4fk22e004rth381enb4qip",
+        "cmp4fk24e004vth38gdi14urx",
+        "cmp4fk26g004zth38811ylq7f",
+        "cmp4fk28f0053th38np8j0w58"
+      ],
+      "productIds": ["cmoaf5ika01i7e9s018w5sau1"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-A0N00-301",
+      "normalizedSku": "0P991NA0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf5wtz01lie9s0fqg7134e",
+        "cmp4ita4t01qfth0cwltfphaz",
+        "cmp4ita5u01qhth0c7ryy8myk",
+        "cmp4ita6v01qjth0cnoi5eqle",
+        "cmp4ita7w01qlth0cfu73t1xj",
+        "cmp4ita8x01qnth0caxr1w3so",
+        "cmp4itaa201qpth0c0i6xe0ne",
+        "cmp4itab201qrth0ctf7xa8w5"
+      ],
+      "productIds": ["cmoaf5wtz01l9e9s05nu69a8x", "cmoaf7ksc01w3e9s0ndocvr19"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-B0N00-3",
+      "normalizedSku": "0P991NB0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4fk1vc004dth38zeb483aj",
+        "cmp4fk1xc004hth38p9uffhns",
+        "cmp4fk1zc004lth381hrn6bcn",
+        "cmp4fk21b004pth389d76jxjt",
+        "cmp4fk23e004tth38nprwl5so",
+        "cmp4fk25f004xth383s2oodd2",
+        "cmp4fk27f0051th38utzvyq9l",
+        "cmp4fk29f0055th38q3xlgbok"
+      ],
+      "productIds": ["cmoaf5ika01i7e9s018w5sau1"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-B0N00-301",
+      "normalizedSku": "0P991NB0N00301",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaf5wtz01lje9s0mghps2pm"],
+      "productIds": ["cmoaf5wtz01l9e9s05nu69a8x"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-NVN00-2",
+      "normalizedSku": "0P991NNVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4isgxr00ptth0c8od29brv",
+        "cmp4isgyr00pvth0cc51yx5cc",
+        "cmp4isgzs00pxth0ce9w3y6fy",
+        "cmp4ish0r00pzth0cbkfpdw9z",
+        "cmp4ish1r00q1th0c00u5ujd3",
+        "cmp4ish2r00q3th0cwfq6cht9",
+        "cmp4ish3r00q5th0cyjatau1v"
+      ],
+      "productIds": ["cmoaf5t2b01koe9s0rpyig3d1"],
+      "observations": []
+    },
+    {
+      "sku": "0P991N-NVN00-201",
+      "normalizedSku": "0P991NNVN00201",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": ["cmoaf5wtz01lke9s08hy9sj9e"],
+      "productIds": ["cmoaf5wtz01l9e9s05nu69a8x"],
+      "observations": []
+    },
+    {
+      "sku": "0P991T-AVN00-2",
+      "normalizedSku": "0P991TAVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6p3n01qle9s0sei2ojj7",
+        "cmp4mj9gv0059thjoot9hnkg1",
+        "cmp4mj9hu005bthjoljf3fwzg",
+        "cmp4mj9iy005dthjo9cy4o6a3",
+        "cmp4mj9jw005fthjog3gbr7hi"
+      ],
+      "productIds": ["cmoaf6p3m01qfe9s0ua6tavih", "cmoaf6n5s01pre9s0eubctkhk"],
+      "observations": []
+    },
+    {
+      "sku": "0P991T-BVN00-2",
+      "normalizedSku": "0P991TBVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6p3n01qne9s0sbaiihvm",
+        "cmp4mj9cz0051thjoor85fs0l",
+        "cmp4mj9dx0053thjomvo3pdlm",
+        "cmp4mj9ey0055thjonnso1o0t",
+        "cmp4mj9fx0057thjoqpb8hxm6"
+      ],
+      "productIds": ["cmoaf6p3m01qfe9s0ua6tavih", "cmoaf6n5s01pre9s0eubctkhk"],
+      "observations": []
+    },
+    {
+      "sku": "0P991T-TAVN0S-2",
+      "normalizedSku": "0P991TTAVN0S2",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6p3n01qpe9s0sujbv22q",
+        "cmp4mj9op005pthjom31k6x9t",
+        "cmp4mj9pm005rthjo9v62lmpd",
+        "cmp4mj9qp005tthjo5ra6jewp",
+        "cmp4mj9rm005vthjopxzwhbjb",
+        "cmp4itb4901sdth0cid73c5hw",
+        "cmp4itb5a01sfth0clrne9xq9",
+        "cmp4itb6a01shth0co8od4ve0",
+        "cmp4itb7901sjth0crdvs7eds",
+        "cmp4itb8901slth0cvr9ki0cp",
+        "cmp4itb9901snth0c3hqnqsbz",
+        "cmp4itba901spth0ckpbkylj7"
+      ],
+      "productIds": [
+        "cmoaf6p3m01qfe9s0ua6tavih",
+        "cmoaf6n5s01pre9s0eubctkhk",
+        "cmoaf7ksc01w3e9s0ndocvr19"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0P991T-TBVN0S-2",
+      "normalizedSku": "0P991TTBVN0S2",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6p3n01qre9s0l9zuah2k",
+        "cmp4mj9ku005hthjo8cgs7clg",
+        "cmp4mj9ls005jthjo7g563n9y",
+        "cmp4mj9mt005lthjo2ld5lqx7",
+        "cmp4mj9nr005nthjok9g2diin",
+        "cmp4itax401rzth0cbcrrsc3h",
+        "cmp4itay601s1th0cyp4zdnk1",
+        "cmp4itaz701s3th0cq1h1depo",
+        "cmp4itb0701s5th0cplfcamcq",
+        "cmp4itb1801s7th0czaylhiqh",
+        "cmp4itb2801s9th0c31ell2yg",
+        "cmp4itb3801sbth0cm65aggo5"
+      ],
+      "productIds": [
+        "cmoaf6p3m01qfe9s0ua6tavih",
+        "cmoaf6n5s01pre9s0eubctkhk",
+        "cmoaf7ksc01w3e9s0ndocvr19"
+      ],
+      "observations": []
+    },
+    {
+      "sku": "0P996N-A0N00-3",
+      "normalizedSku": "0P996NA0N003",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itgpk01z5th0caeyjbixy",
+        "cmp4itgqk01z7th0canjq5m6l",
+        "cmp4itgrk01z9th0c41ekk0gy",
+        "cmp4itgsj01zbth0c19p80ysb",
+        "cmp4itgtj01zdth0cs0ibxj5q",
+        "cmp4itguj01zfth0choncp9ar",
+        "cmp4itgvj01zhth0cinlv7gmh"
+      ],
+      "productIds": ["cmoaf5m3t01j7e9s07n04ll7f"],
+      "observations": []
+    },
+    {
+      "sku": "0P996N-NVN00-4",
+      "normalizedSku": "0P996NNVN004",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmp4itgwj01zjth0cow27wlck",
+        "cmp4itgxj01zlth0cup5bqg0n",
+        "cmp4itgyi01znth0cm0lksltw",
+        "cmp4itgzi01zpth0ci37j8cjg",
+        "cmp4ith0h01zrth0clfgiiw6a",
+        "cmp4ith1h01ztth0cj4eevogx",
+        "cmp4ith2g01zvth0chtlnwmpi"
+      ],
+      "productIds": ["cmoaf5m3t01j7e9s07n04ll7f"],
+      "observations": []
+    },
+    {
+      "sku": "0P996T-AVN00-2",
+      "normalizedSku": "0P996TAVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6yvs01sge9s0waur38lx",
+        "cmp4itqpm02epth0cnhbytaim",
+        "cmp4itqql02erth0czwmj8b0i",
+        "cmp4itqrk02etth0c3egf6cgh",
+        "cmp4itqsl02evth0ca19kuzkw",
+        "cmp4itqtl02exth0cqin4xyhd",
+        "cmp4itquq02ezth0cs3bqyr0w",
+        "cmp4itqvq02f1th0c4t2ictue"
+      ],
+      "productIds": ["cmoaf6yvr01s9e9s03fl9q5rl", "cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    },
+    {
+      "sku": "0P996T-BVN00-2",
+      "normalizedSku": "0P996TBVN002",
+      "reason": "not_found",
+      "message": null,
+      "variantIds": [
+        "cmoaf6yvs01sie9s0j424seh1",
+        "cmp4itqii02ebth0cffczow5l",
+        "cmp4itqjl02edth0ckws5rgkv",
+        "cmp4itqkm02efth0ctofn8uh1",
+        "cmp4itqll02ehth0ctprizp86",
+        "cmp4itqml02ejth0cns5urckd",
+        "cmp4itqnl02elth0c3jitdfay",
+        "cmp4itqon02enth0clkna1f69"
+      ],
+      "productIds": ["cmoaf6yvr01s9e9s03fl9q5rl", "cmoaf7vzh01xze9s0mu1hylyv"],
+      "observations": []
+    }
+  ]
+}

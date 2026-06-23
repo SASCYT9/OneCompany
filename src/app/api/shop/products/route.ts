@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { serializePublicShopProduct } from '@/lib/shopPublicProducts';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { serializePublicShopProduct } from "@/lib/shopPublicProducts";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,16 +14,19 @@ export async function GET(request: NextRequest) {
       getShopProductsServer(),
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
+    const country = request.nextUrl.searchParams.get("country");
     const pricingContext = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
     );
 
-    const scope = request.nextUrl.searchParams.get('scope');
-    const collectionHandle = request.nextUrl.searchParams.get('collection');
-    const query = request.nextUrl.searchParams.get('q')?.trim().toLowerCase() ?? '';
+    const scope = request.nextUrl.searchParams.get("scope");
+    const collectionHandle = request.nextUrl.searchParams.get("collection");
+    const query = request.nextUrl.searchParams.get("q")?.trim().toLowerCase() ?? "";
 
     const filtered = products.filter((product) => {
       if (scope && product.scope !== scope) {
@@ -46,7 +49,7 @@ export async function GET(request: NextRequest) {
           product.category.ua,
         ]
           .filter(Boolean)
-          .join(' ')
+          .join(" ")
           .toLowerCase();
 
         if (!haystack.includes(query)) {
@@ -56,11 +59,13 @@ export async function GET(request: NextRequest) {
       return true;
     });
 
-    return NextResponse.json(filtered.map((product) => serializePublicShopProduct(product, pricingContext)));
+    return NextResponse.json(
+      filtered.map((product) => serializePublicShopProduct(product, pricingContext))
+    );
   } catch (error) {
-    console.error('Shop products list', error);
-    return NextResponse.json({ error: 'Failed to list products' }, { status: 500 });
+    console.error("Shop products list", error);
+    return NextResponse.json({ error: "Failed to list products" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

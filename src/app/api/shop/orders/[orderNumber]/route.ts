@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ orderNumber: string }> }
 ) {
   const { orderNumber } = await params;
-  const token = req.nextUrl.searchParams.get('token');
+  const token = req.nextUrl.searchParams.get("token");
   const session = await getCurrentShopCustomerSession();
 
   const order = await prisma.shopOrder.findFirst({
@@ -15,20 +15,20 @@ export async function GET(
       ? { orderNumber, viewToken: token }
       : session?.customerId
         ? { orderNumber, customerId: session.customerId }
-        : { orderNumber: '__missing__' },
+        : { orderNumber: "__missing__" },
     include: {
       items: true,
       shipments: {
-        orderBy: [{ createdAt: 'desc' }],
+        orderBy: [{ createdAt: "desc" }],
       },
     },
   });
 
   if (!order) {
     if (!token?.trim() && !session?.customerId) {
-      return NextResponse.json({ error: 'Token required' }, { status: 400 });
+      return NextResponse.json({ error: "Token required" }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
   const itemsList = order.items.map((i) => {
@@ -39,13 +39,13 @@ export async function GET(
     let discountPercent: number | null = null;
     let originalPrice: number | null = null;
 
-    if (snap?.source === 'turn14_catalog') {
+    if (snap?.source === "turn14_catalog") {
       sku = snap.partNumber || null;
       brand = snap.brandName || null;
     } else if (snap?.items) {
       const d = (snap.items as any[]).find((item) => item.slug === i.productSlug);
-      if (d?.slug?.startsWith('turn14-')) {
-        sku = d.slug.replace('turn14-', '');
+      if (d?.slug?.startsWith("turn14-")) {
+        sku = d.slug.replace("turn14-", "");
         const brandMatch = i.title.match(/\((.*?)\)$/);
         if (brandMatch) brand = brandMatch[1];
       }
@@ -56,14 +56,14 @@ export async function GET(
       }
     }
 
-    if (!sku && i.productSlug?.startsWith('turn14-')) {
-      sku = i.productSlug.replace('turn14-', '');
+    if (!sku && i.productSlug?.startsWith("turn14-")) {
+      sku = i.productSlug.replace("turn14-", "");
       const brandMatch = i.title.match(/\((.*?)\)$/);
       if (brandMatch) brand = brandMatch[1];
     }
-    
-    if (!sku && i.productSlug?.startsWith('crm-')) {
-      sku = i.productSlug.replace('crm-', '');
+
+    if (!sku && i.productSlug?.startsWith("crm-")) {
+      sku = i.productSlug.replace("crm-", "");
     }
 
     return {
@@ -91,7 +91,7 @@ export async function GET(
   return NextResponse.json({
     orderNumber: order.orderNumber,
     status: order.status,
-    paymentMethod: order.paymentMethod ?? 'FOP',
+    paymentMethod: order.paymentMethod ?? "FOP",
     email: order.email,
     customerName: order.customerName,
     phone: order.phone,
@@ -99,13 +99,32 @@ export async function GET(
     currency: order.currency,
     customerGroupSnapshot: order.customerGroupSnapshot,
     subtotal: Number(order.subtotal),
-    regionalAdjustmentAmount: Number(((order.pricingSnapshot as Record<string, unknown> | null)?.regionalAdjustmentAmount as number | undefined) ?? 0),
+    regionalAdjustmentAmount: Number(
+      ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalAdjustmentAmount as
+        | number
+        | undefined) ?? 0
+    ),
     shippingCost: Number(order.shippingCost),
+    taxableSubtotal: Number(
+      ((order.pricingSnapshot as Record<string, unknown> | null)?.taxableSubtotal as
+        | number
+        | undefined) ?? 0
+    ),
+    taxableShippingCost: Number(
+      ((order.pricingSnapshot as Record<string, unknown> | null)?.taxableShippingCost as
+        | number
+        | undefined) ?? 0
+    ),
     taxAmount: Number(order.taxAmount),
     total: Number(order.total),
     pricingSnapshot: order.pricingSnapshot,
-    regionalPricingRule: ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalPricingRule as object | undefined) ?? null,
-    showTaxesIncludedNotice: Boolean((order.pricingSnapshot as Record<string, unknown> | null)?.showTaxesIncludedNotice),
+    regionalPricingRule:
+      ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalPricingRule as
+        | object
+        | undefined) ?? null,
+    showTaxesIncludedNotice: Boolean(
+      (order.pricingSnapshot as Record<string, unknown> | null)?.showTaxesIncludedNotice
+    ),
     createdAt: order.createdAt.toISOString(),
     items: itemsList,
     shipments: order.shipments.map((shipment) => ({

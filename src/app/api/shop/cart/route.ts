@@ -29,11 +29,14 @@ export async function GET(request: NextRequest) {
       getOrCreateShopSettings(prisma),
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
+    const country = request.nextUrl.searchParams.get("country");
     const context = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
     );
     const { cart, token } = await resolveShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
@@ -56,6 +59,7 @@ export async function POST(request: NextRequest) {
     items?: Array<{ slug: string; quantity: number; variantId?: string | null }>;
     currency?: string;
     locale?: string;
+    country?: string;
   };
   try {
     body = (await request.json()) as {
@@ -73,11 +77,15 @@ export async function POST(request: NextRequest) {
       getOrCreateShopSettings(prisma),
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
+    const country =
+      String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
     const context = buildShopViewerPricingContext(
       settings,
       session?.group ?? null,
       Boolean(session),
-      session?.b2bDiscountPercent ?? null
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
     );
     const { cart, token } = await replaceEntireShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
