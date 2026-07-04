@@ -27,6 +27,7 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
     girodisc: `/${locale}/shop/girodisc`,
     ipe: `/${locale}/shop/ipe`,
     adro: `/${locale}/shop/adro`,
+    ilmberger: `/${locale}/shop/ilmberger`,
   };
   return map[store.id] ?? store.href ?? "#";
 }
@@ -62,6 +63,7 @@ const STORE_ORDER = [
   "girodisc",
   "ipe",
   "adro",
+  "ilmberger",
   "kw",
   "fi",
   "eventuri",

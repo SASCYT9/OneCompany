@@ -2502,6 +2502,33 @@ export function getAkrapovicProductsServer() {
   });
 }
 
+/** Ilmberger Carbon: brand/vendor variants or explicit tags. */
+export function getIlmbergerProductsServer() {
+  return getShopProductsByBrandServer({
+    cacheKey: "ilmberger",
+    where: {
+      OR: [
+        { brand: { equals: "ilmberger", mode: "insensitive" } },
+        { brand: { equals: "ilmberger carbon", mode: "insensitive" } },
+        { vendor: { equals: "ilmberger", mode: "insensitive" } },
+        { vendor: { equals: "ilmberger carbon", mode: "insensitive" } },
+        { tags: { hasSome: ["Ilmberger", "Ilmberger Carbon"] } },
+      ],
+    },
+    predicate: (p) => {
+      const brand = (p.brand ?? "").toLowerCase();
+      const vendor = (p.vendor ?? "").toLowerCase();
+      return (
+        brand === "ilmberger" ||
+        brand === "ilmberger carbon" ||
+        vendor === "ilmberger" ||
+        vendor === "ilmberger carbon" ||
+        (p.tags ?? []).some((tag) => tag === "Ilmberger" || tag === "Ilmberger Carbon")
+      );
+    },
+  });
+}
+
 /** Öhlins: brand ∈ {'ohlins', 'öhlins'} OR vendor 'ohlins' OR slug
  *  startsWith 'ohlins-'. HOT-FIX: Prisma `in` is case-sensitive; DB stores
  *  `brand="OHLINS"` (all-caps). Switched to case-insensitive `equals`. */

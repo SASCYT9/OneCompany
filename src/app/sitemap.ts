@@ -17,6 +17,8 @@ const staticPageConfig: Record<
   "/shop/urban/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/akrapovic": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/akrapovic/collections": { priority: 0.8, changeFrequency: "weekly" },
+  "/shop/ilmberger": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/ilmberger/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/csf": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/csf/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/ohlins": { priority: 0.82, changeFrequency: "weekly" },

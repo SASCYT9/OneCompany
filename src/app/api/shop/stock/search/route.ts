@@ -26,6 +26,11 @@ import {
   scoreVehicleSearchItem,
   type ShopVehicleSearchExpansion,
 } from "@/lib/shopVehicleSearch";
+import {
+  getShopStockCategoryLabelForProduct,
+  matchesShopStockCategory,
+} from "@/lib/shopStockTaxonomy";
+import { expandShopPrices } from "@/lib/shopPriceConversion";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -39,6 +44,20 @@ const URBAN_VEHICLE_BRANDS = new Set([
   "urban",
   "urban automotive",
 ]);
+
+type StockSearchSort = "default" | "price_asc" | "price_desc" | "name_asc";
+type StockSearchStock = "all" | "inStock" | "preOrder";
+
+const STOCK_SEARCH_SORTS = new Set<StockSearchSort>([
+  "default",
+  "price_asc",
+  "price_desc",
+  "name_asc",
+]);
+
+const STOCK_SEARCH_STATES = new Set<StockSearchStock>(["all", "inStock", "preOrder"]);
+const DEFAULT_STOCK_SEARCH_LIMIT = 24;
+const MAX_STOCK_SEARCH_LIMIT = 96;
 
 export function getProductDisplayBrand(brand: string | null | undefined): string {
   if (!brand) return "";
@@ -245,6 +264,77 @@ function narrowVehicleSearchResults<T extends { searchText: string; score: numbe
   return strongMatches.length > 0 ? strongMatches : narrowed;
 }
 
+function parseStockSearchSort(value: string | null): StockSearchSort {
+  return value && STOCK_SEARCH_SORTS.has(value as StockSearchSort)
+    ? (value as StockSearchSort)
+    : "default";
+}
+
+function parseStockSearchStock(value: string | null): StockSearchStock {
+  return value && STOCK_SEARCH_STATES.has(value as StockSearchStock)
+    ? (value as StockSearchStock)
+    : "all";
+}
+
+function parseStockSearchLimit(value: string | null) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_STOCK_SEARCH_LIMIT;
+  return Math.min(MAX_STOCK_SEARCH_LIMIT, Math.max(1, Math.floor(parsed)));
+}
+
+function hasAnyShopMoney(
+  price: { eur?: number | null; usd?: number | null; uah?: number | null } | null | undefined
+) {
+  return (price?.eur ?? 0) > 0 || (price?.usd ?? 0) > 0 || (price?.uah ?? 0) > 0;
+}
+
+function incrementCount(map: Map<string, number>, key: string | null | undefined) {
+  const normalized = key?.trim();
+  if (!normalized) return;
+  map.set(normalized, (map.get(normalized) ?? 0) + 1);
+}
+
+function buildFilterStats(
+  productsWithFitments: Awaited<ReturnType<typeof getShopProductsWithFitments>>,
+  locale: string
+) {
+  const brands = new Map<string, number>();
+  const categories = new Map<string, number>();
+  let inStock = 0;
+  let preOrder = 0;
+
+  for (const item of productsWithFitments) {
+    incrementCount(brands, getProductDisplayBrand(item.product.brand));
+    incrementCount(categories, getShopStockCategoryLabelForProduct(item, locale));
+
+    if (item.product.stock === "inStock") {
+      inStock += 1;
+    } else {
+      preOrder += 1;
+    }
+  }
+
+  const byCountThenLabel = (
+    left: { label: string; count: number },
+    right: { label: string; count: number }
+  ) => {
+    if (right.count !== left.count) return right.count - left.count;
+    return left.label.localeCompare(right.label, locale === "ua" ? "uk" : "en");
+  };
+
+  return {
+    brands: Array.from(brands, ([label, count]) => ({ label, count })).sort(byCountThenLabel),
+    categories: Array.from(categories, ([label, count]) => ({ label, count })).sort(
+      byCountThenLabel
+    ),
+    stock: {
+      all: productsWithFitments.length,
+      inStock,
+      preOrder,
+    },
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -254,12 +344,14 @@ export async function GET(request: NextRequest) {
     const make = searchParams.get("make")?.trim() || "";
     const model = searchParams.get("model")?.trim() || "";
     const chassis = searchParams.get("chassis")?.trim() || "";
+    const stock = parseStockSearchStock(searchParams.get("stock"));
+    const sort = parseStockSearchSort(searchParams.get("sort"));
     const locale = searchParams.get("locale")?.trim() || "ua";
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const all = searchParams.get("all") === "true";
     const debug = searchParams.get("debug") === "true";
     const country = searchParams.get("country");
-    const limit = 24;
+    const limit = parseStockSearchLimit(searchParams.get("limit"));
 
     const [settingsRecord, session, productsWithFitments] = await Promise.all([
       getOrCreateShopSettings(prisma),
@@ -304,12 +396,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (category) {
-      const categoryLower = category.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          (item.product.category?.ua && item.product.category.ua.toLowerCase() === categoryLower) ||
-          (item.product.category?.en && item.product.category.en.toLowerCase() === categoryLower)
-      );
+      filtered = filtered.filter((item) => matchesShopStockCategory(item, category, locale));
+    }
+
+    if (stock !== "all") {
+      filtered = filtered.filter((item) => item.product.stock === stock);
     }
 
     if (make) {
@@ -369,6 +460,35 @@ export async function GET(request: NextRequest) {
       return { ...item, score, scoreReasons };
     });
 
+    const sortByNameAsc = (
+      left: (typeof scoredItems)[number],
+      right: (typeof scoredItems)[number]
+    ) => {
+      const titleA =
+        locale === "en"
+          ? left.product.title.en || left.product.title.ua || ""
+          : left.product.title.ua || left.product.title.en || "";
+      const titleB =
+        locale === "en"
+          ? right.product.title.en || right.product.title.ua || ""
+          : right.product.title.ua || right.product.title.en || "";
+      return titleA.localeCompare(titleB, locale === "ua" ? "uk" : "en");
+    };
+
+    const sortByExplicitSort = (items: typeof scoredItems) => {
+      if (sort === "price_asc") {
+        items.sort((a, b) => getProductPriceForSort(a.product) - getProductPriceForSort(b.product));
+        return;
+      }
+      if (sort === "price_desc") {
+        items.sort((a, b) => getProductPriceForSort(b.product) - getProductPriceForSort(a.product));
+        return;
+      }
+      if (sort === "name_asc") {
+        items.sort(sortByNameAsc);
+      }
+    };
+
     if (q && queryTokens.length > 0) {
       // Keep only matches
       scoredItems = scoredItems.filter((item) => item.score > 0);
@@ -386,6 +506,11 @@ export async function GET(request: NextRequest) {
       }
       // Sort by relevance score descending
       scoredItems.sort((a, b) => b.score - a.score);
+      if (sort !== "default") {
+        sortByExplicitSort(scoredItems);
+      }
+    } else if (sort !== "default") {
+      sortByExplicitSort(scoredItems);
     } else if (brand) {
       // Sort by price descending if a brand filter is active (show premium kits first)
       scoredItems.sort((a, b) => {
@@ -414,9 +539,20 @@ export async function GET(request: NextRequest) {
       // Fallback 1: Ignore vehicle fitment filters
       let fallbackFiltered = productsWithFitments;
       if (brand) {
-        const brandLower = brand.toLowerCase();
-        fallbackFiltered = fallbackFiltered.filter(
-          (item) => getProductDisplayBrand(item.product.brand).toLowerCase() === brandLower
+        const brandNames = brand
+          .split(",")
+          .map((b) => b.trim().toLowerCase())
+          .filter(Boolean);
+        fallbackFiltered = fallbackFiltered.filter((item) =>
+          brandNames.includes(getProductDisplayBrand(item.product.brand).toLowerCase())
+        );
+      }
+      if (stock !== "all") {
+        fallbackFiltered = fallbackFiltered.filter((item) => item.product.stock === stock);
+      }
+      if (category) {
+        fallbackFiltered = fallbackFiltered.filter((item) =>
+          matchesShopStockCategory(item, category, locale)
         );
       }
 
@@ -444,6 +580,9 @@ export async function GET(request: NextRequest) {
       }
 
       fallbackScored.sort((a, b) => b.score - a.score);
+      if (sort !== "default") {
+        sortByExplicitSort(fallbackScored);
+      }
 
       if (fallbackScored.length > 0) {
         fallbackApplied = "fitment";
@@ -452,7 +591,11 @@ export async function GET(request: NextRequest) {
         paginatedItems = fallbackScored.slice((page - 1) * limit, page * limit);
       } else if (brand) {
         // Fallback 2: Ignore brand/category as well (global query match)
-        const globalScored = productsWithFitments
+        let globalSource = productsWithFitments;
+        if (stock !== "all") {
+          globalSource = globalSource.filter((item) => item.product.stock === stock);
+        }
+        const globalScored = globalSource
           .map((item) => {
             const displayBrand = getProductDisplayBrand(item.product.brand);
             const scored = computeRelevanceScoreWithReasons(
@@ -476,6 +619,9 @@ export async function GET(request: NextRequest) {
         }
 
         globalScored.sort((a, b) => b.score - a.score);
+        if (sort !== "default") {
+          sortByExplicitSort(globalScored);
+        }
 
         if (globalScored.length > 0) {
           fallbackApplied = "all";
@@ -491,21 +637,42 @@ export async function GET(request: NextRequest) {
       const pricing = resolveShopProductPricing(product, pricingContext);
 
       const usdRate = settings.currencyRates.USD || 1.152174;
+      const uahRate = settings.currencyRates.UAH || 53.0;
+
+      const effectivePriceSet = expandShopPrices(pricing.effectivePrice, settings.currencyRates);
+
+      const expandedEffectiveCompareAtSet = pricing.effectiveCompareAt
+        ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
+        : null;
+      const effectiveCompareAtSet = hasAnyShopMoney(expandedEffectiveCompareAtSet)
+        ? expandedEffectiveCompareAtSet
+        : null;
+
+      const expandedB2cPriceSet = pricing.bands?.b2c?.price
+        ? expandShopPrices(pricing.bands.b2c.price, settings.currencyRates)
+        : null;
+      const b2cCompareAtFallback = hasAnyShopMoney(expandedB2cPriceSet)
+        ? expandedB2cPriceSet
+        : null;
+
+      const compareAtPriceSet = effectiveCompareAtSet ?? b2cCompareAtFallback;
 
       const dealerPrice =
-        pricing.effectivePrice.usd > 0
-          ? pricing.effectivePrice.usd
-          : pricing.effectivePrice.eur > 0
-            ? pricing.effectivePrice.eur * usdRate
-            : 0;
+        effectivePriceSet.usd > 0
+          ? effectivePriceSet.usd
+          : effectivePriceSet.eur > 0
+            ? effectivePriceSet.eur * usdRate
+            : effectivePriceSet.uah > 0
+              ? effectivePriceSet.uah / (uahRate / usdRate)
+              : 0;
 
       const msrp =
-        pricing.effectiveCompareAt && pricing.effectiveCompareAt.usd > 0
-          ? pricing.effectiveCompareAt.usd
-          : pricing.bands?.b2c?.price?.usd > 0
-            ? pricing.bands.b2c.price.usd
-            : pricing.bands?.b2c?.price?.eur > 0
-              ? pricing.bands.b2c.price.eur * usdRate
+        compareAtPriceSet && compareAtPriceSet.usd > 0
+          ? compareAtPriceSet.usd
+          : compareAtPriceSet && compareAtPriceSet.eur > 0
+            ? compareAtPriceSet.eur * usdRate
+            : compareAtPriceSet && compareAtPriceSet.uah > 0
+              ? compareAtPriceSet.uah / (uahRate / usdRate)
               : null;
 
       const defaultVariant =
@@ -530,9 +697,12 @@ export async function GET(request: NextRequest) {
         thumbnail: product.image || null,
         inStock: product.stock === "inStock",
         price: dealerPrice,
-        priceUsd: pricing.effectivePrice.usd || 0,
-        priceEur: pricing.effectivePrice.eur || 0,
+        priceUsd: effectivePriceSet.usd,
+        priceEur: effectivePriceSet.eur,
+        priceUah: effectivePriceSet.uah,
+        priceSet: effectivePriceSet,
         originalPrice: msrp,
+        originalPriceSet: compareAtPriceSet,
         markupPct: pricing.discountPercent || 0,
         slug: product.slug,
         variantId: defaultVariant?.id || null,
@@ -541,23 +711,15 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Extract all unique brands and categories for filter menus
+    const filterStats = buildFilterStats(productsWithFitments, locale);
+
+    // Extract all unique brands and curated product groups for filter menus
     const brands = Array.from(
       new Set(
         productsWithFitments.map((p) => getProductDisplayBrand(p.product.brand)).filter(Boolean)
       )
     ).sort();
-    const categories = Array.from(
-      new Set(
-        productsWithFitments
-          .map((p) =>
-            locale === "en"
-              ? p.product.category?.en || p.product.category?.ua
-              : p.product.category?.ua || p.product.category?.en
-          )
-          .filter(Boolean)
-      )
-    ).sort();
+    const categories = filterStats.categories.map((entry) => entry.label);
 
     return NextResponse.json({
       data: sanitizedItems,
@@ -585,6 +747,7 @@ export async function GET(request: NextRequest) {
         brands,
         categories,
       },
+      filterStats,
     });
   } catch (error: any) {
     console.error("[Stock Search API Error]", error);

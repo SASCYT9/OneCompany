@@ -104,6 +104,7 @@ export function Header() {
     if (brand.toLowerCase() === "kw-suspension") return "KW Suspension";
     if (brand.toLowerCase() === "burger") return "Burger Motorsports";
     if (brand.toLowerCase() === "racechip") return "RaceChip";
+    if (brand.toLowerCase() === "ilmberger") return "Ilmberger Carbon";
     if (brand.toLowerCase() === "akrapovic") return "Akrapovič";
     if (brand.toLowerCase() === "csf") return "CSF Racing";
     if (brand.toLowerCase() === "ohlins") return "Öhlins";
@@ -146,7 +147,7 @@ export function Header() {
                             ? "?scope=moto"
                             : ""
                         }`
-                      : ["do88", "adro", "csf", "ipe"].includes(currentBrand)
+                      : ["do88", "adro", "csf", "ipe", "ilmberger"].includes(currentBrand)
                         ? `/${locale}/shop/${currentBrand}/collections`
                         : `/${locale}/shop/${currentBrand}#catalog`,
             label: isUa
