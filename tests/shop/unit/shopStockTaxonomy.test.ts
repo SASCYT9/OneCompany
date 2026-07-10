@@ -1,98 +1,125 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  getShopStockCategoryLabelForProduct,
-  matchesShopStockCategory,
-  type ShopStockTaxonomyItem,
-} from "../../../src/lib/shopStockTaxonomy";
+import { getShopStockCategoryGroupForProduct } from "../../../src/lib/shopStockTaxonomy";
 
-function makeItem(product: ShopStockTaxonomyItem["product"]): ShopStockTaxonomyItem {
-  return { product };
+function taxonomyItem({
+  brand,
+  sku,
+  title,
+  category = "",
+}: {
+  brand: string;
+  sku: string;
+  title: string;
+  category?: string;
+}) {
+  return {
+    product: {
+      brand,
+      sku,
+      title: { ua: title, en: title },
+      category: { ua: category, en: category },
+    },
+  };
 }
 
-test("maps legacy store categories into buyer-friendly stock groups", () => {
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "RaceChip",
-        title: { en: "RaceChip GTS Black for BMW M5 F90" },
-        category: { ua: "Cars / Bundles", en: "Cars / Bundles" },
-      }),
-      "ua"
-    ),
-    "Чіп-тюнінг"
-  );
+test("classifies tuning modules and ECU maps as chip tuning", () => {
+  const products = [
+    taxonomyItem({
+      brand: "Burger Motorsports",
+      sku: "BURGER-1198201603",
+      title: "BMS M5/M6 Stage 1 Performance Tuner",
+    }),
+    taxonomyItem({
+      brand: "Brabus",
+      sku: "BC40-900",
+      title: "PowerXtra BC40 - 900",
+    }),
+  ];
 
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "Akrapovic",
-        title: { en: "Evolution Line Titanium Cat-back Exhaust" },
-        category: { ua: "Ducati Panigale V4 (MY 2025)", en: "Ducati Panigale V4 (MY 2025)" },
-      }),
-      "ua"
-    ),
-    "Вихлопні системи"
-  );
-
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "do88",
-        title: { en: "Black silicone reducer elbow hose" },
-        category: { ua: "Шланги та патрубки > Чорні силіконові патрубки", en: "Hoses & Couplers" },
-      }),
-      "ua"
-    ),
-    "Охолодження та патрубки"
-  );
-
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "Burger Motorsports",
-        title: { en: "2025+ Toyota 4Runner Wheel Spacers" },
-        productType: "Wheel Spacers & Accessories",
-      }),
-      "en"
-    ),
-    "Wheels"
-  );
-
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "Burger Motorsports",
-        title: { en: "BMW S55 Charge Pipe Injection Kit" },
-        productType: "Engine Performance",
-      }),
-      "en"
-    ),
-    "Intake, turbo and engine"
-  );
-
-  assert.equal(
-    getShopStockCategoryLabelForProduct(
-      makeItem({
-        brand: "Akrapovic",
-        title: { en: "AKRAPOVIC 801607 Rubber USB flash drive 16 GB" },
-        category: { ua: "Одяг та сувеніри", en: "Apparel and souvenirs" },
-      }),
-      "en"
-    ),
-    "Merch"
+  assert.deepEqual(
+    products.map((item) => getShopStockCategoryGroupForProduct(item, "ua").id),
+    ["chipTuning", "chipTuning"]
   );
 });
 
-test("matches curated group labels while preserving raw category fallback", () => {
-  const ilmbergerItem = makeItem({
-    brand: "Ilmberger Carbon",
-    title: { en: "Carbon belly pan for BMW M 1000 RR" },
-    category: { ua: "BMW M 1000 RR (MY 2023)", en: "BMW M 1000 RR (MY 2023)" },
+test("classifies Burger engine and suspension hardware", () => {
+  const oilCatchCan = taxonomyItem({
+    brand: "Burger Motorsports",
+    sku: "BURGER-OCC",
+    title: "BMS Oil Catch Can for BMW",
+  });
+  const strutBraces = taxonomyItem({
+    brand: "Burger Motorsports",
+    sku: "BURGER-BRACE",
+    title: "BMS Billet Strut Braces for BMW",
   });
 
-  assert.equal(matchesShopStockCategory(ilmbergerItem, "Мото карбон", "ua"), true);
-  assert.equal(matchesShopStockCategory(ilmbergerItem, "BMW M 1000 RR (MY 2023)", "ua"), true);
-  assert.equal(matchesShopStockCategory(ilmbergerItem, "Гальмівна система", "ua"), false);
+  assert.equal(getShopStockCategoryGroupForProduct(oilCatchCan, "ua").id, "performance");
+  assert.equal(getShopStockCategoryGroupForProduct(strutBraces, "ua").id, "suspension");
+});
+
+test("classifies Urban exterior SKU families without relying on translated titles", () => {
+  const bodyKit = taxonomyItem({
+    brand: "Urban Automotive",
+    sku: "URB-BOD-25353141-V1",
+    title: "Discovery 5 styling package",
+  });
+  const sideSteps = taxonomyItem({
+    brand: "Urban Automotive",
+    sku: "URB-SID-25353119-V1",
+    title: "Defender side equipment",
+  });
+
+  assert.equal(getShopStockCategoryGroupForProduct(bodyKit, "ua").id, "carbonAero");
+  assert.equal(getShopStockCategoryGroupForProduct(sideSteps, "ua").id, "accessories");
+});
+
+test("classifies Brabus Widestar and SportXtra product lines", () => {
+  const widestar = taxonomyItem({
+    brand: "Brabus",
+    sku: "465-234-00",
+    title: "BRABUS WIDESTAR for Mercedes-AMG G 63",
+  });
+  const sportXtra = taxonomyItem({
+    brand: "Brabus",
+    sku: "RRC-108-00",
+    title: "SportXtra BRABUS for Rolls-Royce Cullinan",
+  });
+
+  assert.equal(getShopStockCategoryGroupForProduct(widestar, "ua").id, "carbonAero");
+  assert.equal(getShopStockCategoryGroupForProduct(sportXtra, "ua").id, "suspension");
+});
+
+test("classifies Brabus catalog-specific translated accessories", () => {
+  const rearInsert = taxonomyItem({
+    brand: "Brabus",
+    sku: "448-400-00S",
+    title: "Спортивний Signature Heckeinsatz для Mercedes",
+  });
+  const illuminatedStep = taxonomyItem({
+    brand: "Brabus",
+    sku: "9TY-816-20",
+    title: "Підсвічена підніжка BRABUS",
+  });
+
+  assert.equal(getShopStockCategoryGroupForProduct(rearInsert, "ua").id, "carbonAero");
+  assert.equal(getShopStockCategoryGroupForProduct(illuminatedStep, "ua").id, "accessories");
+});
+
+test("classifies Akrapovic exterior aero separately from exhaust systems", () => {
+  const diffuser = taxonomyItem({
+    brand: "AKRAPOVIC",
+    sku: "DI-BM/CA/1",
+    title: "Rear diffuser carbon for BMW M3 F80",
+  });
+  const exhaust = taxonomyItem({
+    brand: "AKRAPOVIC",
+    sku: "M-BM/T/8H",
+    title: "Slip-On Line titanium exhaust system for BMW M3 F80",
+  });
+
+  assert.equal(getShopStockCategoryGroupForProduct(diffuser, "ua").id, "carbonAero");
+  assert.equal(getShopStockCategoryGroupForProduct(exhaust, "ua").id, "exhaust");
 });

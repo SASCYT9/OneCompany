@@ -8,6 +8,11 @@ import {
   resolveProductStorefront,
   type ShopProductStorefront,
 } from "@/lib/shopProductStorefront";
+import {
+  isNormalizedFitmentMetafield,
+  NORMALIZED_FITMENT_KEY,
+  NORMALIZED_FITMENT_NAMESPACE,
+} from "@/lib/shopFitmentQuality";
 
 export {
   buildStorefrontBackfillPlan,
@@ -736,12 +741,14 @@ function nestedVariantCreate(variants: AdminShopProductVariantInput[]) {
 }
 
 function nestedMetafieldCreate(metafields: AdminShopProductMetafieldInput[]) {
-  return metafields.map((item) => ({
-    namespace: item.namespace,
-    key: item.key,
-    value: item.value,
-    valueType: item.valueType ?? "single_line_text_field",
-  }));
+  return metafields
+    .filter((item) => !isNormalizedFitmentMetafield(item))
+    .map((item) => ({
+      namespace: item.namespace,
+      key: item.key,
+      value: item.value,
+      valueType: item.valueType ?? "single_line_text_field",
+    }));
 }
 
 function jsonValueOrNull(value: unknown) {
@@ -865,7 +872,12 @@ export function buildAdminProductUpdateData(
       create: nestedVariantCreate(data.variants),
     },
     metafields: {
-      deleteMany: {},
+      deleteMany: {
+        NOT: {
+          namespace: NORMALIZED_FITMENT_NAMESPACE,
+          key: NORMALIZED_FITMENT_KEY,
+        },
+      },
       create: nestedMetafieldCreate(data.metafields),
     },
   };
@@ -1062,13 +1074,15 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
       costPerItem: decimalToNumber(item.costPerItem),
       isDefault: item.isDefault,
     })),
-    metafields: record.metafields.map((item) => ({
-      id: item.id,
-      namespace: item.namespace,
-      key: item.key,
-      value: item.value,
-      valueType: item.valueType,
-    })),
+    metafields: record.metafields
+      .filter((item) => !isNormalizedFitmentMetafield(item))
+      .map((item) => ({
+        id: item.id,
+        namespace: item.namespace,
+        key: item.key,
+        value: item.value,
+        valueType: item.valueType,
+      })),
     collections: record.collections.map((entry) => ({
       id: entry.collection.id,
       handle: entry.collection.handle,

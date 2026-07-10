@@ -1,15 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
 import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
+import type { ShopAiManagerContext } from "@/lib/shopAiAssistantTypes";
 
 type FormType = "auto" | "moto";
 type FormState = "idle" | "loading" | "success" | "error";
+const MANAGER_HANDOFF_SESSION_KEY = "onecompany:one-ai-manager-handoff";
+const MANAGER_HANDOFF_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+function parseManagerHandoff(value: string | null): ShopAiManagerContext | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<ShopAiManagerContext>;
+    if (
+      !Number.isFinite(parsed.createdAt) ||
+      Date.now() - Number(parsed.createdAt) > MANAGER_HANDOFF_MAX_AGE_MS
+    ) {
+      return null;
+    }
+    return {
+      createdAt: Number(parsed.createdAt),
+      vehicleType: parsed.vehicleType === "moto" ? "moto" : "auto",
+      vehicle: String(parsed.vehicle ?? "")
+        .trim()
+        .slice(0, 160),
+      request: String(parsed.request ?? "")
+        .trim()
+        .slice(0, 800),
+      products: Array.isArray(parsed.products)
+        ? parsed.products.slice(0, 3).map((product) => ({
+            brand: String(product?.brand ?? "")
+              .trim()
+              .slice(0, 100),
+            sku: String(product?.sku ?? "")
+              .trim()
+              .slice(0, 120),
+            name: String(product?.name ?? "")
+              .trim()
+              .slice(0, 240),
+          }))
+        : [],
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function ContactPageContent() {
   const t = useTranslations("contactPage");
@@ -17,6 +58,7 @@ export default function ContactPageContent() {
   const typography = getTypography(resolveLocale(locale));
   const searchParams = useSearchParams();
   const inquiry = searchParams.get("inquiry");
+  const aiSource = searchParams.get("source") === "one-ai";
   const [type, setType] = useState<FormType>("auto");
   const [formData, setFormData] = useState(() => {
     const base = {
@@ -30,7 +72,7 @@ export default function ContactPageContent() {
       telegramUsername: "",
       contactMethod: "telegram" as "telegram" | "whatsapp",
     };
-    if (inquiry) {
+    if (!aiSource && inquiry) {
       base.wishes =
         locale === "ua"
           ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.`
@@ -40,6 +82,35 @@ export default function ContactPageContent() {
   });
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!aiSource) return;
+    const handoff = parseManagerHandoff(window.sessionStorage.getItem(MANAGER_HANDOFF_SESSION_KEY));
+    if (!handoff) return;
+    setType(handoff.vehicleType);
+    const productSummary = handoff.products
+      .map((product) => [product.brand, product.sku, product.name].filter(Boolean).join(" "))
+      .join("; ");
+    const wishes =
+      locale === "ua"
+        ? [
+            "Консультація після підбору One AI.",
+            handoff.request ? `Запит: ${handoff.request}` : "",
+            productSummary ? `Запропоновані товари: ${productSummary}` : "",
+            "Прошу менеджера перевірити точну сумісність, комплектацію та встановлення.",
+          ]
+            .filter(Boolean)
+            .join("\n")
+        : [
+            "Consultation after a One AI selection.",
+            handoff.request ? `Request: ${handoff.request}` : "",
+            productSummary ? `Suggested products: ${productSummary}` : "",
+            "Please verify exact fitment, configuration and installation requirements.",
+          ]
+            .filter(Boolean)
+            .join("\n");
+    setFormData((current) => ({ ...current, model: handoff.vehicle, wishes }));
+  }, [aiSource, locale]);
 
   // Progress (percentage of required fields filled)
   // telegramUsername is optional, so it's not in requiredKeys unless we want to force it

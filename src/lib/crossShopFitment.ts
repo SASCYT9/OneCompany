@@ -25,6 +25,7 @@ import {
   extractVehicleModelNamesForBrand,
   extractVehicleModelsForBrand,
 } from "@/lib/akrapovicFilterUtils";
+import { extractVehicleYearRanges, type VehicleYearRange } from "@/lib/shopVehicleYears";
 
 /* ── Excluded brands (no recommendations to or from these) ───── */
 
@@ -1580,14 +1581,14 @@ export type Fitment = {
   models: string[];
   /** Chassis codes (uppercased & deduped). */
   chassisCodes: string[];
+  /** Explicit model-year evidence extracted from product-owned fitment text. */
+  yearRanges: VehicleYearRange[];
+  /** Deterministic data-quality level, never a compatibility guarantee. */
+  confidence: "high" | "medium" | "low" | "unknown";
 };
 
 function uniq<T>(values: ReadonlyArray<T>): T[] {
   return Array.from(new Set(values));
-}
-
-function lower(value: string) {
-  return value.trim().toLowerCase();
 }
 
 /** Strip year ranges, "from"/"to" connectives, and excess whitespace from a
@@ -1630,6 +1631,22 @@ function buildSearchText(product: ShopProduct): string {
     ]),
     product.slug,
     product.sku,
+  ]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function buildFitmentEvidenceText(product: ShopProduct): string {
+  return [
+    product.title?.en,
+    product.title?.ua,
+    product.collection?.en,
+    product.collection?.ua,
+    product.productType,
+    ...(product.tags ?? []),
+    ...(product.collections ?? []).flatMap((item) => [item.handle, item.title?.en, item.title?.ua]),
+    product.slug,
   ]
     .map((value) => String(value ?? "").trim())
     .filter(Boolean)
@@ -2627,6 +2644,7 @@ export function isExpectedChassisForMakeModel(
  */
 export function extractProductFitment(product: ShopProduct): Fitment {
   const text = buildSearchText(product);
+  const yearRanges = extractVehicleYearRanges(buildFitmentEvidenceText(product));
   const brand = String(product.brand ?? "")
     .trim()
     .toLowerCase();
@@ -2677,7 +2695,11 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   // 2. Generic fallbacks for anything still missing
   if (!make) {
-    make = extractTagMake(product);
+    const titleOwnedText = [product.title?.en, product.title?.ua, product.slug]
+      .filter(Boolean)
+      .join(" | ");
+    make = detectMakeGeneric(titleOwnedText);
+    if (!make) make = extractTagMake(product);
     if (!make && product.brand) {
       const brandLower = product.brand.trim().toLowerCase();
       const match = MAKE_PATTERNS.find((entry) => entry.label.toLowerCase() === brandLower);
@@ -3250,10 +3272,24 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     }
   }
 
+  const normalizedChassisCodes = uniq(finalChassis.map((c) => c.toUpperCase()).filter(Boolean));
+  const confidence =
+    cleanMake &&
+    normalizedModels.length > 0 &&
+    (normalizedChassisCodes.length > 0 || yearRanges.length > 0)
+      ? "high"
+      : cleanMake && (normalizedModels.length > 0 || normalizedChassisCodes.length > 0)
+        ? "medium"
+        : cleanMake
+          ? "low"
+          : "unknown";
+
   return {
     make: cleanMake,
     models: normalizedModels,
-    chassisCodes: uniq(finalChassis.map((c) => c.toUpperCase()).filter(Boolean)),
+    chassisCodes: normalizedChassisCodes,
+    yearRanges,
+    confidence,
   };
 }
 

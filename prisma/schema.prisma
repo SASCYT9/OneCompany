@@ -231,6 +231,7 @@ model ShopProduct {
   collections           ShopProductCollection[]
   media                 ShopProductMedia[]
   metafields            ShopProductMetafield[]
+  knowledge             ShopProductKnowledge?
   options               ShopProductOption[]
   variants              ShopProductVariant[]
 
@@ -240,6 +241,57 @@ model ShopProduct {
   @@index([categoryId])
   @@index([brand])
   @@index([vendor])
+}
+
+model ShopProductKnowledge {
+  id               String                      @id @default(cuid())
+  productId        String                      @unique
+  schemaVersion    Int                         @default(1)
+  vehicleType      String                      @default("unknown")
+  makes            String[]                    @default([])
+  models           String[]                    @default([])
+  chassisCodes     String[]                    @default([])
+  yearRanges       Json                        @default("[]")
+  engines          String[]                    @default([])
+  bodyStyles       String[]                    @default([])
+  markets          String[]                    @default([])
+  categoryGroup    String?
+  powerGainHp      Int?
+  torqueGainNm     Int?
+  material         String?
+  opfGpf           String?
+  installationType String?
+  fitmentStatus    String                      @default("needs_review")
+  fitmentSource    String                      @default("automatic")
+  applications     Json                        @default("[]")
+  facts            Json                        @default("{}")
+  searchText       String                      @db.Text
+  contentHash      String
+  embeddingModel   String?
+  embedding        Unsupported("vector(768)")?
+  indexedAt        DateTime                    @default(now())
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+  product          ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([schemaVersion])
+  @@index([vehicleType])
+  @@index([categoryGroup])
+  @@index([fitmentStatus])
+  @@index([contentHash])
+}
+
+model ShopAiConversation {
+  id              String   @id @default(cuid())
+  locale          String   @default("ua")
+  currency        String   @default("EUR")
+  state           Json     @default("{}")
+  shownProductIds String[] @default([])
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
 }
 
 model ShopWarehouse {

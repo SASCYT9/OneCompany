@@ -4,15 +4,19 @@ import {
   ShopImportAction,
   ShopImportConflictMode,
   ShopImportStatus,
-} from '@prisma/client';
-import type { AdminSession } from '@/lib/adminAuth';
+} from "@prisma/client";
+import type { AdminSession } from "@/lib/adminAuth";
 import {
   buildAdminProductCreateData,
   buildAdminProductUpdateData,
   normalizeAdminProductPayload,
-} from '@/lib/shopAdminCatalog';
-import { buildProductsFromShopifyCsv, type CsvHeaderMapping } from '@/lib/shopAdminCsv';
-import { writeAdminAuditLog } from '@/lib/adminRbac';
+  type AdminShopProductPayload,
+} from "@/lib/shopAdminCatalog";
+import { buildProductsFromShopifyCsv, type CsvHeaderMapping } from "@/lib/shopAdminCsv";
+import { writeAdminAuditLog } from "@/lib/adminRbac";
+import type { ShopProduct, ShopScope, ShopStock } from "@/lib/shopCatalog";
+import { extractProductFitment } from "@/lib/crossShopFitment";
+import { classifyProductFitment, type NormalizedFitmentStatus } from "@/lib/shopFitmentQuality";
 
 export const adminImportTemplateSelect = {
   id: true,
@@ -40,7 +44,7 @@ export const adminImportJobInclude = {
     },
   },
   rowErrors: {
-    orderBy: [{ rowNumber: 'asc' }, { createdAt: 'asc' }],
+    orderBy: [{ rowNumber: "asc" }, { createdAt: "asc" }],
     take: 50,
   },
 } satisfies Prisma.ShopImportJobInclude;
@@ -55,7 +59,7 @@ export type AdminImportJobRecord = Prisma.ShopImportJobGetPayload<{
 
 type CsvImportRequest = {
   csvText: string;
-  action: 'dry-run' | 'commit';
+  action: "dry-run" | "commit";
   supplierName?: string | null;
   sourceFilename?: string | null;
   templateId?: string | null;
@@ -69,17 +73,19 @@ type ImportRowErrorInput = {
   payload?: Prisma.InputJsonValue;
 };
 
-type ImportTemplatePayload = ReturnType<typeof normalizeImportTemplatePayload>['data'];
+type ImportTemplatePayload = ReturnType<typeof normalizeImportTemplatePayload>["data"];
 
 function nullableString(value: unknown) {
-  const normalized = String(value ?? '').trim();
+  const normalized = String(value ?? "").trim();
   return normalized || null;
 }
 
-function normalizeConflictMode(value: unknown, fallback: ShopImportConflictMode = 'UPDATE') {
-  const normalized = String(value ?? '').trim().toUpperCase();
-  if (normalized === 'SKIP') return 'SKIP';
-  if (normalized === 'CREATE') return 'CREATE';
+function normalizeConflictMode(value: unknown, fallback: ShopImportConflictMode = "UPDATE") {
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase();
+  if (normalized === "SKIP") return "SKIP";
+  if (normalized === "CREATE") return "CREATE";
   return fallback;
 }
 
@@ -87,6 +93,61 @@ function jsonValueOrNull(value: unknown) {
   if (value === undefined) return undefined;
   if (value === null) return Prisma.JsonNull;
   return value as Prisma.InputJsonValue;
+}
+
+function toFitmentProduct(product: AdminShopProductPayload): ShopProduct {
+  return {
+    slug: product.slug,
+    sku: product.sku ?? "",
+    scope: (product.scope === "moto" ? "moto" : "auto") as ShopScope,
+    brand: product.brand ?? "",
+    vendor: product.vendor ?? undefined,
+    productType: product.productType ?? undefined,
+    tags: product.tags,
+    title: { ua: product.titleUa, en: product.titleEn },
+    category: { ua: product.categoryUa ?? "", en: product.categoryEn ?? "" },
+    shortDescription: { ua: product.shortDescUa ?? "", en: product.shortDescEn ?? "" },
+    longDescription: { ua: product.longDescUa ?? "", en: product.longDescEn ?? "" },
+    leadTime: { ua: product.leadTimeUa ?? "", en: product.leadTimeEn ?? "" },
+    stock: (product.stock === "preOrder" ? "preOrder" : "inStock") as ShopStock,
+    collection: { ua: product.collectionUa ?? "", en: product.collectionEn ?? "" },
+    price: {
+      eur: product.priceEur ?? 0,
+      usd: product.priceUsd ?? 0,
+      uah: product.priceUah ?? 0,
+    },
+    image: product.image ?? "",
+    highlights: [],
+  };
+}
+
+function summarizeImportFitment(
+  items: Array<{ data: AdminShopProductPayload; rowIndex: number }>,
+  invalidRows: Set<number>
+) {
+  const counts: Record<NormalizedFitmentStatus, number> = {
+    inferred: 0,
+    verified: 0,
+    universal: 0,
+    needs_review: 0,
+  };
+  const reviewProducts: Array<{ row: number; slug: string; brand: string; title: string }> = [];
+
+  for (const item of items) {
+    if (invalidRows.has(item.rowIndex)) continue;
+    const product = toFitmentProduct(item.data);
+    const classification = classifyProductFitment(product, extractProductFitment(product));
+    counts[classification.status] += 1;
+    if (classification.status === "needs_review" && reviewProducts.length < 100) {
+      reviewProducts.push({
+        row: item.rowIndex,
+        slug: item.data.slug,
+        brand: item.data.brand ?? "",
+        title: item.data.titleUa || item.data.titleEn,
+      });
+    }
+  }
+  return { counts, reviewProducts };
 }
 
 export function serializeImportTemplate(record: AdminImportTemplateRecord) {
@@ -142,19 +203,19 @@ export function serializeImportJob(record: AdminImportJobRecord) {
 }
 
 export function normalizeImportTemplatePayload(input: unknown) {
-  const source = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
-  const name = String(source.name ?? '').trim();
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const name = String(source.name ?? "").trim();
   const errors: string[] = [];
 
   if (!name) {
-    errors.push('name is required');
+    errors.push("name is required");
   }
 
   return {
     data: {
       name,
       supplierName: nullableString(source.supplierName),
-      sourceType: nullableString(source.sourceType) ?? 'shopify_csv',
+      sourceType: nullableString(source.sourceType) ?? "shopify_csv",
       notes: nullableString(source.notes),
       fieldMapping: normalizeTemplateFieldMapping(source.fieldMapping),
       defaultConflictMode: normalizeConflictMode(source.defaultConflictMode),
@@ -163,15 +224,17 @@ export function normalizeImportTemplatePayload(input: unknown) {
   };
 }
 
-function normalizeTemplateFieldMapping(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNull {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+function normalizeTemplateFieldMapping(
+  value: unknown
+): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return Prisma.JsonNull;
   }
 
   const mapping = Object.entries(value as Record<string, unknown>).reduce<Record<string, string>>(
     (accumulator, [sourceColumn, targetColumn]) => {
-      const normalizedSource = String(sourceColumn ?? '').trim();
-      const normalizedTarget = String(targetColumn ?? '').trim();
+      const normalizedSource = String(sourceColumn ?? "").trim();
+      const normalizedTarget = String(targetColumn ?? "").trim();
       if (!normalizedSource || !normalizedTarget) {
         return accumulator;
       }
@@ -185,14 +248,14 @@ function normalizeTemplateFieldMapping(value: unknown): Prisma.InputJsonValue | 
 }
 
 function extractHeaderMapping(value: unknown): CsvHeaderMapping | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return undefined;
   }
 
   const mapping = Object.entries(value as Record<string, unknown>).reduce<Record<string, string>>(
     (accumulator, [sourceColumn, targetColumn]) => {
-      const normalizedSource = String(sourceColumn ?? '').trim();
-      const normalizedTarget = String(targetColumn ?? '').trim();
+      const normalizedSource = String(sourceColumn ?? "").trim();
+      const normalizedTarget = String(targetColumn ?? "").trim();
       if (!normalizedSource || !normalizedTarget) {
         return accumulator;
       }
@@ -207,7 +270,7 @@ function extractHeaderMapping(value: unknown): CsvHeaderMapping | undefined {
 
 export async function listImportTemplates(prisma: PrismaClient) {
   const templates = await prisma.shopImportTemplate.findMany({
-    orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     select: adminImportTemplateSelect,
   });
 
@@ -216,7 +279,7 @@ export async function listImportTemplates(prisma: PrismaClient) {
 
 export async function listImportJobs(prisma: PrismaClient) {
   const jobs = await prisma.shopImportJob.findMany({
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ createdAt: "desc" }],
     include: adminImportJobInclude,
     take: 30,
   });
@@ -242,9 +305,9 @@ export async function createImportTemplate(
   });
 
   await writeAdminAuditLog(prisma, session, {
-    scope: 'shop',
-    action: 'import.template.create',
-    entityType: 'shop.import_template',
+    scope: "shop",
+    action: "import.template.create",
+    entityType: "shop.import_template",
     entityId: template.id,
     metadata: {
       name: template.name,
@@ -277,9 +340,9 @@ export async function updateImportTemplate(
   });
 
   await writeAdminAuditLog(prisma, session, {
-    scope: 'shop',
-    action: 'import.template.update',
-    entityType: 'shop.import_template',
+    scope: "shop",
+    action: "import.template.update",
+    entityType: "shop.import_template",
     entityId: template.id,
     metadata: {
       name: template.name,
@@ -309,9 +372,9 @@ export async function deleteImportTemplate(
   });
 
   await writeAdminAuditLog(prisma, session, {
-    scope: 'shop',
-    action: 'import.template.delete',
-    entityType: 'shop.import_template',
+    scope: "shop",
+    action: "import.template.delete",
+    entityType: "shop.import_template",
     entityId: template.id,
     metadata: {
       name: template.name,
@@ -336,7 +399,7 @@ export async function getImportJob(prisma: PrismaClient, jobId: string) {
         },
       },
       rowErrors: {
-        orderBy: [{ rowNumber: 'asc' }, { createdAt: 'asc' }],
+        orderBy: [{ rowNumber: "asc" }, { createdAt: "asc" }],
       },
     },
   });
@@ -384,10 +447,10 @@ async function createImportJobRecord(
     summary?: unknown;
     rowErrors?: ImportRowErrorInput[];
   }
- ) {
+) {
   return prisma.shopImportJob.create({
     data: {
-      sourceType: 'shopify_csv',
+      sourceType: "shopify_csv",
       sourceFilename: input.sourceFilename ?? null,
       supplierName: input.supplierName ?? null,
       templateId: input.templateId ?? null,
@@ -431,11 +494,11 @@ export async function runShopCsvImport(
   const headerMapping = extractHeaderMapping(template?.fieldMapping);
   const parsed = buildProductsFromShopifyCsv(request.csvText, headerMapping);
   if (parsed.columns.length === 0) {
-    throw new Error('CSV is empty or has no header row');
+    throw new Error("CSV is empty or has no header row");
   }
   const conflictMode = normalizeConflictMode(
     request.conflictMode,
-    template?.defaultConflictMode ?? 'UPDATE'
+    template?.defaultConflictMode ?? "UPDATE"
   );
 
   const validationErrors: ImportRowErrorInput[] = [...parsed.errors].map((item) => ({
@@ -503,6 +566,7 @@ export async function runShopCsvImport(
 
   const invalidRows = new Set(validationErrors.map((item) => item.rowNumber));
   const validProducts = productsToUpsert.filter((item) => !invalidRows.has(item.rowIndex)).length;
+  const fitmentValidation = summarizeImportFitment(productsToUpsert, invalidRows);
 
   const templateSnapshot = template
     ? {
@@ -515,10 +579,10 @@ export async function runShopCsvImport(
       }
     : null;
 
-  if (request.action === 'dry-run') {
+  if (request.action === "dry-run") {
     const job = await createImportJobRecord(prisma, {
-      action: 'DRY_RUN',
-      status: validationErrors.length ? 'FAILED' : 'COMPLETED',
+      action: "DRY_RUN",
+      status: validationErrors.length ? "FAILED" : "COMPLETED",
       session,
       sourceFilename: request.sourceFilename,
       supplierName: request.supplierName ?? template?.supplierName ?? null,
@@ -532,25 +596,26 @@ export async function runShopCsvImport(
       columns: parsed.columns,
       templateSnapshot,
       summary: {
-        action: 'dry-run',
+        action: "dry-run",
+        fitment: fitmentValidation.counts,
       },
       rowErrors: validationErrors,
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'import.csv.dry_run',
-      entityType: 'shop.import',
+      scope: "shop",
+      action: "import.csv.dry_run",
+      entityType: "shop.import",
       entityId: job.id,
       metadata: {
         totalRows: parsed.totalRows,
-      products: parsed.products.length,
-      variants: parsed.variantsCount,
-      errorCount: validationErrors.length,
-      validProducts,
-      templateId: template?.id ?? null,
-      conflictMode,
-    },
+        products: parsed.products.length,
+        variants: parsed.variantsCount,
+        errorCount: validationErrors.length,
+        validProducts,
+        templateId: template?.id ?? null,
+        conflictMode,
+      },
     });
 
     return {
@@ -564,6 +629,7 @@ export async function runShopCsvImport(
         message: item.message,
       })),
       columns: parsed.columns,
+      fitment: fitmentValidation,
       job: serializeImportJob(job as AdminImportJobRecord),
     };
   }
@@ -585,16 +651,16 @@ export async function runShopCsvImport(
       });
 
       if (existing) {
-        if (conflictMode === 'SKIP') {
+        if (conflictMode === "SKIP") {
           skipped += 1;
           continue;
         }
 
-        if (conflictMode === 'CREATE') {
+        if (conflictMode === "CREATE") {
           commitErrors.push({
             rowNumber: rowIndex,
             handle: data.slug,
-            message: 'Product already exists and conflict mode is CREATE-only',
+            message: "Product already exists and conflict mode is CREATE-only",
             payload: {
               slug: data.slug,
             },
@@ -627,36 +693,37 @@ export async function runShopCsvImport(
   }
 
   const job = await createImportJobRecord(prisma, {
-    action: 'COMMIT',
-    status: commitErrors.length ? 'FAILED' : 'COMPLETED',
+    action: "COMMIT",
+    status: commitErrors.length ? "FAILED" : "COMPLETED",
     session,
     sourceFilename: request.sourceFilename,
     supplierName: request.supplierName ?? template?.supplierName ?? null,
     templateId: template?.id ?? null,
     conflictMode,
     totalRows: parsed.totalRows,
-      productsCount: parsed.products.length,
-      variantsCount: parsed.variantsCount,
-      validProducts,
-      createdCount: created,
-      updatedCount: updated,
-      skippedCount: skipped,
+    productsCount: parsed.products.length,
+    variantsCount: parsed.variantsCount,
+    validProducts,
+    createdCount: created,
+    updatedCount: updated,
+    skippedCount: skipped,
     errorCount: commitErrors.length,
     columns: parsed.columns,
     templateSnapshot,
     summary: {
-      action: 'commit',
+      action: "commit",
       created,
       updated,
       skipped,
+      fitment: fitmentValidation.counts,
     },
     rowErrors: commitErrors,
   });
 
   await writeAdminAuditLog(prisma, session, {
-    scope: 'shop',
-    action: 'import.csv.commit',
-    entityType: 'shop.import',
+    scope: "shop",
+    action: "import.csv.commit",
+    entityType: "shop.import",
     entityId: job.id,
     metadata: {
       totalRows: parsed.totalRows,
@@ -676,6 +743,7 @@ export async function runShopCsvImport(
     created,
     updated,
     skipped,
+    fitment: fitmentValidation,
     errors: commitErrors.map((item) => ({
       row: item.rowNumber,
       message: item.message,

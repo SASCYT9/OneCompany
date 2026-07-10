@@ -18,6 +18,23 @@ export type ShopCurrencyRates = {
   UAH: number;
 };
 
+export function convertShopCurrencyAmount(
+  amount: number,
+  source: ShopCurrencyCode,
+  target: ShopCurrencyCode,
+  rates: ShopCurrencyRates | null | undefined
+): number {
+  if (!Number.isFinite(amount) || amount < 0) return 0;
+  if (source === target) return amount;
+
+  const sourceRate = rates?.[source] && rates[source] > 0 ? rates[source] : 0;
+  const targetRate = rates?.[target] && rates[target] > 0 ? rates[target] : 0;
+  if (sourceRate <= 0 || targetRate <= 0) return amount;
+
+  const converted = (amount / sourceRate) * targetRate;
+  return target === "UAH" ? Math.round(converted) : Math.round(converted * 100) / 100;
+}
+
 /**
  * Convert a multi-currency price to the target currency.
  *
@@ -27,7 +44,7 @@ export type ShopCurrencyRates = {
 export function convertShopMoney(
   price: ShopPriceSet | null | undefined,
   target: ShopCurrencyCode,
-  rates: ShopCurrencyRates | null | undefined,
+  rates: ShopCurrencyRates | null | undefined
 ): number {
   if (!price) return 0;
 
@@ -59,14 +76,11 @@ export function convertShopMoney(
 export function formatShopMoney(
   locale: SupportedLocale,
   amount: number,
-  currency: ShopCurrencyCode,
+  currency: ShopCurrencyCode
 ) {
-  const formattedAmount = new Intl.NumberFormat(
-    locale === "ua" ? "uk-UA" : "en-US",
-    {
-      maximumFractionDigits: 0,
-    },
-  ).format(amount);
+  const formattedAmount = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(amount);
 
   if (locale === "ua") {
     return `${formattedAmount} ${currency === "UAH" ? "грн" : currency}`;
@@ -74,4 +88,3 @@ export function formatShopMoney(
 
   return `${currency} ${formattedAmount}`;
 }
-

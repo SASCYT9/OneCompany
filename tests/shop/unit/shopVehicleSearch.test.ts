@@ -2,10 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
   parseVehicleSearchQuery,
   scoreVehicleSearchItem,
 } from "../../../src/lib/shopVehicleSearch";
+import { extractVehicleYearRanges } from "../../../src/lib/shopVehicleYears";
 
 test("G8X expands to BMW M cars and G8x chassis aliases", () => {
   const expanded = expandVehicleAliases("G8X");
@@ -72,4 +74,180 @@ test("vehicle scoring ranks model and chassis matches above make-only matches", 
     exact.reasons.some((reason) => reason.includes("model+chassis")),
     true
   );
+});
+
+test("specific model queries do not expand to every model in a broad alias family", () => {
+  const expanded = expandVehicleAliases("BMW M3 2018");
+
+  assert.deepEqual(expanded.models, ["M3"]);
+  assert.deepEqual(expanded.years, [2018]);
+});
+
+test("catalog year evidence resolves a query to matching chassis", () => {
+  const expanded = expandVehicleAliases("BMW M3 2018");
+  const enriched = enrichVehicleSearchFromCatalog(
+    expanded,
+    [
+      {
+        titleText: "bmw m3 f80 exhaust",
+        fitment: {
+          make: "BMW",
+          models: ["M3"],
+          chassisCodes: ["F80"],
+          yearRanges: [{ from: 2014, to: 2020 }],
+        },
+      },
+      {
+        titleText: "bmw m3 g80 exhaust",
+        fitment: {
+          make: "BMW",
+          models: ["M3"],
+          chassisCodes: ["G80"],
+          yearRanges: [{ from: 2021, to: null }],
+        },
+      },
+    ],
+    { isExpectedChassis: () => true }
+  );
+
+  assert.deepEqual(enriched.chassis, ["F80"]);
+});
+
+test("year-aware scoring strongly penalizes an explicit generation mismatch", () => {
+  const query = expandVehicleAliases("BMW M3 2018");
+  const matching = scoreVehicleSearchItem(
+    {
+      searchText: "bmw m3 f80 exhaust 2014 2020",
+      titleText: "bmw m3 f80 exhaust 2014 2020",
+      skuText: "f80 exhaust",
+      compactSkuText: "f80exhaust",
+      fitmentText: "bmw m3 f80 2014 2020",
+      fitmentMake: "BMW",
+      yearRanges: [{ from: 2014, to: 2020 }],
+    },
+    query
+  );
+  const mismatch = scoreVehicleSearchItem(
+    {
+      searchText: "bmw m3 g80 exhaust 2021 2026",
+      titleText: "bmw m3 g80 exhaust 2021 2026",
+      skuText: "g80 exhaust",
+      compactSkuText: "g80exhaust",
+      fitmentText: "bmw m3 g80 2021 2026",
+      fitmentMake: "BMW",
+      yearRanges: [{ from: 2021, to: 2026 }],
+    },
+    query
+  );
+
+  assert.equal(matching.score > mismatch.score * 10, true);
+});
+
+test("extracts closed, open, and short year ranges", () => {
+  assert.deepEqual(extractVehicleYearRanges("2014-2020 / from 2021 / 2022-24"), [
+    { from: 2014, to: 2020 },
+    { from: 2021, to: null },
+    { from: 2022, to: 2024 },
+  ]);
+  assert.deepEqual(extractVehicleYearRanges("2018+"), [{ from: 2018, to: null }]);
+  assert.deepEqual(extractVehicleYearRanges("Panigale V4 з 2022"), [{ from: 2022, to: null }]);
+  assert.deepEqual(extractVehicleYearRanges("Audi RS3 2022-"), [{ from: 2022, to: null }]);
+});
+
+test("catalog resolver discovers moto makes and compact model spellings", () => {
+  const ducati = enrichVehicleSearchFromCatalog(expandVehicleAliases("Ducati Panigale 2022"), [
+    {
+      titleText: "ducati panigale v4 carbon",
+      fitment: {
+        make: "Ducati",
+        models: ["Panigale"],
+        chassisCodes: [],
+        yearRanges: [{ from: 2022, to: null }],
+      },
+    },
+  ]);
+  const bmwMoto = enrichVehicleSearchFromCatalog(expandVehicleAliases("BMW S1000RR 2020"), [
+    {
+      titleText: "bmw s 1000 rr exhaust",
+      fitment: {
+        make: "BMW",
+        models: ["S 1000 RR"],
+        chassisCodes: [],
+        yearRanges: [{ from: 2019, to: 2026 }],
+      },
+    },
+  ]);
+
+  assert.deepEqual(ducati.makes, ["Ducati"]);
+  assert.deepEqual(ducati.models, ["Panigale"]);
+  assert.equal(ducati.intent, "vehicle");
+  assert.deepEqual(bmwMoto.makes, ["BMW"]);
+  assert.deepEqual(bmwMoto.models, ["S 1000 RR"]);
+});
+
+test("explicit catalog make overrides a conflicting chassis alias", () => {
+  const enriched = enrichVehicleSearchFromCatalog(expandVehicleAliases("Genesis G80 2024"), [
+    {
+      titleText: "genesis g80 2024 suspension",
+      fitment: {
+        make: "Genesis",
+        models: ["G80"],
+        chassisCodes: [],
+        yearRanges: [{ from: 2021, to: null }],
+      },
+    },
+    {
+      titleText: "bmw m3 g80 2024 exhaust",
+      fitment: {
+        make: "BMW",
+        models: ["M3"],
+        chassisCodes: ["G80"],
+        yearRanges: [{ from: 2021, to: null }],
+      },
+    },
+  ]);
+
+  assert.deepEqual(enriched.makes, ["Genesis"]);
+  assert.deepEqual(enriched.models, ["G80"]);
+  assert.deepEqual(enriched.chassis, []);
+});
+
+test("engine displacement is not extracted as a model year", () => {
+  assert.deepEqual(extractVehicleYearRanges("Infiniti Q50 (2013+) 2.0 T 1991cc"), [
+    { from: 2013, to: null },
+  ]);
+});
+
+test("catalog resolver scopes ambiguous chassis codes to an explicit make", () => {
+  const catalog = [
+    {
+      titleText: "audi rs6 c8 intercooler 2020 2024",
+      fitment: {
+        make: "Audi",
+        models: ["RS6"],
+        chassisCodes: ["C8"],
+        yearRanges: [{ from: 2020, to: 2024 }],
+      },
+    },
+    {
+      titleText: "chevrolet corvette c8 exhaust 2020 2024",
+      fitment: {
+        make: "Chevrolet",
+        models: ["Corvette"],
+        chassisCodes: ["C8"],
+        yearRanges: [{ from: 2020, to: 2024 }],
+      },
+    },
+  ];
+
+  const audi = enrichVehicleSearchFromCatalog(expandVehicleAliases("Audi C8 2022"), catalog);
+  const chevrolet = enrichVehicleSearchFromCatalog(
+    expandVehicleAliases("Chevrolet C8 2022"),
+    catalog
+  );
+
+  assert.deepEqual(audi.makes, ["Audi"]);
+  assert.deepEqual(audi.chassis, ["C8"]);
+  assert.deepEqual(chevrolet.makes, ["Chevrolet"]);
+  assert.deepEqual(chevrolet.chassis, ["C8"]);
 });

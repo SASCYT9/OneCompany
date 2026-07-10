@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
 import { isExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
 
+const cachedJson = (body: unknown) =>
+  NextResponse.json(body, {
+    headers: {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900",
+    },
+  });
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,7 +26,7 @@ export async function GET(request: NextRequest) {
         }
       }
       const makes = Array.from(makesSet).sort((a, b) => a.localeCompare(b));
-      return NextResponse.json({ type: "makes", data: makes });
+      return cachedJson({ type: "makes", data: makes });
     }
 
     // Level 1: Make → Models
@@ -34,7 +41,7 @@ export async function GET(request: NextRequest) {
         }
       }
       const models = Array.from(modelsSet).sort((a, b) => a.localeCompare(b));
-      return NextResponse.json({ type: "models", make, data: models });
+      return cachedJson({ type: "models", make, data: models });
     }
 
     // Level 2: Make + Model → Chassis
@@ -56,10 +63,10 @@ export async function GET(request: NextRequest) {
         }
       }
       const chassis = Array.from(chassisSet).sort((a, b) => a.localeCompare(b));
-      return NextResponse.json({ type: "chassis", make, model, data: chassis });
+      return cachedJson({ type: "chassis", make, model, data: chassis });
     }
 
-    return NextResponse.json({ data: [] });
+    return cachedJson({ data: [] });
   } catch (error: any) {
     console.error("[Fitment API Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

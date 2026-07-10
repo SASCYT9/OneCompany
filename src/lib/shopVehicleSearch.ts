@@ -1,4 +1,9 @@
-import { buildShopSearchText, isShopSearchCodeToken, normalizeShopSearchText } from "./shopSearch";
+import { isShopSearchCodeToken, normalizeShopSearchText } from "./shopSearch";
+import {
+  extractVehicleYearRanges,
+  vehicleYearRangeContains,
+  type VehicleYearRange,
+} from "./shopVehicleYears";
 
 export type ShopVehicleSearchIntent = "sku" | "vehicle" | "mixed" | "text";
 
@@ -16,6 +21,7 @@ export type ShopVehicleSearchExpansion = {
   engines: string[];
   softTerms: string[];
   aliasIds: string[];
+  years: number[];
 };
 
 export type ShopVehicleSearchItem = {
@@ -24,6 +30,8 @@ export type ShopVehicleSearchItem = {
   skuText: string;
   compactSkuText: string;
   fitmentText: string;
+  yearRanges?: VehicleYearRange[];
+  fitmentMake?: string | null;
 };
 
 export type ShopVehicleSearchScore = {
@@ -40,6 +48,7 @@ type VehicleAliasGroup = {
   platforms?: string[];
   engines?: string[];
   softTerms?: string[];
+  canonicalModels?: string[];
 };
 
 const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
@@ -104,6 +113,7 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     models: ["RS Q8", "RSQ8"],
     chassis: ["4M", "F1"],
     engines: ["EA825"],
+    canonicalModels: ["RS Q8"],
   },
   {
     id: "audi-rs6-rs7-c8",
@@ -136,6 +146,7 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     models: ["G-Class", "G63", "G-Wagon"],
     chassis: ["W463", "W463A", "W465"],
     platforms: ["G-Wagon"],
+    canonicalModels: ["G-Class"],
   },
   {
     id: "mercedes-amg",
@@ -247,6 +258,21 @@ function normalizedIncludesPhrase(normalizedHaystack: string, phrase: string) {
   return normalizedHaystack === normalizedNeedle || normalizedHaystack.includes(normalizedNeedle);
 }
 
+function selectMentionedValues(
+  normalizedQuery: string,
+  values: string[] | undefined,
+  canonicalValues: string[] = []
+) {
+  if (!values?.length) return [];
+  const compactQuery = compactShopCode(normalizedQuery);
+  const mentioned = values.filter(
+    (value) =>
+      normalizedIncludesPhrase(normalizedQuery, value) ||
+      compactQuery.includes(compactShopCode(value))
+  );
+  return mentioned.length > 0 ? uniq([...canonicalValues, ...mentioned]) : values;
+}
+
 function hasVehicleSignal(expansion: Omit<ShopVehicleSearchExpansion, "intent">) {
   return (
     expansion.makes.length > 0 ||
@@ -309,12 +335,25 @@ export function expandVehicleAliases(query: string): ShopVehicleSearchExpansion 
     tokens,
     requiredTokens: uniq(requiredTokens).map((value) => normalizeShopSearchText(value)),
     makes: uniq(matchedGroups.flatMap((group) => group.makes ?? [])),
-    models: uniq(matchedGroups.flatMap((group) => group.models ?? [])),
-    chassis: uniq(matchedGroups.flatMap((group) => group.chassis ?? [])),
-    platforms: uniq(matchedGroups.flatMap((group) => group.platforms ?? [])),
-    engines: uniq(matchedGroups.flatMap((group) => group.engines ?? [])),
+    models: uniq(
+      matchedGroups.flatMap((group) =>
+        selectMentionedValues(normalized, group.models, group.canonicalModels)
+      )
+    ),
+    chassis: uniq(
+      matchedGroups.flatMap((group) => selectMentionedValues(normalized, group.chassis))
+    ),
+    platforms: uniq(
+      matchedGroups.flatMap((group) => selectMentionedValues(normalized, group.platforms))
+    ),
+    engines: uniq(
+      matchedGroups.flatMap((group) => selectMentionedValues(normalized, group.engines))
+    ),
     softTerms: uniq(matchedGroups.flatMap((group) => group.softTerms ?? [])),
     aliasIds: matchedGroups.map((group) => group.id),
+    years: extractVehicleYearRanges(query).flatMap((range) =>
+      range.to === range.from ? [range.from] : []
+    ),
   };
 
   const intent: ShopVehicleSearchIntent =
@@ -343,14 +382,13 @@ function scoreTokens(
   reasonLabel: string,
   reasons: string[]
 ) {
-  let score = 0;
   for (const value of values) {
     const normalized = normalizeShopSearchText(value);
     if (!normalized || !text.includes(normalized)) continue;
-    score += weight;
     reasons.push(`${reasonLabel}:${value}`);
+    return weight;
   }
-  return score;
+  return 0;
 }
 
 export function scoreVehicleSearchItem(
@@ -404,6 +442,29 @@ export function scoreVehicleSearchItem(
   score += scoreTokens(allText, expandedQuery.makes, 2, "text.make", reasons);
 
   score += scoreTokens(allText, expandedQuery.softTerms, 3, "text.soft", reasons);
+
+  if (score > 0 && expandedQuery.years.length > 0 && item.yearRanges?.length) {
+    const matchesYear = expandedQuery.years.some((year) =>
+      item.yearRanges!.some((range) => vehicleYearRangeContains(range, year))
+    );
+    if (matchesYear) {
+      score += 180;
+      reasons.unshift(`fitment.year:${expandedQuery.years.join("+")}`);
+    } else {
+      score *= 0.08;
+      reasons.unshift(`fitment.year:miss:${expandedQuery.years.join("+")}`);
+    }
+  }
+
+  if (score > 0 && expandedQuery.makes.length > 0 && item.fitmentMake) {
+    const makeMatches = expandedQuery.makes.some(
+      (make) => normalizeShopSearchText(make) === normalizeShopSearchText(item.fitmentMake)
+    );
+    if (!makeMatches) {
+      score *= 0.04;
+      reasons.unshift(`fitment.make:miss:${item.fitmentMake}`);
+    }
+  }
 
   if (chassisInFitment > 0 && modelInFitment > 0) {
     score += 80;
@@ -465,6 +526,192 @@ export function buildVehicleSearchDebug(expandedQuery: ShopVehicleSearchExpansio
       platforms: expandedQuery.platforms,
       engines: expandedQuery.engines,
       softTerms: expandedQuery.softTerms,
+      years: expandedQuery.years,
     },
+  };
+}
+
+type CatalogVehicleResolutionItem = {
+  fitment: {
+    make: string | null;
+    models: string[];
+    chassisCodes: string[];
+    yearRanges?: VehicleYearRange[];
+  };
+  titleText: string;
+};
+
+export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutionItem>(
+  expandedQuery: ShopVehicleSearchExpansion,
+  items: T[],
+  options?: {
+    isExpectedChassis?: (make: string, model: string, chassis: string) => boolean;
+  }
+) {
+  const compactQuery = compactShopCode(expandedQuery.raw);
+  const makeCounts = new Map<string, number>();
+  for (const item of items) {
+    const make = item.fitment.make?.trim();
+    if (!make) continue;
+    const normalizedMake = normalizeShopSearchText(make);
+    const compactMake = compactShopCode(make);
+    if (
+      !expandedQuery.normalized.includes(normalizedMake) &&
+      !(compactMake.length >= 2 && compactQuery.includes(compactMake))
+    ) {
+      continue;
+    }
+    makeCounts.set(make, (makeCounts.get(make) ?? 0) + 1);
+  }
+  const catalogMentionedMakes = Array.from(makeCounts)
+    .sort((left, right) => right[1] - left[1] || right[0].length - left[0].length)
+    .slice(0, 3)
+    .map(([make]) => make);
+  let resolvedMakes = expandedQuery.makes;
+  const catalogOverridesAliasMake =
+    catalogMentionedMakes.length > 0 &&
+    !catalogMentionedMakes.some((make) =>
+      expandedQuery.makes.some(
+        (expandedMake) => normalizeShopSearchText(expandedMake) === normalizeShopSearchText(make)
+      )
+    );
+  if (resolvedMakes.length === 0 || catalogOverridesAliasMake) {
+    resolvedMakes = catalogMentionedMakes;
+  }
+
+  let resolvedModels = catalogOverridesAliasMake ? [] : expandedQuery.models;
+  if (resolvedModels.length === 0 && resolvedMakes.length > 0) {
+    const makeKeys = new Set(resolvedMakes.map(normalizeShopSearchText));
+    const modelCounts = new Map<string, number>();
+    for (const item of items) {
+      if (!makeKeys.has(normalizeShopSearchText(item.fitment.make))) continue;
+      for (const model of item.fitment.models) {
+        const normalizedModel = normalizeShopSearchText(model);
+        const compactModel = compactShopCode(model);
+        if (
+          !expandedQuery.normalized.includes(normalizedModel) &&
+          !(compactModel.length >= 2 && compactQuery.includes(compactModel))
+        ) {
+          continue;
+        }
+        modelCounts.set(model, (modelCounts.get(model) ?? 0) + 1);
+      }
+    }
+
+    const modelCandidates = Array.from(modelCounts)
+      .sort(
+        (left, right) =>
+          normalizeShopSearchText(right[0]).length - normalizeShopSearchText(left[0]).length ||
+          right[1] - left[1]
+      )
+      .map(([model]) => model);
+    resolvedModels = modelCandidates
+      .filter((model, index) => {
+        const normalizedModel = normalizeShopSearchText(model);
+        return !modelCandidates
+          .slice(0, index)
+          .some((candidate) => normalizeShopSearchText(candidate).includes(normalizedModel));
+      })
+      .slice(0, 4);
+  }
+
+  const resolvedMakeKeys = new Set(resolvedMakes.map(normalizeShopSearchText));
+  const mentionedChassisCounts = new Map<string, number>();
+  if (resolvedMakeKeys.size > 0) {
+    for (const item of items) {
+      if (!resolvedMakeKeys.has(normalizeShopSearchText(item.fitment.make))) continue;
+      for (const chassis of item.fitment.chassisCodes) {
+        const normalizedChassis = normalizeShopSearchText(chassis);
+        const compactChassis = compactShopCode(chassis);
+        if (
+          !expandedQuery.normalized.includes(normalizedChassis) &&
+          !(compactChassis.length >= 2 && compactQuery.includes(compactChassis))
+        ) {
+          continue;
+        }
+        mentionedChassisCounts.set(chassis, (mentionedChassisCounts.get(chassis) ?? 0) + 1);
+      }
+    }
+  }
+  const catalogMentionedChassis = Array.from(mentionedChassisCounts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, 8)
+    .map(([chassis]) => chassis);
+
+  const catalogResolved =
+    resolvedMakes.length > 0 && (resolvedModels.length > 0 || catalogMentionedChassis.length > 0);
+  const resolvedQuery: ShopVehicleSearchExpansion = catalogResolved
+    ? {
+        ...expandedQuery,
+        intent: expandedQuery.intent === "text" ? "vehicle" : "mixed",
+        makes: uniq(resolvedMakes),
+        models: uniq(resolvedModels),
+        chassis: uniq([
+          ...catalogMentionedChassis,
+          ...(catalogOverridesAliasMake ? [] : expandedQuery.chassis),
+        ]),
+        platforms: catalogOverridesAliasMake ? [] : expandedQuery.platforms,
+        engines: catalogOverridesAliasMake ? [] : expandedQuery.engines,
+        requiredTokens: uniq([
+          ...expandedQuery.requiredTokens,
+          ...resolvedModels.map(normalizeShopSearchText),
+          ...catalogMentionedChassis.map(normalizeShopSearchText),
+        ]),
+        aliasIds: uniq([...expandedQuery.aliasIds, "catalog-make-model-resolution"]),
+      }
+    : expandedQuery;
+
+  if (
+    resolvedQuery.years.length === 0 ||
+    resolvedQuery.models.length === 0 ||
+    resolvedQuery.makes.length === 0
+  ) {
+    return resolvedQuery;
+  }
+
+  const makeKeys = new Set(resolvedQuery.makes.map(normalizeShopSearchText));
+  const modelKeys = resolvedQuery.models.map(normalizeShopSearchText);
+  const chassisCounts = new Map<string, number>();
+
+  for (const item of items) {
+    const makeKey = normalizeShopSearchText(item.fitment.make);
+    if (!makeKeys.has(makeKey)) continue;
+    const titleHasMake = resolvedQuery.makes.some((make) =>
+      item.titleText.includes(normalizeShopSearchText(make))
+    );
+    const titleHasModel = modelKeys.some((model) => item.titleText.includes(model));
+    if (!titleHasMake || !titleHasModel) continue;
+    const modelMatches = item.fitment.models.some((model) =>
+      modelKeys.includes(normalizeShopSearchText(model))
+    );
+    if (!modelMatches) continue;
+    const yearMatches = resolvedQuery.years.some((year) =>
+      (item.fitment.yearRanges ?? []).some((range) => vehicleYearRangeContains(range, year))
+    );
+    if (!yearMatches) continue;
+
+    for (const chassis of item.fitment.chassisCodes) {
+      if (
+        options?.isExpectedChassis &&
+        !resolvedQuery.makes.some((make) =>
+          resolvedQuery.models.some((model) => options.isExpectedChassis!(make, model, chassis))
+        )
+      ) {
+        continue;
+      }
+      chassisCounts.set(chassis, (chassisCounts.get(chassis) ?? 0) + 1);
+    }
+  }
+
+  const inferredChassis = Array.from(chassisCounts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, 8)
+    .map(([chassis]) => chassis);
+  if (inferredChassis.length === 0) return resolvedQuery;
+
+  return {
+    ...resolvedQuery,
+    chassis: uniq([...inferredChassis, ...resolvedQuery.chassis]),
+    aliasIds: uniq([...resolvedQuery.aliasIds, "catalog-year-resolution"]),
   };
 }

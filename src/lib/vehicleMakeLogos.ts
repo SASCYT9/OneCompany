@@ -1,0 +1,81 @@
+const VEHICLE_MAKE_LOGOS: Record<string, string> = {
+  abarth: "/images/vehicle-makes/abarth.png",
+  acura: "/images/vehicle-makes/acura.png",
+  "alfa romeo": "/images/vehicle-makes/alfa-romeo.png",
+  alpine: "/images/vehicle-makes/alpine.png",
+  "aston martin": "/images/vehicle-makes/aston-martin.png",
+  audi: "/images/vehicle-makes/audi.png",
+  bentley: "/images/vehicle-makes/bentley.png",
+  bmw: "/images/vehicle-makes/bmw.png",
+  cadillac: "/images/vehicle-makes/cadillac.png",
+  chevrolet: "/images/vehicle-makes/chevrolet.png",
+  chrysler: "/images/vehicle-makes/chrysler.png",
+  citroen: "/images/vehicle-makes/citroen.png",
+  corvette: "/images/vehicle-makes/corvette.png",
+  cupra: "/images/vehicle-makes/cupra.png",
+  dacia: "/images/vehicle-makes/dacia.png",
+  daewoo: "/images/vehicle-makes/daewoo.png",
+  dodge: "/images/vehicle-makes/dodge.png",
+  ds: "/images/vehicle-makes/ds.png",
+  ducati: "/images/vehicle-makes/ducati.svg",
+  ferrari: "/images/vehicle-makes/ferrari.png",
+  fiat: "/images/vehicle-makes/fiat.png",
+  ford: "/images/vehicle-makes/ford.png",
+  genesis: "/images/vehicle-makes/genesis.png",
+  honda: "/images/vehicle-makes/honda.png",
+  hyundai: "/images/vehicle-makes/hyundai.png",
+  ineos: "/images/vehicle-makes/ineos.png",
+  infiniti: "/images/vehicle-makes/infiniti.png",
+  isuzu: "/images/vehicle-makes/isuzu.png",
+  iveco: "/images/vehicle-makes/iveco.png",
+  jaguar: "/images/vehicle-makes/jaguar.png",
+  jeep: "/images/vehicle-makes/jeep.png",
+  kia: "/images/vehicle-makes/kia.png",
+  lamborghini: "/images/vehicle-makes/lamborghini.png",
+  lancia: "/images/vehicle-makes/lancia.png",
+  "land rover": "/images/vehicle-makes/land-rover.png",
+  ldv: "/images/vehicle-makes/ldv.png",
+  lexus: "/images/vehicle-makes/lexus.png",
+  lotus: "/images/vehicle-makes/lotus.png",
+  maruti: "/images/vehicle-makes/maruti.png",
+  maserati: "/images/vehicle-makes/maserati.png",
+  mazda: "/images/vehicle-makes/mazda.png",
+  mclaren: "/images/vehicle-makes/mclaren.png",
+  "mercedes amg": "/images/vehicle-makes/mercedes-amg.png",
+  "mercedes benz": "/images/vehicle-makes/mercedes-benz.png",
+  mini: "/images/vehicle-makes/mini.png",
+  mitsubishi: "/images/vehicle-makes/mitsubishi.png",
+  nissan: "/images/vehicle-makes/nissan.png",
+  opel: "/images/vehicle-makes/opel.png",
+  peugeot: "/images/vehicle-makes/peugeot.png",
+  porsche: "/images/vehicle-makes/porsche.png",
+  "range rover": "/images/vehicle-makes/land-rover.png",
+  renault: "/images/vehicle-makes/renault.png",
+  "rolls royce": "/images/vehicle-makes/rolls-royce.png",
+  saab: "/images/vehicle-makes/saab.png",
+  seat: "/images/vehicle-makes/seat.png",
+  skoda: "/images/vehicle-makes/skoda.png",
+  smart: "/images/vehicle-makes/smart.png",
+  ssangyong: "/images/vehicle-makes/ssangyong.png",
+  subaru: "/images/vehicle-makes/subaru.png",
+  suzuki: "/images/vehicle-makes/suzuki.png",
+  tata: "/images/vehicle-makes/tata.png",
+  tesla: "/images/vehicle-makes/tesla.png",
+  toyota: "/images/vehicle-makes/toyota.png",
+  vauxhall: "/images/vehicle-makes/vauxhall.png",
+  volkswagen: "/images/vehicle-makes/volkswagen.png",
+  volvo: "/images/vehicle-makes/volvo.png",
+};
+
+export const normalizeVehicleMakeName = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("en-US")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export function getVehicleMakeLogoPath(make: string): string | null {
+  return VEHICLE_MAKE_LOGOS[normalizeVehicleMakeName(make)] ?? null;
+}

@@ -8,7 +8,11 @@ import {
 } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import {
+  getOrCreateShopSettings,
+  getShopSettingsRuntime,
+  type ShopCurrencyCode,
+} from "@/lib/shopAdminSettings";
 import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
@@ -18,19 +22,33 @@ import {
   tokenizeShopSearchQuery,
   normalizeShopSearchText,
 } from "@/lib/shopSearch";
+import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
+import { diversifyShopStockItems } from "@/lib/shopStockRanking";
 import {
   buildVehicleSearchDebug,
   compactShopCode,
+  enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
   isStructuredPartQuery,
   scoreVehicleSearchItem,
   type ShopVehicleSearchExpansion,
 } from "@/lib/shopVehicleSearch";
 import {
+  getShopStockCategoryGroupForProduct,
   getShopStockCategoryLabelForProduct,
   matchesShopStockCategory,
 } from "@/lib/shopStockTaxonomy";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
+import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
+import {
+  classifyProductFitment,
+  mergePersistedFitment,
+  NORMALIZED_FITMENT_KEY,
+  NORMALIZED_FITMENT_NAMESPACE,
+  resolveSearchFitments,
+  type NormalizedFitmentSource,
+  type NormalizedFitmentStatus,
+} from "@/lib/shopFitmentQuality";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -58,6 +76,25 @@ const STOCK_SEARCH_SORTS = new Set<StockSearchSort>([
 const STOCK_SEARCH_STATES = new Set<StockSearchStock>(["all", "inStock", "preOrder"]);
 const DEFAULT_STOCK_SEARCH_LIMIT = 24;
 const MAX_STOCK_SEARCH_LIMIT = 96;
+const STOCK_SEARCH_PRICE_CURRENCIES = new Set<ShopCurrencyCode>(["EUR", "USD", "UAH"]);
+
+const CATALOG_BRAND_PRIORITY = [
+  "Akrapovic",
+  "Remus",
+  "KW",
+  "Ohlins",
+  "GiroDisc",
+  "iPE exhaust",
+  "Eventuri",
+  "Brabus",
+  "Urban Automotive",
+  "Burger Motorsports",
+  "RaceChip",
+  "CSF",
+  "do88",
+  "ADRO",
+  "Ilmberger Carbon",
+].map(normalizeShopSearchText);
 
 export function getProductDisplayBrand(brand: string | null | undefined): string {
   if (!brand) return "";
@@ -71,25 +108,76 @@ export function getProductDisplayBrand(brand: string | null | undefined): string
 let cachedProductsWithFitment: Array<{
   product: any;
   fitment: Fitment;
+  fitments: Fitment[];
+  fitmentStatus: NormalizedFitmentStatus;
+  fitmentSource: NormalizedFitmentSource;
   searchText: string;
   titleText: string;
   skuText: string;
   compactSkuText: string;
   fitmentText: string;
+  yearRanges: Fitment["yearRanges"];
+  fitmentMake: string | null;
 }> | null = null;
 let cachedTimestamp = 0;
+let cachedFitmentOverrideUpdatedAt = 0;
+let lastFitmentOverrideVersionCheck = 0;
+const FITMENT_OVERRIDE_VERSION_CHECK_MS = 30 * 1000;
 
 export async function getShopProductsWithFitments() {
   const now = Date.now();
-  const products = await getShopProductsServer();
+  let overrideUpdatedAt = cachedFitmentOverrideUpdatedAt;
+  if (
+    !cachedProductsWithFitment ||
+    now - lastFitmentOverrideVersionCheck >= FITMENT_OVERRIDE_VERSION_CHECK_MS
+  ) {
+    const overrideVersion = await prisma.shopProductMetafield.aggregate({
+      where: {
+        namespace: NORMALIZED_FITMENT_NAMESPACE,
+        key: NORMALIZED_FITMENT_KEY,
+      },
+      _max: { updatedAt: true },
+    });
+    overrideUpdatedAt = overrideVersion._max.updatedAt?.getTime() ?? 0;
+    lastFitmentOverrideVersionCheck = now;
+  }
+  if (
+    cachedProductsWithFitment &&
+    now - cachedTimestamp < 5 * 60 * 1000 &&
+    overrideUpdatedAt === cachedFitmentOverrideUpdatedAt
+  ) {
+    return cachedProductsWithFitment;
+  }
+
+  const [products, fitmentOverrides] = await Promise.all([
+    getShopProductsServer(),
+    prisma.shopProductMetafield.findMany({
+      where: {
+        namespace: NORMALIZED_FITMENT_NAMESPACE,
+        key: NORMALIZED_FITMENT_KEY,
+      },
+      select: { productId: true, value: true },
+    }),
+  ]);
+  const fitmentOverrideByProductId = new Map(
+    fitmentOverrides.map((item) => [item.productId, item.value])
+  );
 
   if (
     !cachedProductsWithFitment ||
     products.length !== cachedProductsWithFitment.length ||
-    now - cachedTimestamp > 5 * 60 * 1000
+    now - cachedTimestamp > 5 * 60 * 1000 ||
+    overrideUpdatedAt !== cachedFitmentOverrideUpdatedAt
   ) {
     cachedProductsWithFitment = products.map((product) => {
-      const fitment = extractProductFitment(product);
+      const automaticFitment = extractProductFitment(product);
+      const persistedValue = product.id ? fitmentOverrideByProductId.get(product.id) : null;
+      const normalizedFitment = mergePersistedFitment(
+        classifyProductFitment(product, automaticFitment),
+        persistedValue
+      );
+      const fitments = resolveSearchFitments(automaticFitment, persistedValue);
+      const fitment = fitments[0];
       const displayBrand = getProductDisplayBrand(product.brand);
       const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
       const skuText = buildShopSearchText([
@@ -103,11 +191,20 @@ export async function getShopProductsWithFitments() {
         .map((value) => compactShopCode(value))
         .filter(Boolean)
         .join(" ");
-      const fitmentText = buildShopSearchText([
-        fitment.make,
-        ...fitment.models,
-        ...fitment.chassisCodes,
-      ]);
+      const buildFitmentText = (value: Fitment) =>
+        buildShopSearchText([
+          value.make,
+          ...value.models,
+          ...value.chassisCodes,
+          ...value.yearRanges.map((range) =>
+            range.to === null
+              ? `${range.from}+`
+              : range.to === range.from
+                ? String(range.from)
+                : `${range.from}-${range.to}`
+          ),
+        ]);
+      const fitmentText = buildShopSearchText(fitments.map(buildFitmentText));
 
       const searchText = buildShopSearchText([
         product.title?.en,
@@ -137,23 +234,36 @@ export async function getShopProductsWithFitments() {
           variant.title,
           variant.optionValues?.join(" "),
         ]),
-        fitment.make,
-        ...fitment.models,
-        ...fitment.chassisCodes,
+        ...fitments.flatMap((value) => [value.make, ...value.models, ...value.chassisCodes]),
         ...(product.tags ?? []),
       ]);
 
       return {
         product,
         fitment,
+        fitments,
+        fitmentStatus: normalizedFitment.status,
+        fitmentSource: normalizedFitment.source,
         searchText,
         titleText,
         skuText,
         compactSkuText,
         fitmentText,
+        yearRanges: fitment.yearRanges,
+        fitmentMake: fitment.make,
+        fitmentItems: fitments.map((value) => ({
+          searchText,
+          titleText,
+          skuText,
+          compactSkuText,
+          fitmentText: buildFitmentText(value),
+          yearRanges: value.yearRanges,
+          fitmentMake: value.make,
+        })),
       };
     });
     cachedTimestamp = now;
+    cachedFitmentOverrideUpdatedAt = overrideUpdatedAt;
   }
 
   return cachedProductsWithFitment;
@@ -166,6 +276,17 @@ function computeRelevanceScoreWithReasons(
     skuText: string;
     compactSkuText: string;
     fitmentText: string;
+    yearRanges?: Fitment["yearRanges"];
+    fitmentMake?: string | null;
+    fitmentItems?: Array<{
+      searchText: string;
+      titleText: string;
+      skuText: string;
+      compactSkuText: string;
+      fitmentText: string;
+      yearRanges?: Fitment["yearRanges"];
+      fitmentMake?: string | null;
+    }>;
   },
   queryTokens: string[],
   rawQuery: string,
@@ -174,7 +295,9 @@ function computeRelevanceScoreWithReasons(
   titleEn?: string,
   titleUa?: string
 ) {
-  const vehicleScore = scoreVehicleSearchItem(item, expandedQuery);
+  const vehicleScore = (item.fitmentItems?.length ? item.fitmentItems : [item])
+    .map((fitmentItem) => scoreVehicleSearchItem(fitmentItem, expandedQuery))
+    .sort((left, right) => right.score - left.score)[0];
   const compactQuery = compactShopCode(rawQuery);
   if (isStructuredPartQuery(rawQuery) && item.compactSkuText.includes(compactQuery)) {
     return { score: 1000, reasons: ["sku:exact"] };
@@ -235,17 +358,57 @@ function computeRelevanceScoreWithReasons(
   return { score: textScore, reasons: [`text:${textScore.toFixed(2)}`] };
 }
 
-function narrowVehicleSearchResults<T extends { searchText: string; score: number }>(
-  items: T[],
-  expandedQuery: ShopVehicleSearchExpansion
-) {
+function narrowVehicleSearchResults<
+  T extends { searchText: string; score: number; fitments?: Fitment[] },
+>(items: T[], expandedQuery: ShopVehicleSearchExpansion) {
   if (expandedQuery.intent !== "vehicle" && expandedQuery.intent !== "mixed") {
     return items;
   }
 
   let narrowed = items;
+  const hasStructuredVehicleTarget =
+    expandedQuery.makes.length > 0 &&
+    (expandedQuery.models.length > 0 || expandedQuery.chassis.length > 0);
+  const structuredMatches = hasStructuredVehicleTarget
+    ? items.filter((item) =>
+        (item.fitments ?? []).some((fitment) => {
+          const makeMatches = expandedQuery.makes.some(
+            (make) => normalizeShopSearchText(make) === normalizeShopSearchText(fitment.make)
+          );
+          if (!makeMatches) return false;
+          const modelMatches =
+            expandedQuery.models.length === 0 ||
+            fitment.models.some((model) =>
+              expandedQuery.models.some(
+                (queryModel) =>
+                  normalizeShopSearchText(queryModel) === normalizeShopSearchText(model)
+              )
+            );
+          if (!modelMatches) return false;
+          const chassisMatches =
+            expandedQuery.chassis.length === 0 ||
+            fitment.chassisCodes.some((chassis) =>
+              expandedQuery.chassis.some((queryChassis) =>
+                areChassisCompatible(chassis, queryChassis)
+              )
+            );
+          if (!chassisMatches) return false;
+          return (
+            expandedQuery.years.length === 0 ||
+            (fitment.yearRanges.length > 0 &&
+              expandedQuery.years.some((year) =>
+                fitment.yearRanges.some((range) => vehicleYearRangeContains(range, year))
+              ))
+          );
+        })
+      )
+    : [];
+  const hasStructuredMatches = structuredMatches.length > 0;
+  if (hasStructuredMatches) {
+    narrowed = structuredMatches;
+  }
 
-  if (expandedQuery.requiredTokens.length > 0) {
+  if (!hasStructuredMatches && expandedQuery.requiredTokens.length > 0) {
     const fullRequiredMatches = items.filter((item) =>
       expandedQuery.requiredTokens.every((token) => item.searchText.includes(token))
     );
@@ -282,6 +445,18 @@ function parseStockSearchLimit(value: string | null) {
   return Math.min(MAX_STOCK_SEARCH_LIMIT, Math.max(1, Math.floor(parsed)));
 }
 
+function parseStockSearchPrice(value: string | null) {
+  if (!value) return null;
+  const parsed = Number(value.trim().replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
+function parseStockSearchCurrency(value: string | null): ShopCurrencyCode {
+  const normalized = value?.trim().toUpperCase() as ShopCurrencyCode | undefined;
+  return normalized && STOCK_SEARCH_PRICE_CURRENCIES.has(normalized) ? normalized : "USD";
+}
+
 function hasAnyShopMoney(
   price: { eur?: number | null; usd?: number | null; uah?: number | null } | null | undefined
 ) {
@@ -296,12 +471,16 @@ function incrementCount(map: Map<string, number>, key: string | null | undefined
 
 function buildFilterStats(
   productsWithFitments: Awaited<ReturnType<typeof getShopProductsWithFitments>>,
-  locale: string
+  locale: string,
+  getProductPrice?: (product: any) => number,
+  priceCurrency?: ShopCurrencyCode
 ) {
   const brands = new Map<string, number>();
   const categories = new Map<string, number>();
   let inStock = 0;
   let preOrder = 0;
+  let minPrice = Number.POSITIVE_INFINITY;
+  let maxPrice = 0;
 
   for (const item of productsWithFitments) {
     incrementCount(brands, getProductDisplayBrand(item.product.brand));
@@ -311,6 +490,12 @@ function buildFilterStats(
       inStock += 1;
     } else {
       preOrder += 1;
+    }
+
+    const price = getProductPrice?.(item.product) ?? 0;
+    if (Number.isFinite(price) && price > 0) {
+      minPrice = Math.min(minPrice, price);
+      maxPrice = Math.max(maxPrice, price);
     }
   }
 
@@ -332,6 +517,11 @@ function buildFilterStats(
       inStock,
       preOrder,
     },
+    price: {
+      min: Number.isFinite(minPrice) ? Math.floor(minPrice) : 0,
+      max: maxPrice > 0 ? Math.ceil(maxPrice) : 0,
+      currency: priceCurrency ?? "USD",
+    },
   };
 }
 
@@ -339,7 +529,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim() || "";
-    const brand = searchParams.get("brand")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
     const make = searchParams.get("make")?.trim() || "";
     const model = searchParams.get("model")?.trim() || "";
@@ -350,8 +539,20 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const all = searchParams.get("all") === "true";
     const debug = searchParams.get("debug") === "true";
+    const includeFitment = searchParams.get("includeFitment") === "true";
     const country = searchParams.get("country");
     const limit = parseStockSearchLimit(searchParams.get("limit"));
+    const priceCurrency = parseStockSearchCurrency(searchParams.get("currency"));
+    let minPrice = parseStockSearchPrice(searchParams.get("minPrice"));
+    let maxPrice = parseStockSearchPrice(searchParams.get("maxPrice"));
+    if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
+      [minPrice, maxPrice] = [maxPrice, minPrice];
+    }
+    const hasPriceFilter = minPrice !== null || maxPrice !== null;
+    const brandNames = parseShopStockParamList(searchParams, "brand").map((value) =>
+      normalizeShopSearchText(value)
+    );
+    const hasBrandFilter = brandNames.length > 0;
 
     const [settingsRecord, session, productsWithFitments] = await Promise.all([
       getOrCreateShopSettings(prisma),
@@ -369,30 +570,62 @@ export async function GET(request: NextRequest) {
       { priceCountry: country }
     );
 
-    const getProductPriceForSort = (product: any) => {
+    const pricingCache = new WeakMap<object, ReturnType<typeof resolveShopProductPricing>>();
+    const priceSetCache = new WeakMap<object, ReturnType<typeof expandShopPrices>>();
+
+    const getProductPricing = (product: any) => {
+      const cached = pricingCache.get(product);
+      if (cached) return cached;
       const pricing = resolveShopProductPricing(product, pricingContext);
-      if (pricing.effectivePrice.usd > 0) return pricing.effectivePrice.usd;
+      pricingCache.set(product, pricing);
+      return pricing;
+    };
+
+    const getProductPriceSet = (product: any) => {
+      const cached = priceSetCache.get(product);
+      if (cached) return cached;
+      const effectivePriceSet = expandShopPrices(
+        getProductPricing(product).effectivePrice,
+        settings.currencyRates
+      );
+      priceSetCache.set(product, effectivePriceSet);
+      return effectivePriceSet;
+    };
+
+    const getProductPriceForSort = (product: any) => {
+      const effectivePriceSet = getProductPriceSet(product);
+      if (effectivePriceSet.usd > 0) return effectivePriceSet.usd;
       const usdRate = settings.currencyRates.USD || 1.152174;
       const uahRate = settings.currencyRates.UAH || 53.0;
-      if (pricing.effectivePrice.eur > 0) return pricing.effectivePrice.eur * usdRate;
-      if (pricing.effectivePrice.uah > 0) return pricing.effectivePrice.uah / (uahRate / usdRate);
+      if (effectivePriceSet.eur > 0) return effectivePriceSet.eur * usdRate;
+      if (effectivePriceSet.uah > 0) return effectivePriceSet.uah / (uahRate / usdRate);
       return 0;
+    };
+
+    const getProductPriceForFilter = (product: any) => {
+      const effectivePriceSet = getProductPriceSet(product);
+      if (priceCurrency === "EUR") return effectivePriceSet.eur ?? 0;
+      if (priceCurrency === "UAH") return effectivePriceSet.uah ?? 0;
+      return effectivePriceSet.usd ?? 0;
+    };
+
+    const matchesPriceRange = (item: (typeof productsWithFitments)[number]) => {
+      if (!hasPriceFilter) return true;
+      const price = getProductPriceForFilter(item.product);
+      if (!Number.isFinite(price) || price <= 0) return false;
+      if (minPrice !== null && price < minPrice) return false;
+      if (maxPrice !== null && price > maxPrice) return false;
+      return true;
     };
 
     // 1. Filter logic
     let filtered = productsWithFitments;
 
-    if (brand) {
-      const brandNames = brand
-        .split(",")
-        .map((b) => b.trim().toLowerCase())
-        .filter(Boolean);
-      if (brandNames.length > 0) {
-        filtered = filtered.filter((item) => {
-          const displayBrand = getProductDisplayBrand(item.product.brand).toLowerCase();
-          return brandNames.includes(displayBrand);
-        });
-      }
+    if (hasBrandFilter) {
+      filtered = filtered.filter((item) => {
+        const displayBrand = normalizeShopSearchText(getProductDisplayBrand(item.product.brand));
+        return brandNames.includes(displayBrand);
+      });
     }
 
     if (category) {
@@ -403,12 +636,17 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter((item) => item.product.stock === stock);
     }
 
+    if (hasPriceFilter) {
+      filtered = filtered.filter(matchesPriceRange);
+    }
+
     if (make) {
       const makeNorm = normalizeShopSearchText(make);
       filtered = filtered.filter(
         (item) =>
-          (item.fitment.make && normalizeShopSearchText(item.fitment.make) === makeNorm) ||
-          item.searchText.includes(makeNorm)
+          item.fitments.some(
+            (fitment) => fitment.make && normalizeShopSearchText(fitment.make) === makeNorm
+          ) || item.searchText.includes(makeNorm)
       );
     }
 
@@ -416,8 +654,9 @@ export async function GET(request: NextRequest) {
       const modelNorm = normalizeShopSearchText(model);
       filtered = filtered.filter(
         (item) =>
-          item.fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm) ||
-          item.searchText.includes(modelNorm)
+          item.fitments.some((fitment) =>
+            fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm)
+          ) || item.searchText.includes(modelNorm)
       );
     }
 
@@ -428,8 +667,10 @@ export async function GET(request: NextRequest) {
       } else {
         filtered = filtered.filter(
           (item) =>
-            item.fitment.chassisCodes.some((c: string) =>
-              areChassisCompatible(c, chassis.toUpperCase())
+            item.fitments.some((fitment) =>
+              fitment.chassisCodes.some((c: string) =>
+                areChassisCompatible(c, chassis.toUpperCase())
+              )
             ) || item.searchText.includes(chassisNorm)
         );
       }
@@ -437,7 +678,18 @@ export async function GET(request: NextRequest) {
 
     // 2. Search query with relevance scoring
     const queryTokens = tokenizeShopSearchQuery(q);
-    const expandedQuery = q ? expandVehicleAliases(q) : null;
+    let expandedQuery = q ? expandVehicleAliases(q) : null;
+    if (expandedQuery) {
+      expandedQuery = enrichVehicleSearchFromCatalog(
+        expandedQuery,
+        productsWithFitments.flatMap((item) =>
+          item.fitments.map((fitment) => ({ ...item, fitment }))
+        ),
+        {
+          isExpectedChassis: isExpectedChassisForMakeModel,
+        }
+      );
+    }
     const compactQuery = compactShopCode(q);
     const structuredPartQuery = isStructuredPartQuery(q);
     let scoredItems = filtered.map((item) => {
@@ -489,6 +741,127 @@ export async function GET(request: NextRequest) {
       }
     };
 
+    const sortByDefaultCatalogOrder = (items: typeof scoredItems) => {
+      const diversified = diversifyShopStockItems(items, (item) => {
+        const displayBrand = getProductDisplayBrand(item.product.brand);
+        const normalizedBrand = normalizeShopSearchText(displayBrand);
+        const brandPriority = CATALOG_BRAND_PRIORITY.indexOf(normalizedBrand);
+        const title = item.product.title.ua || item.product.title.en || "";
+        const normalizedTitle = normalizeShopSearchText(title);
+        const hasImage = Boolean(item.product.image || item.product.gallery?.[0]);
+        const hasFitment = Boolean(
+          item.fitments.some(
+            (fitment) => fitment.make || fitment.models.length || fitment.chassisCodes.length
+          )
+        );
+        const productPrice = getProductPriceForSort(item.product);
+        const isMinorAccessory =
+          /\b(accessory|adaptor|adapter|replacement|spare|bracket|clamp)\b/.test(normalizedTitle) ||
+          /\b(адаптер|кронштейн|хомут|запасн)/.test(normalizedTitle);
+        const isCoreUpgrade =
+          /\b(exhaust|system|suspension|coilover|brake|disc|intake|intercooler|radiator|body kit|spoiler|diffuser|tuner)\b/.test(
+            normalizedTitle
+          ) ||
+          /\b(вихлоп|система|підвіск|гальм|диск|впуск|інтеркулер|радіатор|обвіс|спойлер|дифузор|тюнер)/.test(
+            normalizedTitle
+          );
+
+        let catalogScore = item.product.stock === "inStock" ? 120 : 0;
+        if (hasImage) catalogScore += 45;
+        if (productPrice > 0) catalogScore += 15 + Math.min(30, Math.log10(productPrice + 1) * 6);
+        if (hasFitment) catalogScore += 12;
+        if (isCoreUpgrade) catalogScore += 20;
+        if (isMinorAccessory) catalogScore -= 40;
+        if (brandPriority >= 0) catalogScore += Math.max(6, 24 - brandPriority);
+
+        return {
+          brand: displayBrand,
+          score: catalogScore,
+          stableKey: `${title} ${item.product.sku || item.product.slug}`,
+        };
+      });
+
+      items.splice(0, items.length, ...diversified);
+    };
+
+    const diversifyStrongVehicleResults = (items: typeof scoredItems) => {
+      if (items.length < 2) return;
+      const topScore = items[0]?.score ?? 0;
+      const relevanceFloor = topScore * 0.55;
+      const strong = items.filter((item) => item.score >= relevanceFloor);
+      if (strong.length < 2) return;
+      const strongSet = new Set(strong);
+      const categoryPriority: Record<string, number> = {
+        exhaust: 18,
+        carbonAero: 17,
+        brakes: 15,
+        suspension: 14,
+        performance: 13,
+        cooling: 12,
+        chipTuning: 10,
+        wheels: 7,
+        lighting: 6,
+        interior: 5,
+        accessories: -12,
+        merch: -20,
+        other: -5,
+      };
+      const diversified = diversifyShopStockItems(strong, (item) => {
+        const group = getShopStockCategoryGroupForProduct(item, locale);
+        const title = item.product.title?.ua || item.product.title?.en || "";
+        const normalizedTitle = buildShopSearchText([
+          item.product.title?.ua,
+          item.product.title?.en,
+        ]);
+        let completenessScore = 0;
+        if (group.id === "exhaust") {
+          if (
+            /\b(system|slip on|evolution line|racing line|catback|cat back|система)\b/.test(
+              normalizedTitle
+            )
+          ) {
+            completenessScore += 32;
+          }
+          if (
+            /\b(bracket|heat shield|tailpipe|tip|link pipe|replacement|кронштейн|насадк|захист)\b/.test(
+              normalizedTitle
+            )
+          ) {
+            completenessScore -= 14;
+          }
+        } else if (group.id === "suspension") {
+          if (
+            /\b(coilover|suspension kit|damper kit|комплект амортиз|комплект койловер)\b/.test(
+              normalizedTitle
+            )
+          ) {
+            completenessScore += 28;
+          }
+          if (/\b(bracket|mount|кронштейн|опор[аи])\b/.test(normalizedTitle)) {
+            completenessScore -= 14;
+          }
+        } else if (group.id === "brakes") {
+          if (/\b(brake kit|rotor kit|комплект.*гальм|комплект.*диск)\b/.test(normalizedTitle)) {
+            completenessScore += 18;
+          }
+          if (/\b(replacement ring|змінн.*кільц)\b/.test(normalizedTitle)) {
+            completenessScore -= 10;
+          }
+        }
+        return {
+          brand: group.id,
+          score: item.score + (categoryPriority[group.id] ?? 0) + completenessScore,
+          stableKey: `${title} ${item.product.sku || item.product.slug}`,
+        };
+      });
+      items.splice(
+        0,
+        items.length,
+        ...diversified,
+        ...items.filter((item) => !strongSet.has(item))
+      );
+    };
+
     if (q && queryTokens.length > 0) {
       // Keep only matches
       scoredItems = scoredItems.filter((item) => item.score > 0);
@@ -508,47 +881,36 @@ export async function GET(request: NextRequest) {
       scoredItems.sort((a, b) => b.score - a.score);
       if (sort !== "default") {
         sortByExplicitSort(scoredItems);
+      } else if (expandedQuery?.intent === "vehicle" || expandedQuery?.intent === "mixed") {
+        diversifyStrongVehicleResults(scoredItems);
       }
     } else if (sort !== "default") {
       sortByExplicitSort(scoredItems);
-    } else if (brand) {
-      // Sort by price descending if a brand filter is active (show premium kits first)
-      scoredItems.sort((a, b) => {
-        const priceA = getProductPriceForSort(a.product);
-        const priceB = getProductPriceForSort(b.product);
-        return priceB - priceA;
-      });
+    } else if (hasBrandFilter) {
+      sortByDefaultCatalogOrder(scoredItems);
     } else {
-      // Default sorting: inStock first, then title
-      scoredItems.sort((a, b) => {
-        const stockA = a.product.stock === "inStock" ? 1 : 0;
-        const stockB = b.product.stock === "inStock" ? 1 : 0;
-        if (stockA !== stockB) return stockB - stockA;
-        const titleA = a.product.title.ua || a.product.title.en || "";
-        const titleB = b.product.title.ua || b.product.title.en || "";
-        return titleA.localeCompare(titleB);
-      });
+      sortByDefaultCatalogOrder(scoredItems);
     }
 
     let totalItems = scoredItems.length;
     let totalPages = Math.ceil(totalItems / limit);
     let paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
     let fallbackApplied: "fitment" | "all" | null = null;
+    let statsItems = scoredItems;
 
-    if (totalItems === 0 && q && (make || model || chassis || brand)) {
+    if (totalItems === 0 && q && (make || model || chassis || hasBrandFilter)) {
       // Fallback 1: Ignore vehicle fitment filters
       let fallbackFiltered = productsWithFitments;
-      if (brand) {
-        const brandNames = brand
-          .split(",")
-          .map((b) => b.trim().toLowerCase())
-          .filter(Boolean);
+      if (hasBrandFilter) {
         fallbackFiltered = fallbackFiltered.filter((item) =>
-          brandNames.includes(getProductDisplayBrand(item.product.brand).toLowerCase())
+          brandNames.includes(normalizeShopSearchText(getProductDisplayBrand(item.product.brand)))
         );
       }
       if (stock !== "all") {
         fallbackFiltered = fallbackFiltered.filter((item) => item.product.stock === stock);
+      }
+      if (hasPriceFilter) {
+        fallbackFiltered = fallbackFiltered.filter(matchesPriceRange);
       }
       if (category) {
         fallbackFiltered = fallbackFiltered.filter((item) =>
@@ -588,12 +950,18 @@ export async function GET(request: NextRequest) {
         fallbackApplied = "fitment";
         totalItems = fallbackScored.length;
         totalPages = Math.ceil(totalItems / limit);
-        paginatedItems = fallbackScored.slice((page - 1) * limit, page * limit);
-      } else if (brand) {
+        statsItems = fallbackScored;
+        paginatedItems = all
+          ? fallbackScored
+          : fallbackScored.slice((page - 1) * limit, page * limit);
+      } else if (hasBrandFilter) {
         // Fallback 2: Ignore brand/category as well (global query match)
         let globalSource = productsWithFitments;
         if (stock !== "all") {
           globalSource = globalSource.filter((item) => item.product.stock === stock);
+        }
+        if (hasPriceFilter) {
+          globalSource = globalSource.filter(matchesPriceRange);
         }
         const globalScored = globalSource
           .map((item) => {
@@ -627,99 +995,124 @@ export async function GET(request: NextRequest) {
           fallbackApplied = "all";
           totalItems = globalScored.length;
           totalPages = Math.ceil(totalItems / limit);
-          paginatedItems = globalScored.slice((page - 1) * limit, page * limit);
+          statsItems = globalScored;
+          paginatedItems = all
+            ? globalScored
+            : globalScored.slice((page - 1) * limit, page * limit);
         }
       }
     }
 
     // 3. Serialize output for frontend
-    const sanitizedItems = paginatedItems.map(({ product, fitment }) => {
-      const pricing = resolveShopProductPricing(product, pricingContext);
+    const sanitizedItems = paginatedItems.map(
+      ({ product, fitments, fitmentStatus, fitmentSource }) => {
+        const pricing = getProductPricing(product);
 
-      const usdRate = settings.currencyRates.USD || 1.152174;
-      const uahRate = settings.currencyRates.UAH || 53.0;
+        const usdRate = settings.currencyRates.USD || 1.152174;
+        const uahRate = settings.currencyRates.UAH || 53.0;
 
-      const effectivePriceSet = expandShopPrices(pricing.effectivePrice, settings.currencyRates);
+        const effectivePriceSet = expandShopPrices(pricing.effectivePrice, settings.currencyRates);
 
-      const expandedEffectiveCompareAtSet = pricing.effectiveCompareAt
-        ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
-        : null;
-      const effectiveCompareAtSet = hasAnyShopMoney(expandedEffectiveCompareAtSet)
-        ? expandedEffectiveCompareAtSet
-        : null;
+        const expandedEffectiveCompareAtSet = pricing.effectiveCompareAt
+          ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
+          : null;
+        const effectiveCompareAtSet = hasAnyShopMoney(expandedEffectiveCompareAtSet)
+          ? expandedEffectiveCompareAtSet
+          : null;
 
-      const expandedB2cPriceSet = pricing.bands?.b2c?.price
-        ? expandShopPrices(pricing.bands.b2c.price, settings.currencyRates)
-        : null;
-      const b2cCompareAtFallback = hasAnyShopMoney(expandedB2cPriceSet)
-        ? expandedB2cPriceSet
-        : null;
+        const expandedB2cPriceSet = pricing.bands?.b2c?.price
+          ? expandShopPrices(pricing.bands.b2c.price, settings.currencyRates)
+          : null;
+        const b2cCompareAtFallback = hasAnyShopMoney(expandedB2cPriceSet)
+          ? expandedB2cPriceSet
+          : null;
 
-      const compareAtPriceSet = effectiveCompareAtSet ?? b2cCompareAtFallback;
+        const compareAtPriceSet = effectiveCompareAtSet ?? b2cCompareAtFallback;
 
-      const dealerPrice =
-        effectivePriceSet.usd > 0
-          ? effectivePriceSet.usd
-          : effectivePriceSet.eur > 0
-            ? effectivePriceSet.eur * usdRate
-            : effectivePriceSet.uah > 0
-              ? effectivePriceSet.uah / (uahRate / usdRate)
-              : 0;
+        const dealerPrice =
+          effectivePriceSet.usd > 0
+            ? effectivePriceSet.usd
+            : effectivePriceSet.eur > 0
+              ? effectivePriceSet.eur * usdRate
+              : effectivePriceSet.uah > 0
+                ? effectivePriceSet.uah / (uahRate / usdRate)
+                : 0;
 
-      const msrp =
-        compareAtPriceSet && compareAtPriceSet.usd > 0
-          ? compareAtPriceSet.usd
-          : compareAtPriceSet && compareAtPriceSet.eur > 0
-            ? compareAtPriceSet.eur * usdRate
-            : compareAtPriceSet && compareAtPriceSet.uah > 0
-              ? compareAtPriceSet.uah / (uahRate / usdRate)
-              : null;
+        const msrp =
+          compareAtPriceSet && compareAtPriceSet.usd > 0
+            ? compareAtPriceSet.usd
+            : compareAtPriceSet && compareAtPriceSet.eur > 0
+              ? compareAtPriceSet.eur * usdRate
+              : compareAtPriceSet && compareAtPriceSet.uah > 0
+                ? compareAtPriceSet.uah / (uahRate / usdRate)
+                : null;
 
-      const defaultVariant =
-        product.variants?.find((v: any) => v.isDefault) || product.variants?.[0];
+        const defaultVariant =
+          product.variants?.find((v: any) => v.isDefault) || product.variants?.[0];
 
-      return {
-        id: product.id,
-        name:
-          locale === "en"
-            ? product.title.en || product.title.ua
-            : product.title.ua || product.title.en,
-        brand: getProductDisplayBrand(product.brand),
-        partNumber: product.sku || "",
-        description:
-          locale === "en"
-            ? product.shortDescription?.en || product.shortDescription?.ua || ""
-            : product.shortDescription?.ua || product.shortDescription?.en || "",
-        category:
-          locale === "en"
-            ? product.category?.en || product.category?.ua || ""
-            : product.category?.ua || product.category?.en || "",
-        thumbnail: product.image || null,
-        inStock: product.stock === "inStock",
-        price: dealerPrice,
-        priceUsd: effectivePriceSet.usd,
-        priceEur: effectivePriceSet.eur,
-        priceUah: effectivePriceSet.uah,
-        priceSet: effectivePriceSet,
-        originalPrice: msrp,
-        originalPriceSet: compareAtPriceSet,
-        markupPct: pricing.discountPercent || 0,
-        slug: product.slug,
-        variantId: defaultVariant?.id || null,
-        turn14Id: "", // empty so frontend knows it's a shop product
-        source: "local" as const,
-      };
-    });
+        return {
+          id: product.id,
+          name:
+            locale === "en"
+              ? product.title.en || product.title.ua
+              : product.title.ua || product.title.en,
+          brand: getProductDisplayBrand(product.brand),
+          partNumber: product.sku || "",
+          description:
+            locale === "en"
+              ? product.shortDescription?.en || product.shortDescription?.ua || ""
+              : product.shortDescription?.ua || product.shortDescription?.en || "",
+          category:
+            locale === "en"
+              ? product.category?.en || product.category?.ua || ""
+              : product.category?.ua || product.category?.en || "",
+          thumbnail: product.image || null,
+          inStock: product.stock === "inStock",
+          price: dealerPrice,
+          priceUsd: effectivePriceSet.usd,
+          priceEur: effectivePriceSet.eur,
+          priceUah: effectivePriceSet.uah,
+          priceSet: effectivePriceSet,
+          originalPrice: msrp,
+          originalPriceSet: compareAtPriceSet,
+          markupPct: pricing.discountPercent || 0,
+          slug: product.slug,
+          variantId: defaultVariant?.id || null,
+          turn14Id: "", // empty so frontend knows it's a shop product
+          source: "local" as const,
+          ...(includeFitment
+            ? {
+                fitmentStatus,
+                fitmentSource,
+                fitments: fitments.map((fitment) => ({
+                  make: fitment.make,
+                  models: fitment.models,
+                  chassisCodes: fitment.chassisCodes,
+                  yearRanges: fitment.yearRanges,
+                  confidence: fitment.confidence,
+                })),
+              }
+            : {}),
+        };
+      }
+    );
 
-    const filterStats = buildFilterStats(productsWithFitments, locale);
+    const globalFilterStats = buildFilterStats(
+      productsWithFitments,
+      locale,
+      getProductPriceForFilter,
+      priceCurrency
+    );
+    const filterStats = buildFilterStats(
+      statsItems,
+      locale,
+      getProductPriceForFilter,
+      priceCurrency
+    );
 
     // Extract all unique brands and curated product groups for filter menus
-    const brands = Array.from(
-      new Set(
-        productsWithFitments.map((p) => getProductDisplayBrand(p.product.brand)).filter(Boolean)
-      )
-    ).sort();
-    const categories = filterStats.categories.map((entry) => entry.label);
+    const brands = globalFilterStats.brands.map((entry) => entry.label);
+    const categories = globalFilterStats.categories.map((entry) => entry.label);
 
     return NextResponse.json({
       data: sanitizedItems,
@@ -746,8 +1139,10 @@ export async function GET(request: NextRequest) {
       filters: {
         brands,
         categories,
+        price: globalFilterStats.price,
       },
       filterStats,
+      globalFilterStats,
     });
   } catch (error: any) {
     console.error("[Stock Search API Error]", error);

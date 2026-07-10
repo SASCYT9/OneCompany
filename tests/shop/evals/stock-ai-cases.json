@@ -1,0 +1,101 @@
+[
+  {
+    "id": "bmw-m5-g90-power",
+    "locale": "ua",
+    "message": "BMW M5 G90 +100 сил",
+    "expect": {
+      "make": "BMW",
+      "model": "M5",
+      "chassis": "G90",
+      "category": "chipTuning",
+      "powerGainHp": 100,
+      "forbidChassis": ["F10", "F90", "G30"]
+    }
+  },
+  {
+    "id": "bmw-m3-2018-exhaust",
+    "locale": "ua",
+    "message": "BMW m3 2018 вихлоп",
+    "expect": {
+      "make": "BMW",
+      "model": "M3",
+      "year": 2018,
+      "category": "exhaust",
+      "productKind": "system"
+    }
+  },
+  {
+    "id": "bmw-m5-g90-exhaust-typo",
+    "locale": "ua",
+    "message": "Підбери вихлоп на BMW M5 G9O",
+    "expect": {
+      "make": "BMW",
+      "model": "M5",
+      "chassis": "G90",
+      "category": "exhaust",
+      "productKind": "system",
+      "forbidChassis": ["F10", "F90"]
+    }
+  },
+  {
+    "id": "generic-needs-vehicle",
+    "locale": "ua",
+    "message": "Хочу хороший вихлоп",
+    "expect": {
+      "category": "exhaust",
+      "productKind": "system",
+      "needsClarification": true
+    }
+  },
+  {
+    "id": "bmw-m5-g90-opf-exhaust",
+    "locale": "ua",
+    "message": "BMW M5 G90 вихлоп з OPF",
+    "expect": {
+      "make": "BMW",
+      "model": "M5",
+      "chassis": "G90",
+      "category": "exhaust",
+      "opfGpf": "with",
+      "productKind": "system",
+      "forbidChassis": ["F10", "F90"]
+    }
+  },
+  {
+    "id": "bmw-m5-g90-non-opf-exhaust",
+    "locale": "en",
+    "message": "BMW M5 G90 NON OPF exhaust",
+    "expect": {
+      "make": "BMW",
+      "model": "M5",
+      "chassis": "G90",
+      "category": "exhaust",
+      "opfGpf": "without",
+      "productKind": "system",
+      "forbidChassis": ["F10", "F90"]
+    }
+  },
+  {
+    "id": "porsche-911-992-exhaust",
+    "locale": "en",
+    "message": "Exhaust for Porsche 911 992",
+    "expect": {
+      "make": "Porsche",
+      "model": "911",
+      "chassis": "992",
+      "category": "exhaust",
+      "productKind": "system"
+    }
+  },
+  {
+    "id": "audi-rs6-c8-brakes",
+    "locale": "en",
+    "message": "Brake rotors for Audi RS6 C8",
+    "expect": {
+      "make": "Audi",
+      "model": "RS6",
+      "chassis": "C8",
+      "category": "brakes"
+    }
+  }
+]

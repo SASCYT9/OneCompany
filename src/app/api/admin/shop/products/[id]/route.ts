@@ -16,6 +16,11 @@ import {
   buildAdminProductArchiveMutation,
   parseAdminProductDeleteMode,
 } from "@/lib/adminRouteValidation";
+import {
+  isNormalizedFitmentMetafield,
+  NORMALIZED_FITMENT_KEY,
+  NORMALIZED_FITMENT_NAMESPACE,
+} from "@/lib/shopFitmentQuality";
 
 const VARIANT_TEMP_POSITION_OFFSET = 10_000;
 
@@ -363,11 +368,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
 
       await tx.shopProductMetafield.deleteMany({
-        where: { productId: id },
+        where: {
+          productId: id,
+          NOT: {
+            namespace: NORMALIZED_FITMENT_NAMESPACE,
+            key: NORMALIZED_FITMENT_KEY,
+          },
+        },
       });
-      if (data.metafields.length) {
+      const editableMetafields = data.metafields.filter(
+        (item) => !isNormalizedFitmentMetafield(item)
+      );
+      if (editableMetafields.length) {
         await tx.shopProductMetafield.createMany({
-          data: data.metafields.map((item) => ({
+          data: editableMetafields.map((item) => ({
             productId: id,
             namespace: item.namespace,
             key: item.key,

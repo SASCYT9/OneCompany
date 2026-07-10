@@ -11,7 +11,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
@@ -116,9 +115,6 @@ export function Header() {
       .join(" ");
   };
 
-  const { data: sessionData } = useSession();
-  const isB2bApproved = sessionData?.user?.group === "B2B_APPROVED";
-
   const shopNavItems = [
     {
       key: "home",
@@ -156,15 +152,11 @@ export function Header() {
           },
         ]
       : []),
-    ...(isB2bApproved
-      ? [
-          {
-            key: "stock",
-            href: `/${locale}/shop/stock`,
-            label: isUa ? "B2B Портал" : "B2B Portal",
-          },
-        ]
-      : []),
+    {
+      key: "stock",
+      href: `/${locale}/shop/stock`,
+      label: isUa ? "Всі товари" : "All Products",
+    },
     {
       key: "account",
       href: `/${locale}/shop/account`,

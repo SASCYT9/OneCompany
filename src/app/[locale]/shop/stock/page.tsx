@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Search,
   ChevronDown,
@@ -15,18 +16,24 @@ import {
   LayoutGrid,
   List,
   SlidersHorizontal,
-  Heart,
   Minus,
   Plus,
-  Car,
-  Ruler,
+  CarFront,
 } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { StockAiAssistant } from "@/components/shop/StockAiAssistant";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
-import { motion, AnimatePresence } from "framer-motion";
-import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { DEFAULT_CURRENCY_RATES } from "@/lib/shopAdminSettings";
-import { convertShopMoney, formatShopMoney, type ShopPriceSet } from "@/lib/shopMoneyFormat";
+import {
+  convertShopCurrencyAmount,
+  convertShopMoney,
+  formatShopMoney,
+  type ShopCurrencyCode,
+  type ShopPriceSet,
+} from "@/lib/shopMoneyFormat";
+import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
+import { getVehicleMakeLogoPath, normalizeVehicleMakeName } from "@/lib/vehicleMakeLogos";
 
 type StockItem = {
   id: string;
@@ -54,6 +61,27 @@ type StockItem = {
 type StockFilter = "all" | "inStock" | "preOrder";
 type StockSort = "default" | "price_asc" | "price_desc" | "name_asc";
 
+type StockSuggestion =
+  | {
+      type: "product";
+      id: string;
+      name: string;
+      brand: string;
+      partNumber: string;
+      thumbnail: string | null;
+      slug: string;
+      category: string;
+    }
+  | { type: "brand"; id: string; label: string; count?: number }
+  | {
+      type: "vehicle";
+      id: string;
+      label: string;
+      make: string;
+      model?: string;
+      count?: number;
+    };
+
 type FilterStats = {
   brands: Array<{ label: string; count: number }>;
   categories: Array<{ label: string; count: number }>;
@@ -62,6 +90,28 @@ type FilterStats = {
     inStock: number;
     preOrder: number;
   };
+  price?: {
+    min: number;
+    max: number;
+    currency?: string;
+  };
+};
+
+type StockSearchResponse = {
+  data?: StockItem[];
+  error?: string;
+  meta?: {
+    totalPages?: number;
+    totalItems?: number;
+    fallbackApplied?: "fitment" | "all" | null;
+  };
+  filters?: {
+    brands?: string[];
+    categories?: string[];
+    price?: FilterStats["price"];
+  };
+  filterStats?: FilterStats;
+  globalFilterStats?: FilterStats;
 };
 
 const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {
@@ -71,11 +121,113 @@ const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {
 };
 
 const SORT_LABELS: Record<StockSort, { ua: string; en: string }> = {
-  default: { ua: "Релевантність", en: "Relevance" },
+  default: { ua: "Рекомендовані", en: "Recommended" },
   price_asc: { ua: "Ціна: від меншої", en: "Price: low to high" },
   price_desc: { ua: "Ціна: від більшої", en: "Price: high to low" },
   name_asc: { ua: "Назва A-Z", en: "Name A-Z" },
 };
+
+const normalizeStockPriceParam = (value: string) => value.trim().replace(",", ".");
+
+const getUkrainianPlural = (count: number, one: string, few: string, many: string) => {
+  const absolute = Math.abs(count);
+  const lastTwoDigits = absolute % 100;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return many;
+  const lastDigit = absolute % 10;
+  if (lastDigit === 1) return one;
+  if (lastDigit >= 2 && lastDigit <= 4) return few;
+  return many;
+};
+const sanitizeStockPriceInput = (value: string) => value.replace(/[^\d.,]/g, "");
+const normalizeFacetSearchText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+function SmartScrollArea({
+  className,
+  children,
+}: {
+  className: string;
+  children: React.ReactNode;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+
+      const deltaMultiplier =
+        event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? element.clientHeight : 1;
+      const delta = event.deltaY * deltaMultiplier;
+      const canScrollUp = delta < 0 && element.scrollTop > 0;
+      const canScrollDown =
+        delta > 0 && element.scrollTop + element.clientHeight < element.scrollHeight - 1;
+
+      if (!canScrollUp && !canScrollDown) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      element.scrollTop = Math.max(
+        0,
+        Math.min(element.scrollHeight - element.clientHeight, element.scrollTop + delta)
+      );
+    };
+
+    element.addEventListener("wheel", handleWheel, { passive: false });
+    return () => element.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  return (
+    <div ref={scrollRef} className={className}>
+      {children}
+    </div>
+  );
+}
+
+const POPULAR_VEHICLE_MAKES = [
+  "BMW",
+  "Mercedes-Benz",
+  "Audi",
+  "Porsche",
+  "Volkswagen",
+  "Toyota",
+  "Lexus",
+  "Land Rover",
+  "Range Rover",
+  "Lamborghini",
+  "Ferrari",
+  "McLaren",
+];
+
+const DARK_VEHICLE_MAKE_LOGOS = new Set(
+  [
+    "Audi",
+    "Bentley",
+    "Cadillac",
+    "Chrysler",
+    "Cupra",
+    "DS",
+    "Genesis",
+    "Infiniti",
+    "Jaguar",
+    "Jeep",
+    "Maserati",
+    "McLaren",
+    "Mercedes-AMG",
+    "Mini",
+    "Nissan",
+    "Rolls-Royce",
+    "Smart",
+    "SsangYong",
+    "Toyota",
+  ].map(normalizeVehicleMakeName)
+);
 
 /* ========= Brand Logo Helper ========= */
 const normalizeBrandLogoName = (brandName: string) =>
@@ -110,6 +262,18 @@ const getBrandLogoPath = (brandName: string): string | null => {
   return null;
 };
 
+const getBrandLightLogoPath = (brandName: string, fallback: string): string => {
+  const b = normalizeBrandLogoName(brandName);
+  if (b.includes("adro")) return "/images/shop/adro/adro-logo.svg";
+  if (b.includes("csf")) return "/images/shop/csf/csf-logo.svg";
+  if (b.includes("girodisc")) return "/logos/girodisc.webp";
+  if (b.includes("ilmberger")) return "/logos/ilmberger-carbon-transparent.webp";
+  if (b.includes("ipe exhaust") || b === "ipe" || b.includes("innotech performance"))
+    return "/logos/ipe-exhaust.webp";
+  if (b.includes("remus")) return "/logos/remus.png";
+  return fallback;
+};
+
 const LOGO_CONTRAST_LIFT_BRANDS = [
   "akrapovic",
   "akrapovi",
@@ -124,6 +288,10 @@ const LOGO_CONTRAST_LIFT_BRANDS = [
 ];
 
 const LOGO_INVERT_BRANDS = ["brabus"];
+
+const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban"];
+
+const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "burger"];
 
 const LOGO_WIDE_MARK_BRANDS = [
   "akrapovic",
@@ -148,6 +316,16 @@ function brandLogoNeedsInvert(brandName: string) {
   return LOGO_INVERT_BRANDS.some((brand) => normalized.includes(brand));
 }
 
+function brandLogoNeedsLightInvert(brandName: string) {
+  const normalized = normalizeBrandLogoName(brandName);
+  return LOGO_LIGHT_INVERT_BRANDS.some((brand) => normalized.includes(brand));
+}
+
+function brandLogoNeedsLightOutline(brandName: string) {
+  const normalized = normalizeBrandLogoName(brandName);
+  return LOGO_LIGHT_OUTLINE_BRANDS.some((brand) => normalized.includes(brand));
+}
+
 function brandLogoNeedsWideBoost(brandName: string) {
   const normalized = normalizeBrandLogoName(brandName);
   return LOGO_WIDE_MARK_BRANDS.some((brand) => normalized.includes(brand));
@@ -164,11 +342,19 @@ function BrandLogoTile({
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => setFailed(false), [logoPath]);
+
   if (!logoPath) return null;
 
   const needsContrastLift = brandLogoNeedsContrastLift(brandName);
   const needsInvert = brandLogoNeedsInvert(brandName);
+  const needsLightInvert = brandLogoNeedsLightInvert(brandName);
+  const needsLightOutline = brandLogoNeedsLightOutline(brandName);
   const needsWideBoost = brandLogoNeedsWideBoost(brandName);
+  const lightThemeLogoPath = getBrandLightLogoPath(brandName, logoPath);
+  const hasThemeSpecificLogo = lightThemeLogoPath !== logoPath;
   const sizeClass =
     size === "xs"
       ? "h-5 w-11"
@@ -185,30 +371,89 @@ function BrandLogoTile({
         : size === "md"
           ? "max-h-7 max-w-24"
           : "max-h-5 max-w-[76px]";
-  const logoFilter = needsInvert
-    ? "invert(1) brightness(1.08) contrast(1.1) drop-shadow(0 1px 2px rgba(0,0,0,0.65))"
-    : needsContrastLift
-      ? "drop-shadow(0 0 1px rgba(255,255,255,0.72)) drop-shadow(0 0 7px rgba(255,255,255,0.16)) drop-shadow(0 1px 2px rgba(0,0,0,0.7)) brightness(1.08) contrast(1.18)"
-      : "drop-shadow(0 1px 2px rgba(0,0,0,0.62))";
+  const logoFilterClass = needsInvert
+    ? "[filter:brightness(0.88)_contrast(1.12)_drop-shadow(0_1px_1px_rgba(0,0,0,0.2))] dark:[filter:invert(1)_brightness(1.08)_contrast(1.1)_drop-shadow(0_1px_2px_rgba(0,0,0,0.65))]"
+    : needsLightInvert
+      ? "[filter:invert(1)_brightness(0.72)_contrast(1.25)_drop-shadow(0_1px_1px_rgba(0,0,0,0.16))] dark:[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.62))]"
+      : needsLightOutline
+        ? "[filter:drop-shadow(1px_0_0_rgba(0,0,0,0.5))_drop-shadow(-1px_0_0_rgba(0,0,0,0.5))_drop-shadow(0_1px_0_rgba(0,0,0,0.5))_drop-shadow(0_-1px_0_rgba(0,0,0,0.5))] dark:[filter:drop-shadow(0_0_1px_rgba(255,255,255,0.72))_drop-shadow(0_0_7px_rgba(255,255,255,0.16))_drop-shadow(0_1px_2px_rgba(0,0,0,0.7))_brightness(1.08)_contrast(1.18)]"
+        : needsContrastLift
+          ? "[filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.2))_brightness(0.98)_contrast(1.12)] dark:[filter:drop-shadow(0_0_1px_rgba(255,255,255,0.72))_drop-shadow(0_0_7px_rgba(255,255,255,0.16))_drop-shadow(0_1px_2px_rgba(0,0,0,0.7))_brightness(1.08)_contrast(1.18)]"
+          : "[filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.2))] dark:[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.62))]";
   const imageScaleClass = needsWideBoost ? "scale-[1.1]" : "scale-100";
+
+  if (failed) {
+    return (
+      <span
+        className={`flex shrink-0 items-center justify-start overflow-hidden ${sizeClass} ${className}`}
+        title={brandName}
+      >
+        <span className="max-w-full truncate text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground/65">
+          {brandName}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span
       className={`relative flex shrink-0 items-center justify-start overflow-visible ${sizeClass} ${className}`}
       title={brandName}
     >
-      <img
-        src={logoPath}
+      <Image
+        src={lightThemeLogoPath}
         alt={brandName}
-        className={`relative ${imageSizeClass} origin-left object-contain opacity-90 transition duration-200 group-hover:opacity-100 ${imageScaleClass}`}
-        style={{ filter: logoFilter }}
-        onError={(event) => {
-          (event.currentTarget.parentElement as HTMLElement | null)?.style.setProperty(
-            "display",
-            "none"
-          );
-        }}
+        width={112}
+        height={36}
+        unoptimized
+        className={`relative ${imageSizeClass} origin-left object-contain opacity-90 transition duration-200 group-hover:opacity-100 ${imageScaleClass} ${logoFilterClass} ${
+          hasThemeSpecificLogo ? "dark:hidden" : ""
+        }`}
+        onError={() => setFailed(true)}
       />
+      {hasThemeSpecificLogo ? (
+        <Image
+          src={logoPath}
+          alt={brandName}
+          width={112}
+          height={36}
+          unoptimized
+          className={`relative hidden ${imageSizeClass} origin-left object-contain opacity-90 transition duration-200 group-hover:opacity-100 dark:block ${imageScaleClass} ${logoFilterClass}`}
+          onError={() => setFailed(true)}
+        />
+      ) : null}
+    </span>
+  );
+}
+
+function VehicleMakeLogo({ make, size = "sm" }: { make: string; size?: "sm" | "md" }) {
+  const logoPath = getVehicleMakeLogoPath(make);
+  const dimensions = size === "md" ? "h-10 w-16" : "h-6 w-9";
+  const needsLightTreatment = DARK_VEHICLE_MAKE_LOGOS.has(normalizeVehicleMakeName(make));
+
+  return (
+    <span
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden ${dimensions}`}
+      aria-hidden="true"
+    >
+      {logoPath ? (
+        <Image
+          src={logoPath}
+          alt=""
+          width={64}
+          height={40}
+          unoptimized
+          className={`h-full w-full object-contain opacity-90 transition-[opacity,filter] duration-200 group-hover:opacity-100 ${
+            needsLightTreatment
+              ? "[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.18))] dark:[filter:brightness(1.35)_grayscale(1)_invert(1)_drop-shadow(0_0_5px_rgba(255,255,255,0.24))]"
+              : "[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.16))] dark:[filter:drop-shadow(0_0_5px_rgba(255,255,255,0.24))]"
+          }`}
+        />
+      ) : (
+        <span className="text-[10px] font-semibold uppercase text-foreground/65">
+          {make.slice(0, 2)}
+        </span>
+      )}
     </span>
   );
 }
@@ -266,24 +511,24 @@ function StockCardCartControl({
   };
 
   return (
-    <div className="grid grid-cols-[108px_minmax(0,1fr)] gap-2">
-      <div className="grid h-10 grid-cols-[32px_1fr_32px] overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.04]">
+    <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2">
+      <div className="grid h-9 grid-cols-[28px_1fr_28px] overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.02]">
         <button
           type="button"
           onClick={() => changeQuantity(-1)}
-          className="flex items-center justify-center border-r border-foreground/10 text-foreground/45 transition hover:bg-foreground/[0.06] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+          className="flex items-center justify-center border-r border-foreground/10 text-foreground/45 transition hover:bg-foreground/[0.045] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
           disabled={quantity <= 1}
           aria-label={isUa ? "Зменшити кількість" : "Decrease quantity"}
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
-        <div className="flex items-center justify-center font-mono text-xs font-semibold text-foreground">
+        <div className="flex items-center justify-center font-mono text-[11px] font-semibold text-foreground">
           {quantity}
         </div>
         <button
           type="button"
           onClick={() => changeQuantity(1)}
-          className="flex items-center justify-center border-l border-foreground/10 text-foreground/45 transition hover:bg-foreground/[0.06] hover:text-foreground"
+          className="flex items-center justify-center border-l border-foreground/10 text-foreground/45 transition hover:bg-foreground/[0.045] hover:text-foreground"
           aria-label={isUa ? "Збільшити кількість" : "Increase quantity"}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -300,7 +545,7 @@ function StockCardCartControl({
         productName={item.name}
         label={isUa ? "У кошик" : "Cart"}
         labelAdded={isUa ? "Додано" : "Added"}
-        className="flex h-10 w-full items-center justify-center rounded-none border border-foreground bg-foreground px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-70"
+        className="flex h-9 w-full items-center justify-center rounded-none border border-foreground/30 bg-foreground/[0.1] px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -322,9 +567,9 @@ function SafeProductImage({
 
   if (error || !src) {
     return isMini ? (
-      <Package className="w-6 h-6 text-foreground/10 opacity-30 shrink-0" />
+      <Package className="h-6 w-6 shrink-0 text-foreground/20" />
     ) : (
-      <Package className="w-16 h-16 text-foreground/5 opacity-20 shrink-0" />
+      <Package className="h-12 w-12 shrink-0 text-foreground/18" />
     );
   }
 
@@ -337,37 +582,18 @@ function SafeProductImage({
   return <img src={cleanSrc} alt={alt} onError={() => setError(true)} className={className} />;
 }
 
-/* ========= Search Query Sync Helpers ========= */
-function removeTerm(queryStr: string, termToRemove: string): string {
-  if (!termToRemove) return queryStr;
-  const escaped = termToRemove.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-  const regex = new RegExp(`\\b${escaped}\\b`, "gi");
-  const result = queryStr.replace(regex, "");
-  return result.replace(/\s+/g, " ").trim();
-}
-
-function appendTerm(queryStr: string, termToAppend: string): string {
-  if (!termToAppend) return queryStr;
-  const escaped = termToAppend.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-  const regex = new RegExp(`\\b${escaped}\\b`, "i");
-  if (regex.test(queryStr)) {
-    return queryStr;
-  }
-  return queryStr ? `${queryStr} ${termToAppend}` : termToAppend;
-}
-
 /* ========= Main Stock Page ========= */
 function StockPageContent() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const locale = typeof params?.locale === "string" ? params.locale : "ua";
   const isUa = locale === "ua";
+  const shouldReduceMotion = useReducedMotion();
 
   const { data: session } = useSession();
   const user = session?.user as any;
   const isB2B = user?.group === "B2B_APPROVED";
-  const { country, currency, rates } = useShopCurrency();
+  const { country, currency, rates, setCurrency } = useShopCurrency();
   const displayLocale = locale === "en" ? "en" : "ua";
   const displayRates = rates ?? DEFAULT_CURRENCY_RATES;
 
@@ -397,154 +623,28 @@ function StockPageContent() {
     }
   };
 
-  // Multi-selection states
-  const [selectedItems, setSelectedItems] = useState<StockItem[]>([]);
-  const [bulkAdding, setBulkAdding] = useState(false);
-  const [bulkAdded, setBulkAdded] = useState(false);
-  const [selectingAll, setSelectingAll] = useState(false);
-
-  const handleSelectAllResults = async () => {
-    if (selectingAll) return;
-    setSelectingAll(true);
-    try {
-      const params = new URLSearchParams();
-      if (query) params.set("q", query);
-      if (selectedBrands.length > 0) params.set("brand", selectedBrands.join(","));
-      if (localCategory) params.set("category", localCategory);
-      if (make) params.set("make", make);
-      if (model) params.set("model", model);
-      if (chassis) params.set("chassis", chassis);
-      if (stockFilter !== "all") params.set("stock", stockFilter);
-      if (sortOrder !== "default") params.set("sort", sortOrder);
-      if (locale) params.set("locale", locale);
-      if (country) params.set("country", country);
-      params.set("all", "true");
-
-      const res = await fetch(`/api/shop/stock/search?${params.toString()}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      const fetchedItems = data.data || [];
-      setSelectedItems((prev) => {
-        const next = [...prev];
-        fetchedItems.forEach((item: any) => {
-          if (!next.some((x) => x.id === item.id)) {
-            next.push(item);
-          }
-        });
-        return next;
-      });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSelectingAll(false);
-    }
-  };
-
-  const handleToggleSelectItem = (item: StockItem) => {
-    setSelectedItems((prev) => {
-      const exists = prev.some((x) => x.id === item.id);
-      if (exists) {
-        return prev.filter((x) => x.id !== item.id);
-      } else {
-        return [...prev, item];
-      }
-    });
-  };
-
-  const handleBulkAddToCart = async () => {
-    if (selectedItems.length === 0 || bulkAdding) return;
-    setBulkAdding(true);
-    try {
-      const response = await fetch("/api/shop/cart/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: selectedItems.map((item) => ({
-            slug: item.slug,
-            variantId: item.variantId,
-            quantity: 1,
-          })),
-        }),
-      });
-      if (!response.ok) throw new Error("Bulk add to cart failed");
-
-      setBulkAdded(true);
-      setTimeout(() => {
-        setBulkAdded(false);
-        setSelectedItems([]);
-      }, 1500);
-
-      // Trigger a page refresh or custom event so other cart elements refresh
-      router.refresh();
-    } catch (e: any) {
-      alert(isUa ? "Не вдалося додати товари: " + e.message : "Failed to add items: " + e.message);
-    } finally {
-      setBulkAdding(false);
-    }
-  };
-
-  const handleExportCSV = (exportItems: StockItem[]) => {
-    if (exportItems.length === 0) return;
-
-    const headers = [
-      "SKU",
-      "Product Name",
-      `Price (${currency})`,
-      "Price (USD)",
-      "Price (EUR)",
-      "Price (UAH)",
-    ];
-
-    const rows = exportItems.map((item) => {
-      const priceSet = getItemPriceSet(item);
-      const selectedPrice = convertShopMoney(priceSet, currency, displayRates);
-      const usdPrice = convertShopMoney(priceSet, "USD", displayRates);
-      const eurPrice = convertShopMoney(priceSet, "EUR", displayRates);
-      const uahPrice = convertShopMoney(priceSet, "UAH", displayRates);
-
-      return [
-        item.partNumber,
-        item.name.replace(/"/g, '""'),
-        selectedPrice.toFixed(2),
-        usdPrice.toFixed(2),
-        eurPrice.toFixed(2),
-        uahPrice.toFixed(2),
-      ];
-    });
-
-    const csvString = [
-      headers.join(","),
-      ...rows.map((e) => e.map((val) => `"${val}"`).join(",")),
-    ].join("\n");
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-
-    const filterText =
-      selectedBrands.length > 0 ? `_${selectedBrands.join("_").replace(/\s+/g, "_")}` : "_catalog";
-    link.setAttribute("download", `OneCompany_Catalog${filterText}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   // Search state
   const initialPage = Math.max(1, Number(searchParams.get("page")) || 1);
-  const initialBrands = (searchParams.get("brand") || "")
-    .split(",")
-    .map((brand) => brand.trim())
-    .filter(Boolean);
+  const initialBrands = parseShopStockParamList(searchParams, "brand");
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
 
   const initialModelRef = useRef(searchParams.get("model") || "");
   const initialChassisRef = useRef(searchParams.get("chassis") || "");
   const initialSearchRef = useRef(true);
+  const searchRequestRef = useRef<AbortController | null>(null);
+  const suggestionRequestRef = useRef<AbortController | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const searchFocusedRef = useRef(false);
+  const searchResponseCacheRef = useRef(
+    new Map<string, { timestamp: number; data: StockSearchResponse }>()
+  );
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -558,6 +658,18 @@ function StockPageContent() {
   const [localCategories, setLocalCategories] = useState<string[]>([]);
   const [localBrands, setLocalBrands] = useState<string[]>([]);
   const [filterStats, setFilterStats] = useState<FilterStats | null>(null);
+  const [globalFilterStats, setGlobalFilterStats] = useState<FilterStats | null>(null);
+  const [priceBounds, setPriceBounds] = useState<FilterStats["price"] | null>(null);
+  const [minPriceFilter, setMinPriceFilter] = useState(searchParams.get("minPrice") || "");
+  const [maxPriceFilter, setMaxPriceFilter] = useState(searchParams.get("maxPrice") || "");
+  const previousPriceCurrencyRef = useRef<ShopCurrencyCode>(currency);
+  const initialUrlCurrencyAppliedRef = useRef(false);
+  const [brandFilterQuery, setBrandFilterQuery] = useState("");
+  const [categoryFilterQuery, setCategoryFilterQuery] = useState("");
+  const [categorySectionOpen, setCategorySectionOpen] = useState(true);
+  const [brandSectionOpen, setBrandSectionOpen] = useState(true);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
+  const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [stockFilter, setStockFilter] = useState<StockFilter>(
     initialStock === "inStock" || initialStock === "preOrder" ? initialStock : "all"
   );
@@ -578,6 +690,117 @@ function StockPageContent() {
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState("");
   const [chassis, setChassis] = useState("");
+  const [makePickerOpen, setMakePickerOpen] = useState(false);
+  const [makePickerQuery, setMakePickerQuery] = useState("");
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchBoxRef.current?.contains(event.target as Node)) {
+        searchFocusedRef.current = false;
+        setSuggestionsOpen(false);
+        setActiveSuggestionIndex(-1);
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  useEffect(() => {
+    suggestionRequestRef.current?.abort();
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < 2) {
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    const needle = normalizeFacetSearchText(normalizedQuery);
+    const immediateBrands: StockSuggestion[] = localBrands
+      .filter((brandName) => normalizeFacetSearchText(brandName).includes(needle))
+      .slice(0, 2)
+      .map((label) => ({ type: "brand", id: `brand:${label}`, label }));
+    const immediateVehicles: StockSuggestion[] = makes
+      .filter((makeName) => normalizeFacetSearchText(makeName).includes(needle))
+      .slice(0, 2)
+      .map((makeName) => ({
+        type: "vehicle",
+        id: `vehicle:${makeName}`,
+        label: makeName,
+        make: makeName,
+      }));
+    const immediateProducts: StockSuggestion[] = items
+      .filter((item) =>
+        normalizeFacetSearchText(
+          `${item.name} ${item.brand} ${item.partNumber} ${item.category || ""}`
+        ).includes(needle)
+      )
+      .slice(0, 5)
+      .map((item) => ({
+        type: "product",
+        id: item.id,
+        name: item.name,
+        brand: item.brand,
+        partNumber: item.partNumber,
+        thumbnail: item.thumbnail,
+        slug: item.slug,
+        category: item.category || item.brand,
+      }));
+    const immediateSuggestions = [
+      ...immediateBrands,
+      ...immediateVehicles,
+      ...immediateProducts,
+    ].slice(0, 8);
+    if (immediateSuggestions.length > 0) {
+      setSuggestions(immediateSuggestions);
+      if (searchFocusedRef.current) setSuggestionsOpen(true);
+    }
+
+    const controller = new AbortController();
+    suggestionRequestRef.current = controller;
+    const timer = window.setTimeout(async () => {
+      setSuggestionsLoading(true);
+      const params = new URLSearchParams({ q: normalizedQuery, locale, v: "2" });
+      try {
+        const response = await fetch(`/api/shop/stock/suggest?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Suggestion search failed");
+        setSuggestions(payload.data || []);
+        if (searchFocusedRef.current) setSuggestionsOpen(true);
+        setActiveSuggestionIndex(-1);
+      } catch {
+        if (!controller.signal.aborted) setSuggestions([]);
+      } finally {
+        if (suggestionRequestRef.current === controller) {
+          suggestionRequestRef.current = null;
+          setSuggestionsLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [items, localBrands, locale, makes, query]);
+
+  useEffect(() => {
+    if (!makePickerOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMakePickerOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [makePickerOpen]);
 
   // Brand filters state (multi-select)
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands);
@@ -592,14 +815,6 @@ function StockPageContent() {
     });
   };
 
-  // Synchronize dropdown filters to physical search query input text
-  const prevFiltersRef = useRef<{
-    make: string;
-    model: string;
-    chassis: string;
-    brands: string[];
-  }>({ make: "", model: "", chassis: "", brands: [] });
-
   const syncUrlState = useCallback(
     (searchPage: number, nextViewMode = viewMode) => {
       if (typeof window === "undefined") return;
@@ -611,6 +826,11 @@ function StockPageContent() {
       if (model) params.set("model", model);
       if (chassis) params.set("chassis", chassis);
       if (stockFilter !== "all") params.set("stock", stockFilter);
+      const minPriceParam = normalizeStockPriceParam(minPriceFilter);
+      const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
+      if (minPriceParam) params.set("minPrice", minPriceParam);
+      if (maxPriceParam) params.set("maxPrice", maxPriceParam);
+      if (minPriceParam || maxPriceParam) params.set("currency", currency);
       if (sortOrder !== "default") params.set("sort", sortOrder);
       if (nextViewMode !== "grid") params.set("view", nextViewMode);
       if (searchPage > 1) params.set("page", String(searchPage));
@@ -621,70 +841,87 @@ function StockPageContent() {
         : window.location.pathname;
       window.history.replaceState(window.history.state, "", nextUrl);
     },
-    [chassis, localCategory, make, model, query, selectedBrands, sortOrder, stockFilter, viewMode]
+    [
+      chassis,
+      currency,
+      localCategory,
+      make,
+      maxPriceFilter,
+      minPriceFilter,
+      model,
+      query,
+      selectedBrands,
+      sortOrder,
+      stockFilter,
+      viewMode,
+    ]
+  );
+
+  const applySearchPayload = useCallback(
+    (data: StockSearchResponse, searchPage: number) => {
+      setItems(data.data || []);
+      setTotalPages(data.meta?.totalPages || 1);
+      setTotalItems(data.meta?.totalItems || 0);
+      setFallbackApplied(data.meta?.fallbackApplied || null);
+      if (data.filters) {
+        setLocalCategories(data.filters.categories || []);
+        setLocalBrands(data.filters.brands || []);
+        setPriceBounds(data.filters.price || null);
+      }
+      if (data.filterStats) setFilterStats(data.filterStats);
+      if (data.globalFilterStats) setGlobalFilterStats(data.globalFilterStats);
+      setPage(searchPage);
+      syncUrlState(searchPage);
+    },
+    [syncUrlState]
   );
 
   useEffect(() => {
-    const prev = prevFiltersRef.current;
-    let newQuery = query;
+    if (initialUrlCurrencyAppliedRef.current) return;
+    initialUrlCurrencyAppliedRef.current = true;
 
-    // Handle brands
-    const removedBrands = prev.brands.filter((b) => !selectedBrands.includes(b));
-    removedBrands.forEach((b) => {
-      newQuery = removeTerm(newQuery, b);
-    });
-    const addedBrands = selectedBrands.filter((b) => !prev.brands.includes(b));
-    addedBrands.forEach((b) => {
-      newQuery = appendTerm(newQuery, b);
-    });
-
-    // Handle make
-    if (prev.make && prev.make !== make) {
-      newQuery = removeTerm(newQuery, prev.make);
-    }
-    if (make && prev.make !== make) {
-      newQuery = appendTerm(newQuery, make);
+    const urlCurrency = searchParams.get("currency")?.toUpperCase();
+    const hasUrlPriceFilter = Boolean(searchParams.get("minPrice") || searchParams.get("maxPrice"));
+    if (
+      !hasUrlPriceFilter ||
+      (urlCurrency !== "EUR" && urlCurrency !== "USD" && urlCurrency !== "UAH")
+    ) {
+      return;
     }
 
-    // Handle model
-    if (prev.model && prev.model !== model) {
-      newQuery = removeTerm(newQuery, prev.model);
-    }
-    if (model && prev.model !== model) {
-      newQuery = appendTerm(newQuery, model);
-    }
+    const timer = window.setTimeout(() => {
+      previousPriceCurrencyRef.current = urlCurrency;
+      setCurrency(urlCurrency);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [searchParams, setCurrency]);
 
-    // Handle chassis
-    if (prev.chassis && prev.chassis !== chassis) {
-      newQuery = removeTerm(newQuery, prev.chassis);
-    }
-    if (chassis && prev.chassis !== chassis) {
-      newQuery = appendTerm(newQuery, chassis);
-    }
-
-    if (newQuery !== query) {
-      setQuery(newQuery);
-    }
-
-    prevFiltersRef.current = { make, model, chassis, brands: [...selectedBrands] };
-  }, [make, model, chassis, selectedBrands, query]);
-
-  // Load initial makes and filter metadata
   useEffect(() => {
-    Promise.all([
-      fetch("/api/shop/stock/fitment").then((r) => r.json()),
-      fetch("/api/shop/stock/search?limit=1")
-        .then((r) => r.json())
-        .catch(() => null),
-    ])
-      .then(([fitmentRes, searchRes]) => {
+    const previousCurrency = previousPriceCurrencyRef.current;
+    if (previousCurrency === currency) return;
+
+    const convertFilterValue = (value: string) => {
+      const amount = Number(normalizeStockPriceParam(value));
+      if (!Number.isFinite(amount) || amount < 0) return value;
+      const converted = convertShopCurrencyAmount(amount, previousCurrency, currency, displayRates);
+      return converted > 0 ? String(converted) : value;
+    };
+
+    setMinPriceFilter((value) => (value ? convertFilterValue(value) : value));
+    setMaxPriceFilter((value) => (value ? convertFilterValue(value) : value));
+    previousPriceCurrencyRef.current = currency;
+  }, [currency, displayRates]);
+
+  // Fitment values do not depend on locale, country, or currency.
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/shop/stock/fitment", { signal: controller.signal })
+      .then((response) => response.json())
+      .then((fitmentRes) => {
         setMakes(fitmentRes.data || []);
-        if (searchRes?.filters) {
-          setLocalCategories(searchRes.filters.categories || []);
-          setLocalBrands(searchRes.filters.brands || []);
-        }
       })
       .catch(() => {});
+    return () => controller.abort();
   }, []);
 
   // Cascading: Make → Models
@@ -748,6 +985,9 @@ function StockPageContent() {
   // Search handler
   const doSearch = useCallback(
     async (searchPage = 1) => {
+      searchRequestRef.current?.abort();
+      const controller = new AbortController();
+      searchRequestRef.current = controller;
       setLoading(true);
       setError("");
       setHasSearched(true);
@@ -761,32 +1001,48 @@ function StockPageContent() {
       if (model) params.set("model", model);
       if (chassis) params.set("chassis", chassis);
       if (stockFilter !== "all") params.set("stock", stockFilter);
+      const minPriceParam = normalizeStockPriceParam(minPriceFilter);
+      const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
+      if (minPriceParam) params.set("minPrice", minPriceParam);
+      if (maxPriceParam) params.set("maxPrice", maxPriceParam);
+      if (currency) params.set("currency", currency);
       if (sortOrder !== "default") params.set("sort", sortOrder);
       if (locale) params.set("locale", locale);
       if (country) params.set("country", country);
       params.set("page", searchPage.toString());
+      const cacheKey = params.toString();
+      const cached = searchResponseCacheRef.current.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 45_000) {
+        applySearchPayload(cached.data, searchPage);
+        searchRequestRef.current = null;
+        setLoading(false);
+        return;
+      }
 
       try {
-        const res = await fetch(`/api/shop/stock/search?${params.toString()}`);
-        const data = await res.json();
+        const res = await fetch(`/api/shop/stock/search?${cacheKey}`, {
+          signal: controller.signal,
+        });
+        const data = (await res.json()) as StockSearchResponse;
         if (!res.ok) throw new Error(data.error);
-        setItems(data.data || []);
-        setTotalPages(data.meta?.totalPages || 1);
-        setTotalItems(data.meta?.totalItems || 0);
-        setFallbackApplied(data.meta?.fallbackApplied || null);
-        if (data.filters) {
-          setLocalCategories(data.filters.categories || []);
-          setLocalBrands(data.filters.brands || []);
+        searchResponseCacheRef.current.set(cacheKey, { timestamp: Date.now(), data });
+        if (searchResponseCacheRef.current.size > 40) {
+          const oldestKey = searchResponseCacheRef.current.keys().next().value;
+          if (oldestKey) searchResponseCacheRef.current.delete(oldestKey);
         }
-        if (data.filterStats) {
-          setFilterStats(data.filterStats);
-        }
-        setPage(searchPage);
-        syncUrlState(searchPage);
-      } catch (e: any) {
-        setError(e.message);
+        applySearchPayload(data, searchPage);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setItems([]);
+        setTotalItems(0);
+        setTotalPages(1);
+        setFilterStats(null);
+        setError(error instanceof Error ? error.message : "Search failed");
       } finally {
-        setLoading(false);
+        if (searchRequestRef.current === controller) {
+          searchRequestRef.current = null;
+          setLoading(false);
+        }
       }
     },
     [
@@ -798,9 +1054,12 @@ function StockPageContent() {
       stockFilter,
       sortOrder,
       localCategory,
+      minPriceFilter,
+      maxPriceFilter,
       locale,
       country,
-      syncUrlState,
+      currency,
+      applySearchPayload,
     ]
   );
 
@@ -809,7 +1068,10 @@ function StockPageContent() {
     const searchPage = initialSearchRef.current ? initialPage : 1;
     initialSearchRef.current = false;
     const t = setTimeout(() => doSearch(searchPage), 600);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      searchRequestRef.current?.abort();
+    };
   }, [
     selectedBrands,
     make,
@@ -819,6 +1081,8 @@ function StockPageContent() {
     stockFilter,
     sortOrder,
     localCategory,
+    minPriceFilter,
+    maxPriceFilter,
     doSearch,
     initialPage,
   ]);
@@ -841,6 +1105,10 @@ function StockPageContent() {
     setStockFilter("all");
     setSortOrder("default");
     setQuery("");
+    setMinPriceFilter("");
+    setMaxPriceFilter("");
+    setBrandFilterQuery("");
+    setCategoryFilterQuery("");
     setHasSearched(true);
     setFallbackApplied(null);
     setTotalPages(1);
@@ -849,13 +1117,162 @@ function StockPageContent() {
   }
 
   const brandCountByLabel = useMemo(
-    () => new Map((filterStats?.brands ?? []).map((entry) => [entry.label, entry.count])),
-    [filterStats]
+    () =>
+      new Map(
+        ((selectedBrands.length > 0 ? globalFilterStats : filterStats)?.brands ?? []).map(
+          (entry) => [entry.label, entry.count]
+        )
+      ),
+    [filterStats, globalFilterStats, selectedBrands.length]
   );
   const categoryCountByLabel = useMemo(
-    () => new Map((filterStats?.categories ?? []).map((entry) => [entry.label, entry.count])),
-    [filterStats]
+    () =>
+      new Map(
+        ((localCategory ? globalFilterStats : filterStats)?.categories ?? []).map((entry) => [
+          entry.label,
+          entry.count,
+        ])
+      ),
+    [filterStats, globalFilterStats, localCategory]
   );
+
+  const minPriceParam = normalizeStockPriceParam(minPriceFilter);
+  const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
+  const hasPriceFilter = Boolean(minPriceParam || maxPriceParam);
+
+  const visibleCategories = useMemo(() => {
+    const needle = normalizeFacetSearchText(categoryFilterQuery);
+    const nonEmptyCategories = localCategories.filter(
+      (categoryName) =>
+        categoryName === localCategory ||
+        !filterStats ||
+        (categoryCountByLabel.get(categoryName) ?? 0) > 0
+    );
+    const matches = needle
+      ? nonEmptyCategories.filter((categoryName) =>
+          normalizeFacetSearchText(categoryName).includes(needle)
+        )
+      : nonEmptyCategories;
+
+    return [...matches].sort((left, right) => {
+      if (left === localCategory) return -1;
+      if (right === localCategory) return 1;
+      const countDiff =
+        (categoryCountByLabel.get(right) ?? 0) - (categoryCountByLabel.get(left) ?? 0);
+      if (countDiff !== 0) return countDiff;
+      return left.localeCompare(right, locale === "ua" ? "uk" : "en");
+    });
+  }, [
+    categoryCountByLabel,
+    categoryFilterQuery,
+    filterStats,
+    localCategories,
+    localCategory,
+    locale,
+  ]);
+
+  const visibleBrands = useMemo(() => {
+    const needle = normalizeFacetSearchText(brandFilterQuery);
+    const selected = new Set(selectedBrands);
+    const nonEmptyBrands = localBrands.filter(
+      (brandName) =>
+        selected.has(brandName) || !filterStats || (brandCountByLabel.get(brandName) ?? 0) > 0
+    );
+    const matches = needle
+      ? nonEmptyBrands.filter((brandName) => normalizeFacetSearchText(brandName).includes(needle))
+      : nonEmptyBrands;
+
+    return [...matches].sort((left, right) => {
+      const selectedDiff = Number(selected.has(right)) - Number(selected.has(left));
+      if (selectedDiff !== 0) return selectedDiff;
+      const countDiff = (brandCountByLabel.get(right) ?? 0) - (brandCountByLabel.get(left) ?? 0);
+      if (countDiff !== 0) return countDiff;
+      return left.localeCompare(right, locale === "ua" ? "uk" : "en");
+    });
+  }, [brandCountByLabel, brandFilterQuery, filterStats, localBrands, locale, selectedBrands]);
+
+  const displayedCategories =
+    categoryFilterQuery.trim() || categoriesExpanded
+      ? visibleCategories
+      : visibleCategories.slice(0, 7);
+  const displayedBrands =
+    brandFilterQuery.trim() || brandsExpanded ? visibleBrands : visibleBrands.slice(0, 7);
+
+  const visibleVehicleMakes = useMemo(() => {
+    const popularOrder = new Map(
+      POPULAR_VEHICLE_MAKES.map((makeName, index) => [normalizeVehicleMakeName(makeName), index])
+    );
+    const needle = normalizeFacetSearchText(makePickerQuery);
+    const matches = needle
+      ? makes.filter((makeName) => normalizeFacetSearchText(makeName).includes(needle))
+      : makes;
+
+    return [...matches].sort((left, right) => {
+      const leftPriority = popularOrder.get(normalizeVehicleMakeName(left));
+      const rightPriority = popularOrder.get(normalizeVehicleMakeName(right));
+      if (leftPriority !== undefined || rightPriority !== undefined) {
+        return (
+          (leftPriority ?? Number.MAX_SAFE_INTEGER) - (rightPriority ?? Number.MAX_SAFE_INTEGER)
+        );
+      }
+      return left.localeCompare(right, locale === "ua" ? "uk" : "en");
+    });
+  }, [locale, makePickerQuery, makes]);
+
+  const handleSelectVehicleMake = (nextMake: string) => {
+    initialModelRef.current = "";
+    initialChassisRef.current = "";
+    setMake(nextMake);
+    setModel("");
+    setChassis("");
+    setMakePickerOpen(false);
+    setMakePickerQuery("");
+  };
+
+  const closeSuggestions = () => {
+    searchFocusedRef.current = false;
+    setSuggestionsOpen(false);
+    setActiveSuggestionIndex(-1);
+  };
+
+  const handleSuggestionSelection = (suggestion: StockSuggestion) => {
+    closeSuggestions();
+    if (suggestion.type === "product") {
+      window.location.assign(`/${locale}/shop/${suggestion.slug}`);
+      return;
+    }
+    if (suggestion.type === "brand") {
+      setSelectedBrands([suggestion.label]);
+      setQuery("");
+      return;
+    }
+
+    initialModelRef.current = suggestion.model || "";
+    initialChassisRef.current = "";
+    setMake(suggestion.make);
+    setModel("");
+    setChassis("");
+    setQuery("");
+  };
+
+  const handleSuggestionKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestionsOpen || suggestions.length === 0) {
+      if (event.key === "ArrowDown" && suggestions.length > 0) setSuggestionsOpen(true);
+      return;
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((current) => (current + 1) % suggestions.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((current) => (current <= 0 ? suggestions.length : current) - 1);
+    } else if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      handleSuggestionSelection(suggestions[activeSuggestionIndex]);
+    } else if (event.key === "Escape") {
+      closeSuggestions();
+    }
+  };
 
   const hasActiveFilters =
     query.trim().length > 0 ||
@@ -865,7 +1282,7 @@ function StockPageContent() {
     Boolean(model) ||
     Boolean(chassis) ||
     stockFilter !== "all" ||
-    sortOrder !== "default";
+    hasPriceFilter;
 
   const activeFilterCount =
     (query.trim() ? 1 : 0) +
@@ -875,9 +1292,10 @@ function StockPageContent() {
     (model ? 1 : 0) +
     (chassis ? 1 : 0) +
     (stockFilter !== "all" ? 1 : 0) +
-    (sortOrder !== "default" ? 1 : 0);
+    (hasPriceFilter ? 1 : 0);
 
   const totalCatalogCount = filterStats?.stock.all ?? totalItems;
+  const isInitialCatalogLoading = loading && filterStats === null;
   const stockCount = (value: StockFilter) =>
     value === "all"
       ? filterStats?.stock.all
@@ -911,6 +1329,33 @@ function StockPageContent() {
     (amount: number) => formatShopMoney(displayLocale, amount, currency),
     [currency, displayLocale]
   );
+
+  const formatPriceFilterAmount = useCallback(
+    (value: string) => {
+      const amount = Number(normalizeStockPriceParam(value));
+      return Number.isFinite(amount) ? formatAmount(amount) : value;
+    },
+    [formatAmount]
+  );
+
+  const priceFilterLabel = useMemo(() => {
+    if (!hasPriceFilter) return "";
+    if (minPriceParam && maxPriceParam) {
+      return `${isUa ? "Ціна" : "Price"}: ${formatPriceFilterAmount(
+        minPriceParam
+      )} - ${formatPriceFilterAmount(maxPriceParam)}`;
+    }
+    if (minPriceParam) {
+      return `${isUa ? "Ціна від" : "Price from"} ${formatPriceFilterAmount(minPriceParam)}`;
+    }
+    return `${isUa ? "Ціна до" : "Price to"} ${formatPriceFilterAmount(maxPriceParam)}`;
+  }, [formatPriceFilterAmount, hasPriceFilter, isUa, maxPriceParam, minPriceParam]);
+
+  const priceBoundsLabel = useMemo(() => {
+    const bounds = priceBounds ?? filterStats?.price;
+    if (!bounds || bounds.min <= 0 || bounds.max <= 0) return "";
+    return `${formatAmount(bounds.min)} - ${formatAmount(bounds.max)}`;
+  }, [filterStats?.price, formatAmount, priceBounds]);
 
   const getItemDisplayPriceAmount = useCallback(
     (item: StockItem) => convertShopMoney(getItemPriceSet(item), currency, displayRates),
@@ -946,45 +1391,121 @@ function StockPageContent() {
     [formatAmount, getItemCompareAtAmount, getItemDisplayPriceAmount]
   );
 
-  const selectedCartTotal = selectedItems.reduce(
-    (acc, item) => acc + getItemDisplayPriceAmount(item),
-    0
-  );
-  const selectedCompareAtTotal = selectedItems.reduce(
-    (acc, item) => acc + getItemCompareAtAmount(item),
-    0
-  );
+  const selectedVehicleLabel = [make, model, chassis].filter(Boolean).join(" ");
 
-  const allItemsOnPageSelected =
-    items.length > 0 && items.every((item) => selectedItems.some((x) => x.id === item.id));
+  const renderVehicleFitmentFields = (horizontal = false) => {
+    const vehicleFieldSurface = horizontal
+      ? "bg-card/90 shadow-[0_12px_35px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:bg-black/55 dark:shadow-none"
+      : "bg-foreground/[0.035]";
 
-  function handleToggleSelectPage() {
-    if (allItemsOnPageSelected) {
-      setSelectedItems((prev) => prev.filter((x) => !items.some((item) => item.id === x.id)));
-      return;
-    }
+    return (
+      <div className={horizontal ? "grid grid-cols-3 gap-2" : "space-y-2"}>
+        <button
+          type="button"
+          onClick={() => setMakePickerOpen(true)}
+          className={`group flex h-11 min-w-0 items-center gap-2 border border-foreground/15 px-3 text-left text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 ${vehicleFieldSurface}`}
+          aria-haspopup="dialog"
+          aria-expanded={makePickerOpen}
+        >
+          {make ? (
+            <VehicleMakeLogo make={make} />
+          ) : (
+            <CarFront className="h-4 w-4 shrink-0 text-foreground/45" />
+          )}
+          <span className="min-w-0 flex-1 truncate">
+            {make || (isUa ? "Марка авто" : "Car make")}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-foreground/50" />
+        </button>
 
-    setSelectedItems((prev) => {
-      const next = [...prev];
-      items.forEach((item) => {
-        if (!next.some((x) => x.id === item.id)) {
-          next.push(item);
-        }
-      });
-      return next;
-    });
-  }
+        <label className="relative block min-w-0">
+          <span className="sr-only">{isUa ? "Модель авто" : "Car model"}</span>
+          <select
+            value={model}
+            disabled={!make || modelsLoading}
+            onChange={(event) => {
+              initialChassisRef.current = "";
+              setModel(event.target.value);
+              setChassis("");
+            }}
+            className={`h-11 w-full appearance-none truncate rounded-none border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-40 ${vehicleFieldSurface}`}
+          >
+            <option value="" className="bg-card text-foreground dark:bg-[#121216]">
+              {modelsLoading
+                ? isUa
+                  ? "Завантаження..."
+                  : "Loading..."
+                : make
+                  ? isUa
+                    ? "Модель авто"
+                    : "Car model"
+                  : isUa
+                    ? "Спочатку марка"
+                    : "Select make first"}
+            </option>
+            {models.map((modelName) => (
+              <option
+                key={modelName}
+                value={modelName}
+                className="bg-card text-foreground dark:bg-[#121216]"
+              >
+                {modelName}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+        </label>
+
+        <label className="relative block min-w-0">
+          <span className="sr-only">{isUa ? "Кузов / шасі" : "Chassis"}</span>
+          <select
+            value={chassis}
+            disabled={!model || submodelsLoading}
+            onChange={(event) => setChassis(event.target.value)}
+            className={`h-11 w-full appearance-none truncate rounded-none border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-40 ${vehicleFieldSurface}`}
+          >
+            <option value="" className="bg-card text-foreground dark:bg-[#121216]">
+              {submodelsLoading
+                ? isUa
+                  ? "Завантаження..."
+                  : "Loading..."
+                : model
+                  ? isUa
+                    ? "Кузов / шасі"
+                    : "Chassis"
+                  : isUa
+                    ? "Спочатку модель"
+                    : "Select model first"}
+            </option>
+            {chassisCodes.map((code) => (
+              <option key={code} value={code} className="bg-card text-foreground dark:bg-[#121216]">
+                {code}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+        </label>
+      </div>
+    );
+  };
 
   const FilterPanel = ({ mobile = false }: { mobile?: boolean }) => (
     <form onSubmit={handleSearch} className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-foreground/10 px-5 py-5">
+      <div
+        className={`shrink-0 flex items-center justify-between border-b border-foreground/10 px-4 py-4 ${
+          mobile ? "sticky top-0 z-20 bg-background/98 backdrop-blur-2xl" : ""
+        }`}
+      >
         <div>
-          <p className="text-[10px] font-light uppercase tracking-[0.24em] text-foreground/65">
+          <p className="text-[11px] font-normal uppercase tracking-[0.2em] text-foreground/80">
             {isUa ? "Фільтри" : "Filters"}
           </p>
-          <p className="mt-1 text-xs font-light text-foreground/45">
-            {totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
-            {isUa ? "позицій у каталозі" : "catalog items"}
+          <p className="mt-1 text-xs font-light text-foreground/55">
+            {isInitialCatalogLoading
+              ? isUa
+                ? "Завантаження каталогу…"
+                : "Loading catalog…"
+              : `${totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")} ${isUa ? `${getUkrainianPlural(totalCatalogCount, "позиція", "позиції", "позицій")} у каталозі` : "catalog items"}`}
           </p>
         </div>
         {mobile ? (
@@ -999,36 +1520,19 @@ function StockPageContent() {
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
-        <label className="block">
-          <span className="mb-2 block text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
-            {isUa ? "Пошук" : "Search"}
-          </span>
-          <span className="relative flex h-11 items-center rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 transition focus-within:border-foreground/35 focus-within:bg-foreground/[0.055]">
-            <Search className="h-4 w-4 shrink-0 text-foreground/45" />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={isUa ? "Назва, SKU або бренд" : "Name, SKU, or brand"}
-              className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-light text-foreground outline-hidden placeholder:text-foreground/35"
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="text-foreground/45 transition hover:text-foreground"
-                aria-label={isUa ? "Очистити пошук" : "Clear search"}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </span>
-        </label>
+      <SmartScrollArea className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/35">
+        {mobile ? (
+          <section className="space-y-2.5 border-b border-foreground/10 pb-5">
+            <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
+              {isUa ? "Підібрати за авто" : "Find by vehicle"}
+            </h3>
+            {renderVehicleFitmentFields()}
+          </section>
+        ) : null}
 
-        <section className="space-y-3">
+        <section className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
+            <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
               {isUa ? "Наявність" : "Availability"}
             </h3>
           </div>
@@ -1038,92 +1542,177 @@ function StockPageContent() {
                 key={value}
                 type="button"
                 onClick={() => setStockFilter(value)}
-                className={`flex min-h-10 items-center justify-between rounded-none border px-3 text-left text-xs font-light transition ${
+                className={`flex min-h-9 items-center justify-between rounded-none border px-3 text-left text-xs font-light transition ${
                   stockFilter === value
-                    ? "border-foreground bg-foreground text-background"
+                    ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
                     : "border-foreground/10 bg-foreground/[0.025] text-foreground/60 hover:border-foreground/25 hover:bg-foreground/[0.05] hover:text-foreground"
                 }`}
               >
                 <span>{isUa ? STOCK_LABELS[value].ua : STOCK_LABELS[value].en}</span>
                 <span className="font-mono text-[10px] opacity-55">
-                  {(stockCount(value) ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
+                  {isInitialCatalogLoading
+                    ? "—"
+                    : (stockCount(value) ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
                 </span>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h3 className="text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
+        <section className="space-y-2.5">
+          <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
             {isUa ? "Ціна" : "Price"}
           </h3>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: "default" as StockSort, ua: "Релев.", en: "Relevant" },
-              { value: "price_asc" as StockSort, ua: "Дешевше", en: "Low" },
-              { value: "price_desc" as StockSort, ua: "Дорожче", en: "High" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={sortOrder === option.value}
-                onClick={() => setSortOrder(option.value)}
-                className={`min-h-9 rounded-none border px-2 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${
-                  sortOrder === option.value
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-foreground/10 bg-foreground/[0.025] text-foreground/50 hover:border-foreground/25 hover:bg-foreground/[0.05] hover:text-foreground"
-                }`}
-              >
-                {isUa ? option.ua : option.en}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block">
+                <span className="sr-only">{isUa ? "Ціна від" : "Minimum price"}</span>
+                <input
+                  value={minPriceFilter}
+                  onChange={(event) =>
+                    setMinPriceFilter(sanitizeStockPriceInput(event.target.value))
+                  }
+                  inputMode="decimal"
+                  placeholder={isUa ? "Від" : "From"}
+                  className="h-10 w-full rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 font-mono text-xs text-foreground outline-hidden transition placeholder:font-sans placeholder:text-foreground/35 focus:border-foreground/35 focus:bg-foreground/[0.055]"
+                />
+              </label>
+              <label className="block">
+                <span className="sr-only">{isUa ? "Ціна до" : "Maximum price"}</span>
+                <input
+                  value={maxPriceFilter}
+                  onChange={(event) =>
+                    setMaxPriceFilter(sanitizeStockPriceInput(event.target.value))
+                  }
+                  inputMode="decimal"
+                  placeholder={isUa ? "До" : "To"}
+                  className="h-10 w-full rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 font-mono text-xs text-foreground outline-hidden transition placeholder:font-sans placeholder:text-foreground/35 focus:border-foreground/35 focus:bg-foreground/[0.055]"
+                />
+              </label>
+            </div>
+            <div className="flex min-h-4 items-center justify-between gap-2 text-[10px] font-light uppercase tracking-[0.12em] text-foreground/50">
+              <span>{currency}</span>
+              {priceBoundsLabel ? <span className="truncate">{priceBoundsLabel}</span> : null}
+            </div>
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h3 className="text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
-            {isUa ? "Група товарів" : "Product group"}
-          </h3>
-          <div className="max-h-[150px] space-y-1 overflow-y-auto pr-1">
+        <section className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => setCategorySectionOpen((current) => !current)}
+            className="flex w-full items-center justify-between text-left"
+            aria-expanded={categorySectionOpen}
+          >
+            <span className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
+              {isUa ? "Група товарів" : "Product group"}
+            </span>
+            <ChevronDown
+              className={`h-3.5 w-3.5 text-foreground/40 transition-transform duration-200 ${
+                categorySectionOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          {categorySectionOpen ? (
+            <>
+              <label className="relative flex h-9 items-center rounded-none border border-foreground/10 bg-foreground/[0.03] px-3 transition focus-within:border-foreground/30 focus-within:bg-foreground/[0.05]">
+                <Search className="h-3.5 w-3.5 shrink-0 text-foreground/35" />
+                <input
+                  value={categoryFilterQuery}
+                  onChange={(event) => setCategoryFilterQuery(event.target.value)}
+                  placeholder={isUa ? "Знайти групу" : "Find group"}
+                  className="h-full min-w-0 flex-1 bg-transparent px-2 text-xs font-light text-foreground outline-hidden placeholder:text-foreground/35"
+                />
+                {categoryFilterQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilterQuery("")}
+                    className="text-foreground/40 transition hover:text-foreground"
+                    aria-label={isUa ? "Очистити пошук груп" : "Clear group search"}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </label>
+              <div className="space-y-0.5">
+                <button
+                  type="button"
+                  onClick={() => setLocalCategory("")}
+                  className={`flex min-h-9 w-full items-center justify-between rounded-none border px-3 text-left text-xs font-light transition ${
+                    !localCategory
+                      ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
+                      : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
+                  }`}
+                >
+                  <span>{isUa ? "Всі групи" : "All groups"}</span>
+                  <span className="font-mono text-[10px] opacity-55">
+                    {(filterStats?.stock.all ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
+                  </span>
+                </button>
+                {displayedCategories.map((categoryName) => (
+                  <button
+                    key={categoryName}
+                    type="button"
+                    onClick={() => setLocalCategory(categoryName)}
+                    className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-none border px-3 text-left text-xs font-light transition ${
+                      localCategory === categoryName
+                        ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
+                        : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{categoryName}</span>
+                    <span className="font-mono text-[10px] opacity-55">
+                      {categoryCountByLabel.get(categoryName) ?? 0}
+                    </span>
+                  </button>
+                ))}
+                {visibleCategories.length === 0 ? (
+                  <div className="px-3 py-3 text-xs font-light text-foreground/40">
+                    {isUa ? "Нічого не знайдено" : "No groups found"}
+                  </div>
+                ) : null}
+                {!categoryFilterQuery.trim() && visibleCategories.length > 7 ? (
+                  <button
+                    type="button"
+                    onClick={() => setCategoriesExpanded((current) => !current)}
+                    className="flex min-h-9 w-full items-center justify-between border-t border-foreground/8 px-3 pt-2 text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/48 transition hover:text-foreground"
+                  >
+                    <span>
+                      {categoriesExpanded
+                        ? isUa
+                          ? "Показати менше"
+                          : "Show less"
+                        : isUa
+                          ? "Показати більше"
+                          : "Show more"}
+                    </span>
+                    <span className="font-mono text-[9px]">
+                      {categoriesExpanded ? "−" : `+${visibleCategories.length - 7}`}
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </section>
+
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setLocalCategory("")}
-              className={`flex min-h-9 w-full items-center justify-between rounded-none border px-3 text-left text-xs font-light transition ${
-                !localCategory
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
-              }`}
+              onClick={() => setBrandSectionOpen((current) => !current)}
+              className="flex min-w-0 flex-1 items-center justify-between text-left"
+              aria-expanded={brandSectionOpen}
             >
-              <span>{isUa ? "Всі групи" : "All groups"}</span>
-              <span className="font-mono text-[10px] opacity-55">
-                {(filterStats?.stock.all ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
+              <span className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
+                {isUa ? "Бренд" : "Brand"}
               </span>
-            </button>
-            {localCategories.map((categoryName) => (
-              <button
-                key={categoryName}
-                type="button"
-                onClick={() => setLocalCategory(categoryName)}
-                className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-none border px-3 text-left text-xs font-light transition ${
-                  localCategory === categoryName
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
+              <ChevronDown
+                className={`mr-3 h-3.5 w-3.5 text-foreground/40 transition-transform duration-200 ${
+                  brandSectionOpen ? "rotate-180" : ""
                 }`}
-              >
-                <span className="min-w-0 flex-1 truncate">{categoryName}</span>
-                <span className="font-mono text-[10px] opacity-55">
-                  {categoryCountByLabel.get(categoryName) ?? 0}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
-              {isUa ? "Бренд" : "Brand"}
-            </h3>
+              />
+            </button>
             {selectedBrands.length > 0 ? (
               <button
                 type="button"
@@ -1134,151 +1723,126 @@ function StockPageContent() {
               </button>
             ) : null}
           </div>
-          <div className="max-h-[240px] space-y-1 overflow-y-auto pr-1">
-            {localBrands.map((brandName) => {
-              const selected = selectedBrands.includes(brandName);
-              const logoPath = getBrandLogoPath(brandName);
-              return (
-                <button
-                  key={brandName}
-                  type="button"
-                  onClick={() => handleToggleBrand(brandName)}
-                  className={`flex min-h-12 w-full items-center gap-3 rounded-none border px-3 text-left text-xs font-light transition ${
-                    selected
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
-                  }`}
-                >
-                  <span
-                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-none border ${
-                      selected
-                        ? "border-background bg-background text-foreground"
-                        : "border-foreground/15"
-                    }`}
+          {brandSectionOpen ? (
+            <>
+              <label className="relative flex h-9 items-center rounded-none border border-foreground/10 bg-foreground/[0.03] px-3 transition focus-within:border-foreground/30 focus-within:bg-foreground/[0.05]">
+                <Search className="h-3.5 w-3.5 shrink-0 text-foreground/35" />
+                <input
+                  value={brandFilterQuery}
+                  onChange={(event) => setBrandFilterQuery(event.target.value)}
+                  placeholder={isUa ? "Знайти бренд" : "Find brand"}
+                  className="h-full min-w-0 flex-1 bg-transparent px-2 text-xs font-light text-foreground outline-hidden placeholder:text-foreground/35"
+                />
+                {brandFilterQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setBrandFilterQuery("")}
+                    className="text-foreground/40 transition hover:text-foreground"
+                    aria-label={isUa ? "Очистити пошук брендів" : "Clear brand search"}
                   >
-                    {selected ? <Check className="h-3 w-3" /> : null}
-                  </span>
-                  <BrandLogoTile brandName={brandName} logoPath={logoPath} size="sm" />
-                  <span className="min-w-0 flex-1 truncate">{brandName}</span>
-                  <span className="font-mono text-[10px] opacity-55">
-                    {brandCountByLabel.get(brandName) ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </label>
+              <div className="space-y-0.5">
+                {displayedBrands.map((brandName) => {
+                  const selected = selectedBrands.includes(brandName);
+                  const logoPath = getBrandLogoPath(brandName);
+                  return (
+                    <button
+                      key={brandName}
+                      type="button"
+                      onClick={() => handleToggleBrand(brandName)}
+                      className={`flex min-h-10 w-full items-center gap-3 rounded-none border px-3 text-left text-xs font-light transition ${
+                        selected
+                          ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
+                          : "border-transparent text-foreground/60 hover:border-foreground/10 hover:bg-foreground/[0.04] hover:text-foreground"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-none border ${
+                          selected
+                            ? "border-foreground/45 bg-foreground text-background"
+                            : "border-foreground/15"
+                        }`}
+                      >
+                        {selected ? <Check className="h-3 w-3" /> : null}
+                      </span>
+                      <BrandLogoTile brandName={brandName} logoPath={logoPath} size="xs" />
+                      <span className="min-w-0 flex-1 truncate" title={brandName}>
+                        {brandName}
+                      </span>
+                      <span className="shrink-0 font-mono text-[10px] opacity-55">
+                        {brandCountByLabel.get(brandName) ?? 0}
+                      </span>
+                    </button>
+                  );
+                })}
+                {visibleBrands.length === 0 ? (
+                  <div className="px-3 py-3 text-xs font-light text-foreground/40">
+                    {isUa ? "Нічого не знайдено" : "No brands found"}
+                  </div>
+                ) : null}
+                {!brandFilterQuery.trim() && visibleBrands.length > 7 ? (
+                  <button
+                    type="button"
+                    onClick={() => setBrandsExpanded((current) => !current)}
+                    className="flex min-h-9 w-full items-center justify-between border-t border-foreground/8 px-3 pt-2 text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/48 transition hover:text-foreground"
+                  >
+                    <span>
+                      {brandsExpanded
+                        ? isUa
+                          ? "Показати менше"
+                          : "Show less"
+                        : isUa
+                          ? "Показати більше"
+                          : "Show more"}
+                    </span>
+                    <span className="font-mono text-[9px]">
+                      {brandsExpanded ? "−" : `+${visibleBrands.length - 7}`}
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : null}
         </section>
+      </SmartScrollArea>
 
-        <section className="space-y-3">
-          <h3 className="text-[10px] font-light uppercase tracking-[0.22em] text-foreground/55">
-            {isUa ? "Сумісність з авто" : "Vehicle fitment"}
-          </h3>
-          <div className="space-y-3">
-            <div className="relative">
-              <select
-                value={make}
-                onChange={(event) => {
-                  initialModelRef.current = "";
-                  initialChassisRef.current = "";
-                  setMake(event.target.value);
-                  setModel("");
-                  setChassis("");
-                }}
-                className="h-11 w-full appearance-none rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 pr-9 text-xs font-light text-foreground/75 outline-hidden transition focus:border-foreground/35"
-              >
-                <option value="" className="bg-[#121216]">
-                  {isUa ? "Марка авто" : "Car make"}
-                </option>
-                {makes.map((makeName) => (
-                  <option key={makeName} value={makeName} className="bg-[#121216] text-white">
-                    {makeName}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
-            </div>
-            <div className="relative">
-              <select
-                value={model}
-                disabled={!make || modelsLoading}
-                onChange={(event) => {
-                  initialChassisRef.current = "";
-                  setModel(event.target.value);
-                  setChassis("");
-                }}
-                className="h-11 w-full appearance-none rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 pr-9 text-xs font-light text-foreground/75 outline-hidden transition focus:border-foreground/35 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <option value="" className="bg-[#121216]">
-                  {modelsLoading
-                    ? isUa
-                      ? "Завантаження..."
-                      : "Loading..."
-                    : make
-                      ? isUa
-                        ? "Модель авто"
-                        : "Car model"
-                      : isUa
-                        ? "Спочатку марка"
-                        : "Select make first"}
-                </option>
-                {models.map((modelName) => (
-                  <option key={modelName} value={modelName} className="bg-[#121216] text-white">
-                    {modelName}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
-            </div>
-            <div className="relative">
-              <select
-                value={chassis}
-                disabled={!model || submodelsLoading}
-                onChange={(event) => setChassis(event.target.value)}
-                className="h-11 w-full appearance-none rounded-none border border-foreground/10 bg-foreground/[0.035] px-3 pr-9 text-xs font-light text-foreground/75 outline-hidden transition focus:border-foreground/35 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <option value="" className="bg-[#121216]">
-                  {submodelsLoading
-                    ? isUa
-                      ? "Завантаження..."
-                      : "Loading..."
-                    : model
-                      ? isUa
-                        ? "Кузов / шасі"
-                        : "Chassis"
-                      : isUa
-                        ? "Спочатку модель"
-                        : "Select model first"}
-                </option>
-                {chassisCodes.map((code) => (
-                  <option key={code} value={code} className="bg-[#121216] text-white">
-                    {code}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div className="border-t border-foreground/10 p-5">
-        <button
-          type="button"
-          onClick={handleResetFilters}
-          disabled={!hasActiveFilters}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-none border border-foreground/12 bg-foreground/[0.03] text-xs font-semibold uppercase tracking-[0.18em] text-foreground/60 transition hover:border-foreground/25 hover:bg-foreground/[0.06] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
-        >
-          <X className="h-4 w-4" />
-          {isUa ? "Скинути фільтри" : "Reset filters"}
-        </button>
+      <div
+        className={`shrink-0 border-t border-foreground/10 bg-background/98 p-4 backdrop-blur-2xl ${
+          mobile ? "sticky bottom-0 z-20" : ""
+        }`}
+      >
+        <div className={mobile ? "grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2" : ""}>
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            disabled={!hasActiveFilters}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-none border border-foreground/15 bg-transparent px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/65 transition hover:border-foreground/35 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <X className="h-4 w-4" />
+            {isUa ? "Скинути" : "Reset"}
+          </button>
+          {mobile ? (
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(false)}
+              className="flex h-11 min-w-0 items-center justify-center rounded-none border border-foreground bg-foreground px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-background transition hover:bg-transparent hover:text-foreground"
+            >
+              <span className="truncate">
+                {isUa ? "Показати" : "Show"} {totalItems.toLocaleString(isUa ? "uk-UA" : "en-US")}
+              </span>
+            </button>
+          ) : null}
+        </div>
       </div>
     </form>
   );
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-foreground/20 [&_*]:!rounded-none">
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/[0.04] to-foreground/[0.06] dark:via-black/80 dark:to-black" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_60%)] sm:h-64" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/[0.02] to-foreground/[0.045] dark:via-black/45 dark:to-black/75" />
       <div className="pt-20 sm:pt-24 lg:pt-28" />
 
       <div className="hidden">
@@ -1532,15 +2096,6 @@ function StockPageContent() {
                 )}
                 {isUa ? "Шукати" : "Search"}
               </button>
-              {items.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleExportCSV(items)}
-                  className="w-full sm:w-auto h-11 px-6 rounded-none border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isUa ? "Експорт CSV" : "Export CSV"}
-                </button>
-              )}
             </div>
           </form>
         </div>
@@ -1553,14 +2108,14 @@ function StockPageContent() {
             <motion.button
               type="button"
               aria-label={isUa ? "Закрити фільтри" : "Close filters"}
-              className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-[90] bg-background/75 backdrop-blur-sm lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileFiltersOpen(false)}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[390px] border-r border-foreground/10 bg-background/95 shadow-[25px_0_80px_rgba(0,0,0,0.55)] backdrop-blur-3xl lg:hidden"
+              className="fixed inset-y-0 left-0 z-[100] w-full max-w-[420px] border-r border-foreground/15 bg-background/98 shadow-[25px_0_80px_rgba(0,0,0,0.18)] backdrop-blur-3xl dark:shadow-[25px_0_80px_rgba(0,0,0,0.55)] lg:hidden"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -1572,49 +2127,219 @@ function StockPageContent() {
         ) : null}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {makePickerOpen ? (
+          <div className="fixed inset-0 z-[140] flex items-end justify-center sm:items-center sm:p-5">
+            <motion.button
+              type="button"
+              aria-label={isUa ? "Закрити вибір марки" : "Close make selector"}
+              className="absolute inset-0 bg-background/75 backdrop-blur-md dark:bg-black/80"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMakePickerOpen(false)}
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="vehicle-make-picker-title"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="relative flex max-h-[92vh] w-full max-w-[980px] flex-col border border-foreground/15 bg-card/98 shadow-[0_30px_100px_rgba(0,0,0,0.18)] dark:bg-[#0a0b0d] dark:shadow-[0_30px_100px_rgba(0,0,0,0.65)] sm:max-h-[82vh]"
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-foreground/10 px-4 py-4 sm:px-6 sm:py-5">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-foreground/45">
+                    {isUa ? "Підбір сумісності" : "Fitment selection"}
+                  </p>
+                  <h2
+                    id="vehicle-make-picker-title"
+                    className="mt-1 text-xl font-light text-foreground sm:text-2xl"
+                  >
+                    {isUa ? "Оберіть марку авто" : "Choose a vehicle make"}
+                  </h2>
+                  <p className="mt-1 text-xs font-light text-foreground/48">
+                    {makes.length.toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
+                    {isUa ? "марок" : "makes"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMakePickerOpen(false)}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center border border-foreground/12 text-foreground/55 transition hover:border-foreground/35 hover:text-foreground"
+                  aria-label={isUa ? "Закрити" : "Close"}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="border-b border-foreground/10 p-4 sm:px-6">
+                <label className="flex h-11 items-center border border-foreground/15 bg-foreground/[0.025] px-3 transition focus-within:border-foreground/40">
+                  <Search className="h-4 w-4 shrink-0 text-foreground/40" />
+                  <input
+                    type="search"
+                    value={makePickerQuery}
+                    onChange={(event) => setMakePickerQuery(event.target.value)}
+                    placeholder={isUa ? "Пошук марки" : "Search makes"}
+                    className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-light text-foreground outline-hidden placeholder:text-foreground/35"
+                  />
+                  {makePickerQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setMakePickerQuery("")}
+                      className="text-foreground/40 transition hover:text-foreground"
+                      aria-label={isUa ? "Очистити пошук" : "Clear search"}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  ) : null}
+                </label>
+              </div>
+
+              <SmartScrollArea className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/35 sm:p-5">
+                {visibleVehicleMakes.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 sm:gap-2 md:grid-cols-4 lg:grid-cols-5">
+                    {visibleVehicleMakes.map((makeName) => {
+                      const selected = makeName === make;
+                      return (
+                        <button
+                          key={makeName}
+                          type="button"
+                          onClick={() => handleSelectVehicleMake(makeName)}
+                          className={`group relative flex min-h-[88px] min-w-0 flex-col items-center justify-center gap-2 border px-2 py-3 text-center transition ${
+                            selected
+                              ? "border-foreground/40 bg-foreground/[0.07] text-foreground"
+                              : "border-foreground/[0.07] bg-transparent text-foreground/64 hover:border-foreground/24 hover:bg-foreground/[0.035] hover:text-foreground"
+                          }`}
+                        >
+                          <VehicleMakeLogo make={makeName} size="md" />
+                          <span className="w-full truncate text-[11px] font-normal">
+                            {makeName}
+                          </span>
+                          {selected ? (
+                            <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-foreground/70" />
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-16 text-center text-sm font-light text-foreground/45">
+                    {isUa ? "Марку не знайдено" : "No make found"}
+                  </div>
+                )}
+              </SmartScrollArea>
+
+              {make ? (
+                <div className="border-t border-foreground/10 p-4 sm:px-6">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectVehicleMake("")}
+                    className="flex h-10 w-full items-center justify-center gap-2 border border-foreground/12 text-[10px] font-medium uppercase tracking-[0.16em] text-foreground/55 transition hover:border-foreground/35 hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    {isUa ? "Очистити марку" : "Clear make"}
+                  </button>
+                </div>
+              ) : null}
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
+
       <div className="relative w-full max-w-none px-4 pb-32 sm:px-5 lg:px-6 2xl:px-8">
-        <section className="mb-4 overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.02] p-5 shadow-[0_30px_60px_rgba(0,0,0,0.42)] backdrop-blur-3xl dark:bg-white/[0.02] sm:mb-8 sm:rounded-none sm:p-8 md:rounded-none">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,0.75fr)_minmax(560px,1.25fr)] xl:items-end">
-            <div className="min-w-0">
-              <p className="hidden text-[10px] font-light uppercase tracking-[0.3em] text-foreground/65 sm:block">
-                {isUa ? "Каталог тюнінгу" : "Tuning catalog"}
+        <motion.section
+          initial={shouldReduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="relative z-30 isolate mb-0 min-h-[230px] overflow-hidden border border-foreground/10 bg-card dark:bg-[#08090b] sm:min-h-[250px]"
+        >
+          <Image
+            src="/images/hero-stock-performance-v2.webp"
+            alt=""
+            aria-hidden="true"
+            fill
+            priority
+            sizes="100vw"
+            className="pointer-events-none object-cover object-[58%_50%]"
+          />
+          <div className="relative z-10 flex min-h-[230px] items-end p-4 sm:min-h-[250px] sm:p-6 lg:p-8">
+            <div className="min-w-0 self-end lg:pb-1">
+              <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-white/65">
+                ONE COMPANY
               </p>
-              <h1 className="text-[26px] font-extralight leading-tight tracking-tight text-foreground sm:mt-3 sm:text-5xl">
-                {isUa ? "Магазин One Company" : "One Company Shop"}
+              <h1 className="mt-2 max-w-[560px] text-[27px] font-extralight leading-[1.05] text-white sm:text-[34px] lg:text-[40px]">
+                {isUa ? "Каталог тюнінгу" : "Tuning catalog"}
               </h1>
-              <div className="mt-5 hidden flex-wrap items-center gap-2 text-[10px] font-light uppercase tracking-[0.16em] text-foreground/45 sm:flex">
-                <span className="rounded-none border border-foreground/10 bg-foreground/[0.04] px-3 py-1 text-foreground/65">
-                  {isUa ? "В наявності" : "In stock"}{" "}
-                  {(filterStats?.stock.inStock ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-light text-white/65">
+                <span>
+                  {isInitialCatalogLoading
+                    ? isUa
+                      ? "Завантаження каталогу…"
+                      : "Loading catalog…"
+                    : `${totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")} ${isUa ? getUkrainianPlural(totalCatalogCount, "товар", "товари", "товарів") : "products"}`}
                 </span>
-                <span className="rounded-none border border-foreground/10 bg-foreground/[0.04] px-3 py-1 text-foreground/65">
-                  {isUa ? "Під замовлення" : "Pre-order"}{" "}
-                  {(filterStats?.stock.preOrder ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
-                </span>
-                <span className="rounded-none border border-foreground/10 bg-foreground/[0.04] px-3 py-1 text-foreground/65">
-                  {totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
-                  {isUa ? "товарів" : "products"}
-                </span>
+                {!isInitialCatalogLoading ? (
+                  <span className="border-l border-white/22 pl-3">
+                    {(filterStats?.stock.inStock ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
+                    {isUa ? "в наявності" : "in stock"}
+                  </span>
+                ) : null}
               </div>
             </div>
+          </div>
+        </motion.section>
 
-            <div className="space-y-2 sm:space-y-3">
-              <label className="relative flex min-h-11 items-center rounded-none border border-foreground/10 bg-foreground/[0.035] px-2.5 transition focus-within:border-foreground/35 focus-within:bg-foreground/[0.055] sm:min-h-12 sm:px-3">
+        <section
+          aria-label={isUa ? "Пошук і підбір за авто" : "Search and vehicle finder"}
+          className="relative z-40 border-x border-b border-foreground/10 bg-card p-3 dark:bg-[#08090b] sm:p-4 lg:px-6 lg:py-5"
+        >
+          <div className="space-y-2 self-end sm:space-y-3">
+            <div
+              ref={searchBoxRef}
+              className="relative z-50"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  closeSuggestions();
+                }
+              }}
+            >
+              <label className="relative flex min-h-11 items-center border border-foreground/18 bg-card/88 px-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)] backdrop-blur-xl transition focus-within:border-foreground/40 focus-within:bg-card dark:border-white/18 dark:bg-black/65 dark:shadow-none dark:focus-within:border-white/45 dark:focus-within:bg-black/80 sm:min-h-12 sm:px-4">
                 <Search className="h-4 w-4 shrink-0 text-foreground/45" />
                 <input
-                  type="search"
+                  type="text"
+                  inputMode="search"
+                  autoComplete="off"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
+                  onFocus={() => {
+                    searchFocusedRef.current = true;
+                    if (query.trim().length >= 2) setSuggestionsOpen(true);
+                  }}
+                  onKeyDown={handleSuggestionKeyDown}
                   placeholder={
                     isUa ? "Пошук: бренд, SKU, авто" : "Search: brand, SKU, product, or vehicle"
                   }
-                  className="h-11 min-w-0 flex-1 bg-transparent px-2 text-[13px] font-light text-foreground outline-hidden placeholder:text-foreground/35 sm:h-12 sm:px-3 sm:text-sm"
+                  role="combobox"
+                  aria-expanded={suggestionsOpen}
+                  aria-controls="stock-search-suggestions"
+                  aria-activedescendant={
+                    activeSuggestionIndex >= 0
+                      ? `stock-suggestion-${activeSuggestionIndex}`
+                      : undefined
+                  }
+                  className="h-10 min-w-0 flex-1 bg-transparent px-2 text-[13px] font-light text-foreground outline-hidden placeholder:text-foreground/38 sm:h-11 sm:px-3 sm:text-sm"
                 />
+                {suggestionsLoading ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-foreground/40" />
+                ) : null}
                 {query ? (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
-                    className="text-foreground/45 transition hover:text-foreground"
+                    className="ml-2 text-foreground/45 transition hover:text-foreground"
                     aria-label={isUa ? "Очистити пошук" : "Clear search"}
                   >
                     <X className="h-4 w-4" />
@@ -1622,129 +2347,181 @@ function StockPageContent() {
                 ) : null}
               </label>
 
-              <div className="grid grid-cols-3 gap-2">
-                <label className="relative block">
-                  <span className="sr-only">{isUa ? "Марка авто" : "Car make"}</span>
-                  <select
-                    value={make}
-                    onChange={(event) => {
-                      initialModelRef.current = "";
-                      initialChassisRef.current = "";
-                      setMake(event.target.value);
-                      setModel("");
-                      setChassis("");
-                    }}
-                    className="h-10 w-full appearance-none truncate rounded-none border border-foreground/10 bg-foreground/[0.035] px-2 pr-7 text-[11px] font-light text-foreground/75 outline-hidden transition focus:border-foreground/35 sm:h-11 sm:px-3 sm:pr-9 sm:text-xs"
+              <AnimatePresence>
+                {suggestionsOpen && query.trim().length >= 2 ? (
+                  <motion.div
+                    id="stock-search-suggestions"
+                    role="listbox"
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute left-0 right-0 top-[calc(100%+6px)] max-h-[420px] overflow-y-auto border border-foreground/15 bg-popover/98 p-1.5 text-popover-foreground shadow-[0_24px_70px_rgba(0,0,0,0.16)] backdrop-blur-2xl [scrollbar-width:thin] dark:border-white/16 dark:bg-[#090a0c]/98 dark:shadow-[0_24px_70px_rgba(0,0,0,0.72)]"
                   >
-                    <option value="" className="bg-[#121216]">
-                      {isUa ? "Марка авто" : "Car make"}
-                    </option>
-                    {makes.map((makeName) => (
-                      <option key={makeName} value={makeName} className="bg-[#121216] text-white">
-                        {makeName}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground/45 sm:right-3 sm:h-4 sm:w-4" />
-                </label>
-
-                <label className="relative block">
-                  <span className="sr-only">{isUa ? "Модель авто" : "Car model"}</span>
-                  <select
-                    value={model}
-                    disabled={!make || modelsLoading}
-                    onChange={(event) => {
-                      initialChassisRef.current = "";
-                      setModel(event.target.value);
-                      setChassis("");
-                    }}
-                    className="h-10 w-full appearance-none truncate rounded-none border border-foreground/10 bg-foreground/[0.035] px-2 pr-7 text-[11px] font-light text-foreground/75 outline-hidden transition focus:border-foreground/35 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:px-3 sm:pr-9 sm:text-xs"
-                  >
-                    <option value="" className="bg-[#121216]">
-                      {modelsLoading
-                        ? isUa
-                          ? "Завантаження..."
-                          : "Loading..."
-                        : make
-                          ? isUa
-                            ? "Модель авто"
-                            : "Car model"
-                          : isUa
-                            ? "Спочатку марка"
-                            : "Select make first"}
-                    </option>
-                    {models.map((modelName) => (
-                      <option key={modelName} value={modelName} className="bg-[#121216] text-white">
-                        {modelName}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground/45 sm:right-3 sm:h-4 sm:w-4" />
-                </label>
-
-                <label className="relative block">
-                  <span className="sr-only">{isUa ? "Кузов / шасі" : "Chassis"}</span>
-                  <select
-                    value={chassis}
-                    disabled={!model || submodelsLoading}
-                    onChange={(event) => setChassis(event.target.value)}
-                    className="h-10 w-full appearance-none truncate rounded-none border border-foreground/10 bg-foreground/[0.035] px-2 pr-7 text-[11px] font-light text-foreground/75 outline-hidden transition focus:border-foreground/35 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:px-3 sm:pr-9 sm:text-xs"
-                  >
-                    <option value="" className="bg-[#121216]">
-                      {submodelsLoading
-                        ? isUa
-                          ? "Завантаження..."
-                          : "Loading..."
-                        : model
-                          ? isUa
-                            ? "Кузов / шасі"
-                            : "Chassis"
-                          : isUa
-                            ? "Спочатку модель"
-                            : "Select model first"}
-                    </option>
-                    {chassisCodes.map((code) => (
-                      <option key={code} value={code} className="bg-[#121216] text-white">
-                        {code}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground/45 sm:right-3 sm:h-4 sm:w-4" />
-                </label>
-              </div>
+                    {suggestions.length > 0 ? (
+                      suggestions.map((suggestion, index) => {
+                        const active = activeSuggestionIndex === index;
+                        return (
+                          <button
+                            id={`stock-suggestion-${index}`}
+                            key={suggestion.id}
+                            type="button"
+                            role="option"
+                            aria-selected={active}
+                            onMouseEnter={() => setActiveSuggestionIndex(index)}
+                            onClick={() => handleSuggestionSelection(suggestion)}
+                            className={`grid min-h-14 w-full min-w-0 grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 border px-3 py-2 text-left transition ${
+                              active
+                                ? "border-foreground/20 bg-foreground/[0.075]"
+                                : "border-transparent hover:border-foreground/10 hover:bg-foreground/[0.04]"
+                            }`}
+                          >
+                            <span className="flex h-9 w-11 items-center justify-center overflow-hidden">
+                              {suggestion.type === "product" ? (
+                                <SafeProductImage
+                                  src={suggestion.thumbnail}
+                                  alt=""
+                                  className="h-full w-full object-contain p-0.5"
+                                  isMini
+                                />
+                              ) : suggestion.type === "brand" ? (
+                                <BrandLogoTile
+                                  brandName={suggestion.label}
+                                  logoPath={getBrandLogoPath(suggestion.label)}
+                                  size="xs"
+                                />
+                              ) : (
+                                <VehicleMakeLogo make={suggestion.make} />
+                              )}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-normal text-foreground/88">
+                                {suggestion.type === "product" ? suggestion.name : suggestion.label}
+                              </span>
+                              <span className="mt-0.5 block truncate text-[9px] font-light uppercase tracking-[0.1em] text-foreground/42">
+                                {suggestion.type === "product"
+                                  ? `${suggestion.brand} · ${suggestion.partNumber}`
+                                  : suggestion.type === "brand"
+                                    ? isUa
+                                      ? "Бренд"
+                                      : "Brand"
+                                    : suggestion.model
+                                      ? isUa
+                                        ? "Модель авто"
+                                        : "Vehicle model"
+                                      : isUa
+                                        ? "Марка авто"
+                                        : "Vehicle make"}
+                              </span>
+                            </span>
+                            <span className="max-w-[110px] shrink-0 truncate text-right font-mono text-[9px] text-foreground/35 sm:max-w-[150px]">
+                              {suggestion.type === "product"
+                                ? suggestion.category
+                                : suggestion.count && suggestion.count > 0
+                                  ? suggestion.count.toLocaleString(isUa ? "uk-UA" : "en-US")
+                                  : null}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : !suggestionsLoading ? (
+                      <div className="px-4 py-6 text-center text-xs font-light text-foreground/42">
+                        {isUa ? "Нічого не знайдено" : "No suggestions found"}
+                      </div>
+                    ) : null}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
+
+            <div className="sm:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(true)}
+                className="flex h-11 w-full min-w-0 items-center gap-3 border border-foreground/15 bg-card/90 px-3 text-left shadow-[0_12px_35px_rgba(0,0,0,0.08)] backdrop-blur-xl transition hover:border-foreground/35 hover:bg-card dark:border-white/18 dark:bg-black/55 dark:shadow-none dark:hover:border-white/35 dark:hover:bg-black/70"
+              >
+                <SlidersHorizontal className="h-4 w-4 shrink-0 text-foreground/65" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] font-medium text-foreground/85">
+                    {isUa ? "Підібрати за авто" : "Find by vehicle"}
+                  </span>
+                  <span className="block truncate text-[10px] font-light text-foreground/50">
+                    {selectedVehicleLabel ||
+                      (isUa ? "Марка, модель і кузов" : "Make, model, and chassis")}
+                  </span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 -rotate-90 text-foreground/45" />
+              </button>
+            </div>
+            <div className="hidden sm:block">{renderVehicleFitmentFields(true)}</div>
           </div>
         </section>
 
+        <AnimatePresence initial={false}>
+          {selectedVehicleLabel ? (
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="mb-4 overflow-hidden border-x border-b border-foreground/10 bg-foreground/[0.025] sm:mb-5"
+            >
+              <div className="flex min-h-12 items-center gap-3 px-4 sm:px-5">
+                <CarFront className="h-4 w-4 shrink-0 text-foreground/58" />
+                <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-foreground/45">
+                  {isUa ? "Обране авто" : "Selected vehicle"}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-xs font-normal text-foreground/80">
+                  {selectedVehicleLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMake("");
+                    setModel("");
+                    setChassis("");
+                  }}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/10 text-foreground/45 transition hover:border-foreground/30 hover:text-foreground"
+                  aria-label={isUa ? "Очистити вибір авто" : "Clear selected vehicle"}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="mb-4 sm:mb-5" />
+          )}
+        </AnimatePresence>
+
         <div className="grid gap-3 sm:gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.02] shadow-[0_30px_60px_rgba(0,0,0,0.42)] backdrop-blur-3xl dark:bg-white/[0.02]">
+            <div className="sticky top-24 h-[calc(100dvh-7rem)] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.014] shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-3xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)]">
               <FilterPanel />
             </div>
           </aside>
 
           <main className="min-w-0">
-            <div className="mb-4 rounded-none border border-foreground/10 bg-foreground/[0.02] p-4 shadow-[0_24px_55px_rgba(0,0,0,0.34)] backdrop-blur-3xl dark:bg-white/[0.02] sm:mb-6 sm:rounded-none sm:p-5">
+            <div className="mb-4 rounded-none border border-foreground/10 bg-foreground/[0.014] p-3 shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-3xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:mb-5 sm:rounded-none sm:p-4">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <p className="hidden text-[10px] font-light uppercase tracking-[0.3em] text-foreground/65 sm:block">
                     {isUa ? "Результати" : "Results"}
                   </p>
-                  <div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1 sm:mt-2">
-                    <h2 className="min-w-0 text-xl font-extralight leading-tight tracking-tight text-foreground sm:text-2xl">
-                      {isUa ? "Каталог товарів" : "Product catalog"}
+                  <div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1 sm:mt-1.5">
+                    <h2 className="min-w-0 text-lg font-extralight leading-tight tracking-tight text-foreground sm:text-xl">
+                      {isUa ? "Усі товари" : "All products"}
                     </h2>
-                    <span className="min-w-0 pb-0.5 font-mono text-[11px] text-foreground/45 sm:pb-1 sm:text-xs">
-                      {totalItems.toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
-                      {isUa ? "товарів" : "products"}
-                      {totalPages > 1
-                        ? ` / ${isUa ? "сторінка" : "page"} ${page}/${totalPages}`
-                        : ""}
+                    <span className="min-w-0 pb-0.5 font-mono text-[11px] text-foreground/42 sm:text-xs">
+                      {isInitialCatalogLoading
+                        ? isUa
+                          ? "Завантаження…"
+                          : "Loading…"
+                        : `${totalItems.toLocaleString(isUa ? "uk-UA" : "en-US")} ${isUa ? getUkrainianPlural(totalItems, "товар", "товари", "товарів") : "products"}${totalPages > 1 ? ` / ${isUa ? "сторінка" : "page"} ${page}/${totalPages}` : ""}`}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 xl:flex xl:w-auto xl:flex-wrap">
                   <button
                     type="button"
                     onClick={() => setMobileFiltersOpen(true)}
@@ -1757,41 +2534,26 @@ function StockPageContent() {
                     ) : null}
                   </button>
 
-                  {items.length > 0 ? (
-                    <button
-                      type="button"
-                      onClick={handleToggleSelectPage}
-                      className={`hidden h-10 max-w-[190px] items-center gap-2 border px-3 text-[10px] font-bold uppercase tracking-[0.14em] transition sm:inline-flex ${
-                        allItemsOnPageSelected
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-foreground/10 bg-foreground/[0.025] text-foreground/60 hover:border-foreground/25 hover:bg-foreground/[0.05] hover:text-foreground"
-                      }`}
-                    >
-                      <Heart
-                        className={`h-3.5 w-3.5 ${allItemsOnPageSelected ? "fill-current" : ""}`}
-                      />
-                      <span className="truncate">
-                        {allItemsOnPageSelected
-                          ? isUa
-                            ? "Сторінку вибрано"
-                            : "Page saved"
-                          : isUa
-                            ? "Вибрати сторінку"
-                            : "Save page"}
-                      </span>
-                    </button>
-                  ) : null}
-
-                  <label className="relative h-9 sm:h-10">
+                  <label className="relative h-9 min-w-0 sm:h-10">
                     <span className="sr-only">{isUa ? "Сортування" : "Sort"}</span>
                     <select
                       value={sortOrder}
                       onChange={(event) => setSortOrder(event.target.value as StockSort)}
-                      className="h-9 max-w-[190px] appearance-none truncate rounded-none border border-foreground/10 bg-foreground/[0.035] pl-3 pr-8 text-xs font-light text-foreground/75 outline-hidden transition hover:border-foreground/20 focus:border-foreground/35 sm:h-10 sm:pr-9"
+                      className="h-9 w-full min-w-0 appearance-none truncate rounded-none border border-foreground/15 bg-foreground/[0.035] pl-3 pr-8 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 sm:h-10 sm:pr-9 xl:w-[190px]"
                     >
                       {(Object.keys(SORT_LABELS) as StockSort[]).map((value) => (
-                        <option key={value} value={value} className="bg-[#121216] text-white">
-                          {isUa ? SORT_LABELS[value].ua : SORT_LABELS[value].en}
+                        <option
+                          key={value}
+                          value={value}
+                          className="bg-card text-foreground dark:bg-[#121216]"
+                        >
+                          {value === "default" && query.trim()
+                            ? isUa
+                              ? "Релевантність"
+                              : "Relevance"
+                            : isUa
+                              ? SORT_LABELS[value].ua
+                              : SORT_LABELS[value].en}
                         </option>
                       ))}
                     </select>
@@ -1804,7 +2566,7 @@ function StockPageContent() {
                       onClick={() => handleSetViewMode("grid")}
                       className={`flex w-9 items-center justify-center transition ${
                         viewMode === "grid"
-                          ? "rounded-none bg-foreground text-background"
+                          ? "rounded-none bg-foreground/[0.92] text-background"
                           : "text-foreground/45 hover:text-foreground"
                       }`}
                       title={isUa ? "Сітка" : "Grid"}
@@ -1816,7 +2578,7 @@ function StockPageContent() {
                       onClick={() => handleSetViewMode("list")}
                       className={`flex w-9 items-center justify-center transition ${
                         viewMode === "list"
-                          ? "rounded-none bg-foreground text-background"
+                          ? "rounded-none bg-foreground/[0.92] text-background"
                           : "text-foreground/45 hover:text-foreground"
                       }`}
                       title={isUa ? "Список" : "List"}
@@ -1828,7 +2590,7 @@ function StockPageContent() {
               </div>
 
               {hasActiveFilters ? (
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-foreground/10 pt-4">
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-foreground/10 pt-3">
                   {query.trim() ? (
                     <button
                       type="button"
@@ -1891,13 +2653,16 @@ function StockPageContent() {
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}
-                  {sortOrder !== "default" ? (
+                  {hasPriceFilter ? (
                     <button
                       type="button"
-                      onClick={() => setSortOrder("default")}
+                      onClick={() => {
+                        setMinPriceFilter("");
+                        setMaxPriceFilter("");
+                      }}
                       className="inline-flex min-h-8 items-center gap-2 rounded-none border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
                     >
-                      {isUa ? SORT_LABELS[sortOrder].ua : SORT_LABELS[sortOrder].en}
+                      {priceFilterLabel}
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}
@@ -1912,8 +2677,15 @@ function StockPageContent() {
               ) : null}
             </div>
             {error && (
-              <div className="mb-6 rounded-none border border-foreground/12 bg-foreground/[0.035] p-4 text-sm font-light text-foreground/70">
-                {error}
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-none border border-foreground/15 bg-foreground/[0.035] p-4 text-sm font-light text-foreground/70">
+                <span>{error}</span>
+                <button
+                  type="button"
+                  onClick={() => doSearch(page)}
+                  className="min-h-9 border border-foreground/20 px-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground transition hover:border-foreground/45"
+                >
+                  {isUa ? "Спробувати ще" : "Try again"}
+                </button>
               </div>
             )}
 
@@ -1921,7 +2693,7 @@ function StockPageContent() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex items-start gap-3 rounded-none border border-foreground/10 bg-foreground/[0.03] p-4 text-xs font-light tracking-wide text-foreground/65 shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+                className="mb-6 flex items-start gap-3 rounded-none border border-foreground/10 bg-foreground/[0.025] p-4 text-xs font-light tracking-wide text-foreground/65 shadow-[0_12px_28px_rgba(0,0,0,0.07)] dark:shadow-[0_12px_28px_rgba(0,0,0,0.20)]"
               >
                 <div className="w-5 h-5 rounded-none bg-foreground/[0.06] flex items-center justify-center shrink-0 mt-0.5 text-foreground/50">
                   <span className="font-bold text-xs">!</span>
@@ -1948,11 +2720,11 @@ function StockPageContent() {
             )}
 
             {loading ? (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:2400px)]:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:2300px)]:grid-cols-5">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-[380px] rounded-none border border-foreground/10 bg-foreground/[0.02] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.2)] sm:rounded-none sm:p-5 md:p-6 flex flex-col"
+                    className="h-[380px] rounded-none border border-foreground/10 bg-foreground/[0.018] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:rounded-none sm:p-5 md:p-6 flex flex-col"
                   >
                     <div className="aspect-square bg-foreground/5 mb-6 animate-pulse rounded-none" />
                     <div className="h-2 bg-foreground/5 animate-pulse w-10 mb-2" />
@@ -1966,7 +2738,7 @@ function StockPageContent() {
                 ))}
               </div>
             ) : !hasSearched ? (
-              <div className="rounded-none border border-foreground/10 bg-foreground/[0.02] py-32 text-center shadow-[0_24px_55px_rgba(0,0,0,0.28)] backdrop-blur-xl dark:bg-white/[0.02]">
+              <div className="rounded-none border border-foreground/10 bg-foreground/[0.014] py-32 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
                 <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-foreground/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
                   <Package className="w-8 h-8 text-foreground/45" />
                 </div>
@@ -1980,7 +2752,7 @@ function StockPageContent() {
                 </p>
               </div>
             ) : hasSearched && items.length === 0 ? (
-              <div className="rounded-none border border-foreground/10 bg-foreground/[0.02] py-32 text-center shadow-[0_24px_55px_rgba(0,0,0,0.28)] backdrop-blur-xl dark:bg-white/[0.02]">
+              <div className="rounded-none border border-foreground/10 bg-foreground/[0.014] py-32 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
                 <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-foreground/10">
                   <Package className="w-8 h-8 text-foreground/55 dark:text-foreground/30" />
                 </div>
@@ -2001,107 +2773,15 @@ function StockPageContent() {
               </div>
             ) : (
               <>
-                {/* Results count & Select All */}
-                <div className="hidden">
-                  <p className="text-[10px] uppercase tracking-widest text-foreground/55 dark:text-foreground/30">
-                    {items.length} {isUa ? "результатів" : "results"}{" "}
-                    {totalPages > 1 && `• ${isUa ? "Сторінка" : "Page"} ${page}/${totalPages}`}
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full lg:w-auto">
-                    {items.length > 0 && (
-                      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        {/* Select All on Page */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const allSelectedOnPage = items.every((item) =>
-                              selectedItems.some((x) => x.id === item.id)
-                            );
-                            if (allSelectedOnPage) {
-                              // Deselect all items of this page
-                              setSelectedItems((prev) =>
-                                prev.filter((x) => !items.some((item) => item.id === x.id))
-                              );
-                            } else {
-                              // Select all items of this page (avoiding duplicates)
-                              setSelectedItems((prev) => {
-                                const next = [...prev];
-                                items.forEach((item) => {
-                                  if (!next.some((x) => x.id === item.id)) {
-                                    next.push(item);
-                                  }
-                                });
-                                return next;
-                              });
-                            }
-                          }}
-                          className="text-[10px] font-bold uppercase tracking-wider text-white hover:text-white transition-colors flex items-center gap-2 cursor-pointer border border-white/20 bg-white/5 px-4 py-2 rounded-none hover:bg-white/10 active:scale-95 transition-all flex-1 sm:flex-none justify-center"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          {items.every((item) => selectedItems.some((x) => x.id === item.id))
-                            ? isUa
-                              ? "Зняти виділення сторінки"
-                              : "Deselect All on Page"
-                            : isUa
-                              ? "Вибрати всі на сторінці"
-                              : "Select All on Page"}
-                        </button>
-
-                        {/* Select All Matching Results */}
-                        <button
-                          type="button"
-                          disabled={selectingAll}
-                          onClick={handleSelectAllResults}
-                          className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors flex items-center gap-2 cursor-pointer border border-white/10 bg-white/[0.03] px-4 py-2 rounded-none hover:bg-white/[0.06] active:scale-95 transition-all flex-1 sm:flex-none justify-center disabled:opacity-50"
-                        >
-                          {selectingAll ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
-                          ) : (
-                            <Check className="w-3.5 h-3.5" />
-                          )}
-                          {isUa
-                            ? `Вибрати всі знайдені (${totalItems})`
-                            : `Select All Found (${totalItems})`}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* View Mode Toggle Group */}
-                    <div className="flex border border-foreground/10 p-0.5 rounded-none bg-foreground/[0.01] self-end sm:self-auto shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleSetViewMode("grid")}
-                        className={`p-1.5 rounded-none transition-all cursor-pointer ${
-                          viewMode === "grid"
-                            ? "bg-white/10 border border-white/30 text-white"
-                            : "text-zinc-500 hover:text-foreground border border-transparent"
-                        }`}
-                        title={isUa ? "Сітка" : "Grid"}
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetViewMode("list")}
-                        className={`p-1.5 rounded-none transition-all cursor-pointer ${
-                          viewMode === "list"
-                            ? "bg-white/10 border border-white/30 text-white"
-                            : "text-zinc-500 hover:text-foreground border border-transparent"
-                        }`}
-                        title={isUa ? "Список" : "List"}
-                      >
-                        <List className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
                 {viewMode === "grid" ? (
                   /* Product Grid — full width */
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:2400px)]:grid-cols-5">
-                    {items.map((item) => {
-                      const isSelected = selectedItems.some((x) => x.id === item.id);
+                  <motion.div
+                    key={`${page}-${sortOrder}-${viewMode}`}
+                    initial={shouldReduceMotion ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:2300px)]:grid-cols-5"
+                  >
+                    {items.map((item, index) => {
                       const logoPath = getBrandLogoPath(item.brand);
                       const compareAtLabel = formatItemCompareAt(item);
                       const priceLabel = formatItemPrice(item);
@@ -2113,83 +2793,67 @@ function StockPageContent() {
                         <motion.div
                           layout
                           key={item.id}
-                          className={`group relative flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-none border bg-foreground/[0.02] p-3 shadow-[0_24px_50px_rgba(0,0,0,0.32)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/22 hover:bg-foreground/[0.035] dark:bg-white/[0.02] md:min-h-[430px] md:rounded-none md:p-4 ${
-                            isSelected ? "border-foreground/35" : "border-foreground/10"
-                          }`}
+                          initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.42,
+                            delay: shouldReduceMotion ? 0 : Math.min(index * 0.035, 0.28),
+                            ease: [0.22, 1, 0.36, 1],
+                          }}
+                          className="group relative flex min-h-[340px] min-w-0 flex-col overflow-hidden border border-foreground/[0.09] bg-foreground/[0.018] p-3 shadow-[0_10px_28px_rgba(0,0,0,0.045)] transition-[border-color,background-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/24 hover:bg-foreground/[0.03] hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:bg-black/15 dark:shadow-none dark:hover:bg-foreground/[0.018] md:min-h-[390px] md:p-4"
                         >
-                          <div className="absolute right-3 top-3 z-30 flex flex-col gap-2">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleToggleSelectItem(item);
-                              }}
-                              className={`flex h-8 w-8 items-center justify-center rounded-none border backdrop-blur-md transition ${
-                                isSelected
-                                  ? "border-foreground bg-foreground text-background"
-                                  : "border-foreground/10 bg-background/40 text-foreground/45 hover:border-foreground/25 hover:text-foreground"
-                              }`}
-                              title={isUa ? "Зберегти товар" : "Save product"}
-                            >
-                              <Heart className={`h-4 w-4 ${isSelected ? "fill-current" : ""}`} />
-                            </button>
-                          </div>
-
                           <Link
                             href={`/${locale}/shop/${item.slug}`}
                             className="flex min-w-0 cursor-pointer flex-col md:flex-1"
                           >
-                            <div className="relative mb-4 flex aspect-[1.62] items-center justify-center overflow-hidden rounded-none border border-foreground/8 bg-foreground/[0.035] md:aspect-[1.42]">
+                            <div className="relative mb-3 flex aspect-[1.55] items-center justify-center overflow-hidden border border-foreground/[0.07] bg-card/70 md:aspect-[1.5] dark:bg-[#090a0c]">
                               <SafeProductImage
                                 src={item.thumbnail}
                                 alt={item.name}
-                                className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105 md:p-4"
+                                className="h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-[1.018] md:p-3.5"
                               />
                             </div>
 
-                            <div className="mb-2.5 grid grid-cols-[minmax(0,1fr)_minmax(0,42%)] items-center gap-3">
+                            <div className="mb-2.5 grid grid-cols-[minmax(64px,1fr)_minmax(0,44%)] items-center gap-2">
                               <div className="min-w-0 overflow-hidden">
-                                <div className="flex min-h-5 items-center gap-2">
-                                  <BrandLogoTile
-                                    brandName={item.brand}
-                                    logoPath={logoPath}
-                                    size="sm"
-                                  />
-                                  <span className="truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-foreground/55">
-                                    {item.brand}
-                                  </span>
+                                <div className="flex min-h-5 min-w-0 items-center">
+                                  {logoPath ? (
+                                    <>
+                                      <BrandLogoTile
+                                        brandName={item.brand}
+                                        logoPath={logoPath}
+                                        size="sm"
+                                      />
+                                      <span className="sr-only">{item.brand}</span>
+                                    </>
+                                  ) : (
+                                    <span className="truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/65">
+                                      {item.brand}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              <div className="min-w-0 justify-self-end overflow-hidden">
+                              <div className="w-full min-w-0 justify-self-end overflow-hidden text-right">
                                 <SkuCopy sku={item.partNumber} isUa={isUa} />
                               </div>
                             </div>
 
                             <div className="flex flex-col md:flex-1">
-                              <h3 className="line-clamp-3 min-h-[48px] overflow-hidden text-[13px] font-light leading-[1.22] text-foreground [overflow-wrap:anywhere] transition-colors group-hover:text-foreground">
+                              <h3 className="line-clamp-2 min-h-[40px] overflow-hidden text-[14px] font-normal leading-[1.35] text-foreground/90 [overflow-wrap:anywhere] transition-colors group-hover:text-foreground">
                                 {item.name}
                               </h3>
-                              <div className="mt-1 truncate text-[10px] font-light uppercase tracking-[0.12em] text-foreground/45">
-                                SKU: {item.partNumber}
+                              <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
+                                {item.category || item.brand}
                               </div>
-
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                <span className="inline-flex max-w-full items-center gap-1.5 rounded-none border border-foreground/12 bg-foreground/[0.035] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-foreground/65">
-                                  <Car className="h-3 w-3 shrink-0 text-foreground/45" />
-                                  <span className="min-w-0 truncate">{vehicleLabel}</span>
-                                </span>
-                                <span className="hidden max-w-full items-center gap-1.5 rounded-none border border-foreground/10 bg-foreground/[0.025] px-2.5 py-1 text-[10px] font-light text-foreground/55 md:inline-flex">
-                                  <Ruler className="h-3 w-3 shrink-0 text-foreground/35" />
-                                  <span className="min-w-0 truncate">
-                                    {item.category || item.brand}
-                                  </span>
-                                </span>
-                              </div>
+                              {make || model || chassis ? (
+                                <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
+                                  {vehicleLabel}
+                                </div>
+                              ) : null}
                             </div>
                           </Link>
 
-                          <div className="mt-3 space-y-3 border-t border-foreground/8 pt-3 md:mt-auto">
+                          <div className="mt-3 space-y-3 border-t border-foreground/[0.07] pt-3 md:mt-auto">
                             {isB2B ? (
                               <div className="flex min-w-0 items-end justify-between gap-3">
                                 {compareAtLabel ? (
@@ -2206,16 +2870,16 @@ function StockPageContent() {
                                   </div>
                                 ) : null}
                                 <div className="ml-auto min-w-0 text-right">
-                                  <div className="mb-0.5 text-[8px] font-semibold uppercase tracking-[0.18em] text-foreground/45">
+                                  <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
                                     {isUa ? "Ціна" : "Price"}
                                   </div>
                                   <div
-                                    className="whitespace-nowrap font-mono text-[19px] font-semibold leading-none tracking-tight text-foreground 2xl:text-[21px]"
+                                    className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
                                     suppressHydrationWarning={true}
                                   >
                                     {priceLabel}
                                   </div>
-                                  <div className="mt-1 text-[10px] font-light uppercase tracking-[0.12em] text-foreground/35">
+                                  <div className="mt-1 text-[10px] font-light uppercase tracking-[0.1em] text-foreground/45">
                                     {isUa ? "за одиницю" : "per unit"}
                                   </div>
                                 </div>
@@ -2223,17 +2887,14 @@ function StockPageContent() {
                             ) : (
                               <div className="flex min-w-0 items-end justify-between gap-3">
                                 <div className="min-w-0">
-                                  <div className="mb-0.5 text-[8px] font-light uppercase tracking-[0.18em] text-foreground/35">
+                                  <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
                                     {isUa ? "Ціна" : "Price"}
                                   </div>
                                   <div
-                                    className="whitespace-nowrap font-mono text-[19px] font-semibold leading-none tracking-tight text-foreground 2xl:text-[20px]"
+                                    className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
                                     suppressHydrationWarning={true}
                                   >
                                     {priceLabel}
-                                  </div>
-                                  <div className="mt-1 text-[10px] font-light uppercase tracking-[0.12em] text-foreground/35">
-                                    {isUa ? "за одиницю" : "per unit"}
                                   </div>
                                 </div>
                               </div>
@@ -2248,15 +2909,14 @@ function StockPageContent() {
                         </motion.div>
                       );
                     })}
-                  </div>
+                  </motion.div>
                 ) : (
                   /* Premium marketplace table/list layout */
                   <div className="space-y-4">
                     {/* Desktop View */}
-                    <div className="hidden w-full overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.02] shadow-[0_24px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl dark:bg-white/[0.02] md:block">
+                    <div className="hidden w-full overflow-hidden rounded-none border border-foreground/10 bg-foreground/[0.014] shadow-[0_12px_28px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_28px_rgba(0,0,0,0.22)] md:block">
                       {/* Table Header */}
-                      <div className="grid grid-cols-[auto_80px_140px_1fr_120px_160px_160px] items-center gap-4 border-b border-foreground/10 px-6 py-4 text-[10px] font-light uppercase tracking-[0.18em] text-foreground/45">
-                        <div className="w-6" /> {/* Checkbox placeholder */}
+                      <div className="grid grid-cols-[80px_140px_1fr_120px_160px_160px] items-center gap-4 border-b border-foreground/10 px-6 py-4 text-[10px] font-light uppercase tracking-[0.18em] text-foreground/45">
                         <div>{isUa ? "Фото" : "Image"}</div>
                         <div>{isUa ? "Бренд / Артикул" : "Brand / SKU"}</div>
                         <div>{isUa ? "Назва деталі" : "Product Name"}</div>
@@ -2269,34 +2929,15 @@ function StockPageContent() {
                       {/* Table Rows */}
                       <div className="divide-y divide-foreground/5">
                         {items.map((item) => {
-                          const isSelected = selectedItems.some((x) => x.id === item.id);
+                          const logoPath = getBrandLogoPath(item.brand);
                           const compareAtLabel = formatItemCompareAt(item);
                           const priceLabel = formatItemPrice(item);
 
                           return (
                             <div
                               key={item.id}
-                              className={`grid grid-cols-[auto_80px_140px_1fr_120px_160px_160px] items-center gap-4 border-l-2 px-6 py-4 transition-all duration-300 hover:bg-foreground/[0.025] ${
-                                isSelected
-                                  ? "border-l-foreground bg-foreground/[0.035]"
-                                  : "border-l-transparent"
-                              }`}
+                              className="grid grid-cols-[80px_140px_1fr_120px_160px_160px] items-center gap-4 px-6 py-4 transition-all duration-300 hover:bg-foreground/[0.025]"
                             >
-                              {/* Checkbox */}
-                              <div className="flex items-center justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleSelectItem(item)}
-                                  className={`w-5 h-5 rounded-none border flex items-center justify-center transition-all cursor-pointer ${
-                                    isSelected
-                                      ? "bg-foreground border-foreground text-background"
-                                      : "border-foreground/15 bg-foreground/[0.03] hover:border-foreground/30 text-transparent hover:text-foreground/25"
-                                  }`}
-                                >
-                                  <Check className="w-3 h-3 stroke-[3px]" />
-                                </button>
-                              </div>
-
                               {/* Thumbnail Image */}
                               <div className="w-14 h-14 rounded-none bg-foreground/[0.035] flex items-center justify-center overflow-hidden border border-foreground/8">
                                 <SafeProductImage
@@ -2309,6 +2950,11 @@ function StockPageContent() {
 
                               {/* Brand & Part Number */}
                               <div className="flex flex-col gap-1 min-w-0">
+                                <BrandLogoTile
+                                  brandName={item.brand}
+                                  logoPath={logoPath}
+                                  size="xs"
+                                />
                                 <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-foreground/55">
                                   {item.brand}
                                 </span>
@@ -2388,7 +3034,7 @@ function StockPageContent() {
                                   variant="minimal"
                                   label={isUa ? "Кошик" : "Cart"}
                                   labelAdded={isUa ? "В кошику ✓" : "In Cart ✓"}
-                                  className="h-9 w-full rounded-none border border-foreground bg-foreground text-background text-[10px] font-semibold uppercase tracking-[0.18em] transition hover:bg-transparent hover:text-foreground active:scale-95 flex items-center justify-center gap-1"
+                                  className="flex h-9 w-full items-center justify-center gap-1 rounded-none border border-foreground/20 bg-foreground/[0.08] text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background active:scale-95"
                                 />
                               </div>
                             </div>
@@ -2400,34 +3046,24 @@ function StockPageContent() {
                     {/* Mobile/Tablet view */}
                     <div className="md:hidden space-y-3">
                       {items.map((item) => {
-                        const isSelected = selectedItems.some((x) => x.id === item.id);
+                        const logoPath = getBrandLogoPath(item.brand);
                         const compareAtLabel = formatItemCompareAt(item);
                         const priceLabel = formatItemPrice(item);
 
                         return (
                           <div
                             key={item.id}
-                            className={`relative flex flex-col rounded-none border border-foreground/10 bg-foreground/[0.02] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.25)] transition-all duration-300 hover:bg-foreground/[0.035] dark:bg-white/[0.02] ${
-                              isSelected
-                                ? "border-l-2 border-l-foreground bg-foreground/[0.035]"
-                                : ""
-                            }`}
+                            className="relative flex flex-col rounded-none border border-foreground/10 bg-foreground/[0.018] p-4 shadow-[0_12px_28px_rgba(0,0,0,0.07)] transition-all duration-300 hover:bg-foreground/[0.03] dark:bg-white/[0.018] dark:shadow-[0_12px_28px_rgba(0,0,0,0.22)]"
                           >
                             {/* Top info row */}
                             <div className="flex items-start justify-between gap-3 mb-2">
-                              {/* Checkbox and brand/SKU */}
+                              {/* Brand/SKU */}
                               <div className="flex min-w-0 items-center gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleSelectItem(item)}
-                                  className={`w-5 h-5 rounded-none border flex items-center justify-center transition-all cursor-pointer ${
-                                    isSelected
-                                      ? "bg-foreground border-foreground text-background"
-                                      : "border-foreground/15 bg-foreground/[0.03] text-transparent"
-                                  }`}
-                                >
-                                  <Check className="w-3 h-3 stroke-[3px]" />
-                                </button>
+                                <BrandLogoTile
+                                  brandName={item.brand}
+                                  logoPath={logoPath}
+                                  size="xs"
+                                />
                                 <div className="flex min-w-0 flex-col">
                                   <span className="truncate text-[9px] font-light uppercase tracking-widest text-foreground/45">
                                     {item.brand}
@@ -2509,7 +3145,7 @@ function StockPageContent() {
                                   variant="minimal"
                                   label={isUa ? "Кошик" : "Cart"}
                                   labelAdded={isUa ? "В кошику ✓" : "In Cart ✓"}
-                                  className="h-8 w-full rounded-none border border-foreground bg-foreground text-background text-[9px] font-semibold uppercase tracking-[0.16em] transition hover:bg-transparent hover:text-foreground flex items-center justify-center"
+                                  className="flex h-8 w-full items-center justify-center rounded-none border border-foreground/20 bg-foreground/[0.08] text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
                                 />
                               </div>
                             </div>
@@ -2547,108 +3183,16 @@ function StockPageContent() {
           </main>
         </div>
       </div>
-
-      {/* ════ FLOATING BATCH ACTIONS BAR ════ */}
-      <AnimatePresence>
-        {selectedItems.length > 0 && (
-          <motion.div
-            initial={{ y: 80, opacity: 0, x: "-50%" }}
-            animate={{ y: 0, opacity: 1, x: "-50%" }}
-            exit={{ y: 80, opacity: 0, x: "-50%" }}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
-            className="fixed bottom-6 left-1/2 z-50 flex w-[92%] max-w-4xl -translate-x-1/2 flex-col gap-4 rounded-none border border-foreground/12 bg-background/85 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-3xl sm:w-auto md:flex-row md:items-center md:justify-between md:p-6"
-          >
-            {/* Left: item count & bulk clear */}
-            <div className="flex items-center gap-4">
-              <div className="space-y-1">
-                <div className="text-[10px] uppercase font-light tracking-widest text-foreground/45">
-                  {isUa ? "Вибрані товари" : "Selected Items"}
-                </div>
-                <div className="text-lg font-light text-foreground flex items-center gap-2">
-                  <span className="font-semibold text-foreground">{selectedItems.length}</span>
-                  <span className="text-foreground/45 text-xs">{isUa ? "дет." : "pcs."}</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedItems([])}
-                className="h-8 shrink-0 rounded-none border border-foreground/10 px-3 text-[10px] font-semibold uppercase tracking-wider text-foreground/60 transition-all hover:bg-foreground/5 hover:text-foreground"
-              >
-                {isUa ? "Очистити" : "Clear"}
-              </button>
-            </div>
-
-            {/* Middle: selected cart calculations */}
-            <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-foreground/5">
-              {isB2B ? (
-                <>
-                  <div className="space-y-0.5">
-                    <div className="text-[8px] uppercase font-light tracking-widest text-foreground/45">
-                      {isUa ? "Сума РРЦ (MSRP)" : "Total MSRP"}
-                    </div>
-                    <div
-                      className="text-sm font-mono text-foreground/45 line-through"
-                      suppressHydrationWarning={true}
-                    >
-                      {formatAmount(selectedCompareAtTotal)}
-                    </div>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <div className="text-[8px] uppercase font-light tracking-widest text-foreground/60">
-                      {isUa ? "Сума" : "Total"}
-                    </div>
-                    <div
-                      className="text-sm font-mono font-semibold text-foreground"
-                      suppressHydrationWarning={true}
-                    >
-                      {formatAmount(selectedCartTotal)}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-0.5">
-                  <div className="text-[8px] uppercase font-light tracking-widest text-foreground/55">
-                    {isUa ? "Загальна сума" : "Total Price"}
-                  </div>
-                  <div
-                    className="text-lg font-mono text-foreground font-light"
-                    suppressHydrationWarning={true}
-                  >
-                    {formatAmount(selectedCartTotal)}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-              <button
-                type="button"
-                onClick={() => handleExportCSV(selectedItems)}
-                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-none border border-foreground/12 bg-foreground/[0.03] px-4 text-[10px] font-semibold uppercase tracking-wider text-foreground/65 transition-all hover:bg-foreground/[0.06] hover:text-foreground active:scale-95 md:flex-none"
-              >
-                {isUa ? "Експорт CSV" : "Export CSV"}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleBulkAddToCart}
-                disabled={bulkAdding}
-                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-none border border-foreground bg-foreground px-6 text-[10px] font-semibold uppercase tracking-widest text-background transition-all hover:bg-transparent hover:text-foreground active:scale-95 disabled:opacity-50 md:flex-none"
-              >
-                {bulkAdding ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-background" />
-                ) : bulkAdded ? (
-                  <span>{isUa ? "Товари додано! ✓" : "Items added! ✓"}</span>
-                ) : (
-                  <span>{isUa ? "Додати вибрані в кошик" : "Add selected to cart"}</span>
-                )}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StockAiAssistant
+        locale={displayLocale}
+        currency={currency}
+        country={country ?? undefined}
+        query={query}
+        category={localCategory}
+        make={make}
+        model={model}
+        chassis={chassis}
+      />
     </div>
   );
 }

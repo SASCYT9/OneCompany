@@ -165,6 +165,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "seo",
       },
       {
+        href: "/admin/shop/fitment",
+        label: "Сумісність",
+        description: "Перевірка марки, моделі, кузова та років для пошуку за авто.",
+        icon: "tag",
+      },
+      {
         href: "/admin/shop/pricing",
         label: "Ціни",
         description: "Керування B2C та B2B цінами.",
