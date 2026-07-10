@@ -56,8 +56,6 @@ const staticPageConfig: Record<
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const buildLastModified = new Date();
-
   // Static pages
   const staticEntries = siteConfig.locales.flatMap((locale) =>
     localizedStaticSlugs.map((slug) => {
@@ -68,7 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = buildLocalizedPath(locale, slug);
       return {
         url: absoluteUrl(path),
-        lastModified: buildLastModified,
         changeFrequency: pageConfig.changeFrequency,
         priority: pageConfig.priority,
         alternates: {
@@ -85,7 +82,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = buildLocalizedPath(locale, pageSlug);
       return {
         url: absoluteUrl(path),
-        lastModified: buildLastModified,
         changeFrequency: "weekly" as const,
         priority: 0.7,
         alternates: {
@@ -121,7 +117,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = buildLocalizedPath(locale, pageSlug);
       return {
         url: absoluteUrl(path),
-        lastModified: buildLastModified,
         changeFrequency: "weekly" as const,
         priority: 0.76,
         alternates: {
@@ -140,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const pageSlug = path.replace(`/${locale}`, "");
       return {
         url: absoluteUrl(path),
-        lastModified: buildLastModified,
+        ...(product.updatedAt ? { lastModified: product.updatedAt } : {}),
         changeFrequency: "weekly" as const,
         priority: 0.75,
         alternates: {
