@@ -2618,6 +2618,7 @@ export type ShopProductSitemapEntry = {
   vendor?: string;
   tags: string[];
   productType?: string;
+  updatedAt?: Date;
 };
 
 let sitemapEntriesCache: { entries: ShopProductSitemapEntry[]; ts: number } | null = null;
@@ -2638,7 +2639,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
   let rows: ShopProductSitemapEntry[] = [];
   try {
     const queryParams: any = {
-      where: { isPublished: true },
+      where: { isPublished: true, status: "ACTIVE" },
       orderBy: { updatedAt: "desc" },
       select: {
         slug: true,
@@ -2646,6 +2647,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
         vendor: true,
         tags: true,
         productType: true,
+        updatedAt: true,
       },
     };
     if (isAccelerateEnabled) {
@@ -2658,6 +2660,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
       vendor: r.vendor ?? undefined,
       tags: r.tags ?? [],
       productType: r.productType ?? undefined,
+      updatedAt: r.updatedAt,
     }));
   } catch {
     // DB unavailable — fall back to static catalogue
