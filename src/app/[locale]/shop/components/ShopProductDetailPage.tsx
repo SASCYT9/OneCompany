@@ -402,13 +402,20 @@ export async function getShopProductPageMetadata({
     `/${resolvedLocale}/`,
     ""
   );
+  const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
+  const localizedDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
+  const metadataDescription =
+    localizedDescription ||
+    (resolvedLocale === "ua"
+      ? `${localizedTitle} від ${product.brand}. Офіційне постачання та професійний підбір One Company.`
+      : `${localizedTitle} by ${product.brand}. Official supply and professional fitment support from One Company.`);
 
   // Drop the trailing "| One Company Shop" — siteName already carries it in
   // og:site_name, and the suffix used to push titles past the truncation
   // limit, producing "One C…" in Telegram/Twitter previews.
   return buildPageMetadata(resolvedLocale, pageSlug, {
-    title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand}`,
-    description: localizeShopDescription(resolvedLocale, product.shortDescription),
+    title: `${localizedTitle} | ${product.brand}`,
+    description: metadataDescription,
     image: product.image,
     type: "product",
   });
@@ -810,7 +817,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
+    <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -1118,7 +1125,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           <CrossShopFitmentStreamingSection product={product} locale={resolvedLocale} />
         </Suspense>
       ) : null}
-    </main>
+    </div>
   );
 }
 

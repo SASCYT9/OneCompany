@@ -288,7 +288,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
           </aside>
 
           {/* Right Product Grid */}
-          <main className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             <Do88CollectionProductGrid
               locale={resolvedLocale}
               handle={handle}
@@ -297,7 +297,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
               products={collectionProducts}
               viewerContext={viewerContext}
             />
-          </main>
+          </div>
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ export default function CategoriesPageContent() {
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[radial-gradient(circle,hsl(var(--foreground)/0.03)_0%,transparent_70%)] rounded-full blur-3xl" />
       </div>
 
-      <main className="relative container mx-auto px-6 py-24">
+      <div className="relative container mx-auto px-6 py-24">
         <header className="text-center mb-16">
           <p className="text-[10px] tracking-[0.35em] uppercase text-primary font-light mb-4">
             {locale === "ua" ? "Категорії" : "Categories"}
@@ -52,7 +52,7 @@ export default function CategoriesPageContent() {
             </Link>
           ))}
         </section>
-      </main>
+      </div>
     </div>
   );
 }

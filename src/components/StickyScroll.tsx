@@ -127,9 +127,9 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                   </div>
                 </div>
 
-                <h3 className="text-xl sm:text-4xl md:text-5xl lg:text-[45px] font-semibold text-foreground mb-4 sm:mb-8 leading-tight relative z-10 tracking-tight text-balance">
+                <h2 className="text-xl sm:text-4xl md:text-5xl lg:text-[45px] font-semibold text-foreground mb-4 sm:mb-8 leading-tight relative z-10 tracking-tight text-balance">
                   {item.title}
-                </h3>
+                </h2>
                 <p className="text-sm md:text-lg lg:text-[13.5px] text-foreground/60 leading-relaxed max-w-2xl mx-auto relative z-10 text-pretty">
                   {item.description}
                 </p>

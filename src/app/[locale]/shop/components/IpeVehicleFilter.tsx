@@ -1160,7 +1160,7 @@ export default function IpeVehicleFilter({
             <div className="lg:hidden fixed inset-0 z-40 bg-black/80" onClick={closeMobileFilter} />
           )}
 
-          <main id="ipe-results" className="flex-1 min-w-0 scroll-mt-24">
+          <div id="ipe-results" className="flex-1 min-w-0 scroll-mt-24">
             <div className="flex justify-end mb-6 z-20 relative">
               <div className="relative inline-block">
                 <select
@@ -1340,7 +1340,7 @@ export default function IpeVehicleFilter({
                 ) : null}
               </>
             )}
-          </main>
+          </div>
         </div>
       </div>
     </section>

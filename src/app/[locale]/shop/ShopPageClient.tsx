@@ -252,7 +252,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
         </div>
       )}
 
-      <main
+      <div
         id="shop-catalog"
         className="relative mx-auto flex w-full max-w-[1320px] flex-col gap-14 px-4 pb-20 pt-28 sm:px-6 lg:px-10 lg:pt-32"
       >
@@ -705,7 +705,7 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
             </div>
           )}
         </section>
-      </main>
+      </div>
     </div>
   );
 }

@@ -172,7 +172,7 @@ export default async function BlogPostPage({ params }: Props) {
   const productImage = coverImage ?? absoluteUrl("/branding/og-image.png");
 
   return (
-    <main id="main-content" className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <ArticleSchema
         id="blog-post-article-schema"
@@ -337,6 +337,6 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Bottom spacer */}
       <div className="h-24" />
-    </main>
+    </div>
   );
 }

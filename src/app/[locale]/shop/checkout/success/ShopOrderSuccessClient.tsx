@@ -103,30 +103,27 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-24 text-center text-foreground/75 dark:text-foreground/60">
+      <div className="min-h-screen bg-background px-4 py-24 text-center text-foreground/75 dark:text-foreground/60">
         {isUa ? "Завантаження…" : "Loading…"}
-      </main>
+      </div>
     );
   }
 
   if (error || !order) {
     return (
-      <main className="min-h-screen bg-background px-4 py-24">
+      <div className="min-h-screen bg-background px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-foreground/75 dark:text-foreground/60">{error}</p>
           <Link href={`/${locale}/shop`} className="mt-4 inline-block text-foreground underline">
             {isUa ? "Повернутися до каталогу" : "Return to catalog"}
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main
-      id="main-content"
-      className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]"
-    >
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-2xl px-4 pb-20 pt-28 sm:px-6">
         <div className="rounded-[28px] border border-foreground/10 bg-foreground/5 p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
           <div
@@ -308,6 +305,6 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
           </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

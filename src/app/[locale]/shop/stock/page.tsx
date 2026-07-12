@@ -2500,7 +2500,7 @@ function StockPageContent() {
             </div>
           </aside>
 
-          <main className="min-w-0">
+          <div className="min-w-0">
             <div className="mb-4 rounded-none border border-foreground/10 bg-foreground/[0.014] p-3 shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-3xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:mb-5 sm:rounded-none sm:p-4">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
@@ -3180,7 +3180,7 @@ function StockPageContent() {
                 )}
               </>
             )}
-          </main>
+          </div>
         </div>
       </div>
       <StockAiAssistant

@@ -40,7 +40,7 @@ export default async function Turn14ProductPage({
 
   if (!detailData || !detailData.data) {
     return (
-      <main className="min-h-screen bg-background text-foreground pt-32 pb-24 text-center">
+      <div className="min-h-screen bg-background text-foreground pt-32 pb-24 text-center">
         <h1 className="text-2xl">{isUa ? "Товар не знайдено" : "Product Not Found"}</h1>
         <Link
           href={`/${resolvedLocale}/shop/turn14`}
@@ -48,7 +48,7 @@ export default async function Turn14ProductPage({
         >
           {isUa ? "Повернутися до каталогу" : "Back to catalog"}
         </Link>
-      </main>
+      </div>
     );
   }
 
@@ -86,7 +86,7 @@ export default async function Turn14ProductPage({
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground pt-28 pb-32">
+    <div className="min-h-screen bg-background text-foreground pt-28 pb-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Link
           href={`/${resolvedLocale}/shop/turn14`}
@@ -210,6 +210,6 @@ export default async function Turn14ProductPage({
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

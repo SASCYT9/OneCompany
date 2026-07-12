@@ -793,7 +793,7 @@ export default function GirodiscVehicleFilter({
           )}
 
           {/* ─── RIGHT: PRODUCT GRID ─── */}
-          <main id="girodisc-results" className="flex-1 min-w-0 scroll-mt-24">
+          <div id="girodisc-results" className="flex-1 min-w-0 scroll-mt-24">
             {/* Top Sort Bar */}
             <div className="flex justify-end mb-6 z-20 relative">
               <div className="relative inline-block">
@@ -1017,7 +1017,7 @@ export default function GirodiscVehicleFilter({
                 ) : null}
               </>
             )}
-          </main>
+          </div>
         </div>
       </div>
     </section>

@@ -513,7 +513,7 @@ export default function AdroCatalogGrid({
             />
           ) : null}
 
-          <main id="adro-results" className="min-w-0 flex-1 scroll-mt-24">
+          <div id="adro-results" className="min-w-0 flex-1 scroll-mt-24">
             <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-foreground/65 dark:text-foreground/45">
                 {filteredProducts.length} {t("filteredProducts")}
@@ -685,7 +685,7 @@ export default function AdroCatalogGrid({
                 basePath={basePath}
               />
             ) : null}
-          </main>
+          </div>
         </div>
       </div>
     </section>

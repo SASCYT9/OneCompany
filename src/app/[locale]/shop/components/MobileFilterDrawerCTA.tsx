@@ -11,7 +11,7 @@ type MobileFilterDrawerCTAProps = {
   locale: SupportedLocale;
   /** Current filter result count. Drives pluralization and disabled state. */
   resultsCount: number;
-  /** DOM id of the results grid `<main>` element to scroll to. */
+  /** DOM id of the results grid container to scroll to. */
   resultsAnchorId: string;
 };
 
@@ -29,11 +29,11 @@ type MobileFilterDrawerCTAProps = {
  *
  * This component renders a prominent primary-action button at the bottom
  * of the drawer body. Tap → close drawer → next frame → smooth scroll to
- * the `<main id="{resultsAnchorId}">` results container.
+ * the results container identified by `resultsAnchorId`.
  *
  * The catalog component is expected to add `id={resultsAnchorId}` and
  * `scroll-mt-24` (so the sticky site header doesn't cover the top of the
- * grid after the smooth scroll) to its results `<main>` element.
+ * grid after the smooth scroll) to its results container.
  */
 export function MobileFilterDrawerCTA({
   locale,

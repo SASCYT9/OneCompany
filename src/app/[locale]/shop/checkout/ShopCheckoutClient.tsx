@@ -331,15 +331,15 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-24 text-center text-foreground/75 dark:text-foreground/60">
+      <div className="min-h-screen bg-background px-4 py-24 text-center text-foreground/75 dark:text-foreground/60">
         {isUa ? "Завантаження…" : "Loading…"}
-      </main>
+      </div>
     );
   }
 
   if (!cart?.items?.length) {
     return (
-      <main className="min-h-screen bg-background px-4 py-24">
+      <div className="min-h-screen bg-background px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-foreground/75 dark:text-foreground/60">
             {error || (isUa ? "Кошик порожній." : "Your cart is empty.")}
@@ -348,15 +348,12 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             {isUa ? "До магазину" : "Back to shop"}
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main
-      id="main-content"
-      className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]"
-    >
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
         <Link
           href={`/${locale}/shop/cart`}
@@ -759,6 +756,6 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           </button>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

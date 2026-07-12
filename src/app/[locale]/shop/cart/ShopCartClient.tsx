@@ -134,17 +134,14 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-24 text-center text-foreground/65">
+      <div className="min-h-screen bg-background px-4 py-24 text-center text-foreground/65">
         {isUa ? "Завантаження кошика…" : "Loading cart…"}
-      </main>
+      </div>
     );
   }
 
   return (
-    <main
-      id="main-content"
-      className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]"
-    >
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6">
         <Link
           href={`/${locale}/shop`}
@@ -266,6 +263,6 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -640,7 +640,7 @@ export default function IlmbergerCatalog({
         )}
 
         {/* ── Main Catalog Grid ── */}
-        <main className="min-w-0">
+        <div className="min-w-0">
           {!hasRealProducts && (
             <div className="flex items-center gap-3 p-4 bg-[var(--il-bg-soft)]/80 border border-[var(--il-faint)] rounded mb-6 text-xs text-[var(--il-muted)]">
               <Info size={16} className="text-[var(--il-titanium)] flex-shrink-0" />
@@ -873,7 +873,7 @@ export default function IlmbergerCatalog({
               </button>
             </div>
           )}
-        </main>
+        </div>
       </div>
 
       {/* Inquiry drawer/modal removed — clicks on product cards now go to

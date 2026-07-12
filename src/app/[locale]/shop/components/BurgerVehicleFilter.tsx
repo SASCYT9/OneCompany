@@ -598,7 +598,7 @@ export default function BurgerVehicleFilter({
         </div>
 
         {/* ─── PRODUCT GRID — full-width ─── */}
-        <main className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           {filtered.length === 0 ? (
             <div className="py-32 text-center bg-card dark:bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
               <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-foreground/12 dark:border-white/5">
@@ -717,7 +717,7 @@ export default function BurgerVehicleFilter({
               ) : null}
             </>
           )}
-        </main>
+        </div>
       </div>
     </section>
   );

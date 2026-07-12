@@ -100,10 +100,7 @@ export default async function BlogPage({ params }: Props) {
   ];
 
   return (
-    <main
-      id="main-content"
-      className="relative min-h-screen bg-background pt-28 pb-24 text-foreground"
-    >
+    <div className="relative min-h-screen bg-background pt-28 pb-24 text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -343,6 +340,6 @@ export default async function BlogPage({ params }: Props) {
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 }

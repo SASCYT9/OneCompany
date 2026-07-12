@@ -98,7 +98,7 @@ export default function BrandsPageContent() {
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,hsl(var(--foreground)/0.05)_0%,transparent_70%)] rounded-full blur-3xl" />
       </div>
 
-      <main className="relative container mx-auto px-6 py-24">
+      <div className="relative container mx-auto px-6 py-24">
         <header className="text-center mb-16">
           <p
             className={`tracking-[0.35em] uppercase text-primary font-light mb-4 ${typography.badge}`}
@@ -177,7 +177,7 @@ export default function BrandsPageContent() {
             {locale === "ua" ? "Нічого не знайдено" : "No brands found"}
           </div>
         )}
-      </main>
+      </div>
 
       <BrandModal
         brand={selectedBrand}

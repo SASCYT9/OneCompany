@@ -157,7 +157,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-28 sm:px-6">
         <div className="w-full rounded-[30px] border border-foreground/10 bg-foreground/5 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
           <p className="text-[11px] uppercase tracking-[0.35em] text-foreground/65 dark:text-foreground/45">
@@ -247,7 +247,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

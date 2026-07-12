@@ -151,7 +151,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   return (
     <>
-      <main className="text-foreground">
+      <div className="text-foreground">
         {/* Hero — photo cards swap dark/light variants per theme. Each variant
             has matching gradient overlay so the label pill + stats read
             correctly. Text uses semantic tokens so it inverts with theme. */}
@@ -366,7 +366,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
             ))}
           </ul>
         </nav>
-      </main>
+      </div>
     </>
   );
 }

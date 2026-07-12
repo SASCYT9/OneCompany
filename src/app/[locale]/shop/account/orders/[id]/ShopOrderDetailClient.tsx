@@ -70,7 +70,7 @@ export default function ShopOrderDetailClient({
   const isUa = locale === "ua";
 
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-4xl px-4 pb-20 pt-28 sm:px-6">
         <Link
           href={`/${locale}/shop/account`}
@@ -270,6 +270,6 @@ export default function ShopOrderDetailClient({
           </aside>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1035,7 +1035,7 @@ export default function CSFCatalogGrid({
           <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={closeMobileFilter} />
         ) : null}
 
-        <main id="csf-results" className="min-w-0 scroll-mt-24">
+        <div id="csf-results" className="min-w-0 scroll-mt-24">
           <div className="relative z-20 mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-balance text-2xl font-light text-foreground dark:text-white">
@@ -1244,7 +1244,7 @@ export default function CSFCatalogGrid({
               basePath={basePath}
             />
           ) : null}
-        </main>
+        </div>
       </div>
     </section>
   );

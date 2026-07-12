@@ -27,7 +27,7 @@ export default function CategoryPageClient({ category }: CategoryPageClientProps
         </p>
       </header>
 
-      <main className="container mx-auto px-6 pb-24">
+      <div className="container mx-auto px-6 pb-24">
         <h2 className="text-3xl font-light text-center mb-12 text-balance">
           {locale === "ua" ? "Топ брендів у цій категорії" : "Top Brands in This Category"}
         </h2>
@@ -49,7 +49,7 @@ export default function CategoryPageClient({ category }: CategoryPageClientProps
             ← {locale === "ua" ? "Всі категорії" : "All Categories"}
           </Link>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -143,7 +143,7 @@ export default async function ShopProductPage({ params }: Props) {
   const safeGallery = gallery.length ? gallery : ["/images/placeholders/product-fallback.svg"];
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
+    <div className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -241,7 +241,7 @@ export default async function ShopProductPage({ params }: Props) {
           />
         </Suspense>
       </div>
-    </main>
+    </div>
   );
 }
 

@@ -142,6 +142,11 @@ export default function CookieBanner({ locale = "ua" }: CookieBannerProps) {
                   {t.description}{" "}
                   <Link
                     href={t.privacyLink}
+                    aria-label={
+                      locale === "en"
+                        ? "Learn more about our cookies policy"
+                        : "Дізнатися більше про політику cookies"
+                    }
                     className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
                   >
                     {t.learnMore}

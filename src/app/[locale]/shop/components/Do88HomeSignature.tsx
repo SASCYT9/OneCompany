@@ -9,7 +9,7 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
   const isUa = locale === "ua";
 
   return (
-    <main className="dark min-h-[85vh] bg-[#030303] text-foreground relative flex flex-col items-center justify-center overflow-hidden pb-24 border-b border-[#111]">
+    <div className="dark min-h-[85vh] bg-[#030303] text-foreground relative flex flex-col items-center justify-center overflow-hidden pb-24 border-b border-[#111]">
       {/* Heavy Film Grain */}
       {/* Animated Cinematic BW Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -76,6 +76,6 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
           </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

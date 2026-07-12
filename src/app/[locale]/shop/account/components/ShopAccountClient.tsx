@@ -227,7 +227,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
+    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -761,7 +761,7 @@ export default function ShopAccountClient({ locale, profile: initialProfile }: P
           </div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }
 

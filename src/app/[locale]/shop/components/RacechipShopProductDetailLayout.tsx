@@ -147,7 +147,7 @@ export default function RacechipShopProductDetailLayout({
       {/* Background Cinematic Glow Elements */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[radial-gradient(circle_at_top_right,rgba(255,74,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
 
-      <main className="max-w-[1500px] mx-auto pt-20 sm:pt-24 lg:pt-[120px] pb-12 md:pb-24 px-4 sm:px-6 md:px-12 relative z-10">
+      <div className="max-w-[1500px] mx-auto pt-20 sm:pt-24 lg:pt-[120px] pb-12 md:pb-24 px-4 sm:px-6 md:px-12 relative z-10">
         {/* Navigation Breadcrumbs */}
         <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] tracking-widest uppercase font-bold text-foreground/55 dark:text-zinc-500 mb-6 md:mb-12">
           <ShopBackToCatalogLink
@@ -317,7 +317,7 @@ export default function RacechipShopProductDetailLayout({
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

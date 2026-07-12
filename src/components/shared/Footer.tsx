@@ -178,11 +178,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
 
           {/* Links Columns */}
           <div className="lg:col-span-2 lg:col-start-6 space-y-6">
-            <h3
+            <h2
               className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("company")}
-            </h3>
+            </h2>
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -199,11 +199,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <h3
+            <h2
               className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("disciplines")}
-            </h3>
+            </h2>
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
@@ -220,11 +220,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3
+            <h2
               className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
               {t("headquarters")}
-            </h3>
+            </h2>
             <div className={`space-y-4 text-foreground/70 ${typography.body}`}>
               <p className="leading-relaxed">
                 {t("addressLine1")}
@@ -284,6 +284,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               </Link>
               <Link
                 href={`/${locale}/cookies`}
+                aria-label={locale === "ua" ? "Політика cookies" : "Cookies policy"}
                 className="transition-colors hover:text-foreground shrink-0"
               >
                 {t("cookies")}
