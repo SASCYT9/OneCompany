@@ -15,6 +15,7 @@ node_modules
 !/scripts/
 !/scripts/cleanup-prisma-temp-engines.js
 !/scripts/prebuild-shop-snapshot.ts
+!/scripts/generate-shop-filter-indexes.ts
 /tests/
 /public/logos.rar
 /.shop-products-dev-cache.json
