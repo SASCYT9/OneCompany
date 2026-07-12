@@ -3,12 +3,12 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const homeMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Auto & Moto Tuning in Kyiv | OneCompany",
+    title: "Premium Auto & Moto Tuning | OneCompany",
     description:
       "Official importer of premium auto and motorcycle tuning parts: exhaust, suspension, OEM, electronics, carbon. Expert sourcing and delivery.",
   },
   ua: {
-    title: "Тюнінг авто та мото в Києві | OneCompany",
+    title: "Преміум тюнінг авто та мото | OneCompany",
     description:
       "Офіційний імпортер преміум тюнінгу авто та мото: вихлоп, підвіска, OEM, електрика, карбон. Підбір, гарантія, доставка по Україні та світу.",
   },
