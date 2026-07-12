@@ -1,6 +1,7 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { extractStorefrontTag } from "@/lib/shopProductStorefront";
 import { isIpeBrandValue } from "@/lib/ipeBrand";
+import { STOREFRONT_ROUTE_REGISTRY, type StorefrontSegment } from "@/lib/storefrontRouteRegistry";
 
 type StorefrontRouteInput = {
   slug: string;
@@ -8,28 +9,6 @@ type StorefrontRouteInput = {
   vendor?: string | null;
   tags?: string[] | null;
 };
-
-const STOREFRONT_SEGMENT_BY_BRAND = new Map<string, string>([
-  ["adro", "adro"],
-  ["akrapovic", "akrapovic"],
-  ["akrapovic", "akrapovic"],
-  ["brabus", "brabus"],
-  ["burger motorsports", "burger"],
-  ["burger motorsports inc", "burger"],
-  ["burger motorsports inc.", "burger"],
-  ["burger motorsports, inc.", "burger"],
-  ["csf", "csf"],
-  ["do88", "do88"],
-  ["girodisc", "girodisc"],
-  ["ilmberger", "ilmberger"],
-  ["ilmberger carbon", "ilmberger"],
-  ["ipe", "ipe"],
-  ["innotech performance exhaust", "ipe"],
-  ["ohlins", "ohlins"],
-  ["racechip", "racechip"],
-  ["urban", "urban"],
-  ["urban automotive", "urban"],
-]);
 
 function normalizeStorefrontKey(value: string | null | undefined) {
   return (value ?? "")
@@ -39,6 +18,12 @@ function normalizeStorefrontKey(value: string | null | undefined) {
     .trim()
     .toLowerCase();
 }
+
+const STOREFRONT_SEGMENT_BY_BRAND = new Map<string, StorefrontSegment>(
+  STOREFRONT_ROUTE_REGISTRY.flatMap((route) =>
+    route.brandAliases.map((brand) => [normalizeStorefrontKey(brand), route.segment] as const)
+  )
+);
 
 export function isExternalCatalogProductSlug(slug: string | null | undefined) {
   if (!slug) {
@@ -91,4 +76,8 @@ export function buildShopStorefrontProductPathForProduct(
   product: Pick<ShopProduct, "slug" | "brand" | "vendor" | "tags">
 ) {
   return buildShopStorefrontProductPath(locale, product);
+}
+
+export function buildShopStorefrontRootPath(locale: string, segment: StorefrontSegment) {
+  return `/${locale}/shop/${segment}`;
 }

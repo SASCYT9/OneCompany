@@ -96,7 +96,8 @@ type ProductPageMode =
   | "ohlins"
   | "girodisc"
   | "ipe"
-  | "adro";
+  | "adro"
+  | "ilmberger";
 
 type Props = {
   locale: string;
@@ -387,6 +388,7 @@ export async function getShopProductPageMetadata({
   if (mode === "adro") pageSlug = `shop/adro/products/${slug}`;
 
   if (!product) {
+    notFound();
     return buildPageMetadata(resolvedLocale, pageSlug, {
       title:
         resolvedLocale === "ua"
@@ -396,6 +398,11 @@ export async function getShopProductPageMetadata({
         resolvedLocale === "ua" ? "Сторінка товару недоступна." : "Product page is unavailable.",
     });
   }
+
+  pageSlug = buildShopStorefrontProductPathForProduct(resolvedLocale, product).replace(
+    `/${resolvedLocale}/`,
+    ""
+  );
 
   // Drop the trailing "| One Company Shop" — siteName already carries it in
   // og:site_name, and the suffix used to push titles past the truncation

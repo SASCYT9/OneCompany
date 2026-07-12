@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
   return getShopProductPageMetadata({
     locale: resolveLocale(locale),
     slug,
-    mode: "default",
+    mode: "ilmberger",
   });
 }
 
@@ -23,5 +23,5 @@ export default async function IlmbergerProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <ShopProductDetailPage locale={resolvedLocale} slug={slug} />;
+  return <ShopProductDetailPage locale={resolvedLocale} slug={slug} mode="ilmberger" />;
 }

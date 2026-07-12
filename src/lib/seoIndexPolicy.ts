@@ -70,6 +70,8 @@ export const noindexPatterns = [
   /^\/admin(?:\/.*)?$/,
   /^\/api(?:\/.*)?$/,
   /^\/quote(?:\/.*)?$/,
+  /^\/(ua|en)\/admin(?:\/.*)?$/,
+  /^\/(ua|en)\/shop\/(?:account|cart|checkout|stock)(?:\/.*)?$/,
 ] as const;
 
 export type RedirectPattern = {
@@ -102,7 +104,7 @@ export const redirectPatterns: readonly RedirectPattern[] = [
   },
   {
     id: "root-to-locale",
-    description: "Redirect root path to detected locale homepage.",
+    description: "Redirect root path to the default locale homepage.",
     pattern: /^\/$/,
   },
 ] as const;

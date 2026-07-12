@@ -6,7 +6,11 @@ import {
 } from "@/lib/shopText";
 import type { SupportedLocale } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/seo";
-import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import {
+  buildShopStorefrontProductPathForProduct,
+  buildShopStorefrontRootPath,
+  resolveShopStorefrontSegment,
+} from "@/lib/shopStorefrontRouting";
 import { expandShopPrices, pickPrimaryCurrency } from "@/lib/shopPriceConversion";
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 
@@ -191,8 +195,11 @@ const SCHEMA_AVAILABILITY: Record<Availability, string> = {
 
 const SHARED_RETURN_POLICY = {
   "@type": "MerchantReturnPolicy",
-  applicableCountry: ["UA", "US", "GB", "DE", "FR", "AE"],
-  returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+  applicableCountry: "UA",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 14,
+  returnMethod: "https://schema.org/ReturnByMail",
+  returnFees: "https://schema.org/ReturnShippingFees",
 };
 
 function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
@@ -353,8 +360,10 @@ export function ShopProductStructuredData({
     .filter((o): o is NonNullable<typeof o> => Boolean(o));
 
   const shopRoot = absoluteUrl(`/${locale}/shop`);
-  const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, "");
-  const brandShopHref = brandSlug ? absoluteUrl(`/${locale}/shop/${brandSlug}`) : null;
+  const storefrontSegment = resolveShopStorefrontSegment(product);
+  const brandShopHref = storefrontSegment
+    ? absoluteUrl(buildShopStorefrontRootPath(locale, storefrontSegment))
+    : null;
   const breadcrumbItems: { name: string; url: string }[] = [
     { name: locale === "ua" ? "Головна" : "Home", url: absoluteUrl(`/${locale}`) },
     { name: locale === "ua" ? "Магазин" : "Shop", url: shopRoot },

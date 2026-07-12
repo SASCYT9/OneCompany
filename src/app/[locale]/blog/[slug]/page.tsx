@@ -100,6 +100,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = content.blog.posts.find((item) => item.slug === slug);
 
   if (!post) {
+    notFound();
     return buildPageMetadata(l, `blog/${slug}`, {
       title: l === "ua" ? "Публікація · OneCompany" : "Post · OneCompany",
       description: l === "ua" ? "Публікація блогу" : "Blog post",
@@ -159,8 +160,7 @@ export default async function BlogPostPage({ params }: Props) {
     { name: l === "ua" ? "Блог" : "Blog", url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
     { name: localizedTitle, url: postUrl },
   ];
-  const lowerSignal = `${localizedTitle} ${articleDescription}`.toLowerCase();
-  const shouldRenderProductSchema = productSignals.some((signal) => lowerSignal.includes(signal));
+  const shouldRenderProductSchema = false;
   const productImage = coverImage ?? absoluteUrl("/branding/og-image.png");
 
   return (

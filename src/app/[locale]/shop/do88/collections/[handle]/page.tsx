@@ -11,6 +11,7 @@ import Do88VehicleFilter from "../../Do88VehicleFilter";
 import Do88CategoryFilter from "../../Do88CategoryFilter";
 import { CAR_DATA } from "../../do88FitmentData";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 // Anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -50,6 +51,7 @@ export async function generateMetadata({
       externalImageUrl: "",
     };
   }
+  if (!card) notFound();
   const title = card ? `${card.title} | DO88 | One Company` : "DO88 | One Company";
   const baseSlug = `shop/do88/collections/${handle}`;
   const meta = {
@@ -106,6 +108,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
   }
 
   if (!card) {
+    notFound();
     return (
       <>
         <div className="urban-back-to-stores">

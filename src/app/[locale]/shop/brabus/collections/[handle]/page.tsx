@@ -10,6 +10,7 @@ import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
 import { isBrabusExhaustProduct } from "@/lib/brabusCatalogExclusions";
 import BrabusCollectionHero from "../../../components/BrabusCollectionHero";
 import BrabusCollectionProductGrid from "../../../components/BrabusCollectionProductGrid";
+import { notFound } from "next/navigation";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -33,6 +34,7 @@ export async function generateMetadata({
   const resolvedLocale = resolveLocale(locale);
   const card = BRABUS_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
   const config = getBrabusCollectionPageConfig(handle);
+  if (!config && !card) notFound();
   const title = config
     ? `${resolvedLocale === "ua" ? config.titleUk : config.title} | Brabus | One Company`
     : `${card?.title ?? handle} | Brabus | One Company`;
@@ -50,6 +52,7 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const config = getBrabusCollectionPageConfig(handle);
   const card = BRABUS_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
+  if (!config && !card) notFound();
 
   const [settingsRecord, products] = await Promise.all([
     getOrCreateShopSettings(prisma),

@@ -20,6 +20,7 @@ import {
   UrbanBlueprintKit,
 } from "../../../components/UrbanCollectionSections";
 import UrbanCollectionProductGrid from "../../../components/UrbanCollectionProductGrid";
+import { notFound } from "next/navigation";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -42,6 +43,7 @@ export async function generateMetadata({
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
+  if (!card) notFound();
   const title = card ? `${card.title} | Urban | One Company` : "Urban | One Company";
   return buildPageMetadata(resolvedLocale, `shop/urban/collections/${handle}`, {
     title: resolvedLocale === "ua" ? `${card?.title ?? handle} | Urban | One Company` : title,
@@ -58,6 +60,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
   const isUa = resolvedLocale === "ua";
   const config = getUrbanCollectionPageConfig(handle);
   const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
+  if (!card) notFound();
   const products = config ? await getUrbanProductsServer() : [];
 
   if (!config) {

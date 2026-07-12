@@ -71,10 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getShopProductBySlugServer(slug);
 
   if (!product) {
-    // Soft-404 protection: when the slug doesn't match a real product,
-    // the page renders a "not found" UI but used to ship indexable
-    // metadata + canonical-to-self. Mark it noindex so Google doesn't
-    // index the placeholder page as canonical content.
+    notFound();
     return buildNoIndexPageMetadata(resolvedLocale, `shop/${slug}`, {
       title:
         resolvedLocale === "ua"
@@ -85,7 +82,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  return buildPageMetadata(resolvedLocale, `shop/${slug}`, {
+  const canonicalPath = buildShopStorefrontProductPathForProduct(resolvedLocale, product);
+  const canonicalSlug = canonicalPath.replace(`/${resolvedLocale}/`, "");
+
+  return buildPageMetadata(resolvedLocale, canonicalSlug, {
     title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand} | One Company Shop`,
     description: localizeShopDescription(resolvedLocale, product.shortDescription),
     image: product.image,

@@ -10,6 +10,7 @@ import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRo
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import AdroCollectionProductGrid from "../../../components/AdroCollectionProductGrid";
+import { notFound } from "next/navigation";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
@@ -32,6 +33,7 @@ export async function generateMetadata({
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
+  if (!line) notFound();
   const title = line
     ? `${resolvedLocale === "ua" ? line.nameUk : line.name} | ADRO | One Company`
     : `${handle} | ADRO | One Company`;
@@ -49,6 +51,7 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
+  if (!line) notFound();
 
   const [settingsRecord, products] = await Promise.all([
     getOrCreateShopSettings(prisma),

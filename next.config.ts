@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -320,6 +321,24 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/:locale(ua|en)/admin/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+      {
+        source: "/:locale(ua|en)/shop/:surface(account|cart|checkout|stock)/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           ...(isProd
@@ -458,6 +477,16 @@ const nextConfig: NextConfig = {
     ];
 
     return [
+      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
+        source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
+        destination: `/:locale/shop/${segment}/products/:slug`,
+        permanent: true,
+      })),
+      {
+        source: "/:locale(ua|en)/admin/shop/turn14-sync",
+        destination: "/admin/shop/turn14-sync",
+        permanent: true,
+      },
       {
         source: "/ua/blog/one-company-dtskmdmjfgf",
         destination: "/ua/blog",
@@ -480,7 +509,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:locale(ua|en)/brands/one-company-forged",
-        destination: "/:locale/shop/forged",
+        destination: "/:locale/brands",
         permanent: true,
       },
       {
