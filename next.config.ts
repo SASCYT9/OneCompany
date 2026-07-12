@@ -570,6 +570,12 @@ const nextConfig: NextConfig = {
     ];
 
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host" as const, value: "www.onecompany.global" }],
+        destination: "https://onecompany.global/:path*",
+        permanent: true,
+      },
       ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
         source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
         destination: `/:locale/shop/${segment}/products/:slug`,
