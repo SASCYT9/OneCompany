@@ -41,9 +41,7 @@ function projectProduct(product: ShopProduct, key: IndexKey): ShopProduct {
       collection: empty,
       price: product.price ?? emptyMoney,
       europePrice: product.europePrice,
-      b2bPrice: product.b2bPrice,
       compareAt: product.compareAt,
-      b2bCompareAt: product.b2bCompareAt,
       image: product.image,
       highlights: [],
     };
@@ -70,9 +68,7 @@ function projectProduct(product: ShopProduct, key: IndexKey): ShopProduct {
     collections: product.collections,
     price: product.price ?? emptyMoney,
     europePrice: product.europePrice,
-    b2bPrice: product.b2bPrice,
     compareAt: product.compareAt,
-    b2bCompareAt: product.b2bCompareAt,
     image: product.image,
     gallery: firstImage ? [firstImage] : undefined,
     variants: defaultVariant ? [defaultVariant] : undefined,
@@ -120,3 +116,8 @@ fs.writeFileSync(
   JSON.stringify({ generatedAt: new Date().toISOString(), indexes: manifest }),
   "utf8"
 );
+
+// The monolithic file is only an intermediate input for this generator.
+// Removing it before `next build` prevents output tracing from copying the
+// same ~46 MB payload into dozens of storefront functions.
+fs.rmSync(snapshotPath, { force: true });

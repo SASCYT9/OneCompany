@@ -24,20 +24,28 @@ dotenv.config({ path: ".env.local" });
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
+import crypto from "node:crypto";
 
-import { getShopProductsServer } from "../src/lib/shopCatalogServer";
+import { getShopProductBySlugServer, getShopProductsServer } from "../src/lib/shopCatalogServer";
+import { resolveShopStorefrontSegment } from "../src/lib/shopStorefrontRouting";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
 const PRODUCTS_OUTPUT = path.join(process.cwd(), "data", "shop-products.snapshot.json");
+const FALLBACK_OUTPUT_DIR = path.join(process.cwd(), "public", "catalog-fallback");
+const FALLBACK_VERSION = 2;
 
 async function main() {
   const prisma = new PrismaClient();
   try {
     console.log("[prebuild-shop-snapshot] fetching settings and product count...");
-    const [settings, productCount] = await Promise.all([
+    const [settings, activeProducts] = await Promise.all([
       prisma.shopSettings.findUnique({ where: { key: "shop" } }),
-      prisma.shopProduct.count({ where: { isPublished: true, status: "ACTIVE" } }),
+      prisma.shopProduct.findMany({
+        where: { isPublished: true, status: "ACTIVE" },
+        select: { slug: true },
+      }),
     ]);
+    const productCount = activeProducts.length;
 
     if (!settings) {
       console.warn(
@@ -59,10 +67,33 @@ async function main() {
       );
     }
 
+    // Never let a previous local/build artifact short-circuit the fresh DB
+    // read below. The old behavior silently reused a stale 14,934-product
+    // snapshot while the database already contained 15,015 active rows.
+    fs.rmSync(PRODUCTS_OUTPUT, { force: true });
+
     // Fetch products using getShopProductsServer (includes full DB fetch + static fallbacks mapping)
     console.log("[prebuild-shop-snapshot] fetching all products catalog...");
     const start = Date.now();
     const products = await getShopProductsServer();
+    const loadedSlugs = new Set(products.map((product) => product.slug));
+    const missingActiveSlugs = activeProducts
+      .map((product) => product.slug)
+      .filter((slug) => !loadedSlugs.has(slug));
+    if (missingActiveSlugs.length > 0) {
+      console.log(
+        `[prebuild-shop-snapshot] recovering ${missingActiveSlugs.length} active rows removed by catalog deduplication`
+      );
+      const recovered = await Promise.all(
+        missingActiveSlugs.map((slug) => getShopProductBySlugServer(slug))
+      );
+      for (const product of recovered) {
+        if (product && !loadedSlugs.has(product.slug)) {
+          products.push(product);
+          loadedSlugs.add(product.slug);
+        }
+      }
+    }
     console.log(
       `[prebuild-shop-snapshot] loaded ${products.length} products in ${Date.now() - start}ms`
     );
@@ -90,10 +121,9 @@ async function main() {
         collections: product.collections,
         tags: product.tags,
         price: product.price,
-        b2bPrice: product.b2bPrice,
         compareAt: product.compareAt,
-        b2bCompareAt: product.b2bCompareAt,
         image: product.image,
+        gallery: product.gallery,
         highlights: product.highlights,
         variants: defaultVariant
           ? [
@@ -108,6 +138,70 @@ async function main() {
           : [],
       };
     });
+
+    const uniqueSlugs = new Set(simplifiedProducts.map((product) => product.slug));
+    if (uniqueSlugs.size !== simplifiedProducts.length) {
+      throw new Error(
+        `Duplicate product slugs in fallback snapshot: ${simplifiedProducts.length - uniqueSlugs.size}`
+      );
+    }
+    if (simplifiedProducts.length < productCount) {
+      throw new Error(
+        `Fallback snapshot is truncated: ${simplifiedProducts.length} products for ${productCount} active DB rows`
+      );
+    }
+
+    fs.rmSync(FALLBACK_OUTPUT_DIR, { recursive: true, force: true });
+    fs.mkdirSync(FALLBACK_OUTPUT_DIR, { recursive: true });
+
+    const groups = new Map<string, typeof simplifiedProducts>();
+    const slugToStore: Record<string, string> = {};
+    for (const product of simplifiedProducts) {
+      const store = resolveShopStorefrontSegment(product) ?? "generic";
+      const group = groups.get(store) ?? [];
+      group.push(product);
+      groups.set(store, group);
+      slugToStore[product.slug] = store;
+    }
+
+    const stores: Record<string, { file: string; count: number }> = {};
+    for (const [store, storeProducts] of [...groups.entries()].sort(([a], [b]) =>
+      a.localeCompare(b)
+    )) {
+      const json = JSON.stringify(storeProducts);
+      const hash = crypto.createHash("sha256").update(json).digest("hex").slice(0, 12);
+      const file = `${store}.${hash}.json`;
+      fs.writeFileSync(path.join(FALLBACK_OUTPUT_DIR, file), json, "utf8");
+      stores[store] = { file, count: storeProducts.length };
+    }
+
+    const sitemapRows = simplifiedProducts.map((product) => ({
+      slug: product.slug,
+      brand: product.brand ?? "",
+      vendor: product.vendor ?? undefined,
+      tags: product.tags ?? [],
+      productType: product.productType ?? undefined,
+    }));
+    fs.writeFileSync(
+      path.join(FALLBACK_OUTPUT_DIR, "sitemap.json"),
+      JSON.stringify(sitemapRows),
+      "utf8"
+    );
+
+    // Manifest is written last: its presence means all referenced immutable
+    // shards are complete and safe for runtime fallback reads.
+    fs.writeFileSync(
+      path.join(FALLBACK_OUTPUT_DIR, "manifest.json"),
+      JSON.stringify({
+        version: FALLBACK_VERSION,
+        generatedAt: new Date().toISOString(),
+        count: simplifiedProducts.length,
+        activeDatabaseCount: productCount,
+        stores,
+        slugToStore,
+      }),
+      "utf8"
+    );
     fs.writeFileSync(PRODUCTS_OUTPUT, JSON.stringify(simplifiedProducts), "utf8");
     console.log(
       `[prebuild-shop-snapshot] wrote simplified products to ${path.relative(process.cwd(), PRODUCTS_OUTPUT)}`

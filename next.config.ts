@@ -197,6 +197,10 @@ const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isV
     };
 
 const fileBackedMediaTracingExcludes: Record<string, string[]> = {
+  // Generated fallback shards are deployed from `public/` and fetched over
+  // HTTP at runtime. Keeping them in every Function trace would duplicate the
+  // entire catalog across all storefront routes.
+  "/*": ["public/catalog-fallback/**/*"],
   ...(isVercel
     ? {}
     : {
@@ -438,6 +442,20 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/catalog-index/manifest.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=300, must-revalidate" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/catalog-fallback/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/catalog-fallback/manifest.json",
         headers: [
           { key: "Cache-Control", value: "public, max-age=0, s-maxage=300, must-revalidate" },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },

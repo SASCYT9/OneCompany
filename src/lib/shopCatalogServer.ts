@@ -36,8 +36,98 @@ import { resolveBundleInventory } from "@/lib/shopBundles";
 import { prisma } from "@/lib/prisma";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 
 const prismaCached = prisma.$extends(withAccelerate());
+
+const CATALOG_FALLBACK_DIR = path.join(process.cwd(), "public", "catalog-fallback");
+const CATALOG_FALLBACK_VERSION = 2;
+
+type CatalogFallbackManifest = {
+  version: number;
+  count: number;
+  activeDatabaseCount: number;
+  stores: Record<string, { file: string; count: number }>;
+  slugToStore: Record<string, string>;
+};
+
+let catalogFallbackManifestPromise: Promise<CatalogFallbackManifest> | null = null;
+const catalogFallbackStorePromises = new Map<string, Promise<ShopProduct[]>>();
+
+function deploymentAssetOrigin() {
+  const host = process.env.VERCEL_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return host ? `https://${host}` : null;
+}
+
+async function readCatalogFallbackJson<T>(file: string): Promise<T> {
+  const localPath = path.join(CATALOG_FALLBACK_DIR, file);
+  if (fs.existsSync(localPath)) {
+    return JSON.parse(fs.readFileSync(/* turbopackIgnore: true */ localPath, "utf8")) as T;
+  }
+
+  const origin = deploymentAssetOrigin();
+  if (!origin) throw new Error(`[catalog-fallback] missing local asset ${file}`);
+  const response = await fetch(`${origin}/catalog-fallback/${encodeURIComponent(file)}`, {
+    cache: "force-cache",
+  });
+  if (!response.ok) {
+    throw new Error(`[catalog-fallback] ${file} returned ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+
+async function getCatalogFallbackManifest(): Promise<CatalogFallbackManifest> {
+  if (!catalogFallbackManifestPromise) {
+    catalogFallbackManifestPromise = readCatalogFallbackJson<CatalogFallbackManifest>(
+      "manifest.json"
+    ).then((manifest) => {
+      if (
+        manifest.version !== CATALOG_FALLBACK_VERSION ||
+        manifest.count < manifest.activeDatabaseCount ||
+        !manifest.stores ||
+        !manifest.slugToStore
+      ) {
+        throw new Error("[catalog-fallback] invalid or truncated manifest");
+      }
+      return manifest;
+    });
+  }
+  return catalogFallbackManifestPromise;
+}
+
+async function getCatalogFallbackStore(store: string): Promise<ShopProduct[]> {
+  const existing = catalogFallbackStorePromises.get(store);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const manifest = await getCatalogFallbackManifest();
+    const entry = manifest.stores[store];
+    if (!entry) return [];
+    const products = await readCatalogFallbackJson<ShopProduct[]>(entry.file);
+    if (!Array.isArray(products) || products.length !== entry.count) {
+      throw new Error(`[catalog-fallback] invalid ${store} shard`);
+    }
+    return products;
+  })();
+  catalogFallbackStorePromises.set(store, promise);
+  return promise;
+}
+
+async function getAllCatalogFallbackProducts(): Promise<ShopProduct[]> {
+  const manifest = await getCatalogFallbackManifest();
+  const shards = await Promise.all(
+    Object.keys(manifest.stores).map((store) => getCatalogFallbackStore(store))
+  );
+  return shards.flat();
+}
+
+async function getCatalogFallbackProductBySlug(slug: string): Promise<ShopProduct | undefined> {
+  const manifest = await getCatalogFallbackManifest();
+  const store = manifest.slugToStore[slug];
+  if (!store) return undefined;
+  const products = await getCatalogFallbackStore(store);
+  return products.find((product) => product.slug === slug);
+}
 const isAccelerateEnabled =
   typeof process !== "undefined" &&
   (process.env.DATABASE_URL?.startsWith("prisma://") ||
@@ -1828,20 +1918,18 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     return globalProductsPromise;
   }
 
-  // Load from build-time snapshot if available (essential in production, highly recommended in dev to avoid timeouts)
-  const snapshotPath = path.join(process.cwd(), "data", "shop-products.snapshot.json");
-
-  if (fs.existsSync(snapshotPath)) {
+  // Build workers and DB-less local verification use the public, versioned
+  // shards. Production runtime with a configured DB prefers fresh queries.
+  if (process.env.NEXT_PHASE === "phase-production-build" || !process.env.DATABASE_URL) {
     try {
-      const fileContent = fs.readFileSync(snapshotPath, "utf8");
-      const parsed = JSON.parse(fileContent);
-      if (Array.isArray(parsed)) {
-        globalProductsCache = parsed;
+      const products = await getAllCatalogFallbackProducts();
+      if (products.length > 0) {
+        globalProductsCache = products;
         lastCacheTime = Date.now();
         return globalProductsCache.map(applyShopProductImageOverrides);
       }
     } catch (err) {
-      console.warn("[shopCatalogServer] failed to load products snapshot:", err);
+      console.warn("[shopCatalogServer] failed to load product fallback shards:", err);
     }
   }
 
@@ -2676,31 +2764,17 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
     return sitemapEntriesCache.entries;
   }
 
-  // A production build already has a fail-closed catalogue snapshot generated
-  // by `prebuild-shop-snapshot.ts`. Reuse it here instead of opening a second
-  // large database query while Next prerenders `/sitemap.xml`.
+  // Prebuild emits a lightweight sitemap projection separate from PDP shards.
   if (process.env.NEXT_PHASE === "phase-production-build") {
-    const snapshotPath = path.join(process.cwd(), "data", "shop-products.snapshot.json");
-    if (!fs.existsSync(snapshotPath)) {
-      throw new Error("[sitemap] product snapshot is missing during production build");
-    }
-
-    const parsed = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
+    const parsed = await readCatalogFallbackJson<ShopProductSitemapEntry[]>("sitemap.json");
     if (!Array.isArray(parsed) || parsed.length < MIN_SAFE_SITEMAP_PRODUCT_COUNT) {
       throw new Error(
         `[sitemap] refusing build snapshot with ${Array.isArray(parsed) ? parsed.length : 0} products; expected at least ${MIN_SAFE_SITEMAP_PRODUCT_COUNT}`
       );
     }
 
-    const snapshotRows = parsed.map((product: ShopProduct) => ({
-      slug: product.slug,
-      brand: product.brand ?? "",
-      vendor: product.vendor ?? undefined,
-      tags: product.tags ?? [],
-      productType: product.productType ?? undefined,
-    }));
-    sitemapEntriesCache = { entries: snapshotRows, ts: now };
-    return snapshotRows;
+    sitemapEntriesCache = { entries: parsed, ts: now };
+    return parsed;
   }
 
   let rows: ShopProductSitemapEntry[] = [];
@@ -2731,13 +2805,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
     }));
   } catch (error) {
     // DB unavailable — fall back to static catalogue
-    const fallbackRows = SHOP_PRODUCTS.map((p) => ({
-      slug: p.slug,
-      brand: p.brand,
-      vendor: p.vendor,
-      tags: p.tags ?? [],
-      productType: p.productType,
-    }));
+    const fallbackRows = await readCatalogFallbackJson<ShopProductSitemapEntry[]>("sitemap.json");
     if (fallbackRows.length < MIN_SAFE_SITEMAP_PRODUCT_COUNT) {
       console.error("[sitemap] refusing to publish a truncated product sitemap", {
         fallbackCount: fallbackRows.length,
@@ -2988,9 +3056,24 @@ const storefrontProductInclude = {
   },
 } satisfies Prisma.ShopProductInclude;
 
-export const getShopProductBySlugServer = cache(async function getShopProductBySlugServer(
+export type ShopProductLookupResult =
+  | { kind: "found"; product: ShopProduct; source: "database" | "snapshot" | "static" }
+  | { kind: "missing" }
+  | { kind: "unavailable"; code: string; cause: unknown };
+
+export class ShopCatalogUnavailableError extends Error {
+  readonly code: string;
+
+  constructor(code: string, options?: { cause?: unknown }) {
+    super(`Shop catalog is temporarily unavailable (${code})`, options);
+    this.name = "ShopCatalogUnavailableError";
+    this.code = code;
+  }
+}
+
+export const lookupShopProductBySlugServer = cache(async function lookupShopProductBySlugServer(
   slug: string
-): Promise<ShopProduct | undefined> {
+): Promise<ShopProductLookupResult> {
   try {
     const queryParams: any = {
       where: { slug, isPublished: true, status: "ACTIVE" },
@@ -3004,11 +3087,39 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
       const product = applyShopProductImageOverrides(
         mapDbToCatalog(row as unknown as AdminShopProductRecord)
       );
-      return shouldExposeCatalogProduct(product) ? product : undefined;
+      if (shouldExposeCatalogProduct(product)) {
+        return { kind: "found", product, source: "database" };
+      }
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    if (!isTransientShopCatalogError(error)) throw error;
+    const code = getShopCatalogFailureCode(error);
+    console.error("[shopCatalogServer] transient PDP lookup failure", {
+      slug,
+      code,
+      fallback: "catalog-shard",
+    });
+    try {
+      const staleProduct = await getCatalogFallbackProductBySlug(slug);
+      if (staleProduct && shouldExposeCatalogProduct(staleProduct)) {
+        console.warn("[shopCatalogServer] served stale PDP fallback", { slug, code });
+        return {
+          kind: "found",
+          product: applyShopProductImageOverrides(staleProduct),
+          source: "snapshot",
+        };
+      }
+    } catch (fallbackError) {
+      console.error("[shopCatalogServer] PDP fallback shard failed", {
+        slug,
+        code,
+        fallbackError:
+          fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
+      });
+    }
+    return { kind: "unavailable", code, cause: error };
   }
+
   if (process.env.NODE_ENV === "development") {
     try {
       const cachePath = path.join(process.cwd(), ".shop-products-dev-cache.json");
@@ -3022,7 +3133,13 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
             ? normalizeCatalogProducts(parsedCache.products)
             : [];
         const cachedProduct = cachedProducts.find((product) => product.slug === slug);
-        if (cachedProduct) return applyShopProductImageOverrides(cachedProduct);
+        if (cachedProduct) {
+          return {
+            kind: "found",
+            product: applyShopProductImageOverrides(cachedProduct),
+            source: "static",
+          };
+        }
       }
     } catch {
       // ignore stale local cache
@@ -3030,10 +3147,23 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
   }
   const staticProduct = getStaticBySlug(slug) ?? getRacechipCatalogFallbackProductBySlug(slug);
   if (!staticProduct || !shouldExposeCatalogProduct(staticProduct)) {
-    return undefined;
+    return { kind: "missing" };
   }
 
-  return applyShopProductImageOverrides(staticProduct);
+  return {
+    kind: "found",
+    product: applyShopProductImageOverrides(staticProduct),
+    source: "static",
+  };
+});
+
+export const getShopProductBySlugServer = cache(async function getShopProductBySlugServer(
+  slug: string
+): Promise<ShopProduct | undefined> {
+  const result = await lookupShopProductBySlugServer(slug);
+  if (result.kind === "found") return result.product;
+  if (result.kind === "missing") return undefined;
+  throw new ShopCatalogUnavailableError(result.code, { cause: result.cause });
 });
 
 export async function getTopProductSlugsByBrand(brand: string, limit = 25): Promise<string[]> {

@@ -18,6 +18,7 @@ wordpress/
 /.next/
 /out/
 /public/catalog-index/
+/public/catalog-fallback/
 
 # production
 /build
