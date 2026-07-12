@@ -12,7 +12,6 @@ import {
 } from "@/lib/seo";
 import { getShopProductBySlugServer, getShopProductsByBrandServer } from "@/lib/shopCatalogServer";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
@@ -35,12 +34,17 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopDefaultProductPricingBlock } from "../components/ShopDefaultProductPricingBlock";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
 export const revalidate = 86400;
 
 export async function generateStaticParams() {
+  // Product URLs are present in the sitemap and use on-demand ISR. Keeping the
+  // build list empty avoids a catalogue DB query and 200 eager PDP renders.
+  if (process.env.NEXT_PHASE === "phase-production-build") return [];
+
   try {
     const products = await prisma.shopProduct.findMany({
       where: { isPublished: true },
@@ -120,9 +124,7 @@ export default async function ShopProductPage({ params }: Props) {
   // Related products no longer block first byte: the brand-scoped fetch +
   // findRelatedProducts scoring run inside the Suspense boundary at the
   // bottom of the page. Main path only awaits shop settings.
-  const settingsRecord = await getOrCreateShopSettings(prisma);
-
-  const settingsRuntime = getShopSettingsRuntime(settingsRecord);
+  const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
   const pricing = resolveShopProductPricing(product, viewerContext);

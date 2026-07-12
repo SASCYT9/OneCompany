@@ -7,11 +7,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import CSFCatalogGrid from "../../components/CSFCatalogGrid";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
 export const revalidate = 3600;
 
@@ -49,7 +45,9 @@ export default async function CSFCollectionsPage({ params, searchParams }: Props
     totalPages,
   } = paginateProducts(allCsfProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/csf/collections");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/csf/collections");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -110,7 +108,7 @@ export default async function CSFCollectionsPage({ params, searchParams }: Props
         >
           <CSFCatalogGrid
             locale={resolvedLocale}
-            products={allCsfProducts}
+            products={csfProducts}
             pageProducts={csfProducts}
             currentPage={currentPage}
             totalPages={totalPages}

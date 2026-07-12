@@ -13,6 +13,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopProductPathGirodisc } from "@/lib/girodiscCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import GirodiscSpotlightGrid from "./GirodiscSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
@@ -309,13 +310,14 @@ function computePricesFromEur(
 
 export default function GirodiscVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
   basePath,
   viewerContext: ssrViewerContext,
 }: GirodiscVehicleFilterProps) {
+  const products = useDeferredCatalogProducts(initialProducts, "girodisc");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

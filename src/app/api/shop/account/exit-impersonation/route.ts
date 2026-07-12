@@ -6,10 +6,14 @@
  * if the cookie was valid.
  */
 
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { SHOP_IMPERSONATION_COOKIE, verifyImpersonationToken } from '@/lib/shopImpersonation';
-import { prisma } from '@/lib/prisma';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  SHOP_IMPERSONATION_COOKIE,
+  SHOP_IMPERSONATION_MARKER_COOKIE,
+  verifyImpersonationToken,
+} from "@/lib/shopImpersonation";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(_request: NextRequest) {
   const cookieStore = await cookies();
@@ -22,21 +26,22 @@ export async function POST(_request: NextRequest) {
         data: {
           actorEmail: payload.adminEmail,
           actorName: payload.adminName,
-          scope: 'shop',
-          action: 'customer.impersonation.exit',
-          entityType: 'shop.customer',
+          scope: "shop",
+          action: "customer.impersonation.exit",
+          entityType: "shop.customer",
           entityId: payload.customerId,
           metadata: { exitedAt: new Date().toISOString() },
         },
       });
     } catch (error) {
-      console.error('Impersonation exit audit log failed', error);
+      console.error("Impersonation exit audit log failed", error);
     }
   }
 
   const response = NextResponse.json({ ok: true });
   response.cookies.delete(SHOP_IMPERSONATION_COOKIE);
+  response.cookies.delete(SHOP_IMPERSONATION_MARKER_COOKIE);
   return response;
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

@@ -46,7 +46,6 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("/noise.png");
   opacity: 0.08;
   mix-blend-mode: overlay;
   pointer-events: none;

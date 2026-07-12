@@ -11,6 +11,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
@@ -44,13 +45,14 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 export default function RacechipVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
   basePath,
   viewerContext: ssrViewerContext,
 }: Props) {
+  const products = useDeferredCatalogProducts(initialProducts, "racechip");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

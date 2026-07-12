@@ -6,6 +6,9 @@ node_modules
 .claude
 .agents
 /backups/
+/output/
+/artifacts/
+/.playwright-cli/
 /Design/
 /data/
 /scripts/**

@@ -1,21 +1,16 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BurgerVehicleFilter from "../../components/BurgerVehicleFilter";
 import BurgerHeroPicker from "../../components/BurgerHeroPicker";
 import { getBurgerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 import Link from "next/link";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
@@ -46,8 +41,8 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, burgerRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, burgerRows] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     getBurgerProductsServer(),
   ]);
   const allBurgerProducts = burgerRows.map(projectShopProductForListGrid);
@@ -57,15 +52,12 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
     totalPages,
   } = paginateProducts(allBurgerProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/burger/products");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/burger/products");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -110,7 +102,7 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
         <Suspense fallback={null}>
           <BurgerVehicleFilter
             locale={resolvedLocale}
-            products={allBurgerProducts}
+            products={burgerProducts}
             pageProducts={burgerProducts}
             currentPage={currentPage}
             totalPages={totalPages}

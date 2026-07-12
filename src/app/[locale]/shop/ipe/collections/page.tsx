@@ -1,21 +1,16 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import Image from "next/image";
 import { getIpeProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import IpeVehicleFilter from "../../components/IpeVehicleFilter";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
 // ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
@@ -46,8 +41,8 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, ipeRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, ipeRows] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     getIpeProductsServer(),
   ]);
   const allIpeProducts = ipeRows.map(projectShopProductForListGrid);
@@ -57,15 +52,12 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
     totalPages,
   } = paginateProducts(allIpeProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/ipe/collections");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/ipe/collections");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -134,7 +126,7 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
         >
           <IpeVehicleFilter
             locale={resolvedLocale}
-            products={allIpeProducts}
+            products={ipeProducts}
             pageProducts={ipeProducts}
             currentPage={currentPage}
             totalPages={totalPages}

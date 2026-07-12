@@ -14,6 +14,7 @@ import { buildShopProductPathBrabus } from "@/lib/brabusCollectionMatcher";
 import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
 import { ShopPaginationNav } from "./ShopPaginationNav";
@@ -136,13 +137,14 @@ function isKitProduct(title: string) {
 
 export default function BrabusVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
   basePath,
   viewerContext: ssrViewerContext,
 }: BrabusVehicleFilterProps) {
+  const products = useDeferredCatalogProducts(initialProducts, "brabus");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

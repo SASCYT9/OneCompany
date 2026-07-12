@@ -13,6 +13,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   resolveIpeProductLine,
@@ -179,7 +180,7 @@ function shouldBypassImageOptimization(reference: string | null | undefined) {
 
 export default function IpeVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
@@ -187,6 +188,7 @@ export default function IpeVehicleFilter({
   viewerContext: ssrViewerContext,
   productPathPrefix,
 }: IpeVehicleFilterProps) {
+  const products = useDeferredCatalogProducts(initialProducts, "ipe");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

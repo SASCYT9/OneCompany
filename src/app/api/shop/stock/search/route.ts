@@ -39,6 +39,7 @@ import {
   matchesShopStockCategory,
 } from "@/lib/shopStockTaxonomy";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
 import {
   classifyProductFitment,
@@ -1077,6 +1078,7 @@ export async function GET(request: NextRequest) {
           originalPriceSet: compareAtPriceSet,
           markupPct: pricing.discountPercent || 0,
           slug: product.slug,
+          href: buildShopStorefrontProductPathForProduct(locale, product),
           variantId: defaultVariant?.id || null,
           turn14Id: "", // empty so frontend knows it's a shop product
           source: "local" as const,

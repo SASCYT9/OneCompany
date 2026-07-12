@@ -33,7 +33,7 @@ export function ShopPaginationNav({ locale, currentPage, totalPages, basePath }:
   const isUa = locale === "ua";
   const pages = buildWindowedPageList(currentPage, totalPages);
 
-  const buildHref = (page: number) => (page === 1 ? basePath : `${basePath}?page=${page}`);
+  const buildHref = (page: number) => (page === 1 ? basePath : `${basePath}/page/${page}`);
 
   return (
     <nav

@@ -18,6 +18,7 @@ import {
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   detectMakesForModel,
@@ -87,13 +88,14 @@ function pickPrimaryPriceLabel(
 
 export default function AdroCatalogGrid({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
   basePath,
   viewerContext: ssrViewerContext,
 }: Props) {
+  const products = useDeferredCatalogProducts(initialProducts, "adro");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const t = useTranslations("adroCatalog");
   const { currency, rates } = useShopCurrency();

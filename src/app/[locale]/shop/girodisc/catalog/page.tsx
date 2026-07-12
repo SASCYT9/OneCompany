@@ -1,20 +1,15 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getGirodiscProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import GirodiscVehicleFilter from "../../components/GirodiscVehicleFilter";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
 // ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
@@ -45,8 +40,8 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, girodiscRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, girodiscRows] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     getGirodiscProductsServer(),
   ]);
   const allGirodiscProducts = girodiscRows.map(projectShopProductForListGrid);
@@ -56,15 +51,12 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
     totalPages,
   } = paginateProducts(allGirodiscProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/girodisc/catalog");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/girodisc/catalog");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -128,7 +120,7 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
           >
             <GirodiscVehicleFilter
               locale={resolvedLocale}
-              products={allGirodiscProducts}
+              products={girodiscProducts}
               pageProducts={girodiscProducts}
               currentPage={currentPage}
               totalPages={totalPages}

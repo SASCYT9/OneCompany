@@ -11,8 +11,6 @@ import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
-import { prisma } from "@/lib/prisma";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import {
   getShopProductBySlugServer,
   getShopProductImageOverrideForSku,
@@ -76,6 +74,7 @@ import {
 import CrossShopFitment from "./CrossShopFitment";
 import { ShopDefaultProductPricingBlock } from "./ShopDefaultProductPricingBlock";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 import type { ShopProduct } from "@/lib/shopCatalog";
 
@@ -443,9 +442,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     ? await pickRelatedProductsPool(mode, product.brand)
     : [];
 
-  const settingsRecord = await getOrCreateShopSettings(prisma);
-
-  const settingsRuntime = getShopSettingsRuntime(settingsRecord);
+  const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
 
   // Anonymous SSR viewer context — page is ISR-cached. B2B users get the

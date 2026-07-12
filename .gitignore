@@ -17,6 +17,7 @@ wordpress/
 # next.js
 /.next/
 /out/
+/public/catalog-index/
 
 # production
 /build

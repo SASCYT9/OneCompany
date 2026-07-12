@@ -137,6 +137,17 @@ const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
   "reference/urban-shopify-theme/**/*",
 ];
 
+const PAGED_LISTING_PATHS = [
+  "/shop/adro/collections",
+  "/shop/brabus/products",
+  "/shop/burger/products",
+  "/shop/csf/collections",
+  "/shop/girodisc/catalog",
+  "/shop/ipe/collections",
+  "/shop/ohlins/catalog",
+  "/shop/racechip/catalog",
+] as const;
+
 // Broad excludes for admin API routes that don't need any storefront media.
 // Without this, Next.js's output-tracing greedily bundles public/images for
 // any route that touches an asset path, blowing past the 300 MB Function
@@ -390,6 +401,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/catalog-index/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/catalog-index/manifest.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=300, must-revalidate" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
         // Cache logos
         source: "/logos/:path*",
         headers: [
@@ -477,6 +502,26 @@ const nextConfig: NextConfig = {
     ];
 
     return [
+      ...PAGED_LISTING_PATHS.flatMap((path) => [
+        {
+          source: `/:locale(ua|en)${path}`,
+          destination: `/:locale${path}`,
+          permanent: true,
+          has: [{ type: "query" as const, key: "page", value: "1" }],
+        },
+        {
+          source: `/:locale(ua|en)${path}`,
+          destination: `/:locale${path}/page/:pageNumber`,
+          permanent: true,
+          has: [
+            {
+              type: "query" as const,
+              key: "page",
+              value: "(?<pageNumber>(?:[2-9]|[1-9][0-9]+))",
+            },
+          ],
+        },
+      ]),
       ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
         source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
         destination: `/:locale/shop/${segment}/products/:slug`,

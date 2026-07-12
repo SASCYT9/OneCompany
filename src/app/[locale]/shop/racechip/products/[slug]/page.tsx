@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import {
   getShopProductBySlugServer,
@@ -19,6 +17,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import CrossShopFitment from "../../../components/CrossShopFitment";
 import RacechipShopProductDetailLayout from "../../../components/RacechipShopProductDetailLayout";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -73,9 +72,7 @@ export default async function RacechipProductPage({
   // (which iterates ~30k products in JS to find fitment matches) used to
   // block first paint by ~1 s; now it's deferred to a streaming Suspense
   // boundary so the product info renders immediately.
-  const settingsRecord = await getOrCreateShopSettings(prisma);
-
-  const settingsRuntime = getShopSettingsRuntime(settingsRecord);
+  const settingsRuntime = await getPublicShopSettingsRuntime();
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   return (

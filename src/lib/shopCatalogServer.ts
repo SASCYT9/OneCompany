@@ -2033,6 +2033,15 @@ export async function getShopProductsByBrandServer(
     return cached.products.map(applyShopProductImageOverrides);
   }
 
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    const snapshotProducts = await getShopProductsServer();
+    const products = snapshotProducts.filter((product) =>
+      predicate ? predicate(product) : defaultBrandMatch(product, cacheKey)
+    );
+    brandProductsCache.set(cacheKey, { products, ts: now });
+    return products.map(applyShopProductImageOverrides);
+  }
+
   const inflight = brandProductsPromise.get(cacheKey);
   if (inflight) return inflight;
 
@@ -2237,6 +2246,9 @@ export function getRacechipProductsServer() {
 const RACECHIP_LIGHT_CACHE_KEY = "racechip-light";
 
 export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return (await getRacechipProductsServer()).map(projectShopProductForListGrid);
+  }
   const now = Date.now();
 
   const cached = brandProductsCache.get(RACECHIP_LIGHT_CACHE_KEY);
@@ -2650,6 +2662,7 @@ export type ShopProductSitemapEntry = {
 
 let sitemapEntriesCache: { entries: ShopProductSitemapEntry[]; ts: number } | null = null;
 const SITEMAP_CACHE_TTL_MS = 10 * 60 * 1000;
+const MIN_SAFE_SITEMAP_PRODUCT_COUNT = 10_000;
 
 /**
  * Lightweight list of all published products for `app/sitemap.ts`.
@@ -2661,6 +2674,33 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
   const now = Date.now();
   if (sitemapEntriesCache && now - sitemapEntriesCache.ts < SITEMAP_CACHE_TTL_MS) {
     return sitemapEntriesCache.entries;
+  }
+
+  // A production build already has a fail-closed catalogue snapshot generated
+  // by `prebuild-shop-snapshot.ts`. Reuse it here instead of opening a second
+  // large database query while Next prerenders `/sitemap.xml`.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    const snapshotPath = path.join(process.cwd(), "data", "shop-products.snapshot.json");
+    if (!fs.existsSync(snapshotPath)) {
+      throw new Error("[sitemap] product snapshot is missing during production build");
+    }
+
+    const parsed = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
+    if (!Array.isArray(parsed) || parsed.length < MIN_SAFE_SITEMAP_PRODUCT_COUNT) {
+      throw new Error(
+        `[sitemap] refusing build snapshot with ${Array.isArray(parsed) ? parsed.length : 0} products; expected at least ${MIN_SAFE_SITEMAP_PRODUCT_COUNT}`
+      );
+    }
+
+    const snapshotRows = parsed.map((product: ShopProduct) => ({
+      slug: product.slug,
+      brand: product.brand ?? "",
+      vendor: product.vendor ?? undefined,
+      tags: product.tags ?? [],
+      productType: product.productType ?? undefined,
+    }));
+    sitemapEntriesCache = { entries: snapshotRows, ts: now };
+    return snapshotRows;
   }
 
   let rows: ShopProductSitemapEntry[] = [];
@@ -2689,15 +2729,30 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
       productType: r.productType ?? undefined,
       updatedAt: r.updatedAt,
     }));
-  } catch {
+  } catch (error) {
     // DB unavailable — fall back to static catalogue
-    rows = SHOP_PRODUCTS.map((p) => ({
+    const fallbackRows = SHOP_PRODUCTS.map((p) => ({
       slug: p.slug,
       brand: p.brand,
       vendor: p.vendor,
       tags: p.tags ?? [],
       productType: p.productType,
     }));
+    if (fallbackRows.length < MIN_SAFE_SITEMAP_PRODUCT_COUNT) {
+      console.error("[sitemap] refusing to publish a truncated product sitemap", {
+        fallbackCount: fallbackRows.length,
+        minimum: MIN_SAFE_SITEMAP_PRODUCT_COUNT,
+        error,
+      });
+      throw error;
+    }
+    rows = fallbackRows;
+  }
+
+  if (rows.length < MIN_SAFE_SITEMAP_PRODUCT_COUNT) {
+    throw new Error(
+      `[sitemap] refusing to publish ${rows.length} products; expected at least ${MIN_SAFE_SITEMAP_PRODUCT_COUNT}`
+    );
   }
 
   sitemapEntriesCache = { entries: rows, ts: Date.now() };
@@ -2982,6 +3037,11 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
 });
 
 export async function getTopProductSlugsByBrand(brand: string, limit = 25): Promise<string[]> {
+  // Product pages are discovered through the sitemap and rendered with
+  // 24-hour ISR on first request. Avoid prebuilding hundreds of PDPs (and the
+  // corresponding database reads) in Vercel's build environment.
+  if (process.env.NEXT_PHASE === "phase-production-build") return [];
+
   try {
     const rows = await prisma.shopProduct.findMany({
       where: {

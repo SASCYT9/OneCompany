@@ -1,22 +1,15 @@
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BrabusVehicleFilter from "../../components/BrabusVehicleFilter";
 import BrabusVideoBackground from "../../components/BrabusVideoBackground";
 import { getBrabusProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
-import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
-import { isBrabusExhaustProduct } from "@/lib/brabusCatalogExclusions";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 import Link from "next/link";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
@@ -47,17 +40,12 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, allBrabusProducts] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, allBrabusProducts] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     getBrabusProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const allFilteredBrabusProducts = allBrabusProducts.map(projectShopProductForListGrid);
   const {
@@ -67,7 +55,9 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
   } = paginateProducts(allFilteredBrabusProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/brabus/products");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/brabus/products");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -122,7 +112,7 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
         </div>
         <BrabusVehicleFilter
           locale={resolvedLocale}
-          products={allFilteredBrabusProducts}
+          products={brabusProducts}
           pageProducts={brabusProducts}
           currentPage={currentPage}
           totalPages={totalPages}

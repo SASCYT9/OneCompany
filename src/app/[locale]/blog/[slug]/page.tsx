@@ -17,9 +17,17 @@ import { ArticleSchema, BreadcrumbSchema, ProductSchema } from "@/components/seo
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 export const dynamic = "force-static";
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const content = await readSiteContent();
+  return content.blog.posts
+    .filter((post) => post.status === "published")
+    .map((post) => ({ slug: post.slug }));
 }
 
 const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale) => {

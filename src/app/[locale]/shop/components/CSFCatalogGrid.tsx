@@ -17,6 +17,7 @@ import {
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import {
   extractCsfCatalogFitment,
   detectCsfStockState,
@@ -251,13 +252,14 @@ function csfFieldClass(isActive: boolean, isDisabled?: boolean) {
 
 export default function CSFCatalogGrid({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
   basePath,
   viewerContext: ssrViewerContext,
 }: Props) {
+  const products = useDeferredCatalogProducts(initialProducts, "csf");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

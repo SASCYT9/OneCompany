@@ -23,6 +23,7 @@ import {
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   buildShopSearchText,
@@ -73,7 +74,7 @@ function formatResultCount(locale: SupportedLocale, count: number) {
 
 export default function OhlinsVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
@@ -82,6 +83,7 @@ export default function OhlinsVehicleFilter({
   alternativeSearchItems = [],
   viewerContext: ssrViewerContext,
 }: Props) {
+  const products = useDeferredCatalogProducts(initialProducts, "ohlins");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
@@ -98,6 +100,9 @@ export default function OhlinsVehicleFilter({
   const [activeChassis, setActiveChassis] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [remoteAlternativeItems, setRemoteAlternativeItems] = useState<ShopAlternativeSearchItem[]>(
+    []
+  );
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
 
   const hasActiveFilters =
@@ -315,15 +320,63 @@ export default function OhlinsVehicleFilter({
     rates,
   ]);
 
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2 || filtered.length > 0) {
+      setRemoteAlternativeItems([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      const params = new URLSearchParams({ q: query, locale, limit: "12" });
+      fetch(`/api/shop/stock/search?${params.toString()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) return [];
+          const payload = (await response.json()) as {
+            data?: Array<{
+              slug: string;
+              href?: string;
+              name: string;
+              brand: string;
+              partNumber?: string;
+              thumbnail?: string | null;
+            }>;
+          };
+          return (payload.data ?? [])
+            .filter((item) => item.brand.toLowerCase().replace("ö", "o") !== "ohlins")
+            .map((item) => ({
+              slug: item.slug,
+              href: item.href ?? `/${locale}/shop/${item.slug}`,
+              brand: item.brand,
+              sku: item.partNumber ?? "",
+              image: item.thumbnail ?? null,
+              title: { ua: item.name, en: item.name },
+              searchText: buildShopSearchText([item.name, item.brand, item.partNumber]),
+            }));
+        })
+        .then(setRemoteAlternativeItems)
+        .catch(() => {});
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [filtered.length, locale, searchQuery]);
+
   const alternativeMatches = useMemo(() => {
     if (!searchQuery.trim() || filtered.length > 0) {
       return [];
     }
 
-    return alternativeSearchItems
+    return [...alternativeSearchItems, ...remoteAlternativeItems]
       .filter((item) => matchesShopSearchQuery(item.searchText, searchQuery))
       .slice(0, 8);
-  }, [alternativeSearchItems, filtered.length, searchQuery]);
+  }, [alternativeSearchItems, filtered.length, remoteAlternativeItems, searchQuery]);
 
   const enrichedProductsBySlug = useMemo(() => {
     const map = new Map<string, (typeof enrichedProducts)[number]>();

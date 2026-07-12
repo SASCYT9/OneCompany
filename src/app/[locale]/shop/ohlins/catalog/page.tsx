@@ -1,26 +1,16 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import {
-  buildShopSearchText,
-  hasShopVehicleSearchSignal,
-  type ShopAlternativeSearchItem,
-} from "@/lib/shopSearch";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import Link from "next/link";
 import OhlinsVehicleFilter from "../../components/OhlinsVehicleFilter";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR with on-demand rendering — searchParams.page drives server-side pagination.
 export const revalidate = 3600;
@@ -51,31 +41,18 @@ function isOhlinsProduct(product: { brand?: string | null; vendor?: string | nul
   return brand === "ohlins" || brand === "öhlins" || vendor === "ohlins";
 }
 
-function resolveAlternativeSearchImage(image: string | null | undefined) {
-  const value = image?.trim();
-  if (!value || value.includes("image-coming-soon")) {
-    return null;
-  }
-  return value;
-}
-
 export default async function OhlinsCatalogPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, products] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, products] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     getShopProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const allOhlinsProducts = products.filter(isOhlinsProduct);
   // Hero vehicle tree must span the full catalog so make/model dropdowns stay
@@ -86,59 +63,11 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
     currentPage,
     totalPages,
   } = paginateProducts(allOhlinsProducts, requestedPage, COLLECTION_PAGE_SIZE);
-  const alternativeSearchItems = products.reduce<ShopAlternativeSearchItem[]>((items, product) => {
-    if (isOhlinsProduct(product)) {
-      return items;
-    }
-
-    const titleUa = localizeShopProductTitle("ua", product);
-    const titleEn = localizeShopProductTitle("en", product);
-    const collectionParts =
-      product.collections?.flatMap((collection) => [
-        collection.handle,
-        collection.title.ua,
-        collection.title.en,
-        collection.brand ?? "",
-      ]) ?? [];
-    const searchText = buildShopSearchText([
-      titleUa,
-      titleEn,
-      product.title.ua,
-      product.title.en,
-      product.sku,
-      product.slug,
-      product.brand,
-      product.vendor,
-      product.productType,
-      product.category.ua,
-      product.category.en,
-      product.collection.ua,
-      product.collection.en,
-      ...collectionParts,
-      ...(product.tags ?? []),
-    ]);
-
-    if (!hasShopVehicleSearchSignal(searchText)) {
-      return items;
-    }
-
-    items.push({
-      slug: product.slug,
-      href: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
-      brand: product.brand,
-      sku: product.sku,
-      image: resolveAlternativeSearchImage(product.image),
-      title: {
-        ua: titleUa,
-        en: titleEn,
-      },
-      searchText,
-    });
-    return items;
-  }, []);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/ohlins/catalog");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/ohlins/catalog");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -157,7 +86,7 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
       url: absoluteUrl(listingPath),
     },
   ];
-  const itemListEntries = allOhlinsProducts.map((product) => ({
+  const itemListEntries = ohlinsProducts.map((product) => ({
     slug: product.slug,
     title: localizeShopProductTitle(resolvedLocale, product),
     path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
@@ -181,7 +110,6 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] opacity-[0.03] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"
         style={{ background: "#c29d59" }}
       />
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* Back Link — no z-50 here: it would tie with the mobile filter
@@ -209,13 +137,12 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
           >
             <OhlinsVehicleFilter
               locale={resolvedLocale}
-              products={allOhlinsProducts}
+              products={ohlinsProducts}
               pageProducts={ohlinsProducts}
               currentPage={currentPage}
               totalPages={totalPages}
               basePath={`/${resolvedLocale}/shop/ohlins/catalog`}
               vehicles={ohlinsHeroVehicles}
-              alternativeSearchItems={alternativeSearchItems}
               viewerContext={viewerContext}
             />
           </Suspense>

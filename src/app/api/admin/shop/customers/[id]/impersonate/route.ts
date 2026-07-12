@@ -9,16 +9,18 @@
  * the overlay cookie.
  */
 
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   SHOP_IMPERSONATION_COOKIE,
+  SHOP_IMPERSONATION_MARKER_COOKIE,
+  SHOP_IMPERSONATION_MARKER_COOKIE_OPTIONS,
   SHOP_IMPERSONATION_COOKIE_OPTIONS,
   createImpersonationToken,
-} from '@/lib/shopImpersonation';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/shopImpersonation";
+import { prisma } from "@/lib/prisma";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -33,12 +35,12 @@ export async function POST(_request: NextRequest, context: RouteContext) {
       select: { id: true, email: true, firstName: true, lastName: true, isActive: true },
     });
     if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     }
     if (!customer.isActive) {
       return NextResponse.json(
-        { error: 'Cannot impersonate a deactivated customer' },
-        { status: 400 },
+        { error: "Cannot impersonate a deactivated customer" },
+        { status: 400 }
       );
     }
 
@@ -49,9 +51,9 @@ export async function POST(_request: NextRequest, context: RouteContext) {
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'customer.impersonation.start',
-      entityType: 'shop.customer',
+      scope: "shop",
+      action: "customer.impersonation.start",
+      entityType: "shop.customer",
       entityId: customer.id,
       metadata: {
         email: customer.email,
@@ -66,17 +68,22 @@ export async function POST(_request: NextRequest, context: RouteContext) {
       expiresAt: expiresAt.toISOString(),
     });
     response.cookies.set(SHOP_IMPERSONATION_COOKIE, token, SHOP_IMPERSONATION_COOKIE_OPTIONS);
+    response.cookies.set(
+      SHOP_IMPERSONATION_MARKER_COOKIE,
+      "1",
+      SHOP_IMPERSONATION_MARKER_COOKIE_OPTIONS
+    );
     return response;
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin impersonate', error);
-    return NextResponse.json({ error: 'Failed to start impersonation' }, { status: 500 });
+    console.error("Admin impersonate", error);
+    return NextResponse.json({ error: "Failed to start impersonation" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

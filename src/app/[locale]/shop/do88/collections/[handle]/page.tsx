@@ -17,6 +17,7 @@ import { notFound } from "next/navigation";
 // Anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 // NOTE: cannot be `force-static` — that forces searchParams empty, breaking ?brand=&keyword= filtering.
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;

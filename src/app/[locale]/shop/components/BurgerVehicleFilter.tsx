@@ -10,6 +10,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { useDeferredCatalogProducts } from "@/lib/useDeferredCatalogProducts";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import fitmentOptions from "../data/burgerFitmentOptions.json";
 import BurgerSelect from "./BurgerSelect";
@@ -87,7 +88,7 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 export default function BurgerVehicleFilter({
   locale,
-  products,
+  products: initialProducts,
   pageProducts,
   currentPage,
   totalPages,
@@ -95,6 +96,7 @@ export default function BurgerVehicleFilter({
   viewerContext: ssrViewerContext,
   pickerSlot,
 }: Props) {
+  const products = useDeferredCatalogProducts(initialProducts, "burger");
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

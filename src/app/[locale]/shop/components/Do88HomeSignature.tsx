@@ -11,7 +11,6 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
   return (
     <main className="dark min-h-[85vh] bg-[#030303] text-foreground relative flex flex-col items-center justify-center overflow-hidden pb-24 border-b border-[#111]">
       {/* Heavy Film Grain */}
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.08] mix-blend-overlay pointer-events-none z-1"></div>
       {/* Animated Cinematic BW Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div

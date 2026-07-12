@@ -1,15 +1,15 @@
-import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   getOrCreateShopSettings,
   normalizeShopSettingsPayload,
   serializeShopSettings,
-} from '@/lib/shopAdminSettings';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/shopAdminSettings";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -19,14 +19,14 @@ export async function GET() {
     const settings = await getOrCreateShopSettings(prisma);
     return NextResponse.json(serializeShopSettings(settings));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop settings get', error);
-    return NextResponse.json({ error: 'Failed to load shop settings' }, { status: 500 });
+    console.error("Admin shop settings get", error);
+    return NextResponse.json({ error: "Failed to load shop settings" }, { status: 500 });
   }
 }
 
@@ -39,9 +39,9 @@ export async function PATCH(request: NextRequest) {
     const payload = normalizeShopSettingsPayload(body);
 
     const settings = await prisma.shopSettings.upsert({
-      where: { key: 'shop' },
+      where: { key: "shop" },
       create: {
-        key: 'shop',
+        key: "shop",
         b2bVisibilityMode: payload.b2bVisibilityMode,
         defaultB2bDiscountPercent: payload.defaultB2bDiscountPercent,
         defaultCurrency: payload.defaultCurrency,
@@ -83,16 +83,20 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    revalidatePath('/[locale]/shop', 'layout');
+    revalidatePath("/[locale]/shop", "layout");
+    revalidateTag("shop-settings", "max");
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'settings.update',
-      entityType: 'shop.settings',
+      scope: "shop",
+      action: "settings.update",
+      entityType: "shop.settings",
       entityId: settings.key,
       metadata: {
         b2bVisibilityMode: settings.b2bVisibilityMode,
-        defaultB2bDiscountPercent: settings.defaultB2bDiscountPercent != null ? Number(settings.defaultB2bDiscountPercent) : null,
+        defaultB2bDiscountPercent:
+          settings.defaultB2bDiscountPercent != null
+            ? Number(settings.defaultB2bDiscountPercent)
+            : null,
         defaultCurrency: settings.defaultCurrency,
         enabledCurrencies: settings.enabledCurrencies,
       },
@@ -100,13 +104,13 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(serializeShopSettings(settings));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop settings update', error);
-    return NextResponse.json({ error: 'Failed to update shop settings' }, { status: 500 });
+    console.error("Admin shop settings update", error);
+    return NextResponse.json({ error: "Failed to update shop settings" }, { status: 500 });
   }
 }

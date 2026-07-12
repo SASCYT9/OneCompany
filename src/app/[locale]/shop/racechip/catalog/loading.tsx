@@ -7,7 +7,6 @@ export default function RacechipCatalogLoading() {
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden font-sans">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-[#ff4a00] opacity-[0.02] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block" />
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* Spinner band centred where the filter row will appear */}

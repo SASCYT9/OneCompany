@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
@@ -13,16 +12,12 @@ import {
   // RSC payload from ~6 MB to ~600 KB and cold MISS from ~8 s to ~1 s.
   getRacechipProductsLightServer,
 } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
 import RacechipVehicleFilter from "../../components/RacechipVehicleFilter";
-import {
-  ShopPaginationNav,
-  paginateProducts,
-  COLLECTION_PAGE_SIZE,
-} from "../../components/ShopPaginationNav";
+import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 import "../racechip-shop.css";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // Re-enable ISR: previously this route was force-dynamic because the cross-brand
 // fetch produced a ~25 MB RSC payload (exceeded Vercel's 19 MB ISR fallback).
@@ -61,8 +56,8 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
   const sp = searchParams ? await searchParams : {};
   const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
-  const [settingsRecord, allRacechipProducts] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+  const [settingsRuntime, allRacechipProducts] = await Promise.all([
+    getPublicShopSettingsRuntime(),
     // Light fetcher already returns the projected shape — no need to map
     // through projectShopProductForVehicleCatalog like the old code path did.
     getRacechipProductsLightServer(),
@@ -73,15 +68,12 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
     totalPages,
   } = paginateProducts(allRacechipProducts, requestedPage, COLLECTION_PAGE_SIZE);
 
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
   const isUa = resolvedLocale === "ua";
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/racechip/catalog");
+  const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/racechip/catalog");
+  const listingPath =
+    currentPage === 1 ? listingBasePath : `${listingBasePath}/page/${currentPage}`;
   const breadcrumbs = [
     {
       name: isUa ? "Головна" : "Home",
@@ -103,8 +95,7 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
   // Racechip catalog has 5k+ entries; cap ItemList JSON-LD at 500 so the HTML
   // payload stays manageable while still giving Google a sizable link graph.
   // Remaining products are reachable via sitemap and intra-listing pagination.
-  const ITEMLIST_CAP = 500;
-  const itemListEntries = allRacechipProducts.slice(0, ITEMLIST_CAP).map((product) => ({
+  const itemListEntries = racechipProducts.map((product) => ({
     slug: product.slug,
     title: localizeShopProductTitle(resolvedLocale, product),
     path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
@@ -122,7 +113,6 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
       <JsonLd schema={itemListSchema} />
       {/* Atmospheric layer — dark only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-[#ff4a00] opacity-[0.02] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"></div>
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none z-0 hidden dark:block"></div>
 
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         {/* Back Link */}
@@ -147,7 +137,7 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
           >
             <RacechipVehicleFilter
               locale={resolvedLocale}
-              products={allRacechipProducts}
+              products={racechipProducts}
               pageProducts={racechipProducts}
               currentPage={currentPage}
               totalPages={totalPages}

@@ -19,6 +19,7 @@ export function HeroVideoWrapper({
 }) {
   const [disabled, setDisabled] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+  const [interactionReady, setInteractionReady] = useState(false);
   const t = useTranslations("admin");
 
   useEffect(() => {
@@ -47,10 +48,25 @@ export function HeroVideoWrapper({
   }, []);
 
   useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
+      .connection;
+    if (connection?.saveData || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const enableVideo = () => setInteractionReady(true);
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart", "scroll"];
+    events.forEach((event) =>
+      window.addEventListener(event, enableVideo, { once: true, passive: true })
+    );
+    return () => events.forEach((event) => window.removeEventListener(event, enableVideo));
+  }, []);
+
+  useEffect(() => {
     setVideoReady(false);
   }, [src, mobileSrc, serverEnabled, disabled]);
 
-  const enabled = serverEnabled && !disabled;
+  const enabled = serverEnabled && !disabled && interactionReady;
 
   return (
     <>
@@ -81,7 +97,7 @@ export function HeroVideoWrapper({
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="none"
             className={`h-full w-full object-cover transition-opacity duration-700 blur-sm dark:blur-0 ${
               videoReady ? "opacity-70 dark:opacity-30" : "opacity-0"
             }`}
@@ -108,7 +124,6 @@ export function HeroVideoWrapper({
               />
             )}
             <source src={src} type={inferVideoMimeType(src)} />
-            <track kind="captions" />
           </video>
         )}
 

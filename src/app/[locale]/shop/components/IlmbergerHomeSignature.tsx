@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,6 +39,21 @@ export default function IlmbergerHomeSignature({
 }: Props) {
   const isUa = locale === "ua";
   const router = useRouter();
+  const [videoEnabled, setVideoEnabled] = useState(false);
+
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
+      .connection;
+    if (connection?.saveData || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const enable = () => setVideoEnabled(true);
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart", "scroll"];
+    events.forEach((event) =>
+      window.addEventListener(event, enable, { once: true, passive: true })
+    );
+    return () => events.forEach((event) => window.removeEventListener(event, enable));
+  }, []);
 
   const productCountByModel = useMemo(() => {
     const counts = new Map<string, number>();
@@ -110,14 +125,14 @@ export default function IlmbergerHomeSignature({
             loading="eager"
             fetchPriority="high"
           />
-          {ILMBERGER_HERO.heroVideoUrl && (
+          {ILMBERGER_HERO.heroVideoUrl && videoEnabled && (
             <video
               src={ILMBERGER_HERO.heroVideoUrl}
               autoPlay
               loop
               muted
               playsInline
-              preload="auto"
+              preload="none"
             />
           )}
         </div>
