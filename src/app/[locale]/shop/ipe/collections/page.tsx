@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -12,12 +13,11 @@ import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import IpeVehicleFilter from "../../components/IpeVehicleFilter";
 import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
-// ISR with on-demand rendering — searchParams.page drives server-side pagination.
+// ISR with path-based pagination; client-side filter queries do not opt the route into SSR.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,11 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function IpeCollectionsPage({ params, searchParams }: Props) {
+export async function renderIpeCollectionsPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, ipeRows] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -50,7 +48,9 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
     pageProducts: ipeProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allIpeProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -92,6 +92,8 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
     <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">{resolvedLocale === "ua" ? "Каталог iPE" : "iPE catalog"}</h1>
+      <h2 className="sr-only">{resolvedLocale === "ua" ? "Товари" : "Products"}</h2>
       {/* Cinematic backdrop — only in dark theme; light theme shows clean cream */}
       <div className="fixed inset-0 z-0 hidden dark:block">
         <Image
@@ -138,4 +140,8 @@ export default async function IpeCollectionsPage({ params, searchParams }: Props
       </div>
     </div>
   );
+}
+
+export default function IpeCollectionsPage(props: Props) {
+  return renderIpeCollectionsPage(props);
 }

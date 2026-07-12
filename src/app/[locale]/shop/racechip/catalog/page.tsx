@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
@@ -32,7 +33,6 @@ export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -50,11 +50,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function RaceChipProductsCatalogPage({ params, searchParams }: Props) {
+export async function renderRaceChipProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, allRacechipProducts] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -66,7 +64,9 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
     pageProducts: racechipProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allRacechipProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -111,6 +111,8 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden selection:bg-[#ff4a00] selection:text-white font-sans">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">{isUa ? "Каталог RaceChip" : "RaceChip catalog"}</h1>
+      <h2 className="sr-only">{isUa ? "Товари" : "Products"}</h2>
       {/* Atmospheric layer — dark only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-[#ff4a00] opacity-[0.02] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"></div>
 
@@ -149,4 +151,8 @@ export default async function RaceChipProductsCatalogPage({ params, searchParams
       </div>
     </div>
   );
+}
+
+export default function RaceChipProductsCatalogPage(props: Props) {
+  return renderRaceChipProductsCatalogPage(props);
 }

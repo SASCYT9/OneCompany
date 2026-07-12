@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -12,14 +13,12 @@ import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import AdroCatalogGrid from "../../components/AdroCatalogGrid";
 import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
-// ISR with on-demand rendering — searchParams.page is required for
-// server-side pagination, which `force-static` would strip. Each `?page=N`
-// URL becomes its own cache entry under `revalidate`.
+// ISR with path-based pagination. Query filters are client-side and receive
+// an X-Robots-Tag from next.config without making the page dynamic.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -37,12 +36,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function AdroCollectionsPage({ params, searchParams }: Props) {
+export async function renderAdroCollectionsPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, adroRows] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -53,7 +50,9 @@ export default async function AdroCollectionsPage({ params, searchParams }: Prop
     pageProducts: adroProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allAdroProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -137,4 +136,8 @@ export default async function AdroCollectionsPage({ params, searchParams }: Prop
       </div>
     </div>
   );
+}
+
+export default function AdroCollectionsPage(props: Props) {
+  return renderAdroCollectionsPage(props);
 }

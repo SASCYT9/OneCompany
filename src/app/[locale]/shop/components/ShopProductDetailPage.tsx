@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -32,7 +32,10 @@ import {
 } from "@/lib/shopPricingAudience";
 import { extractShopProductDescriptionSections } from "@/lib/shopProductDescription";
 import { buildDo88EnrichedDescription } from "@/lib/do88DescriptionEnricher";
-import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import {
+  buildShopStorefrontProductPathForProduct,
+  resolveShopStorefrontSegment,
+} from "@/lib/shopStorefrontRouting";
 import { BurgerShopProductDetailLayout } from "./BurgerShopProductDetailLayout";
 import { BrabusShopProductDetailLayout } from "./BrabusShopProductDetailLayout";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
@@ -103,6 +106,23 @@ type Props = {
   slug: string;
   mode?: ProductPageMode;
 };
+
+export async function requireCanonicalStorefrontProduct({
+  locale,
+  slug,
+  mode = "default",
+}: Props): Promise<ShopProduct> {
+  const product = await getShopProductBySlugServer(slug);
+  if (!product) notFound();
+
+  const expectedSegment = mode === "default" ? null : mode;
+  const actualSegment = resolveShopStorefrontSegment(product);
+  if (actualSegment !== expectedSegment) {
+    permanentRedirect(buildShopStorefrontProductPathForProduct(resolveLocale(locale), product));
+  }
+
+  return product;
+}
 
 /**
  * Pick the right brand-scoped fetcher for the related-product pool. Avoids
@@ -377,7 +397,7 @@ export async function getShopProductPageMetadata({
   mode = "default",
 }: Props): Promise<Metadata> {
   const resolvedLocale = resolveLocale(locale);
-  const product = await getShopProductBySlugServer(slug);
+  const product = await requireCanonicalStorefrontProduct({ locale, slug, mode });
 
   let pageSlug = `shop/${slug}`;
   if (mode === "urban") pageSlug = `shop/urban/products/${slug}`;
@@ -385,18 +405,6 @@ export async function getShopProductPageMetadata({
   if (mode === "burger") pageSlug = `shop/burger/products/${slug}`;
   if (mode === "ipe") pageSlug = `shop/ipe/products/${slug}`;
   if (mode === "adro") pageSlug = `shop/adro/products/${slug}`;
-
-  if (!product) {
-    notFound();
-    return buildPageMetadata(resolvedLocale, pageSlug, {
-      title:
-        resolvedLocale === "ua"
-          ? "Товар не знайдено | One Company Shop"
-          : "Product not found | One Company Shop",
-      description:
-        resolvedLocale === "ua" ? "Сторінка товару недоступна." : "Product page is unavailable.",
-    });
-  }
 
   pageSlug = buildShopStorefrontProductPathForProduct(resolvedLocale, product).replace(
     `/${resolvedLocale}/`,
@@ -425,11 +433,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
-  const product = await getShopProductBySlugServer(slug);
-
-  if (!product) {
-    notFound();
-  }
+  const product = await requireCanonicalStorefrontProduct({ locale, slug, mode });
 
   // ONLY Brabus + Burger layouts embed the `relatedProducts` array (lines
   // 787, 798 below — they have custom-branded "recommended combinations"

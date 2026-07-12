@@ -129,13 +129,16 @@ export function paginateProducts<T>(
   allProducts: T[],
   pageNumber: number,
   pageSize: number = COLLECTION_PAGE_SIZE
-): { pageProducts: T[]; currentPage: number; totalPages: number } {
+): { pageProducts: T[]; currentPage: number; totalPages: number; isValidPage: boolean } {
   const totalPages = Math.max(1, Math.ceil(allProducts.length / pageSize));
-  const currentPage = Math.min(Math.max(1, pageNumber), totalPages);
-  const start = (currentPage - 1) * pageSize;
+  const isValidPage =
+    Number.isSafeInteger(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages;
+  const currentPage = pageNumber;
+  const start = isValidPage ? (currentPage - 1) * pageSize : 0;
   return {
-    pageProducts: allProducts.slice(start, start + pageSize),
+    pageProducts: isValidPage ? allProducts.slice(start, start + pageSize) : [],
     currentPage,
     totalPages,
+    isValidPage,
   };
 }

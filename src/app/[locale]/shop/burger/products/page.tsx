@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BurgerVehicleFilter from "../../components/BurgerVehicleFilter";
 import BurgerHeroPicker from "../../components/BurgerHeroPicker";
@@ -12,12 +13,11 @@ import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPag
 import Link from "next/link";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
-// ISR with on-demand rendering — searchParams.page drives server-side pagination.
+// ISR with path-based pagination; client-side filter queries do not opt the route into SSR.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,11 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function BurgerProductsCatalogPage({ params, searchParams }: Props) {
+export async function renderBurgerProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, burgerRows] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -50,7 +48,9 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
     pageProducts: burgerProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allBurgerProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -92,6 +92,12 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
     <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">
+        {resolvedLocale === "ua"
+          ? "Каталог товарів Burger Motorsports"
+          : "Burger Motorsports product catalog"}
+      </h1>
+      <h2 className="sr-only">{resolvedLocale === "ua" ? "Товари" : "Products"}</h2>
       <div style={{ paddingTop: "100px" }}>
         <div className="burger-back">
           <Link href={`/${locale}/shop/burger`} className="burger-back__link">
@@ -118,4 +124,8 @@ export default async function BurgerProductsCatalogPage({ params, searchParams }
       </div>
     </div>
   );
+}
+
+export default function BurgerProductsCatalogPage(props: Props) {
+  return renderBurgerProductsCatalogPage(props);
 }

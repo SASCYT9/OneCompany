@@ -11,6 +11,7 @@ import {
   serializeAdminProduct,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
+import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
 import { planVariantMutations } from "@/lib/shopAdminCatalogMutations";
 import {
   buildAdminProductArchiveMutation,
@@ -417,6 +418,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     try {
+      revalidateShopStorefrontProduct(product);
       const pathUa = buildShopStorefrontProductPath("ua", product);
       const pathEn = buildShopStorefrontProductPath("en", product);
       revalidatePath(pathUa);
@@ -426,6 +428,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
       if (currentProduct.slug && currentProduct.slug !== product.slug) {
         const oldProductDummy = { ...product, slug: currentProduct.slug };
+        revalidateShopStorefrontProduct(oldProductDummy);
         const oldPathUa = buildShopStorefrontProductPath("ua", oldProductDummy);
         const oldPathEn = buildShopStorefrontProductPath("en", oldProductDummy);
         revalidatePath(oldPathUa);
@@ -495,6 +498,7 @@ export async function DELETE(
 
       try {
         if (product) {
+          revalidateShopStorefrontProduct(product);
           const pathUa = buildShopStorefrontProductPath("ua", product);
           const pathEn = buildShopStorefrontProductPath("en", product);
           revalidatePath(pathUa);
@@ -532,6 +536,7 @@ export async function DELETE(
     });
 
     try {
+      revalidateShopStorefrontProduct(archived);
       const pathUa = buildShopStorefrontProductPath("ua", archived);
       const pathEn = buildShopStorefrontProductPath("en", archived);
       revalidatePath(pathUa);

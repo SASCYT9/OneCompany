@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -12,12 +13,11 @@ import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPag
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
-// ISR with on-demand rendering — searchParams.page drives server-side pagination.
+// ISR with path-based pagination; client-side filter queries do not opt the route into SSR.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -41,11 +41,9 @@ function isOhlinsProduct(product: { brand?: string | null; vendor?: string | nul
   return brand === "ohlins" || brand === "öhlins" || vendor === "ohlins";
 }
 
-export default async function OhlinsCatalogPage({ params, searchParams }: Props) {
+export async function renderOhlinsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, products] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -62,7 +60,9 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
     pageProducts: ohlinsProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allOhlinsProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const isUa = resolvedLocale === "ua";
   const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/ohlins/catalog");
@@ -105,6 +105,8 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
     >
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">{isUa ? "Каталог Öhlins" : "Öhlins suspension catalog"}</h1>
+      <h2 className="sr-only">{isUa ? "Товари" : "Products"}</h2>
       {/* Stealth Wealth Atmosphere — Öhlins Gold, dark only */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] opacity-[0.03] blur-[180px] pointer-events-none z-0 rounded-full hidden dark:block"
@@ -150,4 +152,8 @@ export default async function OhlinsCatalogPage({ params, searchParams }: Props)
       </div>
     </div>
   );
+}
+
+export default function OhlinsCatalogPage(props: Props) {
+  return renderOhlinsCatalogPage(props);
 }

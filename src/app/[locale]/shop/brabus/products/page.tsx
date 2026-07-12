@@ -1,4 +1,5 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { notFound } from "next/navigation";
 import BrabusVehicleFilter from "../../components/BrabusVehicleFilter";
 import BrabusVideoBackground from "../../components/BrabusVideoBackground";
 import { getBrabusProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
@@ -11,12 +12,11 @@ import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPag
 import Link from "next/link";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
-// ISR with on-demand rendering — searchParams.page drives server-side pagination.
+// ISR with path-based pagination; client-side filter queries do not opt the route into SSR.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -34,11 +34,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function BrabusProductsCatalogPage({ params, searchParams }: Props) {
+export async function renderBrabusProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, allBrabusProducts] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -52,7 +50,9 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
     pageProducts: brabusProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allFilteredBrabusProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const isUa = resolvedLocale === "ua";
   const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/brabus/products");
@@ -92,6 +92,10 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
     <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">
+        {resolvedLocale === "ua" ? "Каталог товарів Brabus" : "Brabus product catalog"}
+      </h1>
+      <h2 className="sr-only">{resolvedLocale === "ua" ? "Товари" : "Products"}</h2>
       {/* Cinematic video backdrop */}
       <div className="fixed inset-0 z-0">
         <BrabusVideoBackground
@@ -122,4 +126,8 @@ export default async function BrabusProductsCatalogPage({ params, searchParams }
       </div>
     </div>
   );
+}
+
+export default function BrabusProductsCatalogPage(props: Props) {
+  return renderBrabusProductsCatalogPage(props);
 }

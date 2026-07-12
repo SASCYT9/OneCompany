@@ -1,4 +1,4 @@
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -94,9 +94,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               serverEnabled={videoConfig.heroEnabled ?? true}
             />
           ) : null}
-          <Suspense fallback={<div className="h-20 bg-black" />}>
-            <Header />
-          </Suspense>
+          <Header />
           <main id="main-content" className="grow relative z-10">
             {children}
           </main>

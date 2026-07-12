@@ -131,6 +131,28 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
   "wiki/**/*",
 ];
 
+const FILTERED_CATALOG_SOURCE =
+  "/:locale(ua|en)/shop/:store(adro|brabus|burger|csf|girodisc|ipe|ohlins|racechip)/:surface(collections|products|catalog)/:path*";
+const STOREFRONT_FILTER_QUERY_KEYS = [
+  "body",
+  "brand",
+  "category",
+  "chassis",
+  "engine",
+  "line",
+  "make",
+  "material",
+  "model",
+  "page",
+  "price",
+  "q",
+  "sort",
+  "spec",
+  "stock",
+  "type",
+  "year",
+];
+
 const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
   "public/images/shop/urban/**/*",
   "public/images/shop/ilmberger/**/*",
@@ -349,6 +371,13 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      ...STOREFRONT_FILTER_QUERY_KEYS.map((key) => ({
+        // Query filters share the cacheable canonical listing HTML, while the
+        // routing layer keeps every filtered permutation out of the index.
+        source: FILTERED_CATALOG_SOURCE,
+        has: [{ type: "query" as const, key }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+      })),
       {
         source: "/:path*",
         headers: [
@@ -457,6 +486,27 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async rewrites() {
+    return {
+      beforeFiles: PAGED_LISTING_PATHS.map((listingPath) => {
+        const [, , store, surface] = listingPath.split("/");
+        return {
+          source: `/:locale(ua|en)${listingPath}`,
+          destination: `/api/internal/seo-pagination/:locale/${store}/${surface}/:pageNumber`,
+          has: [
+            {
+              type: "query" as const,
+              key: "page",
+              value: "(?<pageNumber>[1-9][0-9]*)",
+            },
+          ],
+        };
+      }),
+      afterFiles: [],
+      fallback: [],
+    };
+  },
+
   async redirects() {
     // 41 brand-detail URLs (`/{locale}/brands/{slug}`) returned 5xx in Jan 2026
     // when the route existed but Prisma failed; route was later removed so they
@@ -502,26 +552,6 @@ const nextConfig: NextConfig = {
     ];
 
     return [
-      ...PAGED_LISTING_PATHS.flatMap((path) => [
-        {
-          source: `/:locale(ua|en)${path}`,
-          destination: `/:locale${path}`,
-          permanent: true,
-          has: [{ type: "query" as const, key: "page", value: "1" }],
-        },
-        {
-          source: `/:locale(ua|en)${path}`,
-          destination: `/:locale${path}/page/:pageNumber`,
-          permanent: true,
-          has: [
-            {
-              type: "query" as const,
-              key: "page",
-              value: "(?<pageNumber>(?:[2-9]|[1-9][0-9]+))",
-            },
-          ],
-        },
-      ]),
       ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
         source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
         destination: `/:locale/shop/${segment}/products/:slug`,

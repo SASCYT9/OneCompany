@@ -1,4 +1,5 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCsfProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { Suspense } from "react";
@@ -13,7 +14,6 @@ export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -31,19 +31,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function CSFCollectionsPage({ params, searchParams }: Props) {
+export async function renderCSFCollectionsPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const allCsfProducts = (await getCsfProductsServer()).map(projectShopProductForListGrid);
   const {
     pageProducts: csfProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allCsfProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const listingBasePath = buildLocalizedPath(resolvedLocale, "/shop/csf/collections");
   const listingPath =
@@ -82,6 +82,8 @@ export default async function CSFCollectionsPage({ params, searchParams }: Props
     <div className="relative min-h-screen bg-background text-foreground">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">{isUa ? "Каталог CSF Racing" : "CSF Racing catalog"}</h1>
+      <h2 className="sr-only">{isUa ? "Товари" : "Products"}</h2>
       {/* Ambient background — dark only */}
       <div className="fixed inset-0 z-0 pointer-events-none hidden dark:block">
         <div className="absolute top-0 left-1/3 w-[900px] h-[500px] bg-[rgba(200,16,46,0.03)] blur-[200px] rounded-full" />
@@ -118,4 +120,8 @@ export default async function CSFCollectionsPage({ params, searchParams }: Props
       </div>
     </div>
   );
+}
+
+export default function CSFCollectionsPage(props: Props) {
+  return renderCSFCollectionsPage(props);
 }

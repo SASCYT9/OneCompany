@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useParams,
-  usePathname,
-  useSelectedLayoutSegments,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, usePathname, useSelectedLayoutSegments, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useRef } from "react";
@@ -80,8 +74,20 @@ export function Header() {
   const isShopRoute = segments[0] === "shop";
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const segmentParam = searchParams.get("segment");
+  const [segmentParam, setSegmentParam] = useState<string | null>(null);
+  const [scopeParam, setScopeParam] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncQueryState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSegmentParam(params.get("segment"));
+      setScopeParam(params.get("scope"));
+    };
+
+    syncQueryState();
+    window.addEventListener("popstate", syncQueryState);
+    return () => window.removeEventListener("popstate", syncQueryState);
+  }, [pathname]);
 
   const handleSegmentChange = (seg: string | null) => {
     const newParams = new URLSearchParams(window.location.search);
@@ -90,6 +96,7 @@ export function Header() {
     } else {
       newParams.delete("segment");
     }
+    setSegmentParam(seg);
     router.push(`${pathname}?${newParams.toString()}`);
   };
 
@@ -139,9 +146,7 @@ export function Header() {
                     ? `/${locale}/shop/${currentBrand}/products`
                     : currentBrand === "akrapovic"
                       ? `/${locale}/shop/akrapovic/collections${
-                          segmentParam === "moto" || searchParams.get("scope") === "moto"
-                            ? "?scope=moto"
-                            : ""
+                          segmentParam === "moto" || scopeParam === "moto" ? "?scope=moto" : ""
                         }`
                       : ["do88", "adro", "csf", "ipe", "ilmberger"].includes(currentBrand)
                         ? `/${locale}/shop/${currentBrand}/collections`

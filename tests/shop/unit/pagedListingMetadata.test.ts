@@ -1,10 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  buildPagedListingMetadata,
-  hasListingFilters,
-  parseListingPage,
-} from "../../../src/lib/pagedListingMetadata";
+import { buildPagedListingMetadata, parseListingPage } from "../../../src/lib/pagedListingMetadata";
+import { paginateProducts } from "../../../src/app/[locale]/shop/components/ShopPaginationNav";
 
 test("parseListingPage accepts positive integer path segments only", () => {
   assert.equal(parseListingPage("2"), 2);
@@ -19,8 +16,7 @@ test("paged listing metadata is self-canonical with reciprocal locale links", ()
     { title: "Catalog", openGraph: { title: "Catalog", type: "website" } },
     "en",
     "shop/racechip/catalog",
-    2,
-    false
+    2
   );
   assert.equal(
     metadata.alternates?.canonical,
@@ -34,9 +30,20 @@ test("paged listing metadata is self-canonical with reciprocal locale links", ()
   assert.equal(metadata.robots, undefined);
 });
 
-test("filter params noindex a page while legacy page query alone does not", () => {
-  assert.equal(hasListingFilters({ page: "2" }), false);
-  assert.equal(hasListingFilters({ page: "2", make: "BMW" }), true);
-  const metadata = buildPagedListingMetadata({}, "ua", "shop/ohlins/catalog", 3, true);
-  assert.deepEqual(metadata.robots, { index: false, follow: true });
+test("pagination never clamps invalid or out-of-range pages to indexable slices", () => {
+  const products = Array.from({ length: 61 }, (_, index) => index + 1);
+
+  assert.deepEqual(paginateProducts(products, 2, 30), {
+    pageProducts: products.slice(30, 60),
+    currentPage: 2,
+    totalPages: 3,
+    isValidPage: true,
+  });
+  assert.deepEqual(paginateProducts(products, 999999, 30), {
+    pageProducts: [],
+    currentPage: 999999,
+    totalPages: 3,
+    isValidPage: false,
+  });
+  assert.equal(paginateProducts(products, 0, 30).isValidPage, false);
 });

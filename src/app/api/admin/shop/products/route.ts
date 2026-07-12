@@ -12,6 +12,7 @@ import {
   serializeAdminProductListItem,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
+import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
 
 import { Prisma } from "@prisma/client";
 
@@ -125,6 +126,7 @@ export async function POST(request: NextRequest) {
       return createdProduct;
     });
     try {
+      revalidateShopStorefrontProduct(product);
       const pathUa = buildShopStorefrontProductPath("ua", product);
       const pathEn = buildShopStorefrontProductPath("en", product);
       revalidatePath(pathUa);

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getGirodiscProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -11,12 +12,11 @@ import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import GirodiscVehicleFilter from "../../components/GirodiscVehicleFilter";
 import { paginateProducts, COLLECTION_PAGE_SIZE } from "../../components/ShopPaginationNav";
 
-// ISR with on-demand rendering — searchParams.page drives server-side pagination.
+// ISR with path-based pagination; client-side filter queries do not opt the route into SSR.
 export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -34,11 +34,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function GirodiscProductsCatalogPage({ params, searchParams }: Props) {
+export async function renderGirodiscProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const sp = searchParams ? await searchParams : {};
-  const requestedPage = Math.max(1, Number(sp?.page) || 1);
 
   const [settingsRuntime, girodiscRows] = await Promise.all([
     getPublicShopSettingsRuntime(),
@@ -49,7 +47,9 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
     pageProducts: girodiscProducts,
     currentPage,
     totalPages,
+    isValidPage,
   } = paginateProducts(allGirodiscProducts, requestedPage, COLLECTION_PAGE_SIZE);
+  if (!isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -91,6 +91,8 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden selection:bg-red-600 selection:text-white font-sans">
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">{isUa ? "Каталог GiroDisc" : "GiroDisc catalog"}</h1>
+      <h2 className="sr-only">{isUa ? "Товари" : "Products"}</h2>
       {/* Stealth Wealth Atmosphere — dark only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-red-600 opacity-[0.03] blur-[200px] pointer-events-none z-0 rounded-full hidden dark:block" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-size-[5px_5px] opacity-10 mix-blend-overlay pointer-events-none z-0 hidden dark:block" />
@@ -132,4 +134,8 @@ export default async function GirodiscProductsCatalogPage({ params, searchParams
       </div>
     </div>
   );
+}
+
+export default function GirodiscProductsCatalogPage(props: Props) {
+  return renderGirodiscProductsCatalogPage(props);
 }
