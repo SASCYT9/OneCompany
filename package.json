@@ -15,6 +15,8 @@
     "postinstall": "npm run prisma:generate",
     "db:migrate": "prisma migrate deploy",
     "test:shop:unit": "tsx --test tests/shop/unit/**/*.test.ts",
+    "test:seo:contracts": "tsx --test tests/shop/unit/shopStorefrontRouting.test.ts tests/shop/unit/pagedListingMetadata.test.ts tests/shop/unit/shopSeoAudit.test.ts tests/shop/unit/shopCatalogOutageSemantics.test.ts",
+    "verify:seo:artifacts": "tsx scripts/verify-seo-build-artifacts.ts",
     "test:shop:integration": "tsx --test tests/shop/integration/**/*.test.ts",
     "test:shop:e2e": "tsx --test tests/shop/e2e/**/*.test.ts",
     "test:shop": "npm run test:shop:unit && npm run test:shop:integration && npm run test:shop:e2e",

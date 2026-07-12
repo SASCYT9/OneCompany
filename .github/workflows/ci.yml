@@ -54,6 +54,8 @@ jobs:
         run: npx prisma generate
       - name: TypeScript
         run: npx tsc --noEmit
+      - name: SEO contracts
+        run: npm run test:seo:contracts
 
   prisma:
     name: Prisma validate
