@@ -261,7 +261,7 @@ export default function IlmbergerBikePicker({
 
       <div className="relative max-w-[1600px] mx-auto px-4 md:px-8">
         {/* ── ACCORDION LIST OF BRANDS ── */}
-        <div className="border border-[var(--il-faint)] rounded-sm overflow-hidden bg-[var(--il-bg-soft)]/20 backdrop-blur-md max-w-[1600px] mx-auto">
+        <div className="border border-[var(--il-faint)] rounded-none overflow-hidden bg-[var(--il-bg-soft)]/20 backdrop-blur-md max-w-[1600px] mx-auto">
           {BRANDS.map((brand) => {
             const isExpanded = expandedBrand === brand.id;
             const previewModels = getBrandPreviewModels(brand.id);

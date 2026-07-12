@@ -855,7 +855,18 @@
   background-image: url("/images/shop/akrapovic/portal-auto.webp?v=3");
 }
 .ak-portal__bg--moto {
-  background-image: url("/images/shop/akrapovic/portal-moto.webp?v=9");
+  background-image: url("/images/shop/akrapovic/portal-moto-mountain-track.webp");
+  background-position: center;
+}
+.ak-portal__bg--moto::after {
+  content: "";
+  position: absolute;
+  inset: 8% -4% 2% 4%;
+  background-image: url("/images/shop/akrapovic/bmw-m1000rr.webp");
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 24px 32px rgba(0, 0, 0, 0.55));
 }
 .ak-portal__side:hover .ak-portal__bg {
   transform: scale(1.05);
