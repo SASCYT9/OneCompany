@@ -1,8 +1,5 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { ShopHubNavigation } from "@/components/shop/ShopHubNavigation";
 import type { SupportedLocale } from "@/lib/seo";
@@ -163,8 +160,6 @@ function StoreCard({
 }
 
 export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
-  const { data: session } = useSession();
-  const isB2bApproved = session?.user?.group === "B2B_APPROVED";
   const isUa = locale === "ua";
   const storesMap = new Map(OUR_STORES.filter((s) => !s.isHidden).map((s) => [s.id, s]));
   const storeCount = storesMap.size;
@@ -281,48 +276,6 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
             ))}
           </div>
         </div>
-
-        {/* ─── B2B STOCK ──────────────────────────────────────── */}
-        {isB2bApproved && (
-          <div className="mt-8 sm:mt-12 lg:mt-16">
-            <Link
-              href={`/${locale}/shop/catalog`}
-              prefetch={false}
-              className="group relative flex flex-col justify-end w-full min-h-[220px] p-5 sm:min-h-[260px] sm:p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-foreground/10 bg-card transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
-            >
-              <Image
-                src="/images/shop/stores/one-company-stock-porsche.png"
-                alt="One Company Stock"
-                fill
-                sizes="100vw"
-                className="object-cover opacity-35 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-55"
-                priority
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-90" />
-              <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
-                <div className="max-w-2xl">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">
-                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                    {t(isUa, "B2B Access Granted", "B2B Доступ Відкрито")}
-                  </div>
-                  <h2 className="mb-2 text-2xl font-light uppercase tracking-tight text-white sm:text-3xl md:text-5xl">
-                    One Company Stock
-                  </h2>
-                  <p className="max-w-2xl text-sm font-light leading-relaxed text-white/75 md:text-base">
-                    {t(
-                      isUa,
-                      "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock.",
-                      "Спеціалізований B2B-портал складу. Отримуйте миттєвий доступ до залишків, гуртових цін та оформлюйте замовлення."
-                    )}
-                  </p>
-                </div>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/75 backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary md:h-14 md:w-14">
-                  <ArrowRight className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
       </section>
     </div>
   );

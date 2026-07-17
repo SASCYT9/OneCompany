@@ -59,6 +59,79 @@ final result: passed
 
 ---
 
+# Titanium Pressure Pulse loading reveal — 2026-07-18
+
+source visual truth path:
+
+- C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/call_h087OeFbNyX36BwBvJskIGqn.png
+
+implementation screenshot path:
+
+- blocked: the Codex in-app browser connection failed to initialize (`Cannot redefine property: process`); direct local Playwright capture still requires explicit user approval.
+
+viewport and state:
+
+- Intended desktop comparison: 1440x1024, Ukrainian `/ua`, initial reveal.
+- Intended mobile comparison: 390x844, Ukrainian `/ua`, initial reveal.
+- Light and dark themes both require capture.
+
+full-view comparison evidence:
+
+- Blocked until the local browser-rendered implementation can be captured.
+
+focused region comparison evidence:
+
+- The generated cold and energized exhaust assets were inspected directly and preserve the selected composition.
+- Browser evidence is still required for the SVG logo, crossfade timing, responsive crop and theme treatment.
+
+findings:
+
+- The selected exhaust concept is implemented with separate 1600x900 cold and energized AVIF frames.
+- Total new loading media weight is 139,859 bytes.
+- The original SVG logo remains a separate sharp layer.
+- Focused ESLint passes, `git diff --check` passes, and `/ua` returns HTTP 200.
+- Visual comparison and console verification remain blocked by the browser connection.
+
+final result: blocked
+
+---
+
+# Branded forged-wheel loading reveal — 2026-07-17
+
+source visual truth path:
+
+- C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/call_UkdY9aXKF73KynEulroaNq1z.png
+- Logo material reference: C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/call_8hMNee4MHP6HKYcROw2Hxtav.png
+
+implementation screenshot path:
+
+- blocked: the Codex in-app browser automation connection could not initialize, and direct local Playwright capture requires explicit user approval under the active browser workflow.
+
+viewport and state:
+
+- Intended desktop comparison: 1440x1024, Ukrainian `/ua`, first-load reveal, light and dark themes.
+- Intended mobile comparison: 390x844, first-load reveal, light and dark themes.
+
+full-view comparison evidence:
+
+- Blocked until a browser-rendered implementation screenshot can be captured.
+
+focused region comparison evidence:
+
+- Blocked until the metallic logo sweep and progress treatment can be captured at native scale.
+
+findings:
+
+- Source implementation and optimized 11 KB AVIF wheel background are present.
+- Focused ESLint passes for every edited TS/TSX file.
+- The local `/ua` route responds with HTTP 200 and contains the branded reveal.
+- Existing unrelated One AI V2 TypeScript errors remain outside this change.
+- Visual fidelity, animation timing, theme matching, responsive crop, and console state still require browser capture.
+
+final result: blocked
+
+---
+
 # Interactive car catalog picker design QA — 2026-07-16
 
 source visual truth path: C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/exec-9e143485-9b15-4fd0-8c75-00fae55c0483.png

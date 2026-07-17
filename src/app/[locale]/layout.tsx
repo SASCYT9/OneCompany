@@ -15,6 +15,7 @@ import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { resolveImageAssetReference, resolveVideoAssetReference } from "@/lib/runtimeAssetPaths";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
+import { BrandedIntro } from "@/components/ui/BrandedIntro";
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "ua" }];
@@ -73,6 +74,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleLangSetter locale={locale} />
+      <BrandedIntro />
       {heroPosterSrc && <link rel="preload" href={heroPosterSrc} as="image" />}
       <ShopCurrencyProvider
         defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? "UAH"}
