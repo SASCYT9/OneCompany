@@ -11,9 +11,12 @@ import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
+import { DesktopShopMenu } from "./DesktopShopMenu";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { ShopCountrySearchList } from "@/components/shop/ShopCountryCombobox";
 import { SHOP_COUNTRIES } from "@/lib/shopCountries";
+import { getShopNavigationActiveKey } from "@/lib/shopNavigation";
+import { STOREFRONT_ROUTE_REGISTRY } from "@/lib/storefrontRouteRegistry";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -101,8 +104,9 @@ export function Header() {
   };
 
   const currentBrand = segments[1];
-  const isBrandPortal =
-    currentBrand && !["stock", "account", "cart", "checkout"].includes(currentBrand);
+  const isBrandPortal = Boolean(
+    currentBrand && STOREFRONT_ROUTE_REGISTRY.some((route) => route.segment === currentBrand)
+  );
 
   const formatBrandName = (brand: string) => {
     if (brand.toLowerCase() === "do88") return "do88";
@@ -122,60 +126,38 @@ export function Header() {
       .join(" ");
   };
 
-  const shopNavItems = [
-    {
-      key: "home",
-      href: `/${locale}`,
-      label: isUa ? "Головна" : "Home",
-    },
-    {
-      key: "stores",
-      href: `/${locale}/shop`,
-      label: isUa ? "Магазини" : "Stores",
-    },
-    ...(isBrandPortal
-      ? [
-          {
-            key: "brand-catalog",
-            href:
-              currentBrand === "racechip"
-                ? `/${locale}/shop/racechip/catalog`
-                : currentBrand === "girodisc"
-                  ? `/${locale}/shop/girodisc/catalog`
-                  : ["brabus", "burger", "urban"].includes(currentBrand)
-                    ? `/${locale}/shop/${currentBrand}/products`
-                    : currentBrand === "akrapovic"
-                      ? `/${locale}/shop/akrapovic/collections${
-                          segmentParam === "moto" || scopeParam === "moto" ? "?scope=moto" : ""
-                        }`
-                      : ["do88", "adro", "csf", "ipe", "ilmberger"].includes(currentBrand)
-                        ? `/${locale}/shop/${currentBrand}/collections`
-                        : `/${locale}/shop/${currentBrand}#catalog`,
-            label: isUa
-              ? `Каталог ${formatBrandName(currentBrand)}`
-              : `${formatBrandName(currentBrand)} Catalog`,
-          },
-        ]
-      : []),
-    {
-      key: "stock",
-      href: `/${locale}/shop/stock`,
-      label: isUa ? "Всі товари" : "All Products",
-    },
-    {
-      key: "account",
-      href: `/${locale}/shop/account`,
-      label: isUa ? "Акаунт" : "Account",
-    },
-  ];
+  const globalNavItems = navItems.map((item) => ({
+    key: item.key,
+    href: `/${locale}${item.href}`,
+    label: tNav(item.key),
+  }));
 
-  const renderedNavItems = isShopRoute
-    ? shopNavItems
-    : navItems.map((item) => ({
-        key: item.key,
-        href: `/${locale}${item.href}`,
-        label: tNav(item.key),
-      }));
+  const brandCatalogHref =
+    isBrandPortal && currentBrand
+      ? currentBrand === "racechip"
+        ? `/${locale}/shop/racechip/catalog`
+        : currentBrand === "girodisc"
+          ? `/${locale}/shop/girodisc/catalog`
+          : ["brabus", "burger", "urban"].includes(currentBrand)
+            ? `/${locale}/shop/${currentBrand}/products`
+            : currentBrand === "akrapovic"
+              ? `/${locale}/shop/akrapovic/collections${
+                  segmentParam === "moto" || scopeParam === "moto" ? "?scope=moto" : ""
+                }`
+              : ["do88", "adro", "csf", "ipe", "ilmberger"].includes(currentBrand)
+                ? `/${locale}/shop/${currentBrand}/collections`
+                : `/${locale}/shop/${currentBrand}#catalog`
+      : null;
+  const brandCatalog =
+    brandCatalogHref && currentBrand
+      ? {
+          href: brandCatalogHref,
+          label: isUa
+            ? `Каталог ${formatBrandName(currentBrand)}`
+            : `${formatBrandName(currentBrand)} Catalog`,
+        }
+      : null;
+  const shopNavigationActiveKey = getShopNavigationActiveKey(pathname, locale);
   const logoHref = `/${locale}`;
   const { country, currency, setCountry, setCurrency } = useShopCurrency();
   const activeCountry = SHOP_COUNTRIES.find((item) => item.value === country) ?? SHOP_COUNTRIES[0];
@@ -195,7 +177,8 @@ export function Header() {
             "relative mx-auto flex w-full items-center rounded-2xl border backdrop-blur-xl md:backdrop-blur-3xl px-3 py-2.5 sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
             "border-foreground/10 bg-card/65 shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
             "dark:border-obsidian-border dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]",
-            isShopRoute ? "max-w-7xl dark:bg-obsidian-panel/80" : "max-w-6xl dark:bg-obsidian/80"
+            "max-w-7xl",
+            isShopRoute ? "dark:bg-obsidian-panel/80" : "dark:bg-obsidian/80"
           )}
         >
           <Link
@@ -208,8 +191,25 @@ export function Header() {
             <span className="absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-foreground to-transparent sm:-bottom-2 sm:w-10" />
           </Link>
           <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
-            {renderedNavItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+            {globalNavItems.map((item) => {
+              const isActive =
+                item.key === "shop"
+                  ? isShopRoute
+                  : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+              if (item.key === "shop") {
+                return (
+                  <DesktopShopMenu
+                    key={item.key}
+                    locale={locale}
+                    label={item.label}
+                    isActive={isActive}
+                    activeDestination={shopNavigationActiveKey}
+                    brandCatalog={brandCatalog}
+                  />
+                );
+              }
+
               return (
                 <Link
                   key={item.key}
@@ -381,29 +381,49 @@ export function Header() {
               )}
             >
               <nav className="flex flex-col gap-2 text-center">
-                {renderedNavItems
-                  /* The shop's "account" key is rendered as a prominent CTA below — skip it here to avoid duplication. */
-                  .filter((item) => !(isShopRoute && item.key === "account"))
-                  .map((item) => {
-                    const isActive =
-                      pathname === item.href || pathname?.startsWith(`${item.href}/`);
-                    return (
+                {globalNavItems.map((item) => {
+                  const isActive =
+                    item.key === "shop"
+                      ? isShopRoute
+                      : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "relative font-display flex min-h-[44px] items-center justify-center border-b border-foreground/10 px-3 text-sm uppercase tracking-[0.25em] text-foreground/60 transition-colors",
+                        isActive && "text-foreground"
+                      )}
+                    >
+                      {item.label}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-primary to-transparent" />
+                      )}
+                    </Link>
+                  );
+                })}
+                {isShopRoute ? (
+                  <div className="mt-2 grid gap-2 border-t border-foreground/10 pt-3">
+                    {brandCatalog ? (
                       <Link
-                        key={item.key}
-                        href={item.href}
+                        href={brandCatalog.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "relative font-display flex min-h-[44px] items-center justify-center border-b border-foreground/10 px-3 text-sm uppercase tracking-[0.25em] text-foreground/60 transition-colors",
-                          isActive && "text-foreground"
-                        )}
+                        className="flex min-h-[44px] items-center justify-center rounded-xl bg-foreground/[0.055] px-3 font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground"
                       >
-                        {item.label}
-                        {isActive && (
-                          <span className="absolute bottom-0 left-0 block h-px w-12 bg-linear-to-r from-primary to-transparent" />
-                        )}
+                        {brandCatalog.label}
                       </Link>
-                    );
-                  })}
+                    ) : null}
+                    <Link
+                      href={`/${locale}/shop/catalog`}
+                      prefetch={false}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex min-h-[44px] items-center justify-center rounded-xl border border-primary/20 bg-primary/10 px-3 font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-primary"
+                    >
+                      {isUa ? "Каталог товарів" : "Product catalog"}
+                    </Link>
+                  </div>
+                ) : null}
                 <div className="mt-2 flex flex-col items-center gap-4 border-t border-foreground/10 pt-4">
                   <div className="flex items-center gap-3">
                     <LocaleSwitcher />

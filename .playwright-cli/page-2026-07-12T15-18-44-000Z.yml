@@ -1,0 +1,778 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "ONE COMPANY home" [ref=e6] [cursor=pointer]:
+          - /url: /en
+        - navigation [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /en
+          - link "Stores" [ref=e12] [cursor=pointer]:
+            - /url: /en/shop
+          - link "Öhlins Catalog" [ref=e14] [cursor=pointer]:
+            - /url: /en/shop/ohlins#catalog
+          - link "All Products" [ref=e15] [cursor=pointer]:
+            - /url: /en/shop/stock
+          - link "Account" [ref=e16] [cursor=pointer]:
+            - /url: /en/shop/account
+        - generic [ref=e17]:
+          - link "Cart" [ref=e18] [cursor=pointer]:
+            - /url: /en/shop/cart
+          - button "Germany EUR" [ref=e23]:
+            - generic [ref=e24]: Germany
+            - generic [ref=e26]: EUR
+          - generic [ref=e29]:
+            - button "EN" [disabled] [ref=e30]
+            - button "UA" [ref=e31]
+          - button "Toggle theme" [ref=e33]
+    - main [ref=e37]:
+      - generic [ref=e41]:
+        - link "← Back to Öhlins" [ref=e43] [cursor=pointer]:
+          - /url: /en/shop/ohlins
+          - generic [ref=e44]: ←
+          - text: Back to Öhlins
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - heading "FIND YOUR SUSPENSION" [level=2] [ref=e51]
+              - paragraph [ref=e52]: DFV · TTX · Road & Track
+            - generic [ref=e55]:
+              - combobox [ref=e57]:
+                - option "Select Make" [selected]
+                - option "Audi (1)"
+                - option "BMW (3)"
+                - option "Ford (1)"
+                - option "Honda (1)"
+                - option "Hyundai (1)"
+                - option "Mazda (1)"
+                - option "Mercedes-Benz (2)"
+                - option "Mini (1)"
+                - option "Mitsubishi (2)"
+                - option "Nissan (1)"
+                - option "Porsche (5)"
+                - option "Suzuki (1)"
+                - option "Universal (10)"
+              - combobox [disabled] [ref=e59]:
+                - option "Pick make first" [disabled] [selected]
+              - combobox [disabled] [ref=e61]:
+                - option "Pick make first" [disabled] [selected]
+              - combobox [ref=e63]:
+                - option "All Lines" [selected]
+                - option "Shock Absorbers (8)"
+                - option "Springs (7)"
+                - option "Mounts & Hardware (4)"
+                - option "Road & Track (4)"
+                - option "Advanced Trackday (3)"
+                - option "Electronics (EDC) (2)"
+                - option "Motorsport (1)"
+                - option "Off-Road & Adventure (1)"
+              - textbox "Model, SKU or chassis code..." [ref=e68]
+              - combobox [ref=e72]:
+                - option "Default Sort" [selected]
+                - 'option "Price: High to Low"'
+                - 'option "Price: Low to High"'
+            - paragraph [ref=e74]: 30 results
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - article [ref=e77]:
+                - generic [ref=e78]: Mounts & Hardware
+                - link "OHLINS 25602-01 Wheel Spacer 64.6/84/2 Universal OHLINS 25602-01 Wheel Spacer 64.6/84/2 EUR 33 EUR 33 · USD 38 · UAH 1,749" [ref=e82] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-25602-01
+                  - img "OHLINS 25602-01 Wheel Spacer 64.6/84/2" [ref=e85]
+                  - generic [ref=e86]:
+                    - paragraph [ref=e87]: Universal
+                    - heading "OHLINS 25602-01 Wheel Spacer 64.6/84/2" [level=3] [ref=e88]
+                    - generic [ref=e89]:
+                      - text: EUR 33
+                      - generic [ref=e90]:
+                        - generic [ref=e91]: EUR 33
+                        - generic [ref=e92]: ·
+                        - generic [ref=e93]: USD 38
+                        - generic [ref=e94]: ·
+                        - generic [ref=e95]: UAH 1,749
+                - generic [ref=e96]:
+                  - link "VIEW" [ref=e97] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-25602-01
+                  - button "CART" [ref=e100]
+              - article [ref=e101]:
+                - generic [ref=e102]: Advanced Trackday
+                - link "OHLINS 48170-29 Front Main Spring 60/170/160 for OHLINS MEV MX00 Universal OHLINS 48170-29 Front Main Spring 60/170/160 for OHLINS MEV MX00 EUR 74 EUR 74 · USD 85 · UAH 3,922" [ref=e106] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-48170-29
+                  - img "OHLINS 48170-29 Front Main Spring 60/170/160 for OHLINS MEV MX00" [ref=e109]
+                  - generic [ref=e110]:
+                    - paragraph [ref=e111]: Universal
+                    - heading "OHLINS 48170-29 Front Main Spring 60/170/160 for OHLINS MEV MX00" [level=3] [ref=e112]
+                    - generic [ref=e113]:
+                      - text: EUR 74
+                      - generic [ref=e114]:
+                        - generic [ref=e115]: EUR 74
+                        - generic [ref=e116]: ·
+                        - generic [ref=e117]: USD 85
+                        - generic [ref=e118]: ·
+                        - generic [ref=e119]: UAH 3,922
+                - generic [ref=e120]:
+                  - link "VIEW" [ref=e121] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-48170-29
+                  - button "CART" [ref=e124]
+              - article [ref=e125]:
+                - generic [ref=e126]: Shock Absorbers
+                - link "Shock Absorber for MAZDA MX5 Miata NC / EC 8 2005 -, Front Mazda Shock Absorber for MAZDA MX5 Miata NC / EC 8 2005 -, Front EUR 504 EUR 504 · USD 581 · UAH 26,712" [ref=e130] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-mas-5i30
+                  - img "Shock Absorber for MAZDA MX5 Miata NC / EC 8 2005 -, Front" [ref=e133]
+                  - generic [ref=e134]:
+                    - paragraph [ref=e135]: Mazda
+                    - heading "Shock Absorber for MAZDA MX5 Miata NC / EC 8 2005 -, Front" [level=3] [ref=e136]
+                    - generic [ref=e137]:
+                      - text: EUR 504
+                      - generic [ref=e138]:
+                        - generic [ref=e139]: EUR 504
+                        - generic [ref=e140]: ·
+                        - generic [ref=e141]: USD 581
+                        - generic [ref=e142]: ·
+                        - generic [ref=e143]: UAH 26,712
+                - generic [ref=e144]:
+                  - link "VIEW" [ref=e145] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-mas-5i30
+                  - button "CART" [ref=e148]
+              - article [ref=e149]:
+                - generic [ref=e150]: Shock Absorbers
+                - link "Shock Absorber for MINI RE16 2002-2007, RL Mini Shock Absorber for MINI RE16 2002-2007, RL EUR 499 EUR 499 · USD 575 · UAH 26,447" [ref=e154] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-bms-3i10
+                  - img "Shock Absorber for MINI RE16 2002-2007, RL" [ref=e157]
+                  - generic [ref=e158]:
+                    - paragraph [ref=e159]: Mini
+                    - heading "Shock Absorber for MINI RE16 2002-2007, RL" [level=3] [ref=e160]
+                    - generic [ref=e161]:
+                      - text: EUR 499
+                      - generic [ref=e162]:
+                        - generic [ref=e163]: EUR 499
+                        - generic [ref=e164]: ·
+                        - generic [ref=e165]: USD 575
+                        - generic [ref=e166]: ·
+                        - generic [ref=e167]: UAH 26,447
+                - generic [ref=e168]:
+                  - link "VIEW" [ref=e169] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-bms-3i10
+                  - button "CART" [ref=e172]
+              - article [ref=e173]:
+                - generic [ref=e174]: Shock Absorbers
+                - link "Front Shock Absorber for PORSCHE 996 GT3 Porsche Front Shock Absorber for PORSCHE 996 GT3 EUR 555 EUR 555 · USD 639 · UAH 29,415" [ref=e178] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-pos-5i10
+                  - img "Front Shock Absorber for PORSCHE 996 GT3" [ref=e181]
+                  - generic [ref=e182]:
+                    - paragraph [ref=e183]: Porsche
+                    - heading "Front Shock Absorber for PORSCHE 996 GT3" [level=3] [ref=e184]
+                    - generic [ref=e185]:
+                      - text: EUR 555
+                      - generic [ref=e186]:
+                        - generic [ref=e187]: EUR 555
+                        - generic [ref=e188]: ·
+                        - generic [ref=e189]: USD 639
+                        - generic [ref=e190]: ·
+                        - generic [ref=e191]: UAH 29,415
+                - generic [ref=e192]:
+                  - link "VIEW" [ref=e193] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-pos-5i10
+                  - button "CART" [ref=e196]
+              - article [ref=e197]:
+                - generic [ref=e198]: Electronics (EDC)
+                - link "OHLINS 35020-17 Electronic Damping Kit AUDI R8 Audi OHLINS 35020-17 Electronic Damping Kit AUDI R8 EUR 412 EUR 412 · USD 475 · UAH 21,836" [ref=e202] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-35020-17
+                  - img "OHLINS 35020-17 Electronic Damping Kit AUDI R8" [ref=e205]
+                  - generic [ref=e206]:
+                    - paragraph [ref=e207]: Audi
+                    - heading "OHLINS 35020-17 Electronic Damping Kit AUDI R8" [level=3] [ref=e208]
+                    - generic [ref=e209]:
+                      - text: EUR 412
+                      - generic [ref=e210]:
+                        - generic [ref=e211]: EUR 412
+                        - generic [ref=e212]: ·
+                        - generic [ref=e213]: USD 475
+                        - generic [ref=e214]: ·
+                        - generic [ref=e215]: UAH 21,836
+                - generic [ref=e216]:
+                  - link "VIEW" [ref=e217] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-35020-17
+                  - button "CART" [ref=e220]
+              - article [ref=e221]:
+                - generic [ref=e222]: Advanced Trackday
+                - link "Advanced Trackday Shock Absorber Kit for MERCEDES-BENZ AMG GT / GT S / GT C / GT R (C190 / R190) 2015-2021 (springs and accessories sold separately) Mercedes-Benz Advanced Trackday Shock Absorber Kit for MERCEDES-BENZ AMG GT / GT S / GT C / GT R (C190 / R190) 2015-2021 (springs and accessories sold separately) EUR 8,168 EUR 8,168 · USD 9,411 · UAH 432,904" [ref=e226] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-mev-mx00
+                  - img "Advanced Trackday Shock Absorber Kit for MERCEDES-BENZ AMG GT / GT S / GT C / GT R (C190 / R190) 2015-2021 (springs and accessories sold separately)" [ref=e229]
+                  - generic [ref=e230]:
+                    - paragraph [ref=e231]: Mercedes-Benz
+                    - heading "Advanced Trackday Shock Absorber Kit for MERCEDES-BENZ AMG GT / GT S / GT C / GT R (C190 / R190) 2015-2021 (springs and accessories sold separately)" [level=3] [ref=e232]
+                    - generic [ref=e233]:
+                      - text: EUR 8,168
+                      - generic [ref=e234]:
+                        - generic [ref=e235]: EUR 8,168
+                        - generic [ref=e236]: ·
+                        - generic [ref=e237]: USD 9,411
+                        - generic [ref=e238]: ·
+                        - generic [ref=e239]: UAH 432,904
+                - generic [ref=e240]:
+                  - link "VIEW" [ref=e241] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-mev-mx00
+                  - button "CART" [ref=e244]
+              - article [ref=e245]:
+                - generic [ref=e246]: Road & Track
+                - link "Road & Track Coilover Kit for NISSAN GT-R (R35) 2008- Nissan Road & Track Coilover Kit for NISSAN GT-R (R35) 2008- EUR 4,482 EUR 4,482 · USD 5,164 · UAH 237,546" [ref=e250] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-nis-mi31s1
+                  - img "Road & Track Coilover Kit for NISSAN GT-R (R35) 2008-" [ref=e253]
+                  - generic [ref=e254]:
+                    - paragraph [ref=e255]: Nissan
+                    - heading "Road & Track Coilover Kit for NISSAN GT-R (R35) 2008-" [level=3] [ref=e256]
+                    - generic [ref=e257]:
+                      - text: EUR 4,482
+                      - generic [ref=e258]:
+                        - generic [ref=e259]: EUR 4,482
+                        - generic [ref=e260]: ·
+                        - generic [ref=e261]: USD 5,164
+                        - generic [ref=e262]: ·
+                        - generic [ref=e263]: UAH 237,546
+                - generic [ref=e264]:
+                  - link "VIEW" [ref=e265] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-nis-mi31s1
+                  - button "CART" [ref=e268]
+              - article [ref=e269]:
+                - generic [ref=e270]: Road & Track
+                - link "ROAD & TRACK COILOVER KIT for BMW M2 (F87) / M3 (F80) / M4 (F82 / F83) BMW ROAD & TRACK COILOVER KIT for BMW M2 (F87) / M3 (F80) / M4 (F82 / F83) EUR 3,978 EUR 3,978 · USD 4,583 · UAH 210,834" [ref=e274] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-bms-mr40s1
+                  - img "ROAD & TRACK COILOVER KIT for BMW M2 (F87) / M3 (F80) / M4 (F82 / F83)" [ref=e277]
+                  - generic [ref=e278]:
+                    - paragraph [ref=e279]: BMW
+                    - heading "ROAD & TRACK COILOVER KIT for BMW M2 (F87) / M3 (F80) / M4 (F82 / F83)" [level=3] [ref=e280]
+                    - generic [ref=e281]:
+                      - text: EUR 3,978
+                      - generic [ref=e282]:
+                        - generic [ref=e283]: EUR 3,978
+                        - generic [ref=e284]: ·
+                        - generic [ref=e285]: USD 4,583
+                        - generic [ref=e286]: ·
+                        - generic [ref=e287]: UAH 210,834
+                - generic [ref=e288]:
+                  - link "VIEW" [ref=e289] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-bms-mr40s1
+                  - button "CART" [ref=e292]
+              - article [ref=e293]:
+                - generic [ref=e294]: Springs
+                - link "OHLINS 48120-21 Spring 60/120/120 Universal OHLINS 48120-21 Spring 60/120/120 EUR 69 EUR 69 · USD 80 · UAH 3,657" [ref=e298] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-48120-21
+                  - img "OHLINS 48120-21 Spring 60/120/120" [ref=e301]
+                  - generic [ref=e302]:
+                    - paragraph [ref=e303]: Universal
+                    - heading "OHLINS 48120-21 Spring 60/120/120" [level=3] [ref=e304]
+                    - generic [ref=e305]:
+                      - text: EUR 69
+                      - generic [ref=e306]:
+                        - generic [ref=e307]: EUR 69
+                        - generic [ref=e308]: ·
+                        - generic [ref=e309]: USD 80
+                        - generic [ref=e310]: ·
+                        - generic [ref=e311]: UAH 3,657
+                - generic [ref=e312]:
+                  - link "VIEW" [ref=e313] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-48120-21
+                  - button "CART" [ref=e316]
+              - article [ref=e317]:
+                - generic [ref=e318]: Road & Track
+                - link "Road & Track Coilover Kit for PORSCHE 911 (997) GT2/GT2 RS/GT3/GT3 Porsche Road & Track Coilover Kit for PORSCHE 911 (997) GT2/GT2 RS/GT3/GT3 EUR 4,230 EUR 4,230 · USD 4,874 · UAH 224,190" [ref=e322] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-poz-mn04s1
+                  - img "Road & Track Coilover Kit for PORSCHE 911 (997) GT2/GT2 RS/GT3/GT3" [ref=e325]
+                  - generic [ref=e326]:
+                    - paragraph [ref=e327]: Porsche
+                    - heading "Road & Track Coilover Kit for PORSCHE 911 (997) GT2/GT2 RS/GT3/GT3" [level=3] [ref=e328]
+                    - generic [ref=e329]:
+                      - text: EUR 4,230
+                      - generic [ref=e330]:
+                        - generic [ref=e331]: EUR 4,230
+                        - generic [ref=e332]: ·
+                        - generic [ref=e333]: USD 4,874
+                        - generic [ref=e334]: ·
+                        - generic [ref=e335]: UAH 224,190
+                - generic [ref=e336]:
+                  - link "VIEW" [ref=e337] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-poz-mn04s1
+                  - button "CART" [ref=e340]
+              - article [ref=e341]:
+                - generic [ref=e342]: Springs
+                - link "OHLINS 62472-21 Spring 88/395/75 N/mm Universal OHLINS 62472-21 Spring 88/395/75 N/mm EUR 165 EUR 165 · USD 190 · UAH 8,745" [ref=e346] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-62472-21
+                  - img "OHLINS 62472-21 Spring 88/395/75 N/mm" [ref=e349]
+                  - generic [ref=e350]:
+                    - paragraph [ref=e351]: Universal
+                    - heading "OHLINS 62472-21 Spring 88/395/75 N/mm" [level=3] [ref=e352]
+                    - generic [ref=e353]:
+                      - text: EUR 165
+                      - generic [ref=e354]:
+                        - generic [ref=e355]: EUR 165
+                        - generic [ref=e356]: ·
+                        - generic [ref=e357]: USD 190
+                        - generic [ref=e358]: ·
+                        - generic [ref=e359]: UAH 8,745
+                - generic [ref=e360]:
+                  - link "VIEW" [ref=e361] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-62472-21
+                  - button "CART" [ref=e364]
+              - article [ref=e365]:
+                - generic [ref=e366]: Shock Absorbers
+                - link "Rear Shock Absorber for MERCEDES-BENZ A45 AMG (W176) Mercedes-Benz Rear Shock Absorber for MERCEDES-BENZ A45 AMG (W176) EUR 454 EUR 454 · USD 523 · UAH 24,062" [ref=e370] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-mes-6v00
+                  - img "Rear Shock Absorber for MERCEDES-BENZ A45 AMG (W176)" [ref=e373]
+                  - generic [ref=e374]:
+                    - paragraph [ref=e375]: Mercedes-Benz
+                    - heading "Rear Shock Absorber for MERCEDES-BENZ A45 AMG (W176)" [level=3] [ref=e376]
+                    - generic [ref=e377]:
+                      - text: EUR 454
+                      - generic [ref=e378]:
+                        - generic [ref=e379]: EUR 454
+                        - generic [ref=e380]: ·
+                        - generic [ref=e381]: USD 523
+                        - generic [ref=e382]: ·
+                        - generic [ref=e383]: UAH 24,062
+                - generic [ref=e384]:
+                  - link "VIEW" [ref=e385] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-mes-6v00
+                  - button "CART" [ref=e388]
+              - article [ref=e389]:
+                - generic [ref=e390]: Springs
+                - link "OHLINS 62475-25 Spring 90-138/480/35 N/mm Universal OHLINS 62475-25 Spring 90-138/480/35 N/mm EUR 200 EUR 200 · USD 230 · UAH 10,600" [ref=e394] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-62475-25
+                  - img "OHLINS 62475-25 Spring 90-138/480/35 N/mm" [ref=e397]
+                  - generic [ref=e398]:
+                    - paragraph [ref=e399]: Universal
+                    - heading "OHLINS 62475-25 Spring 90-138/480/35 N/mm" [level=3] [ref=e400]
+                    - generic [ref=e401]:
+                      - text: EUR 200
+                      - generic [ref=e402]:
+                        - generic [ref=e403]: EUR 200
+                        - generic [ref=e404]: ·
+                        - generic [ref=e405]: USD 230
+                        - generic [ref=e406]: ·
+                        - generic [ref=e407]: UAH 10,600
+                - generic [ref=e408]:
+                  - link "VIEW" [ref=e409] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-62475-25
+                  - button "CART" [ref=e412]
+              - article [ref=e413]:
+                - generic [ref=e414]: Road & Track
+                - link "TTX 4-Way Coilover Kit (Springs Included) for HONDA S2000 (AP1 / AP2) Honda TTX 4-Way Coilover Kit (Springs Included) for HONDA S2000 (AP1 / AP2) EUR 7,650 EUR 7,650 · USD 8,814 · UAH 405,450" [ref=e418] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-hov-gy00
+                  - img "TTX 4-Way Coilover Kit (Springs Included) for HONDA S2000 (AP1 / AP2)" [ref=e421]
+                  - generic [ref=e422]:
+                    - paragraph [ref=e423]: Honda
+                    - heading "TTX 4-Way Coilover Kit (Springs Included) for HONDA S2000 (AP1 / AP2)" [level=3] [ref=e424]
+                    - generic [ref=e425]:
+                      - text: EUR 7,650
+                      - generic [ref=e426]:
+                        - generic [ref=e427]: EUR 7,650
+                        - generic [ref=e428]: ·
+                        - generic [ref=e429]: USD 8,814
+                        - generic [ref=e430]: ·
+                        - generic [ref=e431]: UAH 405,450
+                - generic [ref=e432]:
+                  - link "VIEW" [ref=e433] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-hov-gy00
+                  - button "CART" [ref=e436]
+              - article [ref=e437]:
+                - generic [ref=e438]: Shock Absorbers
+                - link "Front Shock Absorber for PORSCHE 911 Porsche Front Shock Absorber for PORSCHE 911 EUR 1,144 EUR 1,144 · USD 1,318 · UAH 60,632" [ref=e442] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-por-5l50
+                  - img "Front Shock Absorber for PORSCHE 911" [ref=e445]
+                  - generic [ref=e446]:
+                    - paragraph [ref=e447]: Porsche
+                    - heading "Front Shock Absorber for PORSCHE 911" [level=3] [ref=e448]
+                    - generic [ref=e449]:
+                      - text: EUR 1,144
+                      - generic [ref=e450]:
+                        - generic [ref=e451]: EUR 1,144
+                        - generic [ref=e452]: ·
+                        - generic [ref=e453]: USD 1,318
+                        - generic [ref=e454]: ·
+                        - generic [ref=e455]: UAH 60,632
+                - generic [ref=e456]:
+                  - link "VIEW" [ref=e457] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-por-5l50
+                  - button "CART" [ref=e460]
+              - article [ref=e461]:
+                - generic [ref=e462]: Springs
+                - link "OHLINS 48000-55 Spring 65/180/160 Universal OHLINS 48000-55 Spring 65/180/160 EUR 124 EUR 124 · USD 143 · UAH 6,572" [ref=e466] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-48000-55
+                  - img "OHLINS 48000-55 Spring 65/180/160" [ref=e469]
+                  - generic [ref=e470]:
+                    - paragraph [ref=e471]: Universal
+                    - heading "OHLINS 48000-55 Spring 65/180/160" [level=3] [ref=e472]
+                    - generic [ref=e473]:
+                      - text: EUR 124
+                      - generic [ref=e474]:
+                        - generic [ref=e475]: EUR 124
+                        - generic [ref=e476]: ·
+                        - generic [ref=e477]: USD 143
+                        - generic [ref=e478]: ·
+                        - generic [ref=e479]: UAH 6,572
+                - generic [ref=e480]:
+                  - link "VIEW" [ref=e481] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-48000-55
+                  - button "CART" [ref=e484]
+              - article [ref=e485]:
+                - generic [ref=e486]: Springs
+                - link "OHLINS 62462-02 Suspension Spring 65/315/130 N/mm Universal OHLINS 62462-02 Suspension Spring 65/315/130 N/mm EUR 165 EUR 165 · USD 190 · UAH 8,745" [ref=e490] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-62462-02
+                  - img "OHLINS 62462-02 Suspension Spring 65/315/130 N/mm" [ref=e493]
+                  - generic [ref=e494]:
+                    - paragraph [ref=e495]: Universal
+                    - heading "OHLINS 62462-02 Suspension Spring 65/315/130 N/mm" [level=3] [ref=e496]
+                    - generic [ref=e497]:
+                      - text: EUR 165
+                      - generic [ref=e498]:
+                        - generic [ref=e499]: EUR 165
+                        - generic [ref=e500]: ·
+                        - generic [ref=e501]: USD 190
+                        - generic [ref=e502]: ·
+                        - generic [ref=e503]: UAH 8,745
+                - generic [ref=e504]:
+                  - link "VIEW" [ref=e505] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-62462-02
+                  - button "CART" [ref=e508]
+              - article [ref=e509]:
+                - generic [ref=e510]: Springs
+                - link "OHLINS 62475-05 Spring 90-138/480/35 N/mm Universal OHLINS 62475-05 Spring 90-138/480/35 N/mm EUR 200 EUR 200 · USD 230 · UAH 10,600" [ref=e514] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-62475-05
+                  - img "OHLINS 62475-05 Spring 90-138/480/35 N/mm" [ref=e517]
+                  - generic [ref=e518]:
+                    - paragraph [ref=e519]: Universal
+                    - heading "OHLINS 62475-05 Spring 90-138/480/35 N/mm" [level=3] [ref=e520]
+                    - generic [ref=e521]:
+                      - text: EUR 200
+                      - generic [ref=e522]:
+                        - generic [ref=e523]: EUR 200
+                        - generic [ref=e524]: ·
+                        - generic [ref=e525]: USD 230
+                        - generic [ref=e526]: ·
+                        - generic [ref=e527]: UAH 10,600
+                - generic [ref=e528]:
+                  - link "VIEW" [ref=e529] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-62475-05
+                  - button "CART" [ref=e532]
+              - article [ref=e533]:
+                - generic [ref=e534]: Electronics (EDC)
+                - link "Road & Track Shock Absorber Kit for FORD Focus RS 2015-2018 (springs sold separately) Ford Road & Track Shock Absorber Kit for FORD Focus RS 2015-2018 (springs sold separately) EUR 3,121 EUR 3,121 · USD 3,596 · UAH 165,413" [ref=e538] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-fos-ms00
+                  - img "Road & Track Shock Absorber Kit for FORD Focus RS 2015-2018 (springs sold separately)" [ref=e541]
+                  - generic [ref=e542]:
+                    - paragraph [ref=e543]: Ford
+                    - heading "Road & Track Shock Absorber Kit for FORD Focus RS 2015-2018 (springs sold separately)" [level=3] [ref=e544]
+                    - generic [ref=e545]:
+                      - text: EUR 3,121
+                      - generic [ref=e546]:
+                        - generic [ref=e547]: EUR 3,121
+                        - generic [ref=e548]: ·
+                        - generic [ref=e549]: USD 3,596
+                        - generic [ref=e550]: ·
+                        - generic [ref=e551]: UAH 165,413
+                - generic [ref=e552]:
+                  - link "VIEW" [ref=e553] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-fos-ms00
+                  - button "CART" [ref=e556]
+              - article [ref=e557]:
+                - generic [ref=e558]: Shock Absorbers
+                - link "Front Left Shock Absorber for Hyundai i30N PD 2017 - Hyundai Front Left Shock Absorber for Hyundai i30N PD 2017 - EUR 605 EUR 605 · USD 697 · UAH 32,065" [ref=e562] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-hys-1t00
+                  - img "Front Left Shock Absorber for Hyundai i30N PD 2017 -" [ref=e565]
+                  - generic [ref=e566]:
+                    - paragraph [ref=e567]: Hyundai
+                    - heading "Front Left Shock Absorber for Hyundai i30N PD 2017 -" [level=3] [ref=e568]
+                    - generic [ref=e569]:
+                      - text: EUR 605
+                      - generic [ref=e570]:
+                        - generic [ref=e571]: EUR 605
+                        - generic [ref=e572]: ·
+                        - generic [ref=e573]: USD 697
+                        - generic [ref=e574]: ·
+                        - generic [ref=e575]: UAH 32,065
+                - generic [ref=e576]:
+                  - link "VIEW" [ref=e577] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-hys-1t00
+                  - button "CART" [ref=e580]
+              - article [ref=e581]:
+                - generic [ref=e582]: Mounts & Hardware
+                - link "OHLINS G90530-G2X Millway Strut Mounts for BMW 3-series (G20/G21), 4-series (G22/G23/G26) BMW OHLINS G90530-G2X Millway Strut Mounts for BMW 3-series (G20/G21), 4-series (G22/G23/G26) EUR 600 EUR 600 · USD 691 · UAH 31,800" [ref=e586] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-g90530-g2x
+                  - img "OHLINS G90530-G2X Millway Strut Mounts for BMW 3-series (G20/G21), 4-series (G22/G23/G26)" [ref=e589]
+                  - generic [ref=e590]:
+                    - paragraph [ref=e591]: BMW
+                    - heading "OHLINS G90530-G2X Millway Strut Mounts for BMW 3-series (G20/G21), 4-series (G22/G23/G26)" [level=3] [ref=e592]
+                    - generic [ref=e593]:
+                      - text: EUR 600
+                      - generic [ref=e594]:
+                        - generic [ref=e595]: EUR 600
+                        - generic [ref=e596]: ·
+                        - generic [ref=e597]: USD 691
+                        - generic [ref=e598]: ·
+                        - generic [ref=e599]: UAH 31,800
+                - generic [ref=e600]:
+                  - link "VIEW" [ref=e601] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-g90530-g2x
+                  - button "CART" [ref=e604]
+              - article [ref=e605]:
+                - generic [ref=e606]: Advanced Trackday
+                - link "Advanced Trackday Damper Kit for PORSCHE 718 Cayman GT4 (982) / Cayman GT4 (981) (springs sold separately) Porsche Advanced Trackday Damper Kit for PORSCHE 718 Cayman GT4 (982) / Cayman GT4 (981) (springs sold separately) EUR 9,832 EUR 9,832 · USD 11,328 · UAH 521,096" [ref=e610] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-pof-mr10
+                  - img "Advanced Trackday Damper Kit for PORSCHE 718 Cayman GT4 (982) / Cayman GT4 (981) (springs sold separately)" [ref=e613]
+                  - generic [ref=e614]:
+                    - paragraph [ref=e615]: Porsche
+                    - heading "Advanced Trackday Damper Kit for PORSCHE 718 Cayman GT4 (982) / Cayman GT4 (981) (springs sold separately)" [level=3] [ref=e616]
+                    - generic [ref=e617]:
+                      - text: EUR 9,832
+                      - generic [ref=e618]:
+                        - generic [ref=e619]: EUR 9,832
+                        - generic [ref=e620]: ·
+                        - generic [ref=e621]: USD 11,328
+                        - generic [ref=e622]: ·
+                        - generic [ref=e623]: UAH 521,096
+                - generic [ref=e624]:
+                  - link "VIEW" [ref=e625] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-pof-mr10
+                  - button "CART" [ref=e628]
+              - article [ref=e629]:
+                - generic [ref=e630]: Springs
+                - link "OHLINS 62474-04 Suspension Spring 104/375/40 N/mm Universal OHLINS 62474-04 Suspension Spring 104/375/40 N/mm EUR 367 EUR 367 · USD 423 · UAH 19,451" [ref=e634] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-62474-04
+                  - img "OHLINS 62474-04 Suspension Spring 104/375/40 N/mm" [ref=e637]
+                  - generic [ref=e638]:
+                    - paragraph [ref=e639]: Universal
+                    - heading "OHLINS 62474-04 Suspension Spring 104/375/40 N/mm" [level=3] [ref=e640]
+                    - generic [ref=e641]:
+                      - text: EUR 367
+                      - generic [ref=e642]:
+                        - generic [ref=e643]: EUR 367
+                        - generic [ref=e644]: ·
+                        - generic [ref=e645]: USD 423
+                        - generic [ref=e646]: ·
+                        - generic [ref=e647]: UAH 19,451
+                - generic [ref=e648]:
+                  - link "VIEW" [ref=e649] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-62474-04
+                  - button "CART" [ref=e652]
+              - article [ref=e653]:
+                - generic [ref=e654]: Shock Absorbers
+                - link "Shock Absorber for MITSUBISHI Lancer Evo 10, LF Mitsubishi Shock Absorber for MITSUBISHI Lancer Evo 10, LF EUR 701 EUR 701 · USD 808 · UAH 37,153" [ref=e658] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-mis-1i10
+                  - img "Shock Absorber for MITSUBISHI Lancer Evo 10, LF" [ref=e661]
+                  - generic [ref=e662]:
+                    - paragraph [ref=e663]: Mitsubishi
+                    - heading "Shock Absorber for MITSUBISHI Lancer Evo 10, LF" [level=3] [ref=e664]
+                    - generic [ref=e665]:
+                      - text: EUR 701
+                      - generic [ref=e666]:
+                        - generic [ref=e667]: EUR 701
+                        - generic [ref=e668]: ·
+                        - generic [ref=e669]: USD 808
+                        - generic [ref=e670]: ·
+                        - generic [ref=e671]: UAH 37,153
+                - generic [ref=e672]:
+                  - link "VIEW" [ref=e673] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-mis-1i10
+                  - button "CART" [ref=e676]
+              - article [ref=e677]:
+                - generic [ref=e678]: Mounts & Hardware
+                - link "OHLINS G90377-F23 Millway Strut Mounts for BMW 3-series (F30/F31/F34/F35) BMW OHLINS G90377-F23 Millway Strut Mounts for BMW 3-series (F30/F31/F34/F35) EUR 588 EUR 588 · USD 677 · UAH 31,164" [ref=e682] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-g90377-f23
+                  - img "OHLINS G90377-F23 Millway Strut Mounts for BMW 3-series (F30/F31/F34/F35)" [ref=e685]
+                  - generic [ref=e686]:
+                    - paragraph [ref=e687]: BMW
+                    - heading "OHLINS G90377-F23 Millway Strut Mounts for BMW 3-series (F30/F31/F34/F35)" [level=3] [ref=e688]
+                    - generic [ref=e689]:
+                      - text: EUR 588
+                      - generic [ref=e690]:
+                        - generic [ref=e691]: EUR 588
+                        - generic [ref=e692]: ·
+                        - generic [ref=e693]: USD 677
+                        - generic [ref=e694]: ·
+                        - generic [ref=e695]: UAH 31,164
+                - generic [ref=e696]:
+                  - link "VIEW" [ref=e697] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-g90377-f23
+                  - button "CART" [ref=e700]
+              - article [ref=e701]:
+                - generic [ref=e702]: Motorsport
+                - link "Motorsport Suspension Link MITSUBISHI Evo X Gr N Rr Gravel Mitsubishi Motorsport Suspension Link MITSUBISHI Evo X Gr N Rr Gravel EUR 2,467 EUR 2,467 · USD 2,842 · UAH 130,751" [ref=e706] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-mir-4n50
+                  - img "Motorsport Suspension Link MITSUBISHI Evo X Gr N Rr Gravel" [ref=e709]
+                  - generic [ref=e710]:
+                    - paragraph [ref=e711]: Mitsubishi
+                    - heading "Motorsport Suspension Link MITSUBISHI Evo X Gr N Rr Gravel" [level=3] [ref=e712]
+                    - generic [ref=e713]:
+                      - text: EUR 2,467
+                      - generic [ref=e714]:
+                        - generic [ref=e715]: EUR 2,467
+                        - generic [ref=e716]: ·
+                        - generic [ref=e717]: USD 2,842
+                        - generic [ref=e718]: ·
+                        - generic [ref=e719]: UAH 130,751
+                - generic [ref=e720]:
+                  - link "VIEW" [ref=e721] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-mir-4n50
+                  - button "CART" [ref=e724]
+              - article [ref=e725]:
+                - generic [ref=e726]: Mounts & Hardware
+                - link "OHLINS 25608-01 Rubber Bushing 16/37/37 Universal OHLINS 25608-01 Rubber Bushing 16/37/37 EUR 35 EUR 35 · USD 40 · UAH 1,855" [ref=e730] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-25608-01
+                  - img "OHLINS 25608-01 Rubber Bushing 16/37/37" [ref=e733]
+                  - generic [ref=e734]:
+                    - paragraph [ref=e735]: Universal
+                    - heading "OHLINS 25608-01 Rubber Bushing 16/37/37" [level=3] [ref=e736]
+                    - generic [ref=e737]:
+                      - text: EUR 35
+                      - generic [ref=e738]:
+                        - generic [ref=e739]: EUR 35
+                        - generic [ref=e740]: ·
+                        - generic [ref=e741]: USD 40
+                        - generic [ref=e742]: ·
+                        - generic [ref=e743]: UAH 1,855
+                - generic [ref=e744]:
+                  - link "VIEW" [ref=e745] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-25608-01
+                  - button "CART" [ref=e748]
+              - article [ref=e749]:
+                - generic [ref=e750]: Shock Absorbers
+                - link "Rear Shock Absorber for PORSCHE 991 Carerra s Porsche Rear Shock Absorber for PORSCHE 991 Carerra s EUR 529 EUR 529 · USD 610 · UAH 28,037" [ref=e754] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-pos-6p70
+                  - img "Rear Shock Absorber for PORSCHE 991 Carerra s" [ref=e757]
+                  - generic [ref=e758]:
+                    - paragraph [ref=e759]: Porsche
+                    - heading "Rear Shock Absorber for PORSCHE 991 Carerra s" [level=3] [ref=e760]
+                    - generic [ref=e761]:
+                      - text: EUR 529
+                      - generic [ref=e762]:
+                        - generic [ref=e763]: EUR 529
+                        - generic [ref=e764]: ·
+                        - generic [ref=e765]: USD 610
+                        - generic [ref=e766]: ·
+                        - generic [ref=e767]: UAH 28,037
+                - generic [ref=e768]:
+                  - link "VIEW" [ref=e769] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-pos-6p70
+                  - button "CART" [ref=e772]
+              - article [ref=e773]:
+                - generic [ref=e774]: Off-Road & Adventure
+                - link "OHLINS MU01 Suspension Linkage Adventure SUZUKI Jimny, Gen4 (JB74W), 2019 -, set Suzuki OHLINS MU01 Suspension Linkage Adventure SUZUKI Jimny, Gen4 (JB74W), 2019 -, set EUR 3,618 EUR 3,618 · USD 4,169 · UAH 191,754" [ref=e778] [cursor=pointer]:
+                  - /url: /en/shop/ohlins/products/ohlins-suv-mu01
+                  - img "OHLINS MU01 Suspension Linkage Adventure SUZUKI Jimny, Gen4 (JB74W), 2019 -, set" [ref=e781]
+                  - generic [ref=e782]:
+                    - paragraph [ref=e783]: Suzuki
+                    - heading "OHLINS MU01 Suspension Linkage Adventure SUZUKI Jimny, Gen4 (JB74W), 2019 -, set" [level=3] [ref=e784]
+                    - generic [ref=e785]:
+                      - text: EUR 3,618
+                      - generic [ref=e786]:
+                        - generic [ref=e787]: EUR 3,618
+                        - generic [ref=e788]: ·
+                        - generic [ref=e789]: USD 4,169
+                        - generic [ref=e790]: ·
+                        - generic [ref=e791]: UAH 191,754
+                - generic [ref=e792]:
+                  - link "VIEW" [ref=e793] [cursor=pointer]:
+                    - /url: /en/shop/ohlins/products/ohlins-suv-mu01
+                  - button "CART" [ref=e796]
+            - navigation "Catalog pagination" [ref=e797]:
+              - generic [ref=e798]: "1"
+              - link "2" [ref=e799] [cursor=pointer]:
+                - /url: /en/shop/ohlins/catalog/page/2
+              - link "3" [ref=e800] [cursor=pointer]:
+                - /url: /en/shop/ohlins/catalog/page/3
+              - generic [ref=e801]: …
+              - link "17" [ref=e802] [cursor=pointer]:
+                - /url: /en/shop/ohlins/catalog/page/17
+              - link "Next page" [ref=e803] [cursor=pointer]:
+                - /url: /en/shop/ohlins/catalog/page/2
+                - text: →
+    - button "Scroll to top"
+    - contentinfo [ref=e804]:
+      - generic [ref=e805]:
+        - generic [ref=e806]:
+          - generic [ref=e807]:
+            - link "OneCompany Home" [ref=e808] [cursor=pointer]:
+              - /url: /en
+            - paragraph [ref=e811]: Leading tuning importer since 2007. We work with workshops, tuning shops, detailing studios, and auto/moto dealers in many countries worldwide.
+            - generic [ref=e812]:
+              - paragraph [ref=e813]: Telegram contact
+              - generic [ref=e814]:
+                - link "Telegram — Auto" [ref=e815] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=e818]: Auto
+                  - generic [ref=e819]: →
+                - link "Telegram — Moto" [ref=e820] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=e823]: Moto
+                  - generic [ref=e824]: →
+            - generic [ref=e825]:
+              - link "Open OneCompany Instagram profile" [ref=e826] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=e830] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=e833] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=e837]:
+            - heading "Company" [level=3] [ref=e838]
+            - list [ref=e839]:
+              - listitem [ref=e840]:
+                - link "Navigate to Home page" [ref=e841] [cursor=pointer]:
+                  - /url: /en
+                  - text: Home
+              - listitem [ref=e842]:
+                - link "Navigate to About Us page" [ref=e843] [cursor=pointer]:
+                  - /url: /en/about
+                  - text: About Us
+              - listitem [ref=e844]:
+                - link "Navigate to Contact page" [ref=e845] [cursor=pointer]:
+                  - /url: /en/contact
+                  - text: Contact
+          - generic [ref=e846]:
+            - heading "Disciplines" [level=3] [ref=e847]
+            - list [ref=e848]:
+              - listitem [ref=e849]:
+                - link "Navigate to Auto tuning section" [ref=e850] [cursor=pointer]:
+                  - /url: /en/auto
+                  - text: Auto
+              - listitem [ref=e851]:
+                - link "Navigate to Motorcycles tuning section" [ref=e852] [cursor=pointer]:
+                  - /url: /en/moto
+                  - text: Motorcycles
+              - listitem [ref=e853]:
+                - link "Navigate to Shop tuning section" [ref=e854] [cursor=pointer]:
+                  - /url: /en/shop
+                  - text: Shop
+          - generic [ref=e855]:
+            - heading "Headquarters" [level=3] [ref=e856]
+            - generic [ref=e857]:
+              - paragraph [ref=e858]: 21B Baseina StKyiv, 01024Ukraine
+              - generic [ref=e859]:
+                - link "+380 66 077 17 00" [ref=e860] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=e861]: Mon-Fri, 10:00 - 19:00
+        - generic [ref=e862]:
+          - generic [ref=e863]:
+            - paragraph [ref=e865]: © 2026 One Company. Founded in Kyiv.
+            - generic [ref=e866]:
+              - link "Delivery & Payment" [ref=e867] [cursor=pointer]:
+                - /url: /en/delivery
+              - link "Refund Policy" [ref=e868] [cursor=pointer]:
+                - /url: /en/refund
+              - link "Privacy Policy" [ref=e869] [cursor=pointer]:
+                - /url: /en/privacy
+              - link "Terms of Use" [ref=e870] [cursor=pointer]:
+                - /url: /en/terms
+              - link "Cookies Policy" [ref=e871] [cursor=pointer]:
+                - /url: /en/cookies
+          - generic [ref=e872]:
+            - generic [ref=e873]: Secure Payment
+            - generic [ref=e874]:
+              - img "Visa" [ref=e875]
+              - img "MasterCard" [ref=e876]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=e882] [cursor=pointer]
+  - alert [ref=e886]

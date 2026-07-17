@@ -38,6 +38,14 @@
     {
       "path": "/api/cron/warmup-shop",
       "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/shop-knowledge",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/shop-ai-retention",
+      "schedule": "17 3 * * *"
     }
   ]
 }

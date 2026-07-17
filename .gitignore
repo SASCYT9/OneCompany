@@ -65,6 +65,7 @@ temp_pgsql/
 temp_env.txt
 *.sql
 !prisma/migrations/20260623123000_add_shop_europe_net_price/migration.sql
+!prisma/migrations/20260717143000_add_shop_ai_knowledge_v2/migration.sql
 backups/europe-price-migration-2026-06-23T10-15-41-202Z.json
 .env*.local
 .shop-products-dev-cache.json

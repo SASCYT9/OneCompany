@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
 import { isExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
+import {
+  filterShopStockItemsByVehicleScope,
+  parseShopStockVehicleScope,
+} from "@/lib/shopStockVehicleScope";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -14,8 +18,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const make = searchParams.get("make");
     const model = searchParams.get("model");
+    const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const productsWithFitments = await getShopProductsWithFitments();
+    const allProductsWithFitments = await getShopProductsWithFitments();
+    const productsWithFitments = filterShopStockItemsByVehicleScope(
+      allProductsWithFitments,
+      vehicleScope
+    );
 
     // Level 0: Return unique makes
     if (!make) {

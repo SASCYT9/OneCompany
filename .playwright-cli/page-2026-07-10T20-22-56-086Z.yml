@@ -1,0 +1,347 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - list [ref=e6]:
+        - listitem [ref=e7]:
+          - link "Sign In" [ref=e8] [cursor=pointer]:
+            - /url: https://amsducati.com/customer/account/login/referer/aHR0cHM6Ly9hbXNkdWNhdGkuY29tL2R1Y2F0aS1wYW5pZ2FsZS12NC0yMDI1LWFrcmFwb3ZpYy10aXRhbml1bS1mdWxsLXJhY2UtZXhoYXVzdC1zeXN0ZW0tOTY0ODIzNTFhYQ~~/
+        - listitem
+        - listitem
+        - generic [ref=e9]:
+          - paragraph [ref=e10]:
+            - link "My Account" [ref=e11] [cursor=pointer]:
+              - /url: https://amsducati.com/customer/account/
+          - text:  
+      - link "Skip to Content" [ref=e12] [cursor=pointer]:
+        - /url: "#contentarea"
+    - generic [ref=e13]:
+      - generic:
+        - tablist:
+          - tabpanel:  
+      - generic [ref=e14]:
+        - text: 
+        - link "store logo" [ref=e15] [cursor=pointer]:
+          - /url: https://amsducati.com/
+          - img "AMS Ducati Logo" [ref=e16]
+        - generic [ref=e17]:
+          - link " My Cart" [ref=e18] [cursor=pointer]:
+            - /url: https://amsducati.com/checkout/cart/
+            - text: 
+            - generic [ref=e19]: My Cart
+          - text: 
+        - generic:
+          - text: 
+          - generic:
+            - link [ref=e21] [cursor=pointer]:
+              - /url: javascript:void(0)
+            - generic [ref=e23]:
+              - generic [ref=e24]:
+                - generic [ref=e25]:
+                  - text: 
+                  - generic [ref=e26]: Search
+                - combobox " Search" [ref=e28] [cursor=pointer]
+              - generic:
+                - button "Search" [disabled]: 
+        - navigation [ref=e29]:
+          - menu [ref=e30]:
+            - listitem [ref=e31] [cursor=pointer]:
+              - menuitem "Motorcycles" [ref=e32]: 
+            - listitem [ref=e34] [cursor=pointer]:
+              - menuitem "Ducati OEM Parts" [ref=e35]
+            - listitem [ref=e36] [cursor=pointer]:
+              - menuitem "Accessories" [ref=e37]:  Accessories
+            - listitem [ref=e38] [cursor=pointer]:
+              - menuitem "Apparel" [ref=e39]:  Apparel
+              - text: 
+            - listitem [ref=e40] [cursor=pointer]:
+              - menuitem "Closeout" [ref=e41]
+            - listitem [ref=e43] [cursor=pointer]:
+              - menuitem "Support" [ref=e44]: 
+              - text:   
+  - main [ref=e46]:
+    - list [ref=e48]:
+      - listitem [ref=e49]:
+        - link "Home" [ref=e50] [cursor=pointer]:
+          - /url: https://amsducati.com/
+        - text: /
+      - listitem [ref=e51]:
+        - strong [ref=e52]: Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - heading "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [level=1] [ref=e57]
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - strong [ref=e60]: SKU
+            - generic [ref=e61]: 96482351AA
+          - generic [ref=e62]: Akrapovic, Ducati Performance|
+        - link "Be the first to review this product" [ref=e66] [cursor=pointer]:
+          - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-titanium-full-race-exhaust-system-96482351aa#review-form
+        - list [ref=e68]:
+          - listitem [ref=e69]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: 
+              - text: Earn Pro Points
+          - listitem [ref=e72]:
+            - generic [ref=e73]:
+              - generic [ref=e74]: 
+              - text: Oversize Item
+        - generic [ref=e75]:
+          - generic [ref=e77]:
+            - paragraph [ref=e78]:
+              - strong [ref=e79]: IN STOCK AND READY TO SHIP!
+            - paragraph [ref=e80]: From the combination of Akrapovič's manufacturing expertise and the passion of the Ducati technicians comes the complete racing exhaust system made entirely from titanium. In addition to ensuring resistance to high temperatures, the system complies with the required noise limit on the track with an exhaust sound level of less than 105 dB with the dB killers installed, however, removing the dB killers will unleash an even louder roar at 105dB. The special titanium alloy further lightens the bike, significantly improving the power-to-weight ratio for consistently excellent performance on the circuit. It is equipped with a racing-derived polyester air filter that, besides being more permeable, guarantees excellent filtering power and easy maintenance. It also features an innovative canister assembly which recovers the fuel that escapes during aggressive braking and returns it to the tank, contributing to consistent top performance. The map provided, with which all DTC - DWC - DPL and DSC parameters are adapted to the bike new performance, and the careful work carried out on torque and power have led to improvements over the entire range of use of the Panigale V4. Aesthetically, the dual under-seat silencer makes the bike design even more unique, giving it an additional aggressive touch with its unmistakable sound.
+            - paragraph [ref=e81]: This product is intended for racing vehicle use only, in closed course competition. Operation on public roads is prohibited by law (check local regulations).
+            - paragraph [ref=e82]: To be used exclusively in the single-seater configuration and is NOT compatible with cruise control!
+            - paragraph [ref=e83]: The lower race fairing (SKU 97181321AA) is also required for install. Sold separately.
+            - paragraph
+            - heading "Technical Data:" [level=2] [ref=e84]
+            - listitem [ref=e85]: "Max. Power [hp] : +12"
+            - listitem [ref=e86]: "Max. Torque [Nm] : +7"
+            - listitem [ref=e87]: "Weight reduction [kg] : 6,6"
+            - listitem [ref=e88]: "Exhaust system sound level without db-killer: 105 dB."
+            - listitem [ref=e89]: "Exhaust system sound level with db-killers installed: 102 dB."
+            - paragraph
+            - paragraph
+            - heading "Fits on:" [level=2] [ref=e90]
+            - listitem [ref=e91]: PANIGALE V4 2025+
+            - listitem [ref=e92]: PANIGALE V4 S 2025+
+            - listitem [ref=e93]: PANIGALE V4 S TRICOLORE 2025
+            - listitem [ref=e94]: PANIGALE V4 S TRICOLORE ITALIA 2025
+            - listitem [ref=e95]: PANIGALE V4 S CARBON 2025+
+            - listitem [ref=e96]: PANIGALE V4 S CARBON PRO 2025+
+            - listitem [ref=e97]: PANIGALE V4 S CORSE 2026
+            - listitem [ref=e98]: PANIGALE V4 R 2026
+            - listitem [ref=e99]: PANIGALE V4 MARQUEZ 2025 WORLD CHAMPION REPLICA
+            - paragraph
+            - paragraph
+            - heading "Will NOT fit Lamboghini models!" [level=3] [ref=e100]
+            - paragraph
+            - listitem [ref=e101]: PANIGALE V4 LAMBORGHINI 2026 must purchase 96482351BB.
+            - listitem [ref=e102]: PANIGALE V4 LAMBORGHINI SPECIALE CLIENTI 2026 must purchase 96482351BC.
+            - paragraph
+            - paragraph [ref=e103]: "**Please call our Web and Parts department to register your VIN to your exhaust in order for your up-map to be installed by your local Ducati Dealer."
+            - paragraph
+            - heading "SKU 96482351AA , 96482351BA , 96482352BA" [level=3] [ref=e104]
+            - paragraph
+          - link "Show More" [ref=e105] [cursor=pointer]:
+            - /url: "#"
+        - text: 
+        - generic [ref=e108]:
+          - button "Add to Cart" [ref=e112] [cursor=pointer]
+          - generic [ref=e113]: Usually Ships in 1-3 Days
+        - generic [ref=e114]: $9,422.12
+        - link "Add to Wish List" [ref=e119] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e120]:
+        - link "Skip to the end of the images gallery" [ref=e121] [cursor=pointer]:
+          - /url: "#gallery-next-area"
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - button "Previous" [ref=e126] [cursor=pointer]
+            - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e130]
+            - button "Next" [ref=e133] [cursor=pointer]
+          - generic [ref=e136]:
+            - button "Previous"
+            - generic [ref=e137]:
+              - button "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e139]
+              - button "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e141]
+              - button "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e143]
+              - button "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e145]
+              - button "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e147]
+            - button "Next"
+        - link "Skip to the beginning of the images gallery" [ref=e149] [cursor=pointer]:
+          - /url: "#gallery-prev-area"
+      - tablist [ref=e151]:
+        - tab [expanded] [ref=e152]:
+          - link "Reviews" [ref=e153] [cursor=pointer]:
+            - /url: "#reviews"
+        - tabpanel "Reviews" [ref=e154]:
+          - generic [ref=e156]:
+            - heading "WRITE YOUR OWN REVIEW" [level=2] [ref=e157]
+            - paragraph [ref=e158]: Please write a product review. Your insights and opinions help your fellow motorcyclists (including us) make better informed decisions about the products so be as descriptive and informative as possible.
+            - paragraph [ref=e159]:
+              - text: Earn
+              - strong [ref=e160]: 20 Pro Points
+              - text: when you submit a product review.
+              - link "What's This?" [ref=e161] [cursor=pointer]:
+                - /url: /support/pro-points/
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - heading "How do you rate this product?" [level=3] [ref=e164]
+                - group [ref=e165]:
+                  - generic [ref=e167]:
+                    - generic [ref=e168]:
+                      - generic [ref=e169]: Quality
+                      - generic:
+                        - text: 
+                        - radio "Quality  1 star" [ref=e170]
+                        - generic "1 star" [ref=e171] [cursor=pointer]: 
+                        - radio "Quality  2 stars" [ref=e173]
+                        - generic "2 stars" [ref=e174] [cursor=pointer]: 
+                        - radio "Quality  3 stars" [ref=e176]
+                        - generic "3 stars" [ref=e177] [cursor=pointer]: 
+                        - radio "Quality  4 stars" [ref=e179]
+                        - generic "4 stars" [ref=e180] [cursor=pointer]: 
+                        - radio "Quality  5 stars" [ref=e182]
+                        - generic "5 stars" [ref=e183] [cursor=pointer]: 
+                    - generic [ref=e185]:
+                      - generic [ref=e186]: Fit
+                      - generic:
+                        - text: 
+                        - radio "Fit  1 star" [ref=e187]
+                        - generic "1 star" [ref=e188] [cursor=pointer]: 
+                        - radio "Fit  2 stars" [ref=e190]
+                        - generic "2 stars" [ref=e191] [cursor=pointer]: 
+                        - radio "Fit  3 stars" [ref=e193]
+                        - generic "3 stars" [ref=e194] [cursor=pointer]: 
+                        - radio "Fit  4 stars" [ref=e196]
+                        - generic "4 stars" [ref=e197] [cursor=pointer]: 
+                        - radio "Fit  5 stars" [ref=e199]
+                        - generic "5 stars" [ref=e200] [cursor=pointer]: 
+                    - generic [ref=e202]:
+                      - generic [ref=e203]: Value
+                      - generic:
+                        - text: 
+                        - radio "Value  1 star" [ref=e204]
+                        - generic "1 star" [ref=e205] [cursor=pointer]: 
+                        - radio "Value  2 stars" [ref=e207]
+                        - generic "2 stars" [ref=e208] [cursor=pointer]: 
+                        - radio "Value  3 stars" [ref=e210]
+                        - generic "3 stars" [ref=e211] [cursor=pointer]: 
+                        - radio "Value  4 stars" [ref=e213]
+                        - generic "4 stars" [ref=e214] [cursor=pointer]: 
+                        - radio "Value  5 stars" [ref=e216]
+                        - generic "5 stars" [ref=e217] [cursor=pointer]: 
+              - generic [ref=e220]:
+                - group [ref=e221]:
+                  - heading "Your Review:" [level=3] [ref=e222]
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: Nickname*
+                    - textbox "Nickname*" [ref=e226]
+                  - generic [ref=e227]:
+                    - generic [ref=e228]: Summary*
+                    - textbox "Summary*" [ref=e230]
+                  - generic [ref=e231]:
+                    - generic [ref=e232]: Review*
+                    - textbox "Review*" [ref=e234]
+                - button "Submit Review" [ref=e237] [cursor=pointer]
+      - generic [ref=e238]:
+        - heading "Related Products" [level=2] [ref=e240]
+        - generic "Related Products" [ref=e241]:
+          - generic [ref=e242]:
+            - text: Check items to add to the cart or
+            - button "select all" [ref=e243] [cursor=pointer]
+          - list [ref=e245]:
+            - listitem [ref=e246]:
+              - generic [ref=e247]:
+                - link [ref=e248] [cursor=pointer]:
+                  - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa
+                  - img "Ducati Panigale V4 2025+ Plastic Lower Fairing for Racing Exhaust 97181321AA" [ref=e251]
+                - generic [ref=e252]:
+                  - strong [ref=e253]:
+                    - link "Ducati Panigale V4 2025+ Plastic Lower Fairing for Racing Exhaust 97181321AA" [ref=e254] [cursor=pointer]:
+                      - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa
+                  - generic [ref=e255]: $221.70
+                  - generic [ref=e259]:
+                    - checkbox "Add to Cart" [ref=e260]
+                    - generic [ref=e261]: Add to Cart
+                  - generic [ref=e262]:
+                    - generic:
+                      - button "Add to Wish List" [ref=e263] [cursor=pointer]: 
+                      - text: 
+            - listitem [ref=e265]:
+              - generic [ref=e266]:
+                - link [ref=e267] [cursor=pointer]:
+                  - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-race-slip-on-exhaust-96482341aa
+                  - img "Ducati Panigale V4 2025+ Akrapovic Race Slip-On Exhaust 96482341AA" [ref=e270]
+                - generic [ref=e271]:
+                  - strong [ref=e272]:
+                    - link "Ducati Panigale V4 2025+ Akrapovic Race Slip-On Exhaust 96482341AA" [ref=e273] [cursor=pointer]:
+                      - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-race-slip-on-exhaust-96482341aa
+                  - generic [ref=e274]: $5,542.43
+                  - generic [ref=e278]:
+                    - checkbox "Add to Cart" [ref=e279]
+                    - generic [ref=e280]: Add to Cart
+                  - generic [ref=e281]:
+                    - generic:
+                      - button "Add to Wish List" [ref=e282] [cursor=pointer]: 
+                      - text: 
+            - listitem [ref=e284]:
+              - generic [ref=e285]:
+                - link [ref=e286] [cursor=pointer]:
+                  - /url: https://amsducati.com/ducati-panigale-v4-2025-adjustable-rear-suspension-linkage-96282011aa
+                  - img "Ducati Panigale V4 2025+ Adjustable Rear Suspension Linkage 96282011AA" [ref=e289]
+                - generic [ref=e290]:
+                  - strong [ref=e291]:
+                    - link "Ducati Panigale V4 2025+ Adjustable Rear Suspension Linkage 96282011AA" [ref=e292] [cursor=pointer]:
+                      - /url: https://amsducati.com/ducati-panigale-v4-2025-adjustable-rear-suspension-linkage-96282011aa
+                  - generic [ref=e293]: $523.65
+                  - generic [ref=e297]:
+                    - checkbox "Add to Cart" [ref=e298]
+                    - generic [ref=e299]: Add to Cart
+                  - generic [ref=e300]:
+                    - generic:
+                      - button "Add to Wish List" [ref=e301] [cursor=pointer]: 
+                      - text: 
+  - contentinfo [ref=e303]:
+    - contentinfo [ref=e305]:
+      - generic [ref=e306]:
+        - generic [ref=e307]:
+          - generic [ref=e308]: Get Updates on the latest AMS news, products and promotions
+          - generic [ref=e311]:
+            - generic [ref=e312]: Email Address
+            - textbox "Email Address" [ref=e313]:
+              - /placeholder: email address
+            - generic [ref=e314]: Online Store Newsletter
+            - checkbox "Online Store Newsletter" [checked] [ref=e315]
+            - button [ref=e317] [cursor=pointer]:
+              - generic [ref=e318]: 
+        - article [ref=e319]:
+          - generic [ref=e320]:
+            - img "AMS Ducati Logo" [ref=e321]
+            - paragraph [ref=e322]: Since 1995, Advanced Motorsports Ducati Dallas has been a leader in Ducati service and sales in the United States. Centrally located in Dallas, Texas, Advanced Motorsports is fully stocked with the latest Ducati Motorcycles, Ducati Performance Parts, Ducati Apparel, Ducati Accessories and Merchandise.
+            - list [ref=e323]:
+              - listitem [ref=e324]:
+                - link "New Bikes" [ref=e325] [cursor=pointer]:
+                  - /url: https://amsducati.com/motorcycles/new-bikes
+              - listitem [ref=e326]:
+                - link "Used Bikes" [ref=e327] [cursor=pointer]:
+                  - /url: https://amsducati.com/motorcycles/used-bikes
+              - listitem [ref=e328]:
+                - link "Contact" [ref=e329] [cursor=pointer]:
+                  - /url: https://amsducati.com/support/contact/
+          - generic [ref=e330]:
+            - img "AMS_Ducati_Showroom" [ref=e331]
+            - generic [ref=e332]:
+              - generic [ref=e333]: 
+              - generic [ref=e334]:
+                - generic [ref=e335]: Ducati Showroom
+                - text: 1318 N Riverfront Blvd Dallas, TX 75207
+          - generic [ref=e336]:
+            - img "AMS Ducati Service" [ref=e337]
+            - generic [ref=e338]:
+              - generic [ref=e339]: 
+              - generic [ref=e340]:
+                - generic [ref=e341]: Ducati Service
+                - text: 135 Leslie St Dallas, TX 75207
+        - generic [ref=e342]:
+          - generic [ref=e343]:
+            - generic [ref=e344]: © 2026 AMS Ducati Dallas | Proudly representing
+            - img "Texas Flag" [ref=e345]
+          - list [ref=e347]:
+            - listitem [ref=e348]:
+              - link [ref=e349] [cursor=pointer]:
+                - /url: https://www.facebook.com/amsducati
+                - generic [ref=e350]: 
+            - listitem [ref=e351]:
+              - link [ref=e352] [cursor=pointer]:
+                - /url: https://twitter.com/amsducatidallas
+                - generic [ref=e353]: 
+            - listitem [ref=e354]:
+              - link [ref=e355] [cursor=pointer]:
+                - /url: https://www.instagram.com/amsducatidallas/
+                - generic [ref=e356]: 
+            - listitem [ref=e357]:
+              - link [ref=e358] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/ams-ducati-dallas
+                - generic [ref=e359]: 

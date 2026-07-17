@@ -1,0 +1,252 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - link "Skip to content" [ref=f2e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "ONE COMPANY home" [ref=f2e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=f2e10]:
+          - link "Авто" [ref=f2e11] [cursor=pointer]:
+            - /url: /ua/auto
+          - link "Мото" [ref=f2e12] [cursor=pointer]:
+            - /url: /ua/moto
+          - generic [ref=f2e14]:
+            - link "Магазин" [ref=f2e15] [cursor=pointer]:
+              - /url: /ua/shop
+            - button "Відкрити меню магазину" [ref=f2e16]
+          - link "Блог" [ref=f2e20] [cursor=pointer]:
+            - /url: /ua/blog
+          - link "Контакти" [ref=f2e21] [cursor=pointer]:
+            - /url: /ua/contact
+        - generic [ref=f2e22]:
+          - link "Кошик" [ref=f2e23] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=f2e28]:
+            - generic [ref=f2e29]: Німеччина
+            - generic [ref=f2e31]: EUR
+          - generic [ref=f2e34]:
+            - button "EN" [ref=f2e35]
+            - button "UA" [disabled] [ref=f2e36]
+          - button "Toggle theme" [ref=f2e38]
+    - main [ref=f2e42]:
+      - generic [ref=f2e45]:
+        - generic [ref=f2e48]:
+          - heading "Бренди One Company" [level=1] [ref=f2e49]
+          - paragraph [ref=f2e54]: 15 преміальних брендів в одному магазині. Досліджуйте фірмові колекції та обирайте деталі для свого авто або мото.
+        - generic [ref=f2e58]:
+          - navigation "Розділи магазину" [ref=f2e59]:
+            - link "Бренди Усі в одному магазині" [ref=f2e60] [cursor=pointer]:
+              - /url: /ua/shop
+              - generic [ref=f2e66]:
+                - generic [ref=f2e67]: Бренди
+                - generic [ref=f2e68]: Усі в одному магазині
+            - link "Каталог товарів Усі товари в одному пошуку" [ref=f2e72] [cursor=pointer]:
+              - /url: /ua/shop/catalog
+              - generic [ref=f2e79]:
+                - generic [ref=f2e80]: Каталог товарів
+                - generic [ref=f2e81]: Усі товари в одному пошуку
+            - link "Підбір за авто / мото Допоможемо перевірити сумісність" [ref=f2e85] [cursor=pointer]:
+              - /url: /ua/contact#selection-form
+              - generic [ref=f2e88]:
+                - generic [ref=f2e89]: Підбір за авто / мото
+                - generic [ref=f2e90]: Допоможемо перевірити сумісність
+          - generic [ref=f2e95]:
+            - paragraph [ref=f2e96]: Один магазин
+            - heading "15 брендів" [level=2] [ref=f2e97]
+          - generic [ref=f2e99]:
+            - generic [ref=f2e100]:
+              - generic [ref=f2e101]:
+                - link "Urban Automotive" [ref=f2e102] [cursor=pointer]:
+                  - /url: /ua/shop/urban
+                - generic [ref=f2e104]:
+                  - heading "Urban Automotive" [level=3] [ref=f2e105]
+                  - paragraph [ref=f2e106]: Преміальні обвіси та стилізація. Виразний widebody-дизайн і вивірена стилістика OEM+.
+                  - generic [ref=f2e107]: Дослідити
+              - generic [ref=f2e110]:
+                - link "Akrapovič" [ref=f2e111] [cursor=pointer]:
+                  - /url: /ua/shop/akrapovic
+                - generic [ref=f2e116]:
+                  - heading "Akrapovič" [level=3] [ref=f2e117]
+                  - paragraph [ref=f2e118]: Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.
+                  - generic [ref=f2e119]: Дослідити
+              - generic [ref=f2e122]:
+                - link "Brabus" [ref=f2e123] [cursor=pointer]:
+                  - /url: /ua/shop/brabus
+                - generic [ref=f2e125]:
+                  - heading "Brabus" [level=3] [ref=f2e126]
+                  - paragraph [ref=f2e127]: Преміальний тюнінг та lifestyle. Аеродинаміка, ковані диски та впізнаваний характер.
+                  - generic [ref=f2e128]: Дослідити
+            - generic [ref=f2e131]:
+              - generic [ref=f2e132]:
+                - link "DO88 Performance" [ref=f2e133] [cursor=pointer]:
+                  - /url: /ua/shop/do88
+                - generic [ref=f2e135]:
+                  - heading "DO88 Performance" [level=3] [ref=f2e136]
+                  - paragraph [ref=f2e137]: Преміальні системи охолодження, інтеркулери та силіконові патрубки розроблені у Швеції.
+                  - generic [ref=f2e138]: Дослідити
+              - generic [ref=f2e141]:
+                - link "Burger Motorsports" [ref=f2e142] [cursor=pointer]:
+                  - /url: /ua/shop/burger
+                - generic [ref=f2e144]:
+                  - heading "Burger Motorsports" [level=3] [ref=f2e145]
+                  - paragraph [ref=f2e146]: Всесвітньо відомий plug & play performance тюнінг з 2007 року. JB4 тюнери та високоточні деталі.
+                  - generic [ref=f2e147]: Дослідити
+              - generic [ref=f2e150]:
+                - link "RaceChip" [ref=f2e151] [cursor=pointer]:
+                  - /url: /ua/shop/racechip
+                - generic [ref=f2e153]:
+                  - heading "RaceChip" [level=3] [ref=f2e154]
+                  - paragraph [ref=f2e155]: Преміальні ECU тюнінг-модулі з App Control. GTS 5 чіп-тюнінг для 50+ марок авто.
+                  - generic [ref=f2e156]: Дослідити
+              - generic [ref=f2e159]:
+                - link "CSF Racing" [ref=f2e160] [cursor=pointer]:
+                  - /url: /ua/shop/csf
+                - generic [ref=f2e162]:
+                  - heading "CSF Racing" [level=3] [ref=f2e163]
+                  - paragraph [ref=f2e164]: Високопродуктивні алюмінієві радіатори, інтеркулери та масляні охолоджувачі, спроєктовані для максимального розсіювання тепла.
+                  - generic [ref=f2e165]: Дослідити
+              - generic [ref=f2e168]:
+                - link "Öhlins" [ref=f2e169] [cursor=pointer]:
+                  - /url: /ua/shop/ohlins
+                - generic [ref=f2e171]:
+                  - heading "Öhlins" [level=3] [ref=f2e172]
+                  - paragraph [ref=f2e173]: Передові технології підвіски. Чемпіонські амортизатори для найвимогливіших водіїв у світі.
+                  - generic [ref=f2e174]: Дослідити
+              - generic [ref=f2e177]:
+                - link "GiroDisc" [ref=f2e178] [cursor=pointer]:
+                  - /url: /ua/shop/girodisc
+                - generic [ref=f2e180]:
+                  - heading "GiroDisc" [level=3] [ref=f2e181]
+                  - paragraph [ref=f2e182]: Високопродуктивні плаваючі 2-складові гальмівні диски, розроблені для треку та вулиці.
+                  - generic [ref=f2e183]: Дослідити
+              - generic [ref=f2e186]:
+                - link "iPE Exhaust" [ref=f2e187] [cursor=pointer]:
+                  - /url: /ua/shop/ipe
+                - generic [ref=f2e189]:
+                  - heading "iPE Exhaust" [level=3] [ref=f2e190]
+                  - paragraph [ref=f2e191]: Innotech Performance Exhaust. Вихлопні системи ручної роботи з титану з фірмовим F1-звучанням.
+                  - generic [ref=f2e192]: Дослідити
+              - generic [ref=f2e195]:
+                - link "ADRO" [ref=f2e196] [cursor=pointer]:
+                  - /url: /ua/shop/adro
+                - generic [ref=f2e198]:
+                  - heading "ADRO" [level=3] [ref=f2e199]
+                  - paragraph [ref=f2e200]: Преміальні аерокіти з препрег-карбону з CFD-інженерією рівня F1. Не для всіх.
+                  - generic [ref=f2e201]: Дослідити
+              - generic [ref=f2e204]:
+                - link "Ilmberger Carbon" [ref=f2e205] [cursor=pointer]:
+                  - /url: /ua/shop/ilmberger
+                - generic [ref=f2e207]:
+                  - heading "Ilmberger Carbon" [level=3] [ref=f2e208]
+                  - paragraph [ref=f2e209]: Автоклавний препрег-карбон для спортбайків. Ручна укладка в Ліндберзі, Німеччина з 1995 року.
+                  - generic [ref=f2e210]: Дослідити
+              - generic [ref=f2e213]:
+                - link "KW Suspension" [ref=f2e214] [cursor=pointer]:
+                  - /url: https://kwsuspension.shop
+                - generic [ref=f2e216]:
+                  - heading "KW Suspension" [level=3] [ref=f2e217]
+                  - paragraph [ref=f2e218]: Німецька інженерія підвісок. Регульовані койловери, яким довіряють у автоспорті.
+                  - generic [ref=f2e219]: Дослідити
+              - generic [ref=f2e222]:
+                - link "FI Exhaust" [ref=f2e223] [cursor=pointer]:
+                  - /url: https://fiexhaust.shop
+                - generic [ref=f2e225]:
+                  - heading "FI Exhaust" [level=3] [ref=f2e226]
+                  - paragraph [ref=f2e227]: Керовані вихлопні системи з фірмовим звучанням для преміальних спортивних авто.
+                  - generic [ref=f2e228]: Дослідити
+              - generic [ref=f2e231]:
+                - link "Eventuri" [ref=f2e232] [cursor=pointer]:
+                  - /url: https://eventuri.shop
+                - generic [ref=f2e234]:
+                  - heading "Eventuri" [level=3] [ref=f2e235]
+                  - paragraph [ref=f2e236]: Карбонові впускні системи. Максимальний повітряний потік та перевірена на треку продуктивність.
+                  - generic [ref=f2e237]: Дослідити
+    - button "Scroll to top"
+    - contentinfo [ref=f2e240]:
+      - generic [ref=f2e241]:
+        - generic [ref=f2e242]:
+          - generic [ref=f2e243]:
+            - link "OneCompany Home" [ref=f2e244] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f2e247]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f2e248]:
+              - paragraph [ref=f2e249]: Зв'язок у Telegram
+              - generic [ref=f2e250]:
+                - link "Telegram — Авто" [ref=f2e251] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f2e254]: Авто
+                  - generic [ref=f2e255]: →
+                - link "Telegram — Мото" [ref=f2e256] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f2e259]: Мото
+                  - generic [ref=f2e260]: →
+            - generic [ref=f2e261]:
+              - link "Open OneCompany Instagram profile" [ref=f2e262] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f2e266] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f2e269] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f2e273]:
+            - heading "Компанія" [level=2] [ref=f2e274]
+            - list [ref=f2e275]:
+              - listitem [ref=f2e276]:
+                - link "Navigate to Головна page" [ref=f2e277] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f2e278]:
+                - link "Navigate to Про нас page" [ref=f2e279] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f2e280]:
+                - link "Navigate to Контакти page" [ref=f2e281] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f2e282]:
+            - heading "Напрями" [level=2] [ref=f2e283]
+            - list [ref=f2e284]:
+              - listitem [ref=f2e285]:
+                - link "Navigate to Авто tuning section" [ref=f2e286] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f2e287]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f2e288] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f2e289]:
+                - link "Navigate to Магазин tuning section" [ref=f2e290] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f2e291]:
+            - heading "Штаб-квартира" [level=2] [ref=f2e292]
+            - generic [ref=f2e293]:
+              - paragraph [ref=f2e294]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f2e295]:
+                - link "+380 66 077 17 00" [ref=f2e296] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f2e297]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f2e298]:
+          - generic [ref=f2e299]:
+            - paragraph [ref=f2e301]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f2e302]:
+              - link "Доставка та оплата" [ref=f2e303] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f2e304] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f2e305] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f2e306] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f2e307] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f2e308]:
+            - generic [ref=f2e309]: Безпечна оплата
+            - generic [ref=f2e310]:
+              - img "Visa" [ref=f2e311]
+              - img "MasterCard" [ref=f2e312]
+              - img "Whitepay" [ref=f2e313]
+              - img "Tether (USDT)" [ref=f2e314]
+              - img "Bitcoin" [ref=f2e315]
+  - button "Open Next.js Dev Tools" [ref=f2e321] [cursor=pointer]
+  - alert [ref=f2e325]

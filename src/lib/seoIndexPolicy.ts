@@ -19,6 +19,7 @@ export const localeAgnosticPublicPrefixes = [
 export const localizedStaticSlugs = [
   "",
   "/shop",
+  "/shop/catalog",
   "/shop/akrapovic",
   "/shop/akrapovic/collections",
   "/shop/csf",

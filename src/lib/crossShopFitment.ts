@@ -3614,7 +3614,7 @@ export function buildCrossShopHeading(fitment: Fitment, locale: "ua" | "en"): st
   }
 
   if (parts.length === 0) {
-    return isUa ? "Може зацікавити з інших магазинів" : "You may also like from other stores";
+    return isUa ? "Може зацікавити від інших брендів" : "You may also like from other brands";
   }
   return `${lead} ${parts.join(" ")}`;
 }

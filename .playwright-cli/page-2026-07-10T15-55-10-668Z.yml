@@ -1,0 +1,864 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "ONE COMPANY home" [ref=e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=e10]:
+          - link "Головна" [ref=e11] [cursor=pointer]:
+            - /url: /ua
+          - link "Магазини" [ref=e12] [cursor=pointer]:
+            - /url: /ua/shop
+          - link "Всі товари" [ref=e13] [cursor=pointer]:
+            - /url: /ua/shop/stock
+          - link "Акаунт" [ref=e15] [cursor=pointer]:
+            - /url: /ua/shop/account
+        - generic [ref=e16]:
+          - link "Кошик" [ref=e17] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=e22]:
+            - generic [ref=e23]: Німеччина
+            - generic [ref=e25]: EUR
+          - generic [ref=e28]:
+            - button "EN" [ref=e29]
+            - button "UA" [disabled] [ref=e30]
+          - button "Toggle theme" [ref=e32]
+    - main [ref=e36]:
+      - generic [ref=e38]:
+        - generic [ref=e40]:
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: ONE COMPANY
+            - heading "Каталог тюнінгу" [level=1] [ref=e45]
+            - generic [ref=e46]:
+              - generic [ref=e47]: 14 934 товари
+              - generic [ref=e319]: 11 402 в наявності
+          - region "Пошук і підбір за авто" [ref=e48]:
+            - generic [ref=e49]:
+              - combobox [ref=e55]
+              - generic [ref=e57]:
+                - button "Марка авто" [ref=e58]
+                - generic [ref=e65]:
+                  - generic [ref=e66]: Модель авто
+                  - combobox "Модель авто" [disabled] [ref=e67]:
+                    - option "Спочатку марка" [selected]
+                - generic [ref=e68]:
+                  - generic [ref=e69]: Кузов / шасі
+                  - combobox "Кузов / шасі" [disabled] [ref=e70]:
+                    - option "Спочатку модель" [selected]
+          - generic [ref=e71]:
+            - complementary [ref=e72]:
+              - generic [ref=e1228]:
+                - generic [ref=e1230]:
+                  - paragraph [ref=e1231]: Фільтри
+                  - paragraph [ref=e1232]: 14 934 позиції у каталозі
+                - generic [ref=e1233]:
+                  - generic [ref=e1234]:
+                    - heading "Наявність" [level=3] [ref=e1236]
+                    - generic [ref=e1237]:
+                      - button "Всі товари 14 934" [ref=e1238]:
+                        - generic [ref=e1239]: Всі товари
+                        - generic [ref=e1240]: 14 934
+                      - button "В наявності 11 402" [ref=e1241]:
+                        - generic [ref=e1242]: В наявності
+                        - generic [ref=e1243]: 11 402
+                      - button "Під замовлення 3 532" [ref=e1244]:
+                        - generic [ref=e1245]: Під замовлення
+                        - generic [ref=e1246]: 3 532
+                  - generic [ref=e1247]:
+                    - heading "Ціна" [level=3] [ref=e1248]
+                    - generic [ref=e1249]:
+                      - generic [ref=e1250]:
+                        - generic [ref=e1251]:
+                          - generic [ref=e1252]: Ціна від
+                          - textbox "Ціна від" [ref=e1253]:
+                            - /placeholder: Від
+                        - generic [ref=e1254]:
+                          - generic [ref=e1255]: Ціна до
+                          - textbox "Ціна до" [ref=e1256]:
+                            - /placeholder: До
+                      - generic [ref=e1257]:
+                        - generic [ref=e1258]: EUR
+                        - generic [ref=e1259]: 2 EUR - 85 708 EUR
+                  - generic [ref=e1260]:
+                    - button "Група товарів" [expanded] [ref=e1261]
+                    - textbox [ref=e1269]:
+                      - /placeholder: Знайти групу
+                    - generic [ref=e1270]:
+                      - button "Всі групи 14 934" [ref=e1271]:
+                        - generic [ref=e1272]: Всі групи
+                        - generic [ref=e1273]: 14 934
+                      - button "Чіп-тюнінг 5287" [ref=e1274]:
+                        - generic [ref=e1275]: Чіп-тюнінг
+                        - generic [ref=e1276]: "5287"
+                      - button "Вихлопні системи 4452" [ref=e1277]:
+                        - generic [ref=e1278]: Вихлопні системи
+                        - generic [ref=e1279]: "4452"
+                      - button "Охолодження та патрубки 1500" [ref=e1280]:
+                        - generic [ref=e1281]: Охолодження та патрубки
+                        - generic [ref=e1282]: "1500"
+                      - button "Гальмівна система 961" [ref=e1283]:
+                        - generic [ref=e1284]: Гальмівна система
+                        - generic [ref=e1285]: "961"
+                      - button "Карбон і аеродинаміка 667" [ref=e1286]:
+                        - generic [ref=e1287]: Карбон і аеродинаміка
+                        - generic [ref=e1288]: "667"
+                      - button "Підвіска 527" [ref=e1289]:
+                        - generic [ref=e1290]: Підвіска
+                        - generic [ref=e1291]: "527"
+                      - button "Впуск, турбо і двигун 500" [ref=e1292]:
+                        - generic [ref=e1293]: Впуск, турбо і двигун
+                        - generic [ref=e1294]: "500"
+                      - button "Показати більше +6" [ref=e1295]:
+                        - generic [ref=e1296]: Показати більше
+                        - generic [ref=e1297]: "+6"
+                  - generic [ref=e1298]:
+                    - button "Бренд" [expanded] [ref=e1300]
+                    - textbox [ref=e1308]:
+                      - /placeholder: Знайти бренд
+                    - generic [ref=e1309]:
+                      - button "RaceChip RaceChip 5181" [ref=e1310]:
+                        - generic "RaceChip" [ref=e1312]:
+                          - img "RaceChip" [ref=e1313]
+                        - generic "RaceChip" [ref=e1314]
+                        - generic [ref=e1315]: "5181"
+                      - button "Remus Remus 3849" [ref=e1316]:
+                        - generic "Remus" [ref=e1318]:
+                          - img "Remus" [ref=e1319]
+                        - generic "Remus" [ref=e1320]
+                        - generic [ref=e1321]: "3849"
+                      - button "DO88 DO88 1230" [ref=e1322]:
+                        - generic "DO88" [ref=e1324]:
+                          - img "DO88" [ref=e1325]
+                        - generic "DO88" [ref=e1326]
+                        - generic [ref=e1327]: "1230"
+                      - button "Brabus Brabus 977" [ref=e1328]:
+                        - generic "Brabus" [ref=e1330]:
+                          - img "Brabus" [ref=e1331]
+                        - generic "Brabus" [ref=e1332]
+                        - generic [ref=e1333]: "977"
+                      - button "GiroDisc GiroDisc 958" [ref=e1334]:
+                        - generic "GiroDisc" [ref=e1336]:
+                          - img "GiroDisc" [ref=e1337]
+                        - generic "GiroDisc" [ref=e1338]
+                        - generic [ref=e1339]: "958"
+                      - button "Burger Motorsports Burger Motorsports 666" [ref=e1340]:
+                        - generic "Burger Motorsports" [ref=e1342]:
+                          - img "Burger Motorsports" [ref=e1343]
+                        - generic "Burger Motorsports" [ref=e1344]
+                        - generic [ref=e1345]: "666"
+                      - button "OHLINS OHLINS 486" [ref=e1346]:
+                        - generic "OHLINS" [ref=e1348]:
+                          - img "OHLINS" [ref=e1349]
+                        - generic "OHLINS" [ref=e1350]
+                        - generic [ref=e1351]: "486"
+                      - button "Показати більше +6" [ref=e1352]:
+                        - generic [ref=e1353]: Показати більше
+                        - generic [ref=e1354]: "+6"
+                - button "Скинути" [disabled] [ref=e1357]
+            - main [ref=e139]:
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - paragraph [ref=e143]: Результати
+                  - generic [ref=e144]:
+                    - heading "Усі товари" [level=2] [ref=e145]
+                    - generic [ref=e146]: 14 934 товари / сторінка 1/623
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - generic [ref=e149]: Сортування
+                    - combobox "Сортування" [ref=e150]:
+                      - option "Рекомендовані" [selected]
+                      - 'option "Ціна: від меншої"'
+                      - 'option "Ціна: від більшої"'
+                      - option "Назва A-Z"
+                  - generic [ref=e151]:
+                    - button "Сітка" [ref=e152]
+                    - button "Список" [ref=e158]
+              - generic [ref=e453]:
+                - generic [ref=e454]:
+                  - 'link "Exhaust Manifold — Akrapovič для Porsche 911 GT3 / GT3 TOURING (992) AKRAPOVIC AKRAPOVIC #E-PO/T/7 Exhaust Manifold — Akrapovič для Porsche 911 GT3 / GT3 TOURING (992) Випускні колектори" [ref=e455] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-e-po-t-7
+                    - img "Exhaust Manifold — Akrapovič для Porsche 911 GT3 / GT3 TOURING (992)" [ref=e457]
+                    - generic [ref=e458]:
+                      - generic [ref=e460]:
+                        - generic "AKRAPOVIC" [ref=e461]:
+                          - img "AKRAPOVIC" [ref=e462]
+                        - generic [ref=e463]: AKRAPOVIC
+                      - button "#E-PO/T/7" [ref=e465]
+                    - generic [ref=e470]:
+                      - heading "Exhaust Manifold — Akrapovič для Porsche 911 GT3 / GT3 TOURING (992)" [level=3] [ref=e471]
+                      - generic [ref=e472]: Випускні колектори
+                  - generic [ref=e473]:
+                    - generic [ref=e475]:
+                      - generic [ref=e476]: Ціна
+                      - generic [ref=e477]: 9 846 EUR
+                    - generic [ref=e478]:
+                      - generic [ref=e479]:
+                        - button "Зменшити кількість" [disabled] [ref=e480]
+                        - generic [ref=e482]: "1"
+                        - button "Збільшити кількість" [ref=e483]
+                      - button "У кошик" [ref=e485]
+                - generic [ref=e486]:
+                  - 'link "Titanium Racing Exhaust Remus Remus #681023 5500TI Titanium Racing Exhaust Cars / Rear Silencers (Muffler only)" [ref=e487] [cursor=pointer]':
+                    - /url: /ua/shop/remus-681023-5500ti
+                    - img "Titanium Racing Exhaust" [ref=e489]
+                    - generic [ref=e490]:
+                      - generic [ref=e492]:
+                        - generic "Remus" [ref=e493]:
+                          - img "Remus" [ref=e494]
+                        - generic [ref=e495]: Remus
+                      - button "#681023 5500TI" [ref=e497]
+                    - generic [ref=e502]:
+                      - heading "Titanium Racing Exhaust" [level=3] [ref=e503]
+                      - generic [ref=e504]: Cars / Rear Silencers (Muffler only)
+                  - generic [ref=e505]:
+                    - generic [ref=e507]:
+                      - generic [ref=e508]: Ціна
+                      - generic [ref=e509]: 5 515 EUR
+                    - generic [ref=e510]:
+                      - generic [ref=e511]:
+                        - button "Зменшити кількість" [disabled] [ref=e512]
+                        - generic [ref=e514]: "1"
+                        - button "Збільшити кількість" [ref=e515]
+                      - button "У кошик" [ref=e517]
+                - generic [ref=e518]:
+                  - 'link "GIRODISC A2-161 Комплект задніх гальмівних дисків для GIRODISC A2-161 Rear Brake Rotor Kit 360mm FERRARI 488GTB / 812 / SF90 / 296 (CCM) GiroDisc GiroDisc #A2-161 GIRODISC A2-161 Комплект задніх гальмівних дисків для GIRODISC A2-161 Rear Brake Rotor Kit 360mm FERRARI 488GTB / 812 / SF90 / 296 (CCM) Гальмівні диски" [ref=e519] [cursor=pointer]':
+                    - /url: /ua/shop/girodisc-a2-161-komplekt-zadnikh-halmivnykh-dyskiv-dlia-girodisc-a2-161-rear-brake-rotor-kit-360mm-ferrari-488gtb-812-sf90-296-ccm
+                    - img "GIRODISC A2-161 Комплект задніх гальмівних дисків для GIRODISC A2-161 Rear Brake Rotor Kit 360mm FERRARI 488GTB / 812 / SF90 / 296 (CCM)" [ref=e521]
+                    - generic [ref=e522]:
+                      - generic [ref=e524]:
+                        - generic "GiroDisc" [ref=e525]:
+                          - img "GiroDisc" [ref=e526]
+                        - generic [ref=e527]: GiroDisc
+                      - button "#A2-161" [ref=e529]
+                    - generic [ref=e534]:
+                      - heading "GIRODISC A2-161 Комплект задніх гальмівних дисків для GIRODISC A2-161 Rear Brake Rotor Kit 360mm FERRARI 488GTB / 812 / SF90 / 296 (CCM)" [level=3] [ref=e535]
+                      - generic [ref=e536]: Гальмівні диски
+                  - generic [ref=e537]:
+                    - generic [ref=e539]:
+                      - generic [ref=e540]: Ціна
+                      - generic [ref=e541]: 2 202 EUR
+                    - generic [ref=e542]:
+                      - generic [ref=e543]:
+                        - button "Зменшити кількість" [disabled] [ref=e544]
+                        - generic [ref=e546]: "1"
+                        - button "Збільшити кількість" [ref=e547]
+                      - button "У кошик" [ref=e549]
+                - generic [ref=e550]:
+                  - 'link "Axle Back Performance Exhaust Urban для Bentley Continental GT Urban Automotive Urban Automotive #URB-EXH-25358155-V1 Axle Back Performance Exhaust Urban для Bentley Continental GT Вихлоп" [ref=e551] [cursor=pointer]':
+                    - /url: /ua/shop/urb-exh-25358155-v1
+                    - img "Axle Back Performance Exhaust Urban для Bentley Continental GT" [ref=e553]
+                    - generic [ref=e554]:
+                      - generic [ref=e556]:
+                        - generic "Urban Automotive" [ref=e557]:
+                          - img "Urban Automotive" [ref=e558]
+                        - generic [ref=e559]: Urban Automotive
+                      - button "#URB-EXH-25358155-V1" [ref=e561]
+                    - generic [ref=e566]:
+                      - heading "Axle Back Performance Exhaust Urban для Bentley Continental GT" [level=3] [ref=e567]
+                      - generic [ref=e568]: Вихлоп
+                  - generic [ref=e569]:
+                    - generic [ref=e571]:
+                      - generic [ref=e572]: Ціна
+                      - generic [ref=e573]: 3 703 EUR
+                    - generic [ref=e574]:
+                      - generic [ref=e575]:
+                        - button "Зменшити кількість" [disabled] [ref=e576]
+                        - generic [ref=e578]: "1"
+                        - button "Збільшити кількість" [ref=e579]
+                      - button "У кошик" [ref=e581]
+                - generic [ref=e582]:
+                  - 'link "Фронтальна високопродуктивна впускна система BMS Elite G8x M2 M3 M4 S58 BMW Performance Intake Burger Motorsports Burger Motorsports #BURGER-7310174290094 Фронтальна високопродуктивна впускна система BMS Elite G8x M2 M3 M4 S58 BMW Performance Intake Burger Motorsports" [ref=e583] [cursor=pointer]':
+                    - /url: /ua/shop/burger-front-mount-g87-m2-g80-m3-g82-g83-m4-s58-performance-intake
+                    - img "Фронтальна високопродуктивна впускна система BMS Elite G8x M2 M3 M4 S58 BMW Performance Intake" [ref=e585]
+                    - generic [ref=e586]:
+                      - generic [ref=e588]:
+                        - generic "Burger Motorsports" [ref=e589]:
+                          - img "Burger Motorsports" [ref=e590]
+                        - generic [ref=e591]: Burger Motorsports
+                      - button "#BURGER-7310174290094" [ref=e593]
+                    - generic [ref=e598]:
+                      - heading "Фронтальна високопродуктивна впускна система BMS Elite G8x M2 M3 M4 S58 BMW Performance Intake" [level=3] [ref=e599]
+                      - generic [ref=e600]: Burger Motorsports
+                  - generic [ref=e601]:
+                    - generic [ref=e603]:
+                      - generic [ref=e604]: Ціна
+                      - generic [ref=e605]: 761 EUR
+                    - generic [ref=e606]:
+                      - generic [ref=e607]:
+                        - button "Зменшити кількість" [disabled] [ref=e608]
+                        - generic [ref=e610]: "1"
+                        - button "Збільшити кількість" [ref=e611]
+                      - button "У кошик" [ref=e613]
+                - generic [ref=e614]:
+                  - 'link "CSF 7045 Радіатор RACE для CSF 7045 Racing Radiator for BMW 335i (E9x) / 1M (E82) CSF CSF #7045 CSF 7045 Радіатор RACE для CSF 7045 Racing Radiator for BMW 335i (E9x) / 1M (E82) Радіатори та аксесуари" [ref=e615] [cursor=pointer]':
+                    - /url: /ua/shop/csf-7045
+                    - img "CSF 7045 Радіатор RACE для CSF 7045 Racing Radiator for BMW 335i (E9x) / 1M (E82)" [ref=e617]
+                    - generic [ref=e618]:
+                      - generic [ref=e620]:
+                        - generic "CSF" [ref=e621]:
+                          - img "CSF" [ref=e622]
+                        - generic [ref=e623]: CSF
+                      - button "#7045" [ref=e625]
+                    - generic [ref=e630]:
+                      - heading "CSF 7045 Радіатор RACE для CSF 7045 Racing Radiator for BMW 335i (E9x) / 1M (E82)" [level=3] [ref=e631]
+                      - generic [ref=e632]: Радіатори та аксесуари
+                  - generic [ref=e633]:
+                    - generic [ref=e635]:
+                      - generic [ref=e636]: Ціна
+                      - generic [ref=e637]: 599 EUR
+                    - generic [ref=e638]:
+                      - generic [ref=e639]:
+                        - button "Зменшити кількість" [disabled] [ref=e640]
+                        - generic [ref=e642]: "1"
+                        - button "Збільшити кількість" [ref=e643]
+                      - button "У кошик" [ref=e645]
+                - generic [ref=e646]:
+                  - 'link "OHLINS BMV GU21M2 Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 (F87) OHLINS OHLINS #BMV GU21M2 OHLINS BMV GU21M2 Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 (F87) Комплекти підвіски" [ref=e647] [cursor=pointer]':
+                    - /url: /ua/shop/ohlins-bmv-gu21m2
+                    - img "OHLINS BMV GU21M2 Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 (F87)" [ref=e649]
+                    - generic [ref=e650]:
+                      - generic [ref=e652]:
+                        - generic "OHLINS" [ref=e653]:
+                          - img "OHLINS" [ref=e654]
+                        - generic [ref=e655]: OHLINS
+                      - button "#BMV GU21M2" [ref=e657]
+                    - generic [ref=e662]:
+                      - heading "OHLINS BMV GU21M2 Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 (F87)" [level=3] [ref=e663]
+                      - generic [ref=e664]: Комплекти підвіски
+                  - generic [ref=e665]:
+                    - generic [ref=e667]:
+                      - generic [ref=e668]: Ціна
+                      - generic [ref=e669]: 12 594 EUR
+                    - generic [ref=e670]:
+                      - generic [ref=e671]:
+                        - button "Зменшити кількість" [disabled] [ref=e672]
+                        - generic [ref=e674]: "1"
+                        - button "Збільшити кількість" [ref=e675]
+                      - button "У кошик" [ref=e677]
+                - generic [ref=e678]:
+                  - 'link "PowerXtra BC40 – 900 Brabus Brabus #bc634-bc40-900-00 PowerXtra BC40 – 900 Brabus" [ref=e679] [cursor=pointer]':
+                    - /url: /ua/shop/brabus-bentley-continental-gt-speed-bc634-bc40-900-00
+                    - img "PowerXtra BC40 – 900" [ref=e681]
+                    - generic [ref=e682]:
+                      - generic [ref=e684]:
+                        - generic "Brabus" [ref=e685]:
+                          - img "Brabus" [ref=e686]
+                        - generic [ref=e687]: Brabus
+                      - button "#bc634-bc40-900-00" [ref=e689]
+                    - generic [ref=e694]:
+                      - heading "PowerXtra BC40 – 900" [level=3] [ref=e695]
+                      - generic [ref=e696]: Brabus
+                  - generic [ref=e697]:
+                    - generic [ref=e699]:
+                      - generic [ref=e700]: Ціна
+                      - generic [ref=e701]: 44 375 EUR
+                    - generic [ref=e702]:
+                      - generic [ref=e703]:
+                        - button "Зменшити кількість" [disabled] [ref=e704]
+                        - generic [ref=e706]: "1"
+                        - button "Збільшити кількість" [ref=e707]
+                      - button "У кошик" [ref=e709]
+                - generic [ref=e710]:
+                  - 'link "ADRO A14A11-1101 Комплект розширення кузова Option 4 (без бампера ADRO, багажника, крила AT-R3) для BMW M4 (G82) ADRO ADRO #A14A11-1101 ADRO A14A11-1101 Комплект розширення кузова Option 4 (без бампера ADRO, багажника, крила AT-R3) для BMW M4 (G82) Комплекти обвісів" [ref=e711] [cursor=pointer]':
+                    - /url: /ua/shop/adro-a14a11-1101
+                    - img "ADRO A14A11-1101 Комплект розширення кузова Option 4 (без бампера ADRO, багажника, крила AT-R3) для BMW M4 (G82)" [ref=e713]
+                    - generic [ref=e714]:
+                      - generic [ref=e716]:
+                        - generic "ADRO" [ref=e717]:
+                          - img "ADRO" [ref=e718]
+                        - generic [ref=e719]: ADRO
+                      - button "#A14A11-1101" [ref=e721]
+                    - generic [ref=e726]:
+                      - heading "ADRO A14A11-1101 Комплект розширення кузова Option 4 (без бампера ADRO, багажника, крила AT-R3) для BMW M4 (G82)" [level=3] [ref=e727]
+                      - generic [ref=e728]: Комплекти обвісів
+                  - generic [ref=e729]:
+                    - generic [ref=e731]:
+                      - generic [ref=e732]: Ціна
+                      - generic [ref=e733]: 31 597 EUR
+                    - generic [ref=e734]:
+                      - generic [ref=e735]:
+                        - button "Зменшити кількість" [disabled] [ref=e736]
+                        - generic [ref=e738]: "1"
+                        - button "Збільшити кількість" [ref=e739]
+                      - button "У кошик" [ref=e741]
+                - generic [ref=e742]:
+                  - 'link "Big Pack Porsche 911 Turbo (992) DO88 DO88 #BIG-310-T Big Pack Porsche 911 Turbo (992) Для автомобілів > Porsche > 992.1, турбо (911)" [ref=e743] [cursor=pointer]':
+                    - /url: /ua/shop/do88-big-310-t
+                    - img "Big Pack Porsche 911 Turbo (992)" [ref=e745]
+                    - generic [ref=e746]:
+                      - generic [ref=e748]:
+                        - generic "DO88" [ref=e749]:
+                          - img "DO88" [ref=e750]
+                        - generic [ref=e751]: DO88
+                      - button "#BIG-310-T" [ref=e753]
+                    - generic [ref=e758]:
+                      - heading "Big Pack Porsche 911 Turbo (992)" [level=3] [ref=e759]
+                      - generic [ref=e760]: Для автомобілів > Porsche > 992.1, турбо (911)
+                  - generic [ref=e761]:
+                    - generic [ref=e763]:
+                      - generic [ref=e764]: Ціна
+                      - generic [ref=e765]: 5 858 EUR
+                    - generic [ref=e766]:
+                      - generic [ref=e767]:
+                        - button "Зменшити кількість" [disabled] [ref=e768]
+                        - generic [ref=e770]: "1"
+                        - button "Збільшити кількість" [ref=e771]
+                      - button "У кошик" [ref=e773]
+                - generic [ref=e774]:
+                  - 'link "RaceChip GTS 5 — Lamborghini Urus (2018+) 4 0T 3996cc RaceChip RaceChip #RC-GTS5-LAMBORGHINI-4-0T-3996CCM-650HP-478KW-850NM RaceChip GTS 5 — Lamborghini Urus (2018+) 4 0T 3996cc Чіп-тюнінг" [ref=e775] [cursor=pointer]':
+                    - /url: /ua/shop/racechip-gts5-lamborghini-urus-from-2018-4-0t-3996ccm-650hp-478kw-850nm
+                    - img "RaceChip GTS 5 — Lamborghini Urus (2018+) 4 0T 3996cc" [ref=e777]
+                    - generic [ref=e778]:
+                      - generic [ref=e780]:
+                        - generic "RaceChip" [ref=e781]:
+                          - img "RaceChip" [ref=e782]
+                        - generic [ref=e783]: RaceChip
+                      - button "#RC-GTS5-LAMBORGHINI-4-0T-3996CCM-650HP-478KW-850NM" [ref=e785]
+                    - generic [ref=e790]:
+                      - heading "RaceChip GTS 5 — Lamborghini Urus (2018+) 4 0T 3996cc" [level=3] [ref=e791]
+                      - generic [ref=e792]: Чіп-тюнінг
+                  - generic [ref=e793]:
+                    - generic [ref=e795]:
+                      - generic [ref=e796]: Ціна
+                      - generic [ref=e797]: 1 749 EUR
+                    - generic [ref=e798]:
+                      - generic [ref=e799]:
+                        - button "Зменшити кількість" [disabled] [ref=e800]
+                        - generic [ref=e802]: "1"
+                        - button "Збільшити кількість" [ref=e803]
+                      - button "У кошик" [ref=e805]
+                - generic [ref=e806]:
+                  - 'link "Нижній піддон під повний гоночний вихлоп BMW S 1000 RR Street (з 2019) Ilmberger Carbon Ilmberger Carbon #CG.VEU.029.S119S Нижній піддон під повний гоночний вихлоп BMW S 1000 RR Street (з 2019) BMW S 1000 RR (MY 2019)" [ref=e807] [cursor=pointer]':
+                    - /url: /ua/shop/ilmberger-cg-veu-029-s119s
+                    - img "Нижній піддон під повний гоночний вихлоп BMW S 1000 RR Street (з 2019)" [ref=e809]
+                    - generic [ref=e810]:
+                      - generic [ref=e812]:
+                        - generic "Ilmberger Carbon" [ref=e813]:
+                          - img "Ilmberger Carbon" [ref=e814]
+                        - generic [ref=e815]: Ilmberger Carbon
+                      - button "#CG.VEU.029.S119S" [ref=e817]
+                    - generic [ref=e822]:
+                      - heading "Нижній піддон під повний гоночний вихлоп BMW S 1000 RR Street (з 2019)" [level=3] [ref=e823]
+                      - generic [ref=e824]: BMW S 1000 RR (MY 2019)
+                  - generic [ref=e825]:
+                    - generic [ref=e827]:
+                      - generic [ref=e828]: Ціна
+                      - generic [ref=e829]: 1 000 EUR
+                    - generic [ref=e830]:
+                      - generic [ref=e831]:
+                        - button "Зменшити кількість" [disabled] [ref=e832]
+                        - generic [ref=e834]: "1"
+                        - button "Збільшити кількість" [ref=e835]
+                      - button "У кошик" [ref=e837]
+                - generic [ref=e838]:
+                  - 'link "Porsche 911 GT3 / GT3 RS (992) Catback System iPE exhaust iPE exhaust #0P92G3-TNVPM0-2 Porsche 911 GT3 / GT3 RS (992) Catback System Аксесуари" [ref=e839] [cursor=pointer]':
+                    - /url: /ua/shop/ipe-porsche-911-gt3-992-catback-system
+                    - img "Porsche 911 GT3 / GT3 RS (992) Catback System" [ref=e841]
+                    - generic [ref=e842]:
+                      - generic [ref=e844]:
+                        - generic "iPE exhaust" [ref=e845]:
+                          - img "iPE exhaust" [ref=e846]
+                        - generic [ref=e847]: iPE exhaust
+                      - button "#0P92G3-TNVPM0-2" [ref=e849]
+                    - generic [ref=e854]:
+                      - heading "Porsche 911 GT3 / GT3 RS (992) Catback System" [level=3] [ref=e855]
+                      - generic [ref=e856]: Аксесуари
+                  - generic [ref=e857]:
+                    - generic [ref=e859]:
+                      - generic [ref=e860]: Ціна
+                      - generic [ref=e861]: 7 291 EUR
+                    - generic [ref=e862]:
+                      - generic [ref=e863]:
+                        - button "Зменшити кількість" [disabled] [ref=e864]
+                        - generic [ref=e866]: "1"
+                        - button "Збільшити кількість" [ref=e867]
+                      - button "У кошик" [ref=e869]
+                - generic [ref=e870]:
+                  - 'link "AKRAPOVIC S-PO/TI/5H Вихлопна система Slip-On Line (титан) для PORSCHE 911 Carrera / S / 4 / 4S / GTS (991.2) OE Non Sport Exhaust AKRAPOVIC AKRAPOVIC #S-PO/TI/5H AKRAPOVIC S-PO/TI/5H Вихлопна система Slip-On Line (титан) для PORSCHE 911 Carrera / S / 4 / 4S / GTS (991.2) OE Non Sport Exhaust Slip-On Line (задня частина)" [ref=e871] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-s-po-ti-5h
+                    - img "AKRAPOVIC S-PO/TI/5H Вихлопна система Slip-On Line (титан) для PORSCHE 911 Carrera / S / 4 / 4S / GTS (991.2) OE Non Sport Exhaust" [ref=e873]
+                    - generic [ref=e874]:
+                      - generic [ref=e876]:
+                        - generic "AKRAPOVIC" [ref=e877]:
+                          - img "AKRAPOVIC" [ref=e878]
+                        - generic [ref=e879]: AKRAPOVIC
+                      - button "#S-PO/TI/5H" [ref=e881]
+                    - generic [ref=e886]:
+                      - heading "AKRAPOVIC S-PO/TI/5H Вихлопна система Slip-On Line (титан) для PORSCHE 911 Carrera / S / 4 / 4S / GTS (991.2) OE Non Sport Exhaust" [level=3] [ref=e887]
+                      - generic [ref=e888]: Slip-On Line (задня частина)
+                  - generic [ref=e889]:
+                    - generic [ref=e891]:
+                      - generic [ref=e892]: Ціна
+                      - generic [ref=e893]: 5 850 EUR
+                    - generic [ref=e894]:
+                      - generic [ref=e895]:
+                        - button "Зменшити кількість" [disabled] [ref=e896]
+                        - generic [ref=e898]: "1"
+                        - button "Збільшити кількість" [ref=e899]
+                      - button "У кошик" [ref=e901]
+                - generic [ref=e902]:
+                  - 'link "Titanium Racing Exhaust Remus Remus #081021 1510TI Titanium Racing Exhaust Cars / Rear Silencers (Muffler only)" [ref=e903] [cursor=pointer]':
+                    - /url: /ua/shop/remus-081021-1510ti
+                    - img "Titanium Racing Exhaust" [ref=e905]
+                    - generic [ref=e906]:
+                      - generic [ref=e908]:
+                        - generic "Remus" [ref=e909]:
+                          - img "Remus" [ref=e910]
+                        - generic [ref=e911]: Remus
+                      - button "#081021 1510TI" [ref=e913]
+                    - generic [ref=e918]:
+                      - heading "Titanium Racing Exhaust" [level=3] [ref=e919]
+                      - generic [ref=e920]: Cars / Rear Silencers (Muffler only)
+                  - generic [ref=e921]:
+                    - generic [ref=e923]:
+                      - generic [ref=e924]: Ціна
+                      - generic [ref=e925]: 3 640 EUR
+                    - generic [ref=e926]:
+                      - generic [ref=e927]:
+                        - button "Зменшити кількість" [disabled] [ref=e928]
+                        - generic [ref=e930]: "1"
+                        - button "Збільшити кількість" [ref=e931]
+                      - button "У кошик" [ref=e933]
+                - generic [ref=e934]:
+                  - 'link "GIRODISC A1-334 Комплект передніх гальмівних дисків для CHEVROLET Camaro з BCD Brake Package (Mk6) GiroDisc GiroDisc #A1-334 GIRODISC A1-334 Комплект передніх гальмівних дисків для CHEVROLET Camaro з BCD Brake Package (Mk6) Гальмівні диски" [ref=e935] [cursor=pointer]':
+                    - /url: /ua/shop/girodisc-a1-334-komplekt-perednikh-halmivnykh-dyskiv-dlia-chevrolet-camaro-z-bcd-brake-package-mk6
+                    - img "GIRODISC A1-334 Комплект передніх гальмівних дисків для CHEVROLET Camaro з BCD Brake Package (Mk6)" [ref=e937]
+                    - generic [ref=e938]:
+                      - generic [ref=e940]:
+                        - generic "GiroDisc" [ref=e941]:
+                          - img "GiroDisc" [ref=e942]
+                        - generic [ref=e943]: GiroDisc
+                      - button "#A1-334" [ref=e945]
+                    - generic [ref=e950]:
+                      - heading "GIRODISC A1-334 Комплект передніх гальмівних дисків для CHEVROLET Camaro з BCD Brake Package (Mk6)" [level=3] [ref=e951]
+                      - generic [ref=e952]: Гальмівні диски
+                  - generic [ref=e953]:
+                    - generic [ref=e955]:
+                      - generic [ref=e956]: Ціна
+                      - generic [ref=e957]: 1 246 EUR
+                    - generic [ref=e958]:
+                      - generic [ref=e959]:
+                        - button "Зменшити кількість" [disabled] [ref=e960]
+                        - generic [ref=e962]: "1"
+                        - button "Збільшити кількість" [ref=e963]
+                      - button "У кошик" [ref=e965]
+                - generic [ref=e966]:
+                  - 'link "Комплекти для Rolls-Royce Cullinan Urban Automotive Urban Automotive #URB-BUN-25358147-V1 Комплекти для Rolls-Royce Cullinan Комплекти" [ref=e967] [cursor=pointer]':
+                    - /url: /ua/shop/urb-bun-25358147-v1
+                    - img "Комплекти для Rolls-Royce Cullinan" [ref=e969]
+                    - generic [ref=e970]:
+                      - generic [ref=e972]:
+                        - generic "Urban Automotive" [ref=e973]:
+                          - img "Urban Automotive" [ref=e974]
+                        - generic [ref=e975]: Urban Automotive
+                      - button "#URB-BUN-25358147-V1" [ref=e977]
+                    - generic [ref=e982]:
+                      - heading "Комплекти для Rolls-Royce Cullinan" [level=3] [ref=e983]
+                      - generic [ref=e984]: Комплекти
+                  - generic [ref=e985]:
+                    - generic [ref=e987]:
+                      - generic [ref=e988]: Ціна
+                      - generic [ref=e989]: 85 708 EUR
+                    - generic [ref=e990]:
+                      - generic [ref=e991]:
+                        - button "Зменшити кількість" [disabled] [ref=e992]
+                        - generic [ref=e994]: "1"
+                        - button "Збільшити кількість" [ref=e995]
+                      - button "У кошик" [ref=e997]
+                - generic [ref=e998]:
+                  - 'link "JB4 Performance Tuner для Mercedes-Benz C63, E63, GT, GLC, включаючи моделі S Burger Motorsports Burger Motorsports #BURGER-1851067269235 JB4 Performance Tuner для Mercedes-Benz C63, E63, GT, GLC, включаючи моделі S Burger Motorsports" [ref=e999] [cursor=pointer]':
+                    - /url: /ua/shop/burger-mercedes_benz_amg_c63_e63_jb4
+                    - img "JB4 Performance Tuner для Mercedes-Benz C63, E63, GT, GLC, включаючи моделі S" [ref=e1001]
+                    - generic [ref=e1002]:
+                      - generic [ref=e1004]:
+                        - generic "Burger Motorsports" [ref=e1005]:
+                          - img "Burger Motorsports" [ref=e1006]
+                        - generic [ref=e1007]: Burger Motorsports
+                      - button "#BURGER-1851067269235" [ref=e1009]
+                    - generic [ref=e1014]:
+                      - heading "JB4 Performance Tuner для Mercedes-Benz C63, E63, GT, GLC, включаючи моделі S" [level=3] [ref=e1015]
+                      - generic [ref=e1016]: Burger Motorsports
+                  - generic [ref=e1017]:
+                    - generic [ref=e1019]:
+                      - generic [ref=e1020]: Ціна
+                      - generic [ref=e1021]: 735 EUR
+                    - generic [ref=e1022]:
+                      - generic [ref=e1023]:
+                        - button "Зменшити кількість" [disabled] [ref=e1024]
+                        - generic [ref=e1026]: "1"
+                        - button "Збільшити кількість" [ref=e1027]
+                      - button "У кошик" [ref=e1029]
+                - generic [ref=e1030]:
+                  - 'link "CSF 7057 Радіатор для PORSCHE Boxster S (986) 1998-2005 / 911 (996) aux. center radiator 1996-2004 CSF CSF #7057 CSF 7057 Радіатор для PORSCHE Boxster S (986) 1998-2005 / 911 (996) aux. center radiator 1996-2004 Радіатори та аксесуари" [ref=e1031] [cursor=pointer]':
+                    - /url: /ua/shop/csf-7057
+                    - img "CSF 7057 Радіатор для PORSCHE Boxster S (986) 1998-2005 / 911 (996) aux. center radiator 1996-2004" [ref=e1033]
+                    - generic [ref=e1034]:
+                      - generic [ref=e1036]:
+                        - generic "CSF" [ref=e1037]:
+                          - img "CSF" [ref=e1038]
+                        - generic [ref=e1039]: CSF
+                      - button "#7057" [ref=e1041]
+                    - generic [ref=e1046]:
+                      - heading "CSF 7057 Радіатор для PORSCHE Boxster S (986) 1998-2005 / 911 (996) aux. center radiator 1996-2004" [level=3] [ref=e1047]
+                      - generic [ref=e1048]: Радіатори та аксесуари
+                  - generic [ref=e1049]:
+                    - generic [ref=e1051]:
+                      - generic [ref=e1052]: Ціна
+                      - generic [ref=e1053]: 485 EUR
+                    - generic [ref=e1054]:
+                      - generic [ref=e1055]:
+                        - button "Зменшити кількість" [disabled] [ref=e1056]
+                        - generic [ref=e1058]: "1"
+                        - button "Збільшити кількість" [ref=e1059]
+                      - button "У кошик" [ref=e1061]
+                - generic [ref=e1062]:
+                  - 'link "OHLINS BMV GU21M2C Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 Competition (F87) OHLINS OHLINS #BMV GU21M2C OHLINS BMV GU21M2C Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 Competition (F87) Комплекти підвіски" [ref=e1063] [cursor=pointer]':
+                    - /url: /ua/shop/ohlins-bmv-gu21m2c
+                    - img "OHLINS BMV GU21M2C Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 Competition (F87)" [ref=e1065]
+                    - generic [ref=e1066]:
+                      - generic [ref=e1068]:
+                        - generic "OHLINS" [ref=e1069]:
+                          - img "OHLINS" [ref=e1070]
+                        - generic [ref=e1071]: OHLINS
+                      - button "#BMV GU21M2C" [ref=e1073]
+                    - generic [ref=e1078]:
+                      - heading "OHLINS BMV GU21M2C Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M2 Competition (F87)" [level=3] [ref=e1079]
+                      - generic [ref=e1080]: Комплекти підвіски
+                  - generic [ref=e1081]:
+                    - generic [ref=e1083]:
+                      - generic [ref=e1084]: Ціна
+                      - generic [ref=e1085]: 12 594 EUR
+                    - generic [ref=e1086]:
+                      - generic [ref=e1087]:
+                        - button "Зменшити кількість" [disabled] [ref=e1088]
+                        - generic [ref=e1090]: "1"
+                        - button "Збільшити кількість" [ref=e1091]
+                      - button "У кошик" [ref=e1093]
+                - generic [ref=e1094]:
+                  - 'link "PowerXtra B40S – 800 – Maybach GLS 600 для Mercedes – X 167 – Maybach GLS 600 Brabus Brabus #X167M-B40S-800-00 PowerXtra B40S – 800 – Maybach GLS 600 для Mercedes – X 167 – Maybach GLS 600 Brabus" [ref=e1095] [cursor=pointer]':
+                    - /url: /ua/shop/brabus-x167m-b40s-800-00
+                    - img "PowerXtra B40S – 800 – Maybach GLS 600 для Mercedes – X 167 – Maybach GLS 600" [ref=e1097]
+                    - generic [ref=e1098]:
+                      - generic [ref=e1100]:
+                        - generic "Brabus" [ref=e1101]:
+                          - img "Brabus" [ref=e1102]
+                        - generic [ref=e1103]: Brabus
+                      - button "#X167M-B40S-800-00" [ref=e1105]
+                    - generic [ref=e1110]:
+                      - heading "PowerXtra B40S – 800 – Maybach GLS 600 для Mercedes – X 167 – Maybach GLS 600" [level=3] [ref=e1111]
+                      - generic [ref=e1112]: Brabus
+                  - generic [ref=e1113]:
+                    - generic [ref=e1115]:
+                      - generic [ref=e1116]: Ціна
+                      - generic [ref=e1117]: 42 019 EUR
+                    - generic [ref=e1118]:
+                      - generic [ref=e1119]:
+                        - button "Зменшити кількість" [disabled] [ref=e1120]
+                        - generic [ref=e1122]: "1"
+                        - button "Збільшити кількість" [ref=e1123]
+                      - button "У кошик" [ref=e1125]
+                - generic [ref=e1126]:
+                  - 'link "ADRO A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101 Комплект розширення кузова Option 1 (повний) для TOYOTA GR Supra ADRO ADRO #A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101 ADRO A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101 Комплект розширення кузова Option 1 (повний) для TOYOTA GR Supra Комплекти обвісів" [ref=e1127] [cursor=pointer]':
+                    - /url: /ua/shop/adro-a18a20-1101-a18a20-1504-a18a20-2401-a18a20-2101
+                    - img "ADRO A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101 Комплект розширення кузова Option 1 (повний) для TOYOTA GR Supra" [ref=e1129]
+                    - generic [ref=e1130]:
+                      - generic [ref=e1132]:
+                        - generic "ADRO" [ref=e1133]:
+                          - img "ADRO" [ref=e1134]
+                        - generic [ref=e1135]: ADRO
+                      - button "#A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101" [ref=e1137]
+                    - generic [ref=e1142]:
+                      - heading "ADRO A18A20-1101/A18A20-1504/A18A20-2401/A18A20-2101 Комплект розширення кузова Option 1 (повний) для TOYOTA GR Supra" [level=3] [ref=e1143]
+                      - generic [ref=e1144]: Комплекти обвісів
+                  - generic [ref=e1145]:
+                    - generic [ref=e1147]:
+                      - generic [ref=e1148]: Ціна
+                      - generic [ref=e1149]: 20 402 EUR
+                    - generic [ref=e1150]:
+                      - generic [ref=e1151]:
+                        - button "Зменшити кількість" [disabled] [ref=e1152]
+                        - generic [ref=e1154]: "1"
+                        - button "Збільшити кількість" [ref=e1155]
+                      - button "У кошик" [ref=e1157]
+                - generic [ref=e1158]:
+                  - 'link "Porsche 911 Turbo (992) інтеркулер комплект DO88 DO88 #ICM-400 Porsche 911 Turbo (992) інтеркулер комплект Для автомобілів > Porsche > 992.1, турбо (911)" [ref=e1159] [cursor=pointer]':
+                    - /url: /ua/shop/do88-icm-400
+                    - img "Porsche 911 Turbo (992) інтеркулер комплект" [ref=e1161]
+                    - generic [ref=e1162]:
+                      - generic [ref=e1164]:
+                        - generic "DO88" [ref=e1165]:
+                          - img "DO88" [ref=e1166]
+                        - generic [ref=e1167]: DO88
+                      - button "#ICM-400" [ref=e1169]
+                    - generic [ref=e1174]:
+                      - heading "Porsche 911 Turbo (992) інтеркулер комплект" [level=3] [ref=e1175]
+                      - generic [ref=e1176]: Для автомобілів > Porsche > 992.1, турбо (911)
+                  - generic [ref=e1177]:
+                    - generic [ref=e1179]:
+                      - generic [ref=e1180]: Ціна
+                      - generic [ref=e1181]: 5 586 EUR
+                    - generic [ref=e1182]:
+                      - generic [ref=e1183]:
+                        - button "Зменшити кількість" [disabled] [ref=e1184]
+                        - generic [ref=e1186]: "1"
+                        - button "Збільшити кількість" [ref=e1187]
+                      - button "У кошик" [ref=e1189]
+                - generic [ref=e1190]:
+                  - 'link "RaceChip GTS 5 — McLaren 570gt (2016+) 3.8 V8 3799cc RaceChip RaceChip #RC-GTS5-MCLAREN-3-8-V8-3799CCM-570HP-419KW-600NM RaceChip GTS 5 — McLaren 570gt (2016+) 3.8 V8 3799cc Чіп-тюнінг" [ref=e1191] [cursor=pointer]':
+                    - /url: /ua/shop/racechip-gts5-mclaren-570gt-from-2016-3-8-v8-3799ccm-570hp-419kw-600nm
+                    - img "RaceChip GTS 5 — McLaren 570gt (2016+) 3.8 V8 3799cc" [ref=e1193]
+                    - generic [ref=e1194]:
+                      - generic [ref=e1196]:
+                        - generic "RaceChip" [ref=e1197]:
+                          - img "RaceChip" [ref=e1198]
+                        - generic [ref=e1199]: RaceChip
+                      - button "#RC-GTS5-MCLAREN-3-8-V8-3799CCM-570HP-419KW-600NM" [ref=e1201]
+                    - generic [ref=e1206]:
+                      - heading "RaceChip GTS 5 — McLaren 570gt (2016+) 3.8 V8 3799cc" [level=3] [ref=e1207]
+                      - generic [ref=e1208]: Чіп-тюнінг
+                  - generic [ref=e1209]:
+                    - generic [ref=e1211]:
+                      - generic [ref=e1212]: Ціна
+                      - generic [ref=e1213]: 1 749 EUR
+                    - generic [ref=e1214]:
+                      - generic [ref=e1215]:
+                        - button "Зменшити кількість" [disabled] [ref=e1216]
+                        - generic [ref=e1218]: "1"
+                        - button "Збільшити кількість" [ref=e1219]
+                      - button "У кошик" [ref=e1221]
+              - generic [ref=e1222]:
+                - button "← Назад" [disabled] [ref=e1223]
+                - generic [ref=e1224]: 1 / 623
+                - button "Далі →" [ref=e1225]
+        - button "Відкрити One AI" [ref=e221]:
+          - generic [ref=e227]: One AI
+    - button "Scroll to top"
+    - contentinfo [ref=e228]:
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - generic [ref=e231]:
+            - link "OneCompany Home" [ref=e232] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=e235]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=e236]:
+              - paragraph [ref=e237]: Зв'язок у Telegram
+              - generic [ref=e238]:
+                - link "Telegram — Авто" [ref=e239] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=e242]: Авто
+                  - generic [ref=e243]: →
+                - link "Telegram — Мото" [ref=e244] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=e247]: Мото
+                  - generic [ref=e248]: →
+            - generic [ref=e249]:
+              - link "Open OneCompany Instagram profile" [ref=e250] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=e254] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=e257] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=e261]:
+            - heading "Компанія" [level=3] [ref=e262]
+            - list [ref=e263]:
+              - listitem [ref=e264]:
+                - link "Navigate to Головна page" [ref=e265] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=e266]:
+                - link "Navigate to Про нас page" [ref=e267] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=e268]:
+                - link "Navigate to Контакти page" [ref=e269] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=e270]:
+            - heading "Напрями" [level=3] [ref=e271]
+            - list [ref=e272]:
+              - listitem [ref=e273]:
+                - link "Navigate to Авто tuning section" [ref=e274] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=e275]:
+                - link "Navigate to Мотоцикли tuning section" [ref=e276] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=e277]:
+                - link "Navigate to Магазин tuning section" [ref=e278] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=e279]:
+            - heading "Штаб-квартира" [level=3] [ref=e280]
+            - generic [ref=e281]:
+              - paragraph [ref=e282]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=e283]:
+                - link "+380 66 077 17 00" [ref=e284] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=e285]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=e286]:
+          - generic [ref=e287]:
+            - paragraph [ref=e289]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=e290]:
+              - link "Доставка та оплата" [ref=e291] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=e292] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=e293] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=e294] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=e295] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=e296]:
+            - generic [ref=e297]: Безпечна оплата
+            - generic [ref=e298]:
+              - img "Visa" [ref=e299]
+              - img "MasterCard" [ref=e300]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=e306] [cursor=pointer]
+  - alert [ref=e310]
+  - dialog "One AI" [ref=e1361]:
+    - banner [ref=e1362]:
+      - generic [ref=e1369]:
+        - generic [ref=e1370]: One AI
+        - generic [ref=e1371]: Підбір тюнінгу
+      - generic [ref=e1372]:
+        - button "Новий діалог" [ref=e1373]
+        - button "Закрити" [ref=e1377]
+    - generic [ref=e1382]:
+      - generic [ref=e1383]:
+        - generic [ref=e1384]: One AI
+        - generic [ref=e1389]: Напишіть марку, модель і що саме хочете змінити. Я підберу кілька доречних варіантів.
+      - generic [ref=e1408]: BMW M5 G90 +100 сил
+      - generic [ref=e1410]:
+        - generic [ref=e1411]: One AI
+        - generic [ref=e1416]: RaceChip GTS 5 для BMW M5 G90 має заявлений приріст +136 к.с., що перевищує ціль +100 к.с.
+        - generic [ref=e1417]:
+          - article [ref=e1418]:
+            - generic [ref=e1420]:
+              - link [ref=e1421] [cursor=pointer]:
+                - /url: /ua/shop/racechip-gts5-bmw-m5-g90-g99-from-2024-m5-4395ccm-727hp-535kw-1000nm
+              - generic [ref=e1422]:
+                - generic [ref=e1423]:
+                  - generic [ref=e1424]: RaceChip
+                  - generic [ref=e1425]: RC-GTS5-BMW-M5-4395CCM-727HP-535KW-1000NM
+                - link "RaceChip GTS 5 — BMW M5 G90/G99 (2024+) M5 4395cc" [ref=e1426] [cursor=pointer]:
+                  - /url: /ua/shop/racechip-gts5-bmw-m5-g90-g99-from-2024-m5-4395ccm-727hp-535kw-1000nm
+                - generic [ref=e1427]:
+                  - generic [ref=e1428]: 928 EUR
+                  - generic [ref=e1429]:
+                    - link "Відкрити товар" [ref=e1430] [cursor=pointer]:
+                      - /url: /ua/shop/racechip-gts5-bmw-m5-g90-g99-from-2024-m5-4395ccm-727hp-535kw-1000nm
+                    - button "У кошик" [ref=e1435]
+          - link "Відкрити всі варіанти" [ref=e1437] [cursor=pointer]:
+            - /url: /ua/shop/stock?currency=EUR&page=1&q=BMW+M5+G90+chipTuning&category=chipTuning&make=BMW&model=M5&chassis=G90&country=Germany
+    - contentinfo [ref=e1400]:
+      - generic [ref=e1401]:
+        - textbox "Марка, модель і бажаний результат" [ref=e1402]
+        - button "Надіслати" [disabled] [ref=e1403]
+      - paragraph [ref=e1407]: Сумісність перевіримо перед оформленням.

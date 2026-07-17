@@ -59,10 +59,18 @@ export function buildShopAiNoMoreOptionsMessage(
   const vehicle = [plan.vehicle.make, plan.vehicle.model, plan.vehicle.chassis]
     .filter(Boolean)
     .join(" ");
+  const fallbackVehicle =
+    plan.vehicle.type === "motorcycle"
+      ? locale === "ua"
+        ? "цього мотоцикла"
+        : "this motorcycle"
+      : locale === "ua"
+        ? "цього авто"
+        : "this vehicle";
   const powerGoal = plan.powerGainHp
     ? ` +${plan.powerGainHp} ${locale === "ua" ? "к.с." : "hp"}`
     : "";
   return locale === "ua"
-    ? `Інших підтверджених варіантів для ${vehicle || "цього авто"}${powerGoal} у каталозі немає.`
-    : `There are no other confirmed options for ${vehicle || "this vehicle"}${powerGoal}.`;
+    ? `Інших підтверджених варіантів для ${vehicle || fallbackVehicle}${powerGoal} у каталозі немає.`
+    : `There are no other confirmed options for ${vehicle || fallbackVehicle}${powerGoal}.`;
 }

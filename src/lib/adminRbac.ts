@@ -20,6 +20,9 @@ export const ADMIN_PERMISSIONS = {
   SHOP_SETTINGS_READ: "shop.settings.read",
   SHOP_SETTINGS_WRITE: "shop.settings.write",
   SHOP_AUDIT_READ: "shop.audit.read",
+  SHOP_AI_READ: "shop.ai.read",
+  SHOP_AI_REVIEW: "shop.ai.review",
+  SHOP_AI_MANAGE: "shop.ai.manage",
 } as const;
 
 export const SUPERADMIN_ROLE_KEY = "superadmin";

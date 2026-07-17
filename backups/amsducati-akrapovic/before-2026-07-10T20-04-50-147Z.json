@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-07-10T20:04:50.144Z",
+  "mode": "commit",
+  "source": "https://amsducati.com/brands/akrapovic",
+  "sourceProducts": 35,
+  "databaseProducts": 12,
+  "exactMatches": 4,
+  "changed": 4,
+  "unmatchedSkus": [
+    "96423451BA",
+    "96482291AA",
+    "96482291BA",
+    "96482293BA",
+    "96482441BA",
+    "F-D12T1",
+    "S-D10SO8-HCHNT",
+    "S-D9E7-CKOT"
+  ],
+  "products": [
+    {
+      "sku": "96481775DA",
+      "slug": "ducati-performance-slip-on-exhaust-akrapovic-multistrada-v4-96481775da",
+      "title": "Ducati Performance Homologated Slip-On Exhaust by Akrapovič for Ducati Multistrada V4 / V4S / Rally (2021-2024)",
+      "currentUsd": null,
+      "currentEur": 1188,
+      "currentDisplayUsd": 1368.78,
+      "amsUsd": 2048.97,
+      "differenceUsd": 680.19,
+      "differencePercent": 49.69,
+      "compareAtUsd": null,
+      "sourceUrl": "https://amsducati.com/multistrada-v4-akrapovic-silencer-slip-on-exhaust",
+      "changed": true
+    },
+    {
+      "sku": "96482172AA",
+      "slug": "ducati-performance-complete-racing-exhaust-system-akrapovic-diavel-v4",
+      "title": "Ducati Performance Racing Exhaust System by Akrapovič for Ducati Diavel V4",
+      "currentUsd": null,
+      "currentEur": 5784,
+      "currentDisplayUsd": 6664.17,
+      "amsUsd": 6806.21,
+      "differenceUsd": 142.04,
+      "differencePercent": 2.13,
+      "compareAtUsd": null,
+      "sourceUrl": "https://amsducati.com/ducati-diavel-v4-racing-exhaust",
+      "changed": true
+    },
+    {
+      "sku": "96482501AA",
+      "slug": "ducati-performance-racing-exhaust-system-akrapovic-multistrada-v4-96482501aa",
+      "title": "Ducati Performance Racing Exhaust System by Akrapovič for Ducati Multistrada V4 / V4S (2025+)",
+      "currentUsd": null,
+      "currentEur": 3278,
+      "currentDisplayUsd": 3776.83,
+      "amsUsd": 4172.12,
+      "differenceUsd": 395.29,
+      "differencePercent": 10.47,
+      "compareAtUsd": null,
+      "sourceUrl": "https://amsducati.com/ducati-multistrada-v4-2025-akrapovic-full-race-exhaust-system-96482501aa",
+      "changed": true
+    },
+    {
+      "sku": "96482551AA",
+      "slug": "ducati-performance-racing-slip-on-silencers-akrapovic-streetfighter-v4",
+      "title": "Ducati Performance Racing Slip-On Silencers by Akrapovič for Ducati Streetfighter V4",
+      "currentUsd": null,
+      "currentEur": 4462,
+      "currentDisplayUsd": 5141,
+      "amsUsd": 5542.43,
+      "differenceUsd": 401.43,
+      "differencePercent": 7.81,
+      "compareAtUsd": null,
+      "sourceUrl": "https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-race-slip-on-exhaust-96482551aa",
+      "changed": true
+    }
+  ]
+}

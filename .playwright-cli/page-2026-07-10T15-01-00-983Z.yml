@@ -1,0 +1,171 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - link "Skip to content" [ref=f1e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "ONE COMPANY home" [ref=f1e6] [cursor=pointer]:
+          - /url: /ua
+        - generic [ref=f1e10]:
+          - link "Кошик" [ref=f1e11] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Toggle menu" [ref=f1e15]
+    - main [ref=f1e17]:
+      - generic [ref=f1e19]:
+        - generic [ref=f1e21]:
+          - generic [ref=f1e24]:
+            - paragraph [ref=f1e25]: ONE COMPANY
+            - heading "Каталог тюнінгу" [level=1] [ref=f1e26]
+            - generic [ref=f1e27]: Завантаження каталогу…
+          - region "Пошук і підбір за авто" [ref=f1e29]:
+            - generic [ref=f1e30]:
+              - generic [ref=f1e32]:
+                - combobox "Очистити пошук" [ref=f1e36]: best exhaust
+                - button "Очистити пошук" [ref=f1e37]
+              - button "Підібрати за авто BMW M5 G90" [ref=f1e247]:
+                - generic [ref=f1e44]:
+                  - generic [ref=f1e45]: Підібрати за авто
+                  - generic [ref=f1e46]: BMW M5 G90
+          - generic [ref=f1e50]:
+            - generic [ref=f1e54]: Обране авто
+            - generic [ref=f1e55]: BMW M5 G90
+            - button "Очистити вибір авто" [ref=f1e56]
+          - main [ref=f1e61]:
+            - generic [ref=f1e62]:
+              - generic [ref=f1e63]:
+                - generic [ref=f1e65]:
+                  - heading "Усі товари" [level=2] [ref=f1e66]
+                  - generic [ref=f1e67]: Завантаження…
+                - generic [ref=f1e68]:
+                  - button "Фільтри 5" [ref=f1e248]:
+                    - text: Фільтри
+                    - generic [ref=f1e71]: "5"
+                  - generic [ref=f1e72]:
+                    - generic [ref=f1e73]: Сортування
+                    - combobox "Сортування" [ref=f1e74]:
+                      - option "Релевантність" [selected]
+                      - 'option "Ціна: від меншої"'
+                      - 'option "Ціна: від більшої"'
+                      - option "Назва A-Z"
+                  - generic [ref=f1e75]:
+                    - button "Сітка" [ref=f1e76]
+                    - button "Список" [ref=f1e82]
+              - generic [ref=f1e84]:
+                - 'button "Пошук: best exhaust" [ref=f1e85]'
+                - 'button "Група: exhaust" [ref=f1e89]'
+                - button "BMW" [ref=f1e93]
+                - button "M5" [ref=f1e249]
+                - button "G90" [ref=f1e253]
+                - button "Скинути все" [ref=f1e97]
+        - button "Відкрити One AI" [ref=f1e159]
+    - button "Scroll to top"
+    - contentinfo [ref=f1e165]:
+      - generic [ref=f1e166]:
+        - generic [ref=f1e167]:
+          - generic [ref=f1e168]:
+            - link "OneCompany Home" [ref=f1e169] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f1e172]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f1e173]:
+              - paragraph [ref=f1e174]: Зв'язок у Telegram
+              - generic [ref=f1e175]:
+                - link "Telegram — Авто" [ref=f1e176] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f1e179]: Авто
+                  - generic [ref=f1e180]: →
+                - link "Telegram — Мото" [ref=f1e181] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f1e184]: Мото
+                  - generic [ref=f1e185]: →
+            - generic [ref=f1e186]:
+              - link "Open OneCompany Instagram profile" [ref=f1e187] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f1e191] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f1e194] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f1e198]:
+            - heading "Компанія" [level=3] [ref=f1e199]
+            - list [ref=f1e200]:
+              - listitem [ref=f1e201]:
+                - link "Navigate to Головна page" [ref=f1e202] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f1e203]:
+                - link "Navigate to Про нас page" [ref=f1e204] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f1e205]:
+                - link "Navigate to Контакти page" [ref=f1e206] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f1e207]:
+            - heading "Напрями" [level=3] [ref=f1e208]
+            - list [ref=f1e209]:
+              - listitem [ref=f1e210]:
+                - link "Navigate to Авто tuning section" [ref=f1e211] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f1e212]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f1e213] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f1e214]:
+                - link "Navigate to Магазин tuning section" [ref=f1e215] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f1e216]:
+            - heading "Штаб-квартира" [level=3] [ref=f1e217]
+            - generic [ref=f1e218]:
+              - paragraph [ref=f1e219]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f1e220]:
+                - link "+380 66 077 17 00" [ref=f1e221] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f1e222]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f1e223]:
+          - generic [ref=f1e224]:
+            - paragraph [ref=f1e226]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f1e227]:
+              - link "Доставка та оплата" [ref=f1e228] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f1e229] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f1e230] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f1e231] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f1e232] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f1e233]:
+            - generic [ref=f1e234]: Безпечна оплата
+            - generic [ref=f1e235]:
+              - img "Visa" [ref=f1e236]
+              - img "MasterCard" [ref=f1e237]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=f1e243] [cursor=pointer]
+  - alert [ref=f1e257]
+  - dialog "One AI" [ref=f1e258]:
+    - banner [ref=f1e259]:
+      - generic [ref=f1e266]:
+        - generic [ref=f1e267]: One AI
+        - generic [ref=f1e268]: Підбір тюнінгу
+      - generic [ref=f1e269]:
+        - button "Новий діалог" [ref=f1e270]
+        - button "Закрити" [ref=f1e274]
+    - generic [ref=f1e278]:
+      - generic [ref=f1e279]: BMW M5 G90
+      - generic [ref=f1e280]: EUR
+    - generic [ref=f1e283]:
+      - generic [ref=f1e284]: One AI
+      - generic [ref=f1e289]: Що хочете змінити у BMW? Підберу кілька доречних варіантів і коротко поясню різницю.
+      - generic [ref=f1e290]:
+        - button "Покажи вихлоп для BMW M5 G90" [ref=f1e291]
+        - button "Порівняй найкращі варіанти" [ref=f1e294]
+        - button "Що варто змінити спочатку?" [ref=f1e297]
+    - contentinfo [ref=f1e300]:
+      - generic [ref=f1e301]:
+        - textbox "Запитайте про BMW M5 G90" [active] [ref=f1e302]
+        - button "Надіслати" [disabled] [ref=f1e303]
+      - paragraph [ref=f1e307]: Сумісність перевіримо перед оформленням.

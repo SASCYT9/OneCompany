@@ -249,10 +249,11 @@ export default function ContactPageContent() {
 
           <div className="flex flex-col gap-16 lg:gap-24">
             <motion.div
+              id="selection-form"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mx-auto w-full max-w-6xl rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+              className="mx-auto w-full max-w-6xl scroll-mt-24 rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
                 {/* Progress bar */}

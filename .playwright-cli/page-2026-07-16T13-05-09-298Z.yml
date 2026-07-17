@@ -1,0 +1,255 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - link "Skip to content" [ref=f1e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "ONE COMPANY home" [ref=f1e6] [cursor=pointer]:
+          - /url: /ua
+        - button "Toggle menu" [ref=f1e11]
+    - main [ref=f1e13]:
+      - generic [ref=f1e14]:
+        - generic [ref=f1e15]:
+          - paragraph [ref=f1e17]: premium tuning parts · 200+ brands · one company
+          - heading "One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб'ютор Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Преміум тюнінг Київ." [level=1] [ref=f1e20]
+          - navigation "Швидкі дії" [ref=f1e21]:
+            - generic [ref=f1e27]:
+              - paragraph [ref=f1e28]: Магазин One Company
+              - heading "Все для авто та мото" [level=2] [ref=f1e29]
+              - paragraph [ref=f1e30]: 200+ брендів · 15 фірмових колекцій
+              - generic [ref=f1e31]:
+                - link "Відкрити каталог" [ref=f1e32] [cursor=pointer]:
+                  - /url: /ua/shop/catalog
+                - link "Підібрати деталь" [ref=f1e36] [cursor=pointer]:
+                  - /url: /ua/contact#selection-form
+          - generic [ref=f1e41]:
+            - 'link "Авто Преміальний тюнінг: від кованих дисків та карбону до високопродуктивних систем двигуна. 160+ брендів 11 категорій →" [ref=f1e42] [cursor=pointer]':
+              - /url: /ua/auto
+              - generic [ref=f1e45]: Авто
+              - generic [ref=f1e47]:
+                - paragraph [ref=f1e48]: "Преміальний тюнінг: від кованих дисків та карбону до високопродуктивних систем двигуна."
+                - generic [ref=f1e49]:
+                  - generic [ref=f1e50]:
+                    - generic [ref=f1e51]:
+                      - paragraph [ref=f1e52]: 160+
+                      - paragraph [ref=f1e53]: брендів
+                    - generic [ref=f1e54]:
+                      - paragraph [ref=f1e55]: "11"
+                      - paragraph [ref=f1e56]: категорій
+                  - generic [ref=f1e57]: →
+            - 'link "Мото Все для вдосконалення вашого мотоцикла: вихлоп, гальма, карбон та ексклюзивні аксесуари. 60+ брендів 6 категорій →" [ref=f1e58] [cursor=pointer]':
+              - /url: /ua/moto
+              - generic [ref=f1e61]: Мото
+              - generic [ref=f1e63]:
+                - paragraph [ref=f1e64]: "Все для вдосконалення вашого мотоцикла: вихлоп, гальма, карбон та ексклюзивні аксесуари."
+                - generic [ref=f1e65]:
+                  - generic [ref=f1e66]:
+                    - generic [ref=f1e67]:
+                      - paragraph [ref=f1e68]: 60+
+                      - paragraph [ref=f1e69]: брендів
+                    - generic [ref=f1e70]:
+                      - paragraph [ref=f1e71]: "6"
+                      - paragraph [ref=f1e72]: категорій
+                  - generic [ref=f1e73]: →
+        - generic [ref=f1e76]:
+          - generic [ref=f1e77]:
+            - heading "200+ брендів" [level=2] [ref=f1e83]
+            - paragraph [ref=f1e84]: Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.
+            - generic [ref=f1e85]: Гарантія якості та автентичності
+          - generic [ref=f1e87]:
+            - heading "Індивідуальний підбір" [level=2] [ref=f1e93]
+            - paragraph [ref=f1e94]: Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.
+            - generic [ref=f1e95]: Перевірка VIN та підтвердження сумісності
+          - generic [ref=f1e96]:
+            - heading "Глобальна доставка" [level=2] [ref=f1e102]
+            - paragraph [ref=f1e103]: Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.
+            - generic [ref=f1e104]: One Company Global · Надійність та безпека
+          - generic [ref=f1e105]:
+            - heading "18 років досвіду" [level=2] [ref=f1e112]
+            - paragraph [ref=f1e113]: Формуємо культуру преміум тюнінгу та забезпечуємо безкомпромісну підтримку.
+            - generic [ref=f1e114]: Офіційні програми з 2007 року
+          - generic [ref=f1e115]:
+            - heading "Автентичність" [level=2] [ref=f1e121]
+            - paragraph [ref=f1e122]: Тільки оригінальна продукція з повною документацією та гарантією від виробника.
+            - generic [ref=f1e123]: Без посередників
+        - generic [ref=f1e126]:
+          - generic [ref=f1e127]:
+            - generic [ref=f1e128]:
+              - paragraph [ref=f1e129]: B2B програми опту
+              - heading "Партнерство з провідним імпортером" [level=3] [ref=f1e131]
+              - paragraph [ref=f1e132]: Авто/мото дилери · СТО · Детейлінг студії · Магазини тюнінгу
+            - link "Запланувати консультацію ↗" [ref=f1e133] [cursor=pointer]:
+              - /url: /ua/contact
+          - generic [ref=f1e134]:
+            - generic [ref=f1e135]:
+              - paragraph [ref=f1e136]: premium tuning parts · 200+ brands · one company
+              - heading "Оптові поставки" [level=4] [ref=f1e137]
+              - paragraph [ref=f1e138]: "Максимальні знижки та найкращі умови для партнерів: СТО, детейлінг студій та магазинів тюнінгу."
+            - generic [ref=f1e139]:
+              - paragraph [ref=f1e140]: premium tuning parts · 200+ brands · one company
+              - heading "Глобальна доставка" [level=4] [ref=f1e141]
+              - paragraph [ref=f1e142]: Доставка по всьому світу. Оптимальні та гнучкі умови.
+        - navigation "Структурна навігація сайту" [ref=f1e143]:
+          - list [ref=f1e144]:
+            - listitem [ref=f1e145]:
+              - link "Перейти до /ua" [ref=f1e146] [cursor=pointer]:
+                - /url: /ua
+                - text: /ua
+            - listitem [ref=f1e147]:
+              - link "Перейти до /ua/shop" [ref=f1e148] [cursor=pointer]:
+                - /url: /ua/shop
+                - text: /ua/shop
+            - listitem [ref=f1e149]:
+              - link "Перейти до /ua/auto" [ref=f1e150] [cursor=pointer]:
+                - /url: /ua/auto
+                - text: /ua/auto
+            - listitem [ref=f1e151]:
+              - link "Перейти до /ua/moto" [ref=f1e152] [cursor=pointer]:
+                - /url: /ua/moto
+                - text: /ua/moto
+            - listitem [ref=f1e153]:
+              - link "Перейти до /ua/brands" [ref=f1e154] [cursor=pointer]:
+                - /url: /ua/brands
+                - text: /ua/brands
+            - listitem [ref=f1e155]:
+              - link "Перейти до /ua/brands/moto" [ref=f1e156] [cursor=pointer]:
+                - /url: /ua/brands/moto
+                - text: /ua/brands/moto
+            - listitem [ref=f1e157]:
+              - link "Перейти до /ua/brands/europe" [ref=f1e158] [cursor=pointer]:
+                - /url: /ua/brands/europe
+                - text: /ua/brands/europe
+            - listitem [ref=f1e159]:
+              - link "Перейти до /ua/brands/usa" [ref=f1e160] [cursor=pointer]:
+                - /url: /ua/brands/usa
+                - text: /ua/brands/usa
+            - listitem [ref=f1e161]:
+              - link "Перейти до /ua/brands/oem" [ref=f1e162] [cursor=pointer]:
+                - /url: /ua/brands/oem
+                - text: /ua/brands/oem
+            - listitem [ref=f1e163]:
+              - link "Перейти до /ua/brands/racing" [ref=f1e164] [cursor=pointer]:
+                - /url: /ua/brands/racing
+                - text: /ua/brands/racing
+            - listitem [ref=f1e165]:
+              - link "Перейти до /ua/blog" [ref=f1e166] [cursor=pointer]:
+                - /url: /ua/blog
+                - text: /ua/blog
+            - listitem [ref=f1e167]:
+              - link "Перейти до /ua/categories" [ref=f1e168] [cursor=pointer]:
+                - /url: /ua/categories
+                - text: /ua/categories
+            - listitem [ref=f1e169]:
+              - link "Перейти до /ua/choice" [ref=f1e170] [cursor=pointer]:
+                - /url: /ua/choice
+                - text: /ua/choice
+            - listitem [ref=f1e171]:
+              - link "Перейти до /ua/contact" [ref=f1e172] [cursor=pointer]:
+                - /url: /ua/contact
+                - text: /ua/contact
+            - listitem [ref=f1e173]:
+              - link "Перейти до /ua/about" [ref=f1e174] [cursor=pointer]:
+                - /url: /ua/about
+                - text: /ua/about
+            - listitem [ref=f1e175]:
+              - link "Перейти до /ua/partnership" [ref=f1e176] [cursor=pointer]:
+                - /url: /ua/partnership
+                - text: /ua/partnership
+    - button "Scroll to top"
+    - contentinfo [ref=f1e177]:
+      - generic [ref=f1e178]:
+        - generic [ref=f1e179]:
+          - generic [ref=f1e180]:
+            - link "OneCompany Home" [ref=f1e181] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f1e184]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f1e185]:
+              - paragraph [ref=f1e186]: Зв'язок у Telegram
+              - generic [ref=f1e187]:
+                - link "Telegram — Авто" [ref=f1e188] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f1e191]: Авто
+                  - generic [ref=f1e192]: →
+                - link "Telegram — Мото" [ref=f1e193] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f1e196]: Мото
+                  - generic [ref=f1e197]: →
+            - generic [ref=f1e198]:
+              - link "Open OneCompany Instagram profile" [ref=f1e199] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f1e203] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f1e206] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f1e210]:
+            - heading "Компанія" [level=2] [ref=f1e211]
+            - list [ref=f1e212]:
+              - listitem [ref=f1e213]:
+                - link "Navigate to Головна page" [ref=f1e214] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f1e215]:
+                - link "Navigate to Про нас page" [ref=f1e216] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f1e217]:
+                - link "Navigate to Контакти page" [ref=f1e218] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f1e219]:
+            - heading "Напрями" [level=2] [ref=f1e220]
+            - list [ref=f1e221]:
+              - listitem [ref=f1e222]:
+                - link "Navigate to Авто tuning section" [ref=f1e223] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f1e224]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f1e225] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f1e226]:
+                - link "Navigate to Магазин tuning section" [ref=f1e227] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f1e228]:
+            - heading "Штаб-квартира" [level=2] [ref=f1e229]
+            - generic [ref=f1e230]:
+              - paragraph [ref=f1e231]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f1e232]:
+                - link "+380 66 077 17 00" [ref=f1e233] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f1e234]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f1e235]:
+          - generic [ref=f1e236]:
+            - paragraph [ref=f1e238]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f1e239]:
+              - link "Доставка та оплата" [ref=f1e240] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f1e241] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f1e242] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f1e243] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f1e244] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f1e245]:
+            - generic [ref=f1e246]: Безпечна оплата
+            - generic [ref=f1e247]:
+              - img "Visa" [ref=f1e248]
+              - img "MasterCard" [ref=f1e249]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+    - navigation "Основна мобільна навігація":
+      - generic [ref=f1e252]:
+        - link "Головна" [ref=f1e253] [cursor=pointer]:
+          - /url: /ua
+        - link "Магазин" [ref=f1e258] [cursor=pointer]:
+          - /url: /ua/shop
+        - link "Підбір" [ref=f1e263] [cursor=pointer]:
+          - /url: /ua/contact#selection-form
+        - link "Кошик" [ref=f1e268] [cursor=pointer]:
+          - /url: /ua/shop/cart
+  - button "Open Next.js Dev Tools" [ref=f1e279] [cursor=pointer]
+  - alert [ref=f1e283]

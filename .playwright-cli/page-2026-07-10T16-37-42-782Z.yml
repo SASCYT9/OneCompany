@@ -1,0 +1,202 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - link "Skip to content" [ref=f1e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "ONE COMPANY home" [ref=f1e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=f1e10]:
+          - link "Головна" [ref=f1e11] [cursor=pointer]:
+            - /url: /ua
+          - link "Магазини" [ref=f1e12] [cursor=pointer]:
+            - /url: /ua/shop
+          - link "Всі товари" [ref=f1e13] [cursor=pointer]:
+            - /url: /ua/shop/stock
+          - link "Акаунт" [ref=f1e15] [cursor=pointer]:
+            - /url: /ua/shop/account
+        - generic [ref=f1e16]:
+          - link "Кошик" [ref=f1e17] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=f1e22]:
+            - generic [ref=f1e23]: Німеччина
+            - generic [ref=f1e25]: EUR
+          - generic [ref=f1e28]:
+            - button "EN" [ref=f1e29]
+            - button "UA" [disabled] [ref=f1e30]
+          - button "Toggle theme" [ref=f1e32]
+    - main [ref=f1e36]:
+      - generic [ref=f1e38]:
+        - generic [ref=f1e40]:
+          - generic [ref=f1e43]:
+            - paragraph [ref=f1e44]: ONE COMPANY
+            - heading "Каталог тюнінгу" [level=1] [ref=f1e45]
+            - generic [ref=f1e46]: Завантаження каталогу…
+          - region "Пошук і підбір за авто" [ref=f1e48]:
+            - generic [ref=f1e49]:
+              - combobox [ref=f1e55]
+              - generic [ref=f1e57]:
+                - button "Марка авто" [ref=f1e58]
+                - generic [ref=f1e65]:
+                  - generic [ref=f1e66]: Модель авто
+                  - combobox "Модель авто" [disabled] [ref=f1e67]:
+                    - option "Спочатку марка" [selected]
+                - generic [ref=f1e68]:
+                  - generic [ref=f1e69]: Кузов / шасі
+                  - combobox "Кузов / шасі" [disabled] [ref=f1e70]:
+                    - option "Спочатку модель" [selected]
+          - generic [ref=f1e71]:
+            - complementary [ref=f1e72]:
+              - generic [ref=f1e74]:
+                - generic [ref=f1e76]:
+                  - paragraph [ref=f1e77]: Фільтри
+                  - paragraph [ref=f1e78]: Завантаження каталогу…
+                - generic [ref=f1e79]:
+                  - generic [ref=f1e80]:
+                    - heading "Наявність" [level=3] [ref=f1e82]
+                    - generic [ref=f1e83]:
+                      - button "Всі товари —" [ref=f1e84]:
+                        - generic [ref=f1e85]: Всі товари
+                        - generic [ref=f1e86]: —
+                      - button "В наявності —" [ref=f1e87]:
+                        - generic [ref=f1e88]: В наявності
+                        - generic [ref=f1e89]: —
+                      - button "Під замовлення —" [ref=f1e90]:
+                        - generic [ref=f1e91]: Під замовлення
+                        - generic [ref=f1e92]: —
+                  - generic [ref=f1e93]:
+                    - heading "Ціна" [level=3] [ref=f1e94]
+                    - generic [ref=f1e95]:
+                      - generic [ref=f1e96]:
+                        - generic [ref=f1e97]:
+                          - generic [ref=f1e98]: Ціна від
+                          - textbox "Ціна від" [ref=f1e99]:
+                            - /placeholder: Від
+                        - generic [ref=f1e100]:
+                          - generic [ref=f1e101]: Ціна до
+                          - textbox "Ціна до" [ref=f1e102]:
+                            - /placeholder: До
+                      - generic [ref=f1e103]: EUR
+                  - generic [ref=f1e105]:
+                    - button "Група товарів" [expanded] [ref=f1e106]
+                    - textbox [ref=f1e114]:
+                      - /placeholder: Знайти групу
+                    - generic [ref=f1e115]:
+                      - button "Всі групи 0" [ref=f1e116]:
+                        - generic [ref=f1e117]: Всі групи
+                        - generic [ref=f1e118]: "0"
+                      - generic [ref=f1e119]: Нічого не знайдено
+                  - generic [ref=f1e120]:
+                    - button "Бренд" [expanded] [ref=f1e122]
+                    - textbox [ref=f1e130]:
+                      - /placeholder: Знайти бренд
+                    - generic [ref=f1e131]: Нічого не знайдено
+                - button "Скинути" [disabled] [ref=f1e135]
+            - main [ref=f1e139]:
+              - generic [ref=f1e141]:
+                - generic [ref=f1e142]:
+                  - paragraph [ref=f1e143]: Результати
+                  - generic [ref=f1e144]:
+                    - heading "Усі товари" [level=2] [ref=f1e145]
+                    - generic [ref=f1e146]: Завантаження…
+                - generic [ref=f1e147]:
+                  - generic [ref=f1e148]:
+                    - generic [ref=f1e149]: Сортування
+                    - combobox "Сортування" [ref=f1e150]:
+                      - option "Рекомендовані" [selected]
+                      - 'option "Ціна: від меншої"'
+                      - 'option "Ціна: від більшої"'
+                      - option "Назва A-Z"
+                  - generic [ref=f1e151]:
+                    - button "Сітка" [ref=f1e152]
+                    - button "Список" [ref=f1e158]
+        - button "Відкрити One AI" [ref=f1e221]:
+          - generic [ref=f1e227]: One AI
+    - button "Scroll to top"
+    - contentinfo [ref=f1e228]:
+      - generic [ref=f1e229]:
+        - generic [ref=f1e230]:
+          - generic [ref=f1e231]:
+            - link "OneCompany Home" [ref=f1e232] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f1e235]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f1e236]:
+              - paragraph [ref=f1e237]: Зв'язок у Telegram
+              - generic [ref=f1e238]:
+                - link "Telegram — Авто" [ref=f1e239] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f1e242]: Авто
+                  - generic [ref=f1e243]: →
+                - link "Telegram — Мото" [ref=f1e244] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f1e247]: Мото
+                  - generic [ref=f1e248]: →
+            - generic [ref=f1e249]:
+              - link "Open OneCompany Instagram profile" [ref=f1e250] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f1e254] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f1e257] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f1e261]:
+            - heading "Компанія" [level=3] [ref=f1e262]
+            - list [ref=f1e263]:
+              - listitem [ref=f1e264]:
+                - link "Navigate to Головна page" [ref=f1e265] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f1e266]:
+                - link "Navigate to Про нас page" [ref=f1e267] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f1e268]:
+                - link "Navigate to Контакти page" [ref=f1e269] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f1e270]:
+            - heading "Напрями" [level=3] [ref=f1e271]
+            - list [ref=f1e272]:
+              - listitem [ref=f1e273]:
+                - link "Navigate to Авто tuning section" [ref=f1e274] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f1e275]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f1e276] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f1e277]:
+                - link "Navigate to Магазин tuning section" [ref=f1e278] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f1e279]:
+            - heading "Штаб-квартира" [level=3] [ref=f1e280]
+            - generic [ref=f1e281]:
+              - paragraph [ref=f1e282]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f1e283]:
+                - link "+380 66 077 17 00" [ref=f1e284] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f1e285]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f1e286]:
+          - generic [ref=f1e287]:
+            - paragraph [ref=f1e289]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f1e290]:
+              - link "Доставка та оплата" [ref=f1e291] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f1e292] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f1e293] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f1e294] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f1e295] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f1e296]:
+            - generic [ref=f1e297]: Безпечна оплата
+            - generic [ref=f1e298]:
+              - img "Visa" [ref=f1e299]
+              - img "MasterCard" [ref=f1e300]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=f1e306] [cursor=pointer]
+  - alert [ref=f1e310]

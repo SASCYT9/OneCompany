@@ -1,0 +1,224 @@
+- generic [active] [ref=f32e1]:
+  - generic [ref=f32e2]:
+    - banner [ref=f32e3]:
+      - generic [ref=f32e5]:
+        - list [ref=f32e6]:
+          - listitem [ref=f32e7]:
+            - link "Sign In" [ref=f32e8] [cursor=pointer]:
+              - /url: https://amsducati.com/customer/account/login/referer/aHR0cHM6Ly9hbXNkdWNhdGkuY29tL2NhdGFsb2dzZWFyY2gvcmVzdWx0L2luZGV4Lz9xPTk2NDgyNDQxQkE~/
+          - listitem
+          - listitem
+          - generic [ref=f32e9]:
+            - paragraph [ref=f32e10]:
+              - link "My Account" [ref=f32e11] [cursor=pointer]:
+                - /url: https://amsducati.com/customer/account/
+            - text:  
+        - link "Skip to Content" [ref=f32e12] [cursor=pointer]:
+          - /url: "#contentarea"
+      - generic [ref=f32e13]:
+        - generic:
+          - tablist:
+            - tabpanel:  
+        - generic [ref=f32e14]:
+          - text: 
+          - link "store logo" [ref=f32e15] [cursor=pointer]:
+            - /url: https://amsducati.com/
+            - img "AMS Ducati Logo" [ref=f32e16]
+          - generic [ref=f32e17]:
+            - link " My Cart" [ref=f32e18] [cursor=pointer]:
+              - /url: https://amsducati.com/checkout/cart/
+              - text: 
+              - generic [ref=f32e19]: My Cart
+            - text: 
+          - generic:
+            - text: 
+            - generic:
+              - link [ref=f32e21] [cursor=pointer]:
+                - /url: javascript:void(0)
+              - generic [ref=f32e23]:
+                - generic [ref=f32e24]:
+                  - generic [ref=f32e25]:
+                    - text: 
+                    - generic [ref=f32e26]: Search
+                  - combobox " Search" [ref=f32e28] [cursor=pointer]: 96482441BA
+                - generic:
+                  - button "Search" [disabled]: 
+          - navigation [ref=f32e29]:
+            - menu [ref=f32e30]:
+              - listitem [ref=f32e31] [cursor=pointer]:
+                - menuitem "Motorcycles" [ref=f32e32]: 
+              - listitem [ref=f32e34] [cursor=pointer]:
+                - menuitem "Ducati OEM Parts" [ref=f32e35]
+              - listitem [ref=f32e36] [cursor=pointer]:
+                - menuitem "Accessories" [ref=f32e37]:  Accessories
+              - listitem [ref=f32e38] [cursor=pointer]:
+                - menuitem "Apparel" [ref=f32e39]:  Apparel
+                - text: 
+              - listitem [ref=f32e40] [cursor=pointer]:
+                - menuitem "Closeout" [ref=f32e41]
+              - listitem [ref=f32e43] [cursor=pointer]:
+                - menuitem "Support" [ref=f32e44]: 
+                - text:   
+    - main [ref=f32e46]:
+      - list [ref=f32e48]:
+        - listitem [ref=f32e49]:
+          - link "Home" [ref=f32e50] [cursor=pointer]:
+            - /url: https://amsducati.com/
+          - text: /
+        - listitem [ref=f32e51]:
+          - strong [ref=f32e52]: "Search results for: '96482441BA'"
+      - generic [ref=f32e53]:
+        - generic [ref=f32e54]:  Your search returned no results.
+        - generic [ref=f32e58]:
+          - tablist [ref=f32e59]: Filter Items 
+          - tabpanel [ref=f32e60]:
+            - separator [ref=f32e62]
+            - generic [ref=f32e64]:
+              - heading "Model Year" [level=3] [ref=f32e65]
+              - definition [ref=f32e66]:
+                - form "product_model_year form" [ref=f32e67]:
+                  - group "product_model_year filter group" [ref=f32e68]:
+                    - listitem [ref=f32e69]:
+                      - link "1988-08 ( 0 items )" [ref=f32e70] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=307&q=96482441BA
+                        - text: 1988-08
+                        - generic [ref=f32e71]:
+                          - text: ( 0
+                          - generic [ref=f32e72]: items
+                          - text: )
+                    - listitem [ref=f32e73]:
+                      - link "2009-11 ( 0 items )" [ref=f32e74] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=306&q=96482441BA
+                        - text: 2009-11
+                        - generic [ref=f32e75]:
+                          - text: ( 0
+                          - generic [ref=f32e76]: items
+                          - text: )
+                    - listitem [ref=f32e77]:
+                      - link "2010-12 ( 0 items )" [ref=f32e78] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=440&q=96482441BA
+                        - text: 2010-12
+                        - generic [ref=f32e79]:
+                          - text: ( 0
+                          - generic [ref=f32e80]: items
+                          - text: )
+                    - listitem [ref=f32e81]:
+                      - link "2012-13 ( 0 items )" [ref=f32e82] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=305&q=96482441BA
+                        - text: 2012-13
+                        - generic [ref=f32e83]:
+                          - text: ( 0
+                          - generic [ref=f32e84]: items
+                          - text: )
+                    - listitem [ref=f32e85]:
+                      - link "2012-17 ( 0 items )" [ref=f32e86] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=1133&q=96482441BA
+                        - text: 2012-17
+                        - generic [ref=f32e87]:
+                          - text: ( 0
+                          - generic [ref=f32e88]: items
+                          - text: )
+                    - listitem [ref=f32e89]:
+                      - link "2012-18 ( 0 items )" [ref=f32e90] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=1132&q=96482441BA
+                        - text: 2012-18
+                        - generic [ref=f32e91]:
+                          - text: ( 0
+                          - generic [ref=f32e92]: items
+                          - text: )
+                    - listitem [ref=f32e93]:
+                      - link "2013-14 ( 0 items )" [ref=f32e94] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=439&q=96482441BA
+                        - text: 2013-14
+                        - generic [ref=f32e95]:
+                          - text: ( 0
+                          - generic [ref=f32e96]: items
+                          - text: )
+                    - listitem [ref=f32e97]:
+                      - link "2014 ( 0 items )" [ref=f32e98] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=928&q=96482441BA
+                        - text: "2014"
+                        - generic [ref=f32e99]:
+                          - text: ( 0
+                          - generic [ref=f32e100]: items
+                          - text: )
+                    - listitem [ref=f32e101]:
+                      - link "2017-Up ( 0 items )" [ref=f32e102] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=1136&q=96482441BA
+                        - text: 2017-Up
+                        - generic [ref=f32e103]:
+                          - text: ( 0
+                          - generic [ref=f32e104]: items
+                          - text: )
+                    - listitem [ref=f32e105]:
+                      - link "2019 ( 0 items )" [ref=f32e106] [cursor=pointer]:
+                        - /url: https://amsducati.com/catalogsearch/result/index/?product_model_year=1301&q=96482441BA
+                        - text: "2019"
+                        - generic [ref=f32e107]:
+                          - text: ( 0
+                          - generic [ref=f32e108]: items
+                          - text: )
+    - contentinfo [ref=f32e109]:
+      - contentinfo [ref=f32e111]:
+        - generic [ref=f32e112]:
+          - generic [ref=f32e113]:
+            - generic [ref=f32e114]: Get Updates on the latest AMS news, products and promotions
+            - generic [ref=f32e117]:
+              - generic [ref=f32e118]: Email Address
+              - textbox "Email Address" [ref=f32e119]:
+                - /placeholder: email address
+              - generic [ref=f32e120]: Online Store Newsletter
+              - checkbox "Online Store Newsletter" [checked] [ref=f32e121]
+              - button [ref=f32e123] [cursor=pointer]:
+                - generic [ref=f32e124]: 
+          - article [ref=f32e125]:
+            - generic [ref=f32e126]:
+              - img "AMS Ducati Logo" [ref=f32e127]
+              - paragraph [ref=f32e128]: Since 1995, Advanced Motorsports Ducati Dallas has been a leader in Ducati service and sales in the United States. Centrally located in Dallas, Texas, Advanced Motorsports is fully stocked with the latest Ducati Motorcycles, Ducati Performance Parts, Ducati Apparel, Ducati Accessories and Merchandise.
+              - list [ref=f32e129]:
+                - listitem [ref=f32e130]:
+                  - link "New Bikes" [ref=f32e131] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/new-bikes
+                - listitem [ref=f32e132]:
+                  - link "Used Bikes" [ref=f32e133] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/used-bikes
+                - listitem [ref=f32e134]:
+                  - link "Contact" [ref=f32e135] [cursor=pointer]:
+                    - /url: https://amsducati.com/support/contact/
+            - generic [ref=f32e136]:
+              - img "AMS_Ducati_Showroom" [ref=f32e137]
+              - generic [ref=f32e138]:
+                - generic [ref=f32e139]: 
+                - generic [ref=f32e140]:
+                  - generic [ref=f32e141]: Ducati Showroom
+                  - text: 1318 N Riverfront Blvd Dallas, TX 75207
+            - generic [ref=f32e142]:
+              - img "AMS Ducati Service" [ref=f32e143]
+              - generic [ref=f32e144]:
+                - generic [ref=f32e145]: 
+                - generic [ref=f32e146]:
+                  - generic [ref=f32e147]: Ducati Service
+                  - text: 135 Leslie St Dallas, TX 75207
+          - generic [ref=f32e148]:
+            - generic [ref=f32e149]:
+              - generic [ref=f32e150]: © 2026 AMS Ducati Dallas | Proudly representing
+              - img "Texas Flag" [ref=f32e151]
+            - list [ref=f32e153]:
+              - listitem [ref=f32e154]:
+                - link [ref=f32e155] [cursor=pointer]:
+                  - /url: https://www.facebook.com/amsducati
+                  - generic [ref=f32e156]: 
+              - listitem [ref=f32e157]:
+                - link [ref=f32e158] [cursor=pointer]:
+                  - /url: https://twitter.com/amsducatidallas
+                  - generic [ref=f32e159]: 
+              - listitem [ref=f32e160]:
+                - link [ref=f32e161] [cursor=pointer]:
+                  - /url: https://www.instagram.com/amsducatidallas/
+                  - generic [ref=f32e162]: 
+              - listitem [ref=f32e163]:
+                - link [ref=f32e164] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/ams-ducati-dallas
+                  - generic [ref=f32e165]: 
+  - checkbox [ref=f32e166]
+  - log

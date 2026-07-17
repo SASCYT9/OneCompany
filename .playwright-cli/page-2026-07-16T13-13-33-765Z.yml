@@ -1,0 +1,216 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - link "Skip to content" [ref=f4e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link "ONE COMPANY home" [ref=f4e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=f4e10]:
+          - link "Авто" [ref=f4e11] [cursor=pointer]:
+            - /url: /ua/auto
+          - link "Мото" [ref=f4e12] [cursor=pointer]:
+            - /url: /ua/moto
+          - generic [ref=f4e14]:
+            - link "Магазин" [ref=f4e15] [cursor=pointer]:
+              - /url: /ua/shop
+            - button "Відкрити меню магазину" [ref=f4e16]
+          - link "Блог" [ref=f4e19] [cursor=pointer]:
+            - /url: /ua/blog
+          - link "Контакти" [ref=f4e20] [cursor=pointer]:
+            - /url: /ua/contact
+        - generic [ref=f4e21]:
+          - link "Кошик" [ref=f4e281] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=f4e286]:
+            - generic [ref=f4e287]: Німеччина
+            - generic [ref=f4e289]: EUR
+          - generic [ref=f4e22]:
+            - button "EN" [ref=f4e23]
+            - button "UA" [disabled] [ref=f4e24]
+          - button "Toggle theme" [ref=f4e275]
+    - main [ref=f4e28]:
+      - generic [ref=f4e295]:
+        - generic [ref=f4e298]:
+          - paragraph [ref=f4e299]: ONE COMPANY
+          - heading "Каталог товарів" [level=1] [ref=f4e300]
+          - generic [ref=f4e301]: Завантаження каталогу…
+        - region "Пошук і підбір за авто" [ref=f4e303]:
+          - generic [ref=f4e304]:
+            - generic [ref=f4e305]:
+              - combobox [ref=f4e311]
+              - generic "Тип транспорту" [ref=f4e312]:
+                - button [pressed] [ref=f4e313]
+                - button [ref=f4e316]
+            - generic [ref=f4e319]:
+              - generic [ref=f4e320]: Моє авто
+              - generic [ref=f4e323]:
+                - button "Марка авто" [ref=f4e324]
+                - generic [ref=f4e329]:
+                  - generic [ref=f4e330]: Модель авто
+                  - combobox "Модель авто" [disabled] [ref=f4e331]:
+                    - option "Спочатку марка" [selected]
+                - generic [ref=f4e332]:
+                  - generic [ref=f4e333]: Кузов / шасі
+                  - combobox "Кузов / шасі" [disabled] [ref=f4e334]:
+                    - option "Спочатку модель" [selected]
+              - button [disabled] [ref=f4e335]
+        - generic [ref=f4e338]:
+          - complementary [ref=f4e339]:
+            - generic [ref=f4e341]:
+              - generic [ref=f4e342]:
+                - generic [ref=f4e343]:
+                  - paragraph [ref=f4e344]: Фільтри
+                  - paragraph [ref=f4e345]: Завантаження каталогу…
+                - button "Скинути все" [disabled] [ref=f4e346]
+              - generic [ref=f4e347]:
+                - generic [ref=f4e348]:
+                  - heading "Наявність" [level=3] [ref=f4e350]
+                  - generic [ref=f4e351]:
+                    - button "Усі —" [ref=f4e352]:
+                      - generic [ref=f4e356]: Усі
+                      - generic [ref=f4e357]: —
+                    - button "В наявності —" [ref=f4e358]:
+                      - generic [ref=f4e360]: В наявності
+                      - generic [ref=f4e361]: —
+                    - button "Під замовлення —" [ref=f4e362]:
+                      - generic [ref=f4e364]: Під замовлення
+                      - generic [ref=f4e365]: —
+                - generic [ref=f4e366]:
+                  - heading "Ціна" [level=3] [ref=f4e367]
+                  - generic [ref=f4e368]:
+                    - generic [ref=f4e369]:
+                      - generic [ref=f4e370]:
+                        - generic [ref=f4e371]: Ціна від
+                        - textbox "Ціна від" [ref=f4e372]:
+                          - /placeholder: Від
+                      - generic [ref=f4e373]:
+                        - generic [ref=f4e374]: Ціна до
+                        - textbox "Ціна до" [ref=f4e375]:
+                          - /placeholder: До
+                    - generic [ref=f4e376]: EUR
+                - generic [ref=f4e378]:
+                  - button "Група товарів" [expanded] [ref=f4e379]
+                  - textbox [ref=f4e387]:
+                    - /placeholder: Знайти групу
+                  - generic [ref=f4e388]:
+                    - button "Всі групи 0" [ref=f4e389]:
+                      - generic [ref=f4e390]: Всі групи
+                      - generic [ref=f4e391]: "0"
+                    - generic [ref=f4e392]: Нічого не знайдено
+                - generic [ref=f4e393]:
+                  - button "Бренд" [expanded] [ref=f4e395]
+                  - textbox [ref=f4e403]:
+                    - /placeholder: Знайти бренд
+                  - generic [ref=f4e404]: Нічого не знайдено
+          - generic [ref=f4e408]:
+            - generic [ref=f4e409]:
+              - generic [ref=f4e410]:
+                - link "Магазин" [ref=f4e411] [cursor=pointer]:
+                  - /url: /ua/shop
+                - generic [ref=f4e412]: /
+                - generic [ref=f4e413]: Каталог товарів
+              - generic [ref=f4e414]:
+                - heading "Каталог товарів" [level=2] [ref=f4e415]
+                - generic [ref=f4e416]: Завантаження…
+            - generic [ref=f4e417]:
+              - generic [ref=f4e418]:
+                - generic [ref=f4e419]: Сортування
+                - combobox "Сортування" [ref=f4e420]:
+                  - option "Рекомендовані" [selected]
+                  - 'option "Ціна: від меншої"'
+                  - 'option "Ціна: від більшої"'
+                  - option "Назва A-Z"
+              - generic [ref=f4e421]:
+                - button "Сітка" [ref=f4e422]
+                - button "Список" [ref=f4e428]
+              - button "Відкрити One AI" [ref=f4e430]:
+                - generic [ref=f4e436]: One AI
+    - button "Scroll to top"
+    - contentinfo [ref=f4e192]:
+      - generic [ref=f4e193]:
+        - generic [ref=f4e194]:
+          - generic [ref=f4e195]:
+            - link "OneCompany Home" [ref=f4e196] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f4e199]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f4e200]:
+              - paragraph [ref=f4e201]: Зв'язок у Telegram
+              - generic [ref=f4e202]:
+                - link "Telegram — Авто" [ref=f4e203] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f4e206]: Авто
+                  - generic [ref=f4e207]: →
+                - link "Telegram — Мото" [ref=f4e208] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f4e211]: Мото
+                  - generic [ref=f4e212]: →
+            - generic [ref=f4e213]:
+              - link "Open OneCompany Instagram profile" [ref=f4e214] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f4e218] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f4e221] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f4e225]:
+            - heading "Компанія" [level=2] [ref=f4e226]
+            - list [ref=f4e227]:
+              - listitem [ref=f4e228]:
+                - link "Navigate to Головна page" [ref=f4e229] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f4e230]:
+                - link "Navigate to Про нас page" [ref=f4e231] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f4e232]:
+                - link "Navigate to Контакти page" [ref=f4e233] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f4e234]:
+            - heading "Напрями" [level=2] [ref=f4e235]
+            - list [ref=f4e236]:
+              - listitem [ref=f4e237]:
+                - link "Navigate to Авто tuning section" [ref=f4e238] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f4e239]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f4e240] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f4e241]:
+                - link "Navigate to Магазин tuning section" [ref=f4e242] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f4e243]:
+            - heading "Штаб-квартира" [level=2] [ref=f4e244]
+            - generic [ref=f4e245]:
+              - paragraph [ref=f4e246]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f4e247]:
+                - link "+380 66 077 17 00" [ref=f4e248] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f4e249]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f4e250]:
+          - generic [ref=f4e251]:
+            - paragraph [ref=f4e253]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f4e254]:
+              - link "Доставка та оплата" [ref=f4e255] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f4e256] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f4e257] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f4e258] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f4e259] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f4e260]:
+            - generic [ref=f4e261]: Безпечна оплата
+            - generic [ref=f4e262]:
+              - img "Visa" [ref=f4e263]
+              - img "MasterCard" [ref=f4e264]
+              - img "Whitepay" [ref=f4e500]
+              - img "Tether (USDT)" [ref=f4e501]
+              - img "Bitcoin" [ref=f4e502]
+  - button "Open Next.js Dev Tools" [ref=f4e270] [cursor=pointer]
+  - alert [ref=f4e279]: Каталог товарів | OneCompany

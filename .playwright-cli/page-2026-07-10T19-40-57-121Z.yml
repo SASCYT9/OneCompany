@@ -1,0 +1,735 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - list [ref=e6]:
+          - listitem [ref=e7]:
+            - link "Sign In" [ref=e8] [cursor=pointer]:
+              - /url: https://amsducati.com/customer/account/login/referer/aHR0cHM6Ly9hbXNkdWNhdGkuY29tL2JyYW5kcy9ha3JhcG92aWM~/
+          - listitem
+          - listitem
+          - generic [ref=e9]:
+            - paragraph [ref=e10]:
+              - link "My Account" [ref=e11] [cursor=pointer]:
+                - /url: https://amsducati.com/customer/account/
+            - text:  
+        - link "Skip to Content" [ref=e12] [cursor=pointer]:
+          - /url: "#contentarea"
+      - generic [ref=e13]:
+        - generic:
+          - tablist:
+            - tabpanel:  
+        - generic [ref=e14]:
+          - text: 
+          - link "store logo" [ref=e15] [cursor=pointer]:
+            - /url: https://amsducati.com/
+            - img "AMS Ducati Logo" [ref=e16]
+          - generic [ref=e17]:
+            - link " My Cart" [ref=e18] [cursor=pointer]:
+              - /url: https://amsducati.com/checkout/cart/
+              - text: 
+              - generic [ref=e19]: My Cart
+            - text: 
+          - generic:
+            - text: 
+            - generic:
+              - link [ref=e21] [cursor=pointer]:
+                - /url: javascript:void(0)
+              - generic [ref=e23]:
+                - generic [ref=e24]:
+                  - generic [ref=e25]:
+                    - text: 
+                    - generic [ref=e26]: Search
+                  - combobox " Search" [ref=e28] [cursor=pointer]
+                - generic:
+                  - button "Search" [disabled]: 
+          - navigation [ref=e29]:
+            - menu [ref=e30]:
+              - listitem [ref=e31] [cursor=pointer]:
+                - menuitem "Motorcycles" [ref=e32]: 
+              - listitem [ref=e34] [cursor=pointer]:
+                - menuitem "Ducati OEM Parts" [ref=e35]
+              - listitem [ref=e36] [cursor=pointer]:
+                - menuitem "Accessories" [ref=e37]:  Accessories
+              - listitem [ref=e38] [cursor=pointer]:
+                - menuitem "Apparel" [ref=e39]:  Apparel
+                - text: 
+              - listitem [ref=e40] [cursor=pointer]:
+                - menuitem "Closeout" [ref=e41]
+              - listitem [ref=e43] [cursor=pointer]:
+                - menuitem "Support" [ref=e44]: 
+                - text:   
+    - main [ref=e46]:
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Home" [ref=e50] [cursor=pointer]:
+            - /url: https://amsducati.com/
+          - text: /
+        - listitem [ref=e51]:
+          - link "Brands" [ref=e52] [cursor=pointer]:
+            - /url: https://amsducati.com/brands
+          - text: /
+        - listitem [ref=e53]:
+          - strong [ref=e54]: Akrapovic
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - heading "Akrapovic" [level=1] [ref=e58]
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - strong [ref=e62]: View as
+                - strong [ref=e63]:
+                  - text: 
+                  - generic [ref=e64]: Grid
+                - link "View as  List" [ref=e65] [cursor=pointer]:
+                  - /url: "#"
+                  - text: 
+                  - generic [ref=e66]: List
+              - generic [ref=e67]:
+                - strong [ref=e68]: Page
+                - list "Page" [ref=e69]:
+                  - listitem [ref=e70]:
+                    - strong [ref=e71]:
+                      - generic [ref=e72]: You're currently reading page
+                      - text: "1"
+                  - listitem [ref=e73]:
+                    - link "Page 2" [ref=e74] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic?p=2
+                      - generic [ref=e75]: Page
+                      - text: "2"
+                  - listitem [ref=e76]:
+                    - link " Page Next" [ref=e77] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic?p=2
+                      - text: 
+                      - generic [ref=e78]: Page
+                      - generic [ref=e79]: Next
+              - generic [ref=e80]:
+                - combobox "Show Show" [ref=e82]:
+                  - option "24" [selected]
+                  - option "48"
+                - text: per page
+              - generic [ref=e83]:
+                - combobox [ref=e84]:
+                  - option "Position" [selected]
+                  - option "Product Name"
+                  - option "Price"
+                  - option "Year"
+                  - option "Newest"
+                - link " Set Descending Direction " [ref=e85] [cursor=pointer]:
+                  - /url: "#"
+                  - text: 
+                  - generic [ref=e86]: Set Descending Direction
+                  - text: 
+            - list [ref=e88]:
+              - listitem [ref=e89]:
+                - generic [ref=e90]:
+                  - link [ref=e91] [cursor=pointer]:
+                    - /url: https://amsducati.com/supersport-939-s-akrapovic-homologated-slip-on-exhaust
+                    - img "Ducati Supersport 939 Akrapovic Homologated Slip-On Exhaust 96481201A" [ref=e94]
+                  - generic [ref=e95]:
+                    - strong [ref=e96]:
+                      - link "Ducati Supersport 939 Akrapovic Homologated Slip-On Exhaust 96481201A" [ref=e97] [cursor=pointer]:
+                        - /url: https://amsducati.com/supersport-939-s-akrapovic-homologated-slip-on-exhaust
+                    - generic [ref=e98]:
+                      - generic [ref=e99]:
+                        - generic [ref=e100]: "Rating:"
+                        - generic "87%" [ref=e101]:
+                          - text: 
+                          - generic [ref=e102]:
+                            - text: 
+                            - generic [ref=e103]: 87%
+                      - link "1 Review" [ref=e105] [cursor=pointer]:
+                        - /url: https://amsducati.com/supersport-939-s-akrapovic-homologated-slip-on-exhaust#reviews
+                    - generic [ref=e106]: $1,669.54
+                    - generic:  
+              - listitem [ref=e110]:
+                - generic [ref=e111]:
+                  - link [ref=e112] [cursor=pointer]:
+                    - /url: https://amsducati.com/panigale-v4-my22-complete-titanium-exhaust-system-high-mount
+                    - img "Ducati Panigale V4 2022-2024 Akrapovic Titanium High Mount Full Race Exhaust System 96482001A" [ref=e115]
+                  - generic [ref=e116]:
+                    - strong [ref=e117]:
+                      - link "Ducati Panigale V4 2022-2024 Akrapovic Titanium High Mount Full Race Exhaust System 96482001A" [ref=e118] [cursor=pointer]:
+                        - /url: https://amsducati.com/panigale-v4-my22-complete-titanium-exhaust-system-high-mount
+                    - generic [ref=e119]:
+                      - generic [ref=e121]:
+                        - text: Now
+                        - generic [ref=e122]: $6,825.02
+                      - generic [ref=e124]:
+                        - text: Was
+                        - generic [ref=e125]: $9,271.36
+                      - text: Save 26%
+                    - generic:  
+              - listitem [ref=e126]:
+                - generic [ref=e127]:
+                  - link [ref=e128] [cursor=pointer]:
+                    - /url: https://amsducati.com/panigale-v4-my22-lower-fairing-for-racing-exhaust
+                    - img "Ducati Panigale V4 2022-2024 Lower Fairing for Racing Exhaust 97181071AA" [ref=e131]
+                  - generic [ref=e132]:
+                    - strong [ref=e133]:
+                      - link "Ducati Panigale V4 2022-2024 Lower Fairing for Racing Exhaust 97181071AA" [ref=e134] [cursor=pointer]:
+                        - /url: https://amsducati.com/panigale-v4-my22-lower-fairing-for-racing-exhaust
+                    - generic [ref=e135]: $173.85
+                    - generic:  
+              - listitem [ref=e139]:
+                - generic [ref=e140]:
+                  - link [ref=e141] [cursor=pointer]:
+                    - /url: https://amsducati.com/streetfighter-v2-akrapovic-complete-titanium-exhaust-system
+                    - img "Ducati Streetfighter V2 Akrapovic Titanium Full Race Exhaust System 96482061AA" [ref=e144]
+                  - generic [ref=e145]:
+                    - strong [ref=e146]:
+                      - link "Ducati Streetfighter V2 Akrapovic Titanium Full Race Exhaust System 96482061AA" [ref=e147] [cursor=pointer]:
+                        - /url: https://amsducati.com/streetfighter-v2-akrapovic-complete-titanium-exhaust-system
+                    - generic [ref=e148]: $7,046.25
+                    - generic:  
+              - listitem [ref=e152]:
+                - generic [ref=e153]:
+                  - link [ref=e154] [cursor=pointer]:
+                    - /url: https://amsducati.com/streetfighter-v2-akrapovic-titanium-racing-slip-on-exhaust
+                    - img "Ducati Panigale V2 2020-2024 & Streetfighter V2 2022-2024 Akrapovic Titanium Race Slip-On Exhaust 96481732AA" [ref=e157]
+                  - generic [ref=e158]:
+                    - strong [ref=e159]:
+                      - link "Ducati Panigale V2 2020-2024 & Streetfighter V2 2022-2024 Akrapovic Titanium Race Slip-On Exhaust 96481732AA" [ref=e160] [cursor=pointer]:
+                        - /url: https://amsducati.com/streetfighter-v2-akrapovic-titanium-racing-slip-on-exhaust
+                    - generic [ref=e161]:
+                      - generic [ref=e163]:
+                        - text: Now
+                        - generic [ref=e164]: $4,169.67
+                      - generic [ref=e166]:
+                        - text: Was
+                        - generic [ref=e167]: $4,531.39
+                      - text: Save 8%
+                    - generic:  
+              - listitem [ref=e168]:
+                - generic [ref=e169]:
+                  - link [ref=e170] [cursor=pointer]:
+                    - /url: https://amsducati.com/streetfighter-v2-akrapovic-titanium-racing-slip-on-exhaust-1
+                    - img "Ducati Streetfighter V2 Akrapovic Titanium Race Manifolds 96482071AA" [ref=e173]
+                  - generic [ref=e174]:
+                    - strong [ref=e175]:
+                      - link "Ducati Streetfighter V2 Akrapovic Titanium Race Manifolds 96482071AA" [ref=e176] [cursor=pointer]:
+                        - /url: https://amsducati.com/streetfighter-v2-akrapovic-titanium-racing-slip-on-exhaust-1
+                    - generic [ref=e177]: $2,819.84
+                    - generic:  
+              - listitem [ref=e181]:
+                - generic [ref=e182]:
+                  - link [ref=e183] [cursor=pointer]:
+                    - /url: https://amsducati.com/panigale-v4-db-killer-for-akrapovic-complete-titanium-race-exhaust
+                    - img "Ducati Panigale V4 dB Killer for High-Mount Akrapovic Complete Titanium Race Exhaust 96482131A" [ref=e186]
+                  - generic [ref=e187]:
+                    - strong [ref=e188]:
+                      - link "Ducati Panigale V4 dB Killer for High-Mount Akrapovic Complete Titanium Race Exhaust 96482131A" [ref=e189] [cursor=pointer]:
+                        - /url: https://amsducati.com/panigale-v4-db-killer-for-akrapovic-complete-titanium-race-exhaust
+                    - generic [ref=e190]: $347.68
+                    - generic:  
+              - listitem [ref=e194]:
+                - generic [ref=e195]:
+                  - link [ref=e196] [cursor=pointer]:
+                    - /url: https://amsducati.com/panigale-v4-db-killer-for-low-mount-akrapovic-complete-titanium-race-exhaust-akrapovic-racing-slip-on
+                    - img "Ducati Panigale V4 dB Killer for Low-Mount Akrapovic Complete Titanium Race Exhaust / Akrapovic Racing Slip-On 96481631A" [ref=e199]
+                  - generic [ref=e200]:
+                    - strong [ref=e201]:
+                      - link "Ducati Panigale V4 dB Killer for Low-Mount Akrapovic Complete Titanium Race Exhaust / Akrapovic Racing Slip-On 96481631A" [ref=e202] [cursor=pointer]:
+                        - /url: https://amsducati.com/panigale-v4-db-killer-for-low-mount-akrapovic-complete-titanium-race-exhaust-akrapovic-racing-slip-on
+                    - generic [ref=e203]: $328.90
+                    - generic:  
+              - listitem [ref=e207]:
+                - generic [ref=e208]:
+                  - link [ref=e209] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-diavel-v4-racing-exhaust
+                    - img "Ducati Diavel V4 & XDiavel V4 Akrapovic Full Race Exhaust System 96482172AA" [ref=e212]
+                  - generic [ref=e213]:
+                    - strong [ref=e214]:
+                      - link "Ducati Diavel V4 & XDiavel V4 Akrapovic Full Race Exhaust System 96482172AA" [ref=e215] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-diavel-v4-racing-exhaust
+                    - generic [ref=e216]: $6,806.21
+                    - generic:  
+              - listitem [ref=e220]:
+                - generic [ref=e221]:
+                  - link [ref=e222] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v2-akrapovic-complete-titanium-exhaust-system
+                    - img "Ducati Panigale V2 2020-2024 Akrapovic Titanium Full Race Exhaust System 96481723AA" [ref=e225]
+                  - generic [ref=e226]:
+                    - strong [ref=e227]:
+                      - link "Ducati Panigale V2 2020-2024 Akrapovic Titanium Full Race Exhaust System 96481723AA" [ref=e228] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v2-akrapovic-complete-titanium-exhaust-system
+                    - generic [ref=e229]: $7,464.01
+                    - generic [ref=e234]:
+                      - generic [ref=e235]: Out of stock
+                      - generic:  
+              - listitem [ref=e237]:
+                - generic [ref=e238]:
+                  - link [ref=e239] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-streetfighter-v4-2023-akrapovic-complete-titanium-exhaust-system
+                    - img "Ducati Streetfighter V4 2023-2024 Akrapovic Titanium Full Race Exhaust System 96482251AA" [ref=e242]
+                  - generic [ref=e243]:
+                    - strong [ref=e244]:
+                      - link "Ducati Streetfighter V4 2023-2024 Akrapovic Titanium Full Race Exhaust System 96482251AA" [ref=e245] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-streetfighter-v4-2023-akrapovic-complete-titanium-exhaust-system
+                    - generic [ref=e246]: $7,123.13
+                    - generic:  
+              - listitem [ref=e250]:
+                - generic [ref=e251]:
+                  - link [ref=e252] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-1299-panigale-r-final-edition-akrapovic-complete-titanium-exhaust-system
+                    - img "Ducati 1299 Panigale R Final Edition Akrapovic Titanium Full Race Exhaust System 96481431A" [ref=e255]
+                  - generic [ref=e256]:
+                    - strong [ref=e257]:
+                      - link "Ducati 1299 Panigale R Final Edition Akrapovic Titanium Full Race Exhaust System 96481431A" [ref=e258] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-1299-panigale-r-final-edition-akrapovic-complete-titanium-exhaust-system
+                    - generic [ref=e259]: $6,732.05
+                    - generic:  
+              - listitem [ref=e263]:
+                - generic [ref=e264]:
+                  - link [ref=e265] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-titanium-full-race-exhaust-system-96482351aa
+                    - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e268]
+                  - generic [ref=e269]:
+                    - strong [ref=e270]:
+                      - link "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [ref=e271] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-titanium-full-race-exhaust-system-96482351aa
+                    - generic [ref=e272]: $9,422.12
+                    - generic:  
+              - listitem [ref=e276]:
+                - generic [ref=e277]:
+                  - link [ref=e278] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-homologated-slip-on-exhaust-96482491aa
+                    - img "Ducati Panigale V4 2025+ Akrapovic Homologated Slip-On Exhaust 96482491AA" [ref=e281]
+                  - generic [ref=e282]:
+                    - strong [ref=e283]:
+                      - link "Ducati Panigale V4 2025+ Akrapovic Homologated Slip-On Exhaust 96482491AA" [ref=e284] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-homologated-slip-on-exhaust-96482491aa
+                    - generic [ref=e285]: $6,872.61
+                    - generic:  
+              - listitem [ref=e289]:
+                - generic [ref=e290]:
+                  - link [ref=e291] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-race-slip-on-exhaust-96482341aa
+                    - img "Ducati Panigale V4 2025+ Akrapovic Race Slip-On Exhaust 96482341AA" [ref=e294]
+                  - generic [ref=e295]:
+                    - strong [ref=e296]:
+                      - link "Ducati Panigale V4 2025+ Akrapovic Race Slip-On Exhaust 96482341AA" [ref=e297] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-2025-akrapovic-race-slip-on-exhaust-96482341aa
+                    - generic [ref=e298]: $5,542.43
+                    - generic:  
+              - listitem [ref=e302]:
+                - generic [ref=e303]:
+                  - link [ref=e304] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa
+                    - img "Ducati Panigale V4 2025+ Plastic Lower Fairing for Racing Exhaust 97181321AA" [ref=e307]
+                  - generic [ref=e308]:
+                    - strong [ref=e309]:
+                      - link "Ducati Panigale V4 2025+ Plastic Lower Fairing for Racing Exhaust 97181321AA" [ref=e310] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa
+                    - generic [ref=e311]: $221.70
+                    - generic:  
+              - listitem [ref=e315]:
+                - generic [ref=e316]:
+                  - link [ref=e317] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-db-killer-for-high-mount-akrapovic-complete-titanium-race-exhaust-96482131a
+                    - img "Ducati Panigale V4 2025+ & Streetfighter V4 2025+ dB Killer for High-Mount Akrapovic Complete Titanium Race Exhaust 96482131A" [ref=e320]
+                  - generic [ref=e321]:
+                    - strong [ref=e322]:
+                      - link "Ducati Panigale V4 2025+ & Streetfighter V4 2025+ dB Killer for High-Mount Akrapovic Complete Titanium Race Exhaust 96482131A" [ref=e323] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-db-killer-for-high-mount-akrapovic-complete-titanium-race-exhaust-96482131a
+                    - generic [ref=e324]: $365.80
+                    - generic [ref=e329]:
+                      - generic [ref=e330]: Out of stock
+                      - generic:  
+              - listitem [ref=e332]:
+                - generic [ref=e333]:
+                  - link [ref=e334] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa-1
+                    - img "Ducati Panigale V4 2025+ Fiberglass Lower Fairing For Track Fairing Kits With Racing Exhaust 96981931AA" [ref=e337]
+                  - generic [ref=e338]:
+                    - strong [ref=e339]:
+                      - link "Ducati Panigale V4 2025+ Fiberglass Lower Fairing For Track Fairing Kits With Racing Exhaust 96981931AA" [ref=e340] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-2025-lower-fairing-for-racing-exhaust-97181321aa-1
+                    - generic [ref=e341]: $831.37
+                    - generic:  
+              - listitem [ref=e345]:
+                - generic [ref=e346]:
+                  - link [ref=e347] [cursor=pointer]:
+                    - /url: https://amsducati.com/desmo450mx-titanium-slip-on-silencer
+                    - img "Ducati Desmo 450 MX Titanium Slip-On Exhaust 96480511AA" [ref=e350]
+                  - generic [ref=e351]:
+                    - strong [ref=e352]:
+                      - link "Ducati Desmo 450 MX Titanium Slip-On Exhaust 96480511AA" [ref=e353] [cursor=pointer]:
+                        - /url: https://amsducati.com/desmo450mx-titanium-slip-on-silencer
+                    - generic [ref=e354]: $1,024.65
+                    - generic:  
+              - listitem [ref=e358]:
+                - generic [ref=e359]:
+                  - link [ref=e360] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-titanium-full-race-exhaust-system-96482531aa
+                    - img "Ducati Streetfighter V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482531AA" [ref=e363]
+                  - generic [ref=e364]:
+                    - strong [ref=e365]:
+                      - link "Ducati Streetfighter V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482531AA" [ref=e366] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-titanium-full-race-exhaust-system-96482531aa
+                    - generic [ref=e367]: $9,422.12
+                    - generic [ref=e372]:
+                      - generic [ref=e373]: Out of stock
+                      - generic:  
+              - listitem [ref=e375]:
+                - generic [ref=e376]:
+                  - link [ref=e377] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-race-slip-on-exhaust-96482551aa
+                    - img "Ducati Streetfighter V4 2025+ Akrapovic Race Slip-On Exhaust 96482551AA" [ref=e380]
+                  - generic [ref=e381]:
+                    - strong [ref=e382]:
+                      - link "Ducati Streetfighter V4 2025+ Akrapovic Race Slip-On Exhaust 96482551AA" [ref=e383] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-streetfighter-v4-2025-akrapovic-race-slip-on-exhaust-96482551aa
+                    - generic [ref=e384]: $5,542.43
+                    - generic [ref=e389]:
+                      - generic [ref=e390]: Out of stock
+                      - generic:  
+              - listitem [ref=e392]:
+                - generic [ref=e393]:
+                  - link [ref=e394] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-lamborghini-2026-akrapovic-titanium-full-race-exhaust-system-96482351bb
+                    - img "Ducati Panigale V4 Lamborghini 2026 Akrapovic Titanium Full Race Exhaust System 96482351BB" [ref=e397]
+                  - generic [ref=e398]:
+                    - strong [ref=e399]:
+                      - link "Ducati Panigale V4 Lamborghini 2026 Akrapovic Titanium Full Race Exhaust System 96482351BB" [ref=e400] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-lamborghini-2026-akrapovic-titanium-full-race-exhaust-system-96482351bb
+                    - generic [ref=e401]: $9,422.12
+                    - generic:  
+              - listitem [ref=e405]:
+                - generic [ref=e406]:
+                  - link [ref=e407] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-panigale-v4-lamborghini-speciale-clienti-2026-akrapovic-titanium-full-race-exhaust-system-96482351bc
+                    - img "Ducati Panigale V4 Lamborghini Speciale Clienti 2026 Akrapovic Titanium Full Race Exhaust System 96482351BC" [ref=e410]
+                  - generic [ref=e411]:
+                    - strong [ref=e412]:
+                      - link "Ducati Panigale V4 Lamborghini Speciale Clienti 2026 Akrapovic Titanium Full Race Exhaust System 96482351BC" [ref=e413] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-panigale-v4-lamborghini-speciale-clienti-2026-akrapovic-titanium-full-race-exhaust-system-96482351bc
+                    - generic [ref=e414]: $9,422.12
+                    - generic [ref=e419]:
+                      - generic [ref=e420]: Out of stock
+                      - generic:  
+              - listitem [ref=e422]:
+                - generic [ref=e423]:
+                  - link [ref=e424] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-streetfighter-v4-2023-akrapovic-homologated-slip-on-exhaust
+                    - img "Ducati Panigale V4 2022-2024 & Streetfighter V4 2023-2024 Akrapovic Homologated Slip-On Exhaust 96482151AA" [ref=e427]
+                  - generic [ref=e428]:
+                    - strong [ref=e429]:
+                      - link "Ducati Panigale V4 2022-2024 & Streetfighter V4 2023-2024 Akrapovic Homologated Slip-On Exhaust 96482151AA" [ref=e430] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-streetfighter-v4-2023-akrapovic-homologated-slip-on-exhaust
+                    - generic [ref=e431]:
+                      - generic [ref=e433]:
+                        - text: Now
+                        - generic [ref=e434]: $6,025.01
+                      - generic [ref=e436]:
+                        - text: Was
+                        - generic [ref=e437]: $6,678.63
+                      - text: Save 10%
+                    - generic:  
+            - generic [ref=e438]:
+              - text:  
+              - generic [ref=e439]:
+                - strong [ref=e440]: Page
+                - list "Page" [ref=e441]:
+                  - listitem [ref=e442]:
+                    - strong [ref=e443]:
+                      - generic [ref=e444]: You're currently reading page
+                      - text: "1"
+                  - listitem [ref=e445]:
+                    - link "Page 2" [ref=e446] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic?p=2
+                      - generic [ref=e447]: Page
+                      - text: "2"
+                  - listitem [ref=e448]:
+                    - link " Page Next" [ref=e449] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic?p=2
+                      - text: 
+                      - generic [ref=e450]: Page
+                      - generic [ref=e451]: Next
+              - text:  
+        - generic [ref=e453]:
+          - tablist [ref=e454]: Filter Items 
+          - tabpanel [ref=e455]:
+            - separator [ref=e457]
+            - generic [ref=e459]:
+              - heading "Accessory Type" [level=3] [ref=e460]
+              - definition [ref=e461]:
+                - form "accessory_product_type form" [ref=e462]:
+                  - group "accessory_product_type filter group" [ref=e463]:
+                    - listitem [ref=e464]:
+                      - link "Body Panels ( 2 items )" [ref=e465] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=693
+                        - text: Body Panels
+                        - generic [ref=e466]:
+                          - text: ( 2
+                          - generic [ref=e467]: items
+                          - text: )
+                      - checkbox "Body Panels" [ref=e468]
+                    - listitem [ref=e469]:
+                      - link "Exhaust Collectors ( 2 items )" [ref=e470] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=301
+                        - text: Exhaust Collectors
+                        - generic [ref=e471]:
+                          - text: ( 2
+                          - generic [ref=e472]: items
+                          - text: )
+                      - checkbox "Exhaust Collectors" [ref=e473]
+                    - listitem [ref=e474]:
+                      - link "Exhaust Parts ( 4 items )" [ref=e475] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=494
+                        - text: Exhaust Parts
+                        - generic [ref=e476]:
+                          - text: ( 4
+                          - generic [ref=e477]: items
+                          - text: )
+                      - checkbox "Exhaust Parts" [ref=e478]
+                    - listitem [ref=e479]:
+                      - link "Full Exhausts ( 17 items )" [ref=e480] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=303
+                        - text: Full Exhausts
+                        - generic [ref=e481]:
+                          - text: ( 17
+                          - generic [ref=e482]: items
+                          - text: )
+                      - checkbox "Full Exhausts" [ref=e483]
+                    - listitem [ref=e484]:
+                      - link "Slip-On Exhausts ( 9 items )" [ref=e485] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=302
+                        - text: Slip-On Exhausts
+                        - generic [ref=e486]:
+                          - text: ( 9
+                          - generic [ref=e487]: items
+                          - text: )
+                      - checkbox "Slip-On Exhausts" [ref=e488]
+                - button "Show ( 0 ) more" [ref=e489] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=e490]: "0"
+                  - text: ) more
+              - heading "Category" [level=3] [ref=e491]
+              - definition [ref=e492]:
+                - form "product_category form" [ref=e493]:
+                  - group "product_category filter group" [ref=e494]:
+                    - listitem [ref=e495]:
+                      - link "Sale ( 5 items )" [ref=e496] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_category=84
+                        - text: Sale
+                        - generic [ref=e497]:
+                          - text: ( 5
+                          - generic [ref=e498]: items
+                          - text: )
+                      - checkbox "Sale" [ref=e499]
+              - heading "Price" [level=3] [ref=e500]
+              - definition [ref=e501]:
+                - generic [ref=e502]: $173.00 - $9423.00
+              - heading "Color" [level=3] [ref=e511]
+              - definition [ref=e512]:
+                - form "product_color form" [ref=e513]:
+                  - group "product_color filter group" [ref=e514]:
+                    - listitem [ref=e515]:
+                      - link "Black ( 2 items )" [ref=e516] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=146
+                        - text: Black
+                        - generic [ref=e517]:
+                          - text: ( 2
+                          - generic [ref=e518]: items
+                          - text: )
+                      - checkbox "Black" [ref=e519]
+                    - listitem [ref=e520]:
+                      - link "Carbon Matte ( 1 item )" [ref=e521] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=1090
+                        - text: Carbon Matte
+                        - generic [ref=e522]:
+                          - text: ( 1
+                          - generic [ref=e523]: item
+                          - text: )
+                      - checkbox "Carbon Matte" [ref=e524]
+                    - listitem [ref=e525]:
+                      - link "Matte Metallic Titanium ( 1 item )" [ref=e526] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=1093
+                        - text: Matte Metallic Titanium
+                        - generic [ref=e527]:
+                          - text: ( 1
+                          - generic [ref=e528]: item
+                          - text: )
+                      - checkbox "Matte Metallic Titanium" [ref=e529]
+                - button "Show ( 0 ) more" [ref=e530] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=e531]: "0"
+                  - text: ) more
+              - heading "Collection" [level=3] [ref=e532]
+              - definition [ref=e533]:
+                - form "product_collection form" [ref=e534]:
+                  - group "product_collection filter group" [ref=e535]:
+                    - listitem [ref=e536]:
+                      - link "Diavel ( 1 item )" [ref=e537] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=231
+                        - text: Diavel
+                        - generic [ref=e538]:
+                          - text: ( 1
+                          - generic [ref=e539]: item
+                          - text: )
+                      - checkbox "Diavel" [ref=e540]
+                    - listitem [ref=e541]:
+                      - link "Ducati Company ( 9 items )" [ref=e542] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=152
+                        - text: Ducati Company
+                        - generic [ref=e543]:
+                          - text: ( 9
+                          - generic [ref=e544]: items
+                          - text: )
+                      - checkbox "Ducati Company" [ref=e545]
+                    - listitem [ref=e546]:
+                      - link "Ducati Corse ( 9 items )" [ref=e547] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=151
+                        - text: Ducati Corse
+                        - generic [ref=e548]:
+                          - text: ( 9
+                          - generic [ref=e549]: items
+                          - text: )
+                      - checkbox "Ducati Corse" [ref=e550]
+                    - listitem [ref=e551]:
+                      - link "Ducati Off-Road ( 1 item )" [ref=e552] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=1349
+                        - text: Ducati Off-Road
+                        - generic [ref=e553]:
+                          - text: ( 1
+                          - generic [ref=e554]: item
+                          - text: )
+                      - checkbox "Ducati Off-Road" [ref=e555]
+                - button "Show ( 0 ) more" [ref=e556] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=e557]: "0"
+                  - text: ) more
+              - heading "Brand" [level=3] [ref=e558]
+              - definition [ref=e559]:
+                - form "product_brand form" [ref=e560]:
+                  - group "product_brand filter group" [ref=e561]:
+                    - listitem [ref=e562]:
+                      - link "Akrapovic ( 32 items )" [ref=e563] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_brand=809
+                        - text: Akrapovic
+                        - generic [ref=e564]:
+                          - text: ( 32
+                          - generic [ref=e565]: items
+                          - text: )
+                      - checkbox "Akrapovic" [ref=e566]
+                    - listitem [ref=e567]:
+                      - link "Ducati Performance ( 13 items )" [ref=e568] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_brand=111
+                        - text: Ducati Performance
+                        - generic [ref=e569]:
+                          - text: ( 13
+                          - generic [ref=e570]: items
+                          - text: )
+                      - checkbox "Ducati Performance" [ref=e571]
+                - button "Show ( 0 ) more" [ref=e572] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=e573]: "0"
+                  - text: ) more
+              - heading "Material" [level=3] [ref=e574]
+              - definition [ref=e575]:
+                - form "material form" [ref=e576]:
+                  - group "material filter group" [ref=e577]:
+                    - listitem [ref=e578]:
+                      - link "Carbon Fiber ( 13 items )" [ref=e579] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=26
+                        - text: Carbon Fiber
+                        - generic [ref=e580]:
+                          - text: ( 13
+                          - generic [ref=e581]: items
+                          - text: )
+                      - checkbox "Carbon Fiber" [ref=e582]
+                    - listitem [ref=e583]:
+                      - link "Plastic ( 2 items )" [ref=e584] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=24
+                        - text: Plastic
+                        - generic [ref=e585]:
+                          - text: ( 2
+                          - generic [ref=e586]: items
+                          - text: )
+                      - checkbox "Plastic" [ref=e587]
+                    - listitem [ref=e588]:
+                      - link "Steel ( 3 items )" [ref=e589] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=320
+                        - text: Steel
+                        - generic [ref=e590]:
+                          - text: ( 3
+                          - generic [ref=e591]: items
+                          - text: )
+                      - checkbox "Steel" [ref=e592]
+                    - listitem [ref=e593]:
+                      - link "Titanium ( 25 items )" [ref=e594] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=22
+                        - text: Titanium
+                        - generic [ref=e595]:
+                          - text: ( 25
+                          - generic [ref=e596]: items
+                          - text: )
+                      - checkbox "Titanium" [ref=e597]
+                - button "Show ( 0 ) more" [ref=e598] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=e599]: "0"
+                  - text: ) more
+    - contentinfo [ref=e600]:
+      - contentinfo [ref=e602]:
+        - generic [ref=e603]:
+          - generic [ref=e604]:
+            - generic [ref=e605]: Get Updates on the latest AMS news, products and promotions
+            - generic [ref=e608]:
+              - generic [ref=e609]: Email Address
+              - textbox "Email Address" [ref=e610]:
+                - /placeholder: email address
+              - generic [ref=e611]: Online Store Newsletter
+              - checkbox "Online Store Newsletter" [checked] [ref=e612]
+              - button [ref=e614] [cursor=pointer]:
+                - generic [ref=e615]: 
+          - article [ref=e616]:
+            - generic [ref=e617]:
+              - img "AMS Ducati Logo" [ref=e618]
+              - paragraph [ref=e619]: Since 1995, Advanced Motorsports Ducati Dallas has been a leader in Ducati service and sales in the United States. Centrally located in Dallas, Texas, Advanced Motorsports is fully stocked with the latest Ducati Motorcycles, Ducati Performance Parts, Ducati Apparel, Ducati Accessories and Merchandise.
+              - list [ref=e620]:
+                - listitem [ref=e621]:
+                  - link "New Bikes" [ref=e622] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/new-bikes
+                - listitem [ref=e623]:
+                  - link "Used Bikes" [ref=e624] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/used-bikes
+                - listitem [ref=e625]:
+                  - link "Contact" [ref=e626] [cursor=pointer]:
+                    - /url: https://amsducati.com/support/contact/
+            - generic [ref=e627]:
+              - img "AMS_Ducati_Showroom" [ref=e628]
+              - generic [ref=e629]:
+                - generic [ref=e630]: 
+                - generic [ref=e631]:
+                  - generic [ref=e632]: Ducati Showroom
+                  - text: 1318 N Riverfront Blvd Dallas, TX 75207
+            - generic [ref=e633]:
+              - img "AMS Ducati Service" [ref=e634]
+              - generic [ref=e635]:
+                - generic [ref=e636]: 
+                - generic [ref=e637]:
+                  - generic [ref=e638]: Ducati Service
+                  - text: 135 Leslie St Dallas, TX 75207
+          - generic [ref=e639]:
+            - generic [ref=e640]:
+              - generic [ref=e641]: © 2026 AMS Ducati Dallas | Proudly representing
+              - img "Texas Flag" [ref=e642]
+            - list [ref=e644]:
+              - listitem [ref=e645]:
+                - link [ref=e646] [cursor=pointer]:
+                  - /url: https://www.facebook.com/amsducati
+                  - generic [ref=e647]: 
+              - listitem [ref=e648]:
+                - link [ref=e649] [cursor=pointer]:
+                  - /url: https://twitter.com/amsducatidallas
+                  - generic [ref=e650]: 
+              - listitem [ref=e651]:
+                - link [ref=e652] [cursor=pointer]:
+                  - /url: https://www.instagram.com/amsducatidallas/
+                  - generic [ref=e653]: 
+              - listitem [ref=e654]:
+                - link [ref=e655] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/ams-ducati-dallas
+                  - generic [ref=e656]: 
+  - checkbox [ref=e657]

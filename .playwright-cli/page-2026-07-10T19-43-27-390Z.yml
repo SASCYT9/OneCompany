@@ -1,0 +1,287 @@
+- generic [active] [ref=f20e1]:
+  - generic [ref=f20e2]:
+    - banner [ref=f20e3]:
+      - generic [ref=f20e5]:
+        - list [ref=f20e6]:
+          - listitem [ref=f20e7]:
+            - link "Sign In" [ref=f20e8] [cursor=pointer]:
+              - /url: https://amsducati.com/customer/account/login/referer/aHR0cHM6Ly9hbXNkdWNhdGkuY29tL2R1Y2F0aS1tdWx0aXN0cmFkYS12NC1yYWxseS1ha3JhcG92aWMtZnVsbC1yYWNlLWV4aGF1c3Qtc3lzdGVtLTk2NDgyMjkxYWE~/
+          - listitem
+          - listitem
+          - generic [ref=f20e9]:
+            - paragraph [ref=f20e10]:
+              - link "My Account" [ref=f20e11] [cursor=pointer]:
+                - /url: https://amsducati.com/customer/account/
+            - text:  
+        - link "Skip to Content" [ref=f20e12] [cursor=pointer]:
+          - /url: "#contentarea"
+      - generic [ref=f20e13]:
+        - generic:
+          - tablist:
+            - tabpanel:  
+        - generic [ref=f20e14]:
+          - text: 
+          - link "store logo" [ref=f20e15] [cursor=pointer]:
+            - /url: https://amsducati.com/
+            - img "AMS Ducati Logo" [ref=f20e16]
+          - generic [ref=f20e17]:
+            - link " My Cart" [ref=f20e18] [cursor=pointer]:
+              - /url: https://amsducati.com/checkout/cart/
+              - text: 
+              - generic [ref=f20e19]: My Cart
+            - text: 
+          - generic:
+            - text: 
+            - generic:
+              - link [ref=f20e21] [cursor=pointer]:
+                - /url: javascript:void(0)
+              - generic [ref=f20e23]:
+                - generic [ref=f20e24]:
+                  - generic [ref=f20e25]:
+                    - text: 
+                    - generic [ref=f20e26]: Search
+                  - combobox " Search" [ref=f20e28] [cursor=pointer]
+                - generic:
+                  - button "Search" [disabled]: 
+          - navigation [ref=f20e29]:
+            - menu [ref=f20e30]:
+              - listitem [ref=f20e31] [cursor=pointer]:
+                - menuitem "Motorcycles" [ref=f20e32]: 
+              - listitem [ref=f20e34] [cursor=pointer]:
+                - menuitem "Ducati OEM Parts" [ref=f20e35]
+              - listitem [ref=f20e36] [cursor=pointer]:
+                - menuitem "Accessories" [ref=f20e37]:  Accessories
+              - listitem [ref=f20e38] [cursor=pointer]:
+                - menuitem "Apparel" [ref=f20e39]:  Apparel
+                - text: 
+              - listitem [ref=f20e40] [cursor=pointer]:
+                - menuitem "Closeout" [ref=f20e41]
+              - listitem [ref=f20e43] [cursor=pointer]:
+                - menuitem "Support" [ref=f20e44]: 
+                - text:   
+    - main [ref=f20e46]:
+      - list [ref=f20e48]:
+        - listitem [ref=f20e49]:
+          - link "Home" [ref=f20e50] [cursor=pointer]:
+            - /url: https://amsducati.com/
+          - text: /
+        - listitem [ref=f20e51]:
+          - strong [ref=f20e52]: Ducati Multistrada V4 Rally 2023-2025 Akrapovic Full Race Exhaust System 96482292AA
+      - generic [ref=f20e54]:
+        - generic [ref=f20e55]:
+          - heading "Ducati Multistrada V4 Akrapovic Full Racing Exhaust System" [level=1] [ref=f20e57]
+          - generic [ref=f20e58]:
+            - generic [ref=f20e59]:
+              - strong [ref=f20e60]: SKU
+              - generic [ref=f20e61]: 96482292AA
+            - generic [ref=f20e62]: Akrapovic, Ducati Performance|
+          - link "Be the first to review this product" [ref=f20e66] [cursor=pointer]:
+            - /url: https://amsducati.com/ducati-multistrada-v4-rally-akrapovic-full-race-exhaust-system-96482291aa#review-form
+          - list [ref=f20e68]:
+            - listitem [ref=f20e69]:
+              - generic [ref=f20e70]:
+                - generic [ref=f20e71]: 
+                - text: Fit List
+            - listitem [ref=f20e72]:
+              - generic [ref=f20e73]:
+                - generic [ref=f20e74]: 
+                - text: Earn Pro Points
+            - listitem [ref=f20e75]:
+              - generic [ref=f20e76]:
+                - generic [ref=f20e77]: 
+                - text: Oversize Item
+          - generic [ref=f20e78]:
+            - generic [ref=f20e80]:
+              - paragraph [ref=f20e81]:
+                - strong [ref=f20e82]: "Available for Special Order: 1-2 week lead time."
+              - paragraph [ref=f20e83]: An exclusive accessory made by Akrapovič and equipped with titanium-lined silencer and carbon endcap, for an exceptionally lightweight design. Typical racing materials are combined with the supplied map, which adapts all the parameters of DTC - DWC - DPL and Slide on demand to the bike's new performance, increasing its torque and maximum power. Boasting a touch of sportiness with a racing style, it’s the perfect exhaust for bringing out the all the Multistrada’s character with maximum performance. Also features removeable dB-killers.
+              - paragraph [ref=f20e84]: SKU 96482291AA/96482292AA features the recesses required for installation on Rally models. For aesthetic reasons, SKU 96482291BA/96482292BA is for all the other Multistrada V4 models.
+              - paragraph [ref=f20e85]: This exhaust is compatible with the center stand present on Rally models.
+              - paragraph [ref=f20e86]: For race use only.
+              - paragraph
+              - heading "Specifications:" [level=3] [ref=f20e87]
+              - listitem [ref=f20e88]: "Max. Power [hp] : +9.0"
+              - listitem [ref=f20e89]: "Max. Torque [Nm] : +6.9"
+              - listitem [ref=f20e90]: "Weight reduction [kg] : 5.0"
+              - listitem [ref=f20e91]: "Sound level: 105 dB @5000 rpm"
+              - paragraph
+              - paragraph
+              - heading "Fits on:" [level=2] [ref=f20e92]
+              - listitem [ref=f20e93]: MULTISTRADA V4 RALLY RADAR 2023-2025
+              - listitem [ref=f20e94]: MULTISTRADA V4 RALLY TRAVEL RADAR 2023-2025
+              - listitem [ref=f20e95]: MULTISTRADA V4 RALLY FULL 2023-2025
+              - paragraph
+              - paragraph [ref=f20e96]:
+                - strong [ref=f20e97]: "**Please call our Web and Parts department to register your VIN to your exhaust in order for your up-map to be installed by your local Ducati Dealer."
+              - paragraph
+              - heading "SKU 96482291AA , 96482292AA" [level=3] [ref=f20e98]
+              - paragraph
+            - link "Show More" [ref=f20e99] [cursor=pointer]:
+              - /url: "#"
+          - text: 
+          - generic [ref=f20e102]:
+            - generic [ref=f20e105]:
+              - button "Add to Cart" [ref=f20e106] [cursor=pointer]
+              - iframe [ref=f20e109]:
+                
+            - generic [ref=f20e110]: Usually Ships in 10-14 Days
+          - generic [ref=f20e111]: $4,172.12
+          - link "Add to Wish List" [ref=f20e116] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=f20e117]:
+          - link "Skip to the end of the images gallery" [ref=f20e118] [cursor=pointer]:
+            - /url: "#gallery-next-area"
+          - generic [ref=f20e121]:
+            - generic [ref=f20e122]:
+              - button "Previous" [ref=f20e123] [cursor=pointer]
+              - img "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e127]
+              - button "Next" [ref=f20e132] [cursor=pointer]
+            - generic [ref=f20e135]:
+              - button "Previous"
+              - generic [ref=f20e136]:
+                - button "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e138]:
+                  - img "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e140]
+                - button "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e141]:
+                  - img "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e143]
+                - button "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e144]:
+                  - img "Ducati-Multistrada-V4-Akrapovic-Full-Racing-Exhaust-System" [ref=f20e146]
+              - button "Next"
+          - link "Skip to the beginning of the images gallery" [ref=f20e147] [cursor=pointer]:
+            - /url: "#gallery-prev-area"
+        - tablist [ref=f20e149]:
+          - tab [expanded] [ref=f20e150]:
+            - link "Reviews" [ref=f20e151] [cursor=pointer]:
+              - /url: "#reviews"
+          - tabpanel "Reviews" [ref=f20e152]:
+            - generic [ref=f20e154]:
+              - heading "WRITE YOUR OWN REVIEW" [level=2] [ref=f20e155]
+              - paragraph [ref=f20e156]: Please write a product review. Your insights and opinions help your fellow motorcyclists (including us) make better informed decisions about the products so be as descriptive and informative as possible.
+              - paragraph [ref=f20e157]:
+                - text: Earn
+                - strong [ref=f20e158]: 20 Pro Points
+                - text: when you submit a product review.
+                - link "What's This?" [ref=f20e159] [cursor=pointer]:
+                  - /url: /support/pro-points/
+              - generic [ref=f20e160]:
+                - generic [ref=f20e161]:
+                  - heading "How do you rate this product?" [level=3] [ref=f20e162]
+                  - group [ref=f20e163]:
+                    - generic [ref=f20e165]:
+                      - generic [ref=f20e166]:
+                        - generic [ref=f20e167]: Quality
+                        - generic:
+                          - text: 
+                          - radio "Quality  1 star" [ref=f20e168]
+                          - generic "1 star" [ref=f20e169] [cursor=pointer]: 
+                          - radio "Quality  2 stars" [ref=f20e171]
+                          - generic "2 stars" [ref=f20e172] [cursor=pointer]: 
+                          - radio "Quality  3 stars" [ref=f20e174]
+                          - generic "3 stars" [ref=f20e175] [cursor=pointer]: 
+                          - radio "Quality  4 stars" [ref=f20e177]
+                          - generic "4 stars" [ref=f20e178] [cursor=pointer]: 
+                          - radio "Quality  5 stars" [ref=f20e180]
+                          - generic "5 stars" [ref=f20e181] [cursor=pointer]: 
+                      - generic [ref=f20e183]:
+                        - generic [ref=f20e184]: Fit
+                        - generic:
+                          - text: 
+                          - radio "Fit  1 star" [ref=f20e185]
+                          - generic "1 star" [ref=f20e186] [cursor=pointer]: 
+                          - radio "Fit  2 stars" [ref=f20e188]
+                          - generic "2 stars" [ref=f20e189] [cursor=pointer]: 
+                          - radio "Fit  3 stars" [ref=f20e191]
+                          - generic "3 stars" [ref=f20e192] [cursor=pointer]: 
+                          - radio "Fit  4 stars" [ref=f20e194]
+                          - generic "4 stars" [ref=f20e195] [cursor=pointer]: 
+                          - radio "Fit  5 stars" [ref=f20e197]
+                          - generic "5 stars" [ref=f20e198] [cursor=pointer]: 
+                      - generic [ref=f20e200]:
+                        - generic [ref=f20e201]: Value
+                        - generic:
+                          - text: 
+                          - radio "Value  1 star" [ref=f20e202]
+                          - generic "1 star" [ref=f20e203] [cursor=pointer]: 
+                          - radio "Value  2 stars" [ref=f20e205]
+                          - generic "2 stars" [ref=f20e206] [cursor=pointer]: 
+                          - radio "Value  3 stars" [ref=f20e208]
+                          - generic "3 stars" [ref=f20e209] [cursor=pointer]: 
+                          - radio "Value  4 stars" [ref=f20e211]
+                          - generic "4 stars" [ref=f20e212] [cursor=pointer]: 
+                          - radio "Value  5 stars" [ref=f20e214]
+                          - generic "5 stars" [ref=f20e215] [cursor=pointer]: 
+                - generic [ref=f20e218]:
+                  - group [ref=f20e219]:
+                    - heading "Your Review:" [level=3] [ref=f20e220]
+                    - generic [ref=f20e221]:
+                      - generic [ref=f20e222]: Nickname*
+                      - textbox "Nickname*" [ref=f20e224]
+                    - generic [ref=f20e225]:
+                      - generic [ref=f20e226]: Summary*
+                      - textbox "Summary*" [ref=f20e228]
+                    - generic [ref=f20e229]:
+                      - generic [ref=f20e230]: Review*
+                      - textbox "Review*" [ref=f20e232]
+                  - button "Submit Review" [ref=f20e235] [cursor=pointer]
+    - contentinfo [ref=f20e236]:
+      - contentinfo [ref=f20e238]:
+        - generic [ref=f20e239]:
+          - generic [ref=f20e240]:
+            - generic [ref=f20e241]: Get Updates on the latest AMS news, products and promotions
+            - generic [ref=f20e244]:
+              - generic [ref=f20e245]: Email Address
+              - textbox "Email Address" [ref=f20e246]:
+                - /placeholder: email address
+              - generic [ref=f20e247]: Online Store Newsletter
+              - checkbox "Online Store Newsletter" [checked] [ref=f20e248]
+              - button [ref=f20e250] [cursor=pointer]:
+                - generic [ref=f20e251]: 
+          - article [ref=f20e252]:
+            - generic [ref=f20e253]:
+              - img "AMS Ducati Logo" [ref=f20e254]
+              - paragraph [ref=f20e255]: Since 1995, Advanced Motorsports Ducati Dallas has been a leader in Ducati service and sales in the United States. Centrally located in Dallas, Texas, Advanced Motorsports is fully stocked with the latest Ducati Motorcycles, Ducati Performance Parts, Ducati Apparel, Ducati Accessories and Merchandise.
+              - list [ref=f20e256]:
+                - listitem [ref=f20e257]:
+                  - link "New Bikes" [ref=f20e258] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/new-bikes
+                - listitem [ref=f20e259]:
+                  - link "Used Bikes" [ref=f20e260] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/used-bikes
+                - listitem [ref=f20e261]:
+                  - link "Contact" [ref=f20e262] [cursor=pointer]:
+                    - /url: https://amsducati.com/support/contact/
+            - generic [ref=f20e263]:
+              - img "AMS_Ducati_Showroom" [ref=f20e264]
+              - generic [ref=f20e265]:
+                - generic [ref=f20e266]: 
+                - generic [ref=f20e267]:
+                  - generic [ref=f20e268]: Ducati Showroom
+                  - text: 1318 N Riverfront Blvd Dallas, TX 75207
+            - generic [ref=f20e269]:
+              - img "AMS Ducati Service" [ref=f20e270]
+              - generic [ref=f20e271]:
+                - generic [ref=f20e272]: 
+                - generic [ref=f20e273]:
+                  - generic [ref=f20e274]: Ducati Service
+                  - text: 135 Leslie St Dallas, TX 75207
+          - generic [ref=f20e275]:
+            - generic [ref=f20e276]:
+              - generic [ref=f20e277]: © 2026 AMS Ducati Dallas | Proudly representing
+              - img "Texas Flag" [ref=f20e278]
+            - list [ref=f20e280]:
+              - listitem [ref=f20e281]:
+                - link [ref=f20e282] [cursor=pointer]:
+                  - /url: https://www.facebook.com/amsducati
+                  - generic [ref=f20e283]: 
+              - listitem [ref=f20e284]:
+                - link [ref=f20e285] [cursor=pointer]:
+                  - /url: https://twitter.com/amsducatidallas
+                  - generic [ref=f20e286]: 
+              - listitem [ref=f20e287]:
+                - link [ref=f20e288] [cursor=pointer]:
+                  - /url: https://www.instagram.com/amsducatidallas/
+                  - generic [ref=f20e289]: 
+              - listitem [ref=f20e290]:
+                - link [ref=f20e291] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/ams-ducati-dallas
+                  - generic [ref=f20e292]: 
+  - checkbox [ref=f20e293]

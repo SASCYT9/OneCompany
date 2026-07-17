@@ -1,0 +1,199 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - link "Skip to content" [ref=f2e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "ONE COMPANY home" [ref=f2e6] [cursor=pointer]:
+          - /url: /en
+        - navigation [ref=f2e10]:
+          - link "Home" [ref=f2e11] [cursor=pointer]:
+            - /url: /en
+          - link "Stores" [ref=f2e12] [cursor=pointer]:
+            - /url: /en/shop
+          - link "Akrapovič Catalog" [ref=f2e14] [cursor=pointer]:
+            - /url: /en/shop/akrapovic/collections
+          - link "Account" [ref=f2e15] [cursor=pointer]:
+            - /url: /en/shop/account
+        - generic [ref=f2e16]:
+          - link "Cart" [ref=f2e17] [cursor=pointer]:
+            - /url: /en/shop/cart
+          - button "Germany EUR" [ref=f2e22]:
+            - generic [ref=f2e23]: Germany
+            - generic [ref=f2e25]: EUR
+          - generic [ref=f2e28]:
+            - button "EN" [disabled] [ref=f2e29]
+            - button "UA" [ref=f2e30]
+          - button "Toggle theme" [ref=f2e32]
+    - main [ref=f2e36]:
+      - main [ref=f2e39]:
+        - generic [ref=f2e40]:
+          - generic [ref=f2e41]:
+            - link "← Back to Akrapovič catalog" [ref=f2e42] [cursor=pointer]:
+              - /url: /en/shop/akrapovic?scope=moto
+            - generic [ref=f2e43]: Moto
+          - generic [ref=f2e44]:
+            - generic [ref=f2e47]:
+              - img "Ducati Panigale V2 Akrapovic Titanium Racing Manifolds 96481741AA - Image 1" [ref=f2e49]
+              - generic: Headers & Manifolds
+            - generic [ref=f2e50]:
+              - generic [ref=f2e51]:
+                - img "AKRAPOVIC" [ref=f2e53]
+                - generic [ref=f2e54]:
+                  - paragraph [ref=f2e55]: AKRAPOVIC
+                  - paragraph [ref=f2e56]: Ducati Performance
+              - heading "Ducati Panigale V2 Akrapovic Titanium Racing Manifolds 96481741AA" [level=1] [ref=f2e57]
+              - generic [ref=f2e58]:
+                - generic [ref=f2e59]: Part number
+                - generic [ref=f2e60]: 96481741AA
+              - generic [ref=f2e62]:
+                - generic [ref=f2e63]:
+                  - paragraph [ref=f2e64]:
+                    - strong [ref=f2e65]: IN STOCK AND READY TO SHIP!
+                  - paragraph [ref=f2e66]: A new, very high-performance exhaust system has been created thanks to Akrapovič’s skilful workmanship combined with Ducati design, exclusively for Panigale. They are completely manufactured in special titanium alloy and TIG (Tungsten Inert Gas) type welding, to offer the highest lightness and resistance to high temperatures. They are equipped with a dedicated engine map to meet specific racing requirements and ensure maximum performance, besides carbon fibre heat guard and all nuts and bolts required for assembly. The perfect accessory to transform the racing silencer pair into a complete light and performing system.
+                  - listitem [ref=f2e67]: PANIGALE V2
+                  - listitem [ref=f2e68]: PANIGALE V2 TROY BAYLISS
+                  - heading "SKU 96481741AA" [level=3] [ref=f2e69]
+                - generic [ref=f2e70]:
+                  - paragraph [ref=f2e71]: Specifications
+                  - generic [ref=f2e73]:
+                    - term [ref=f2e74]: Part number
+                    - definition [ref=f2e75]: 96481741AA
+              - generic [ref=f2e77]:
+                - paragraph [ref=f2e78]: Pricing
+                - paragraph [ref=f2e79]: EUR 2,545
+                - paragraph [ref=f2e80]: USD 2,933 · UAH 134,901
+              - generic [ref=f2e81]:
+                - button "Add to cart" [ref=f2e82]
+                - link "Request product" [ref=f2e83] [cursor=pointer]:
+                  - /url: /en/contact
+                - link "Continue shopping" [ref=f2e84] [cursor=pointer]:
+                  - /url: /en/shop/akrapovic?scope=moto
+        - region "Also fits" [ref=f2e86]:
+          - generic [ref=f2e87]:
+            - paragraph [ref=f2e88]: Compatible with your vehicle
+            - 'heading "Also fits: Ducati Panigale V2" [level=2] [ref=f2e89]'
+          - list [ref=f2e90]:
+            - listitem [ref=f2e91] [cursor=pointer]:
+              - generic [ref=f2e92]:
+                - img "Bellypan Panigale V4 22 gloss for higher exhaust with sidestand" [ref=f2e93]
+                - img "Ilmberger Carbon" [ref=f2e95]
+              - generic [ref=f2e96]:
+                - paragraph [ref=f2e97]: Ilmberger Carbon
+                - heading "Bellypan Panigale V4 22 gloss for higher exhaust with sidestand" [level=3] [ref=f2e98]
+                - list "Fitment" [ref=f2e99]:
+                  - listitem [ref=f2e100]: Panigale
+                - generic [ref=f2e101]:
+                  - generic [ref=f2e102]: EUR 900
+                  - generic [ref=f2e103]: View
+            - listitem [ref=f2e106] [cursor=pointer]:
+              - generic [ref=f2e107]:
+                - img "Bellypan Panigale V4 22 matt for higher exhaust with sidestand" [ref=f2e108]
+                - img "Ilmberger Carbon" [ref=f2e110]
+              - generic [ref=f2e111]:
+                - paragraph [ref=f2e112]: Ilmberger Carbon
+                - heading "Bellypan Panigale V4 22 matt for higher exhaust with sidestand" [level=3] [ref=f2e113]
+                - list "Fitment" [ref=f2e114]:
+                  - listitem [ref=f2e115]: Panigale
+                - generic [ref=f2e116]:
+                  - generic [ref=f2e117]: EUR 900
+                  - generic [ref=f2e118]: View
+            - listitem [ref=f2e121] [cursor=pointer]:
+              - generic [ref=f2e122]:
+                - img "Bellypan Panigale V4 22 gloss for low exhaust with sidestand" [ref=f2e123]
+                - img "Ilmberger Carbon" [ref=f2e125]
+              - generic [ref=f2e126]:
+                - paragraph [ref=f2e127]: Ilmberger Carbon
+                - heading "Bellypan Panigale V4 22 gloss for low exhaust with sidestand" [level=3] [ref=f2e128]
+                - list "Fitment" [ref=f2e129]:
+                  - listitem [ref=f2e130]: Panigale
+                - generic [ref=f2e131]:
+                  - generic [ref=f2e132]: EUR 900
+                  - generic [ref=f2e133]: View
+    - button "Scroll to top"
+    - contentinfo [ref=f2e136]:
+      - generic [ref=f2e137]:
+        - generic [ref=f2e138]:
+          - generic [ref=f2e139]:
+            - link "OneCompany Home" [ref=f2e140] [cursor=pointer]:
+              - /url: /en
+            - paragraph [ref=f2e143]: Leading tuning importer since 2007. We work with workshops, tuning shops, detailing studios, and auto/moto dealers in many countries worldwide.
+            - generic [ref=f2e144]:
+              - paragraph [ref=f2e145]: Telegram contact
+              - generic [ref=f2e146]:
+                - link "Telegram — Auto" [ref=f2e147] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f2e150]: Auto
+                  - generic [ref=f2e151]: →
+                - link "Telegram — Moto" [ref=f2e152] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f2e155]: Moto
+                  - generic [ref=f2e156]: →
+            - generic [ref=f2e157]:
+              - link "Open OneCompany Instagram profile" [ref=f2e158] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f2e162] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f2e165] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f2e169]:
+            - heading "Company" [level=3] [ref=f2e170]
+            - list [ref=f2e171]:
+              - listitem [ref=f2e172]:
+                - link "Navigate to Home page" [ref=f2e173] [cursor=pointer]:
+                  - /url: /en
+                  - text: Home
+              - listitem [ref=f2e174]:
+                - link "Navigate to About Us page" [ref=f2e175] [cursor=pointer]:
+                  - /url: /en/about
+                  - text: About Us
+              - listitem [ref=f2e176]:
+                - link "Navigate to Contact page" [ref=f2e177] [cursor=pointer]:
+                  - /url: /en/contact
+                  - text: Contact
+          - generic [ref=f2e178]:
+            - heading "Disciplines" [level=3] [ref=f2e179]
+            - list [ref=f2e180]:
+              - listitem [ref=f2e181]:
+                - link "Navigate to Auto tuning section" [ref=f2e182] [cursor=pointer]:
+                  - /url: /en/auto
+                  - text: Auto
+              - listitem [ref=f2e183]:
+                - link "Navigate to Motorcycles tuning section" [ref=f2e184] [cursor=pointer]:
+                  - /url: /en/moto
+                  - text: Motorcycles
+              - listitem [ref=f2e185]:
+                - link "Navigate to Shop tuning section" [ref=f2e186] [cursor=pointer]:
+                  - /url: /en/shop
+                  - text: Shop
+          - generic [ref=f2e187]:
+            - heading "Headquarters" [level=3] [ref=f2e188]
+            - generic [ref=f2e189]:
+              - paragraph [ref=f2e190]: 21B Baseina StKyiv, 01024Ukraine
+              - generic [ref=f2e191]:
+                - link "+380 66 077 17 00" [ref=f2e192] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f2e193]: Mon-Fri, 10:00 - 19:00
+        - generic [ref=f2e194]:
+          - generic [ref=f2e195]:
+            - paragraph [ref=f2e197]: © 2026 One Company. Founded in Kyiv.
+            - generic [ref=f2e198]:
+              - link "Delivery & Payment" [ref=f2e199] [cursor=pointer]:
+                - /url: /en/delivery
+              - link "Refund Policy" [ref=f2e200] [cursor=pointer]:
+                - /url: /en/refund
+              - link "Privacy Policy" [ref=f2e201] [cursor=pointer]:
+                - /url: /en/privacy
+              - link "Terms of Use" [ref=f2e202] [cursor=pointer]:
+                - /url: /en/terms
+              - link "Cookies Policy" [ref=f2e203] [cursor=pointer]:
+                - /url: /en/cookies
+          - generic [ref=f2e204]:
+            - generic [ref=f2e205]: Secure Payment
+            - generic [ref=f2e206]:
+              - img "Visa" [ref=f2e207]
+              - img "MasterCard" [ref=f2e208]
+              - img "Whitepay" [ref=f2e209]
+              - img "Tether (USDT)" [ref=f2e210]
+              - img "Bitcoin" [ref=f2e211]
+  - alert [ref=f2e212]

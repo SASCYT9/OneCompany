@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { useSession } from "next-auth/react";
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 import { resolveShopCountry } from "@/lib/shopCountries";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
@@ -123,14 +122,6 @@ export function ShopCurrencyProvider({
   const [country, setCountryState] = useState<string>(defaultCountryForRegion(initialRegion));
   const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
   const [rates] = useState<Rates | null>(normalizeRates(initialRates));
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.currencyPref) {
-      const nextCurrency = normalizeCurrency(session.user.currencyPref, normalizedDefaultCurrency);
-      setCurrencyState(nextCurrency);
-    }
-  }, [normalizedDefaultCurrency, session, status]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

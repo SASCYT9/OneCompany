@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
-import AuthProvider from "@/components/AuthProvider";
 import { IBM_Plex_Mono, Unbounded, Bebas_Neue } from "next/font/google";
 import {
   OrganizationSchema,
@@ -22,6 +21,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
   themeColor: "#000000",
 };
 
@@ -206,11 +206,9 @@ export default function RootLayout({
             src="https://plausible.io/js/script.js"
           />
         ) : null}
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

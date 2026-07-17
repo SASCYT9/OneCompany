@@ -1,0 +1,214 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "ONE COMPANY home" [ref=e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=e10]:
+          - link "Головна" [ref=e11] [cursor=pointer]:
+            - /url: /ua
+          - link "Магазини" [ref=e12] [cursor=pointer]:
+            - /url: /ua/shop
+          - link "Всі товари" [ref=e13] [cursor=pointer]:
+            - /url: /ua/shop/stock
+          - link "Акаунт" [ref=e15] [cursor=pointer]:
+            - /url: /ua/shop/account
+        - generic [ref=e16]:
+          - link "Кошик" [ref=e17] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=e22]:
+            - generic [ref=e23]: Німеччина
+            - generic [ref=e25]: EUR
+          - generic [ref=e28]:
+            - button "EN" [ref=e29]
+            - button "UA" [disabled] [ref=e30]
+          - button "Toggle theme" [ref=e32]
+    - main [ref=e36]:
+      - generic [ref=e38]:
+        - generic [ref=e40]:
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: ONE COMPANY
+            - heading "Каталог тюнінгу" [level=1] [ref=e45]
+            - generic [ref=e46]: Завантаження каталогу…
+          - region "Пошук і підбір за авто" [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e51]:
+                - combobox "Очистити пошук" [ref=e55]: BMW M5 G90
+                - button "Очистити пошук" [ref=e56]
+              - generic [ref=e61]:
+                - button "BMW" [ref=e62]
+                - generic [ref=e67]:
+                  - generic [ref=e68]: Модель авто
+                  - combobox "Модель авто" [disabled] [ref=e69]:
+                    - option "Завантаження..." [selected]
+                - generic [ref=e70]:
+                  - generic [ref=e71]: Кузов / шасі
+                  - combobox "Кузов / шасі" [disabled] [ref=e72]:
+                    - option "Спочатку модель" [selected]
+          - generic [ref=e74]:
+            - generic [ref=e78]: Обране авто
+            - generic [ref=e79]: BMW
+            - button "Очистити вибір авто" [ref=e80]
+          - generic [ref=e84]:
+            - complementary [ref=e85]:
+              - generic [ref=e87]:
+                - generic [ref=e89]:
+                  - paragraph [ref=e90]: Фільтри
+                  - paragraph [ref=e91]: Завантаження каталогу…
+                - generic [ref=e92]:
+                  - generic [ref=e93]:
+                    - heading "Наявність" [level=3] [ref=e95]
+                    - generic [ref=e96]:
+                      - button "Всі товари —" [ref=e97]:
+                        - generic [ref=e98]: Всі товари
+                        - generic [ref=e99]: —
+                      - button "В наявності —" [ref=e100]:
+                        - generic [ref=e101]: В наявності
+                        - generic [ref=e102]: —
+                      - button "Під замовлення —" [ref=e103]:
+                        - generic [ref=e104]: Під замовлення
+                        - generic [ref=e105]: —
+                  - generic [ref=e106]:
+                    - heading "Ціна" [level=3] [ref=e107]
+                    - generic [ref=e108]:
+                      - generic [ref=e109]:
+                        - generic [ref=e110]:
+                          - generic [ref=e111]: Ціна від
+                          - textbox "Ціна від" [ref=e112]:
+                            - /placeholder: Від
+                        - generic [ref=e113]:
+                          - generic [ref=e114]: Ціна до
+                          - textbox "Ціна до" [ref=e115]:
+                            - /placeholder: До
+                      - generic [ref=e116]: EUR
+                  - generic [ref=e118]:
+                    - button "Група товарів" [expanded] [ref=e119]
+                    - textbox [ref=e127]:
+                      - /placeholder: Знайти групу
+                    - generic [ref=e128]:
+                      - button "Всі групи 0" [ref=e129]:
+                        - generic [ref=e130]: Всі групи
+                        - generic [ref=e131]: "0"
+                      - generic [ref=e132]: Нічого не знайдено
+                  - generic [ref=e133]:
+                    - button "Бренд" [expanded] [ref=e135]
+                    - textbox [ref=e143]:
+                      - /placeholder: Знайти бренд
+                    - generic [ref=e144]: Нічого не знайдено
+                - button "Скинути" [ref=e148]
+            - main [ref=e152]:
+              - generic [ref=e153]:
+                - generic [ref=e154]:
+                  - generic [ref=e155]:
+                    - paragraph [ref=e156]: Результати
+                    - generic [ref=e157]:
+                      - heading "Усі товари" [level=2] [ref=e158]
+                      - generic [ref=e159]: Завантаження…
+                  - generic [ref=e160]:
+                    - generic [ref=e161]:
+                      - generic [ref=e162]: Сортування
+                      - combobox "Сортування" [ref=e163]:
+                        - option "Релевантність" [selected]
+                        - 'option "Ціна: від меншої"'
+                        - 'option "Ціна: від більшої"'
+                        - option "Назва A-Z"
+                    - generic [ref=e164]:
+                      - button "Сітка" [ref=e165]
+                      - button "Список" [ref=e171]
+                - generic [ref=e173]:
+                  - 'button "Пошук: BMW M5 G90" [ref=e174]'
+                  - 'button "Група: exhaust" [ref=e178]'
+                  - button "BMW" [ref=e182]
+                  - button "Скинути все" [ref=e186]
+        - button "Відкрити One AI" [ref=e248]:
+          - generic [ref=e254]: One AI
+    - button "Scroll to top"
+    - contentinfo [ref=e255]:
+      - generic [ref=e256]:
+        - generic [ref=e257]:
+          - generic [ref=e258]:
+            - link "OneCompany Home" [ref=e259] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=e262]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=e263]:
+              - paragraph [ref=e264]: Зв'язок у Telegram
+              - generic [ref=e265]:
+                - link "Telegram — Авто" [ref=e266] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=e269]: Авто
+                  - generic [ref=e270]: →
+                - link "Telegram — Мото" [ref=e271] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=e274]: Мото
+                  - generic [ref=e275]: →
+            - generic [ref=e276]:
+              - link "Open OneCompany Instagram profile" [ref=e277] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=e281] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=e284] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=e288]:
+            - heading "Компанія" [level=3] [ref=e289]
+            - list [ref=e290]:
+              - listitem [ref=e291]:
+                - link "Navigate to Головна page" [ref=e292] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=e293]:
+                - link "Navigate to Про нас page" [ref=e294] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=e295]:
+                - link "Navigate to Контакти page" [ref=e296] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=e297]:
+            - heading "Напрями" [level=3] [ref=e298]
+            - list [ref=e299]:
+              - listitem [ref=e300]:
+                - link "Navigate to Авто tuning section" [ref=e301] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=e302]:
+                - link "Navigate to Мотоцикли tuning section" [ref=e303] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=e304]:
+                - link "Navigate to Магазин tuning section" [ref=e305] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=e306]:
+            - heading "Штаб-квартира" [level=3] [ref=e307]
+            - generic [ref=e308]:
+              - paragraph [ref=e309]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=e310]:
+                - link "+380 66 077 17 00" [ref=e311] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=e312]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=e313]:
+          - generic [ref=e314]:
+            - paragraph [ref=e316]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=e317]:
+              - link "Доставка та оплата" [ref=e318] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=e319] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=e320] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=e321] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=e322] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=e323]:
+            - generic [ref=e324]: Безпечна оплата
+            - generic [ref=e325]:
+              - img "Visa" [ref=e326]
+              - img "MasterCard" [ref=e327]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=e333] [cursor=pointer]
+  - alert [ref=e337]

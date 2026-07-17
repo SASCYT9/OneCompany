@@ -13,6 +13,7 @@ const staticPageConfig: Record<
 > = {
   "": { priority: 1.0, changeFrequency: "daily" },
   "/shop": { priority: 0.85, changeFrequency: "daily" },
+  "/shop/catalog": { priority: 0.82, changeFrequency: "daily" },
   "/shop/urban": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/urban/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/akrapovic": { priority: 0.82, changeFrequency: "weekly" },

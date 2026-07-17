@@ -1,8 +1,23 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
+import {
+  evaluateShopAiV2ReleaseActivationGuard,
+  readShopAiV2ReleaseActivationGuardInput,
+} from "./src/lib/shopAiV2ReleaseActivationGuard";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+const shopAiV2ReleaseGuard = evaluateShopAiV2ReleaseActivationGuard(
+  readShopAiV2ReleaseActivationGuardInput(process.env)
+);
+if (!shopAiV2ReleaseGuard.ok) {
+  throw new Error(
+    `One AI V2 production activation is blocked:\n${shopAiV2ReleaseGuard.failures
+      .map((failure) => `- [${failure.code}] ${failure.message}`)
+      .join("\n")}`
+  );
+}
 
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";

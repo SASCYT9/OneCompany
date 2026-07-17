@@ -1,0 +1,1014 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - link "Skip to content" [ref=f2e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "ONE COMPANY home" [ref=f2e6] [cursor=pointer]:
+          - /url: /ua
+        - generic [ref=f2e10]:
+          - link "Кошик" [ref=f2e11] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Toggle menu" [active] [ref=f2e15]
+      - navigation [ref=f2e314]:
+        - link "Авто" [ref=f2e315] [cursor=pointer]:
+          - /url: /ua/auto
+        - link "Мото" [ref=f2e316] [cursor=pointer]:
+          - /url: /ua/moto
+        - link "Магазин" [ref=f2e317] [cursor=pointer]:
+          - /url: /ua/shop
+        - link "Блог" [ref=f2e319] [cursor=pointer]:
+          - /url: /ua/blog
+        - link "Контакти" [ref=f2e320] [cursor=pointer]:
+          - /url: /ua/contact
+        - link "Каталог товарів" [ref=f2e322] [cursor=pointer]:
+          - /url: /ua/shop/catalog
+        - generic [ref=f2e323]:
+          - generic [ref=f2e324]:
+            - generic [ref=f2e325]:
+              - button "EN" [ref=f2e326]
+              - button "UA" [disabled] [ref=f2e327]
+            - button "Toggle theme" [ref=f2e328]
+          - generic [ref=f2e332]:
+            - paragraph [ref=f2e333]: Країна
+            - generic [ref=f2e334]:
+              - searchbox "Пошук країни" [ref=f2e336]
+              - listbox "Країни" [ref=f2e337]:
+                - option "Україна UA" [ref=f2e338]:
+                  - generic [ref=f2e339]: Україна
+                  - generic [ref=f2e340]: UA
+                - option "Австрія AT" [ref=f2e341]:
+                  - generic [ref=f2e342]: Австрія
+                  - generic [ref=f2e343]: AT
+                - option "Бельгія BE" [ref=f2e344]:
+                  - generic [ref=f2e345]: Бельгія
+                  - generic [ref=f2e346]: BE
+                - option "Болгарія BG" [ref=f2e347]:
+                  - generic [ref=f2e348]: Болгарія
+                  - generic [ref=f2e349]: BG
+                - option "Хорватія HR" [ref=f2e350]:
+                  - generic [ref=f2e351]: Хорватія
+                  - generic [ref=f2e352]: HR
+                - option "Кіпр CY" [ref=f2e353]:
+                  - generic [ref=f2e354]: Кіпр
+                  - generic [ref=f2e355]: CY
+                - option "Чехія CZ" [ref=f2e356]:
+                  - generic [ref=f2e357]: Чехія
+                  - generic [ref=f2e358]: CZ
+                - option "Данія DK" [ref=f2e359]:
+                  - generic [ref=f2e360]: Данія
+                  - generic [ref=f2e361]: DK
+                - option "Естонія EE" [ref=f2e362]:
+                  - generic [ref=f2e363]: Естонія
+                  - generic [ref=f2e364]: EE
+                - option "Фінляндія FI" [ref=f2e365]:
+                  - generic [ref=f2e366]: Фінляндія
+                  - generic [ref=f2e367]: FI
+                - option "Франція FR" [ref=f2e368]:
+                  - generic [ref=f2e369]: Франція
+                  - generic [ref=f2e370]: FR
+                - option "Німеччина DE" [selected] [ref=f2e371]:
+                  - generic [ref=f2e372]: Німеччина
+                  - generic [ref=f2e373]: DE
+                - option "Греція GR" [ref=f2e376]:
+                  - generic [ref=f2e377]: Греція
+                  - generic [ref=f2e378]: GR
+                - option "Угорщина HU" [ref=f2e379]:
+                  - generic [ref=f2e380]: Угорщина
+                  - generic [ref=f2e381]: HU
+                - option "Ірландія IE" [ref=f2e382]:
+                  - generic [ref=f2e383]: Ірландія
+                  - generic [ref=f2e384]: IE
+                - option "Італія IT" [ref=f2e385]:
+                  - generic [ref=f2e386]: Італія
+                  - generic [ref=f2e387]: IT
+                - option "Латвія LV" [ref=f2e388]:
+                  - generic [ref=f2e389]: Латвія
+                  - generic [ref=f2e390]: LV
+                - option "Литва LT" [ref=f2e391]:
+                  - generic [ref=f2e392]: Литва
+                  - generic [ref=f2e393]: LT
+                - option "Люксембург LU" [ref=f2e394]:
+                  - generic [ref=f2e395]: Люксембург
+                  - generic [ref=f2e396]: LU
+                - option "Мальта MT" [ref=f2e397]:
+                  - generic [ref=f2e398]: Мальта
+                  - generic [ref=f2e399]: MT
+                - option "Нідерланди NL" [ref=f2e400]:
+                  - generic [ref=f2e401]: Нідерланди
+                  - generic [ref=f2e402]: NL
+                - option "Польща PL" [ref=f2e403]:
+                  - generic [ref=f2e404]: Польща
+                  - generic [ref=f2e405]: PL
+                - option "Португалія PT" [ref=f2e406]:
+                  - generic [ref=f2e407]: Португалія
+                  - generic [ref=f2e408]: PT
+                - option "Румунія RO" [ref=f2e409]:
+                  - generic [ref=f2e410]: Румунія
+                  - generic [ref=f2e411]: RO
+                - option "Словаччина SK" [ref=f2e412]:
+                  - generic [ref=f2e413]: Словаччина
+                  - generic [ref=f2e414]: SK
+                - option "Словенія SI" [ref=f2e415]:
+                  - generic [ref=f2e416]: Словенія
+                  - generic [ref=f2e417]: SI
+                - option "Іспанія ES" [ref=f2e418]:
+                  - generic [ref=f2e419]: Іспанія
+                  - generic [ref=f2e420]: ES
+                - option "Швеція SE" [ref=f2e421]:
+                  - generic [ref=f2e422]: Швеція
+                  - generic [ref=f2e423]: SE
+                - option "Молдова MD" [ref=f2e424]:
+                  - generic [ref=f2e425]: Молдова
+                  - generic [ref=f2e426]: MD
+                - option "Велика Британія GB" [ref=f2e427]:
+                  - generic [ref=f2e428]: Велика Британія
+                  - generic [ref=f2e429]: GB
+                - option "Швейцарія CH" [ref=f2e430]:
+                  - generic [ref=f2e431]: Швейцарія
+                  - generic [ref=f2e432]: CH
+                - option "Норвегія NO" [ref=f2e433]:
+                  - generic [ref=f2e434]: Норвегія
+                  - generic [ref=f2e435]: "NO"
+                - option "Ісландія IS" [ref=f2e436]:
+                  - generic [ref=f2e437]: Ісландія
+                  - generic [ref=f2e438]: IS
+                - option "Ліхтенштейн LI" [ref=f2e439]:
+                  - generic [ref=f2e440]: Ліхтенштейн
+                  - generic [ref=f2e441]: LI
+                - option "Сполучені Штати US" [ref=f2e442]:
+                  - generic [ref=f2e443]: Сполучені Штати
+                  - generic [ref=f2e444]: US
+                - option "Канада CA" [ref=f2e445]:
+                  - generic [ref=f2e446]: Канада
+                  - generic [ref=f2e447]: CA
+                - option "Обʼєднані Арабські Емірати AE" [ref=f2e448]:
+                  - generic [ref=f2e449]: Обʼєднані Арабські Емірати
+                  - generic [ref=f2e450]: AE
+                - option "Афганістан AF" [ref=f2e451]:
+                  - generic [ref=f2e452]: Афганістан
+                  - generic [ref=f2e453]: AF
+                - option "Аландські Острови AX" [ref=f2e454]:
+                  - generic [ref=f2e455]: Аландські Острови
+                  - generic [ref=f2e456]: AX
+                - option "Албанія AL" [ref=f2e457]:
+                  - generic [ref=f2e458]: Албанія
+                  - generic [ref=f2e459]: AL
+                - option "Алжир DZ" [ref=f2e460]:
+                  - generic [ref=f2e461]: Алжир
+                  - generic [ref=f2e462]: DZ
+                - option "Американське Самоа AS" [ref=f2e463]:
+                  - generic [ref=f2e464]: Американське Самоа
+                  - generic [ref=f2e465]: AS
+                - option "Андорра AD" [ref=f2e466]:
+                  - generic [ref=f2e467]: Андорра
+                  - generic [ref=f2e468]: AD
+                - option "Ангола AO" [ref=f2e469]:
+                  - generic [ref=f2e470]: Ангола
+                  - generic [ref=f2e471]: AO
+                - option "Ангілья AI" [ref=f2e472]:
+                  - generic [ref=f2e473]: Ангілья
+                  - generic [ref=f2e474]: AI
+                - option "Антарктика AQ" [ref=f2e475]:
+                  - generic [ref=f2e476]: Антарктика
+                  - generic [ref=f2e477]: AQ
+                - option "Антигуа і Барбуда AG" [ref=f2e478]:
+                  - generic [ref=f2e479]: Антигуа і Барбуда
+                  - generic [ref=f2e480]: AG
+                - option "Аргентина AR" [ref=f2e481]:
+                  - generic [ref=f2e482]: Аргентина
+                  - generic [ref=f2e483]: AR
+                - option "Вірменія AM" [ref=f2e484]:
+                  - generic [ref=f2e485]: Вірменія
+                  - generic [ref=f2e486]: AM
+                - option "Аруба AW" [ref=f2e487]:
+                  - generic [ref=f2e488]: Аруба
+                  - generic [ref=f2e489]: AW
+                - option "Австралія AU" [ref=f2e490]:
+                  - generic [ref=f2e491]: Австралія
+                  - generic [ref=f2e492]: AU
+                - option "Азербайджан AZ" [ref=f2e493]:
+                  - generic [ref=f2e494]: Азербайджан
+                  - generic [ref=f2e495]: AZ
+                - option "Багамські Острови BS" [ref=f2e496]:
+                  - generic [ref=f2e497]: Багамські Острови
+                  - generic [ref=f2e498]: BS
+                - option "Бахрейн BH" [ref=f2e499]:
+                  - generic [ref=f2e500]: Бахрейн
+                  - generic [ref=f2e501]: BH
+                - option "Бангладеш BD" [ref=f2e502]:
+                  - generic [ref=f2e503]: Бангладеш
+                  - generic [ref=f2e504]: BD
+                - option "Барбадос BB" [ref=f2e505]:
+                  - generic [ref=f2e506]: Барбадос
+                  - generic [ref=f2e507]: BB
+                - option "Білорусь BY" [ref=f2e508]:
+                  - generic [ref=f2e509]: Білорусь
+                  - generic [ref=f2e510]: BY
+                - option "Беліз BZ" [ref=f2e511]:
+                  - generic [ref=f2e512]: Беліз
+                  - generic [ref=f2e513]: BZ
+                - option "Бенін BJ" [ref=f2e514]:
+                  - generic [ref=f2e515]: Бенін
+                  - generic [ref=f2e516]: BJ
+                - option "Бермудські Острови BM" [ref=f2e517]:
+                  - generic [ref=f2e518]: Бермудські Острови
+                  - generic [ref=f2e519]: BM
+                - option "Бутан BT" [ref=f2e520]:
+                  - generic [ref=f2e521]: Бутан
+                  - generic [ref=f2e522]: BT
+                - option "Болівія BO" [ref=f2e523]:
+                  - generic [ref=f2e524]: Болівія
+                  - generic [ref=f2e525]: BO
+                - option "Карибські Нідерланди BQ" [ref=f2e526]:
+                  - generic [ref=f2e527]: Карибські Нідерланди
+                  - generic [ref=f2e528]: BQ
+                - option "Боснія і Герцеговина BA" [ref=f2e529]:
+                  - generic [ref=f2e530]: Боснія і Герцеговина
+                  - generic [ref=f2e531]: BA
+                - option "Ботсвана BW" [ref=f2e532]:
+                  - generic [ref=f2e533]: Ботсвана
+                  - generic [ref=f2e534]: BW
+                - option "Острів Буве BV" [ref=f2e535]:
+                  - generic [ref=f2e536]: Острів Буве
+                  - generic [ref=f2e537]: BV
+                - option "Бразилія BR" [ref=f2e538]:
+                  - generic [ref=f2e539]: Бразилія
+                  - generic [ref=f2e540]: BR
+                - option "Британська територія в Індійському океані IO" [ref=f2e541]:
+                  - generic [ref=f2e542]: Британська територія в Індійському океані
+                  - generic [ref=f2e543]: IO
+                - option "Бруней BN" [ref=f2e544]:
+                  - generic [ref=f2e545]: Бруней
+                  - generic [ref=f2e546]: BN
+                - option "Буркіна-Фасо BF" [ref=f2e547]:
+                  - generic [ref=f2e548]: Буркіна-Фасо
+                  - generic [ref=f2e549]: BF
+                - option "Бурунді BI" [ref=f2e550]:
+                  - generic [ref=f2e551]: Бурунді
+                  - generic [ref=f2e552]: BI
+                - option "Кабо-Верде CV" [ref=f2e553]:
+                  - generic [ref=f2e554]: Кабо-Верде
+                  - generic [ref=f2e555]: CV
+                - option "Камбоджа KH" [ref=f2e556]:
+                  - generic [ref=f2e557]: Камбоджа
+                  - generic [ref=f2e558]: KH
+                - option "Камерун CM" [ref=f2e559]:
+                  - generic [ref=f2e560]: Камерун
+                  - generic [ref=f2e561]: CM
+                - option "Кайманові Острови KY" [ref=f2e562]:
+                  - generic [ref=f2e563]: Кайманові Острови
+                  - generic [ref=f2e564]: KY
+                - option "Центральноафриканська Республіка CF" [ref=f2e565]:
+                  - generic [ref=f2e566]: Центральноафриканська Республіка
+                  - generic [ref=f2e567]: CF
+                - option "Чад TD" [ref=f2e568]:
+                  - generic [ref=f2e569]: Чад
+                  - generic [ref=f2e570]: TD
+                - option "Чилі CL" [ref=f2e571]:
+                  - generic [ref=f2e572]: Чилі
+                  - generic [ref=f2e573]: CL
+                - option "Китай CN" [ref=f2e574]:
+                  - generic [ref=f2e575]: Китай
+                  - generic [ref=f2e576]: CN
+                - option "Острів Різдва CX" [ref=f2e577]:
+                  - generic [ref=f2e578]: Острів Різдва
+                  - generic [ref=f2e579]: CX
+                - option "Кокосові (Кілінг) Острови CC" [ref=f2e580]:
+                  - generic [ref=f2e581]: Кокосові (Кілінг) Острови
+                  - generic [ref=f2e582]: CC
+                - option "Колумбія CO" [ref=f2e583]:
+                  - generic [ref=f2e584]: Колумбія
+                  - generic [ref=f2e585]: CO
+                - option "Комори KM" [ref=f2e586]:
+                  - generic [ref=f2e587]: Комори
+                  - generic [ref=f2e588]: KM
+                - option "Конго – Браззавіль CG" [ref=f2e589]:
+                  - generic [ref=f2e590]: Конго – Браззавіль
+                  - generic [ref=f2e591]: CG
+                - option "Конго – Кіншаса CD" [ref=f2e592]:
+                  - generic [ref=f2e593]: Конго – Кіншаса
+                  - generic [ref=f2e594]: CD
+                - option "Острови Кука CK" [ref=f2e595]:
+                  - generic [ref=f2e596]: Острови Кука
+                  - generic [ref=f2e597]: CK
+                - option "Коста-Рика CR" [ref=f2e598]:
+                  - generic [ref=f2e599]: Коста-Рика
+                  - generic [ref=f2e600]: CR
+                - option "Кот-дʼІвуар CI" [ref=f2e601]:
+                  - generic [ref=f2e602]: Кот-дʼІвуар
+                  - generic [ref=f2e603]: CI
+                - option "Куба CU" [ref=f2e604]:
+                  - generic [ref=f2e605]: Куба
+                  - generic [ref=f2e606]: CU
+                - option "Кюрасао CW" [ref=f2e607]:
+                  - generic [ref=f2e608]: Кюрасао
+                  - generic [ref=f2e609]: CW
+                - option "Джибуті DJ" [ref=f2e610]:
+                  - generic [ref=f2e611]: Джибуті
+                  - generic [ref=f2e612]: DJ
+                - option "Домініка DM" [ref=f2e613]:
+                  - generic [ref=f2e614]: Домініка
+                  - generic [ref=f2e615]: DM
+                - option "Домініканська Республіка DO" [ref=f2e616]:
+                  - generic [ref=f2e617]: Домініканська Республіка
+                  - generic [ref=f2e618]: DO
+                - option "Еквадор EC" [ref=f2e619]:
+                  - generic [ref=f2e620]: Еквадор
+                  - generic [ref=f2e621]: EC
+                - option "Єгипет EG" [ref=f2e622]:
+                  - generic [ref=f2e623]: Єгипет
+                  - generic [ref=f2e624]: EG
+                - option "Сальвадор SV" [ref=f2e625]:
+                  - generic [ref=f2e626]: Сальвадор
+                  - generic [ref=f2e627]: SV
+                - option "Екваторіальна Гвінея GQ" [ref=f2e628]:
+                  - generic [ref=f2e629]: Екваторіальна Гвінея
+                  - generic [ref=f2e630]: GQ
+                - option "Еритрея ER" [ref=f2e631]:
+                  - generic [ref=f2e632]: Еритрея
+                  - generic [ref=f2e633]: ER
+                - option "Есватіні SZ" [ref=f2e634]:
+                  - generic [ref=f2e635]: Есватіні
+                  - generic [ref=f2e636]: SZ
+                - option "Ефіопія ET" [ref=f2e637]:
+                  - generic [ref=f2e638]: Ефіопія
+                  - generic [ref=f2e639]: ET
+                - option "Фолклендські (Мальвінські) Острови FK" [ref=f2e640]:
+                  - generic [ref=f2e641]: Фолклендські (Мальвінські) Острови
+                  - generic [ref=f2e642]: FK
+                - option "Фарерські Острови FO" [ref=f2e643]:
+                  - generic [ref=f2e644]: Фарерські Острови
+                  - generic [ref=f2e645]: FO
+                - option "Фіджі FJ" [ref=f2e646]:
+                  - generic [ref=f2e647]: Фіджі
+                  - generic [ref=f2e648]: FJ
+                - option "Французька Гвіана GF" [ref=f2e649]:
+                  - generic [ref=f2e650]: Французька Гвіана
+                  - generic [ref=f2e651]: GF
+                - option "Французька Полінезія PF" [ref=f2e652]:
+                  - generic [ref=f2e653]: Французька Полінезія
+                  - generic [ref=f2e654]: PF
+                - option "Французькі Південні Території TF" [ref=f2e655]:
+                  - generic [ref=f2e656]: Французькі Південні Території
+                  - generic [ref=f2e657]: TF
+                - option "Габон GA" [ref=f2e658]:
+                  - generic [ref=f2e659]: Габон
+                  - generic [ref=f2e660]: GA
+                - option "Гамбія GM" [ref=f2e661]:
+                  - generic [ref=f2e662]: Гамбія
+                  - generic [ref=f2e663]: GM
+                - option "Грузія GE" [ref=f2e664]:
+                  - generic [ref=f2e665]: Грузія
+                  - generic [ref=f2e666]: GE
+                - option "Гана GH" [ref=f2e667]:
+                  - generic [ref=f2e668]: Гана
+                  - generic [ref=f2e669]: GH
+                - option "Гібралтар GI" [ref=f2e670]:
+                  - generic [ref=f2e671]: Гібралтар
+                  - generic [ref=f2e672]: GI
+                - option "Гренландія GL" [ref=f2e673]:
+                  - generic [ref=f2e674]: Гренландія
+                  - generic [ref=f2e675]: GL
+                - option "Гренада GD" [ref=f2e676]:
+                  - generic [ref=f2e677]: Гренада
+                  - generic [ref=f2e678]: GD
+                - option "Гваделупа GP" [ref=f2e679]:
+                  - generic [ref=f2e680]: Гваделупа
+                  - generic [ref=f2e681]: GP
+                - option "Гуам GU" [ref=f2e682]:
+                  - generic [ref=f2e683]: Гуам
+                  - generic [ref=f2e684]: GU
+                - option "Гватемала GT" [ref=f2e685]:
+                  - generic [ref=f2e686]: Гватемала
+                  - generic [ref=f2e687]: GT
+                - option "Гернсі GG" [ref=f2e688]:
+                  - generic [ref=f2e689]: Гернсі
+                  - generic [ref=f2e690]: GG
+                - option "Гвінея GN" [ref=f2e691]:
+                  - generic [ref=f2e692]: Гвінея
+                  - generic [ref=f2e693]: GN
+                - option "Гвінея-Бісау GW" [ref=f2e694]:
+                  - generic [ref=f2e695]: Гвінея-Бісау
+                  - generic [ref=f2e696]: GW
+                - option "Гаяна GY" [ref=f2e697]:
+                  - generic [ref=f2e698]: Гаяна
+                  - generic [ref=f2e699]: GY
+                - option "Гаїті HT" [ref=f2e700]:
+                  - generic [ref=f2e701]: Гаїті
+                  - generic [ref=f2e702]: HT
+                - option "Острови Герд і Макдоналд HM" [ref=f2e703]:
+                  - generic [ref=f2e704]: Острови Герд і Макдоналд
+                  - generic [ref=f2e705]: HM
+                - option "Ватикан VA" [ref=f2e706]:
+                  - generic [ref=f2e707]: Ватикан
+                  - generic [ref=f2e708]: VA
+                - option "Гондурас HN" [ref=f2e709]:
+                  - generic [ref=f2e710]: Гондурас
+                  - generic [ref=f2e711]: HN
+                - option "Гонконг HK" [ref=f2e712]:
+                  - generic [ref=f2e713]: Гонконг
+                  - generic [ref=f2e714]: HK
+                - option "Індія IN" [ref=f2e715]:
+                  - generic [ref=f2e716]: Індія
+                  - generic [ref=f2e717]: IN
+                - option "Індонезія ID" [ref=f2e718]:
+                  - generic [ref=f2e719]: Індонезія
+                  - generic [ref=f2e720]: ID
+                - option "Іран IR" [ref=f2e721]:
+                  - generic [ref=f2e722]: Іран
+                  - generic [ref=f2e723]: IR
+                - option "Ірак IQ" [ref=f2e724]:
+                  - generic [ref=f2e725]: Ірак
+                  - generic [ref=f2e726]: IQ
+                - option "Острів Мен IM" [ref=f2e727]:
+                  - generic [ref=f2e728]: Острів Мен
+                  - generic [ref=f2e729]: IM
+                - option "Ізраїль IL" [ref=f2e730]:
+                  - generic [ref=f2e731]: Ізраїль
+                  - generic [ref=f2e732]: IL
+                - option "Ямайка JM" [ref=f2e733]:
+                  - generic [ref=f2e734]: Ямайка
+                  - generic [ref=f2e735]: JM
+                - option "Японія JP" [ref=f2e736]:
+                  - generic [ref=f2e737]: Японія
+                  - generic [ref=f2e738]: JP
+                - option "Джерсі JE" [ref=f2e739]:
+                  - generic [ref=f2e740]: Джерсі
+                  - generic [ref=f2e741]: JE
+                - option "Йорданія JO" [ref=f2e742]:
+                  - generic [ref=f2e743]: Йорданія
+                  - generic [ref=f2e744]: JO
+                - option "Казахстан KZ" [ref=f2e745]:
+                  - generic [ref=f2e746]: Казахстан
+                  - generic [ref=f2e747]: KZ
+                - option "Кенія KE" [ref=f2e748]:
+                  - generic [ref=f2e749]: Кенія
+                  - generic [ref=f2e750]: KE
+                - option "Кірибаті KI" [ref=f2e751]:
+                  - generic [ref=f2e752]: Кірибаті
+                  - generic [ref=f2e753]: KI
+                - option "Північна Корея KP" [ref=f2e754]:
+                  - generic [ref=f2e755]: Північна Корея
+                  - generic [ref=f2e756]: KP
+                - option "Південна Корея KR" [ref=f2e757]:
+                  - generic [ref=f2e758]: Південна Корея
+                  - generic [ref=f2e759]: KR
+                - option "Кувейт KW" [ref=f2e760]:
+                  - generic [ref=f2e761]: Кувейт
+                  - generic [ref=f2e762]: KW
+                - option "Киргизстан KG" [ref=f2e763]:
+                  - generic [ref=f2e764]: Киргизстан
+                  - generic [ref=f2e765]: KG
+                - option "Лаос LA" [ref=f2e766]:
+                  - generic [ref=f2e767]: Лаос
+                  - generic [ref=f2e768]: LA
+                - option "Ліван LB" [ref=f2e769]:
+                  - generic [ref=f2e770]: Ліван
+                  - generic [ref=f2e771]: LB
+                - option "Лесото LS" [ref=f2e772]:
+                  - generic [ref=f2e773]: Лесото
+                  - generic [ref=f2e774]: LS
+                - option "Ліберія LR" [ref=f2e775]:
+                  - generic [ref=f2e776]: Ліберія
+                  - generic [ref=f2e777]: LR
+                - option "Лівія LY" [ref=f2e778]:
+                  - generic [ref=f2e779]: Лівія
+                  - generic [ref=f2e780]: LY
+                - option "Макао MO" [ref=f2e781]:
+                  - generic [ref=f2e782]: Макао
+                  - generic [ref=f2e783]: MO
+                - option "Мадагаскар MG" [ref=f2e784]:
+                  - generic [ref=f2e785]: Мадагаскар
+                  - generic [ref=f2e786]: MG
+                - option "Малаві MW" [ref=f2e787]:
+                  - generic [ref=f2e788]: Малаві
+                  - generic [ref=f2e789]: MW
+                - option "Малайзія MY" [ref=f2e790]:
+                  - generic [ref=f2e791]: Малайзія
+                  - generic [ref=f2e792]: MY
+                - option "Мальдіви MV" [ref=f2e793]:
+                  - generic [ref=f2e794]: Мальдіви
+                  - generic [ref=f2e795]: MV
+                - option "Малі ML" [ref=f2e796]:
+                  - generic [ref=f2e797]: Малі
+                  - generic [ref=f2e798]: ML
+                - option "Маршаллові Острови MH" [ref=f2e799]:
+                  - generic [ref=f2e800]: Маршаллові Острови
+                  - generic [ref=f2e801]: MH
+                - option "Мартиніка MQ" [ref=f2e802]:
+                  - generic [ref=f2e803]: Мартиніка
+                  - generic [ref=f2e804]: MQ
+                - option "Мавританія MR" [ref=f2e805]:
+                  - generic [ref=f2e806]: Мавританія
+                  - generic [ref=f2e807]: MR
+                - option "Маврикій MU" [ref=f2e808]:
+                  - generic [ref=f2e809]: Маврикій
+                  - generic [ref=f2e810]: MU
+                - option "Майотта YT" [ref=f2e811]:
+                  - generic [ref=f2e812]: Майотта
+                  - generic [ref=f2e813]: YT
+                - option "Мексика MX" [ref=f2e814]:
+                  - generic [ref=f2e815]: Мексика
+                  - generic [ref=f2e816]: MX
+                - option "Мікронезія FM" [ref=f2e817]:
+                  - generic [ref=f2e818]: Мікронезія
+                  - generic [ref=f2e819]: FM
+                - option "Монако MC" [ref=f2e820]:
+                  - generic [ref=f2e821]: Монако
+                  - generic [ref=f2e822]: MC
+                - option "Монголія MN" [ref=f2e823]:
+                  - generic [ref=f2e824]: Монголія
+                  - generic [ref=f2e825]: MN
+                - option "Чорногорія ME" [ref=f2e826]:
+                  - generic [ref=f2e827]: Чорногорія
+                  - generic [ref=f2e828]: ME
+                - option "Монтсеррат MS" [ref=f2e829]:
+                  - generic [ref=f2e830]: Монтсеррат
+                  - generic [ref=f2e831]: MS
+                - option "Марокко MA" [ref=f2e832]:
+                  - generic [ref=f2e833]: Марокко
+                  - generic [ref=f2e834]: MA
+                - option "Мозамбік MZ" [ref=f2e835]:
+                  - generic [ref=f2e836]: Мозамбік
+                  - generic [ref=f2e837]: MZ
+                - option "Мʼянма (Бірма) MM" [ref=f2e838]:
+                  - generic [ref=f2e839]: Мʼянма (Бірма)
+                  - generic [ref=f2e840]: MM
+                - option "Намібія NA" [ref=f2e841]:
+                  - generic [ref=f2e842]: Намібія
+                  - generic [ref=f2e843]: NA
+                - option "Науру NR" [ref=f2e844]:
+                  - generic [ref=f2e845]: Науру
+                  - generic [ref=f2e846]: NR
+                - option "Непал NP" [ref=f2e847]:
+                  - generic [ref=f2e848]: Непал
+                  - generic [ref=f2e849]: NP
+                - option "Нова Каледонія NC" [ref=f2e850]:
+                  - generic [ref=f2e851]: Нова Каледонія
+                  - generic [ref=f2e852]: NC
+                - option "Нова Зеландія NZ" [ref=f2e853]:
+                  - generic [ref=f2e854]: Нова Зеландія
+                  - generic [ref=f2e855]: NZ
+                - option "Нікарагуа NI" [ref=f2e856]:
+                  - generic [ref=f2e857]: Нікарагуа
+                  - generic [ref=f2e858]: NI
+                - option "Нігер NE" [ref=f2e859]:
+                  - generic [ref=f2e860]: Нігер
+                  - generic [ref=f2e861]: NE
+                - option "Нігерія NG" [ref=f2e862]:
+                  - generic [ref=f2e863]: Нігерія
+                  - generic [ref=f2e864]: NG
+                - option "Ніуе NU" [ref=f2e865]:
+                  - generic [ref=f2e866]: Ніуе
+                  - generic [ref=f2e867]: NU
+                - option "Острів Норфолк NF" [ref=f2e868]:
+                  - generic [ref=f2e869]: Острів Норфолк
+                  - generic [ref=f2e870]: NF
+                - option "Північна Македонія MK" [ref=f2e871]:
+                  - generic [ref=f2e872]: Північна Македонія
+                  - generic [ref=f2e873]: MK
+                - option "Північні Маріанські Острови MP" [ref=f2e874]:
+                  - generic [ref=f2e875]: Північні Маріанські Острови
+                  - generic [ref=f2e876]: MP
+                - option "Оман OM" [ref=f2e877]:
+                  - generic [ref=f2e878]: Оман
+                  - generic [ref=f2e879]: OM
+                - option "Пакистан PK" [ref=f2e880]:
+                  - generic [ref=f2e881]: Пакистан
+                  - generic [ref=f2e882]: PK
+                - option "Палау PW" [ref=f2e883]:
+                  - generic [ref=f2e884]: Палау
+                  - generic [ref=f2e885]: PW
+                - option "Палестина PS" [ref=f2e886]:
+                  - generic [ref=f2e887]: Палестина
+                  - generic [ref=f2e888]: PS
+                - option "Панама PA" [ref=f2e889]:
+                  - generic [ref=f2e890]: Панама
+                  - generic [ref=f2e891]: PA
+                - option "Папуа-Нова Гвінея PG" [ref=f2e892]:
+                  - generic [ref=f2e893]: Папуа-Нова Гвінея
+                  - generic [ref=f2e894]: PG
+                - option "Парагвай PY" [ref=f2e895]:
+                  - generic [ref=f2e896]: Парагвай
+                  - generic [ref=f2e897]: PY
+                - option "Перу PE" [ref=f2e898]:
+                  - generic [ref=f2e899]: Перу
+                  - generic [ref=f2e900]: PE
+                - option "Філіппіни PH" [ref=f2e901]:
+                  - generic [ref=f2e902]: Філіппіни
+                  - generic [ref=f2e903]: PH
+                - option "Острови Піткерн PN" [ref=f2e904]:
+                  - generic [ref=f2e905]: Острови Піткерн
+                  - generic [ref=f2e906]: PN
+                - option "Пуерто-Рико PR" [ref=f2e907]:
+                  - generic [ref=f2e908]: Пуерто-Рико
+                  - generic [ref=f2e909]: PR
+                - option "Катар QA" [ref=f2e910]:
+                  - generic [ref=f2e911]: Катар
+                  - generic [ref=f2e912]: QA
+                - option "Реюньйон RE" [ref=f2e913]:
+                  - generic [ref=f2e914]: Реюньйон
+                  - generic [ref=f2e915]: RE
+                - option "Росія RU" [ref=f2e916]:
+                  - generic [ref=f2e917]: Росія
+                  - generic [ref=f2e918]: RU
+                - option "Руанда RW" [ref=f2e919]:
+                  - generic [ref=f2e920]: Руанда
+                  - generic [ref=f2e921]: RW
+                - option "Сен-Бартелемі BL" [ref=f2e922]:
+                  - generic [ref=f2e923]: Сен-Бартелемі
+                  - generic [ref=f2e924]: BL
+                - option "Острів Святої Єлени SH" [ref=f2e925]:
+                  - generic [ref=f2e926]: Острів Святої Єлени
+                  - generic [ref=f2e927]: SH
+                - option "Сент-Кітс і Невіс KN" [ref=f2e928]:
+                  - generic [ref=f2e929]: Сент-Кітс і Невіс
+                  - generic [ref=f2e930]: KN
+                - option "Сент-Люсія LC" [ref=f2e931]:
+                  - generic [ref=f2e932]: Сент-Люсія
+                  - generic [ref=f2e933]: LC
+                - option "Сен-Мартен MF" [ref=f2e934]:
+                  - generic [ref=f2e935]: Сен-Мартен
+                  - generic [ref=f2e936]: MF
+                - option "Сен-Пʼєр і Мікелон PM" [ref=f2e937]:
+                  - generic [ref=f2e938]: Сен-Пʼєр і Мікелон
+                  - generic [ref=f2e939]: PM
+                - option "Сент-Вінсент і Гренадіни VC" [ref=f2e940]:
+                  - generic [ref=f2e941]: Сент-Вінсент і Гренадіни
+                  - generic [ref=f2e942]: VC
+                - option "Самоа WS" [ref=f2e943]:
+                  - generic [ref=f2e944]: Самоа
+                  - generic [ref=f2e945]: WS
+                - option "Сан-Марино SM" [ref=f2e946]:
+                  - generic [ref=f2e947]: Сан-Марино
+                  - generic [ref=f2e948]: SM
+                - option "Сан-Томе і Принсіпі ST" [ref=f2e949]:
+                  - generic [ref=f2e950]: Сан-Томе і Принсіпі
+                  - generic [ref=f2e951]: ST
+                - option "Саудівська Аравія SA" [ref=f2e952]:
+                  - generic [ref=f2e953]: Саудівська Аравія
+                  - generic [ref=f2e954]: SA
+                - option "Сенегал SN" [ref=f2e955]:
+                  - generic [ref=f2e956]: Сенегал
+                  - generic [ref=f2e957]: SN
+                - option "Сербія RS" [ref=f2e958]:
+                  - generic [ref=f2e959]: Сербія
+                  - generic [ref=f2e960]: RS
+                - option "Сейшельські Острови SC" [ref=f2e961]:
+                  - generic [ref=f2e962]: Сейшельські Острови
+                  - generic [ref=f2e963]: SC
+                - option "Сьєрра-Леоне SL" [ref=f2e964]:
+                  - generic [ref=f2e965]: Сьєрра-Леоне
+                  - generic [ref=f2e966]: SL
+                - option "Сінгапур SG" [ref=f2e967]:
+                  - generic [ref=f2e968]: Сінгапур
+                  - generic [ref=f2e969]: SG
+                - option "Сінт-Мартен SX" [ref=f2e970]:
+                  - generic [ref=f2e971]: Сінт-Мартен
+                  - generic [ref=f2e972]: SX
+                - option "Соломонові Острови SB" [ref=f2e973]:
+                  - generic [ref=f2e974]: Соломонові Острови
+                  - generic [ref=f2e975]: SB
+                - option "Сомалі SO" [ref=f2e976]:
+                  - generic [ref=f2e977]: Сомалі
+                  - generic [ref=f2e978]: SO
+                - option "Південно-Африканська Республіка ZA" [ref=f2e979]:
+                  - generic [ref=f2e980]: Південно-Африканська Республіка
+                  - generic [ref=f2e981]: ZA
+                - option "Південна Джорджія та Південні Сандвічеві Острови GS" [ref=f2e982]:
+                  - generic [ref=f2e983]: Південна Джорджія та Південні Сандвічеві Острови
+                  - generic [ref=f2e984]: GS
+                - option "Південний Судан SS" [ref=f2e985]:
+                  - generic [ref=f2e986]: Південний Судан
+                  - generic [ref=f2e987]: SS
+                - option "Шрі-Ланка LK" [ref=f2e988]:
+                  - generic [ref=f2e989]: Шрі-Ланка
+                  - generic [ref=f2e990]: LK
+                - option "Судан SD" [ref=f2e991]:
+                  - generic [ref=f2e992]: Судан
+                  - generic [ref=f2e993]: SD
+                - option "Суринам SR" [ref=f2e994]:
+                  - generic [ref=f2e995]: Суринам
+                  - generic [ref=f2e996]: SR
+                - option "Шпіцберген та Ян-Маєн SJ" [ref=f2e997]:
+                  - generic [ref=f2e998]: Шпіцберген та Ян-Маєн
+                  - generic [ref=f2e999]: SJ
+                - option "Сирія SY" [ref=f2e1000]:
+                  - generic [ref=f2e1001]: Сирія
+                  - generic [ref=f2e1002]: SY
+                - option "Тайвань TW" [ref=f2e1003]:
+                  - generic [ref=f2e1004]: Тайвань
+                  - generic [ref=f2e1005]: TW
+                - option "Таджикистан TJ" [ref=f2e1006]:
+                  - generic [ref=f2e1007]: Таджикистан
+                  - generic [ref=f2e1008]: TJ
+                - option "Танзанія TZ" [ref=f2e1009]:
+                  - generic [ref=f2e1010]: Танзанія
+                  - generic [ref=f2e1011]: TZ
+                - option "Таїланд TH" [ref=f2e1012]:
+                  - generic [ref=f2e1013]: Таїланд
+                  - generic [ref=f2e1014]: TH
+                - option "Тимор-Лешті TL" [ref=f2e1015]:
+                  - generic [ref=f2e1016]: Тимор-Лешті
+                  - generic [ref=f2e1017]: TL
+                - option "Того TG" [ref=f2e1018]:
+                  - generic [ref=f2e1019]: Того
+                  - generic [ref=f2e1020]: TG
+                - option "Токелау TK" [ref=f2e1021]:
+                  - generic [ref=f2e1022]: Токелау
+                  - generic [ref=f2e1023]: TK
+                - option "Тонга TO" [ref=f2e1024]:
+                  - generic [ref=f2e1025]: Тонга
+                  - generic [ref=f2e1026]: TO
+                - option "Тринідад і Тобаго TT" [ref=f2e1027]:
+                  - generic [ref=f2e1028]: Тринідад і Тобаго
+                  - generic [ref=f2e1029]: TT
+                - option "Туніс TN" [ref=f2e1030]:
+                  - generic [ref=f2e1031]: Туніс
+                  - generic [ref=f2e1032]: TN
+                - option "Туреччина TR" [ref=f2e1033]:
+                  - generic [ref=f2e1034]: Туреччина
+                  - generic [ref=f2e1035]: TR
+                - option "Туркменістан TM" [ref=f2e1036]:
+                  - generic [ref=f2e1037]: Туркменістан
+                  - generic [ref=f2e1038]: TM
+                - option "Острови Теркс і Кайкос TC" [ref=f2e1039]:
+                  - generic [ref=f2e1040]: Острови Теркс і Кайкос
+                  - generic [ref=f2e1041]: TC
+                - option "Тувалу TV" [ref=f2e1042]:
+                  - generic [ref=f2e1043]: Тувалу
+                  - generic [ref=f2e1044]: TV
+                - option "Уганда UG" [ref=f2e1045]:
+                  - generic [ref=f2e1046]: Уганда
+                  - generic [ref=f2e1047]: UG
+                - option "Віддалені острови США UM" [ref=f2e1048]:
+                  - generic [ref=f2e1049]: Віддалені острови США
+                  - generic [ref=f2e1050]: UM
+                - option "Уругвай UY" [ref=f2e1051]:
+                  - generic [ref=f2e1052]: Уругвай
+                  - generic [ref=f2e1053]: UY
+                - option "Узбекистан UZ" [ref=f2e1054]:
+                  - generic [ref=f2e1055]: Узбекистан
+                  - generic [ref=f2e1056]: UZ
+                - option "Вануату VU" [ref=f2e1057]:
+                  - generic [ref=f2e1058]: Вануату
+                  - generic [ref=f2e1059]: VU
+                - option "Венесуела VE" [ref=f2e1060]:
+                  - generic [ref=f2e1061]: Венесуела
+                  - generic [ref=f2e1062]: VE
+                - option "Вʼєтнам VN" [ref=f2e1063]:
+                  - generic [ref=f2e1064]: Вʼєтнам
+                  - generic [ref=f2e1065]: VN
+                - option "Британські Віргінські острови VG" [ref=f2e1066]:
+                  - generic [ref=f2e1067]: Британські Віргінські острови
+                  - generic [ref=f2e1068]: VG
+                - option "Віргінські Острови (США) VI" [ref=f2e1069]:
+                  - generic [ref=f2e1070]: Віргінські Острови (США)
+                  - generic [ref=f2e1071]: VI
+                - option "Уолліс і Футуна WF" [ref=f2e1072]:
+                  - generic [ref=f2e1073]: Уолліс і Футуна
+                  - generic [ref=f2e1074]: WF
+                - option "Західна Сахара EH" [ref=f2e1075]:
+                  - generic [ref=f2e1076]: Західна Сахара
+                  - generic [ref=f2e1077]: EH
+                - option "Ємен YE" [ref=f2e1078]:
+                  - generic [ref=f2e1079]: Ємен
+                  - generic [ref=f2e1080]: YE
+                - option "Замбія ZM" [ref=f2e1081]:
+                  - generic [ref=f2e1082]: Замбія
+                  - generic [ref=f2e1083]: ZM
+                - option "Зімбабве ZW" [ref=f2e1084]:
+                  - generic [ref=f2e1085]: Зімбабве
+                  - generic [ref=f2e1086]: ZW
+                - option "Інша країна" [ref=f2e1087]
+            - generic [ref=f2e1089]:
+              - paragraph [ref=f2e1090]: Валюта
+              - generic [ref=f2e1091]:
+                - button "EUR" [ref=f2e1092]
+                - button "USD" [ref=f2e1093]
+                - button "UAH" [ref=f2e1094]
+          - link "Акаунт" [ref=f2e1095] [cursor=pointer]:
+            - /url: /ua/shop/account
+    - main [ref=f2e17]:
+      - generic [ref=f2e20]:
+        - generic [ref=f2e23]:
+          - heading "Бренди One Company" [level=1] [ref=f2e24]
+          - paragraph [ref=f2e29]: 15 преміальних брендів в одному магазині. Досліджуйте фірмові колекції та обирайте деталі для свого авто або мото.
+        - generic [ref=f2e33]:
+          - navigation "Розділи магазину" [ref=f2e34]:
+            - link "Бренди" [ref=f2e35] [cursor=pointer]:
+              - /url: /ua/shop
+            - link "Каталог товарів" [ref=f2e43] [cursor=pointer]:
+              - /url: /ua/shop/catalog
+            - link "Підбір за авто / мото" [ref=f2e52] [cursor=pointer]:
+              - /url: /ua/contact#selection-form
+          - generic [ref=f2e58]:
+            - paragraph [ref=f2e59]: Один магазин
+            - heading "15 брендів" [level=2] [ref=f2e60]
+          - generic [ref=f2e62]:
+            - generic [ref=f2e63]:
+              - generic [ref=f2e64]:
+                - link "Urban Automotive" [ref=f2e65] [cursor=pointer]:
+                  - /url: /ua/shop/urban
+                - generic [ref=f2e67]:
+                  - heading "Urban Automotive" [level=3] [ref=f2e68]
+                  - paragraph [ref=f2e69]: Преміальні обвіси та стилізація. Виразний widebody-дизайн і вивірена стилістика OEM+.
+                  - generic [ref=f2e70]: Дослідити
+              - generic [ref=f2e73]:
+                - link "Akrapovič" [ref=f2e74] [cursor=pointer]:
+                  - /url: /ua/shop/akrapovic
+                - generic [ref=f2e79]:
+                  - heading "Akrapovič" [level=3] [ref=f2e80]
+                  - paragraph [ref=f2e81]: Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.
+                  - generic [ref=f2e82]: Дослідити
+              - generic [ref=f2e85]:
+                - link "Brabus" [ref=f2e86] [cursor=pointer]:
+                  - /url: /ua/shop/brabus
+                - generic [ref=f2e88]:
+                  - heading "Brabus" [level=3] [ref=f2e89]
+                  - paragraph [ref=f2e90]: Преміальний тюнінг та lifestyle. Аеродинаміка, ковані диски та впізнаваний характер.
+                  - generic [ref=f2e91]: Дослідити
+            - generic [ref=f2e94]:
+              - generic [ref=f2e95]:
+                - link "DO88 Performance" [ref=f2e96] [cursor=pointer]:
+                  - /url: /ua/shop/do88
+                - generic [ref=f2e98]:
+                  - heading "DO88 Performance" [level=3] [ref=f2e99]
+                  - paragraph [ref=f2e100]: Преміальні системи охолодження, інтеркулери та силіконові патрубки розроблені у Швеції.
+                  - generic [ref=f2e101]: Дослідити
+              - generic [ref=f2e104]:
+                - link "Burger Motorsports" [ref=f2e105] [cursor=pointer]:
+                  - /url: /ua/shop/burger
+                - generic [ref=f2e107]:
+                  - heading "Burger Motorsports" [level=3] [ref=f2e108]
+                  - paragraph [ref=f2e109]: Всесвітньо відомий plug & play performance тюнінг з 2007 року. JB4 тюнери та високоточні деталі.
+                  - generic [ref=f2e110]: Дослідити
+              - generic [ref=f2e113]:
+                - link "RaceChip" [ref=f2e114] [cursor=pointer]:
+                  - /url: /ua/shop/racechip
+                - generic [ref=f2e116]:
+                  - heading "RaceChip" [level=3] [ref=f2e117]
+                  - paragraph [ref=f2e118]: Преміальні ECU тюнінг-модулі з App Control. GTS 5 чіп-тюнінг для 50+ марок авто.
+                  - generic [ref=f2e119]: Дослідити
+              - generic [ref=f2e122]:
+                - link "CSF Racing" [ref=f2e123] [cursor=pointer]:
+                  - /url: /ua/shop/csf
+                - generic [ref=f2e125]:
+                  - heading "CSF Racing" [level=3] [ref=f2e126]
+                  - paragraph [ref=f2e127]: Високопродуктивні алюмінієві радіатори, інтеркулери та масляні охолоджувачі, спроєктовані для максимального розсіювання тепла.
+                  - generic [ref=f2e128]: Дослідити
+              - generic [ref=f2e131]:
+                - link "Öhlins" [ref=f2e132] [cursor=pointer]:
+                  - /url: /ua/shop/ohlins
+                - generic [ref=f2e134]:
+                  - heading "Öhlins" [level=3] [ref=f2e135]
+                  - paragraph [ref=f2e136]: Передові технології підвіски. Чемпіонські амортизатори для найвимогливіших водіїв у світі.
+                  - generic [ref=f2e137]: Дослідити
+              - generic [ref=f2e140]:
+                - link "GiroDisc" [ref=f2e141] [cursor=pointer]:
+                  - /url: /ua/shop/girodisc
+                - generic [ref=f2e143]:
+                  - heading "GiroDisc" [level=3] [ref=f2e144]
+                  - paragraph [ref=f2e145]: Високопродуктивні плаваючі 2-складові гальмівні диски, розроблені для треку та вулиці.
+                  - generic [ref=f2e146]: Дослідити
+              - generic [ref=f2e149]:
+                - link "iPE Exhaust" [ref=f2e150] [cursor=pointer]:
+                  - /url: /ua/shop/ipe
+                - generic [ref=f2e152]:
+                  - heading "iPE Exhaust" [level=3] [ref=f2e153]
+                  - paragraph [ref=f2e154]: Innotech Performance Exhaust. Вихлопні системи ручної роботи з титану з фірмовим F1-звучанням.
+                  - generic [ref=f2e155]: Дослідити
+              - generic [ref=f2e158]:
+                - link "ADRO" [ref=f2e159] [cursor=pointer]:
+                  - /url: /ua/shop/adro
+                - generic [ref=f2e161]:
+                  - heading "ADRO" [level=3] [ref=f2e162]
+                  - paragraph [ref=f2e163]: Преміальні аерокіти з препрег-карбону з CFD-інженерією рівня F1. Не для всіх.
+                  - generic [ref=f2e164]: Дослідити
+              - generic [ref=f2e167]:
+                - link "Ilmberger Carbon" [ref=f2e168] [cursor=pointer]:
+                  - /url: /ua/shop/ilmberger
+                - generic [ref=f2e170]:
+                  - heading "Ilmberger Carbon" [level=3] [ref=f2e171]
+                  - paragraph [ref=f2e172]: Автоклавний препрег-карбон для спортбайків. Ручна укладка в Ліндберзі, Німеччина з 1995 року.
+                  - generic [ref=f2e173]: Дослідити
+              - generic [ref=f2e176]:
+                - link "KW Suspension" [ref=f2e177] [cursor=pointer]:
+                  - /url: https://kwsuspension.shop
+                - generic [ref=f2e179]:
+                  - heading "KW Suspension" [level=3] [ref=f2e180]
+                  - paragraph [ref=f2e181]: Німецька інженерія підвісок. Регульовані койловери, яким довіряють у автоспорті.
+                  - generic [ref=f2e182]: Дослідити
+              - generic [ref=f2e185]:
+                - link "FI Exhaust" [ref=f2e186] [cursor=pointer]:
+                  - /url: https://fiexhaust.shop
+                - generic [ref=f2e188]:
+                  - heading "FI Exhaust" [level=3] [ref=f2e189]
+                  - paragraph [ref=f2e190]: Керовані вихлопні системи з фірмовим звучанням для преміальних спортивних авто.
+                  - generic [ref=f2e191]: Дослідити
+              - generic [ref=f2e194]:
+                - link "Eventuri" [ref=f2e195] [cursor=pointer]:
+                  - /url: https://eventuri.shop
+                - generic [ref=f2e197]:
+                  - heading "Eventuri" [level=3] [ref=f2e198]
+                  - paragraph [ref=f2e199]: Карбонові впускні системи. Максимальний повітряний потік та перевірена на треку продуктивність.
+                  - generic [ref=f2e200]: Дослідити
+    - button "Scroll to top"
+    - contentinfo [ref=f2e203]:
+      - generic [ref=f2e204]:
+        - generic [ref=f2e205]:
+          - generic [ref=f2e206]:
+            - link "OneCompany Home" [ref=f2e207] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f2e210]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f2e211]:
+              - paragraph [ref=f2e212]: Зв'язок у Telegram
+              - generic [ref=f2e213]:
+                - link "Telegram — Авто" [ref=f2e214] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f2e217]: Авто
+                  - generic [ref=f2e218]: →
+                - link "Telegram — Мото" [ref=f2e219] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f2e222]: Мото
+                  - generic [ref=f2e223]: →
+            - generic [ref=f2e224]:
+              - link "Open OneCompany Instagram profile" [ref=f2e225] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f2e229] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f2e232] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f2e236]:
+            - heading "Компанія" [level=2] [ref=f2e237]
+            - list [ref=f2e238]:
+              - listitem [ref=f2e239]:
+                - link "Navigate to Головна page" [ref=f2e240] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f2e241]:
+                - link "Navigate to Про нас page" [ref=f2e242] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f2e243]:
+                - link "Navigate to Контакти page" [ref=f2e244] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f2e245]:
+            - heading "Напрями" [level=2] [ref=f2e246]
+            - list [ref=f2e247]:
+              - listitem [ref=f2e248]:
+                - link "Navigate to Авто tuning section" [ref=f2e249] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f2e250]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f2e251] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f2e252]:
+                - link "Navigate to Магазин tuning section" [ref=f2e253] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f2e254]:
+            - heading "Штаб-квартира" [level=2] [ref=f2e255]
+            - generic [ref=f2e256]:
+              - paragraph [ref=f2e257]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f2e258]:
+                - link "+380 66 077 17 00" [ref=f2e259] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f2e260]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f2e261]:
+          - generic [ref=f2e262]:
+            - paragraph [ref=f2e264]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f2e265]:
+              - link "Доставка та оплата" [ref=f2e266] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f2e267] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f2e268] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f2e269] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f2e270] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f2e271]:
+            - generic [ref=f2e272]: Безпечна оплата
+            - generic [ref=f2e273]:
+              - img "Visa" [ref=f2e274]
+              - img "MasterCard" [ref=f2e275]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+    - navigation "Основна мобільна навігація":
+      - generic [ref=f2e278]:
+        - link "Головна" [ref=f2e279] [cursor=pointer]:
+          - /url: /ua
+        - link "Магазин" [ref=f2e284] [cursor=pointer]:
+          - /url: /ua/shop
+        - link "Підбір" [ref=f2e289] [cursor=pointer]:
+          - /url: /ua/contact#selection-form
+        - link "Кошик" [ref=f2e294] [cursor=pointer]:
+          - /url: /ua/shop/cart
+  - button "Open Next.js Dev Tools" [ref=f2e305] [cursor=pointer]
+  - alert [ref=f2e309]

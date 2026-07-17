@@ -171,6 +171,13 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "tag",
       },
       {
+        href: "/admin/shop/ai-quality",
+        label: "One AI Quality",
+        description:
+          "Контроль покриття знань, черги перевірки, відгуків, трас запитів та індексації.",
+        icon: "seo",
+      },
+      {
         href: "/admin/shop/pricing",
         label: "Ціни",
         description: "Керування B2C та B2B цінами.",

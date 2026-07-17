@@ -1,0 +1,884 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "ONE COMPANY home" [ref=e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=e10]:
+          - link "Головна" [ref=e11] [cursor=pointer]:
+            - /url: /ua
+          - link "Магазини" [ref=e12] [cursor=pointer]:
+            - /url: /ua/shop
+          - link "Всі товари" [ref=e13] [cursor=pointer]:
+            - /url: /ua/shop/stock
+          - link "Акаунт" [ref=e15] [cursor=pointer]:
+            - /url: /ua/shop/account
+        - generic [ref=e16]:
+          - link "Кошик" [ref=e17] [cursor=pointer]:
+            - /url: /ua/shop/cart
+          - button "Німеччина EUR" [ref=e22]:
+            - generic [ref=e23]: Німеччина
+            - generic [ref=e25]: EUR
+          - generic [ref=e28]:
+            - button "EN" [ref=e29]
+            - button "UA" [disabled] [ref=e30]
+          - button "Toggle theme" [ref=e32]
+    - main [ref=e36]:
+      - generic [ref=e38]:
+        - generic [ref=e40]:
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: ONE COMPANY
+            - heading "Каталог тюнінгу" [level=1] [ref=e45]
+            - generic [ref=e46]:
+              - generic [ref=e47]: 20 товарів
+              - generic [ref=e338]: 6 в наявності
+          - region "Пошук і підбір за авто" [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e51]:
+                - combobox "Очистити пошук" [ref=e55]: best exhaust
+                - button "Очистити пошук" [ref=e56]
+              - generic [ref=e61]:
+                - button "BMW" [ref=e62]
+                - generic [ref=e67]:
+                  - generic [ref=e68]: Модель авто
+                  - combobox "Модель авто" [ref=e69]:
+                    - option "Модель авто"
+                    - option "1 Series"
+                    - option "1 Series M"
+                    - option "2 Series"
+                    - option "3 Series"
+                    - option "4 Series"
+                    - option "5 Series"
+                    - option "6 Series"
+                    - option "7 Series"
+                    - option "8 Series"
+                    - option "F 900 R"
+                    - option "M1000R"
+                    - option "M1000RR"
+                    - option "M1000XR"
+                    - option "M135i/M140i"
+                    - option "M2"
+                    - option "M235i/M240i"
+                    - option "M3"
+                    - option "M340i/M340d"
+                    - option "M4"
+                    - option "M440i/M440d"
+                    - option "M5" [selected]
+                    - option "M550i"
+                    - option "M6"
+                    - option "M8"
+                    - option "M850i"
+                    - option "R1300gs"
+                    - option "R1300r"
+                    - option "S1000R"
+                    - option "S1000RR"
+                    - option "S1000XR"
+                    - option "X1"
+                    - option "X2"
+                    - option "X3"
+                    - option "X3 M"
+                    - option "X4"
+                    - option "X4 M"
+                    - option "X5"
+                    - option "X5 M"
+                    - option "X6"
+                    - option "X6 M"
+                    - option "X7"
+                    - option "Xm"
+                    - option "Z4"
+                - generic [ref=e70]:
+                  - generic [ref=e71]: Кузов / шасі
+                  - combobox "Кузов / шасі" [ref=e72]:
+                    - option "Кузов / шасі"
+                    - option "E34"
+                    - option "E39"
+                    - option "E60"
+                    - option "F10"
+                    - option "F90"
+                    - option "G90" [selected]
+          - generic [ref=e74]:
+            - generic [ref=e78]: Обране авто
+            - generic [ref=e79]: BMW M5 G90
+            - button "Очистити вибір авто" [ref=e80]
+          - generic [ref=e84]:
+            - complementary [ref=e85]:
+              - generic [ref=e339]:
+                - generic [ref=e341]:
+                  - paragraph [ref=e342]: Фільтри
+                  - paragraph [ref=e343]: 20 позицій у каталозі
+                - generic [ref=e344]:
+                  - generic [ref=e345]:
+                    - heading "Наявність" [level=3] [ref=e347]
+                    - generic [ref=e348]:
+                      - button "Всі товари 20" [ref=e349]:
+                        - generic [ref=e350]: Всі товари
+                        - generic [ref=e351]: "20"
+                      - button "В наявності 6" [ref=e352]:
+                        - generic [ref=e353]: В наявності
+                        - generic [ref=e354]: "6"
+                      - button "Під замовлення 14" [ref=e355]:
+                        - generic [ref=e356]: Під замовлення
+                        - generic [ref=e357]: "14"
+                  - generic [ref=e358]:
+                    - heading "Ціна" [level=3] [ref=e359]
+                    - generic [ref=e360]:
+                      - generic [ref=e361]:
+                        - generic [ref=e362]:
+                          - generic [ref=e363]: Ціна від
+                          - textbox "Ціна від" [ref=e364]:
+                            - /placeholder: Від
+                        - generic [ref=e365]:
+                          - generic [ref=e366]: Ціна до
+                          - textbox "Ціна до" [ref=e367]:
+                            - /placeholder: До
+                      - generic [ref=e368]:
+                        - generic [ref=e369]: EUR
+                        - generic [ref=e370]: 2 EUR - 85 708 EUR
+                  - generic [ref=e371]:
+                    - button "Група товарів" [expanded] [ref=e372]
+                    - textbox [ref=e380]:
+                      - /placeholder: Знайти групу
+                    - generic [ref=e381]:
+                      - button "Всі групи 20" [ref=e382]:
+                        - generic [ref=e383]: Всі групи
+                        - generic [ref=e384]: "20"
+                      - button "Чіп-тюнінг 5287" [ref=e385]:
+                        - generic [ref=e386]: Чіп-тюнінг
+                        - generic [ref=e387]: "5287"
+                      - button "Вихлопні системи 4452" [ref=e388]:
+                        - generic [ref=e389]: Вихлопні системи
+                        - generic [ref=e390]: "4452"
+                      - button "Охолодження та патрубки 1500" [ref=e391]:
+                        - generic [ref=e392]: Охолодження та патрубки
+                        - generic [ref=e393]: "1500"
+                      - button "Гальмівна система 961" [ref=e394]:
+                        - generic [ref=e395]: Гальмівна система
+                        - generic [ref=e396]: "961"
+                      - button "Карбон і аеродинаміка 667" [ref=e397]:
+                        - generic [ref=e398]: Карбон і аеродинаміка
+                        - generic [ref=e399]: "667"
+                      - button "Підвіска 527" [ref=e400]:
+                        - generic [ref=e401]: Підвіска
+                        - generic [ref=e402]: "527"
+                      - button "Впуск, турбо і двигун 500" [ref=e403]:
+                        - generic [ref=e404]: Впуск, турбо і двигун
+                        - generic [ref=e405]: "500"
+                      - button "Показати більше +6" [ref=e406]:
+                        - generic [ref=e407]: Показати більше
+                        - generic [ref=e408]: "+6"
+                  - generic [ref=e409]:
+                    - button "Бренд" [expanded] [ref=e411]
+                    - textbox [ref=e419]:
+                      - /placeholder: Знайти бренд
+                    - generic [ref=e420]:
+                      - button "Remus Remus 14" [ref=e421]:
+                        - generic "Remus" [ref=e423]:
+                          - img "Remus" [ref=e424]
+                        - generic "Remus" [ref=e425]
+                        - generic [ref=e426]: "14"
+                      - button "AKRAPOVIC AKRAPOVIC 6" [ref=e427]:
+                        - generic "AKRAPOVIC" [ref=e429]:
+                          - img "AKRAPOVIC" [ref=e430]
+                        - generic "AKRAPOVIC" [ref=e431]
+                        - generic [ref=e432]: "6"
+                - button "Скинути" [ref=e435]
+            - main [ref=e152]:
+              - generic [ref=e153]:
+                - generic [ref=e154]:
+                  - generic [ref=e155]:
+                    - paragraph [ref=e156]: Результати
+                    - generic [ref=e157]:
+                      - heading "Усі товари" [level=2] [ref=e158]
+                      - generic [ref=e159]: 20 товарів
+                  - generic [ref=e160]:
+                    - generic [ref=e161]:
+                      - generic [ref=e162]: Сортування
+                      - combobox "Сортування" [ref=e163]:
+                        - option "Релевантність" [selected]
+                        - 'option "Ціна: від меншої"'
+                        - 'option "Ціна: від більшої"'
+                        - option "Назва A-Z"
+                    - generic [ref=e164]:
+                      - button "Сітка" [ref=e165]
+                      - button "Список" [ref=e171]
+                - generic [ref=e173]:
+                  - 'button "Пошук: best exhaust" [ref=e174]'
+                  - 'button "Група: exhaust" [ref=e178]'
+                  - button "BMW" [ref=e182]
+                  - button "M5" [ref=e439]
+                  - button "G90" [ref=e443]
+                  - button "Скинути все" [ref=e186]
+              - generic [ref=e447]:
+                - generic [ref=e448]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Brushed Tips Remus Remus #1-082025-1001-6 Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Brushed Tips Cars / Bundles BMW M5 G90" [ref=e449] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-6
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Brushed Tips" [ref=e451]
+                    - generic [ref=e452]:
+                      - generic [ref=e454]:
+                        - generic "Remus" [ref=e455]:
+                          - img "Remus" [ref=e456]
+                        - generic [ref=e457]: Remus
+                      - button "#1-082025-1001-6" [ref=e459]
+                    - generic [ref=e464]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Brushed Tips" [level=3] [ref=e465]
+                      - generic [ref=e466]: Cars / Bundles
+                      - generic [ref=e467]: BMW M5 G90
+                  - generic [ref=e468]:
+                    - generic [ref=e470]:
+                      - generic [ref=e471]: Ціна
+                      - generic [ref=e472]: 5 132 EUR
+                    - generic [ref=e473]:
+                      - generic [ref=e474]:
+                        - button "Зменшити кількість" [disabled] [ref=e475]
+                        - generic [ref=e477]: "1"
+                        - button "Збільшити кількість" [ref=e478]
+                      - button "У кошик" [ref=e480]
+                - generic [ref=e481]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x 102mm Carbon Tips Remus Remus #1-082025-1001-10 Sport Exhaust for BMW M5 G90 4x 102mm Carbon Tips Cars / Bundles BMW M5 G90" [ref=e482] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-10
+                    - img "Sport Exhaust for BMW M5 G90 4x 102mm Carbon Tips" [ref=e484]
+                    - generic [ref=e485]:
+                      - generic [ref=e487]:
+                        - generic "Remus" [ref=e488]:
+                          - img "Remus" [ref=e489]
+                        - generic [ref=e490]: Remus
+                      - button "#1-082025-1001-10" [ref=e492]
+                    - generic [ref=e497]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x 102mm Carbon Tips" [level=3] [ref=e498]
+                      - generic [ref=e499]: Cars / Bundles
+                      - generic [ref=e500]: BMW M5 G90
+                  - generic [ref=e501]:
+                    - generic [ref=e503]:
+                      - generic [ref=e504]: Ціна
+                      - generic [ref=e505]: 3 833 EUR
+                    - generic [ref=e506]:
+                      - generic [ref=e507]:
+                        - button "Зменшити кількість" [disabled] [ref=e508]
+                        - generic [ref=e510]: "1"
+                        - button "Збільшити кількість" [ref=e511]
+                      - button "У кошик" [ref=e513]
+                - generic [ref=e514]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x GT Titanium Scotched Tips Remus Remus #1-082025-1001-11 Sport Exhaust for BMW M5 G90 4x GT Titanium Scotched Tips Cars / Bundles BMW M5 G90" [ref=e515] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-11
+                    - img "Sport Exhaust for BMW M5 G90 4x GT Titanium Scotched Tips" [ref=e517]
+                    - generic [ref=e518]:
+                      - generic [ref=e520]:
+                        - generic "Remus" [ref=e521]:
+                          - img "Remus" [ref=e522]
+                        - generic [ref=e523]: Remus
+                      - button "#1-082025-1001-11" [ref=e525]
+                    - generic [ref=e530]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x GT Titanium Scotched Tips" [level=3] [ref=e531]
+                      - generic [ref=e532]: Cars / Bundles
+                      - generic [ref=e533]: BMW M5 G90
+                  - generic [ref=e534]:
+                    - generic [ref=e536]:
+                      - generic [ref=e537]: Ціна
+                      - generic [ref=e538]: 3 946 EUR
+                    - generic [ref=e539]:
+                      - generic [ref=e540]:
+                        - button "Зменшити кількість" [disabled] [ref=e541]
+                        - generic [ref=e543]: "1"
+                        - button "Збільшити кількість" [ref=e544]
+                      - button "У кошик" [ref=e546]
+                - generic [ref=e547]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x GT Black Tips Remus Remus #1-082025-1001-5 Sport Exhaust for BMW M5 G90 Racing | 4x GT Black Tips Cars / Bundles BMW M5 G90" [ref=e548] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-5
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x GT Black Tips" [ref=e550]
+                    - generic [ref=e551]:
+                      - generic [ref=e553]:
+                        - generic "Remus" [ref=e554]:
+                          - img "Remus" [ref=e555]
+                        - generic [ref=e556]: Remus
+                      - button "#1-082025-1001-5" [ref=e558]
+                    - generic [ref=e563]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x GT Black Tips" [level=3] [ref=e564]
+                      - generic [ref=e565]: Cars / Bundles
+                      - generic [ref=e566]: BMW M5 G90
+                  - generic [ref=e567]:
+                    - generic [ref=e569]:
+                      - generic [ref=e570]: Ціна
+                      - generic [ref=e571]: 5 617 EUR
+                    - generic [ref=e572]:
+                      - generic [ref=e573]:
+                        - button "Зменшити кількість" [disabled] [ref=e574]
+                        - generic [ref=e576]: "1"
+                        - button "Збільшити кількість" [ref=e577]
+                      - button "У кошик" [ref=e579]
+                - generic [ref=e580]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x 102mm Chrome Straight Cut Tips Remus Remus #1-082025-1001-8 Sport Exhaust for BMW M5 G90 4x 102mm Chrome Straight Cut Tips Cars / Bundles BMW M5 G90" [ref=e581] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-8
+                    - img "Sport Exhaust for BMW M5 G90 4x 102mm Chrome Straight Cut Tips" [ref=e583]
+                    - generic [ref=e584]:
+                      - generic [ref=e586]:
+                        - generic "Remus" [ref=e587]:
+                          - img "Remus" [ref=e588]
+                        - generic [ref=e589]: Remus
+                      - button "#1-082025-1001-8" [ref=e591]
+                    - generic [ref=e596]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x 102mm Chrome Straight Cut Tips" [level=3] [ref=e597]
+                      - generic [ref=e598]: Cars / Bundles
+                      - generic [ref=e599]: BMW M5 G90
+                  - generic [ref=e600]:
+                    - generic [ref=e602]:
+                      - generic [ref=e603]: Ціна
+                      - generic [ref=e604]: 3 097 EUR
+                    - generic [ref=e605]:
+                      - generic [ref=e606]:
+                        - button "Зменшити кількість" [disabled] [ref=e607]
+                        - generic [ref=e609]: "1"
+                        - button "Збільшити кількість" [ref=e610]
+                      - button "У кошик" [ref=e612]
+                - generic [ref=e613]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x GT Black Tips Remus Remus #1-082025-1001-12 Sport Exhaust for BMW M5 G90 4x GT Black Tips Cars / Bundles BMW M5 G90" [ref=e614] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-12
+                    - img "Sport Exhaust for BMW M5 G90 4x GT Black Tips" [ref=e616]
+                    - generic [ref=e617]:
+                      - generic [ref=e619]:
+                        - generic "Remus" [ref=e620]:
+                          - img "Remus" [ref=e621]
+                        - generic [ref=e622]: Remus
+                      - button "#1-082025-1001-12" [ref=e624]
+                    - generic [ref=e629]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x GT Black Tips" [level=3] [ref=e630]
+                      - generic [ref=e631]: Cars / Bundles
+                      - generic [ref=e632]: BMW M5 G90
+                  - generic [ref=e633]:
+                    - generic [ref=e635]:
+                      - generic [ref=e636]: Ціна
+                      - generic [ref=e637]: 4 042 EUR
+                    - generic [ref=e638]:
+                      - generic [ref=e639]:
+                        - button "Зменшити кількість" [disabled] [ref=e640]
+                        - generic [ref=e642]: "1"
+                        - button "Збільшити кількість" [ref=e643]
+                      - button "У кошик" [ref=e645]
+                - generic [ref=e646]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Black Tips Remus Remus #1-082025-1001-7 Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Black Tips Cars / Bundles BMW M5 G90" [ref=e647] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-7
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Black Tips" [ref=e649]
+                    - generic [ref=e650]:
+                      - generic [ref=e652]:
+                        - generic "Remus" [ref=e653]:
+                          - img "Remus" [ref=e654]
+                        - generic [ref=e655]: Remus
+                      - button "#1-082025-1001-7" [ref=e657]
+                    - generic [ref=e662]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x 100mm Titanium Black Tips" [level=3] [ref=e663]
+                      - generic [ref=e664]: Cars / Bundles
+                      - generic [ref=e665]: BMW M5 G90
+                  - generic [ref=e666]:
+                    - generic [ref=e668]:
+                      - generic [ref=e669]: Ціна
+                      - generic [ref=e670]: 5 312 EUR
+                    - generic [ref=e671]:
+                      - generic [ref=e672]:
+                        - button "Зменшити кількість" [disabled] [ref=e673]
+                        - generic [ref=e675]: "1"
+                        - button "Збільшити кількість" [ref=e676]
+                      - button "У кошик" [ref=e678]
+                - generic [ref=e679]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Carbon Tips Remus Remus #1-082025-1001-3 Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Carbon Tips Cars / Bundles BMW M5 G90" [ref=e680] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-3
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Carbon Tips" [ref=e682]
+                    - generic [ref=e683]:
+                      - generic [ref=e685]:
+                        - generic "Remus" [ref=e686]:
+                          - img "Remus" [ref=e687]
+                        - generic [ref=e688]: Remus
+                      - button "#1-082025-1001-3" [ref=e690]
+                    - generic [ref=e695]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Carbon Tips" [level=3] [ref=e696]
+                      - generic [ref=e697]: Cars / Bundles
+                      - generic [ref=e698]: BMW M5 G90
+                  - generic [ref=e699]:
+                    - generic [ref=e701]:
+                      - generic [ref=e702]: Ціна
+                      - generic [ref=e703]: 5 408 EUR
+                    - generic [ref=e704]:
+                      - generic [ref=e705]:
+                        - button "Зменшити кількість" [disabled] [ref=e706]
+                        - generic [ref=e708]: "1"
+                        - button "Збільшити кількість" [ref=e709]
+                      - button "У кошик" [ref=e711]
+                - generic [ref=e712]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips Remus Remus #1-082025-1001-14 Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips Cars / Bundles BMW M5 G90" [ref=e713] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-14
+                    - img "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips" [ref=e715]
+                    - generic [ref=e716]:
+                      - generic [ref=e718]:
+                        - generic "Remus" [ref=e719]:
+                          - img "Remus" [ref=e720]
+                        - generic [ref=e721]: Remus
+                      - button "#1-082025-1001-14" [ref=e723]
+                    - generic [ref=e728]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips" [level=3] [ref=e729]
+                      - generic [ref=e730]: Cars / Bundles
+                      - generic [ref=e731]: BMW M5 G90
+                  - generic [ref=e732]:
+                    - generic [ref=e734]:
+                      - generic [ref=e735]: Ціна
+                      - generic [ref=e736]: 3 737 EUR
+                    - generic [ref=e737]:
+                      - generic [ref=e738]:
+                        - button "Зменшити кількість" [disabled] [ref=e739]
+                        - generic [ref=e741]: "1"
+                        - button "Збільшити кількість" [ref=e742]
+                      - button "У кошик" [ref=e744]
+                - generic [ref=e745]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Brushed Tips Remus Remus #1-082025-1001-13 Sport Exhaust for BMW M5 G90 4x 100mm Titanium Brushed Tips Cars / Bundles BMW M5 G90" [ref=e746] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-13
+                    - img "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Brushed Tips" [ref=e748]
+                    - generic [ref=e749]:
+                      - generic [ref=e751]:
+                        - generic "Remus" [ref=e752]:
+                          - img "Remus" [ref=e753]
+                        - generic [ref=e754]: Remus
+                      - button "#1-082025-1001-13" [ref=e756]
+                    - generic [ref=e761]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Brushed Tips" [level=3] [ref=e762]
+                      - generic [ref=e763]: Cars / Bundles
+                      - generic [ref=e764]: BMW M5 G90
+                  - generic [ref=e765]:
+                    - generic [ref=e767]:
+                      - generic [ref=e768]: Ціна
+                      - generic [ref=e769]: 3 557 EUR
+                    - generic [ref=e770]:
+                      - generic [ref=e771]:
+                        - button "Зменшити кількість" [disabled] [ref=e772]
+                        - generic [ref=e774]: "1"
+                        - button "Збільшити кількість" [ref=e775]
+                      - button "У кошик" [ref=e777]
+                - generic [ref=e778]:
+                  - 'link "Sport Exhaust for BMW M5 G90 4x 102mm Black Chrome Straight Cut Tips Remus Remus #1-082025-1001-9 Sport Exhaust for BMW M5 G90 4x 102mm Black Chrome Straight Cut Tips Cars / Bundles BMW M5 G90" [ref=e779] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-9
+                    - img "Sport Exhaust for BMW M5 G90 4x 102mm Black Chrome Straight Cut Tips" [ref=e781]
+                    - generic [ref=e782]:
+                      - generic [ref=e784]:
+                        - generic "Remus" [ref=e785]:
+                          - img "Remus" [ref=e786]
+                        - generic [ref=e787]: Remus
+                      - button "#1-082025-1001-9" [ref=e789]
+                    - generic [ref=e794]:
+                      - heading "Sport Exhaust for BMW M5 G90 4x 102mm Black Chrome Straight Cut Tips" [level=3] [ref=e795]
+                      - generic [ref=e796]: Cars / Bundles
+                      - generic [ref=e797]: BMW M5 G90
+                  - generic [ref=e798]:
+                    - generic [ref=e800]:
+                      - generic [ref=e801]: Ціна
+                      - generic [ref=e802]: 3 177 EUR
+                    - generic [ref=e803]:
+                      - generic [ref=e804]:
+                        - button "Зменшити кількість" [disabled] [ref=e805]
+                        - generic [ref=e807]: "1"
+                        - button "Збільшити кількість" [ref=e808]
+                      - button "У кошик" [ref=e810]
+                - generic [ref=e811]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Black Chrome Straight Cut Tips Remus Remus #1-082025-1001-2 Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Black Chrome Straight Cut Tips Cars / Bundles BMW M5 G90" [ref=e812] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-2
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Black Chrome Straight Cut Tips" [ref=e814]
+                    - generic [ref=e815]:
+                      - generic [ref=e817]:
+                        - generic "Remus" [ref=e818]:
+                          - img "Remus" [ref=e819]
+                        - generic [ref=e820]: Remus
+                      - button "#1-082025-1001-2" [ref=e822]
+                    - generic [ref=e827]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Black Chrome Straight Cut Tips" [level=3] [ref=e828]
+                      - generic [ref=e829]: Cars / Bundles
+                      - generic [ref=e830]: BMW M5 G90
+                  - generic [ref=e831]:
+                    - generic [ref=e833]:
+                      - generic [ref=e834]: Ціна
+                      - generic [ref=e835]: 4 752 EUR
+                    - generic [ref=e836]:
+                      - generic [ref=e837]:
+                        - button "Зменшити кількість" [disabled] [ref=e838]
+                        - generic [ref=e840]: "1"
+                        - button "Збільшити кількість" [ref=e841]
+                      - button "У кошик" [ref=e843]
+                - generic [ref=e844]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x GT Titanium Scotched Tips Remus Remus #1-082025-1001-4 Sport Exhaust for BMW M5 G90 Racing | 4x GT Titanium Scotched Tips Cars / Bundles BMW M5 G90" [ref=e845] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-4
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x GT Titanium Scotched Tips" [ref=e847]
+                    - generic [ref=e848]:
+                      - generic [ref=e850]:
+                        - generic "Remus" [ref=e851]:
+                          - img "Remus" [ref=e852]
+                        - generic [ref=e853]: Remus
+                      - button "#1-082025-1001-4" [ref=e855]
+                    - generic [ref=e860]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x GT Titanium Scotched Tips" [level=3] [ref=e861]
+                      - generic [ref=e862]: Cars / Bundles
+                      - generic [ref=e863]: BMW M5 G90
+                  - generic [ref=e864]:
+                    - generic [ref=e866]:
+                      - generic [ref=e867]: Ціна
+                      - generic [ref=e868]: 5 521 EUR
+                    - generic [ref=e869]:
+                      - generic [ref=e870]:
+                        - button "Зменшити кількість" [disabled] [ref=e871]
+                        - generic [ref=e873]: "1"
+                        - button "Збільшити кількість" [ref=e874]
+                      - button "У кошик" [ref=e876]
+                - generic [ref=e877]:
+                  - 'link "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Chrome Straight Cut Tips Remus Remus #1-082025-1001-1 Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Chrome Straight Cut Tips Cars / Bundles BMW M5 G90" [ref=e878] [cursor=pointer]':
+                    - /url: /ua/shop/remus-bundle-1-082025-1001-1
+                    - img "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Chrome Straight Cut Tips" [ref=e880]
+                    - generic [ref=e881]:
+                      - generic [ref=e883]:
+                        - generic "Remus" [ref=e884]:
+                          - img "Remus" [ref=e885]
+                        - generic [ref=e886]: Remus
+                      - button "#1-082025-1001-1" [ref=e888]
+                    - generic [ref=e893]:
+                      - heading "Sport Exhaust for BMW M5 G90 Racing | 4x 102mm Chrome Straight Cut Tips" [level=3] [ref=e894]
+                      - generic [ref=e895]: Cars / Bundles
+                      - generic [ref=e896]: BMW M5 G90
+                  - generic [ref=e897]:
+                    - generic [ref=e899]:
+                      - generic [ref=e900]: Ціна
+                      - generic [ref=e901]: 4 673 EUR
+                    - generic [ref=e902]:
+                      - generic [ref=e903]:
+                        - button "Зменшити кількість" [disabled] [ref=e904]
+                        - generic [ref=e906]: "1"
+                        - button "Збільшити кількість" [ref=e907]
+                      - button "У кошик" [ref=e909]
+                - generic [ref=e910]:
+                  - 'link "AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF AKRAPOVIC AKRAPOVIC #S-BM/T/37H AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF Slip-On Line (задня частина) BMW M5 G90" [ref=e911] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-s-bm-t-37h
+                    - img "AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF" [ref=e913]
+                    - generic [ref=e914]:
+                      - generic [ref=e916]:
+                        - generic "AKRAPOVIC" [ref=e917]:
+                          - img "AKRAPOVIC" [ref=e918]
+                        - generic [ref=e919]: AKRAPOVIC
+                      - button "#S-BM/T/37H" [ref=e921]
+                    - generic [ref=e926]:
+                      - heading "AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF" [level=3] [ref=e927]
+                      - generic [ref=e928]: Slip-On Line (задня частина)
+                      - generic [ref=e929]: BMW M5 G90
+                  - generic [ref=e930]:
+                    - generic [ref=e932]:
+                      - generic [ref=e933]: Ціна
+                      - generic [ref=e934]: 4 945 EUR
+                    - generic [ref=e935]:
+                      - generic [ref=e936]:
+                        - button "Зменшити кількість" [disabled] [ref=e937]
+                        - generic [ref=e939]: "1"
+                        - button "Збільшити кількість" [ref=e940]
+                      - button "У кошик" [ref=e942]
+                - generic [ref=e943]:
+                  - 'link "AKRAPOVIC TP-CT/79 Комплект наконечників вихлопних труб шестикутний дизайн (карбон) для BMW M5 (G90 / G99) AKRAPOVIC AKRAPOVIC #TP-CT/79 AKRAPOVIC TP-CT/79 Комплект наконечників вихлопних труб шестикутний дизайн (карбон) для BMW M5 (G90 / G99) Аксесуари вихлопної системи BMW M5 G90" [ref=e944] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-tp-ct-79
+                    - img "AKRAPOVIC TP-CT/79 Комплект наконечників вихлопних труб шестикутний дизайн (карбон) для BMW M5 (G90 / G99)" [ref=e946]
+                    - generic [ref=e947]:
+                      - generic [ref=e949]:
+                        - generic "AKRAPOVIC" [ref=e950]:
+                          - img "AKRAPOVIC" [ref=e951]
+                        - generic [ref=e952]: AKRAPOVIC
+                      - button "#TP-CT/79" [ref=e954]
+                    - generic [ref=e959]:
+                      - heading "AKRAPOVIC TP-CT/79 Комплект наконечників вихлопних труб шестикутний дизайн (карбон) для BMW M5 (G90 / G99)" [level=3] [ref=e960]
+                      - generic [ref=e961]: Аксесуари вихлопної системи
+                      - generic [ref=e962]: BMW M5 G90
+                  - generic [ref=e963]:
+                    - generic [ref=e965]:
+                      - generic [ref=e966]: Ціна
+                      - generic [ref=e967]: 1 829 EUR
+                    - generic [ref=e968]:
+                      - generic [ref=e969]:
+                        - button "Зменшити кількість" [disabled] [ref=e970]
+                        - generic [ref=e972]: "1"
+                        - button "Збільшити кількість" [ref=e973]
+                      - button "У кошик" [ref=e975]
+                - generic [ref=e976]:
+                  - 'link "AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF AKRAPOVIC AKRAPOVIC #S-BM/T/38 AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF Evolution Line (Cat-back) BMW M5 G90" [ref=e977] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-s-bm-t-38
+                    - img "AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF" [ref=e979]
+                    - generic [ref=e980]:
+                      - generic [ref=e982]:
+                        - generic "AKRAPOVIC" [ref=e983]:
+                          - img "AKRAPOVIC" [ref=e984]
+                        - generic [ref=e985]: AKRAPOVIC
+                      - button "#S-BM/T/38" [ref=e987]
+                    - generic [ref=e992]:
+                      - heading "AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF" [level=3] [ref=e993]
+                      - generic [ref=e994]: Evolution Line (Cat-back)
+                      - generic [ref=e995]: BMW M5 G90
+                  - generic [ref=e996]:
+                    - generic [ref=e998]:
+                      - generic [ref=e999]: Ціна
+                      - generic [ref=e1000]: 6 762 EUR
+                    - generic [ref=e1001]:
+                      - generic [ref=e1002]:
+                        - button "Зменшити кількість" [disabled] [ref=e1003]
+                        - generic [ref=e1005]: "1"
+                        - button "Збільшити кількість" [ref=e1006]
+                      - button "У кошик" [ref=e1008]
+                - generic [ref=e1009]:
+                  - 'link "AKRAPOVIC TP-CT/78 Комплект наконечників вихлопних труб циліндричної форми (карбон) для BMW M5 (G90 / G99) AKRAPOVIC AKRAPOVIC #TP-CT/78 AKRAPOVIC TP-CT/78 Комплект наконечників вихлопних труб циліндричної форми (карбон) для BMW M5 (G90 / G99) Аксесуари вихлопної системи BMW M5 G90" [ref=e1010] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-tp-ct-78
+                    - img "AKRAPOVIC TP-CT/78 Комплект наконечників вихлопних труб циліндричної форми (карбон) для BMW M5 (G90 / G99)" [ref=e1012]
+                    - generic [ref=e1013]:
+                      - generic [ref=e1015]:
+                        - generic "AKRAPOVIC" [ref=e1016]:
+                          - img "AKRAPOVIC" [ref=e1017]
+                        - generic [ref=e1018]: AKRAPOVIC
+                      - button "#TP-CT/78" [ref=e1020]
+                    - generic [ref=e1025]:
+                      - heading "AKRAPOVIC TP-CT/78 Комплект наконечників вихлопних труб циліндричної форми (карбон) для BMW M5 (G90 / G99)" [level=3] [ref=e1026]
+                      - generic [ref=e1027]: Аксесуари вихлопної системи
+                      - generic [ref=e1028]: BMW M5 G90
+                  - generic [ref=e1029]:
+                    - generic [ref=e1031]:
+                      - generic [ref=e1032]: Ціна
+                      - generic [ref=e1033]: 1 829 EUR
+                    - generic [ref=e1034]:
+                      - generic [ref=e1035]:
+                        - button "Зменшити кількість" [disabled] [ref=e1036]
+                        - generic [ref=e1038]: "1"
+                        - button "Збільшити кількість" [ref=e1039]
+                      - button "У кошик" [ref=e1041]
+                - generic [ref=e1042]:
+                  - 'link "AKRAPOVIC P-HF1638 Звуковий комплект для BMW M5 (G90 / G99) AKRAPOVIC AKRAPOVIC #P-HF1638 AKRAPOVIC P-HF1638 Звуковий комплект для BMW M5 (G90 / G99) Аксесуари вихлопної системи BMW M5 G90" [ref=e1043] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-p-hf1638
+                    - img "AKRAPOVIC P-HF1638 Звуковий комплект для BMW M5 (G90 / G99)" [ref=e1045]
+                    - generic [ref=e1046]:
+                      - generic [ref=e1048]:
+                        - generic "AKRAPOVIC" [ref=e1049]:
+                          - img "AKRAPOVIC" [ref=e1050]
+                        - generic [ref=e1051]: AKRAPOVIC
+                      - button "#P-HF1638" [ref=e1053]
+                    - generic [ref=e1058]:
+                      - heading "AKRAPOVIC P-HF1638 Звуковий комплект для BMW M5 (G90 / G99)" [level=3] [ref=e1059]
+                      - generic [ref=e1060]: Аксесуари вихлопної системи
+                      - generic [ref=e1061]: BMW M5 G90
+                  - generic [ref=e1062]:
+                    - generic [ref=e1064]:
+                      - generic [ref=e1065]: Ціна
+                      - generic [ref=e1066]: 484 EUR
+                    - generic [ref=e1067]:
+                      - generic [ref=e1068]:
+                        - button "Зменшити кількість" [disabled] [ref=e1069]
+                        - generic [ref=e1071]: "1"
+                        - button "Збільшити кількість" [ref=e1072]
+                      - button "У кошик" [ref=e1074]
+                - generic [ref=e1075]:
+                  - 'link "AKRAPOVIC E-BM/T/17 Комплект лінк-пайпів Evolution (титан) для BMW M5 (G90 / G99) OPF / GPF AKRAPOVIC AKRAPOVIC #E-BM/T/17 AKRAPOVIC E-BM/T/17 Комплект лінк-пайпів Evolution (титан) для BMW M5 (G90 / G99) OPF / GPF Даунпайпи, аппайпи та каталізатори BMW M5 G90" [ref=e1076] [cursor=pointer]':
+                    - /url: /ua/shop/akrapovic-e-bm-t-17
+                    - img "AKRAPOVIC E-BM/T/17 Комплект лінк-пайпів Evolution (титан) для BMW M5 (G90 / G99) OPF / GPF" [ref=e1078]
+                    - generic [ref=e1079]:
+                      - generic [ref=e1081]:
+                        - generic "AKRAPOVIC" [ref=e1082]:
+                          - img "AKRAPOVIC" [ref=e1083]
+                        - generic [ref=e1084]: AKRAPOVIC
+                      - button "#E-BM/T/17" [ref=e1086]
+                    - generic [ref=e1091]:
+                      - heading "AKRAPOVIC E-BM/T/17 Комплект лінк-пайпів Evolution (титан) для BMW M5 (G90 / G99) OPF / GPF" [level=3] [ref=e1092]
+                      - generic [ref=e1093]: Даунпайпи, аппайпи та каталізатори
+                      - generic [ref=e1094]: BMW M5 G90
+                  - generic [ref=e1095]:
+                    - generic [ref=e1097]:
+                      - generic [ref=e1098]: Ціна
+                      - generic [ref=e1099]: 2 323 EUR
+                    - generic [ref=e1100]:
+                      - generic [ref=e1101]:
+                        - button "Зменшити кількість" [disabled] [ref=e1102]
+                        - generic [ref=e1104]: "1"
+                        - button "Збільшити кількість" [ref=e1105]
+                      - button "У кошик" [ref=e1107]
+        - button "Відкрити One AI" [ref=e248]:
+          - generic [ref=e254]: One AI
+        - dialog "One AI" [ref=e1108]:
+          - generic [ref=e1109]:
+            - generic [ref=e1116]:
+              - generic [ref=e1117]: One AI
+              - generic [ref=e1118]: Підбір тюнінгу
+            - generic [ref=e1119]:
+              - button "Новий діалог" [ref=e1120]
+              - button "Закрити" [ref=e1124]
+          - generic [ref=e1128]:
+            - generic [ref=e1129]: BMW M5 G90
+            - generic [ref=e1130]: EUR
+          - generic [ref=e1132]:
+            - generic [ref=e1133]:
+              - generic [ref=e1134]: One AI
+              - generic [ref=e1139]: Що хочете змінити у BMW? Підберу кілька доречних варіантів і коротко поясню різницю.
+            - generic [ref=e1158]: Порівняй вихлопи для M5 G90
+            - generic [ref=e1160]:
+              - generic [ref=e1161]: One AI
+              - generic [ref=e1166]: "Для BMW M5 G90 є кілька сильних варіантів: AKRAPOVIC — 4 945 EUR; Remus — 3 737 EUR. Деталі та комплектація — у картках."
+              - generic [ref=e1167]:
+                - region "Порівняння" [ref=e1168]:
+                  - generic [ref=e1169]:
+                    - generic [ref=e1170]: Порівняння
+                    - generic [ref=e1171]: "3"
+                  - generic [ref=e1172]:
+                    - link "01 AKRAPOVIC AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF 4 945 EUR" [ref=e1174] [cursor=pointer]:
+                      - /url: /ua/shop/akrapovic-s-bm-t-37h
+                      - generic [ref=e1175]: "01"
+                      - generic [ref=e1176]:
+                        - generic [ref=e1177]: AKRAPOVIC
+                        - generic [ref=e1178]: AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF
+                      - generic [ref=e1179]: 4 945 EUR
+                    - link "02 Remus Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips 3 737 EUR" [ref=e1183] [cursor=pointer]:
+                      - /url: /ua/shop/remus-bundle-1-082025-1001-14
+                      - generic [ref=e1184]: "02"
+                      - generic [ref=e1185]:
+                        - generic [ref=e1186]: Remus
+                        - generic [ref=e1187]: Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips
+                      - generic [ref=e1188]: 3 737 EUR
+                    - link "03 AKRAPOVIC AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF 6 762 EUR" [ref=e1192] [cursor=pointer]:
+                      - /url: /ua/shop/akrapovic-s-bm-t-38
+                      - generic [ref=e1193]: "03"
+                      - generic [ref=e1194]:
+                        - generic [ref=e1195]: AKRAPOVIC
+                        - generic [ref=e1196]: AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF
+                      - generic [ref=e1197]: 6 762 EUR
+                - article [ref=e1200]:
+                  - generic [ref=e1202]:
+                    - link [ref=e1203] [cursor=pointer]:
+                      - /url: /ua/shop/akrapovic-s-bm-t-37h
+                    - generic [ref=e1204]:
+                      - generic [ref=e1205]:
+                        - generic [ref=e1206]: AKRAPOVIC
+                        - generic [ref=e1207]: S-BM/T/37H
+                      - link "AKRAPOVIC S-BM/T/37H Вихлопна система Slip-On Line (титан) для BMW M5 (G90 / G99) OPF / GPF" [ref=e1208] [cursor=pointer]:
+                        - /url: /ua/shop/akrapovic-s-bm-t-37h
+                      - generic [ref=e1209]:
+                        - generic [ref=e1210]: 4 945 EUR
+                        - generic [ref=e1211]:
+                          - link "Відкрити товар" [ref=e1212] [cursor=pointer]:
+                            - /url: /ua/shop/akrapovic-s-bm-t-37h
+                          - button "У кошик" [ref=e1217]
+                - article [ref=e1218]:
+                  - generic [ref=e1220]:
+                    - link [ref=e1221] [cursor=pointer]:
+                      - /url: /ua/shop/remus-bundle-1-082025-1001-14
+                    - generic [ref=e1222]:
+                      - generic [ref=e1223]:
+                        - generic [ref=e1224]: Remus
+                        - generic [ref=e1225]: 1-082025-1001-14
+                      - link "Sport Exhaust for BMW M5 G90 4x 100mm Titanium Black Tips" [ref=e1226] [cursor=pointer]:
+                        - /url: /ua/shop/remus-bundle-1-082025-1001-14
+                      - generic [ref=e1227]:
+                        - generic [ref=e1228]: 3 737 EUR
+                        - generic [ref=e1229]:
+                          - link "Відкрити товар" [ref=e1230] [cursor=pointer]:
+                            - /url: /ua/shop/remus-bundle-1-082025-1001-14
+                          - button "У кошик" [ref=e1235]
+                - article [ref=e1236]:
+                  - generic [ref=e1238]:
+                    - link [ref=e1239] [cursor=pointer]:
+                      - /url: /ua/shop/akrapovic-s-bm-t-38
+                    - generic [ref=e1240]:
+                      - generic [ref=e1241]:
+                        - generic [ref=e1242]: AKRAPOVIC
+                        - generic [ref=e1243]: S-BM/T/38
+                      - link "AKRAPOVIC S-BM/T/38 Вихлопна система Evolution Line (титан) для BMW M5 (G90 / G99) NON OPF / GPF" [ref=e1244] [cursor=pointer]:
+                        - /url: /ua/shop/akrapovic-s-bm-t-38
+                      - generic [ref=e1245]:
+                        - generic [ref=e1246]: 6 762 EUR
+                        - generic [ref=e1247]:
+                          - link "Відкрити товар" [ref=e1248] [cursor=pointer]:
+                            - /url: /ua/shop/akrapovic-s-bm-t-38
+                          - button "У кошик" [ref=e1253]
+                - link "Відкрити всі варіанти" [ref=e1255] [cursor=pointer]:
+                  - /url: /ua/shop/stock?currency=EUR&page=1&q=BMW+M5+G90+exhaust&category=exhaust&make=BMW&model=M5&chassis=G90&country=Germany
+          - generic [ref=e1150]:
+            - generic [ref=e1151]:
+              - textbox "Запитайте про BMW M5 G90" [ref=e1152]
+              - button "Надіслати" [disabled] [ref=e1153]
+            - paragraph [ref=e1157]: Сумісність перевіримо перед оформленням.
+    - button "Scroll to top"
+    - contentinfo [ref=e255]:
+      - generic [ref=e256]:
+        - generic [ref=e257]:
+          - generic [ref=e258]:
+            - link "OneCompany Home" [ref=e259] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=e262]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=e263]:
+              - paragraph [ref=e264]: Зв'язок у Telegram
+              - generic [ref=e265]:
+                - link "Telegram — Авто" [ref=e266] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=e269]: Авто
+                  - generic [ref=e270]: →
+                - link "Telegram — Мото" [ref=e271] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=e274]: Мото
+                  - generic [ref=e275]: →
+            - generic [ref=e276]:
+              - link "Open OneCompany Instagram profile" [ref=e277] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=e281] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=e284] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=e288]:
+            - heading "Компанія" [level=3] [ref=e289]
+            - list [ref=e290]:
+              - listitem [ref=e291]:
+                - link "Navigate to Головна page" [ref=e292] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=e293]:
+                - link "Navigate to Про нас page" [ref=e294] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=e295]:
+                - link "Navigate to Контакти page" [ref=e296] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=e297]:
+            - heading "Напрями" [level=3] [ref=e298]
+            - list [ref=e299]:
+              - listitem [ref=e300]:
+                - link "Navigate to Авто tuning section" [ref=e301] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=e302]:
+                - link "Navigate to Мотоцикли tuning section" [ref=e303] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=e304]:
+                - link "Navigate to Магазин tuning section" [ref=e305] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=e306]:
+            - heading "Штаб-квартира" [level=3] [ref=e307]
+            - generic [ref=e308]:
+              - paragraph [ref=e309]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=e310]:
+                - link "+380 66 077 17 00" [ref=e311] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=e312]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=e313]:
+          - generic [ref=e314]:
+            - paragraph [ref=e316]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=e317]:
+              - link "Доставка та оплата" [ref=e318] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=e319] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=e320] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=e321] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=e322] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=e323]:
+            - generic [ref=e324]: Безпечна оплата
+            - generic [ref=e325]:
+              - img "Visa" [ref=e326]
+              - img "MasterCard" [ref=e327]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - button "Open Next.js Dev Tools" [ref=e333] [cursor=pointer]
+  - alert [ref=e337]

@@ -1,0 +1,184 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - link "Skip to content" [ref=f5e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - link "ONE COMPANY home" [ref=f5e6] [cursor=pointer]:
+          - /url: /ua
+        - navigation [ref=f5e10]:
+          - link "Авто" [ref=f5e11] [cursor=pointer]:
+            - /url: /ua/auto
+          - link "Мото" [ref=f5e12] [cursor=pointer]:
+            - /url: /ua/moto
+          - generic [ref=f5e14]:
+            - link "Магазин" [ref=f5e15] [cursor=pointer]:
+              - /url: /ua/shop
+            - button "Відкрити меню магазину" [ref=f5e16]
+          - link "Блог" [ref=f5e19] [cursor=pointer]:
+            - /url: /ua/blog
+          - link "Контакти" [ref=f5e20] [cursor=pointer]:
+            - /url: /ua/contact
+        - generic [ref=f5e21]:
+          - generic [ref=f5e22]:
+            - button "EN" [ref=f5e23]
+            - button "UA" [disabled] [ref=f5e24]
+          - button "Toggle theme" [ref=f5e26]
+          - link "Стати партнером →" [ref=f5e30] [cursor=pointer]:
+            - /url: /ua/partnership
+            - generic [ref=f5e31]: Стати партнером
+            - generic [ref=f5e32]: →
+    - main [ref=f5e33]:
+      - generic [ref=f5e286]:
+        - generic [ref=f5e287]:
+          - paragraph [ref=f5e288]: Запитати експерта
+          - heading "Напишіть нам" [level=1] [ref=f5e289]
+          - paragraph [ref=f5e291]: Підберемо оптимальний комплект для авто чи мото. Вкажіть марку, модель, рік та побажання — ми забезпечимо рішення.
+        - generic [ref=f5e292]:
+          - generic [ref=f5e294]:
+            - generic [ref=f5e296]:
+              - generic [ref=f5e297]: 0%
+              - generic [ref=f5e298]: Заповнено
+            - generic [ref=f5e300]:
+              - button "Авто" [pressed] [ref=f5e301]
+              - button "Мото" [ref=f5e302]
+            - generic [ref=f5e303]:
+              - generic [ref=f5e304]:
+                - generic [ref=f5e305]: Як до Вас звертатись?
+                - textbox "Як до Вас звертатись?" [ref=f5e306]:
+                  - /placeholder: Ваше ім'я
+              - generic [ref=f5e307]:
+                - generic [ref=f5e308]:
+                  - generic [ref=f5e309]: Марка та модель авто
+                  - textbox "Марка та модель авто" [ref=f5e310]:
+                    - /placeholder: наприклад, BMW M3 G80
+                - generic [ref=f5e311]:
+                  - generic [ref=f5e312]: VIN-код (необов'язково)
+                  - textbox "VIN-код (необов'язково)" [ref=f5e313]:
+                    - /placeholder: 17 символів
+              - generic [ref=f5e314]:
+                - generic [ref=f5e315]: Побажання
+                - textbox "Побажання" [ref=f5e316]:
+                  - /placeholder: Опишіть, якого результату хочете...
+              - generic [ref=f5e317]:
+                - generic [ref=f5e318]:
+                  - generic [ref=f5e319]: Бюджет (необов'язково)
+                  - textbox "Бюджет (необов'язково)" [ref=f5e320]:
+                    - /placeholder: 1000-5000 USD
+                - generic [ref=f5e321]:
+                  - generic [ref=f5e322]: Email
+                  - textbox "Email" [ref=f5e323]:
+                    - /placeholder: example@mail.com
+              - generic [ref=f5e324]:
+                - generic [ref=f5e325]:
+                  - generic [ref=f5e326]: Телефон
+                  - textbox "Телефон" [ref=f5e327]:
+                    - /placeholder: +380 XX XXX XX XX
+                  - paragraph [ref=f5e328]: Тільки цифри та +
+                - generic [ref=f5e329]:
+                  - generic [ref=f5e330]: Telegram Username (необов'язково)
+                  - textbox "Telegram Username (необов'язково)" [ref=f5e331]:
+                    - /placeholder: "@username"
+            - button "Надіслати запит" [ref=f5e333]
+          - generic [ref=f5e334]:
+            - generic [ref=f5e335]:
+              - generic [ref=f5e341]:
+                - heading "Пошта" [level=3] [ref=f5e342]
+                - link "info@onecompany.global" [ref=f5e343] [cursor=pointer]:
+                  - /url: mailto:info@onecompany.global
+              - generic [ref=f5e348]:
+                - heading "Телефон" [level=3] [ref=f5e349]
+                - link "+380 66 077 17 00" [ref=f5e350] [cursor=pointer]:
+                  - /url: tel:+380660771700
+              - generic [ref=f5e356]:
+                - heading "Локація" [level=3] [ref=f5e357]
+                - paragraph [ref=f5e358]: Київ, Україна
+            - paragraph [ref=f5e359]: Менеджери допомагають з підбором деталей, логістикою та супроводом монтажу. Залиште повідомлення — відповімо протягом робочого дня.
+    - button "Scroll to top"
+    - contentinfo [ref=f5e197]:
+      - generic [ref=f5e198]:
+        - generic [ref=f5e199]:
+          - generic [ref=f5e200]:
+            - link "OneCompany Home" [ref=f5e201] [cursor=pointer]:
+              - /url: /ua
+            - paragraph [ref=f5e204]: Провідний імпортер тюнінгу з 2007 року. Працюємо з СТО, магазинами тюнінгу, детейлінг студіями та авто/мото дилерами у багатьох країнах світу.
+            - generic [ref=f5e205]:
+              - paragraph [ref=f5e206]: Зв'язок у Telegram
+              - generic [ref=f5e207]:
+                - link "Telegram — Авто" [ref=f5e208] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=f5e211]: Авто
+                  - generic [ref=f5e212]: →
+                - link "Telegram — Мото" [ref=f5e213] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=f5e216]: Мото
+                  - generic [ref=f5e217]: →
+            - generic [ref=f5e218]:
+              - link "Open OneCompany Instagram profile" [ref=f5e219] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=f5e223] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=f5e226] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=f5e230]:
+            - heading "Компанія" [level=2] [ref=f5e231]
+            - list [ref=f5e232]:
+              - listitem [ref=f5e233]:
+                - link "Navigate to Головна page" [ref=f5e234] [cursor=pointer]:
+                  - /url: /ua
+                  - text: Головна
+              - listitem [ref=f5e235]:
+                - link "Navigate to Про нас page" [ref=f5e236] [cursor=pointer]:
+                  - /url: /ua/about
+                  - text: Про нас
+              - listitem [ref=f5e237]:
+                - link "Navigate to Контакти page" [ref=f5e238] [cursor=pointer]:
+                  - /url: /ua/contact
+                  - text: Контакти
+          - generic [ref=f5e239]:
+            - heading "Напрями" [level=2] [ref=f5e240]
+            - list [ref=f5e241]:
+              - listitem [ref=f5e242]:
+                - link "Navigate to Авто tuning section" [ref=f5e243] [cursor=pointer]:
+                  - /url: /ua/auto
+                  - text: Авто
+              - listitem [ref=f5e244]:
+                - link "Navigate to Мотоцикли tuning section" [ref=f5e245] [cursor=pointer]:
+                  - /url: /ua/moto
+                  - text: Мотоцикли
+              - listitem [ref=f5e246]:
+                - link "Navigate to Магазин tuning section" [ref=f5e247] [cursor=pointer]:
+                  - /url: /ua/shop
+                  - text: Магазин
+          - generic [ref=f5e248]:
+            - heading "Штаб-квартира" [level=2] [ref=f5e249]
+            - generic [ref=f5e250]:
+              - paragraph [ref=f5e251]: вул. Басейна, 21БКиїв, 01024Україна
+              - generic [ref=f5e252]:
+                - link "+380 66 077 17 00" [ref=f5e253] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=f5e254]: Пн-Пт, 10:00 - 19:00
+        - generic [ref=f5e255]:
+          - generic [ref=f5e256]:
+            - paragraph [ref=f5e258]: © 2026 One Company. Засновано в Києві.
+            - generic [ref=f5e259]:
+              - link "Доставка та оплата" [ref=f5e260] [cursor=pointer]:
+                - /url: /ua/delivery
+              - link "Повернення коштів" [ref=f5e261] [cursor=pointer]:
+                - /url: /ua/refund
+              - link "Політика конфіденційності" [ref=f5e262] [cursor=pointer]:
+                - /url: /ua/privacy
+              - link "Умови використання" [ref=f5e263] [cursor=pointer]:
+                - /url: /ua/terms
+              - link "Політика cookies" [ref=f5e264] [cursor=pointer]:
+                - /url: /ua/cookies
+          - generic [ref=f5e265]:
+            - generic [ref=f5e266]: Безпечна оплата
+            - generic [ref=f5e267]:
+              - img "Visa" [ref=f5e268]
+              - img "MasterCard" [ref=f5e269]
+              - img "Whitepay" [ref=f5e270]
+              - img "Tether (USDT)" [ref=f5e271]
+              - img "Bitcoin" [ref=f5e272]
+  - button "Open Next.js Dev Tools" [ref=f5e278] [cursor=pointer]
+  - alert [ref=f5e282]: Контакти OneCompany | Підбір тюнінгу авто та мото

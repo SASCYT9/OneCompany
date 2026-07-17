@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { shouldUseShopAiSemanticReranking } from "@/lib/shopAiSemanticIntent";
 import type { ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
 
 const EMBEDDING_MODEL = process.env.SHOP_AI_EMBEDDING_MODEL || "gemini-embedding-2";
@@ -20,6 +21,12 @@ function buildSemanticQuery(message: string, plan: ShopAiPlan) {
     plan.vehicle.chassis,
     plan.vehicle.year,
     plan.vehicle.engine,
+    plan.vehicle.fuel,
+    plan.vehicle.bodyStyle,
+    plan.vehicle.drivetrain,
+    plan.vehicle.transmission,
+    plan.vehicle.market,
+    plan.brand,
     plan.powerGainHp ? `requested gain +${plan.powerGainHp} hp` : null,
   ]
     .filter(Boolean)
@@ -36,7 +43,7 @@ async function embedQuery(text: string) {
     config: {
       taskType: "RETRIEVAL_QUERY",
       outputDimensionality: EMBEDDING_DIMENSIONS,
-      httpOptions: { timeout: 8_000 },
+      httpOptions: { timeout: 1_500 },
     },
   });
   const values = response.embeddings?.[0]?.values;
@@ -52,33 +59,51 @@ export async function rerankShopAiProductsSemantically(input: {
   message: string;
   plan: ShopAiPlan;
 }) {
-  if (process.env.SHOP_AI_SEMANTIC_RERANK !== "1" || input.products.length < 2) {
-    return input.products;
+  if (
+    process.env.SHOP_AI_SEMANTIC_RERANK !== "1" ||
+    input.products.length < 2 ||
+    !shouldUseShopAiSemanticReranking(input.message, input.plan)
+  ) {
+    return { products: input.products, usedEmbedding: false };
   }
+  const hasProviderKey = Boolean(
+    (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim()
+  );
+  if (!hasProviderKey) return { products: input.products, usedEmbedding: false };
   try {
     const embedding = await embedQuery(buildSemanticQuery(input.message, input.plan));
-    if (!embedding) return input.products;
+    if (!embedding) return { products: input.products, usedEmbedding: true };
     const ids = input.products.map((product) => product.id);
     const vector = `[${embedding.join(",")}]`;
     const rows = await prisma.$queryRaw<Array<{ productId: string; distance: number }>>(
       Prisma.sql`
-        SELECT "productId", ("embedding" <=> CAST(${vector} AS vector)) AS "distance"
-        FROM "ShopProductKnowledge"
-        WHERE "productId" IN (${Prisma.join(ids)})
-          AND "embedding" IS NOT NULL
-          AND "embeddingModel" = ${EMBEDDING_MODEL}
+        SELECT
+          chunk."productId",
+          MIN(chunk."embedding" <=> CAST(${vector} AS vector)) AS "distance"
+        FROM "ShopKnowledgeChunk" chunk
+        INNER JOIN "ShopProductKnowledge" knowledge
+          ON knowledge."id" = chunk."knowledgeId"
+        WHERE chunk."productId" IN (${Prisma.join(ids)})
+          AND chunk."isActive" = true
+          AND chunk."revision" = knowledge."activeRevision"
+          AND chunk."embedding" IS NOT NULL
+          AND chunk."embeddingModel" = ${EMBEDDING_MODEL}
+          AND knowledge."schemaVersion" >= 2
+          AND knowledge."status" IN ('READY', 'NEEDS_REVIEW')
+        GROUP BY chunk."productId"
         ORDER BY "distance" ASC
       `
     );
-    if (!rows.length) return input.products;
+    if (!rows.length) return { products: input.products, usedEmbedding: true };
     const distanceById = new Map(rows.map((row) => [row.productId, Number(row.distance)]));
-    return [...input.products].sort((left, right) => {
+    const products = [...input.products].sort((left, right) => {
       const leftDistance = distanceById.get(left.id) ?? Number.POSITIVE_INFINITY;
       const rightDistance = distanceById.get(right.id) ?? Number.POSITIVE_INFINITY;
       return leftDistance - rightDistance;
     });
+    return { products, usedEmbedding: true };
   } catch (error) {
     console.warn("Shop AI semantic reranking unavailable", error);
-    return input.products;
+    return { products: input.products, usedEmbedding: true };
   }
 }

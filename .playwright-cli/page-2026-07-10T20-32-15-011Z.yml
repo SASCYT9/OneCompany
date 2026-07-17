@@ -1,0 +1,189 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "ONE COMPANY home" [ref=e6] [cursor=pointer]:
+          - /url: /en
+        - navigation [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /en
+          - link "Stores" [ref=e12] [cursor=pointer]:
+            - /url: /en/shop
+          - link "Akrapovič Catalog" [ref=e14] [cursor=pointer]:
+            - /url: /en/shop/akrapovic/collections
+          - link "Account" [ref=e15] [cursor=pointer]:
+            - /url: /en/shop/account
+        - generic [ref=e16]:
+          - link "Cart" [ref=e17] [cursor=pointer]:
+            - /url: /en/shop/cart
+          - button "Germany EUR" [ref=e22]:
+            - generic [ref=e23]: Germany
+            - generic [ref=e25]: EUR
+          - generic [ref=e28]:
+            - button "EN" [disabled] [ref=e29]
+            - button "UA" [ref=e30]
+          - button "Toggle theme" [ref=e32]
+    - main [ref=e36]:
+      - main [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - link "← Back to Akrapovič catalog" [ref=e42] [cursor=pointer]:
+              - /url: /en/shop/akrapovic?scope=moto
+            - generic [ref=e43]: Moto
+          - generic [ref=e44]:
+            - generic [ref=e46]:
+              - generic [ref=e47]:
+                - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA - Image 1" [ref=e49]
+                - generic: Full Exhaust Systems
+              - generic [ref=e50]:
+                - button [ref=e51]:
+                  - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA thumbnail 1" [ref=e52]
+                - button [ref=e53]:
+                  - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA thumbnail 2" [ref=e54]
+                - button [ref=e55]:
+                  - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA thumbnail 3" [ref=e56]
+                - button [ref=e57]:
+                  - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA thumbnail 4" [ref=e58]
+                - button [ref=e59]:
+                  - img "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA thumbnail 5" [ref=e60]
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - img "AKRAPOVIC" [ref=e64]
+                - generic [ref=e65]:
+                  - paragraph [ref=e66]: AKRAPOVIC
+                  - paragraph [ref=e67]: Ducati Performance
+              - heading "Ducati Panigale V4 2025+ Akrapovic Titanium Full Race Exhaust System 96482351AA" [level=1] [ref=e68]
+              - generic [ref=e69]:
+                - generic [ref=e70]: Part number
+                - generic [ref=e71]: 96482351AA
+              - generic [ref=e73]:
+                - generic [ref=e74]:
+                  - paragraph [ref=e75]:
+                    - strong [ref=e76]: IN STOCK AND READY TO SHIP!
+                  - paragraph [ref=e77]: From the combination of Akrapovič's manufacturing expertise and the passion of the Ducati technicians comes the complete racing exhaust system made entirely from titanium. In addition to ensuring resistance to high temperatures, the system complies with the required noise limit on the track with an exhaust sound level of less than 105 dB with the dB killers installed, however, removing the dB killers will unleash an even louder roar at 105dB. The special titanium alloy further lightens the bike, significantly improving the power-to-weight ratio for consistently excellent performance on the circuit. It is equipped with a racing-derived polyester air filter that, besides being more permeable, guarantees excellent filtering power and easy maintenance. It also features an innovative canister assembly which recovers the fuel that escapes during aggressive braking and returns it to the tank, contributing to consistent top performance. The map provided, with which all DTC - DWC - DPL and DSC parameters are adapted to the bike new performance, and the careful work carried out on torque and power have led to improvements over the entire range of use of the Panigale V4. Aesthetically, the dual under-seat silencer makes the bike design even more unique, giving it an additional aggressive touch with its unmistakable sound.
+                  - paragraph [ref=e78]: This product is intended for racing vehicle use only, in closed course competition. Operation on public roads is prohibited by law (check local regulations).
+                  - paragraph [ref=e79]: To be used exclusively in the single-seater configuration and is NOT compatible with cruise control!
+                  - paragraph [ref=e80]: The lower race fairing (SKU 97181321AA) is also required for install. Sold separately.
+                  - listitem [ref=e81]: "Max. Power [hp] : +12"
+                  - listitem [ref=e82]: "Max. Torque [Nm] : +7"
+                  - listitem [ref=e83]: "Weight reduction [kg] : 6,6"
+                  - listitem [ref=e84]: "Exhaust system sound level without db-killer: 105 dB."
+                  - listitem [ref=e85]: "Exhaust system sound level with db-killers installed: 102 dB."
+                  - listitem [ref=e86]: PANIGALE V4 2025+
+                  - listitem [ref=e87]: PANIGALE V4 S 2025+
+                  - listitem [ref=e88]: PANIGALE V4 S TRICOLORE 2025
+                  - listitem [ref=e89]: PANIGALE V4 S TRICOLORE ITALIA 2025
+                  - listitem [ref=e90]: PANIGALE V4 S CARBON 2025+
+                  - listitem [ref=e91]: PANIGALE V4 S CARBON PRO 2025+
+                  - listitem [ref=e92]: PANIGALE V4 S CORSE 2026
+                  - listitem [ref=e93]: PANIGALE V4 R 2026
+                  - listitem [ref=e94]: PANIGALE V4 MARQUEZ 2025 WORLD CHAMPION REPLICA
+                  - heading "Will NOT fit Lamboghini models!" [level=3] [ref=e95]
+                  - listitem [ref=e96]: PANIGALE V4 LAMBORGHINI 2026 must purchase 96482351BB.
+                  - listitem [ref=e97]: PANIGALE V4 LAMBORGHINI SPECIALE CLIENTI 2026 must purchase 96482351BC.
+                  - paragraph [ref=e98]: "**Please call our Web and Parts department to register your VIN to your exhaust in order for your up-map to be installed by your local Ducati Dealer."
+                  - heading "SKU 96482351AA , 96482351BA , 96482352BA" [level=3] [ref=e99]
+                - generic [ref=e100]:
+                  - paragraph [ref=e101]: Specifications
+                  - generic [ref=e103]:
+                    - term [ref=e104]: Part number
+                    - definition [ref=e105]: 96482351AA
+              - generic [ref=e107]:
+                - paragraph [ref=e108]: Pricing
+                - paragraph [ref=e109]: EUR 8,178
+                - paragraph [ref=e110]: USD 9,422 · UAH 433,417
+              - generic [ref=e111]:
+                - button "Add to cart" [ref=e112]
+                - link "Request product" [ref=e113] [cursor=pointer]:
+                  - /url: /en/contact
+                - link "Continue shopping" [ref=e114] [cursor=pointer]:
+                  - /url: /en/shop/akrapovic?scope=moto
+    - button "Scroll to top"
+    - contentinfo [ref=e115]:
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - link "OneCompany Home" [ref=e119] [cursor=pointer]:
+              - /url: /en
+            - paragraph [ref=e122]: Leading tuning importer since 2007. We work with workshops, tuning shops, detailing studios, and auto/moto dealers in many countries worldwide.
+            - generic [ref=e123]:
+              - paragraph [ref=e124]: Telegram contact
+              - generic [ref=e125]:
+                - link "Telegram — Auto" [ref=e126] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_global
+                  - generic [ref=e129]: Auto
+                  - generic [ref=e130]: →
+                - link "Telegram — Moto" [ref=e131] [cursor=pointer]:
+                  - /url: https://t.me/onecompany_moto
+                  - generic [ref=e134]: Moto
+                  - generic [ref=e135]: →
+            - generic [ref=e136]:
+              - link "Open OneCompany Instagram profile" [ref=e137] [cursor=pointer]:
+                - /url: https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr
+              - link "Open OneCompany TikTok profile" [ref=e141] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@onecompanyglobal
+              - link "Open OneCompany YouTube profile" [ref=e144] [cursor=pointer]:
+                - /url: https://www.youtube.com/@OneCompanyGlobal
+          - generic [ref=e148]:
+            - heading "Company" [level=3] [ref=e149]
+            - list [ref=e150]:
+              - listitem [ref=e151]:
+                - link "Navigate to Home page" [ref=e152] [cursor=pointer]:
+                  - /url: /en
+                  - text: Home
+              - listitem [ref=e153]:
+                - link "Navigate to About Us page" [ref=e154] [cursor=pointer]:
+                  - /url: /en/about
+                  - text: About Us
+              - listitem [ref=e155]:
+                - link "Navigate to Contact page" [ref=e156] [cursor=pointer]:
+                  - /url: /en/contact
+                  - text: Contact
+          - generic [ref=e157]:
+            - heading "Disciplines" [level=3] [ref=e158]
+            - list [ref=e159]:
+              - listitem [ref=e160]:
+                - link "Navigate to Auto tuning section" [ref=e161] [cursor=pointer]:
+                  - /url: /en/auto
+                  - text: Auto
+              - listitem [ref=e162]:
+                - link "Navigate to Motorcycles tuning section" [ref=e163] [cursor=pointer]:
+                  - /url: /en/moto
+                  - text: Motorcycles
+              - listitem [ref=e164]:
+                - link "Navigate to Shop tuning section" [ref=e165] [cursor=pointer]:
+                  - /url: /en/shop
+                  - text: Shop
+          - generic [ref=e166]:
+            - heading "Headquarters" [level=3] [ref=e167]
+            - generic [ref=e168]:
+              - paragraph [ref=e169]: 21B Baseina StKyiv, 01024Ukraine
+              - generic [ref=e170]:
+                - link "+380 66 077 17 00" [ref=e171] [cursor=pointer]:
+                  - /url: tel:+380660771700
+                - paragraph [ref=e172]: Mon-Fri, 10:00 - 19:00
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - paragraph [ref=e176]: © 2026 One Company. Founded in Kyiv.
+            - generic [ref=e177]:
+              - link "Delivery & Payment" [ref=e178] [cursor=pointer]:
+                - /url: /en/delivery
+              - link "Refund Policy" [ref=e179] [cursor=pointer]:
+                - /url: /en/refund
+              - link "Privacy Policy" [ref=e180] [cursor=pointer]:
+                - /url: /en/privacy
+              - link "Terms of Use" [ref=e181] [cursor=pointer]:
+                - /url: /en/terms
+              - link "Cookies Policy" [ref=e182] [cursor=pointer]:
+                - /url: /en/cookies
+          - generic [ref=e183]:
+            - generic [ref=e184]: Secure Payment
+            - generic [ref=e185]:
+              - img "Visa" [ref=e186]
+              - img "MasterCard" [ref=e187]
+              - img "Whitepay"
+              - img "Tether (USDT)"
+              - img "Bitcoin"
+  - alert [ref=e188]

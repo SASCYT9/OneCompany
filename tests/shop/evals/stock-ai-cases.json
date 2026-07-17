@@ -3,6 +3,14 @@
     "id": "bmw-m5-g90-power",
     "locale": "ua",
     "message": "BMW M5 G90 +100 сил",
+    "metadata": {
+      "language": "ua",
+      "tags": ["power-goal"],
+      "hardNegative": {
+        "dimensions": ["chassis"],
+        "note": "Older M5 and 5 Series chassis must not leak into G90 results."
+      }
+    },
     "expect": {
       "make": "BMW",
       "model": "M5",
@@ -16,6 +24,14 @@
     "id": "bmw-m3-2018-exhaust",
     "locale": "ua",
     "message": "BMW m3 2018 вихлоп",
+    "metadata": {
+      "language": "ua",
+      "tags": ["year-resolution"],
+      "hardNegative": {
+        "dimensions": ["year", "chassis"],
+        "note": "The model year must resolve to the matching M3 generation."
+      }
+    },
     "expect": {
       "make": "BMW",
       "model": "M3",
@@ -28,6 +44,14 @@
     "id": "bmw-m5-g90-exhaust-typo",
     "locale": "ua",
     "message": "Підбери вихлоп на BMW M5 G9O",
+    "metadata": {
+      "language": "ua",
+      "tags": ["typo"],
+      "hardNegative": {
+        "dimensions": ["chassis", "semantic"],
+        "note": "The letter O typo must not fall back to older M5 generations."
+      }
+    },
     "expect": {
       "make": "BMW",
       "model": "M5",
@@ -41,6 +65,10 @@
     "id": "generic-needs-vehicle",
     "locale": "ua",
     "message": "Хочу хороший вихлоп",
+    "metadata": {
+      "language": "ua",
+      "tags": ["clarification"]
+    },
     "expect": {
       "category": "exhaust",
       "productKind": "system",
@@ -51,6 +79,14 @@
     "id": "bmw-m5-g90-opf-exhaust",
     "locale": "ua",
     "message": "BMW M5 G90 вихлоп з OPF",
+    "metadata": {
+      "language": "ua",
+      "tags": ["emissions-filter"],
+      "hardNegative": {
+        "dimensions": ["chassis", "opfGpf"],
+        "note": "Both chassis and OPF state are strict compatibility constraints."
+      }
+    },
     "expect": {
       "make": "BMW",
       "model": "M5",
@@ -65,6 +101,14 @@
     "id": "bmw-m5-g90-non-opf-exhaust",
     "locale": "en",
     "message": "BMW M5 G90 NON OPF exhaust",
+    "metadata": {
+      "language": "en",
+      "tags": ["emissions-filter"],
+      "hardNegative": {
+        "dimensions": ["chassis", "opfGpf"],
+        "note": "OPF-compatible systems must not be returned for an explicit NON OPF request."
+      }
+    },
     "expect": {
       "make": "BMW",
       "model": "M5",
@@ -79,6 +123,14 @@
     "id": "porsche-911-992-exhaust",
     "locale": "en",
     "message": "Exhaust for Porsche 911 992",
+    "metadata": {
+      "language": "en",
+      "tags": ["numeric-model"],
+      "hardNegative": {
+        "dimensions": ["model", "chassis"],
+        "note": "The numeric model and chassis must remain correlated."
+      }
+    },
     "expect": {
       "make": "Porsche",
       "model": "911",
@@ -91,6 +143,14 @@
     "id": "audi-rs6-c8-brakes",
     "locale": "en",
     "message": "Brake rotors for Audi RS6 C8",
+    "metadata": {
+      "language": "en",
+      "tags": ["brakes"],
+      "hardNegative": {
+        "dimensions": ["category", "chassis"],
+        "note": "The assistant must keep both the brake intent and C8 fitment."
+      }
+    },
     "expect": {
       "make": "Audi",
       "model": "RS6",

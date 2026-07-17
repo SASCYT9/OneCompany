@@ -1,0 +1,570 @@
+- generic [active] [ref=f10e1]:
+  - generic [ref=f10e2]:
+    - banner [ref=f10e3]:
+      - generic [ref=f10e5]:
+        - list [ref=f10e6]:
+          - listitem [ref=f10e7]:
+            - link "Sign In" [ref=f10e8] [cursor=pointer]:
+              - /url: https://amsducati.com/customer/account/login/referer/aHR0cHM6Ly9hbXNkdWNhdGkuY29tL2JyYW5kcy9ha3JhcG92aWM_cD0y/
+          - listitem
+          - listitem
+          - generic [ref=f10e9]:
+            - paragraph [ref=f10e10]:
+              - link "My Account" [ref=f10e11] [cursor=pointer]:
+                - /url: https://amsducati.com/customer/account/
+            - text:  
+        - link "Skip to Content" [ref=f10e12] [cursor=pointer]:
+          - /url: "#contentarea"
+      - generic [ref=f10e13]:
+        - generic:
+          - tablist:
+            - tabpanel:  
+        - generic [ref=f10e14]:
+          - text: 
+          - link "store logo" [ref=f10e15] [cursor=pointer]:
+            - /url: https://amsducati.com/
+            - img "AMS Ducati Logo" [ref=f10e16]
+          - generic [ref=f10e17]:
+            - link " My Cart" [ref=f10e18] [cursor=pointer]:
+              - /url: https://amsducati.com/checkout/cart/
+              - text: 
+              - generic [ref=f10e19]: My Cart
+            - text: 
+          - generic:
+            - text: 
+            - generic:
+              - link [ref=f10e21] [cursor=pointer]:
+                - /url: javascript:void(0)
+              - generic [ref=f10e23]:
+                - generic [ref=f10e24]:
+                  - generic [ref=f10e25]:
+                    - text: 
+                    - generic [ref=f10e26]: Search
+                  - combobox " Search" [ref=f10e28] [cursor=pointer]
+                - generic:
+                  - button "Search" [disabled]: 
+          - navigation [ref=f10e29]:
+            - menu [ref=f10e30]:
+              - listitem [ref=f10e31] [cursor=pointer]:
+                - menuitem "Motorcycles" [ref=f10e32]: 
+              - listitem [ref=f10e34] [cursor=pointer]:
+                - menuitem "Ducati OEM Parts" [ref=f10e35]
+              - listitem [ref=f10e36] [cursor=pointer]:
+                - menuitem "Accessories" [ref=f10e37]:  Accessories
+              - listitem [ref=f10e38] [cursor=pointer]:
+                - menuitem "Apparel" [ref=f10e39]:  Apparel
+                - text: 
+              - listitem [ref=f10e40] [cursor=pointer]:
+                - menuitem "Closeout" [ref=f10e41]
+              - listitem [ref=f10e43] [cursor=pointer]:
+                - menuitem "Support" [ref=f10e44]: 
+                - text:   
+    - main [ref=f10e46]:
+      - list [ref=f10e48]:
+        - listitem [ref=f10e49]:
+          - link "Home" [ref=f10e50] [cursor=pointer]:
+            - /url: https://amsducati.com/
+          - text: /
+        - listitem [ref=f10e51]:
+          - link "Brands" [ref=f10e52] [cursor=pointer]:
+            - /url: https://amsducati.com/brands
+          - text: /
+        - listitem [ref=f10e53]:
+          - strong [ref=f10e54]: Akrapovic
+      - generic [ref=f10e55]:
+        - generic [ref=f10e56]:
+          - heading "Akrapovic" [level=1] [ref=f10e58]
+          - generic [ref=f10e59]:
+            - generic [ref=f10e60]:
+              - generic [ref=f10e61]:
+                - strong [ref=f10e62]: View as
+                - strong [ref=f10e63]:
+                  - text: 
+                  - generic [ref=f10e64]: Grid
+                - link "View as  List" [ref=f10e65] [cursor=pointer]:
+                  - /url: "#"
+                  - text: 
+                  - generic [ref=f10e66]: List
+              - generic [ref=f10e67]:
+                - strong [ref=f10e68]: Page
+                - list "Page" [ref=f10e69]:
+                  - listitem [ref=f10e70]:
+                    - link " Page Previous" [ref=f10e71] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic
+                      - text: 
+                      - generic [ref=f10e72]: Page
+                      - generic [ref=f10e73]: Previous
+                  - listitem [ref=f10e74]:
+                    - link "Page 1" [ref=f10e75] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic
+                      - generic [ref=f10e76]: Page
+                      - text: "1"
+                  - listitem [ref=f10e77]:
+                    - strong [ref=f10e78]:
+                      - generic [ref=f10e79]: You're currently reading page
+                      - text: "2"
+              - generic [ref=f10e80]:
+                - combobox "Show Show" [ref=f10e82]:
+                  - option "24" [selected]
+                  - option "48"
+                - text: per page
+              - generic [ref=f10e83]:
+                - combobox [ref=f10e84]:
+                  - option "Position" [selected]
+                  - option "Product Name"
+                  - option "Price"
+                  - option "Year"
+                  - option "Newest"
+                - link " Set Descending Direction " [ref=f10e85] [cursor=pointer]:
+                  - /url: "#"
+                  - text: 
+                  - generic [ref=f10e86]: Set Descending Direction
+                  - text: 
+            - list [ref=f10e88]:
+              - listitem [ref=f10e89]:
+                - generic [ref=f10e90]:
+                  - link [ref=f10e91] [cursor=pointer]:
+                    - /url: https://amsducati.com/streetfighter-v4-s-racing-silencers
+                    - img "Ducati Streetfighter V4 2020-2024 Akrapovic Race Slip-On Exhaust 96481661AA" [ref=f10e94]
+                  - generic [ref=f10e95]:
+                    - strong [ref=f10e96]:
+                      - link "Ducati Streetfighter V4 2020-2024 Akrapovic Race Slip-On Exhaust 96481661AA" [ref=f10e97] [cursor=pointer]:
+                        - /url: https://amsducati.com/streetfighter-v4-s-racing-silencers
+                    - generic [ref=f10e98]: $5,331.04
+                    - generic:  
+              - listitem [ref=f10e102]:
+                - generic [ref=f10e103]:
+                  - link [ref=f10e104] [cursor=pointer]:
+                    - /url: https://amsducati.com/streetfighter-v4-s-akrapovic-full-racing-exhaust
+                    - img "Ducati Streetfighter V4 (2020-2022) Akrapovic Titanium Full Race Exhaust System 96481653AA" [ref=f10e107]
+                  - generic [ref=f10e108]:
+                    - strong [ref=f10e109]:
+                      - link "Ducati Streetfighter V4 (2020-2022) Akrapovic Titanium Full Race Exhaust System 96481653AA" [ref=f10e110] [cursor=pointer]:
+                        - /url: https://amsducati.com/streetfighter-v4-s-akrapovic-full-racing-exhaust
+                    - generic [ref=f10e111]: $6,953.53
+                    - generic:  
+              - listitem [ref=f10e115]:
+                - generic [ref=f10e116]:
+                  - link [ref=f10e117] [cursor=pointer]:
+                    - /url: https://amsducati.com/supersport-950-s-akrapovic-slip-on-homologated-silencer
+                    - img "Ducati Supersport 950/S Akrapovic Homologated Slip-On 96481781AA" [ref=f10e120]
+                  - generic [ref=f10e121]:
+                    - strong [ref=f10e122]:
+                      - link "Ducati Supersport 950/S Akrapovic Homologated Slip-On 96481781AA" [ref=f10e123] [cursor=pointer]:
+                        - /url: https://amsducati.com/supersport-950-s-akrapovic-slip-on-homologated-silencer
+                    - generic [ref=f10e124]: $1,628.82
+                    - generic:  
+              - listitem [ref=f10e128]:
+                - generic [ref=f10e129]:
+                  - link [ref=f10e130] [cursor=pointer]:
+                    - /url: https://amsducati.com/supersport-950-s-akrapovic-complete-racing-exhaust-system
+                    - img "Ducati Supersport 950 Akrapovic Full Race Exhaust System 96482031AA" [ref=f10e133]
+                  - generic [ref=f10e134]:
+                    - strong [ref=f10e135]:
+                      - link "Ducati Supersport 950 Akrapovic Full Race Exhaust System 96482031AA" [ref=f10e136] [cursor=pointer]:
+                        - /url: https://amsducati.com/supersport-950-s-akrapovic-complete-racing-exhaust-system
+                    - generic [ref=f10e137]: $3,751.74
+                    - generic:  
+              - listitem [ref=f10e141]:
+                - generic [ref=f10e142]:
+                  - link [ref=f10e143] [cursor=pointer]:
+                    - /url: https://amsducati.com/supersport-939-s-akrapovic-complete-racing-exhaust-system
+                    - img "Ducati Supersport 939 Akrapovic Full Race Exhaust System 96481182A" [ref=f10e146]
+                  - generic [ref=f10e147]:
+                    - strong [ref=f10e148]:
+                      - link "Ducati Supersport 939 Akrapovic Full Race Exhaust System 96481182A" [ref=f10e149] [cursor=pointer]:
+                        - /url: https://amsducati.com/supersport-939-s-akrapovic-complete-racing-exhaust-system
+                    - generic [ref=f10e150]: $3,751.74
+                    - generic:  
+              - listitem [ref=f10e154]:
+                - generic [ref=f10e155]:
+                  - link [ref=f10e156] [cursor=pointer]:
+                    - /url: https://amsducati.com/panigale-v4-streetfighter-v4-homologated-slip-on-exhaust
+                    - img "Ducati Panigale V4 2018-2021 & Streetfighter V4 2020-2022 Akrapovic Homologated Slip-On Exhaust 96481712AA" [ref=f10e159]
+                  - generic [ref=f10e160]:
+                    - strong [ref=f10e161]:
+                      - link "Ducati Panigale V4 2018-2021 & Streetfighter V4 2020-2022 Akrapovic Homologated Slip-On Exhaust 96481712AA" [ref=f10e162] [cursor=pointer]:
+                        - /url: https://amsducati.com/panigale-v4-streetfighter-v4-homologated-slip-on-exhaust
+                    - generic [ref=f10e163]: $6,678.63
+                    - generic:  
+              - listitem [ref=f10e167]:
+                - generic [ref=f10e168]:
+                  - link [ref=f10e169] [cursor=pointer]:
+                    - /url: https://amsducati.com/multistrada-v4-akrapovic-full-racing-exhaust-system
+                    - img "Ducati Multistrada V4 2021-2024 Akrapovic Full Race Exhaust System (NOT FOR RALLY RS AND GRAND TOUR MODELS) 96481791CA" [ref=f10e172]
+                  - generic [ref=f10e173]:
+                    - strong [ref=f10e174]:
+                      - link "Ducati Multistrada V4 2021-2024 Akrapovic Full Race Exhaust System (NOT FOR RALLY RS AND GRAND TOUR MODELS) 96481791CA" [ref=f10e175] [cursor=pointer]:
+                        - /url: https://amsducati.com/multistrada-v4-akrapovic-full-racing-exhaust-system
+                    - generic [ref=f10e176]:
+                      - generic [ref=f10e177]:
+                        - generic [ref=f10e178]: "Rating:"
+                        - generic "100%" [ref=f10e179]:
+                          - text: 
+                          - generic [ref=f10e180]:
+                            - text: 
+                            - generic [ref=f10e181]: 100%
+                      - link "1 Review" [ref=f10e183] [cursor=pointer]:
+                        - /url: https://amsducati.com/multistrada-v4-akrapovic-full-racing-exhaust-system#reviews
+                    - generic [ref=f10e184]:
+                      - generic [ref=f10e186]:
+                        - text: Now
+                        - generic [ref=f10e187]: $3,953.51
+                      - generic [ref=f10e189]:
+                        - text: Was
+                        - generic [ref=f10e190]: $4,172.12
+                      - text: Save 5%
+                    - generic:  
+              - listitem [ref=f10e191]:
+                - generic [ref=f10e192]:
+                  - link [ref=f10e193] [cursor=pointer]:
+                    - /url: https://amsducati.com/multistrada-v4-akrapovic-silencer-slip-on-exhaust
+                    - img "Ducati Multistrada V4 Akrapovic Homologated Slip-On Exhaust 96481775DA" [ref=f10e196]
+                  - generic [ref=f10e197]:
+                    - strong [ref=f10e198]:
+                      - link "Ducati Multistrada V4 Akrapovic Homologated Slip-On Exhaust 96481775DA" [ref=f10e199] [cursor=pointer]:
+                        - /url: https://amsducati.com/multistrada-v4-akrapovic-silencer-slip-on-exhaust
+                    - generic [ref=f10e200]: $2,048.97
+                    - generic [ref=f10e205]:
+                      - generic [ref=f10e206]: Out of stock
+                      - generic:  
+              - listitem [ref=f10e208]:
+                - generic [ref=f10e209]:
+                  - link [ref=f10e210] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-multistrada-v4-akrapovic-full-racing-exhaust-system-center-stand-compatible
+                    - img "Ducati Multistrada V4 2021-2024 Akrapovic Full Race Exhaust System 96482292BA" [ref=f10e213]
+                  - generic [ref=f10e214]:
+                    - strong [ref=f10e215]:
+                      - link "Ducati Multistrada V4 2021-2024 Akrapovic Full Race Exhaust System 96482292BA" [ref=f10e216] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-multistrada-v4-akrapovic-full-racing-exhaust-system-center-stand-compatible
+                    - generic [ref=f10e217]: $4,172.12
+                    - generic:  
+              - listitem [ref=f10e221]:
+                - generic [ref=f10e222]:
+                  - link [ref=f10e223] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-multistrada-v4-rally-akrapovic-full-race-exhaust-system-96482291aa
+                    - img "Ducati Multistrada V4 Rally 2023-2025 Akrapovic Full Race Exhaust System 96482292AA" [ref=f10e226]
+                  - generic [ref=f10e227]:
+                    - strong [ref=f10e228]:
+                      - link "Ducati Multistrada V4 Rally 2023-2025 Akrapovic Full Race Exhaust System 96482292AA" [ref=f10e229] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-multistrada-v4-rally-akrapovic-full-race-exhaust-system-96482291aa
+                    - generic [ref=f10e230]: $4,172.12
+                    - generic:  
+              - listitem [ref=f10e234]:
+                - generic [ref=f10e235]:
+                  - link [ref=f10e236] [cursor=pointer]:
+                    - /url: https://amsducati.com/ducati-multistrada-v4-2025-akrapovic-full-race-exhaust-system-96482501aa
+                    - img "Ducati Multistrada V4 2025+ Akrapovic Full Race Exhaust System 96482501AA" [ref=f10e239]
+                  - generic [ref=f10e240]:
+                    - strong [ref=f10e241]:
+                      - link "Ducati Multistrada V4 2025+ Akrapovic Full Race Exhaust System 96482501AA" [ref=f10e242] [cursor=pointer]:
+                        - /url: https://amsducati.com/ducati-multistrada-v4-2025-akrapovic-full-race-exhaust-system-96482501aa
+                    - generic [ref=f10e243]: $4,172.12
+                    - generic:  
+            - generic [ref=f10e247]:
+              - text:  
+              - generic [ref=f10e248]:
+                - strong [ref=f10e249]: Page
+                - list "Page" [ref=f10e250]:
+                  - listitem [ref=f10e251]:
+                    - link " Page Previous" [ref=f10e252] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic
+                      - text: 
+                      - generic [ref=f10e253]: Page
+                      - generic [ref=f10e254]: Previous
+                  - listitem [ref=f10e255]:
+                    - link "Page 1" [ref=f10e256] [cursor=pointer]:
+                      - /url: https://amsducati.com/brands/akrapovic
+                      - generic [ref=f10e257]: Page
+                      - text: "1"
+                  - listitem [ref=f10e258]:
+                    - strong [ref=f10e259]:
+                      - generic [ref=f10e260]: You're currently reading page
+                      - text: "2"
+              - text:  
+        - generic [ref=f10e262]:
+          - tablist [ref=f10e263]: Filter Items 
+          - tabpanel [ref=f10e264]:
+            - separator [ref=f10e266]
+            - generic [ref=f10e268]:
+              - heading "Accessory Type" [level=3] [ref=f10e269]
+              - definition [ref=f10e270]:
+                - form "accessory_product_type form" [ref=f10e271]:
+                  - group "accessory_product_type filter group" [ref=f10e272]:
+                    - listitem [ref=f10e273]:
+                      - link "Body Panels ( 2 items )" [ref=f10e274] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=693
+                        - text: Body Panels
+                        - generic [ref=f10e275]:
+                          - text: ( 2
+                          - generic [ref=f10e276]: items
+                          - text: )
+                      - checkbox "Body Panels" [ref=f10e277]
+                    - listitem [ref=f10e278]:
+                      - link "Exhaust Collectors ( 2 items )" [ref=f10e279] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=301
+                        - text: Exhaust Collectors
+                        - generic [ref=f10e280]:
+                          - text: ( 2
+                          - generic [ref=f10e281]: items
+                          - text: )
+                      - checkbox "Exhaust Collectors" [ref=f10e282]
+                    - listitem [ref=f10e283]:
+                      - link "Exhaust Parts ( 4 items )" [ref=f10e284] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=494
+                        - text: Exhaust Parts
+                        - generic [ref=f10e285]:
+                          - text: ( 4
+                          - generic [ref=f10e286]: items
+                          - text: )
+                      - checkbox "Exhaust Parts" [ref=f10e287]
+                    - listitem [ref=f10e288]:
+                      - link "Full Exhausts ( 17 items )" [ref=f10e289] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=303
+                        - text: Full Exhausts
+                        - generic [ref=f10e290]:
+                          - text: ( 17
+                          - generic [ref=f10e291]: items
+                          - text: )
+                      - checkbox "Full Exhausts" [ref=f10e292]
+                    - listitem [ref=f10e293]:
+                      - link "Slip-On Exhausts ( 9 items )" [ref=f10e294] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?accessory_product_type=302
+                        - text: Slip-On Exhausts
+                        - generic [ref=f10e295]:
+                          - text: ( 9
+                          - generic [ref=f10e296]: items
+                          - text: )
+                      - checkbox "Slip-On Exhausts" [ref=f10e297]
+                - button "Show ( 0 ) more" [ref=f10e298] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=f10e299]: "0"
+                  - text: ) more
+              - heading "Category" [level=3] [ref=f10e300]
+              - definition [ref=f10e301]:
+                - form "product_category form" [ref=f10e302]:
+                  - group "product_category filter group" [ref=f10e303]:
+                    - listitem [ref=f10e304]:
+                      - link "Sale ( 5 items )" [ref=f10e305] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_category=84
+                        - text: Sale
+                        - generic [ref=f10e306]:
+                          - text: ( 5
+                          - generic [ref=f10e307]: items
+                          - text: )
+                      - checkbox "Sale" [ref=f10e308]
+              - heading "Price" [level=3] [ref=f10e309]
+              - definition [ref=f10e310]:
+                - generic [ref=f10e311]: $173.00 - $9423.00
+              - heading "Color" [level=3] [ref=f10e320]
+              - definition [ref=f10e321]:
+                - form "product_color form" [ref=f10e322]:
+                  - group "product_color filter group" [ref=f10e323]:
+                    - listitem [ref=f10e324]:
+                      - link "Black ( 2 items )" [ref=f10e325] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=146
+                        - text: Black
+                        - generic [ref=f10e326]:
+                          - text: ( 2
+                          - generic [ref=f10e327]: items
+                          - text: )
+                      - checkbox "Black" [ref=f10e328]
+                    - listitem [ref=f10e329]:
+                      - link "Carbon Matte ( 1 item )" [ref=f10e330] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=1090
+                        - text: Carbon Matte
+                        - generic [ref=f10e331]:
+                          - text: ( 1
+                          - generic [ref=f10e332]: item
+                          - text: )
+                      - checkbox "Carbon Matte" [ref=f10e333]
+                    - listitem [ref=f10e334]:
+                      - link "Matte Metallic Titanium ( 1 item )" [ref=f10e335] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_color=1093
+                        - text: Matte Metallic Titanium
+                        - generic [ref=f10e336]:
+                          - text: ( 1
+                          - generic [ref=f10e337]: item
+                          - text: )
+                      - checkbox "Matte Metallic Titanium" [ref=f10e338]
+                - button "Show ( 0 ) more" [ref=f10e339] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=f10e340]: "0"
+                  - text: ) more
+              - heading "Collection" [level=3] [ref=f10e341]
+              - definition [ref=f10e342]:
+                - form "product_collection form" [ref=f10e343]:
+                  - group "product_collection filter group" [ref=f10e344]:
+                    - listitem [ref=f10e345]:
+                      - link "Diavel ( 1 item )" [ref=f10e346] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=231
+                        - text: Diavel
+                        - generic [ref=f10e347]:
+                          - text: ( 1
+                          - generic [ref=f10e348]: item
+                          - text: )
+                      - checkbox "Diavel" [ref=f10e349]
+                    - listitem [ref=f10e350]:
+                      - link "Ducati Company ( 9 items )" [ref=f10e351] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=152
+                        - text: Ducati Company
+                        - generic [ref=f10e352]:
+                          - text: ( 9
+                          - generic [ref=f10e353]: items
+                          - text: )
+                      - checkbox "Ducati Company" [ref=f10e354]
+                    - listitem [ref=f10e355]:
+                      - link "Ducati Corse ( 9 items )" [ref=f10e356] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=151
+                        - text: Ducati Corse
+                        - generic [ref=f10e357]:
+                          - text: ( 9
+                          - generic [ref=f10e358]: items
+                          - text: )
+                      - checkbox "Ducati Corse" [ref=f10e359]
+                    - listitem [ref=f10e360]:
+                      - link "Ducati Off-Road ( 1 item )" [ref=f10e361] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_collection=1349
+                        - text: Ducati Off-Road
+                        - generic [ref=f10e362]:
+                          - text: ( 1
+                          - generic [ref=f10e363]: item
+                          - text: )
+                      - checkbox "Ducati Off-Road" [ref=f10e364]
+                - button "Show ( 0 ) more" [ref=f10e365] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=f10e366]: "0"
+                  - text: ) more
+              - heading "Brand" [level=3] [ref=f10e367]
+              - definition [ref=f10e368]:
+                - form "product_brand form" [ref=f10e369]:
+                  - group "product_brand filter group" [ref=f10e370]:
+                    - listitem [ref=f10e371]:
+                      - link "Akrapovic ( 32 items )" [ref=f10e372] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_brand=809
+                        - text: Akrapovic
+                        - generic [ref=f10e373]:
+                          - text: ( 32
+                          - generic [ref=f10e374]: items
+                          - text: )
+                      - checkbox "Akrapovic" [ref=f10e375]
+                    - listitem [ref=f10e376]:
+                      - link "Ducati Performance ( 13 items )" [ref=f10e377] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?product_brand=111
+                        - text: Ducati Performance
+                        - generic [ref=f10e378]:
+                          - text: ( 13
+                          - generic [ref=f10e379]: items
+                          - text: )
+                      - checkbox "Ducati Performance" [ref=f10e380]
+                - button "Show ( 0 ) more" [ref=f10e381] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=f10e382]: "0"
+                  - text: ) more
+              - heading "Material" [level=3] [ref=f10e383]
+              - definition [ref=f10e384]:
+                - form "material form" [ref=f10e385]:
+                  - group "material filter group" [ref=f10e386]:
+                    - listitem [ref=f10e387]:
+                      - link "Carbon Fiber ( 13 items )" [ref=f10e388] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=26
+                        - text: Carbon Fiber
+                        - generic [ref=f10e389]:
+                          - text: ( 13
+                          - generic [ref=f10e390]: items
+                          - text: )
+                      - checkbox "Carbon Fiber" [ref=f10e391]
+                    - listitem [ref=f10e392]:
+                      - link "Plastic ( 2 items )" [ref=f10e393] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=24
+                        - text: Plastic
+                        - generic [ref=f10e394]:
+                          - text: ( 2
+                          - generic [ref=f10e395]: items
+                          - text: )
+                      - checkbox "Plastic" [ref=f10e396]
+                    - listitem [ref=f10e397]:
+                      - link "Steel ( 3 items )" [ref=f10e398] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=320
+                        - text: Steel
+                        - generic [ref=f10e399]:
+                          - text: ( 3
+                          - generic [ref=f10e400]: items
+                          - text: )
+                      - checkbox "Steel" [ref=f10e401]
+                    - listitem [ref=f10e402]:
+                      - link "Titanium ( 25 items )" [ref=f10e403] [cursor=pointer]:
+                        - /url: https://amsducati.com/brands/akrapovic?material=22
+                        - text: Titanium
+                        - generic [ref=f10e404]:
+                          - text: ( 25
+                          - generic [ref=f10e405]: items
+                          - text: )
+                      - checkbox "Titanium" [ref=f10e406]
+                - button "Show ( 0 ) more" [ref=f10e407] [cursor=pointer]:
+                  - text: Show (
+                  - generic [ref=f10e408]: "0"
+                  - text: ) more
+    - contentinfo [ref=f10e409]:
+      - contentinfo [ref=f10e411]:
+        - generic [ref=f10e412]:
+          - generic [ref=f10e413]:
+            - generic [ref=f10e414]: Get Updates on the latest AMS news, products and promotions
+            - generic [ref=f10e417]:
+              - generic [ref=f10e418]: Email Address
+              - textbox "Email Address" [ref=f10e419]:
+                - /placeholder: email address
+              - generic [ref=f10e420]: Online Store Newsletter
+              - checkbox "Online Store Newsletter" [checked] [ref=f10e421]
+              - button [ref=f10e423] [cursor=pointer]:
+                - generic [ref=f10e424]: 
+          - article [ref=f10e425]:
+            - generic [ref=f10e426]:
+              - img "AMS Ducati Logo" [ref=f10e427]
+              - paragraph [ref=f10e428]: Since 1995, Advanced Motorsports Ducati Dallas has been a leader in Ducati service and sales in the United States. Centrally located in Dallas, Texas, Advanced Motorsports is fully stocked with the latest Ducati Motorcycles, Ducati Performance Parts, Ducati Apparel, Ducati Accessories and Merchandise.
+              - list [ref=f10e429]:
+                - listitem [ref=f10e430]:
+                  - link "New Bikes" [ref=f10e431] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/new-bikes
+                - listitem [ref=f10e432]:
+                  - link "Used Bikes" [ref=f10e433] [cursor=pointer]:
+                    - /url: https://amsducati.com/motorcycles/used-bikes
+                - listitem [ref=f10e434]:
+                  - link "Contact" [ref=f10e435] [cursor=pointer]:
+                    - /url: https://amsducati.com/support/contact/
+            - generic [ref=f10e436]:
+              - img "AMS_Ducati_Showroom" [ref=f10e437]
+              - generic [ref=f10e438]:
+                - generic [ref=f10e439]: 
+                - generic [ref=f10e440]:
+                  - generic [ref=f10e441]: Ducati Showroom
+                  - text: 1318 N Riverfront Blvd Dallas, TX 75207
+            - generic [ref=f10e442]:
+              - img "AMS Ducati Service" [ref=f10e443]
+              - generic [ref=f10e444]:
+                - generic [ref=f10e445]: 
+                - generic [ref=f10e446]:
+                  - generic [ref=f10e447]: Ducati Service
+                  - text: 135 Leslie St Dallas, TX 75207
+          - generic [ref=f10e448]:
+            - generic [ref=f10e449]:
+              - generic [ref=f10e450]: © 2026 AMS Ducati Dallas | Proudly representing
+              - img "Texas Flag" [ref=f10e451]
+            - list [ref=f10e453]:
+              - listitem [ref=f10e454]:
+                - link [ref=f10e455] [cursor=pointer]:
+                  - /url: https://www.facebook.com/amsducati
+                  - generic [ref=f10e456]: 
+              - listitem [ref=f10e457]:
+                - link [ref=f10e458] [cursor=pointer]:
+                  - /url: https://twitter.com/amsducatidallas
+                  - generic [ref=f10e459]: 
+              - listitem [ref=f10e460]:
+                - link [ref=f10e461] [cursor=pointer]:
+                  - /url: https://www.instagram.com/amsducatidallas/
+                  - generic [ref=f10e462]: 
+              - listitem [ref=f10e463]:
+                - link [ref=f10e464] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/ams-ducati-dallas
+                  - generic [ref=f10e465]: 
+  - checkbox [ref=f10e466]
