@@ -24,10 +24,7 @@ import {
   normalizeShopSearchText,
 } from "@/lib/shopSearch";
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
-import {
-  cleanShopAiProductKind,
-  inferShopAiProductKind,
-} from "@/lib/shopAiProductKind";
+import { cleanShopAiProductKind, inferShopAiProductKind } from "@/lib/shopAiProductKind";
 import { diversifyShopStockItems } from "@/lib/shopStockRanking";
 import {
   buildVehicleSearchDebug,
@@ -47,6 +44,7 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import {
   filterShopStockItemsByVehicleScope,
+  isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
   resolveShopStockVehicleScope,
   type ShopStockVehicleScope,
@@ -547,20 +545,14 @@ function buildFilterStats(
   };
 }
 
-function nullableStrictApplicationEquals(
-  column: Prisma.Sql,
-  value: string | null
-) {
+function nullableStrictApplicationEquals(column: Prisma.Sql, value: string | null) {
   if (!value) return null;
   return Prisma.sql`
     (${column} IS NULL OR lower(trim(${column})) = lower(trim(${value})))
   `;
 }
 
-function presentStrictApplicationEquals(
-  column: Prisma.Sql,
-  value: string | null
-) {
+function presentStrictApplicationEquals(column: Prisma.Sql, value: string | null) {
   if (!value) return null;
   return Prisma.sql`
     (${column} IS NOT NULL AND lower(trim(${column})) = lower(trim(${value})))
@@ -595,26 +587,11 @@ async function resolveStrictCatalogMatches(
   }
 
   const applicationClauses = [
-    nullableStrictApplicationEquals(
-      Prisma.sql`application."make"`,
-      constraints.make
-    ),
-    nullableStrictApplicationEquals(
-      Prisma.sql`application."model"`,
-      constraints.model
-    ),
-    nullableStrictApplicationEquals(
-      Prisma.sql`application."chassisCode"`,
-      constraints.chassis
-    ),
-    nullableStrictApplicationEquals(
-      Prisma.sql`application."engine"`,
-      constraints.engine
-    ),
-    nullableStrictApplicationEquals(
-      Prisma.sql`application."opfGpf"`,
-      constraints.opfGpf
-    ),
+    nullableStrictApplicationEquals(Prisma.sql`application."make"`, constraints.make),
+    nullableStrictApplicationEquals(Prisma.sql`application."model"`, constraints.model),
+    nullableStrictApplicationEquals(Prisma.sql`application."chassisCode"`, constraints.chassis),
+    nullableStrictApplicationEquals(Prisma.sql`application."engine"`, constraints.engine),
+    nullableStrictApplicationEquals(Prisma.sql`application."opfGpf"`, constraints.opfGpf),
     constraints.year
       ? Prisma.sql`
           (application."yearFrom" IS NULL OR application."yearFrom" <= ${constraints.year})
@@ -623,26 +600,11 @@ async function resolveStrictCatalogMatches(
       : null,
   ].filter((clause): clause is Prisma.Sql => clause !== null);
   const exactApplicationClauses = [
-    presentStrictApplicationEquals(
-      Prisma.sql`application."make"`,
-      constraints.make
-    ),
-    presentStrictApplicationEquals(
-      Prisma.sql`application."model"`,
-      constraints.model
-    ),
-    presentStrictApplicationEquals(
-      Prisma.sql`application."chassisCode"`,
-      constraints.chassis
-    ),
-    presentStrictApplicationEquals(
-      Prisma.sql`application."engine"`,
-      constraints.engine
-    ),
-    presentStrictApplicationEquals(
-      Prisma.sql`application."opfGpf"`,
-      constraints.opfGpf
-    ),
+    presentStrictApplicationEquals(Prisma.sql`application."make"`, constraints.make),
+    presentStrictApplicationEquals(Prisma.sql`application."model"`, constraints.model),
+    presentStrictApplicationEquals(Prisma.sql`application."chassisCode"`, constraints.chassis),
+    presentStrictApplicationEquals(Prisma.sql`application."engine"`, constraints.engine),
+    presentStrictApplicationEquals(Prisma.sql`application."opfGpf"`, constraints.opfGpf),
     constraints.year
       ? Prisma.sql`
           (application."yearFrom" IS NOT NULL OR application."yearTo" IS NOT NULL)
@@ -652,9 +614,7 @@ async function resolveStrictCatalogMatches(
       : null,
   ].filter((clause): clause is Prisma.Sql => clause !== null);
   const requestedProductKind =
-    constraints.productKind && constraints.productKind !== "any"
-      ? constraints.productKind
-      : null;
+    constraints.productKind && constraints.productKind !== "any" ? constraints.productKind : null;
 
   try {
     const rows = await prisma.$queryRaw<StrictCatalogKnowledgeRow[]>(Prisma.sql`
@@ -793,13 +753,10 @@ async function resolveStrictCatalogMatches(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const strictCatalogConstraints =
-      parseStrictCatalogSearchConstraints(searchParams);
+    const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     const q = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
-    const productKind = cleanShopAiProductKind(
-      searchParams.get("productKind")
-    );
+    const productKind = cleanShopAiProductKind(searchParams.get("productKind"));
     const strictMatch = strictCatalogConstraints.enabled;
     const make = searchParams.get("make")?.trim() || "";
     const model = searchParams.get("model")?.trim() || "";
@@ -827,26 +784,18 @@ export async function GET(request: NextRequest) {
     const hasBrandFilter = brandNames.length > 0;
     const strictCatalogApplied =
       strictMatch &&
-      (strictCatalogConstraints.invalid ||
-        strictCatalogConstraints.hasKnowledgeConstraints);
+      (strictCatalogConstraints.invalid || strictCatalogConstraints.hasKnowledgeConstraints);
     const strictCatalogPromise = strictCatalogApplied
-      ? resolveStrictCatalogMatches(
-          strictCatalogConstraints,
-          locale === "en" ? "en" : "ua"
-        )
+      ? resolveStrictCatalogMatches(strictCatalogConstraints, locale === "en" ? "en" : "ua")
       : Promise.resolve<StrictCatalogResolution | null>(null);
 
-    const [
-      settingsRecord,
-      session,
-      allProductsWithFitments,
-      strictCatalogResolution,
-    ] = await Promise.all([
-      getOrCreateShopSettings(prisma),
-      getCurrentShopCustomerSession(),
-      getShopProductsWithFitments(),
-      strictCatalogPromise,
-    ]);
+    const [settingsRecord, session, allProductsWithFitments, strictCatalogResolution] =
+      await Promise.all([
+        getOrCreateShopSettings(prisma),
+        getCurrentShopCustomerSession(),
+        getShopProductsWithFitments(),
+        strictCatalogPromise,
+      ]);
     const scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
       allProductsWithFitments,
       vehicleScope
@@ -854,13 +803,9 @@ export async function GET(request: NextRequest) {
     const strictCatalogMatches = strictCatalogResolution?.matches ?? null;
     const productsWithFitments =
       strictCatalogApplied && strictCatalogMatches
-        ? scopedProductsWithFitments.filter((item) =>
-            strictCatalogMatches.has(item.product.id)
-          )
+        ? scopedProductsWithFitments.filter((item) => strictCatalogMatches.has(item.product.id))
         : scopedProductsWithFitments;
-    const matchesProductKind = (
-      item: (typeof productsWithFitments)[number]
-    ) => {
+    const matchesProductKind = (item: (typeof productsWithFitments)[number]) => {
       if (!productKind || productKind === "any") return true;
       const categoryGroup = getShopStockCategoryGroupForProduct(item, locale);
       const evidence = [
@@ -874,9 +819,7 @@ export async function GET(request: NextRequest) {
       ]
         .filter(Boolean)
         .join(" ");
-      return (
-        inferShopAiProductKind(evidence, categoryGroup.id) === productKind
-      );
+      return inferShopAiProductKind(evidence, categoryGroup.id) === productKind;
     };
 
     const settings = getShopSettingsRuntime(settingsRecord);
@@ -964,36 +907,32 @@ export async function GET(request: NextRequest) {
 
     if (make && !strictCatalogApplied) {
       const makeNorm = normalizeShopSearchText(make);
-      filtered = filtered.filter(
-        (item) =>
-          item.fitments.some(
-            (fitment) => fitment.make && normalizeShopSearchText(fitment.make) === makeNorm
-          ) || item.searchText.includes(makeNorm)
-      );
+      filtered = isVehicleMakeCompatibleWithScope(make, vehicleScope)
+        ? filtered.filter((item) =>
+            item.fitments.some(
+              (fitment) => fitment.make && normalizeShopSearchText(fitment.make) === makeNorm
+            )
+          )
+        : [];
     }
 
     if (model && !strictCatalogApplied) {
       const modelNorm = normalizeShopSearchText(model);
-      filtered = filtered.filter(
-        (item) =>
-          item.fitments.some((fitment) =>
-            fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm)
-          ) || item.searchText.includes(modelNorm)
+      filtered = filtered.filter((item) =>
+        item.fitments.some((fitment) =>
+          fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm)
+        )
       );
     }
 
     if (chassis && !strictCatalogApplied) {
-      const chassisNorm = normalizeShopSearchText(chassis);
       if (make && model && !isExpectedChassisForMakeModel(make, model, chassis)) {
         filtered = [];
       } else {
-        filtered = filtered.filter(
-          (item) =>
-            item.fitments.some((fitment) =>
-              fitment.chassisCodes.some((c: string) =>
-                areChassisCompatible(c, chassis.toUpperCase())
-              )
-            ) || item.searchText.includes(chassisNorm)
+        filtered = filtered.filter((item) =>
+          item.fitments.some((fitment) =>
+            fitment.chassisCodes.some((c: string) => areChassisCompatible(c, chassis.toUpperCase()))
+          )
         );
       }
     }
@@ -1220,12 +1159,8 @@ export async function GET(request: NextRequest) {
     if (strictCatalogApplied && strictCatalogMatches) {
       scoredItems.sort(
         (left, right) =>
-          getStrictCatalogMatchRank(
-            strictCatalogMatches.get(left.product.id)
-          ) -
-          getStrictCatalogMatchRank(
-            strictCatalogMatches.get(right.product.id)
-          )
+          getStrictCatalogMatchRank(strictCatalogMatches.get(left.product.id)) -
+          getStrictCatalogMatchRank(strictCatalogMatches.get(right.product.id))
       );
     }
 
@@ -1235,12 +1170,7 @@ export async function GET(request: NextRequest) {
     let fallbackApplied: "fitment" | "all" | null = null;
     let statsItems = scoredItems;
 
-    if (
-      !strictMatch &&
-      totalItems === 0 &&
-      q &&
-      (make || model || chassis || hasBrandFilter)
-    ) {
+    if (!strictMatch && totalItems === 0 && q && (make || model || chassis || hasBrandFilter)) {
       // Fallback 1: Ignore vehicle fitment filters
       let fallbackFiltered = productsWithFitments;
       if (hasBrandFilter) {
@@ -1356,6 +1286,10 @@ export async function GET(request: NextRequest) {
       ({ product, fitments, fitmentStatus, fitmentSource }) => {
         const pricing = getProductPricing(product);
         const strictCatalogMatch = strictCatalogMatches?.get(product.id);
+        const sourceCategory =
+          locale === "en"
+            ? product.category?.en || product.category?.ua || ""
+            : product.category?.ua || product.category?.en || "";
 
         const usdRate = settings.currencyRates.USD || 1.152174;
         const uahRate = settings.currencyRates.UAH || 53.0;
@@ -1411,10 +1345,7 @@ export async function GET(request: NextRequest) {
             locale === "en"
               ? product.shortDescription?.en || product.shortDescription?.ua || ""
               : product.shortDescription?.ua || product.shortDescription?.en || "",
-          category:
-            locale === "en"
-              ? product.category?.en || product.category?.ua || ""
-              : product.category?.ua || product.category?.en || "",
+          category: sourceCategory || getShopStockCategoryLabelForProduct({ product }, locale),
           thumbnail: product.image || null,
           inStock: product.stock === "inStock",
           price: dealerPrice,
@@ -1435,8 +1366,7 @@ export async function GET(request: NextRequest) {
                 matchStatus: strictCatalogMatch.matchStatus,
                 missingFacts: strictCatalogMatch.missingFacts,
                 matchReason: strictCatalogMatch.matchReason,
-                matchedApplicationId:
-                  strictCatalogMatch.matchedApplicationId,
+                matchedApplicationId: strictCatalogMatch.matchedApplicationId,
               }
             : {}),
           ...(includeFitment

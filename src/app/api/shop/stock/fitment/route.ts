@@ -3,6 +3,7 @@ import { getShopProductsWithFitments } from "../search/route";
 import { isExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
 import {
   filterShopStockItemsByVehicleScope,
+  isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
 
@@ -30,8 +31,10 @@ export async function GET(request: NextRequest) {
     if (!make) {
       const makesSet = new Set<string>();
       for (const item of productsWithFitments) {
-        if (item.fitment.make) {
-          makesSet.add(item.fitment.make);
+        for (const fitment of item.fitments) {
+          if (fitment.make && isVehicleMakeCompatibleWithScope(fitment.make, vehicleScope)) {
+            makesSet.add(fitment.make);
+          }
         }
       }
       const makes = Array.from(makesSet).sort((a, b) => a.localeCompare(b));
@@ -40,12 +43,17 @@ export async function GET(request: NextRequest) {
 
     // Level 1: Make → Models
     if (make && !model) {
+      if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
+        return cachedJson({ type: "models", make, data: [] });
+      }
       const modelsSet = new Set<string>();
       const makeLower = make.toLowerCase();
       for (const item of productsWithFitments) {
-        if (item.fitment.make && item.fitment.make.toLowerCase() === makeLower) {
-          for (const modelVal of item.fitment.models) {
-            modelsSet.add(modelVal);
+        for (const fitment of item.fitments) {
+          if (fitment.make && fitment.make.toLowerCase() === makeLower) {
+            for (const modelVal of fitment.models) {
+              modelsSet.add(modelVal);
+            }
           }
         }
       }
@@ -55,18 +63,23 @@ export async function GET(request: NextRequest) {
 
     // Level 2: Make + Model → Chassis
     if (make && model) {
+      if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
+        return cachedJson({ type: "chassis", make, model, data: [] });
+      }
       const chassisSet = new Set<string>();
       const makeLower = make.toLowerCase();
       const modelLower = model.toLowerCase();
       for (const item of productsWithFitments) {
-        if (
-          item.fitment.make &&
-          item.fitment.make.toLowerCase() === makeLower &&
-          item.fitment.models.some((m: string) => m.toLowerCase() === modelLower)
-        ) {
-          for (const code of item.fitment.chassisCodes) {
-            if (isExpectedChassisForMakeModel(make, model, code)) {
-              chassisSet.add(code);
+        for (const fitment of item.fitments) {
+          if (
+            fitment.make &&
+            fitment.make.toLowerCase() === makeLower &&
+            fitment.models.some((m: string) => m.toLowerCase() === modelLower)
+          ) {
+            for (const code of fitment.chassisCodes) {
+              if (isExpectedChassisForMakeModel(make, model, code)) {
+                chassisSet.add(code);
+              }
             }
           }
         }

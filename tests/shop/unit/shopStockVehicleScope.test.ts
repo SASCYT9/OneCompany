@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   filterShopStockItemsByVehicleScope,
+  isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
   resolveShopStockVehicleScope,
 } from "../../../src/lib/shopStockVehicleScope";
@@ -41,4 +42,12 @@ test("filterShopStockItemsByVehicleScope is optional and isolates scopes", () =>
     filterShopStockItemsByVehicleScope(items, "moto").map((item) => item.id),
     ["moto-1"]
   );
+});
+
+test("moto scope rejects automotive make false positives", () => {
+  assert.equal(isVehicleMakeCompatibleWithScope("Ducati", "moto"), true);
+  assert.equal(isVehicleMakeCompatibleWithScope("BMW", "moto"), true);
+  assert.equal(isVehicleMakeCompatibleWithScope("Harley-Davidson", "moto"), true);
+  assert.equal(isVehicleMakeCompatibleWithScope("SEAT", "moto"), false);
+  assert.equal(isVehicleMakeCompatibleWithScope("SEAT", "auto"), true);
 });

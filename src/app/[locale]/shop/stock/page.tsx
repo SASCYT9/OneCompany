@@ -163,8 +163,8 @@ const normalizeFacetSearchText = (value: string) =>
     .toLowerCase();
 
 const VEHICLE_MODE_ICON_MASK: Record<VehicleMode, string> = {
-  auto: "/images/icons/vehicle/car-outline.svg",
-  moto: "/images/icons/vehicle/motorbike-outline.svg",
+  auto: "/images/icons/vehicle/sport-car-icon.svg",
+  moto: "/images/icons/vehicle/sport-bike-motorcycle-icon.svg",
 };
 
 function PremiumVehicleIcon({
@@ -190,6 +190,7 @@ function PremiumVehicleIcon({
         maskRepeat: "no-repeat",
         WebkitMaskSize: "contain",
         maskSize: "contain",
+        transform: "scaleX(-1)",
       }}
     />
   );
@@ -957,7 +958,7 @@ function StockPageContent() {
         thumbnail: item.thumbnail,
         slug: item.slug,
         href: item.href,
-        category: item.category || item.brand,
+        category: item.category,
       }));
     const immediateSuggestions = [
       ...immediateBrands,
@@ -1203,11 +1204,27 @@ function StockPageContent() {
     fetch(`/api/shop/stock/fitment?scope=${vehicleMode}`, { signal: controller.signal })
       .then((response) => response.json())
       .then((fitmentRes) => {
-        setMakes(fitmentRes.data || []);
+        const nextMakes = Array.isArray(fitmentRes.data) ? fitmentRes.data : [];
+        setMakes(nextMakes);
+        if (
+          make &&
+          !nextMakes.some(
+            (makeName: string) =>
+              normalizeVehicleMakeName(makeName) === normalizeVehicleMakeName(make)
+          )
+        ) {
+          initialModelRef.current = "";
+          initialChassisRef.current = "";
+          setMake("");
+          setModel("");
+          setChassis("");
+          setModels([]);
+          setChassisCodes([]);
+        }
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [vehicleMode]);
+  }, [make, vehicleMode]);
 
   // Cascading: Make → Models
   useEffect(() => {
@@ -1940,7 +1957,7 @@ function StockPageContent() {
                           : "border-foreground/10 bg-foreground/[0.035]"
                       }`}
                     >
-                      <PremiumVehicleIcon mode={mode} className="h-5 w-5" />
+                      <PremiumVehicleIcon mode={mode} className="h-5 w-7" />
                     </span>
                     {mode === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
                   </button>
@@ -2652,7 +2669,7 @@ function StockPageContent() {
                             : "border-foreground/10 bg-foreground/[0.035]"
                         }`}
                       >
-                        <PremiumVehicleIcon mode={mode} className="h-5 w-5" />
+                        <PremiumVehicleIcon mode={mode} className="h-5 w-7" />
                       </span>
                       {mode === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
                     </button>
@@ -2685,29 +2702,7 @@ function StockPageContent() {
                 <ChevronDown className="h-4 w-4 shrink-0 rotate-180 text-foreground/45" />
               </button>
             </div>
-            <div className="hidden gap-2 lg:grid lg:grid-cols-[150px_repeat(3,minmax(0,1fr))_132px]">
-              <div className="flex h-11 min-w-0 items-center gap-2 rounded-[8px] border border-foreground/15 bg-foreground/[0.025] px-3 text-[11px] font-medium text-foreground/78">
-                {vehicleMode === "auto" ? (
-                  <PremiumVehicleIcon
-                    mode="auto"
-                    className="h-[17px] w-[17px] text-foreground/60"
-                  />
-                ) : (
-                  <PremiumVehicleIcon
-                    mode="moto"
-                    className="h-[17px] w-[17px] text-foreground/60"
-                  />
-                )}
-                <span className="truncate">
-                  {isUa
-                    ? vehicleMode === "auto"
-                      ? "Моє авто"
-                      : "Моє мото"
-                    : vehicleMode === "auto"
-                      ? "My car"
-                      : "My moto"}
-                </span>
-              </div>
+            <div className="hidden gap-2 lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))_132px]">
               {renderVehicleFitmentFields(true)}
               <button
                 type="button"
@@ -3240,7 +3235,7 @@ function StockPageContent() {
                                 {item.name}
                               </h3>
                               <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
-                                {item.category || item.brand}
+                                {item.category}
                               </div>
                               {make || model || chassis ? (
                                 <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
@@ -3333,48 +3328,7 @@ function StockPageContent() {
                                   </Link>
                                 ) : null}
                               </div>
-                            ) : (
-                              <div className="flex min-h-9 items-center gap-2 rounded-[7px] border border-foreground/10 bg-foreground/[0.025] px-2.5 text-[9px] text-foreground/58">
-                                <CircleAlert className="h-3.5 w-3.5 shrink-0 text-foreground/55" />
-                                <span className="min-w-0 flex-1 truncate">
-                                  {fallbackApplied
-                                    ? isUa
-                                      ? "Сумісність потребує перевірки"
-                                      : "Compatibility needs verification"
-                                    : selectedVehicleLabel
-                                      ? isUa
-                                        ? vehicleMode === "auto"
-                                          ? "Результат підбору за авто"
-                                          : "Результат підбору за мото"
-                                        : "Matched to selected vehicle"
-                                      : isUa
-                                        ? "Потрібна перевірка сумісності"
-                                        : "Compatibility check required"}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={handleOpenMakePicker}
-                                  className="shrink-0 font-medium text-primary transition hover:brightness-75"
-                                  aria-label={`${
-                                    selectedVehicleLabel
-                                      ? isUa
-                                        ? "Змінити підбір"
-                                        : "Change fitment"
-                                      : isUa
-                                        ? "Перевірити сумісність"
-                                        : "Check compatibility"
-                                  }: ${item.name}`}
-                                >
-                                  {selectedVehicleLabel
-                                    ? isUa
-                                      ? "Змінити"
-                                      : "Change"
-                                    : isUa
-                                      ? "Перевірити"
-                                      : "Check"}
-                                </button>
-                              </div>
-                            )}
+                            ) : null}
 
                             <StockCardCartControl
                               item={item}
@@ -3465,7 +3419,7 @@ function StockPageContent() {
                                       ? "Під замовлення"
                                       : "Pre-order"}
                                 </span>
-                                {(item.matchStatus || make || model || chassis) && (
+                                {item.matchStatus && (
                                   <span
                                     className={`inline-flex items-center gap-1 border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-widest ${
                                       item.matchStatus === "exact"
@@ -3489,13 +3443,7 @@ function StockPageContent() {
                                         ? isUa
                                           ? "Потрібна перевірка"
                                           : "Verify fitment"
-                                        : fallbackApplied
-                                          ? isUa
-                                            ? "Перевірка"
-                                            : "Verify"
-                                          : isUa
-                                            ? "Результат підбору"
-                                            : "Selection result"}
+                                        : null}
                                   </span>
                                 )}
                               </div>
@@ -3587,7 +3535,7 @@ function StockPageContent() {
 
                               {/* Fitment badge */}
                               <div className="flex gap-1.5">
-                                {(item.matchStatus || make || model || chassis) && (
+                                {item.matchStatus && (
                                   <span
                                     className={`border px-2 py-0.5 text-[7px] font-semibold uppercase tracking-wider ${
                                       item.matchStatus === "exact"
@@ -3606,13 +3554,7 @@ function StockPageContent() {
                                         ? isUa
                                           ? "Потрібна перевірка"
                                           : "Verify fitment"
-                                        : fallbackApplied
-                                          ? isUa
-                                            ? "Перевірка"
-                                            : "Verify"
-                                          : isUa
-                                            ? "Результат підбору"
-                                            : "Selection result"}
+                                        : null}
                                   </span>
                                 )}
                               </div>

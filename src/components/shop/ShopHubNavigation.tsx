@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, LayoutGrid, SlidersHorizontal, Tags } from "lucide-react";
+import { ArrowDown, ArrowUpRight, LayoutGrid, SlidersHorizontal, Tags } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -48,11 +48,13 @@ export function ShopHubNavigation({ locale, active, className }: ShopHubNavigati
         const Icon = ICONS[destination.key];
         const isActive = active === destination.key;
         const isCatalog = destination.key === "catalog";
+        const scrollsToBrands = destination.key === "brands" && isActive;
+        const DirectionIcon = scrollsToBrands ? ArrowDown : ArrowUpRight;
 
         return (
           <Link
             key={destination.key}
-            href={destination.href}
+            href={scrollsToBrands ? "#shop-brands" : destination.href}
             prefetch={destination.key === "catalog" ? false : undefined}
             aria-current={isActive ? "page" : undefined}
             className={cn(
@@ -87,9 +89,12 @@ export function ShopHubNavigation({ locale, active, className }: ShopHubNavigati
               </span>
             </span>
 
-            <ArrowUpRight
+            <DirectionIcon
               className={cn(
-                "hidden h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:block",
+                "hidden h-4 w-4 shrink-0 transition-transform duration-300 sm:block",
+                scrollsToBrands
+                  ? "group-hover:translate-y-0.5"
+                  : "group-hover:translate-x-0.5 group-hover:-translate-y-0.5",
                 isCatalog ? "text-primary-foreground" : "text-white/40"
               )}
               strokeWidth={1.7}

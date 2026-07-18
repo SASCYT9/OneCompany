@@ -228,7 +228,10 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
         />
 
         {/* Section label */}
-        <div className="mb-5 flex items-end justify-between border-b border-foreground/10 pb-5 sm:mb-6 sm:pb-6">
+        <div
+          id="shop-brands"
+          className="mb-5 flex scroll-mt-28 items-end justify-between border-b border-foreground/10 pb-5 sm:mb-6 sm:scroll-mt-32 sm:pb-6"
+        >
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-foreground/55 dark:text-foreground/30">
               {t(isUa, "One shop", "Один магазин")}
