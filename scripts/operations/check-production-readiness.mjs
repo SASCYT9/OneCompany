@@ -69,6 +69,7 @@ const expectedMigrations = [
   "20260720183000_remove_ops_telegram_batch_item_limit",
   "20260722010000_add_ops_shared_tasks",
   "20260722020000_default_ops_task_deadline",
+  "20260722193000_normalize_ops_admin_display_name",
 ];
 
 for (const migration of expectedMigrations) {
