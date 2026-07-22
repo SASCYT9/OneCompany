@@ -23,6 +23,7 @@ import {
   transcribeOpsMediaWithAi,
   type OpsExtraction,
 } from "@/lib/operations/ai";
+import { opsAdminLink, resolveOpsAdminBaseUrl } from "@/lib/operations/adminLinks";
 import {
   createOpsTelegramCallbackState,
   executeOpsTelegramCallback,
@@ -1999,7 +2000,7 @@ async function executeTelegramIntakeStage(input: {
           taskCount: inbox._count.proposals,
           summary: inbox.summary,
           inboxItemId: inbox.id,
-          adminBaseUrl: process.env.OPS_ADMIN_BASE_URL,
+          adminBaseUrl: resolveOpsAdminBaseUrl(),
           previewOnly: payload.previewOnly,
           sourceKind: payload.batchItems?.length
             ? "batch"
@@ -2008,9 +2009,6 @@ async function executeTelegramIntakeStage(input: {
               : "message",
           autoAppliedTasks,
         });
-    const adminBaseUrl = String(process.env.OPS_ADMIN_BASE_URL ?? "")
-      .trim()
-      .replace(/\/+$/, "");
     const cancelData = await createOpsTelegramCallbackState({
       client: input.client,
       action: "cancel_creation",
@@ -2018,11 +2016,9 @@ async function executeTelegramIntakeStage(input: {
       actorAdminUserId: payload.actorAdminUserId,
       ttlMs: 10 * 60 * 1000,
     });
-    const openUrl = adminBaseUrl
-      ? autoAppliedTasks[0]
-        ? `${adminBaseUrl}/admin/operations/tasks/${encodeURIComponent(autoAppliedTasks[0].id)}`
-        : `${adminBaseUrl}/admin/operations/inbox?selected=${encodeURIComponent(inbox.id)}`
-      : null;
+    const openUrl = autoAppliedTasks[0]
+      ? opsAdminLink(`/admin/operations/tasks/${encodeURIComponent(autoAppliedTasks[0].id)}`)
+      : opsAdminLink(`/admin/operations/inbox?selected=${encodeURIComponent(inbox.id)}`);
     const replyMarkup =
       !payload.callbackResponse && (openUrl || cancelData)
         ? {
@@ -2750,10 +2746,7 @@ async function executeInternalNotificationJob(input: {
           })
         : "без срока";
     const taskId = String(payload.taskId ?? input.job.taskId ?? "");
-    const taskUrl =
-      process.env.OPS_ADMIN_BASE_URL && taskId
-        ? `${process.env.OPS_ADMIN_BASE_URL.replace(/\/+$/, "")}/admin/operations/tasks/${taskId}`
-        : null;
+    const taskUrl = taskId ? opsAdminLink(`/admin/operations/tasks/${taskId}`) : null;
     text = [
       "🆕 Вам назначена задача",
       `${String(payload.externalId ?? "")} — ${title}`.trim(),
@@ -2799,10 +2792,7 @@ async function executeInternalNotificationJob(input: {
       .filter(Boolean)
       .join("\n");
     const taskId = String(payload.taskId ?? input.job.taskId ?? "");
-    const taskUrl =
-      process.env.OPS_ADMIN_BASE_URL && taskId
-        ? `${process.env.OPS_ADMIN_BASE_URL.replace(/\/+$/, "")}/admin/operations/tasks/${taskId}`
-        : null;
+    const taskUrl = taskId ? opsAdminLink(`/admin/operations/tasks/${taskId}`) : null;
     const callbacks: OpsTelegramReplyMarkup["inline_keyboard"][number] = [];
     for (const [action, label, style] of [
       ["edit", "✏️ Исправить", undefined],
@@ -2848,9 +2838,7 @@ async function executeInternalNotificationJob(input: {
     ]
       .filter(Boolean)
       .join("\n");
-    const tasksUrl = process.env.OPS_ADMIN_BASE_URL
-      ? `${process.env.OPS_ADMIN_BASE_URL.replace(/\/+$/, "")}/admin/operations/tasks?mine=1`
-      : null;
+    const tasksUrl = opsAdminLink("/admin/operations/tasks?mine=1");
     if (tasksUrl) {
       replyMarkup = {
         inline_keyboard: [[{ text: "📋 Открыть мои задачи", url: tasksUrl, style: "primary" }]],

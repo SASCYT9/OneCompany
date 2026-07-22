@@ -42,6 +42,53 @@ final result: passed
 
 ---
 
+# Design QA — production dark catalog and Operations activation
+
+- Source visual truth: `C:/Users/sascy/AppData/Local/Temp/codex-clipboard-127ea10f-3c97-4d25-96d2-29869da669a1.png`
+- Catalog implementation screenshot: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/catalog-dark-after.png`
+- Combined comparison: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/catalog-dark-comparison.png`
+- Operations implementation screenshot: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/ops-production-after.png`
+- Source pixels: 1533 × 693; catalog implementation pixels/CSS viewport: 3440 × 1519 at device scale 1.
+- Comparison normalization: both catalog captures scaled to 1533 px width on a shared canvas; no crop or density-only finding was filed.
+- Routes: `https://onecompany.global/ua/shop` and `https://onecompany.global/admin/operations`
+- State: production, authenticated admin, desktop, dark storefront; Operations light workspace inside the existing dark admin shell.
+
+## Full-view comparison evidence
+
+The catalog layout, typography, spacing, imagery, controls, copy, and dark palette remain unchanged outside the native select theme correction. The Operations production capture shows the permission-aware `Работа` navigation and a rendered `Обзор работы` page rather than the prior server error.
+
+## Focused region comparison evidence
+
+The supplied source shows a Windows/Chrome native category popup rendered white while inheriting near-white option text. The deployed select now computes to `color-scheme: dark`; every inspected option computes to `rgb(250, 250, 250)` text on `rgb(5, 5, 5)` background. The supported browser API cannot keep an operating-system native select popup open for capture, so focused verification combines the shared visual canvas, computed production styles, and the regression contract in `tests/shop/unit/shopCatalogQuickSearchTheme.test.ts`.
+
+## Findings
+
+- No actionable P0, P1, or P2 findings remain in the requested scope.
+- Fonts and typography: unchanged from the existing storefront/admin systems.
+- Spacing and layout rhythm: unchanged; no new overflow, crop, radius, or alignment regression is visible.
+- Colors and visual tokens: native selects and options now use a dark color scheme with explicit foreground/background tokens; contrast is no longer dependent on the browser's light popup default.
+- Image quality and asset fidelity: existing product and brand assets are unchanged and remain sharp at the tested viewport.
+- Copy and content: unchanged, except the already-implemented Russian Operations labels now appear in production.
+- Primary interactions tested: authenticated Operations route load, permission-aware navigation render, production catalog select token resolution.
+- Console/runtime errors: no new browser error boundary; no Vercel HTTP 500 logs after the production verification request.
+
+## Comparison history
+
+- Earlier P1: white native select popup with nearly white option labels in dark mode.
+- Fix: added light/dark `color-scheme` plus explicit option/optgroup background and foreground tokens.
+- Post-fix evidence: production computed styles resolve the select and options to the dark palette; focused tests pass.
+- Earlier P0: Operations menu was feature-flagged off and enabling it exposed Prisma direct-connection exhaustion.
+- Fix: enabled only the Ops UI, moved runtime traffic to Prisma Postgres pooled TCP, retained `DIRECT_URL` for migrations, and reused one Prisma client per warm isolate.
+- Post-fix evidence: authenticated `/admin/operations` renders successfully and the new deployment has no HTTP 500 log entries after verification.
+
+## Follow-up polish
+
+- Manually open one native select on each supported desktop OS during the next cross-browser regression pass; native popup chrome is operating-system controlled.
+
+final result: passed
+
+---
+
 # Design QA — One Company Operations workspace
 
 - Desktop source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_drp3vXPXAjYBMyTb9ave5c7M.png`

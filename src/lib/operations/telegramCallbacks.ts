@@ -15,6 +15,7 @@ import {
   SUPERADMIN_ROLE_KEY,
 } from "@/lib/admin/adminPermissions";
 import { opsAttachmentRetentionAt } from "@/lib/operations/media";
+import { opsAdminLink } from "@/lib/operations/adminLinks";
 import { assertTaskTransition } from "@/lib/operations/tasks";
 
 export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
@@ -252,10 +253,7 @@ function auditData(
 }
 
 function adminLink(path: string) {
-  const baseUrl = String(process.env.OPS_ADMIN_BASE_URL ?? "")
-    .trim()
-    .replace(/\/+$/, "");
-  return baseUrl ? `${baseUrl}${path}` : null;
+  return opsAdminLink(path);
 }
 
 async function cancelInboxCreation(input: {
