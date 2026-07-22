@@ -1,98 +1,123 @@
-source visual truth path: C:/Users/sascy/.codex/generated_images/019f2cea-e935-7932-92ba-75f1ee7571ef/exec-27f8be8e-fc29-495b-8b5f-e3b66781d4b7.png
-implementation screenshot path: D:/One Company/OneCompany/artifacts/stock-ranking-make-logos/desktop-stock.png
-viewport: 1265x712 desktop; 390x844 mobile
-state: /ua/shop/stock, dark theme, recommended grid; vehicle make picker tested with BMW
+# Design QA — active Brands navigation
 
-full-view comparison evidence:
+- Source visual truth: `C:/Users/sascy/AppData/Local/Temp/codex-clipboard-a3b23206-af05-4b06-b507-480fb64da288.png`
+- Implementation full screenshot: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/implementation-full.png`
+- Focused implementation screenshot: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/implementation-nav.png`
+- Side-by-side comparison: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/comparison.png`
+- Viewport: requested 1641 × 700; browser content capture 1626 × 694 due to native scrollbar/chrome
+- Route: `http://localhost:3000/ua/shop`
+- State: Brands is the active shop section
 
-- Combined comparison: D:/One Company/OneCompany/artifacts/stock-ranking-make-logos/source-vs-implementation.png
-- The implementation keeps the selected cinematic dark direction, full-width Stock composition, compact left filters, results toolbar, sharp corners, and product-led catalog layout.
-- The implementation intentionally keeps original product thumbnails and existing product-brand logos. The source mock's normalized product imagery was not copied.
-- At the narrower 1265px desktop viewport the implementation uses three product columns after the sidebar; the source visual represents a wider four-column state. This is an expected responsive difference that protects title and price readability.
+## Full-view comparison evidence
 
-focused region comparison evidence:
+The existing three-card navigation layout, typography, spacing, colors, borders, radii, icons, copy, and responsive structure were preserved. The implementation changes only the directional affordance and active-card destination requested by the annotation.
 
-- Desktop make picker: D:/One Company/OneCompany/artifacts/stock-ranking-make-logos/desktop-make-picker.png
-- Mobile make picker: D:/One Company/OneCompany/artifacts/stock-ranking-make-logos/mobile-make-picker.png
-- The picker exposes all 66 fitment makes, prioritizes common makes, preserves recognizable logo color where useful, gives dark marks a light treatment, and keeps names visible.
-- BMW selection was verified: the picker closed, the BMW logo remained in the field, model options loaded, the selected-vehicle strip updated, and catalog results changed from 14,934 to 2,515.
+## Focused region comparison evidence
 
-findings:
+The side-by-side focused comparison confirms that the active Brands card now uses a downward arrow in the same icon slot and visual weight as the previous diagonal arrow. Catalog and vehicle-selection cards retain their diagonal arrows.
 
-- No actionable P0/P1/P2 issue remains for the recommended-ranking and vehicle-make-logo feature.
-- P3: Range Rover currently reuses the related Land Rover mark because the local source dataset does not include a separate Range Rover asset.
-- P3: Some complex manufacturer marks have source-specific dark details; the make name remains visible below every mark.
+## Findings
 
-comparison history:
+- No actionable P0, P1, or P2 differences within the requested scope.
+- Fonts and typography: unchanged.
+- Spacing and layout rhythm: unchanged; no card resizing or wrapping introduced.
+- Colors and visual tokens: unchanged; the existing theme tokens remain intact.
+- Image quality and asset fidelity: unchanged; no image assets were modified.
+- Copy and content: unchanged.
+- Interaction: clicking Brands updates the URL to `#shop-brands` and scrolls to the `15 брендів` section without reloading the page.
+- Accessibility: the destination is a real anchor target; keyboard and standard link behavior are preserved.
+- Console errors: none observed.
 
-- Earlier pass was blocked because the in-app Browser webview did not attach.
-- Browser attachment succeeded in this pass. Desktop and mobile screenshots were captured, console errors were checked, and the source and implementation were combined into one comparison image.
-- Initial logo treatment forced every mark to white and flattened Porsche/Ferrari/Lamborghini crests. The implementation was changed to preserve original logo colors and apply a light treatment only to dark marks; desktop and mobile captures were repeated.
+## Comparison history
 
-primary interactions tested:
+- Initial issue: the active Brands card used an up-right arrow and linked back to the same page root.
+- Fix: changed the active Brands direction icon to ArrowDown and its destination to `#shop-brands`; added the matching scroll target with header offset.
+- Post-fix evidence: focused comparison and successful browser interaction at `/ua/shop#shop-brands`.
 
-- Default recommended catalog loaded with 13 product brands and 14 product categories in the first 24 results.
-- Vehicle make picker opened on desktop and mobile.
-- BMW selection populated model options and updated catalog counts.
-- Mobile filter drawer remained usable and its sticky actions stayed visible.
-- Browser console errors checked: none.
+## Follow-up polish
+
+- None required for this scoped change.
 
 final result: passed
 
-latest stock discovery pass (2026-07-09):
+---
 
-- New hero source: C:/Users/sascy/.codex/generated_images/019f2cea-e935-7932-92ba-75f1ee7571ef/exec-5fc76454-54dd-4783-8b4b-ce80408901bd.png
-- Optimized implementation asset: D:/One Company/OneCompany/public/images/hero-stock-performance-v2.webp
-- Desktop hero capture: D:/One Company/OneCompany/artifacts/stock-design-audit-2026-07-09/desktop-hero-v2.png
-- Desktop autocomplete capture: D:/One Company/OneCompany/artifacts/stock-design-audit-2026-07-09/desktop-search-suggestions.png
-- Autocomplete was tested with `BMW`: mixed vehicle/product results appeared, long metadata stayed bounded, Escape closed the list, and the async response did not reopen it.
-- The autocomplete layer initially rendered below the results toolbar and the native search clear control duplicated the custom clear button. Both issues were fixed and recaptured.
-- Product groups and brands hide zero-count options, show seven initial choices, and expand/collapse independently. The group expansion control was tested in the browser.
-- Desktop console errors checked: none.
-- Mobile DOM verification at 390px confirmed the desktop sidebar is hidden and the page has no horizontal document overflow. A fresh mobile screenshot could not be captured because the in-app browser screenshot command timed out twice after viewport switching; the previous mobile drawer verification remains the latest visual evidence.
+# Design QA — One Company Operations workspace
 
-latest result: desktop passed; mobile behavior passed with screenshot recapture blocked by the browser tool
+- Desktop source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_drp3vXPXAjYBMyTb9ave5c7M.png`
+- Mobile list source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_9HfJLMvXZuGJw2lnVNh7Fyvx.png`
+- Mobile detail source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_ATad6k9OdjdkTdx6smFmgi6C.png`
+- Route: `http://127.0.0.1:3000/admin/operations/tasks`
+- Intended states: desktop split task workspace; mobile task list; mobile task detail
 
-light theme pass (2026-07-10):
+## Implemented visual contract
 
-- Reference styling: `/ua/contact` light theme (`bg-background`, `text-foreground`, low-opacity foreground surfaces, light card elevation, and dark-specific overrides).
-- Mobile capture: D:/One Company/OneCompany/artifacts/stock-light-theme-2026-07-10/mobile-stock-light.png
-- Desktop capture: D:/One Company/OneCompany/artifacts/stock-light-theme-2026-07-10/desktop-stock-light.png
-- Light autocomplete capture: D:/One Company/OneCompany/artifacts/stock-light-theme-2026-07-10/desktop-search-light.png
-- Stock cards, media wells, filter/sidebar surfaces, toolbar, fitment modal, native select options, drawer shadows, empty states, and autocomplete now use semantic theme colors.
-- Hero media intentionally remains dark in both themes, while its search and vehicle controls switch to warm light glass surfaces in light mode.
-- Brand and vehicle logo filters are theme-aware. Remus uses its black wordmark asset in light mode and its white wordmark asset in dark mode.
-- Verified at 485px and 1440px. No horizontal overflow or text overlap observed; the light search dropdown remained above the results toolbar.
+- The Operations workspace is scoped to the existing admin shell; it does not create a second site or restyle legacy commerce screens.
+- Desktop uses a dark admin navigation frame, light working surface, task list/detail split, and list/board/calendar views.
+- Mobile defaults to `Мои / Сегодня / Все`, uses a permission-aware bottom navigation, opens task detail as a separate route, and keeps safe-area actions sticky.
+- Kanban is a desktop enhancement with pointer and keyboard sensors; mobile is not forced into compressed horizontal columns.
+- Audio uses `preload="none"` and the transcript starts collapsed.
+- Colors are isolated in Operations/admin theme tokens rather than treated as fixed source-image values.
 
-light theme result: passed
+## Static and interaction verification completed
 
-light brand logo correction (2026-07-10):
+- Operations pages are server-guarded by the same feature flag and current-database permission checks as their APIs.
+- Navigation, mobile destinations, Inbox review actions, task transitions, comments, editing, knowledge links, and private attachment access have focused source/integration tests.
+- Responsive classes cover compact mobile layouts, `sm`, `md`, `lg`, and wide desktop states; sticky controls include `env(safe-area-inset-bottom)`.
+- No placeholder task action or blocker text is fabricated during a mutation.
+- Focused TypeScript, ESLint, UI/RBAC, and Operations tests pass.
 
-- Replaced dark-only assets with existing light variants for ADRO, CSF, GiroDisc, Ilmberger Carbon, iPE, and Remus.
-- RaceChip and do88 use a light-mode-only inversion because no separate dark-wordmark asset exists locally.
-- Akrapovič and Burger retain their brand colors and use a one-pixel dark outline in light mode so white lettering remains legible without a tile, frame, or background.
-- Urban Automotive now inverts only in dark mode; Brabus keeps the same theme-aware behavior.
-- Verified computed source, display state, and filter for all 13 catalog brands. Sidebar and product-card logos were visually checked at 1440px.
-- Evidence: D:/One Company/OneCompany/artifacts/stock-light-theme-2026-07-10/desktop-brand-logos-light.png
+## Visual comparison blocker
 
-light brand logo result: passed
+The in-app browser initially opened the admin and Operations routes, but the browser URL safety policy then blocked further reads/reloads. That policy explicitly prohibits retries or switching to another browser, so no compliant post-implementation screenshot or side-by-side comparison could be produced in this turn.
 
-Urban Automotive correction (2026-07-10):
+Required staging acceptance remains:
 
-- Root cause: `urban-automotive.svg` is a fully white asset, but it was previously classified as a black logo.
-- Light mode now inverts the original white Urban wordmark to high-contrast black; dark mode keeps the original white asset unchanged.
-- Focused light-mode result: D:/One Company/OneCompany/artifacts/stock-light-theme-2026-07-10/urban-logo-light-fixed.png
-- Verified 395 Urban results, visible logos in cards, and computed filters in both themes.
+- Capture and compare the same states at 360, 390, 768, and 1440 px.
+- Check typography, spacing, wrapping, horizontal overflow, sticky safe-area actions, board scrolling, drag keyboard announcements, and task-detail focus order.
+- Verify the light Operations surface inside the dark existing admin shell with real Russian data, long titles, empty states, and error states.
+- Re-run the source/prototype side-by-side comparison and resolve every visible P0/P1/P2 issue before production rollout.
 
-Urban logo result: passed
+final result: blocked — visual browser comparison must be completed in staging; implementation and source-level checks are complete
 
-taxonomy and currency audit (2026-07-10):
+---
 
-- Category counters cover every catalog item exactly once: active category sum `14,934`, catalog total `14,934`.
-- Before correction, `Other` contained 195 misclassified Burger Motorsports, Brabus, and Urban Automotive products.
-- Added precise product-line, translated-title, and Urban SKU-family signals. `Other` now contains `0` products and is not shown as an empty facet.
-- Price bounds are currency-specific: EUR `2-85,708`, USD `2-98,751`, UAH `106-4,542,503`.
-- Equivalent maximum-price filters returned the same result count: `1,000 EUR`, `1,152.174 USD`, and `53,000 UAH` each returned `9,571` products.
-- Added taxonomy regression coverage for Stage 1/PowerXtra, Burger engine and suspension products, Urban exterior SKU families, Brabus Widestar/SportXtra, and translated Brabus accessories.
+# Design QA — supplied sport-bike SVG
 
-taxonomy and currency result: passed
+- Source visual truth: `D:/sport-bike-motorcycle-icon.svg`
+- Implementation screenshot: `C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/catalog-user-moto-svg-implementation.png`
+- Side-by-side focused comparison: `C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/catalog-user-moto-svg-comparison.png`
+- Viewport: 1280 × 720
+- Route: `http://localhost:3000/ua/shop/catalog?q=M3+2018`
+- State: Moto selected, light theme
+
+## Full-view comparison evidence
+
+The supplied sport-bike silhouette is used directly as the Moto mask asset. The vehicle toggle retains the existing catalog layout, typography, spacing, borders, colors, and interaction behavior.
+
+## Focused region comparison evidence
+
+The side-by-side comparison confirms identical motorcycle geometry between the source SVG and the rendered Moto control. Its wide aspect ratio is accommodated with a 28 × 20 px slot so the fairing and wheels remain legible without touching the icon container.
+
+## Findings
+
+- No actionable P0, P1, or P2 differences within the requested scope.
+- Fonts and typography: unchanged.
+- Spacing and layout rhythm: unchanged; the wider Moto icon remains centered within the existing 32 px container.
+- Colors and visual tokens: the CSS mask inherits the selected and unselected theme colors.
+- Image quality and asset fidelity: native vector rendering; no rasterization, stretching, clipping, or transparency halo.
+- Copy and content: unchanged.
+- Interaction: Auto/Moto selection remains functional.
+- Console errors: none observed.
+
+## Comparison history
+
+- Earlier implementation: generic library motorcycle glyph did not match the requested sport-bike character.
+- Fix: replaced it with the user-supplied SVG and adjusted only its display width for the source aspect ratio.
+- Post-fix evidence: focused source/implementation comparison shows matching geometry and a legible active state.
+
+## Follow-up polish
+
+- Verify the same asset in dark theme during the next broader catalog QA pass.
+
+final result: passed

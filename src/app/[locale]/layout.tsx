@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 import HeroVideoWrapper from "@/components/layout/HeroVideoWrapper";
 import LocaleLangSetter from "@/components/LocaleLangSetter";
 import { readVideoConfig } from "@/lib/videoConfig";
-import LoadingScreen from "@/components/ui/LoadingScreen";
 import CookieBanner from "@/components/ui/CookieBanner";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import SmoothScroll from "@/components/effects/SmoothScroll";
 import { ShopCurrencyProvider } from "@/components/shop/CurrencyContext";
 import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { resolveImageAssetReference, resolveVideoAssetReference } from "@/lib/runtimeAssetPaths";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
+import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
+import { BrandedIntro } from "@/components/ui/BrandedIntro";
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "ua" }];
@@ -74,9 +74,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleLangSetter locale={locale} />
-      <SmoothScroll />
+      <BrandedIntro />
       {heroPosterSrc && <link rel="preload" href={heroPosterSrc} as="image" />}
-      <LoadingScreen />
       <ShopCurrencyProvider
         defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? "UAH"}
         initialRates={shopSettingsRuntime?.currencyRates ?? null}
@@ -101,6 +100,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <ScrollToTop />
           <Footer currentYear={currentYear} companyRequisites={companyRequisites} />
           <CookieBanner locale={locale} />
+          <MobileBottomNavigation locale={locale} />
         </div>
       </ShopCurrencyProvider>
     </NextIntlClientProvider>

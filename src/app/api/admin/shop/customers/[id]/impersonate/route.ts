@@ -27,7 +27,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 export async function POST(_request: NextRequest, context: RouteContext) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
     const { id } = await context.params;
 
     const customer = await prisma.shopCustomer.findUnique({

@@ -1,10 +1,10 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { writeAdminAuditLog, ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { writeAdminAuditLog, ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET  /api/admin/shop/drafts        → list draft orders
@@ -55,7 +55,7 @@ type CreateDraftBody = {
 };
 
 function generateDraftToken(): string {
-  return randomBytes(24).toString('base64url');
+  return randomBytes(24).toString("base64url");
 }
 
 function generateDraftOrderNumber(): string {
@@ -67,25 +67,25 @@ function generateDraftOrderNumber(): string {
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
 
     const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId') || '';
-    const search = searchParams.get('search')?.trim() || '';
+    const customerId = searchParams.get("customerId") || "";
+    const search = searchParams.get("search")?.trim() || "";
 
     const where: Record<string, unknown> = { isDraft: true };
     if (customerId) where.customerId = customerId;
     if (search) {
       where.OR = [
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { customerName: { contains: search, mode: 'insensitive' } },
+        { orderNumber: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { customerName: { contains: search, mode: "insensitive" } },
       ];
     }
 
     const drafts = await prisma.shopOrder.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 200,
       include: {
         customer: { select: { firstName: true, lastName: true, email: true, group: true } },
@@ -109,41 +109,49 @@ export async function GET(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         quoteSentAt: (d as any).quoteSentAt ? (d as any).quoteSentAt.toISOString() : null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        quoteAcceptedAt: (d as any).quoteAcceptedAt ? (d as any).quoteAcceptedAt.toISOString() : null,
+        quoteAcceptedAt: (d as any).quoteAcceptedAt
+          ? (d as any).quoteAcceptedAt.toISOString()
+          : null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        quoteDeclinedAt: (d as any).quoteDeclinedAt ? (d as any).quoteDeclinedAt.toISOString() : null,
+        quoteDeclinedAt: (d as any).quoteDeclinedAt
+          ? (d as any).quoteDeclinedAt.toISOString()
+          : null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        draftValidUntil: (d as any).draftValidUntil ? (d as any).draftValidUntil.toISOString() : null,
+        draftValidUntil: (d as any).draftValidUntil
+          ? (d as any).draftValidUntil.toISOString()
+          : null,
         customerGroupSnapshot: d.customerGroupSnapshot,
         createdAt: d.createdAt.toISOString(),
         updatedAt: d.updatedAt.toISOString(),
       })),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Drafts list error:', error);
-    return NextResponse.json({ error: 'Failed to load drafts' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Drafts list error:", error);
+    return NextResponse.json({ error: "Failed to load drafts" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
 
     const body = (await request.json().catch(() => ({}))) as CreateDraftBody;
 
     if (!body.email || !body.customerName) {
-      return NextResponse.json({ error: 'email and customerName are required' }, { status: 400 });
+      return NextResponse.json({ error: "email and customerName are required" }, { status: 400 });
     }
-    if (!body.currency) return NextResponse.json({ error: 'currency is required' }, { status: 400 });
+    if (!body.currency)
+      return NextResponse.json({ error: "currency is required" }, { status: 400 });
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
-      return NextResponse.json({ error: 'At least one line item is required' }, { status: 400 });
+      return NextResponse.json({ error: "At least one line item is required" }, { status: 400 });
     }
 
-    let customerGroup: 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED' = 'B2C';
+    let customerGroup: "B2C" | "B2B_PENDING" | "B2B_APPROVED" = "B2C";
     if (body.customerId) {
       const customer = await prisma.shopCustomer.findUnique({
         where: { id: body.customerId },
@@ -165,7 +173,7 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         viewToken,
-        status: 'PENDING_REVIEW',
+        status: "PENDING_REVIEW",
         email: body.email,
         customerName: body.customerName,
         phone: body.phone ?? null,
@@ -177,7 +185,7 @@ export async function POST(request: NextRequest) {
         taxAmount,
         total,
         shippingAddress: (body.shippingAddress ?? {}) as object,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         ...({
           isDraft: true,
           draftQuoteToken,
@@ -200,19 +208,20 @@ export async function POST(request: NextRequest) {
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'draft.create',
-      entityType: 'shop.order',
+      scope: "shop",
+      action: "draft.create",
+      entityType: "shop.order",
       entityId: draft.id,
       metadata: { orderNumber, isDraft: true, customerId: body.customerId, total },
     });
 
     return NextResponse.json({ id: draft.id, orderNumber: draft.orderNumber, draftQuoteToken });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Draft create error:', error);
-    return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Draft create error:", error);
+    return NextResponse.json({ error: "Failed to create draft" }, { status: 500 });
   }
 }

@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Print-optimized HTML invoice that customers/admins can save as PDF
@@ -15,18 +15,18 @@ import { prisma } from '@/lib/prisma';
  */
 
 function escapeHtml(s: string | null | undefined): string {
-  if (s == null) return '';
+  if (s == null) return "";
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function formatMoney(value: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency,
     maximumFractionDigits: 2,
   }).format(value);
@@ -38,18 +38,18 @@ export async function GET(
 ) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
 
     const { orderId } = await params;
     const order = await prisma.shopOrder.findUnique({
       where: { id: orderId },
       include: {
-        items: { orderBy: { createdAt: 'asc' } },
+        items: { orderBy: { createdAt: "asc" } },
       },
     });
 
     if (!order) {
-      return new NextResponse('Order not found', { status: 404 });
+      return new NextResponse("Order not found", { status: 404 });
     }
 
     const subtotal = Number(order.subtotal);
@@ -60,12 +60,12 @@ export async function GET(
     const outstanding = Math.max(0, total - paid);
 
     const shippingAddress = (order.shippingAddress as Record<string, unknown> | null) ?? {};
-    const addrLine1 = String(shippingAddress.line1 ?? '');
-    const addrLine2 = String(shippingAddress.line2 ?? '');
-    const addrCity = String(shippingAddress.city ?? '');
-    const addrRegion = String(shippingAddress.region ?? '');
-    const addrPostcode = String(shippingAddress.postcode ?? '');
-    const addrCountry = String(shippingAddress.country ?? '');
+    const addrLine1 = String(shippingAddress.line1 ?? "");
+    const addrLine2 = String(shippingAddress.line2 ?? "");
+    const addrCity = String(shippingAddress.city ?? "");
+    const addrRegion = String(shippingAddress.region ?? "");
+    const addrPostcode = String(shippingAddress.postcode ?? "");
+    const addrCountry = String(shippingAddress.country ?? "");
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -242,13 +242,15 @@ export async function GET(
     <div class="meta">
       <div class="label">Invoice</div>
       <div class="number">${escapeHtml(order.orderNumber)}</div>
-      <div class="date">${order.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      <div class="date">${order.createdAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
       <div style="margin-top:8px;">
-        ${order.paymentStatus === 'PAID'
-          ? '<span class="badge badge-paid">Paid</span>'
-          : order.paymentStatus === 'PARTIALLY_PAID'
-            ? '<span class="badge badge-partial">Partial</span>'
-            : '<span class="badge badge-unpaid">Unpaid</span>'}
+        ${
+          order.paymentStatus === "PAID"
+            ? '<span class="badge badge-paid">Paid</span>'
+            : order.paymentStatus === "PARTIALLY_PAID"
+              ? '<span class="badge badge-partial">Partial</span>'
+              : '<span class="badge badge-unpaid">Unpaid</span>'
+        }
       </div>
     </div>
   </div>
@@ -267,12 +269,12 @@ export async function GET(
       <div class="name">${escapeHtml(order.customerName)}</div>
       <div class="lines">
         ${escapeHtml(order.email)}<br>
-        ${order.phone ? `${escapeHtml(order.phone)}<br>` : ''}
-        ${addrLine1 ? `${escapeHtml(addrLine1)}<br>` : ''}
-        ${addrLine2 ? `${escapeHtml(addrLine2)}<br>` : ''}
-        ${addrCity || addrPostcode ? `${escapeHtml([addrPostcode, addrCity].filter(Boolean).join(' '))}<br>` : ''}
-        ${addrRegion ? `${escapeHtml(addrRegion)}<br>` : ''}
-        ${addrCountry ? escapeHtml(addrCountry) : ''}
+        ${order.phone ? `${escapeHtml(order.phone)}<br>` : ""}
+        ${addrLine1 ? `${escapeHtml(addrLine1)}<br>` : ""}
+        ${addrLine2 ? `${escapeHtml(addrLine2)}<br>` : ""}
+        ${addrCity || addrPostcode ? `${escapeHtml([addrPostcode, addrCity].filter(Boolean).join(" "))}<br>` : ""}
+        ${addrRegion ? `${escapeHtml(addrRegion)}<br>` : ""}
+        ${addrCountry ? escapeHtml(addrCountry) : ""}
       </div>
     </div>
   </div>
@@ -301,7 +303,7 @@ export async function GET(
         </tr>
       `
         )
-        .join('')}
+        .join("")}
     </tbody>
   </table>
 
@@ -314,19 +316,25 @@ export async function GET(
       <span>Shipping</span>
       <span>${formatMoney(shipping, order.currency)}</span>
     </div>
-    ${tax > 0
-      ? `<div class="row"><span>Tax</span><span>${formatMoney(tax, order.currency)}</span></div>`
-      : ''}
+    ${
+      tax > 0
+        ? `<div class="row"><span>Tax</span><span>${formatMoney(tax, order.currency)}</span></div>`
+        : ""
+    }
     <div class="row grand">
       <span>Total</span>
       <span>${formatMoney(total, order.currency)}</span>
     </div>
-    ${paid > 0
-      ? `<div class="row"><span>Paid</span><span>${formatMoney(paid, order.currency)}</span></div>`
-      : ''}
-    ${outstanding > 0
-      ? `<div class="row outstanding"><span>Outstanding</span><span>${formatMoney(outstanding, order.currency)}</span></div>`
-      : ''}
+    ${
+      paid > 0
+        ? `<div class="row"><span>Paid</span><span>${formatMoney(paid, order.currency)}</span></div>`
+        : ""
+    }
+    ${
+      outstanding > 0
+        ? `<div class="row outstanding"><span>Outstanding</span><span>${formatMoney(outstanding, order.currency)}</span></div>`
+        : ""
+    }
   </div>
 
   <div class="footer">
@@ -346,15 +354,16 @@ export async function GET(
 
     return new NextResponse(html, {
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store',
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Invoice PDF error:', error);
-    return new NextResponse('Failed to render invoice', { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Invoice PDF error:", error);
+    return new NextResponse("Failed to render invoice", { status: 500 });
   }
 }

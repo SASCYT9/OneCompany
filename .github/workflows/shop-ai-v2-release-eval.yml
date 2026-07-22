@@ -1,0 +1,189 @@
+name: One AI V2 Release Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: "Full 40-character commit SHA deployed to the protected staging URL"
+        required: true
+        type: string
+      confirmation:
+        description: 'Type "RUN LIVE V2 EVAL" to request the protected evaluation'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: one-ai-v2-release-eval
+  cancel-in-progress: false
+
+jobs:
+  validate-request:
+    name: Validate manual request
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      expected_commit: ${{ steps.input.outputs.expected_commit }}
+    steps:
+      - name: Validate confirmation and commit SHA
+        id: input
+        shell: bash
+        env:
+          RAW_EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMATION" != "RUN LIVE V2 EVAL" ]]; then
+            echo "::error::Confirmation must exactly match RUN LIVE V2 EVAL"
+            exit 1
+          fi
+          expected_commit="${RAW_EXPECTED_COMMIT,,}"
+          if [[ ! "$expected_commit" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::expected_commit must be a full 40-character Git SHA"
+            exit 1
+          fi
+          echo "expected_commit=$expected_commit" >> "$GITHUB_OUTPUT"
+
+  release-eval:
+    name: Protected live V2 evaluation
+    needs: validate-request
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    environment:
+      name: one-ai-v2-release-eval
+      url: ${{ vars.SHOP_AI_V2_STAGING_URL }}
+
+    steps:
+      - name: Checkout the exact evaluated commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.validate-request.outputs.expected_commit }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind checkout to the requested commit
+        id: commit
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ needs.validate-request.outputs.expected_commit }}
+        run: |
+          set -euo pipefail
+          checked_out_commit="$(git rev-parse HEAD)"
+          if [[ "$checked_out_commit" != "$EXPECTED_COMMIT" ]]; then
+            echo "::error::Checked out $checked_out_commit, expected $EXPECTED_COMMIT"
+            exit 1
+          fi
+          echo "sha=$checked_out_commit" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${checked_out_commit:0:12}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install evaluation dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
+
+      - name: Validate protected staging configuration
+        id: target
+        shell: bash
+        env:
+          RAW_STAGING_URL: ${{ vars.SHOP_AI_V2_STAGING_URL }}
+          SHOP_AI_EVAL_TOKEN: ${{ secrets.SHOP_AI_EVAL_TOKEN }}
+          RELEASE_GATE_SIGNING_SECRET: ${{ secrets.SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const rawUrl = process.env.RAW_STAGING_URL?.trim() ?? "";
+          const evalToken = process.env.SHOP_AI_EVAL_TOKEN ?? "";
+          const signingSecret = process.env.RELEASE_GATE_SIGNING_SECRET ?? "";
+          let url;
+          try {
+            url = new URL(rawUrl);
+          } catch {
+            throw new Error("SHOP_AI_V2_STAGING_URL must be an absolute URL");
+          }
+          if (url.protocol !== "https:") {
+            throw new Error("SHOP_AI_V2_STAGING_URL must use HTTPS");
+          }
+          if (
+            url.username ||
+            url.password ||
+            url.search ||
+            url.hash ||
+            (url.pathname !== "/" && url.pathname !== "")
+          ) {
+            throw new Error(
+              "SHOP_AI_V2_STAGING_URL must be a clean origin without credentials, path, query, or fragment"
+            );
+          }
+          if (
+            url.hostname === "localhost" ||
+            url.hostname === "127.0.0.1" ||
+            url.hostname === "::1"
+          ) {
+            throw new Error("SHOP_AI_V2_STAGING_URL cannot target localhost");
+          }
+          if (
+            url.hostname === "onecompany.global" ||
+            url.hostname === "www.onecompany.global"
+          ) {
+            throw new Error("SHOP_AI_V2_STAGING_URL cannot target the production hostname");
+          }
+          if (Buffer.byteLength(evalToken, "utf8") < 32) {
+            throw new Error("SHOP_AI_EVAL_TOKEN must contain at least 32 bytes");
+          }
+          if (Buffer.byteLength(signingSecret, "utf8") < 32) {
+            throw new Error(
+              "SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET must contain at least 32 bytes"
+            );
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `base_url=${url.origin}\n`);
+          NODE
+
+      - name: Run commit-bound One AI V2 release evaluation
+        env:
+          SHOP_AI_EVAL_BASE_URL: ${{ steps.target.outputs.base_url }}
+          SHOP_AI_EVAL_TOKEN: ${{ secrets.SHOP_AI_EVAL_TOKEN }}
+          SHOP_AI_EVAL_EXPECTED_COMMIT: ${{ steps.commit.outputs.sha }}
+          SHOP_AI_EVAL_REPORT_PATH: ${{ runner.temp }}/one-ai-v2-release-eval-report.json
+        run: npx --no-install tsx scripts/eval-shop-ai.ts --release-gate
+
+      - name: Create signed release-gate marker
+        env:
+          SHOP_AI_EVAL_CHECKED_OUT_COMMIT: ${{ steps.commit.outputs.sha }}
+          SHOP_AI_EVAL_EXPECTED_COMMIT: ${{ steps.commit.outputs.sha }}
+          SHOP_AI_EVAL_REPORT_PATH: ${{ runner.temp }}/one-ai-v2-release-eval-report.json
+          SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET: ${{ secrets.SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET }}
+        run: >-
+          npx --no-install tsx scripts/create-shop-ai-v2-release-gate-marker.ts
+          --output=${{ runner.temp }}/one-ai-v2-release-gate.json
+
+      - name: Upload release-gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: one-ai-v2-release-gate-${{ steps.commit.outputs.short_sha }}
+          path: |
+            ${{ runner.temp }}/one-ai-v2-release-gate.json
+            ${{ runner.temp }}/one-ai-v2-release-eval-report.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record release-eval summary
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          {
+            echo "### One AI V2 release evaluation passed"
+            echo
+            echo "- Commit: \`$COMMIT_SHA\`"
+            echo "- Target: protected staging environment"
+            echo "- Result: signed gate artifact uploaded"
+            echo "- Deployment/promotion: not performed by this workflow"
+          } >> "$GITHUB_STEP_SUMMARY"

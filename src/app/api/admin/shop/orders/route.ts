@@ -1,15 +1,15 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, type OrderStatus } from '@prisma/client';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { Prisma, type OrderStatus } from "@prisma/client";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminOrderInclude,
   ALL_ORDER_STATUSES,
   canTransitionOrderStatus,
   serializeAdminOrderSummary,
-} from '@/lib/shopAdminOrders';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/shopAdminOrders";
+import { prisma } from "@/lib/prisma";
 
 type SerializedOrderSummary = ReturnType<typeof serializeAdminOrderSummary>;
 
@@ -75,20 +75,20 @@ function buildStats(orders: SerializedOrderSummary[]) {
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
-    const status = request.nextUrl.searchParams.get('status')?.trim().toUpperCase() || '';
-    const query = request.nextUrl.searchParams.get('q')?.trim() || '';
-    const currency = request.nextUrl.searchParams.get('currency')?.trim().toUpperCase() || '';
-    const shippingZone = request.nextUrl.searchParams.get('shippingZone')?.trim() || '';
-    const taxRegion = request.nextUrl.searchParams.get('taxRegion')?.trim() || '';
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    const status = request.nextUrl.searchParams.get("status")?.trim().toUpperCase() || "";
+    const query = request.nextUrl.searchParams.get("q")?.trim() || "";
+    const currency = request.nextUrl.searchParams.get("currency")?.trim().toUpperCase() || "";
+    const shippingZone = request.nextUrl.searchParams.get("shippingZone")?.trim() || "";
+    const taxRegion = request.nextUrl.searchParams.get("taxRegion")?.trim() || "";
     const where: Prisma.ShopOrderWhereInput = {
-      ...(status ? { status: status as Prisma.ShopOrderWhereInput['status'] } : {}),
+      ...(status ? { status: status as Prisma.ShopOrderWhereInput["status"] } : {}),
       ...(query
         ? {
             OR: [
-              { orderNumber: { contains: query, mode: 'insensitive' } },
-              { email: { contains: query, mode: 'insensitive' } },
-              { customerName: { contains: query, mode: 'insensitive' } },
+              { orderNumber: { contains: query, mode: "insensitive" } },
+              { email: { contains: query, mode: "insensitive" } },
+              { customerName: { contains: query, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
     const orders = await prisma.shopOrder.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: adminOrderInclude,
     });
     const serialized = orders.map(serializeAdminOrderSummary);
@@ -113,35 +113,37 @@ export async function GET(request: NextRequest) {
       filters: buildFilters(serialized),
     });
   } catch (e) {
-    if ((e as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((e as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((e as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((e as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop orders list', e);
-    return NextResponse.json({ error: 'Failed to list orders' }, { status: 500 });
+    console.error("Admin shop orders list", e);
+    return NextResponse.json({ error: "Failed to list orders" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
     const body = await request.json().catch(() => ({}));
     const rawOrderIds: unknown[] = Array.isArray(body.orderIds) ? body.orderIds : [];
     const orderIds: string[] = Array.from(
-      new Set(rawOrderIds.map((value: unknown) => String(value ?? '').trim()).filter(Boolean))
+      new Set(rawOrderIds.map((value: unknown) => String(value ?? "").trim()).filter(Boolean))
     );
-    const status = String(body.status ?? '').trim().toUpperCase() as OrderStatus;
-    const note = typeof body.note === 'string' ? body.note.trim() : '';
+    const status = String(body.status ?? "")
+      .trim()
+      .toUpperCase() as OrderStatus;
+    const note = typeof body.note === "string" ? body.note.trim() : "";
 
     if (!orderIds.length) {
-      return NextResponse.json({ error: 'At least one order is required' }, { status: 400 });
+      return NextResponse.json({ error: "At least one order is required" }, { status: 400 });
     }
 
     if (!ALL_ORDER_STATUSES.includes(status)) {
-      return NextResponse.json({ error: 'Valid status required' }, { status: 400 });
+      return NextResponse.json({ error: "Valid status required" }, { status: 400 });
     }
 
     const orders = await prisma.shopOrder.findMany({
@@ -153,10 +155,12 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    const missingOrderIds = orderIds.filter((orderId) => !orders.some((order) => order.id === orderId));
+    const missingOrderIds = orderIds.filter(
+      (orderId) => !orders.some((order) => order.id === orderId)
+    );
     if (missingOrderIds.length) {
       return NextResponse.json(
-        { error: 'Some orders were not found', missingOrderIds },
+        { error: "Some orders were not found", missingOrderIds },
         { status: 404 }
       );
     }
@@ -165,7 +169,7 @@ export async function PATCH(request: NextRequest) {
     if (invalidOrders.length) {
       return NextResponse.json(
         {
-          error: 'One or more orders cannot move to the requested status',
+          error: "One or more orders cannot move to the requested status",
           invalidOrders: invalidOrders.map((order) => ({
             id: order.id,
             orderNumber: order.orderNumber,
@@ -190,7 +194,7 @@ export async function PATCH(request: NextRequest) {
             orderId: order.id,
             fromStatus: order.status,
             toStatus: status,
-            actorType: 'admin',
+            actorType: "admin",
             actorName: session.name,
             note: note || null,
           },
@@ -199,9 +203,9 @@ export async function PATCH(request: NextRequest) {
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'order.bulk-status.update',
-      entityType: 'shop.order',
+      scope: "shop",
+      action: "order.bulk-status.update",
+      entityType: "shop.order",
       metadata: {
         orderIds,
         changedOrderIds: changedOrders.map((order) => order.id),
@@ -216,13 +220,13 @@ export async function PATCH(request: NextRequest) {
       status,
     });
   } catch (e) {
-    if ((e as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((e as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((e as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((e as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop orders bulk update', e);
-    return NextResponse.json({ error: 'Failed to update orders' }, { status: 500 });
+    console.error("Admin shop orders bulk update", e);
+    return NextResponse.json({ error: "Failed to update orders" }, { status: 500 });
   }
 }

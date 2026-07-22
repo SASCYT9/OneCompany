@@ -1,17 +1,14 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { writeAdminAuditLog, ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { writeAdminAuditLog, ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
     const { id } = await params;
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
@@ -28,19 +25,20 @@ export async function PATCH(
     await (prisma as any).shopEmailRule.update({ where: { id }, data });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'email-rule.update',
-      entityType: 'shop.email-rule',
+      scope: "shop",
+      action: "email-rule.update",
+      entityType: "shop.email-rule",
       entityId: id,
       metadata: { updates: Object.keys(data) },
     });
 
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    return NextResponse.json({ error: 'Failed to update rule' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to update rule" }, { status: 500 });
   }
 }
 
@@ -50,24 +48,25 @@ export async function DELETE(
 ) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
     const { id } = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prisma as any).shopEmailRule.delete({ where: { id } });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'email-rule.delete',
-      entityType: 'shop.email-rule',
+      scope: "shop",
+      action: "email-rule.delete",
+      entityType: "shop.email-rule",
       entityId: id,
       metadata: {},
     });
 
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to delete rule' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Failed to delete rule" }, { status: 500 });
   }
 }

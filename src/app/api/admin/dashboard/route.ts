@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { getCatalogQualityReport } from '@/lib/admin/catalogQuality';
-import { getDashboardDataQuality } from '@/lib/dashboard/dataQuality';
-import { getGa4Metrics } from '@/lib/dashboard/ga4';
-import { OrderStatus } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { assertCurrentAdminAccess } from "@/lib/admin/adminAccess";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { getCatalogQualitySummary } from "@/lib/admin/catalogQuality";
+import { getDashboardDataQuality } from "@/lib/dashboard/dataQuality";
+import { getGa4Metrics } from "@/lib/dashboard/ga4";
+import { OrderStatus } from "@prisma/client";
 
-type RevenuePeriod = 'monthly' | 'weekly' | 'daily';
+type RevenuePeriod = "monthly" | "weekly" | "daily";
 
 const PERIOD_TO_DAYS: Record<RevenuePeriod, number> = {
   daily: 1,
@@ -17,11 +17,10 @@ const PERIOD_TO_DAYS: Record<RevenuePeriod, number> = {
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertCurrentAdminAccess(ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ);
 
     const { searchParams } = new URL(request.url);
-    const period = (searchParams.get('period') as RevenuePeriod) || 'monthly';
+    const period = (searchParams.get("period") as RevenuePeriod) || "monthly";
 
     const [shop, crm, system, analytics] = await Promise.all([
       getShopMetrics(period),
@@ -32,10 +31,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ shop, crm, system, analytics, period });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.error('Dashboard Error:', error);
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Dashboard Error:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
 
@@ -71,22 +72,24 @@ async function getShopMetrics(period: RevenuePeriod) {
     }),
     prisma.shopOrder.count({ where: nonCancelledFilter }),
     prisma.shopOrder.count({
-      where: { status: { notIn: [OrderStatus.CANCELLED, OrderStatus.DELIVERED, OrderStatus.REFUNDED] } },
+      where: {
+        status: { notIn: [OrderStatus.CANCELLED, OrderStatus.DELIVERED, OrderStatus.REFUNDED] },
+      },
     }),
     prisma.shopCustomer.count(),
 
     // Pipeline stage counts
-    prisma.shopOrder.groupBy({ by: ['status'], _count: true }),
+    prisma.shopOrder.groupBy({ by: ["status"], _count: true }),
 
     // Pipeline stage value sums (uses total since amountPaid not relevant for unpaid stages)
-    prisma.shopOrder.groupBy({ by: ['status'], _sum: { total: true } }),
+    prisma.shopOrder.groupBy({ by: ["status"], _sum: { total: true } }),
 
     // Oldest order per status — for stuck-detection
-    prisma.shopOrder.groupBy({ by: ['status'], _min: { createdAt: true } }),
+    prisma.shopOrder.groupBy({ by: ["status"], _min: { createdAt: true } }),
 
     prisma.shopOrder.findMany({
       take: 8,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         customer: { select: { firstName: true, lastName: true, email: true } },
         items: {
@@ -104,7 +107,7 @@ async function getShopMetrics(period: RevenuePeriod) {
         inventoryQty: { lt: 5 },
       },
       take: 10,
-      orderBy: { inventoryQty: 'asc' },
+      orderBy: { inventoryQty: "asc" },
       include: { product: { select: { titleUa: true, titleEn: true, brand: true } } },
     }),
 
@@ -112,10 +115,10 @@ async function getShopMetrics(period: RevenuePeriod) {
     prisma.shopOrder.findMany({
       where: {
         status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
-        paymentStatus: { not: 'PAID' },
+        paymentStatus: { not: "PAID" },
       },
       select: { id: true, total: true, amountPaid: true, createdAt: true, orderNumber: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     }),
 
     // Stuck PENDING_PAYMENT >7 days
@@ -128,10 +131,10 @@ async function getShopMetrics(period: RevenuePeriod) {
 
     // Top brands by product count (real catalog data)
     prisma.shopProduct.groupBy({
-      by: ['brand'],
+      by: ["brand"],
       where: { brand: { not: null }, isPublished: true },
       _count: true,
-      orderBy: { _count: { id: 'desc' } },
+      orderBy: { _count: { id: "desc" } },
       take: 8,
     }),
 
@@ -149,7 +152,7 @@ async function getShopMetrics(period: RevenuePeriod) {
         priceUsd: true,
         priceUah: true,
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       take: 6,
     }),
 
@@ -161,7 +164,7 @@ async function getShopMetrics(period: RevenuePeriod) {
 
     // B2C / B2B split (lifetime — cheap aggregation)
     prisma.shopOrder.groupBy({
-      by: ['customerGroupSnapshot'],
+      by: ["customerGroupSnapshot"],
       _count: true,
       where: nonCancelledFilter,
     }),
@@ -169,8 +172,8 @@ async function getShopMetrics(period: RevenuePeriod) {
 
   // Revenue trend (period-based)
   const periodStart = new Date();
-  if (period === 'daily') periodStart.setDate(periodStart.getDate() - 30);
-  else if (period === 'weekly') periodStart.setDate(periodStart.getDate() - 90);
+  if (period === "daily") periodStart.setDate(periodStart.getDate() - 30);
+  else if (period === "weekly") periodStart.setDate(periodStart.getDate() - 90);
   else periodStart.setMonth(periodStart.getMonth() - 12);
 
   const periodOrders = await prisma.shopOrder.findMany({
@@ -179,7 +182,7 @@ async function getShopMetrics(period: RevenuePeriod) {
       status: { notIn: [OrderStatus.CANCELLED] },
     },
     select: { createdAt: true, total: true, amountPaid: true },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   });
 
   const monthlyRevenue: Record<string, { revenue: number; paid: number; orders: number }> = {};
@@ -193,7 +196,7 @@ async function getShopMetrics(period: RevenuePeriod) {
 
   const totalRevenue = revenueAgg._sum?.amountPaid || 0;
   const totalInvoiced = Number(revenueAgg._sum?.total || 0);
-  const orderCount = typeof revenueAgg._count === 'number' ? revenueAgg._count : 0;
+  const orderCount = typeof revenueAgg._count === "number" ? revenueAgg._count : 0;
   const aov = orderCount > 0 ? Math.round((totalInvoiced / orderCount) * 100) / 100 : 0;
 
   // Build pipeline stages — merge count/sum/oldest by status
@@ -223,10 +226,7 @@ async function getShopMetrics(period: RevenuePeriod) {
   }));
 
   // Unpaid totals
-  const unpaidTotal = unpaidOrders.reduce(
-    (sum, o) => sum + (Number(o.total) - o.amountPaid),
-    0
-  );
+  const unpaidTotal = unpaidOrders.reduce((sum, o) => sum + (Number(o.total) - o.amountPaid), 0);
   const unpaidCount = unpaidOrders.length;
   const oldestUnpaid = unpaidOrders[0]
     ? {
@@ -256,21 +256,22 @@ async function getShopMetrics(period: RevenuePeriod) {
     },
   });
   const totalInPeriod = periodOrders.length + cancelledInPeriod;
-  const cancellationRate = totalInPeriod > 0 ? Math.round((cancelledInPeriod / totalInPeriod) * 1000) / 10 : 0;
+  const cancellationRate =
+    totalInPeriod > 0 ? Math.round((cancelledInPeriod / totalInPeriod) * 1000) / 10 : 0;
 
   // Real Sales by Region — aggregate from shippingAddress.country
   const regionTotals: Record<string, { revenue: number; count: number }> = {
     Europe: { revenue: 0, count: 0 },
-    'North America': { revenue: 0, count: 0 },
-    'Middle East': { revenue: 0, count: 0 },
-    'Asia Pacific': { revenue: 0, count: 0 },
-    'South America': { revenue: 0, count: 0 },
+    "North America": { revenue: 0, count: 0 },
+    "Middle East": { revenue: 0, count: 0 },
+    "Asia Pacific": { revenue: 0, count: 0 },
+    "South America": { revenue: 0, count: 0 },
     Other: { revenue: 0, count: 0 },
   };
   let unknownCountryCount = 0;
   for (const o of ordersForRegions) {
     const addr = (o.shippingAddress ?? {}) as { country?: string };
-    const country = (addr.country ?? '').trim();
+    const country = (addr.country ?? "").trim();
     const region = countryToRegion(country);
     if (region === null) {
       unknownCountryCount++;
@@ -292,11 +293,11 @@ async function getShopMetrics(period: RevenuePeriod) {
 
   // B2C / B2B split
   const groupCounts = new Map(customerGroupCounts.map((g) => [g.customerGroupSnapshot, g._count]));
-  const b2cOrdersCount = (groupCounts.get('B2C') || 0) + (groupCounts.get('B2C_PROMO' as any) || 0);
+  const b2cOrdersCount = (groupCounts.get("B2C") || 0) + (groupCounts.get("B2C_PROMO" as any) || 0);
   const b2bOrdersCount =
-    (groupCounts.get('B2B' as any) || 0) +
-    (groupCounts.get('B2B_PRO' as any) || 0) +
-    (groupCounts.get('B2B_PENDING' as any) || 0);
+    (groupCounts.get("B2B" as any) || 0) +
+    (groupCounts.get("B2B_PRO" as any) || 0) +
+    (groupCounts.get("B2B_PENDING" as any) || 0);
 
   return {
     totalRevenue,
@@ -357,7 +358,7 @@ async function getShopMetrics(period: RevenuePeriod) {
     topProducts: topShopProducts.map((p) => ({
       id: p.id,
       slug: p.slug,
-      title: p.titleEn || p.titleUa || 'Untitled',
+      title: p.titleEn || p.titleUa || "Untitled",
       brand: p.brand,
       image: p.image,
       priceEur: p.priceEur ? Number(p.priceEur) : null,
@@ -376,9 +377,9 @@ async function getShopMetrics(period: RevenuePeriod) {
 
     lowStockItems: lowStockItems.map((item) => ({
       id: item.id,
-      sku: item.sku || '',
-      title: item.product?.titleUa || item.title || '',
-      brand: item.product?.brand || 'Інше',
+      sku: item.sku || "",
+      title: item.product?.titleUa || item.title || "",
+      brand: item.product?.brand || "Інше",
       stock: item.inventoryQty,
     })),
   };
@@ -407,18 +408,18 @@ async function getCrmMetrics(period: RevenuePeriod) {
     prisma.crmOrder.count(),
 
     prisma.crmOrder.count({
-      where: { orderStatus: { notIn: ['Выполнен', 'Отменен'] } },
+      where: { orderStatus: { notIn: ["Выполнен", "Отменен"] } },
     }),
 
     prisma.crmOrder.findMany({
-      orderBy: { orderDate: 'desc' },
+      orderBy: { orderDate: "desc" },
       take: 8,
       include: { customer: { select: { name: true, email: true } } },
     }),
 
     prisma.crmCustomer.findMany({
       where: { balance: { lt: 0 } },
-      orderBy: { balance: 'asc' },
+      orderBy: { balance: "asc" },
       take: 10,
     }),
 
@@ -427,18 +428,18 @@ async function getCrmMetrics(period: RevenuePeriod) {
       select: { productName: true, brand: true, clientTotal: true, profitPerItem: true },
     }),
 
-    prisma.crmOrder.groupBy({ by: ['orderStatus'], _count: true }),
+    prisma.crmOrder.groupBy({ by: ["orderStatus"], _count: true }),
   ]);
 
   const crmPeriodStart = new Date();
-  if (period === 'daily') crmPeriodStart.setDate(crmPeriodStart.getDate() - 30);
-  else if (period === 'weekly') crmPeriodStart.setDate(crmPeriodStart.getDate() - 90);
+  if (period === "daily") crmPeriodStart.setDate(crmPeriodStart.getDate() - 30);
+  else if (period === "weekly") crmPeriodStart.setDate(crmPeriodStart.getDate() - 90);
   else crmPeriodStart.setMonth(crmPeriodStart.getMonth() - 12);
 
   const crmPeriodOrders = await prisma.crmOrder.findMany({
     where: { orderDate: { not: null, gte: crmPeriodStart } },
     select: { orderDate: true, clientTotal: true, profit: true },
-    orderBy: { orderDate: 'asc' },
+    orderBy: { orderDate: "asc" },
   });
 
   const monthlyMap: Record<string, { revenue: number; profit: number; orders: number }> = {};
@@ -517,7 +518,7 @@ async function getCrmMetrics(period: RevenuePeriod) {
       clientTotal: o.clientTotal,
       profit: o.profit,
       orderDate: o.orderDate,
-      customerName: o.customer?.name || o.name || '—',
+      customerName: o.customer?.name || o.name || "—",
     })),
 
     debtors: debtors.map((d) => ({
@@ -534,111 +535,120 @@ async function getCrmMetrics(period: RevenuePeriod) {
 // ═══════════════════════════════
 
 async function getSystemMetrics() {
-  const [turn14Brands, lastSync, dataQuality, catalogQuality, failedImports, pendingB2B, highValueUnpaid, lastImportJob] = await Promise.all([
+  const [
+    turn14Brands,
+    lastSync,
+    dataQuality,
+    catalogQuality,
+    failedImports,
+    pendingB2B,
+    highValueUnpaid,
+    lastImportJob,
+  ] = await Promise.all([
     prisma.turn14BrandMarkup.findMany({
       select: { syncStatus: true, syncMessage: true, updatedAt: true, brandName: true },
     }),
     prisma.crmOrder.findFirst({
-      orderBy: { syncedAt: 'desc' },
+      orderBy: { syncedAt: "desc" },
       select: { syncedAt: true },
     }),
     getDashboardDataQuality(),
-    getCatalogQualityReport(prisma),
+    getCatalogQualitySummary(prisma),
     prisma.shopImportJob.count({
-      where: { status: 'FAILED' },
+      where: { status: "FAILED" },
     }),
     prisma.shopCustomer.count({
-      where: { group: 'B2B_PENDING', isActive: true },
+      where: { group: "B2B_PENDING", isActive: true },
     }),
     prisma.shopOrder.count({
       where: {
         status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
-        paymentStatus: { not: 'PAID' },
+        paymentStatus: { not: "PAID" },
         total: { gte: 1000 },
       },
     }),
     prisma.shopImportJob.findFirst({
-      where: { status: 'COMPLETED' },
-      orderBy: { createdAt: 'desc' },
+      where: { status: "COMPLETED" },
+      orderBy: { createdAt: "desc" },
       select: { createdAt: true },
     }),
   ]);
 
   const turn14Errors = turn14Brands.filter(
-    (b) => b.syncStatus === 'error' || b.syncStatus === 'failed'
+    (b) => b.syncStatus === "error" || b.syncStatus === "failed"
   ).length;
-  const turn14Syncing = turn14Brands.filter((b) => b.syncStatus === 'syncing').length;
+  const turn14Syncing = turn14Brands.filter((b) => b.syncStatus === "syncing").length;
 
   const operationalRisks = [
     {
-      id: 'unpaid-high-value',
-      label: 'Unpaid high-value orders',
+      id: "unpaid-high-value",
+      label: "Unpaid high-value orders",
       count: highValueUnpaid,
-      severity: highValueUnpaid > 0 ? 'danger' : 'success',
-      href: '/admin/shop/orders',
-      description: 'Orders above 1,000 with outstanding payment.',
+      severity: highValueUnpaid > 0 ? "danger" : "success",
+      href: "/admin/shop/orders",
+      description: "Orders above 1,000 with outstanding payment.",
     },
     {
-      id: 'catalog-no-image',
-      label: 'Products without image',
+      id: "catalog-no-image",
+      label: "Products without image",
       count: catalogQuality.issueCounts.NO_IMAGE,
-      severity: catalogQuality.issueCounts.NO_IMAGE > 0 ? 'warning' : 'success',
-      href: '/admin/shop/quality',
-      description: 'Catalog entries that weaken storefront trust and distributor feeds.',
+      severity: catalogQuality.issueCounts.NO_IMAGE > 0 ? "warning" : "success",
+      href: "/admin/shop/quality",
+      description: "Catalog entries that weaken storefront trust and distributor feeds.",
     },
     {
-      id: 'catalog-bad-seo',
-      label: 'Bad SEO fields',
+      id: "catalog-bad-seo",
+      label: "Bad SEO fields",
       count: catalogQuality.issueCounts.BAD_SEO,
-      severity: catalogQuality.issueCounts.BAD_SEO > 0 ? 'warning' : 'success',
-      href: '/admin/shop/quality',
-      description: 'UA/EN SEO titles or descriptions need cleanup.',
+      severity: catalogQuality.issueCounts.BAD_SEO > 0 ? "warning" : "success",
+      href: "/admin/shop/quality",
+      description: "UA/EN SEO titles or descriptions need cleanup.",
     },
     {
-      id: 'failed-imports',
-      label: 'Failed imports',
+      id: "failed-imports",
+      label: "Failed imports",
       count: failedImports,
-      severity: failedImports > 0 ? 'danger' : 'success',
-      href: '/admin/shop/import',
-      description: 'Import jobs that require review before the next catalog update.',
+      severity: failedImports > 0 ? "danger" : "success",
+      href: "/admin/shop/import",
+      description: "Import jobs that require review before the next catalog update.",
     },
     {
-      id: 'b2b-pending',
-      label: 'B2B approvals pending',
+      id: "b2b-pending",
+      label: "B2B approvals pending",
       count: pendingB2B,
-      severity: pendingB2B > 0 ? 'warning' : 'success',
-      href: '/admin/shop/customers',
-      description: 'B2B accounts waiting for approval or rejection.',
+      severity: pendingB2B > 0 ? "warning" : "success",
+      href: "/admin/shop/customers",
+      description: "B2B accounts waiting for approval or rejection.",
     },
   ];
 
   // Operations health lights — green/amber/red
-  const pipelineHealth: 'green' | 'amber' | 'red' =
-    highValueUnpaid > 5 ? 'red' : highValueUnpaid > 0 ? 'amber' : 'green';
-  const syncHealth: 'green' | 'amber' | 'red' =
-    turn14Errors > 0 ? 'red' : turn14Syncing > 0 ? 'amber' : 'green';
-  const stockHealth: 'green' | 'amber' | 'red' =
+  const pipelineHealth: "green" | "amber" | "red" =
+    highValueUnpaid > 5 ? "red" : highValueUnpaid > 0 ? "amber" : "green";
+  const syncHealth: "green" | "amber" | "red" =
+    turn14Errors > 0 ? "red" : turn14Syncing > 0 ? "amber" : "green";
+  const stockHealth: "green" | "amber" | "red" =
     catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK > 10
-      ? 'red'
+      ? "red"
       : catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK > 0
-        ? 'amber'
-        : 'green';
-  const catalogHealth: 'green' | 'amber' | 'red' =
-    catalogQuality.score < 75 ? 'red' : catalogQuality.score < 90 ? 'amber' : 'green';
-  const dataHealthLight: 'green' | 'amber' | 'red' =
-    dataQuality.score < 75 ? 'red' : dataQuality.score < 90 ? 'amber' : 'green';
-  const importsHealth: 'green' | 'amber' | 'red' =
-    failedImports > 0 ? 'red' : 'green';
+        ? "amber"
+        : "green";
+  const catalogHealth: "green" | "amber" | "red" =
+    catalogQuality.score < 75 ? "red" : catalogQuality.score < 90 ? "amber" : "green";
+  const dataHealthLight: "green" | "amber" | "red" =
+    dataQuality.score < 75 ? "red" : dataQuality.score < 90 ? "amber" : "green";
+  const importsHealth: "green" | "amber" | "red" = failedImports > 0 ? "red" : "green";
 
   return {
     turn14Stats: {
       total: turn14Brands.length,
       syncing: turn14Syncing,
-      idle: turn14Brands.filter((b) => b.syncStatus === 'idle').length,
+      idle: turn14Brands.filter((b) => b.syncStatus === "idle").length,
       errors: turn14Errors,
-      latestSync: turn14Brands.length > 0
-        ? new Date(Math.max(...turn14Brands.map((b) => b.updatedAt.getTime()))).toISOString()
-        : null,
+      latestSync:
+        turn14Brands.length > 0
+          ? new Date(Math.max(...turn14Brands.map((b) => b.updatedAt.getTime()))).toISOString()
+          : null,
     },
     lastCrmSyncAt: lastSync?.syncedAt?.toISOString() || null,
     lastImportAt: lastImportJob?.createdAt?.toISOString() || null,
@@ -666,19 +676,77 @@ async function getSystemMetrics() {
 // ═══════════════════════════════
 
 const KNOWN_BRANDS = [
-  'Akrapovic', 'Brabus', 'Mansory', 'Startech', 'Urban Automotive',
-  'Vorsteiner', 'Novitec', 'Lumma', 'Hamann', 'Keyvany', 'Renntech',
-  'DMC', 'Topcar', 'Kelleners', 'AC Schnitzer', 'RevoZport', 'Prior Design',
-  'Capristo', 'iPE', 'Eventuri', 'Wagner Tuning', 'Milltek', 'Remus',
-  'Borla', 'MagnaFlow', 'HRE', 'Vossen', 'Forgiato', 'ADV.1', 'BBS',
-  'OZ Racing', 'Rotiform', 'Brixton', 'Anrky', 'TWL Carbon',
-  '3DDesign', 'RKP', 'Sterckenn', 'IND', 'Dinan', 'Eisenmann',
-  'Öhlins', 'KW', 'H&R', 'Eibach', 'Bilstein', 'ST Suspensions',
-  'Brembo', 'AP Racing', 'DO88', 'CSF', 'XPEL', 'WeatherTech',
-  'Lorinser', 'Carlsson', 'TechArt', 'SpeedArt', 'Caractere', 'ABT',
-  'MTR Design', 'Larte Design', 'Wald', 'Liberty Walk', 'RDB LA',
-  'Dawson', 'Forge Motorsport', 'GruppeM', 'Armytrix', 'FI Exhaust',
-  'Valvetronic', 'Frequency Intelligence',
+  "Akrapovic",
+  "Brabus",
+  "Mansory",
+  "Startech",
+  "Urban Automotive",
+  "Vorsteiner",
+  "Novitec",
+  "Lumma",
+  "Hamann",
+  "Keyvany",
+  "Renntech",
+  "DMC",
+  "Topcar",
+  "Kelleners",
+  "AC Schnitzer",
+  "RevoZport",
+  "Prior Design",
+  "Capristo",
+  "iPE",
+  "Eventuri",
+  "Wagner Tuning",
+  "Milltek",
+  "Remus",
+  "Borla",
+  "MagnaFlow",
+  "HRE",
+  "Vossen",
+  "Forgiato",
+  "ADV.1",
+  "BBS",
+  "OZ Racing",
+  "Rotiform",
+  "Brixton",
+  "Anrky",
+  "TWL Carbon",
+  "3DDesign",
+  "RKP",
+  "Sterckenn",
+  "IND",
+  "Dinan",
+  "Eisenmann",
+  "Öhlins",
+  "KW",
+  "H&R",
+  "Eibach",
+  "Bilstein",
+  "ST Suspensions",
+  "Brembo",
+  "AP Racing",
+  "DO88",
+  "CSF",
+  "XPEL",
+  "WeatherTech",
+  "Lorinser",
+  "Carlsson",
+  "TechArt",
+  "SpeedArt",
+  "Caractere",
+  "ABT",
+  "MTR Design",
+  "Larte Design",
+  "Wald",
+  "Liberty Walk",
+  "RDB LA",
+  "Dawson",
+  "Forge Motorsport",
+  "GruppeM",
+  "Armytrix",
+  "FI Exhaust",
+  "Valvetronic",
+  "Frequency Intelligence",
 ];
 
 function extractBrandFromProduct(productName: string): string {
@@ -691,7 +759,7 @@ function extractBrandFromProduct(productName: string): string {
   if (firstWord && firstWord.length > 2 && !/^rec[a-zA-Z0-9]{10,}/.test(firstWord)) {
     return firstWord;
   }
-  return 'Інше';
+  return "Інше";
 }
 
 function aggregateBrandBreakdown(
@@ -719,16 +787,16 @@ function aggregateBrandBreakdown(
 }
 
 function getDateKey(date: Date, period: RevenuePeriod): string {
-  if (period === 'daily') {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  if (period === "daily") {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   }
-  if (period === 'weekly') {
+  if (period === "weekly") {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
     d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function resolveCustomerName(
@@ -738,15 +806,15 @@ function resolveCustomerName(
   email?: string
 ): string {
   if (firstName) {
-    return `${firstName} ${lastName || ''}`.trim();
+    return `${firstName} ${lastName || ""}`.trim();
   }
-  if (orderCustomerName && orderCustomerName !== 'Гість' && orderCustomerName.trim()) {
+  if (orderCustomerName && orderCustomerName !== "Гість" && orderCustomerName.trim()) {
     return orderCustomerName;
   }
   if (email) {
-    return email.split('@')[0];
+    return email.split("@")[0];
   }
-  return 'Гість';
+  return "Гість";
 }
 
 /**
@@ -759,48 +827,205 @@ function countryToRegion(country: string): string | null {
 
   // Europe (most shop traffic)
   const europe = [
-    'ukraine', 'україна', 'украина', 'uk', 'united kingdom', 'england', 'великобритания', 'великобританія',
-    'germany', 'германия', 'німеччина', 'france', 'франція', 'франция', 'italy', 'италия', 'італія',
-    'spain', 'испания', 'іспанія', 'poland', 'польща', 'польша', 'czechia', 'czech republic', 'чехія', 'чехия',
-    'austria', 'австрія', 'австрия', 'switzerland', 'швейцарія', 'швейцария', 'netherlands', 'нідерланди', 'нидерланды',
-    'belgium', 'бельгія', 'бельгия', 'sweden', 'швеція', 'швеция', 'norway', 'норвегія', 'норвегия',
-    'denmark', 'данія', 'дания', 'finland', 'фінляндія', 'финляндия', 'portugal', 'португалія', 'португалия',
-    'greece', 'греція', 'греция', 'ireland', 'ірландія', 'ирландия', 'romania', 'румунія', 'румыния',
-    'hungary', 'угорщина', 'венгрия', 'slovakia', 'словаччина', 'словакия', 'bulgaria', 'болгарія', 'болгария',
-    'serbia', 'сербія', 'сербия', 'croatia', 'хорватія', 'хорватия', 'lithuania', 'литва', 'latvia', 'латвія', 'латвия',
-    'estonia', 'естонія', 'эстония', 'cyprus', 'кіпр', 'кипр',
+    "ukraine",
+    "україна",
+    "украина",
+    "uk",
+    "united kingdom",
+    "england",
+    "великобритания",
+    "великобританія",
+    "germany",
+    "германия",
+    "німеччина",
+    "france",
+    "франція",
+    "франция",
+    "italy",
+    "италия",
+    "італія",
+    "spain",
+    "испания",
+    "іспанія",
+    "poland",
+    "польща",
+    "польша",
+    "czechia",
+    "czech republic",
+    "чехія",
+    "чехия",
+    "austria",
+    "австрія",
+    "австрия",
+    "switzerland",
+    "швейцарія",
+    "швейцария",
+    "netherlands",
+    "нідерланди",
+    "нидерланды",
+    "belgium",
+    "бельгія",
+    "бельгия",
+    "sweden",
+    "швеція",
+    "швеция",
+    "norway",
+    "норвегія",
+    "норвегия",
+    "denmark",
+    "данія",
+    "дания",
+    "finland",
+    "фінляндія",
+    "финляндия",
+    "portugal",
+    "португалія",
+    "португалия",
+    "greece",
+    "греція",
+    "греция",
+    "ireland",
+    "ірландія",
+    "ирландия",
+    "romania",
+    "румунія",
+    "румыния",
+    "hungary",
+    "угорщина",
+    "венгрия",
+    "slovakia",
+    "словаччина",
+    "словакия",
+    "bulgaria",
+    "болгарія",
+    "болгария",
+    "serbia",
+    "сербія",
+    "сербия",
+    "croatia",
+    "хорватія",
+    "хорватия",
+    "lithuania",
+    "литва",
+    "latvia",
+    "латвія",
+    "латвия",
+    "estonia",
+    "естонія",
+    "эстония",
+    "cyprus",
+    "кіпр",
+    "кипр",
   ];
-  if (europe.some((x) => c.includes(x))) return 'Europe';
+  if (europe.some((x) => c.includes(x))) return "Europe";
 
   const northAmerica = [
-    'usa', 'united states', 'us', 'сша', 'америка', 'canada', 'канада', 'mexico', 'мексика',
+    "usa",
+    "united states",
+    "us",
+    "сша",
+    "америка",
+    "canada",
+    "канада",
+    "mexico",
+    "мексика",
   ];
-  if (northAmerica.some((x) => c === x || c.includes(x))) return 'North America';
+  if (northAmerica.some((x) => c === x || c.includes(x))) return "North America";
 
   const middleEast = [
-    'uae', 'united arab emirates', 'оае', 'еміраті', 'эмираты', 'дубай', 'dubai',
-    'saudi arabia', 'саудівська', 'саудовская', 'lebanon', 'ліван', 'ливан',
-    'israel', 'ізраїль', 'израиль', 'qatar', 'катар', 'kuwait', 'кувейт', 'jordan', 'йорданія', 'иордания',
-    'oman', 'оман', 'bahrain', 'бахрейн',
+    "uae",
+    "united arab emirates",
+    "оае",
+    "еміраті",
+    "эмираты",
+    "дубай",
+    "dubai",
+    "saudi arabia",
+    "саудівська",
+    "саудовская",
+    "lebanon",
+    "ліван",
+    "ливан",
+    "israel",
+    "ізраїль",
+    "израиль",
+    "qatar",
+    "катар",
+    "kuwait",
+    "кувейт",
+    "jordan",
+    "йорданія",
+    "иордания",
+    "oman",
+    "оман",
+    "bahrain",
+    "бахрейн",
   ];
-  if (middleEast.some((x) => c.includes(x))) return 'Middle East';
+  if (middleEast.some((x) => c.includes(x))) return "Middle East";
 
   const asiaPacific = [
-    'japan', 'японія', 'япония', 'china', 'китай', 'singapore', 'сінгапур', 'сингапур',
-    'australia', 'австралія', 'австралия', 'new zealand', 'нова зеландія', 'новая зеландия',
-    'south korea', 'korea', 'південна корея', 'южная корея', 'thailand', 'таїланд', 'тайланд',
-    'vietnam', 'вʼєтнам', 'вьетнам', 'malaysia', 'малайзія', 'малайзия', 'indonesia', 'індонезія', 'индонезия',
-    'philippines', 'філіппіни', 'филиппины', 'india', 'індія', 'индия', 'hong kong', 'гонконг',
+    "japan",
+    "японія",
+    "япония",
+    "china",
+    "китай",
+    "singapore",
+    "сінгапур",
+    "сингапур",
+    "australia",
+    "австралія",
+    "австралия",
+    "new zealand",
+    "нова зеландія",
+    "новая зеландия",
+    "south korea",
+    "korea",
+    "південна корея",
+    "южная корея",
+    "thailand",
+    "таїланд",
+    "тайланд",
+    "vietnam",
+    "вʼєтнам",
+    "вьетнам",
+    "malaysia",
+    "малайзія",
+    "малайзия",
+    "indonesia",
+    "індонезія",
+    "индонезия",
+    "philippines",
+    "філіппіни",
+    "филиппины",
+    "india",
+    "індія",
+    "индия",
+    "hong kong",
+    "гонконг",
   ];
-  if (asiaPacific.some((x) => c.includes(x))) return 'Asia Pacific';
+  if (asiaPacific.some((x) => c.includes(x))) return "Asia Pacific";
 
   const southAmerica = [
-    'brazil', 'бразилія', 'бразилия', 'argentina', 'аргентина', 'chile', 'чилі', 'чили',
-    'colombia', 'колумбія', 'колумбия', 'peru', 'перу', 'venezuela', 'венесуела', 'венесуэла',
+    "brazil",
+    "бразилія",
+    "бразилия",
+    "argentina",
+    "аргентина",
+    "chile",
+    "чилі",
+    "чили",
+    "colombia",
+    "колумбія",
+    "колумбия",
+    "peru",
+    "перу",
+    "venezuela",
+    "венесуела",
+    "венесуэла",
   ];
-  if (southAmerica.some((x) => c.includes(x))) return 'South America';
+  if (southAmerica.some((x) => c.includes(x))) return "South America";
 
-  return 'Other';
+  return "Other";
 }
 
 /**
@@ -809,35 +1034,35 @@ function countryToRegion(country: string): string | null {
  * Returns null if no logo — caller can render text-mark fallback.
  */
 function brandLogoPath(brand: string): string | null {
-  const key = brand.toLowerCase().trim().replace(/\s+/g, '-');
+  const key = brand.toLowerCase().trim().replace(/\s+/g, "-");
   const map: Record<string, string> = {
-    'racechip': '/logos/racechip.png',
-    'brabus': '/logos/brabus.svg',
-    'do88': '/logos/do88.png',
-    'girodisc': '/logos/girodisc.webp',
-    'burger-motorsports': '/logos/burger-motorsport.svg',
-    'burger-motorsport': '/logos/burger-motorsport.svg',
-    'ohlins': '/logos/ohlins.svg',
-    'akrapovic': '/logos/akrapovic.svg',
-    'csf': '/logos/csf.png',
-    'adro': '/logos/adro.svg',
-    'eventuri': '/brands/eventuri-logo.svg',
-    'fi-exhaust': '/logos/fi-exhaust.svg',
-    'ipe-exhaust': '/logos/fi-exhaust.svg',
-    'kw': '/logos/kw.svg',
-    'kw-suspensions': '/logos/kw-suspensions.svg',
-    'kw-suspension': '/logos/kw-suspension.svg',
-    'novitec': '/logos/novitec.svg',
-    'borla': '/logos/borla.svg',
-    'brembo': '/logos/brembo.png',
-    'hre-wheels': '/logos/hre-wheels.png',
-    'hre': '/logos/hre-wheels.png',
-    'apr': '/logos/apr.png',
-    'abt': '/logos/abt.png',
-    'ac-schnitzer': '/logos/ac-schnitzer.png',
-    '3d-design': '/logos/3d-design.png',
-    'land-rover': '/logos/landrover.svg',
-    'landrover': '/logos/landrover.svg',
+    racechip: "/logos/racechip.png",
+    brabus: "/logos/brabus.svg",
+    do88: "/logos/do88.png",
+    girodisc: "/logos/girodisc.webp",
+    "burger-motorsports": "/logos/burger-motorsport.svg",
+    "burger-motorsport": "/logos/burger-motorsport.svg",
+    ohlins: "/logos/ohlins.svg",
+    akrapovic: "/logos/akrapovic.svg",
+    csf: "/logos/csf.png",
+    adro: "/logos/adro.svg",
+    eventuri: "/brands/eventuri-logo.svg",
+    "fi-exhaust": "/logos/fi-exhaust.svg",
+    "ipe-exhaust": "/logos/fi-exhaust.svg",
+    kw: "/logos/kw.svg",
+    "kw-suspensions": "/logos/kw-suspensions.svg",
+    "kw-suspension": "/logos/kw-suspension.svg",
+    novitec: "/logos/novitec.svg",
+    borla: "/logos/borla.svg",
+    brembo: "/logos/brembo.png",
+    "hre-wheels": "/logos/hre-wheels.png",
+    hre: "/logos/hre-wheels.png",
+    apr: "/logos/apr.png",
+    abt: "/logos/abt.png",
+    "ac-schnitzer": "/logos/ac-schnitzer.png",
+    "3d-design": "/logos/3d-design.png",
+    "land-rover": "/logos/landrover.svg",
+    landrover: "/logos/landrover.svg",
   };
   return map[key] ?? null;
 }

@@ -54,12 +54,12 @@ export function HeroVideoWrapper({
       return;
     }
 
+    // Start the large background video only after the visitor actually explores
+    // the page. Pointer/keyboard events used to trigger a 3.8–9.3 MB download
+    // immediately before link navigation, wasting transfer on quick exits.
     const enableVideo = () => setInteractionReady(true);
-    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart", "scroll"];
-    events.forEach((event) =>
-      window.addEventListener(event, enableVideo, { once: true, passive: true })
-    );
-    return () => events.forEach((event) => window.removeEventListener(event, enableVideo));
+    window.addEventListener("scroll", enableVideo, { once: true, passive: true });
+    return () => window.removeEventListener("scroll", enableVideo);
   }, []);
 
   useEffect(() => {

@@ -1,9 +1,18 @@
 import type { ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
 
 export function extractDeclaredPowerGain(product: ShopAiProduct) {
-  const evidence = `${product.name} ${product.description}`;
-  const match = evidence.match(/\+\s*(\d{1,4})\s*(?:hp|bhp|к\.?\s*с\.?|сил)/i);
-  return match ? Number(match[1]) : null;
+  const gain = product.facts?.powerGainHp;
+  if (
+    product.matchStatus !== "exact" ||
+    product.compatibility !== "confirmed" ||
+    product.facts?.powerGainVerified !== true ||
+    typeof gain !== "number" ||
+    !Number.isFinite(gain) ||
+    gain <= 0
+  ) {
+    return null;
+  }
+  return gain;
 }
 
 export function filterShopAiProductsForPowerGoal(products: ShopAiProduct[], plan: ShopAiPlan) {
@@ -12,7 +21,7 @@ export function filterShopAiProductsForPowerGoal(products: ShopAiProduct[], plan
 }
 
 function shortProductName(product: ShopAiProduct) {
-  return product.name.split("—")[0]?.trim() || product.brand;
+  return product.brand.trim() || "Selected product";
 }
 
 export function buildShopAiPowerGoalAnswer(input: {

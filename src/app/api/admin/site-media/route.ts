@@ -1,64 +1,64 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { AdminConfigValidationError, validateSiteMediaInput } from '@/lib/adminConfigValidation';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
-import { readSiteMedia, writeSiteMedia } from '@/lib/siteMediaServer';
-import type { SiteMedia } from '@/types/site-media';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { AdminConfigValidationError, validateSiteMediaInput } from "@/lib/adminConfigValidation";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
+import { readSiteMedia, writeSiteMedia } from "@/lib/siteMediaServer";
+import type { SiteMedia } from "@/types/site-media";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
     const media = await readSiteMedia();
     return NextResponse.json(media);
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Failed to read site media config', error);
-    return NextResponse.json({ error: 'Failed to load site media' }, { status: 500 });
+    console.error("Failed to read site media config", error);
+    return NextResponse.json({ error: "Failed to load site media" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
     const payload = (await request.json()) as SiteMedia;
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-      return NextResponse.json({ error: 'Invalid site media payload' }, { status: 400 });
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return NextResponse.json({ error: "Invalid site media payload" }, { status: 400 });
     }
     const validatedPayload = validateSiteMediaInput(payload);
     const saved = await writeSiteMedia(validatedPayload);
     try {
       await writeAdminAuditLog(prisma, session, {
-        scope: 'content',
-        action: 'site-media.update',
-        entityType: 'site.media',
+        scope: "content",
+        action: "site-media.update",
+        entityType: "site.media",
         metadata: {
           stores: Object.keys(validatedPayload.stores ?? {}),
         },
       });
     } catch (auditError) {
-      console.error('Failed to write site media audit log', auditError);
+      console.error("Failed to write site media audit log", auditError);
     }
     return NextResponse.json(saved);
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     if (error instanceof AdminConfigValidationError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    console.error('Failed to save site media config', error);
-    return NextResponse.json({ error: 'Failed to save site media' }, { status: 500 });
+    console.error("Failed to save site media config", error);
+    return NextResponse.json({ error: "Failed to save site media" }, { status: 500 });
   }
 }

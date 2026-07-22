@@ -552,7 +552,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
         {/* Subtle Portal Footer */}
         <footer className="ak-portal__footer">
           <Link href={`/${locale}/shop`} className="ak-portal__footer-link">
-            ← {L(isUa, "Back to all stores", "Назад до всіх магазинів")}
+            ← {L(isUa, "Back to all brands", "Назад до всіх брендів")}
           </Link>
           <div className="ak-portal__footer-divider" />
           <span className="ak-portal__footer-text">

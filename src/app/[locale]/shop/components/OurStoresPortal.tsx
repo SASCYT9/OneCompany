@@ -1,8 +1,8 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { ArrowDown, ArrowRight } from "lucide-react";
+import { ShopCatalogQuickSearch } from "@/components/shop/ShopCatalogQuickSearch";
+import { ShopHubNavigation } from "@/components/shop/ShopHubNavigation";
 import type { SupportedLocale } from "@/lib/seo";
 import { OUR_STORES } from "../data/ourStores";
 
@@ -33,24 +33,10 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-/*  Fixed layout: 6-column seamless grid, exactly like Urban     */
-/*  collections. Every row fills all 6 columns.                   */
-/*                                                                */
-/*  Row 1 (hero):  Urban (3) + DO88 (3)                     = 6  */
-/*  Row 2:         Brabus (2) + Akrapovič (2) + Burger (2)  = 6  */
-/*  Row 3:         RaceChip (2) + CSF (2) + Öhlins (2)     = 6  */
-/*  Row 4:         GiroDisc (2) + iPE (2) + ADRO (2)        = 6  */
-/*  Row 5:         KW (2) + FI (2) + Eventuri (2)           = 6  */
+/* Three featured stores, followed by 12 stores in complete three-column rows. */
 /* ══════════════════════════════════════════════════════════════ */
 
 const HERO_IDS = ["urban", "akrapovic", "brabus"];
-const BOTTOM_IDS = ["kw", "fi", "eventuri"];
-
-/* Layout:
-   Row 1 (3-col hero): Urban + Akrapovič + Brabus
-   Rows 2-3 (4-col):   DO88, Burger, RaceChip, CSF, Öhlins, GiroDisc, iPE, ADRO
-   Row 4 (3-col):      KW, FI, Eventuri
-*/
 const STORE_ORDER = [
   "urban",
   "akrapovic",
@@ -94,6 +80,7 @@ function StoreCard({
 
   return (
     <div
+      data-store-id={store.id}
       className={`group relative flex w-full flex-col overflow-hidden bg-card border-b border-r border-foreground/10 transition-all duration-500 ${height}`}
     >
       {isExternal ? (
@@ -101,13 +88,13 @@ function StoreCard({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute inset-0 z-20"
+          className="absolute inset-0 z-20 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-primary"
           aria-label={t(isUa, store.name, store.nameUk)}
         />
       ) : (
         <Link
           href={href}
-          className="absolute inset-0 z-20"
+          className="absolute inset-0 z-20 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-primary"
           aria-label={t(isUa, store.name, store.nameUk)}
         />
       )}
@@ -162,17 +149,11 @@ function StoreCard({
         </p>
         <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-transparent transition-all duration-400 group-hover:text-white/85 group-hover:gap-3">
           {exploreLabel}
-          <svg
-            viewBox="0 0 24 24"
-            width={13}
-            height={13}
-            fill="none"
-            stroke="currentColor"
+          <ArrowRight
+            className="h-[13px] w-[13px] transition-transform duration-300 group-hover:translate-x-1"
             strokeWidth={2}
-            className="transition-transform duration-300 group-hover:translate-x-1"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+            aria-hidden="true"
+          />
         </div>
       </div>
     </div>
@@ -180,19 +161,15 @@ function StoreCard({
 }
 
 export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
-  const { data: session } = useSession();
-  const isB2bApproved = session?.user?.group === "B2B_APPROVED";
   const isUa = locale === "ua";
   const storesMap = new Map(OUR_STORES.filter((s) => !s.isHidden).map((s) => [s.id, s]));
-  const storeCount = storesMap.size;
 
   const ordered = STORE_ORDER.map((id) => storesMap.get(id)).filter(
     Boolean
   ) as (typeof OUR_STORES)[number][];
 
   const heroStores = ordered.filter((s) => HERO_IDS.includes(s.id));
-  const mainStores = ordered.filter((s) => !HERO_IDS.includes(s.id) && !BOTTOM_IDS.includes(s.id));
-  const bottomStores = ordered.filter((s) => BOTTOM_IDS.includes(s.id));
+  const remainingStores = ordered.filter((s) => !HERO_IDS.includes(s.id));
 
   const exploreLabel = isUa ? "Дослідити" : "Explore";
 
@@ -218,11 +195,11 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
         />
         {/* Soft bottom fade to page bg (theme-aware) so the photo blends into
             the cream/dark canvas below. No top/side overlays — keeps photo open. */}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-background to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-background via-background/35 to-transparent sm:h-36" />
 
         <div className="relative z-10 flex flex-col items-center gap-3 px-4 text-center sm:gap-5">
           <h1 className="text-2xl font-extralight uppercase leading-tight tracking-[0.12em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
-            {t(isUa, "Our Stores", "Наші Магазини")}
+            {t(isUa, "One Company Brands", "Бренди One Company")}
           </h1>
           <div className="flex items-center gap-3">
             <div className="h-px w-12 bg-linear-to-r from-transparent to-primary/70 sm:w-24" />
@@ -232,43 +209,33 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           <p className="max-w-lg text-[13px] font-light leading-relaxed text-white/80 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)] sm:text-sm md:text-base">
             {t(
               isUa,
-              "Official One Company stores. Explore the world of premium automotive brands and tuning ateliers.",
-              "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
+              "15 premium brands in one shop. Explore official collections and find parts for your car or motorcycle.",
+              "15 преміальних брендів в одному магазині. Досліджуйте фірмові колекції та обирайте деталі для свого авто або мото."
             )}
           </p>
           <div className="mt-4 animate-bounce text-white/40 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:mt-8">
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="1"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
+            <ArrowDown className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
           </div>
         </div>
       </section>
 
       {/* ─── COLLAGE ──────────────────────────────────────────── */}
-      <section className="relative z-10 mx-auto w-full max-w-[1720px] px-4 pb-24 pt-4 sm:px-6 lg:px-8 xl:px-16">
-        {/* Section label */}
-        <div className="mb-6 flex items-end justify-between sm:mb-8">
-          <div>
-            <div className="mb-4 h-px w-12 bg-linear-to-r from-foreground/60 to-transparent" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-foreground/55 dark:text-foreground/30">
-              {t(isUa, "Explore", "Досліджуйте")}
-            </p>
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/45 dark:text-foreground/25">
-            {storeCount} {t(isUa, "stores", "магазинів")}
-          </p>
-        </div>
+      <section className="relative z-10 mx-auto w-full max-w-[1720px] px-4 pb-20 sm:px-6 lg:px-8 xl:px-16">
+        <ShopHubNavigation
+          locale={locale}
+          active="brands"
+          className="relative z-20 -mt-12 mb-4 sm:-mt-14 sm:mb-5"
+        />
+
+        <ShopCatalogQuickSearch locale={locale} className="mb-5 sm:mb-6" />
 
         {/* Seamless grid */}
-        <div className="overflow-hidden rounded-2xl border border-foreground/10">
+        <div
+          id="shop-brands"
+          className="scroll-mt-28 overflow-hidden rounded-2xl border border-foreground/10 sm:scroll-mt-32"
+        >
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3">
+          <div data-shop-store-grid="featured" className="grid grid-cols-1 sm:grid-cols-3">
             {heroStores.map((store) => (
               <StoreCard
                 key={store.id}
@@ -283,86 +250,24 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
             ))}
           </div>
 
-          {/* Rows 2–3 — main: 4 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {mainStores.map((store) => (
+          {/* Remaining 12 stores: four complete rows on desktop, six on tablet. */}
+          <div
+            data-shop-store-grid="remaining"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {remainingStores.map((store) => (
               <StoreCard
                 key={store.id}
                 store={store}
                 locale={locale}
                 isUa={isUa}
                 exploreLabel={exploreLabel}
-                height="h-[260px] sm:h-[320px] lg:h-[420px]"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              />
-            ))}
-          </div>
-
-          {/* Row 4 — bottom: KW + FI + Eventuri (3 col) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3">
-            {bottomStores.map((store) => (
-              <StoreCard
-                key={store.id}
-                store={store}
-                locale={locale}
-                isUa={isUa}
-                exploreLabel={exploreLabel}
-                height="h-[260px] sm:h-[320px] lg:h-[400px]"
-                sizes="(max-width: 640px) 100vw, 33vw"
+                height="h-[250px] sm:h-[310px] lg:h-[370px]"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
             ))}
           </div>
         </div>
-
-        {/* ─── B2B STOCK ──────────────────────────────────────── */}
-        {isB2bApproved && (
-          <div className="mt-8 sm:mt-12 lg:mt-16">
-            <Link
-              href={`/${locale}/shop/stock`}
-              className="group relative flex flex-col justify-end w-full min-h-[220px] p-5 sm:min-h-[260px] sm:p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-foreground/10 bg-card transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
-            >
-              <Image
-                src="/images/shop/stores/one-company-stock-porsche.png"
-                alt="One Company Stock"
-                fill
-                sizes="100vw"
-                className="object-cover opacity-35 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-55"
-                priority
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-90" />
-              <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
-                <div className="max-w-2xl">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">
-                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                    {t(isUa, "B2B Access Granted", "B2B Доступ Відкрито")}
-                  </div>
-                  <h2 className="mb-2 text-2xl font-light uppercase tracking-tight text-white sm:text-3xl md:text-5xl">
-                    One Company Stock
-                  </h2>
-                  <p className="max-w-2xl text-sm font-light leading-relaxed text-white/75 md:text-base">
-                    {t(
-                      isUa,
-                      "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock.",
-                      "Спеціалізований B2B-портал складу. Отримуйте миттєвий доступ до залишків, гуртових цін та оформлюйте замовлення."
-                    )}
-                  </p>
-                </div>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/75 backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary md:h-14 md:w-14">
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
       </section>
     </div>
   );

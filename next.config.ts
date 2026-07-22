@@ -1,8 +1,23 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
+import {
+  evaluateShopAiV2ReleaseActivationGuard,
+  readShopAiV2ReleaseActivationGuardInput,
+} from "./src/lib/shopAiV2ReleaseActivationGuard";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+const shopAiV2ReleaseGuard = evaluateShopAiV2ReleaseActivationGuard(
+  readShopAiV2ReleaseActivationGuardInput(process.env)
+);
+if (!shopAiV2ReleaseGuard.ok) {
+  throw new Error(
+    `One AI V2 production activation is blocked:\n${shopAiV2ReleaseGuard.failures
+      .map((failure) => `- [${failure.code}] ${failure.message}`)
+      .join("\n")}`
+  );
+}
 
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
@@ -92,12 +107,12 @@ const CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "frame-ancestors 'self'",
   // Next/React + current analytics snippets rely on inline scripts/styles.
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://www.google-analytics.com",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms https://www.google-analytics.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
   "media-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://d1sfhav1wboke3.azureedge.net",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://c.clarity.ms https://bank.gov.ua",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://a.clarity.ms https://c.clarity.ms https://bank.gov.ua",
   "frame-src 'self' https://www.googletagmanager.com https://player.vimeo.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
   "upgrade-insecure-requests",
 ].join("; ");

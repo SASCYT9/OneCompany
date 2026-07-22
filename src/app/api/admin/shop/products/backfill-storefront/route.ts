@@ -1,17 +1,17 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { buildStorefrontBackfillPlan } from '@/lib/shopProductStorefront';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
+import { buildStorefrontBackfillPlan } from "@/lib/shopProductStorefront";
+import { prisma } from "@/lib/prisma";
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
 
     const products = await prisma.shopProduct.findMany({
-      orderBy: [{ updatedAt: 'desc' }],
+      orderBy: [{ updatedAt: "desc" }],
       select: {
         id: true,
         slug: true,
@@ -66,9 +66,9 @@ export async function POST() {
       }
 
       await writeAdminAuditLog(tx, session, {
-        scope: 'shop',
-        action: 'product.storefront-backfill',
-        entityType: 'shop.product',
+        scope: "shop",
+        action: "product.storefront-backfill",
+        entityType: "shop.product",
         metadata: {
           totalCount: products.length,
           updatedCount: plan.updatedCount,
@@ -84,15 +84,15 @@ export async function POST() {
       storefrontCounts: plan.storefrontCounts,
     });
   } catch (error: any) {
-    if (error.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (error.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    console.error('Storefront backfill error:', error);
-    return NextResponse.json({ error: 'Failed to normalize storefront tags' }, { status: 500 });
+    console.error("Storefront backfill error:", error);
+    return NextResponse.json({ error: "Failed to normalize storefront tags" }, { status: 500 });
   }
 }

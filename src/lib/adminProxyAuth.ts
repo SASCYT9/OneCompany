@@ -1,8 +1,8 @@
-const DEFAULT_SECRET = 'dev-admin-session-secret';
+const DEFAULT_SECRET = "dev-admin-session-secret";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
-const PUBLIC_ADMIN_API_PATHS = new Set(['/api/admin/auth', '/api/admin/shop/feed/stock']);
-const PUBLIC_ADMIN_PAGE_PATHS = new Set(['/admin']);
-const SERVICE_ADMIN_API_PREFIXES = ['/api/admin/cron/'];
+const PUBLIC_ADMIN_API_PATHS = new Set(["/api/admin/auth"]);
+const PUBLIC_ADMIN_PAGE_PATHS = new Set(["/admin"]);
+const SERVICE_ADMIN_API_PREFIXES = ["/api/admin/cron/"];
 
 type SessionTokenPayload = {
   sub: string;
@@ -16,24 +16,28 @@ type AccessInput = {
   pathname: string;
   method?: string;
   cookieToken: string | null;
+  runtimeEnv?: {
+    NODE_ENV?: string;
+    OPS_LOCAL_DEMO_MODE?: string;
+  };
 };
 
 type AccessResult = {
   allowed: boolean;
-  reason?: 'UNAUTHORIZED';
+  reason?: "UNAUTHORIZED";
 };
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
 function getSecret() {
-  const configured = (process.env.ADMIN_SESSION_SECRET || '').trim();
+  const configured = (process.env.ADMIN_SESSION_SECRET || "").trim();
   if (configured) {
     return configured;
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('ADMIN_SESSION_SECRET is required in production');
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ADMIN_SESSION_SECRET is required in production");
   }
 
   return DEFAULT_SECRET;
@@ -49,11 +53,11 @@ function decodePayload(encoded: string): SessionTokenPayload | null {
     const payload = JSON.parse(json) as Partial<SessionTokenPayload>;
 
     if (
-      typeof payload.sub !== 'string' ||
-      typeof payload.name !== 'string' ||
+      typeof payload.sub !== "string" ||
+      typeof payload.name !== "string" ||
       !Array.isArray(payload.permissions) ||
-      typeof payload.iat !== 'number' ||
-      typeof payload.nonce !== 'string'
+      typeof payload.iat !== "number" ||
+      typeof payload.nonce !== "string"
     ) {
       return null;
     }
@@ -61,7 +65,7 @@ function decodePayload(encoded: string): SessionTokenPayload | null {
     return {
       sub: payload.sub.trim().toLowerCase(),
       name: payload.name.trim(),
-      permissions: payload.permissions.map((value) => String(value ?? '').trim()).filter(Boolean),
+      permissions: payload.permissions.map((value) => String(value ?? "").trim()).filter(Boolean),
       iat: payload.iat,
       nonce: payload.nonce,
     };
@@ -71,22 +75,22 @@ function decodePayload(encoded: string): SessionTokenPayload | null {
 }
 
 function base64UrlDecodeToString(value: string) {
-  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
 
-  if (typeof atob === 'function') {
+  if (typeof atob === "function") {
     const binary = atob(padded);
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     return textDecoder.decode(bytes);
   }
 
-  return Buffer.from(padded, 'base64').toString('utf8');
+  return Buffer.from(padded, "base64").toString("utf8");
 }
 
 function toHex(buffer: ArrayBuffer) {
   return Array.from(new Uint8Array(buffer))
-    .map((value) => value.toString(16).padStart(2, '0'))
-    .join('');
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function timingSafeEqualText(left: string, right: string) {
@@ -105,18 +109,18 @@ function timingSafeEqualText(left: string, right: string) {
 async function signPayload(payload: string) {
   const subtle = globalThis.crypto?.subtle;
   if (!subtle) {
-    throw new Error('Web Crypto is not available');
+    throw new Error("Web Crypto is not available");
   }
 
   const key = await subtle.importKey(
-    'raw',
+    "raw",
     textEncoder.encode(getSecret()),
-    { name: 'HMAC', hash: 'SHA-256' },
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign']
+    ["sign"]
   );
 
-  return toHex(await subtle.sign('HMAC', key, textEncoder.encode(payload)));
+  return toHex(await subtle.sign("HMAC", key, textEncoder.encode(payload)));
 }
 
 async function hasValidAdminCookie(cookieToken: string | null) {
@@ -124,7 +128,7 @@ async function hasValidAdminCookie(cookieToken: string | null) {
     return false;
   }
 
-  const parts = cookieToken.split('.');
+  const parts = cookieToken.split(".");
   if (parts.length === 2) {
     const [encodedPayload, signature] = parts;
     const expectedSignature = await signPayload(encodedPayload);
@@ -146,7 +150,7 @@ async function hasValidAdminCookie(cookieToken: string | null) {
 }
 
 export async function shouldAllowAdminApiRequest(input: AccessInput): Promise<AccessResult> {
-  if (!input.pathname.startsWith('/api/admin')) {
+  if (!input.pathname.startsWith("/api/admin")) {
     return { allowed: true };
   }
 
@@ -162,11 +166,11 @@ export async function shouldAllowAdminApiRequest(input: AccessInput): Promise<Ac
     return { allowed: true };
   }
 
-  return { allowed: false, reason: 'UNAUTHORIZED' };
+  return { allowed: false, reason: "UNAUTHORIZED" };
 }
 
 export async function shouldAllowAdminPageRequest(input: AccessInput): Promise<AccessResult> {
-  if (!input.pathname.startsWith('/admin')) {
+  if (!input.pathname.startsWith("/admin")) {
     return { allowed: true };
   }
 
@@ -174,9 +178,18 @@ export async function shouldAllowAdminPageRequest(input: AccessInput): Promise<A
     return { allowed: true };
   }
 
+  const runtimeEnv = input.runtimeEnv ?? process.env;
+  const localOpsDemoPage =
+    runtimeEnv.NODE_ENV !== "production" &&
+    runtimeEnv.OPS_LOCAL_DEMO_MODE === "true" &&
+    (input.pathname === "/admin/operations" || input.pathname.startsWith("/admin/operations/"));
+  if (localOpsDemoPage) {
+    return { allowed: true };
+  }
+
   if (await hasValidAdminCookie(input.cookieToken)) {
     return { allowed: true };
   }
 
-  return { allowed: false, reason: 'UNAUTHORIZED' };
+  return { allowed: false, reason: "UNAUTHORIZED" };
 }

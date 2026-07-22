@@ -5,10 +5,17 @@ import {
 } from "@/lib/shopAiAssistantPower";
 import {
   diversifyShopAiProducts,
+  evaluateShopAiProductVehicleFitment,
   filterShopAiProductsForVehicle,
 } from "@/lib/shopAiAssistantRanking";
-import type { ShopAiPlan, ShopAiProduct, ShopAiProductKind } from "@/lib/shopAiAssistantTypes";
+import type {
+  ShopAiMatchStatus,
+  ShopAiPlan,
+  ShopAiProduct,
+  ShopAiProductKind,
+} from "@/lib/shopAiAssistantTypes";
 import { areChassisCompatible } from "@/lib/crossShopFitment";
+import { formatShopAiProductKind, inferShopAiProductKind } from "@/lib/shopAiProductKind";
 
 export type ShopAiCandidatePipelineResult = {
   products: ShopAiProduct[];
@@ -67,59 +74,108 @@ function detectInstallationType(product: ShopAiProduct) {
   return null;
 }
 
-export function detectShopAiProductKind(product: ShopAiProduct): ShopAiProductKind {
-  const evidence = `${product.name} ${product.category ?? ""} ${product.description}`;
-  if (/\b(?:downpipe|даунпайп\w*)\b/iu.test(evidence)) return "downpipe";
-  if (
-    /\b(?:link[ -]?pipes?|connection tube|л[іи]нк[ -]?пайп\w*|з'єднувальн\w*\s+труб\w*)\b/iu.test(
-      evidence
-    )
-  ) {
-    return "link_pipe";
+export function detectShopAiProductKind(
+  product: ShopAiProduct,
+  category: ShopAiPlan["category"] = null
+): ShopAiProductKind {
+  if (product.facts?.productKind && product.facts.productKind !== "any") {
+    return product.facts.productKind;
   }
-  if (
-    /\b(?:exhaust system|sport exhaust|racing exhaust|cat[ -]?back|axle[ -]?back|slip[ -]?on|evolution line|muffler|silencer|вихлопн\w*\s+систем\w*|глушник\w*)\b/iu.test(
-      evidence
-    )
-  ) {
-    return "system";
-  }
-  if (/\b(?:tailpipe|exhaust tips?|tips?|насад\w*|наконечник\w*)\b/iu.test(evidence)) return "tips";
-  return "any";
+  const evidence = `${product.name} ${product.category ?? ""}`;
+  return inferShopAiProductKind(evidence, category);
 }
 
 function annotateProduct(product: ShopAiProduct, plan: ShopAiPlan): ShopAiProduct {
   const requestedChassis = plan.vehicle.chassis?.toUpperCase();
+  const vehicleEvaluation = evaluateShopAiProductVehicleFitment(product, plan);
   const matchingFitments = requestedChassis
     ? (product.fitments ?? []).filter((fitment) =>
         fitment.chassisCodes.some((code) => areChassisCompatible(code, requestedChassis))
       )
     : (product.fitments ?? []);
   const confidences = matchingFitments.map((fitment) => fitment.confidence ?? "unknown");
-  const compatibility = requestedChassis
-    ? product.fitmentStatus === "verified" && confidences.includes("high")
-      ? "confirmed"
-      : product.fitmentStatus !== "needs_review" &&
-          (confidences.includes("high") || confidences.includes("medium"))
-        ? "likely"
-        : "needs_review"
-    : product.fitmentStatus !== "needs_review" &&
-        (confidences.includes("high") || confidences.includes("medium"))
-      ? "likely"
-      : "needs_review";
+  const compatibility =
+    vehicleEvaluation.status === "unknown"
+      ? "needs_review"
+      : requestedChassis
+        ? product.fitmentStatus === "verified" && confidences.includes("high")
+          ? "confirmed"
+          : product.fitmentStatus !== "needs_review" &&
+              (confidences.includes("high") || confidences.includes("medium"))
+            ? "likely"
+            : "needs_review"
+        : product.fitmentStatus !== "needs_review" &&
+            (confidences.includes("high") || confidences.includes("medium"))
+          ? "likely"
+          : "needs_review";
+  const hasTrustedSource =
+    product.fitmentStatus === "verified" || product.fitmentSource === "import";
+  const hasVehicleConstraint = Boolean(
+    plan.vehicle.make ||
+      plan.vehicle.model ||
+      plan.vehicle.chassis ||
+      plan.vehicle.year ||
+      plan.vehicle.engine ||
+      plan.opfGpf
+  );
+  const matchStatus: ShopAiMatchStatus =
+    !hasVehicleConstraint || (vehicleEvaluation.status === "match" && hasTrustedSource)
+      ? "exact"
+      : "requires_verification";
+  const missingFacts = new Set<string>();
+  if (matchStatus === "requires_verification") {
+    if (!hasTrustedSource) missingFacts.add("verified_fitment");
+    if (vehicleEvaluation.status === "unknown") {
+      if (
+        plan.vehicle.chassis &&
+        !matchingFitments.some((fitment) => fitment.chassisCodes.length > 0)
+      ) {
+        missingFacts.add("chassis");
+      }
+      if (
+        plan.vehicle.year &&
+        !matchingFitments.some((fitment) => (fitment.yearRanges ?? []).length > 0)
+      ) {
+        missingFacts.add("year");
+      }
+      if (plan.vehicle.model && !matchingFitments.some((fitment) => fitment.models.length > 0)) {
+        missingFacts.add("model");
+      }
+    }
+  }
+  const material = detectMaterial(product);
+  const opfGpf = detectOpfGpf(product);
+  const installationType = detectInstallationType(product);
+  const powerGainHp = extractDeclaredPowerGain(product);
+  const productKind = detectShopAiProductKind(product, plan.category);
 
   return {
     ...product,
     compatibility,
-    compatibilityReason: requestedChassis
-      ? `fitment:${requestedChassis}:${confidences[0] ?? "unknown"}`
-      : "vehicle-details-incomplete",
+    compatibilityReason: `${vehicleEvaluation.reason}:${requestedChassis ?? "no-chassis"}:${vehicleEvaluation.confidence}`,
+    matchStatus,
+    matchReason:
+      matchStatus === "exact"
+        ? `verified:${vehicleEvaluation.reason}`
+        : `verification-required:${vehicleEvaluation.reason}`,
+    missingFacts: Array.from(missingFacts),
+    matchedApplicationId: null,
     facts: {
-      material: detectMaterial(product),
-      opfGpf: detectOpfGpf(product),
-      installationType: detectInstallationType(product),
-      powerGainHp: extractDeclaredPowerGain(product),
-      productKind: detectShopAiProductKind(product),
+      material,
+      materialVerified:
+        product.facts?.materialVerified === true && product.facts.material === material,
+      opfGpf,
+      opfGpfVerified: product.facts?.opfGpfVerified === true && product.facts.opfGpf === opfGpf,
+      installationType,
+      installationTypeVerified:
+        product.facts?.installationTypeVerified === true &&
+        product.facts.installationType === installationType,
+      powerGainHp,
+      powerGainVerified:
+        product.facts?.powerGainVerified === true && product.facts.powerGainHp === powerGainHp,
+      productKind,
+      productKindVerified:
+        product.facts?.productKindVerified === true && product.facts.productKind === productKind,
     },
   };
 }
@@ -136,21 +192,11 @@ function filterForEngineCode(products: ShopAiProduct[], plan: ShopAiPlan) {
   return products.filter((product) => pattern.test(productEvidence(product)));
 }
 
-function filterForVehicleYear(products: ShopAiProduct[], plan: ShopAiPlan) {
-  const year = plan.vehicle.year;
-  if (!year) return products;
-  return products.filter((product) =>
-    (product.fitments ?? []).some((fitment) =>
-      (fitment.yearRanges ?? []).some(
-        (range) => range.from <= year && (range.to === null || range.to >= year)
-      )
-    )
-  );
-}
-
 function filterForProductKind(products: ShopAiProduct[], plan: ShopAiPlan) {
   if (!plan.productKind || plan.productKind === "any") return products;
-  return products.filter((product) => detectShopAiProductKind(product) === plan.productKind);
+  return products.filter(
+    (product) => detectShopAiProductKind(product, plan.category) === plan.productKind
+  );
 }
 
 /**
@@ -171,8 +217,7 @@ export function runShopAiCandidatePipeline(input: {
     input.message
   );
   const compatible = filterShopAiProductsForVehicle(unseen, input.plan);
-  const yearMatched = filterForVehicleYear(compatible, input.plan);
-  const engineMatched = filterForEngineCode(yearMatched, input.plan);
+  const engineMatched = filterForEngineCode(compatible, input.plan);
   const opfMatched = filterForOpfGpf(engineMatched, input.plan);
   const kindMatched = filterForProductKind(opfMatched, input.plan);
   const goalMatched = filterShopAiProductsForPowerGoal(kindMatched, input.plan).map((product) =>
@@ -180,7 +225,12 @@ export function runShopAiCandidatePipeline(input: {
   );
   const vehicleRejected = differenceById(unseen, compatible);
   const evidenceRejected = differenceById(compatible, goalMatched);
-  const ranked = diversifyShopAiProducts(goalMatched, input.message).slice(0, input.limit ?? 6);
+  const exact = goalMatched.filter((product) => product.matchStatus === "exact");
+  const requiresVerification = goalMatched.filter((product) => product.matchStatus !== "exact");
+  const ranked = [
+    ...diversifyShopAiProducts(exact, input.message, input.plan),
+    ...diversifyShopAiProducts(requiresVerification, input.message, input.plan),
+  ].slice(0, input.limit ?? 6);
 
   return {
     products: ranked,
@@ -220,19 +270,7 @@ export function buildShopAiNoExactMatchMessage(locale: "ua" | "en", plan: ShopAi
   const constraints = [
     plan.vehicle.engine ? `${locale === "ua" ? "двигун" : "engine"} ${plan.vehicle.engine}` : null,
     plan.opfGpf === "with" ? "OPF/GPF" : plan.opfGpf === "without" ? "NON-OPF" : null,
-    plan.productKind === "system"
-      ? locale === "ua"
-        ? "повна вихлопна система"
-        : "complete exhaust system"
-      : plan.productKind === "downpipe"
-        ? "downpipe"
-        : plan.productKind === "link_pipe"
-          ? "link pipe"
-          : plan.productKind === "tips"
-            ? locale === "ua"
-              ? "насадки"
-              : "exhaust tips"
-            : null,
+    formatShopAiProductKind(plan.productKind, locale),
     plan.powerGainHp ? `+${plan.powerGainHp} ${locale === "ua" ? "к.с." : "hp"}` : null,
   ].filter(Boolean);
   const subject = [vehicle, constraints.length ? `(${constraints.join(", ")})` : null]

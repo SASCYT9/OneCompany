@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
 
     const settings = await getOrCreateShopSettings(prisma);
     return NextResponse.json(serializeShopSettings(settings));
@@ -33,7 +33,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
     const body = await request.json().catch(() => ({}));
     const payload = normalizeShopSettingsPayload(body);

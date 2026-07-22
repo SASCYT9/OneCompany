@@ -6,15 +6,21 @@ import {
 } from "@/app/api/shop/stock/search/route";
 import { compactShopCode, parseVehicleSearchQuery } from "@/lib/shopVehicleSearch";
 import { normalizeShopSearchText, tokenizeShopSearchQuery } from "@/lib/shopSearch";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { getShopStockCategoryLabelForProduct } from "@/lib/shopStockTaxonomy";
 import { shouldIncludeStockSuggestionMatch } from "@/lib/shopStockSuggestion";
+import {
+  filterShopStockItemsByVehicleScope,
+  parseShopStockVehicleScope,
+} from "@/lib/shopStockVehicleScope";
 
 const MAX_SUGGESTIONS = 10;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() || "";
-  const locale = searchParams.get("locale")?.trim() || "ua";
+  const locale = searchParams.get("locale")?.trim() === "en" ? "en" : "ua";
+  const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
   if (query.length < 2) {
     return NextResponse.json({ data: [] });
@@ -25,7 +31,8 @@ export async function GET(request: NextRequest) {
     const compactQuery = compactShopCode(query);
     const tokens = tokenizeShopSearchQuery(query);
     const strictSkuQuery = parseVehicleSearchQuery(query) === "sku";
-    const products = await getShopProductsWithFitments();
+    const allProducts = await getShopProductsWithFitments();
+    const products = filterShopStockItemsByVehicleScope(allProducts, vehicleScope);
     const brandMatches = new Map<string, number>();
     const vehicleMatches = new Map<string, { make: string; model?: string; count: number }>();
 
@@ -101,6 +108,7 @@ export async function GET(request: NextRequest) {
             partNumber: product.sku || "",
             thumbnail: product.image || product.gallery?.[0] || null,
             slug: product.slug,
+            href: buildShopStorefrontProductPathForProduct(locale, product),
             category: getShopStockCategoryLabelForProduct(item, locale),
           },
         };

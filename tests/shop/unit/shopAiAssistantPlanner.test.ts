@@ -13,6 +13,7 @@ test("planner infers a tuning category and asks for missing vehicle", () => {
 
   assert.equal(plan.category, "exhaust");
   assert.equal(plan.needsClarification, true);
+  assert.deepEqual(plan.requiredDetails, []);
 });
 
 test("planner inherits vehicle selected on the Stock page", () => {
@@ -26,6 +27,21 @@ test("planner inherits vehicle selected on the Stock page", () => {
   assert.equal(plan.vehicle.model, "M3");
   assert.equal(plan.vehicle.chassis, "F80");
   assert.equal(plan.needsClarification, false);
+});
+
+test("planner keeps the active Moto catalog scope authoritative", () => {
+  const plan = normalizeShopAiPlan({ vehicle: { type: "car" } }, "Підбери вихлоп", {
+    ...context,
+    scope: "moto",
+  });
+
+  assert.equal(plan.vehicle.type, "motorcycle");
+});
+
+test("fallback planner keeps Moto scope even before a make is selected", () => {
+  const plan = buildFallbackShopAiPlan("Підбери вихлоп", { ...context, scope: "moto" });
+
+  assert.equal(plan.vehicle.type, "motorcycle");
 });
 
 test("planner rejects unsupported categories and invalid price values", () => {
@@ -59,7 +75,8 @@ test("fallback planner resolves vehicle and budget without an AI provider", () =
   assert.equal(plan.vehicle.year, 2018);
   assert.equal(plan.category, "exhaust");
   assert.equal(plan.maxPrice, 3000);
-  assert.equal(plan.needsClarification, false);
+  assert.equal(plan.needsClarification, true);
+  assert.ok(plan.requiredDetails?.includes("opfGpf"));
 });
 
 test("fallback planner inherits a year from the current Stock query", () => {
@@ -99,8 +116,8 @@ test("planner keeps a verified Stock chassis instead of an AI typo", () => {
   );
 
   assert.equal(plan.vehicle.chassis, "G90");
-  assert.equal(plan.needsClarification, false);
-  assert.equal(plan.clarification, null);
+  assert.equal(plan.needsClarification, true);
+  assert.ok(plan.requiredDetails?.includes("opfGpf"));
 });
 
 test("planner normalizes a letter O typo in a chassis code", () => {
@@ -180,6 +197,13 @@ test("planner recognizes an explicit NON-OPF configuration", () => {
   assert.equal(plan.requiredDetails?.includes("opfGpf"), false);
 });
 
+test("planner recognizes Ukrainian без OPF without relying on ASCII word boundaries", () => {
+  const plan = buildFallbackShopAiPlan("вихлоп на BMW M3 2018 без OPF", context);
+
+  assert.equal(plan.opfGpf, "without");
+  assert.equal(plan.requiredDetails?.includes("opfGpf"), false);
+});
+
 test("planner requests engine evidence for chip tuning", () => {
   const plan = buildFallbackShopAiPlan("RaceChip for BMW M5 G90", {
     locale: "en",
@@ -204,6 +228,31 @@ test("generic exhaust intent targets a complete system", () => {
     currency: "EUR",
   });
   assert.equal(plan.productKind, "system");
+});
+
+test("planner keeps a preferred brand soft unless the user says only", () => {
+  const preferred = buildFallbackShopAiPlan("Show me Akrapovic exhaust for BMW M3 F80", {
+    locale: "en",
+    currency: "EUR",
+  });
+  const exclusive = buildFallbackShopAiPlan("Show only Akrapovic exhaust for BMW M3 F80", {
+    locale: "en",
+    currency: "EUR",
+  });
+
+  assert.equal(preferred.brand, "Akrapovic");
+  assert.equal(preferred.brandOnly, false);
+  assert.equal(exclusive.brand, "Akrapovic");
+  assert.equal(exclusive.brandOnly, true);
+});
+
+test("planner recognizes an explicit in-stock constraint", () => {
+  const plan = buildFallbackShopAiPlan("BMW M3 F80 exhaust, only in stock", {
+    locale: "en",
+    currency: "EUR",
+  });
+
+  assert.equal(plan.stockOnly, true);
 });
 
 test("downpipe intent remains distinct from a complete exhaust", () => {

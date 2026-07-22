@@ -1,30 +1,16 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import type { AdminSession } from "@/lib/adminAuth";
+import { SUPERADMIN_ROLE_KEY } from "@/lib/admin/adminPermissions";
 
-export const ADMIN_PERMISSIONS = {
-  SHOP_PRODUCTS_READ: "shop.products.read",
-  SHOP_PRODUCTS_WRITE: "shop.products.write",
-  SHOP_CUSTOMERS_READ: "shop.customers.read",
-  SHOP_CUSTOMERS_WRITE: "shop.customers.write",
-  SHOP_CATEGORIES_READ: "shop.categories.read",
-  SHOP_CATEGORIES_WRITE: "shop.categories.write",
-  SHOP_COLLECTIONS_READ: "shop.collections.read",
-  SHOP_COLLECTIONS_WRITE: "shop.collections.write",
-  SHOP_IMPORTS_MANAGE: "shop.imports.manage",
-  SHOP_PRICING_READ: "shop.pricing.read",
-  SHOP_PRICING_WRITE: "shop.pricing.write",
-  SHOP_INVENTORY_READ: "shop.inventory.read",
-  SHOP_INVENTORY_WRITE: "shop.inventory.write",
-  SHOP_ORDERS_READ: "shop.orders.read",
-  SHOP_ORDERS_WRITE: "shop.orders.write",
-  SHOP_SETTINGS_READ: "shop.settings.read",
-  SHOP_SETTINGS_WRITE: "shop.settings.write",
-  SHOP_AUDIT_READ: "shop.audit.read",
-} as const;
-
-export const SUPERADMIN_ROLE_KEY = "superadmin";
-
-export type AdminPermission = (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS];
+export {
+  ADMIN_PERMISSIONS,
+  ADMIN_ROLE_TEMPLATES,
+  OWNER_ROLE_KEY,
+  SUPERADMIN_ROLE_KEY,
+  getAdminRoleTemplate,
+  type AdminPermission,
+  type AdminRoleTemplate,
+} from "@/lib/admin/adminPermissions";
 
 type BootstrapAdminIdentity = {
   email: string;
@@ -48,58 +34,50 @@ function getBootstrapAdminIdentity(): BootstrapAdminIdentity {
   };
 }
 
-export async function ensureAdminBootstrap(prisma: PrismaClient) {
+/**
+ * Creates the one-time bootstrap owner only for an empty AdminUser table.
+ * Existing users, activation state, and role assignments are never mutated.
+ */
+export async function createInitialAdminBootstrap(prisma: PrismaClient) {
   const identity = getBootstrapAdminIdentity();
   const now = new Date();
 
-  const role = await prisma.adminRole.upsert({
-    where: { key: SUPERADMIN_ROLE_KEY },
-    create: {
-      key: SUPERADMIN_ROLE_KEY,
-      name: "Super Admin",
-      permissions: ["*"],
-    },
-    update: {
-      name: "Super Admin",
-      permissions: ["*"],
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    if ((await tx.adminUser.count()) > 0) {
+      return null;
+    }
 
-  const user = await prisma.adminUser.upsert({
-    where: { email: identity.email },
-    create: {
-      email: identity.email,
-      name: identity.name,
-      isActive: true,
-      lastLoginAt: now,
-    },
-    update: {
-      name: identity.name,
-      isActive: true,
-      lastLoginAt: now,
-    },
-  });
-
-  await prisma.adminUserRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: user.id,
-        roleId: role.id,
+    const role = await tx.adminRole.upsert({
+      where: { key: SUPERADMIN_ROLE_KEY },
+      create: {
+        key: SUPERADMIN_ROLE_KEY,
+        name: "Super Admin",
+        permissions: ["*"],
       },
-    },
-    create: {
-      userId: user.id,
-      roleId: role.id,
-    },
-    update: {},
-  });
+      update: {},
+    });
 
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    permissions: ["*"],
-  };
+    const user = await tx.adminUser.create({
+      data: {
+        email: identity.email,
+        name: identity.name,
+        isActive: true,
+        lastLoginAt: now,
+        roles: {
+          create: {
+            role: { connect: { id: role.id } },
+          },
+        },
+      },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name || identity.name,
+      permissions: ["*"],
+    };
+  });
 }
 
 export async function writeAdminAuditLog(

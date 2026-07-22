@@ -25,7 +25,7 @@ export const DO88_HERO = {
     'Преміальні системи охолодження, інтеркулери та силіконові патрубки зі Швеції. Створено для максимальної продуктивності.',
   primaryButtonLabel: 'Explore DO88 Range',
   primaryButtonLabelUk: 'Переглянути каталог DO88',
-  primaryButtonLink: '/shop/stock?distributor=DO88',
+  primaryButtonLink: '/shop/catalog?distributor=DO88',
   secondaryButtonLabel: 'About One Company',
   secondaryButtonLabelUk: 'Про One Company',
   secondaryButtonLink: 'https://onecompany.global/ua',

@@ -32,15 +32,16 @@
  *   ShopProduct, titles, descriptions, or images.
  */
 
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
-import { fetchTurn14Brands, getTurn14AccessToken } from '@/lib/turn14';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
+import { fetchTurn14Brands, getTurn14AccessToken } from "@/lib/turn14";
 
-const TURN14_API_BASE = 'https://api.turn14.com/v1';
+const TURN14_API_BASE = "https://api.turn14.com/v1";
 const REQ_INTERVAL_MS = 260; // ~4 req/s, under Turn14's 5 req/s cap
 
 let lastCallAt = 0;
@@ -55,8 +56,8 @@ function parseBrandsList(text: string): string[] {
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
-    if (line.startsWith('===')) continue; // section header
-    if (line.startsWith('[') && line.endsWith(']')) continue; // sub-section header
+    if (line.startsWith("===")) continue; // section header
+    if (line.startsWith("[") && line.endsWith("]")) continue; // sub-section header
     out.push(line);
   }
   return Array.from(new Set(out));
@@ -64,7 +65,7 @@ function parseBrandsList(text: string): string[] {
 
 function buildTargetMap(
   brandsListNames: string[],
-  turn14Brands: Array<{ id: string; name: string }>,
+  turn14Brands: Array<{ id: string; name: string }>
 ): Map<string, string> {
   // Returns Map<turn14BrandId, displayName>.
   const m = new Map<string, string>();
@@ -73,7 +74,7 @@ function buildTargetMap(
     const lc = tb.name.toLowerCase();
     const exact = lowerNames.includes(lc);
     const substring = lowerNames.some(
-      (n) => (n.length >= 4 && lc.includes(n)) || (lc.length >= 4 && n.includes(lc)),
+      (n) => (n.length >= 4 && lc.includes(n)) || (lc.length >= 4 && n.includes(lc))
     );
     if (exact || substring) {
       // Prefer Turn14's canonical name as displayName (matches /v1/brands).
@@ -87,7 +88,7 @@ async function fetchPage(page: number): Promise<{ data: any[]; meta: any }> {
   const token = await getTurn14AccessToken();
   const res = await fetch(`${TURN14_API_BASE}/items?page=${page}`, {
     headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
+    cache: "no-store",
   });
   if (!res.ok) {
     const text = await res.text();
@@ -98,24 +99,30 @@ async function fetchPage(page: number): Promise<{ data: any[]; meta: any }> {
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
   const url = new URL(req.url);
-  const startPage = Math.max(1, parseInt(url.searchParams.get('startPage') || '1', 10));
+  const startPage = Math.max(1, parseInt(url.searchParams.get("startPage") || "1", 10));
   // Default chunk size = 5 pages. Each page has ~30-70 items belonging to
   // our target brands; we upsert them SEQUENTIALLY (Prisma Accelerate
   // appears to fail or stall when too many upserts run via Promise.all).
   // Sequential RTT ≈ 80-150ms per upsert; 5 pages × ~70 items = ~350
   // upserts ≈ 30-50s wall-clock. Caller is expected to loop POST until
   // done:true. Override via ?maxPages=N if you want a different chunk size.
-  const maxPagesParam = url.searchParams.get('maxPages');
+  const maxPagesParam = url.searchParams.get("maxPages");
   const pageStop =
-    maxPagesParam !== null
-      ? Math.max(1, parseInt(maxPagesParam, 10))
-      : startPage + 4; // 5 pages per call by default
+    maxPagesParam !== null ? Math.max(1, parseInt(maxPagesParam, 10)) : startPage + 4; // 5 pages per call by default
   const maxPages = pageStop;
   // Vercel Pro function timeout is 300s. Default budget 90s leaves headroom.
-  const maxSeconds = Math.max(10, parseInt(url.searchParams.get('maxSeconds') || '90', 10));
+  const maxSeconds = Math.max(10, parseInt(url.searchParams.get("maxSeconds") || "90", 10));
 
   const startedAt = Date.now();
 
@@ -124,16 +131,16 @@ export async function POST(req: Request) {
   //    root.
   let brandsListNames: string[] = [];
   try {
-    const txt = await fs.readFile(path.join(process.cwd(), 'BRANDS_LIST.txt'), 'utf8');
+    const txt = await fs.readFile(path.join(process.cwd(), "BRANDS_LIST.txt"), "utf8");
     brandsListNames = parseBrandsList(txt);
   } catch (err) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Could not read BRANDS_LIST.txt',
+        error: "Could not read BRANDS_LIST.txt",
         detail: (err as Error).message,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 
@@ -142,8 +149,8 @@ export async function POST(req: Request) {
   const brandsRes = await fetchTurn14Brands();
   const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
     .map((b): { id: string; name: string } => ({
-      id: String(b?.id ?? ''),
-      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+      id: String(b?.id ?? ""),
+      name: ((b?.attributes?.name || b?.name || "") as string).trim(),
     }))
     .filter((b) => b.id && b.name);
   const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
@@ -152,11 +159,11 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: 'No overlap between BRANDS_LIST.txt and Turn14 brands list.',
+        error: "No overlap between BRANDS_LIST.txt and Turn14 brands list.",
         brandsListCount: brandsListNames.length,
         turn14BrandsCount: allTurn14Brands.length,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 
@@ -184,11 +191,11 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: 'All Turn14BrandMarkup upserts failed — likely schema or db issue',
+        error: "All Turn14BrandMarkup upserts failed — likely schema or db issue",
         firstError: markupErrors[0],
         sampleErrors: markupErrors.slice(0, 3),
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 
@@ -200,12 +207,12 @@ export async function POST(req: Request) {
   const perBrandUpserted: Record<string, number> = {};
   let totalPagesFromMeta: number | undefined;
   let lastFullyProcessedPage = startPage - 1; // none yet
-  let stopReason: 'done' | 'budget' | 'pagecap' | 'empty' = 'done';
+  let stopReason: "done" | "budget" | "pagecap" | "empty" = "done";
 
   while (page <= maxPages) {
     const elapsedSec = (Date.now() - startedAt) / 1000;
     if (elapsedSec > maxSeconds) {
-      stopReason = 'budget';
+      stopReason = "budget";
       break;
     }
 
@@ -229,14 +236,14 @@ export async function POST(req: Request) {
             markupsUpserted,
           },
         },
-        { status: 502 },
+        { status: 502 }
       );
     }
 
     const items = body?.data || [];
     if (items.length === 0) {
       // Empty page = end of catalog — fully done regardless of meta.
-      stopReason = 'empty';
+      stopReason = "empty";
       lastFullyProcessedPage = page - 1;
       break;
     }
@@ -278,20 +285,14 @@ export async function POST(req: Request) {
       const brandName = targetMap.get(itemBrandId) as string;
       rows.push({
         id: String(it.id),
-        partNumber: (attrs.part_number || attrs.mfr_part_number || '').toString(),
+        partNumber: (attrs.part_number || attrs.mfr_part_number || "").toString(),
         brand: brandName,
         brandId: itemBrandId,
-        name: (attrs.product_name || attrs.item_name || attrs.name || 'Auto Part').toString(),
+        name: (attrs.product_name || attrs.item_name || attrs.name || "Auto Part").toString(),
         category: attrs.category ?? null,
         subcategory: attrs.subcategory ?? null,
-        price:
-          parseFloat(
-            attrs.retail_price || attrs.list_price || attrs.price || '0',
-          ) || 0,
-        inStock:
-          attrs.regular_stock > 0 ||
-          attrs.can_purchase === true ||
-          attrs.in_stock === true,
+        price: parseFloat(attrs.retail_price || attrs.list_price || attrs.price || "0") || 0,
+        inStock: attrs.regular_stock > 0 || attrs.can_purchase === true || attrs.in_stock === true,
         thumbnail: attrs.thumbnail || attrs.primary_image || attrs.image_url || null,
         attributes: attrs,
       });
@@ -322,38 +323,38 @@ export async function POST(req: Request) {
               markupsUpserted,
             },
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     lastFullyProcessedPage = page;
     if (totalPagesFromMeta !== undefined && page >= totalPagesFromMeta) {
-      stopReason = 'done';
+      stopReason = "done";
       page++;
       break;
     }
     page++;
   }
-  if (stopReason !== 'budget' && stopReason !== 'empty' && stopReason !== 'done') {
+  if (stopReason !== "budget" && stopReason !== "empty" && stopReason !== "done") {
     // Loop exited because page > maxPages (maxPages is the inclusive upper
     // bound); we have more pages to walk in a follow-up call.
     if (totalPagesFromMeta === undefined || lastFullyProcessedPage < totalPagesFromMeta) {
-      stopReason = 'pagecap';
+      stopReason = "pagecap";
     }
   }
   // Detect "loop ended because page > maxPages" precisely. After the loop,
   // if stopReason is still 'done' but we didn't hit the catalog end, downgrade
   // to 'pagecap'.
   if (
-    stopReason === 'done' &&
+    stopReason === "done" &&
     lastFullyProcessedPage > 0 &&
     totalPagesFromMeta !== undefined &&
     lastFullyProcessedPage < totalPagesFromMeta
   ) {
-    stopReason = 'pagecap';
+    stopReason = "pagecap";
   }
-  const fullyDone = stopReason === 'done' || stopReason === 'empty';
+  const fullyDone = stopReason === "done" || stopReason === "empty";
   const nextPage = fullyDone ? null : lastFullyProcessedPage + 1;
 
   const elapsedSec = (Date.now() - startedAt) / 1000;
@@ -382,15 +383,23 @@ export async function POST(req: Request) {
 // minus actual page walking. Just confirms which brands intersect.
 export async function GET() {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
-  const txt = await fs.readFile(path.join(process.cwd(), 'BRANDS_LIST.txt'), 'utf8');
+  const txt = await fs.readFile(path.join(process.cwd(), "BRANDS_LIST.txt"), "utf8");
   const brandsListNames = parseBrandsList(txt);
   const brandsRes = await fetchTurn14Brands();
   const allTurn14Brands: Array<{ id: string; name: string }> = ((brandsRes?.data || []) as any[])
     .map((b): { id: string; name: string } => ({
-      id: String(b?.id ?? ''),
-      name: ((b?.attributes?.name || b?.name || '') as string).trim(),
+      id: String(b?.id ?? ""),
+      name: ((b?.attributes?.name || b?.name || "") as string).trim(),
     }))
     .filter((b) => b.id && b.name);
   const targetMap = buildTargetMap(brandsListNames, allTurn14Brands);
@@ -400,6 +409,9 @@ export async function GET() {
     brandsListCount: brandsListNames.length,
     turn14BrandsCount: allTurn14Brands.length,
     intersectionCount: targetMap.size,
-    intersection: Array.from(targetMap.entries()).map(([brandId, brandName]) => ({ brandId, brandName })),
+    intersection: Array.from(targetMap.entries()).map(([brandId, brandName]) => ({
+      brandId,
+      brandName,
+    })),
   });
 }

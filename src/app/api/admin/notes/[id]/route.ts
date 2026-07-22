@@ -1,8 +1,8 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { assertCurrentAdminAccess } from "@/lib/admin/adminAccess";
+import { assertAdminEntityPermission } from "@/lib/admin/adminEntityPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Single-note endpoints.
@@ -11,24 +11,24 @@ import { prisma } from '@/lib/prisma';
  * DELETE /api/admin/notes/[id]   → remove note (only author or superadmin)
  */
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore);
+    const access = await assertCurrentAdminAccess();
 
     const { id } = await params;
-    const body = (await request.json().catch(() => ({}))) as { content?: string; isPinned?: boolean };
+    const body = (await request.json().catch(() => ({}))) as {
+      content?: string;
+      isPinned?: boolean;
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const note = await (prisma as any).shopEntityNote.findUnique({ where: { id } });
-    if (!note) return NextResponse.json({ error: 'Note not found' }, { status: 404 });
+    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    assertAdminEntityPermission(access, note.entityType, "write");
 
     // Only author may edit content
-    if (body.content !== undefined && note.authorEmail !== session.email) {
-      return NextResponse.json({ error: 'Only the author can edit a note' }, { status: 403 });
+    if (body.content !== undefined && note.authorEmail !== access.email) {
+      return NextResponse.json({ error: "Only the author can edit a note" }, { status: 403 });
     }
 
     const data: Record<string, unknown> = {};
@@ -43,9 +43,14 @@ export async function PATCH(
       updatedAt: updated.updatedAt.toISOString(),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (message === "UNSUPPORTED_ADMIN_ENTITY") {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to update note" }, { status: 500 });
   }
 }
 
@@ -54,24 +59,29 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore);
+    const access = await assertCurrentAdminAccess();
 
     const { id } = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const note = await (prisma as any).shopEntityNote.findUnique({ where: { id } });
-    if (!note) return NextResponse.json({ error: 'Note not found' }, { status: 404 });
+    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    assertAdminEntityPermission(access, note.entityType, "write");
 
-    if (note.authorEmail !== session.email) {
-      return NextResponse.json({ error: 'Only the author can delete a note' }, { status: 403 });
+    if (note.authorEmail !== access.email) {
+      return NextResponse.json({ error: "Only the author can delete a note" }, { status: 403 });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prisma as any).shopEntityNote.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to delete note' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (message === "UNSUPPORTED_ADMIN_ENTITY") {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to delete note" }, { status: 500 });
   }
 }

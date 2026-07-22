@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildShopAiCatalogQuery,
   diversifyShopAiProducts,
+  evaluateShopAiProductVehicleFitment,
   filterShopAiProductsForVehicle,
 } from "../../../src/lib/shopAiAssistantRanking";
 import type { ShopAiProduct } from "../../../src/lib/shopAiAssistantTypes";
@@ -39,7 +40,7 @@ test("assistant alternates brands from a relevance-ordered candidate pool", () =
   );
 });
 
-test("assistant respects an explicitly requested brand", () => {
+test("assistant treats a requested brand as a soft preference", () => {
   const products = [
     product("remus-1", "Remus"),
     product("akra-1", "AKRAPOVIC"),
@@ -48,6 +49,19 @@ test("assistant respects an explicitly requested brand", () => {
 
   assert.deepEqual(
     diversifyShopAiProducts(products, "Show me Remus exhausts").map((item) => item.id),
+    ["remus-1", "akra-1", "remus-2"]
+  );
+});
+
+test("assistant applies a requested brand as hard only when the user says only", () => {
+  const products = [
+    product("remus-1", "Remus"),
+    product("akra-1", "AKRAPOVIC"),
+    product("remus-2", "Remus"),
+  ];
+
+  assert.deepEqual(
+    diversifyShopAiProducts(products, "Show only Remus exhausts").map((item) => item.id),
     ["remus-1", "remus-2"]
   );
 });
@@ -134,5 +148,103 @@ test("assistant requires explicit chassis evidence when fitment data is missing"
   assert.deepEqual(
     filterShopAiProductsForVehicle([unknown, g90], plan).map((item) => item.id),
     ["g90-text"]
+  );
+});
+
+test("assistant correlates make, model, chassis and year in one application", () => {
+  const f80 = {
+    ...product("f80", "AKRAPOVIC"),
+    fitments: [
+      {
+        make: "BMW",
+        models: ["M3"],
+        chassisCodes: ["F80"],
+        yearRanges: [{ from: 2014, to: 2020 }],
+      },
+    ],
+  };
+  const wrongModel = {
+    ...product("f82", "AKRAPOVIC"),
+    fitments: [
+      {
+        make: "BMW",
+        models: ["M4"],
+        chassisCodes: ["F82"],
+        yearRanges: [{ from: 2014, to: 2020 }],
+      },
+    ],
+  };
+  const plan = {
+    intent: "recommend" as const,
+    vehicle: {
+      type: "car" as const,
+      make: "BMW",
+      model: "M3",
+      chassis: "F80",
+      year: 2018,
+      engine: null,
+    },
+    category: "exhaust" as const,
+    searchQuery: "BMW M3 F80 2018 exhaust",
+    minPrice: null,
+    maxPrice: null,
+    needsClarification: false,
+    clarification: null,
+  };
+
+  assert.deepEqual(
+    filterShopAiProductsForVehicle([wrongModel, f80], plan).map((item) => item.id),
+    ["f80"]
+  );
+});
+
+test("missing year evidence stays reviewable while an explicit year conflict is rejected", () => {
+  const unknownYear = {
+    ...product("unknown-year", "AKRAPOVIC"),
+    fitments: [
+      {
+        make: "BMW",
+        models: ["M3"],
+        chassisCodes: ["F80"],
+        yearRanges: [],
+        confidence: "high" as const,
+      },
+    ],
+  };
+  const conflictingYear = {
+    ...product("old", "Remus"),
+    fitments: [
+      {
+        make: "BMW",
+        models: ["M3"],
+        chassisCodes: ["F80"],
+        yearRanges: [{ from: 2014, to: 2017 }],
+        confidence: "high" as const,
+      },
+    ],
+  };
+  const plan = {
+    intent: "recommend" as const,
+    vehicle: {
+      type: "car" as const,
+      make: "BMW",
+      model: "M3",
+      chassis: "F80",
+      year: 2018,
+      engine: null,
+    },
+    category: "exhaust" as const,
+    searchQuery: "BMW M3 F80 2018 exhaust",
+    minPrice: null,
+    maxPrice: null,
+    needsClarification: false,
+    clarification: null,
+  };
+
+  assert.equal(evaluateShopAiProductVehicleFitment(unknownYear, plan).status, "unknown");
+  assert.equal(evaluateShopAiProductVehicleFitment(conflictingYear, plan).status, "contradiction");
+  assert.deepEqual(
+    filterShopAiProductsForVehicle([conflictingYear, unknownYear], plan).map((item) => item.id),
+    ["unknown-year"]
   );
 });

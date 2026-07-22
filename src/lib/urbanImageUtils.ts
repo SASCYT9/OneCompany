@@ -395,18 +395,16 @@ function buildUrbanCollectionMediaFromUrls(
   // are prepended in declared order so the first listed URL wins.
   const overrides = getUrbanCollectionMediaRoleOverrides(collectionHandle);
   if (overrides) {
+    const availablePhotos = new Set(photoGallery);
     (Object.keys(rolePhotos) as Array<keyof UrbanCollectionMediaSet["rolePhotos"]>).forEach(
       (role) => {
         const overrideUrls = overrides[role];
         if (!overrideUrls) return;
         const normalizedOverrides = overrideUrls
           .map((url) => normalizeUrbanImageUrl(url))
-          .filter((url) => url && !isUrbanPlaceholderImage(url));
+          .filter((url) => url && availablePhotos.has(url) && !isUrbanPlaceholderImage(url));
         const remaining = rolePhotos[role].filter((url) => !normalizedOverrides.includes(url));
         rolePhotos[role] = [...normalizedOverrides, ...remaining];
-        normalizedOverrides.forEach((url) => {
-          if (!photoGallery.includes(url)) photoGallery.push(url);
-        });
       }
     );
   }
@@ -567,8 +565,13 @@ export function resolveUrbanCollectionCardImage(
     return matchingRealOwnImages[0]!;
   }
 
-  if (realOwnImages.length > 0) {
-    return realOwnImages[0]!;
+  if (!product) {
+    if (realOwnImages.length > 0) {
+      return realOwnImages[0]!;
+    }
+    if (genericOwnCarousel.length > 0) {
+      return genericOwnCarousel[0]!;
+    }
   }
 
   const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages, resolvedModelHandles[0]);
@@ -583,6 +586,10 @@ export function resolveUrbanCollectionCardImage(
     isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)
   ) {
     return blueprintCandidate;
+  }
+
+  if (realOwnImages.length > 0) {
+    return realOwnImages[0]!;
   }
 
   if (genericOwnCarousel.length > 0) {
@@ -638,12 +645,14 @@ export function resolveUrbanProductGallery(
   if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
     candidates.push(realCandidate);
   }
-  const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
-  if (
-    blueprintCandidate &&
-    isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)
-  ) {
-    candidates.push(blueprintCandidate);
+  if (candidates.length === 0) {
+    const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
+    if (
+      blueprintCandidate &&
+      isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)
+    ) {
+      candidates.push(blueprintCandidate);
+    }
   }
   for (const url of genericOwnCarousel) {
     if (!candidates.includes(url)) candidates.push(url);

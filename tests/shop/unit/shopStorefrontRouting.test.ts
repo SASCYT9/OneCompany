@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildShopStorefrontProductPath,
+  resolveShopCatalogProductHref,
   resolveShopStorefrontSegment,
 } from "../../../src/lib/shopStorefrontRouting";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "../../../src/lib/storefrontRouteRegistry";
@@ -102,4 +103,27 @@ test("all routed brands produce long canonical product paths", () => {
       `/en/shop/${segment}/products/${segment}-sample`
     );
   }
+});
+
+test("catalog product links prefer safe canonical storefront hrefs", () => {
+  assert.equal(
+    resolveShopCatalogProductHref("ua", "/ua/shop/akrapovic/products/akr-slip-on", "akr-slip-on"),
+    "/ua/shop/akrapovic/products/akr-slip-on"
+  );
+});
+
+test("catalog product links fall back safely for missing or unexpected hrefs", () => {
+  assert.equal(
+    resolveShopCatalogProductHref("en", undefined, "ipe system"),
+    "/en/shop/ipe%20system"
+  );
+  assert.equal(
+    resolveShopCatalogProductHref("ua", "/en/shop/ipe/products/ipe-system", "ipe-system"),
+    "/ua/shop/ipe-system"
+  );
+  assert.equal(
+    resolveShopCatalogProductHref("ua", "https://example.com/product", "safe-product"),
+    "/ua/shop/safe-product"
+  );
+  assert.equal(resolveShopCatalogProductHref("ua", "javascript:alert(1)", ""), "/ua/shop");
 });

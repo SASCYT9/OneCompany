@@ -4,22 +4,31 @@
  * Read-only.
  */
 
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
   const [totalCount, brandMarkupCount, perBrand, sampleRows] = await Promise.all([
     prisma.turn14Item.count(),
     prisma.turn14BrandMarkup.count(),
     prisma.turn14Item.groupBy({
-      by: ['brand', 'brandId'],
+      by: ["brand", "brandId"],
       _count: { _all: true },
-      orderBy: { _count: { brand: 'desc' } },
+      orderBy: { _count: { brand: "desc" } },
       take: 50,
     }),
     prisma.turn14Item.findMany({
@@ -30,16 +39,17 @@ export async function GET() {
 
   // Approximate row size by JSON-serializing the sample rows.
   const sampleSerializedSize = sampleRows
-    .map((r) => Buffer.byteLength(JSON.stringify(r), 'utf8'))
+    .map((r) => Buffer.byteLength(JSON.stringify(r), "utf8"))
     .reduce((a, b) => a + b, 0);
-  const avgRowBytes = sampleRows.length > 0 ? Math.round(sampleSerializedSize / sampleRows.length) : 0;
+  const avgRowBytes =
+    sampleRows.length > 0 ? Math.round(sampleSerializedSize / sampleRows.length) : 0;
   const projectedTotalBytes = avgRowBytes * totalCount;
 
   // Try to read the Postgres-reported table size (pg_total_relation_size includes indexes + toast).
   let tableSizeBytes: number | null = null;
   try {
     const rows = await prisma.$queryRawUnsafe<Array<{ pg_total_relation_size: bigint }>>(
-      `SELECT pg_total_relation_size('"Turn14Item"') AS pg_total_relation_size`,
+      `SELECT pg_total_relation_size('"Turn14Item"') AS pg_total_relation_size`
     );
     if (rows[0]?.pg_total_relation_size != null) {
       tableSizeBytes = Number(rows[0].pg_total_relation_size);
@@ -50,7 +60,7 @@ export async function GET() {
 
   // Also count how many ShopProduct brands actually have shop products (via groupBy)
   const shopProductBrands = await prisma.shopProduct.groupBy({
-    by: ['brand'],
+    by: ["brand"],
     _count: { _all: true },
     where: { brand: { not: null } },
   });
@@ -77,7 +87,13 @@ export async function GET() {
       .slice(0, 30)
       .map((b) => ({ brand: b.brand, products: b._count._all })),
     sampleRow: sampleRows[0]
-      ? { id: sampleRows[0].id, partNumber: sampleRows[0].partNumber, brand: sampleRows[0].brand, brandId: sampleRows[0].brandId, attributesKeys: Object.keys((sampleRows[0].attributes as any) ?? {}).slice(0, 20) }
+      ? {
+          id: sampleRows[0].id,
+          partNumber: sampleRows[0].partNumber,
+          brand: sampleRows[0].brand,
+          brandId: sampleRows[0].brandId,
+          attributesKeys: Object.keys((sampleRows[0].attributes as any) ?? {}).slice(0, 20),
+        }
       : null,
   });
 }

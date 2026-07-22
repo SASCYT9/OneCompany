@@ -14,19 +14,31 @@
  * Read-only.
  */
 
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
   const url = new URL(req.url);
-  const sku = (url.searchParams.get('sku') || '').trim();
+  const sku = (url.searchParams.get("sku") || "").trim();
   if (!sku) {
-    return NextResponse.json({ success: false, error: 'sku query param required' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "sku query param required" },
+      { status: 400 }
+    );
   }
   const skuUpper = sku.toUpperCase();
 
@@ -39,7 +51,7 @@ export async function GET(req: Request) {
 
   // 2. case-insensitive contains.
   const contains = await prisma.turn14Item.findMany({
-    where: { partNumber: { contains: sku, mode: 'insensitive' } },
+    where: { partNumber: { contains: sku, mode: "insensitive" } },
     select: { id: true, partNumber: true, brand: true, brandId: true, name: true },
     take: 20,
   });
@@ -67,7 +79,15 @@ export async function GET(req: Request) {
       LIMIT 20
     `;
   } catch (err) {
-    attrsHits = [{ id: 'error', partNumber: (err as Error).message.slice(0, 200), brand: '', brandId: null, mfrPartNumber: null }];
+    attrsHits = [
+      {
+        id: "error",
+        partNumber: (err as Error).message.slice(0, 200),
+        brand: "",
+        brandId: null,
+        mfrPartNumber: null,
+      },
+    ];
   }
 
   return NextResponse.json({

@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Print-optimized packing slip for warehouse fulfillment.
@@ -19,13 +19,13 @@ import { prisma } from '@/lib/prisma';
  */
 
 function escapeHtml(s: string | null | undefined): string {
-  if (s == null) return '';
+  if (s == null) return "";
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 export async function GET(
@@ -34,25 +34,25 @@ export async function GET(
 ) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
 
     const { orderId } = await params;
     const order = await prisma.shopOrder.findUnique({
       where: { id: orderId },
       include: {
-        items: { orderBy: { createdAt: 'asc' } },
+        items: { orderBy: { createdAt: "asc" } },
       },
     });
 
-    if (!order) return new NextResponse('Order not found', { status: 404 });
+    if (!order) return new NextResponse("Order not found", { status: 404 });
 
     const shippingAddress = (order.shippingAddress as Record<string, unknown> | null) ?? {};
-    const addrLine1 = String(shippingAddress.line1 ?? '');
-    const addrLine2 = String(shippingAddress.line2 ?? '');
-    const addrCity = String(shippingAddress.city ?? '');
-    const addrRegion = String(shippingAddress.region ?? '');
-    const addrPostcode = String(shippingAddress.postcode ?? '');
-    const addrCountry = String(shippingAddress.country ?? '');
+    const addrLine1 = String(shippingAddress.line1 ?? "");
+    const addrLine2 = String(shippingAddress.line2 ?? "");
+    const addrCity = String(shippingAddress.city ?? "");
+    const addrRegion = String(shippingAddress.region ?? "");
+    const addrPostcode = String(shippingAddress.postcode ?? "");
+    const addrCountry = String(shippingAddress.country ?? "");
 
     const totalUnits = order.items.reduce((sum, it) => sum + it.quantity, 0);
 
@@ -229,7 +229,7 @@ export async function GET(
     <div class="order-block">
       <div class="label">Order #</div>
       <div class="number">${escapeHtml(order.orderNumber)}</div>
-      <div class="date">${order.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      <div class="date">${order.createdAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
     </div>
     <div class="units-block">
       <div class="units">${totalUnits}</div>
@@ -241,14 +241,14 @@ export async function GET(
     <div class="heading">Deliver to</div>
     <div class="name">${escapeHtml(order.customerName)}</div>
     <div class="address">
-      ${addrLine1 ? `${escapeHtml(addrLine1)}<br>` : ''}
-      ${addrLine2 ? `${escapeHtml(addrLine2)}<br>` : ''}
-      ${addrCity || addrPostcode ? `${escapeHtml([addrPostcode, addrCity].filter(Boolean).join(' '))}<br>` : ''}
-      ${addrRegion ? `${escapeHtml(addrRegion)}<br>` : ''}
-      ${addrCountry ? escapeHtml(addrCountry) : ''}
+      ${addrLine1 ? `${escapeHtml(addrLine1)}<br>` : ""}
+      ${addrLine2 ? `${escapeHtml(addrLine2)}<br>` : ""}
+      ${addrCity || addrPostcode ? `${escapeHtml([addrPostcode, addrCity].filter(Boolean).join(" "))}<br>` : ""}
+      ${addrRegion ? `${escapeHtml(addrRegion)}<br>` : ""}
+      ${addrCountry ? escapeHtml(addrCountry) : ""}
     </div>
-    ${order.phone ? `<div class="phone">📞 ${escapeHtml(order.phone)}</div>` : ''}
-    ${order.deliveryMethod ? `<div style="margin-top:8px; font-size:11px; color:#555;">Method: <b>${escapeHtml(order.deliveryMethod.replace('_', ' '))}</b>${order.ttnNumber ? ` · TTN ${escapeHtml(order.ttnNumber)}` : ''}</div>` : ''}
+    ${order.phone ? `<div class="phone">📞 ${escapeHtml(order.phone)}</div>` : ""}
+    ${order.deliveryMethod ? `<div style="margin-top:8px; font-size:11px; color:#555;">Method: <b>${escapeHtml(order.deliveryMethod.replace("_", " "))}</b>${order.ttnNumber ? ` · TTN ${escapeHtml(order.ttnNumber)}` : ""}</div>` : ""}
   </div>
 
   <table>
@@ -273,7 +273,7 @@ export async function GET(
         </tr>
       `
         )
-        .join('')}
+        .join("")}
     </tbody>
   </table>
 
@@ -299,15 +299,16 @@ export async function GET(
 
     return new NextResponse(html, {
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store',
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Packing slip error:', error);
-    return new NextResponse('Failed to render packing slip', { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Packing slip error:", error);
+    return new NextResponse("Failed to render packing slip", { status: 500 });
   }
 }

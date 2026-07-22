@@ -1,0 +1,1418 @@
+{
+  "generatedAt": "2026-07-22T13:32:38.850Z",
+  "baseUrl": "http://localhost:3000",
+  "methodology": "Legacy public catalog API; structured filter, structured filter + year, text + structured filters, and text-only search; first 100 results inspected per case; fallback disabled.",
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "warnings": 0,
+    "failed": 0
+  },
+  "results": [
+    {
+      "case": {
+        "id": "bmw-m3-f80",
+        "query": "BMW M3 F80 2018",
+        "scope": "auto",
+        "make": "BMW",
+        "model": "M3",
+        "chassis": "F80",
+        "year": 2018
+      },
+      "totals": {
+        "filterOnly": 93,
+        "filterWithYear": 71,
+        "textAndFilters": 71,
+        "textOnly": 71
+      },
+      "inspected": 71,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 8,
+        "contradicted": 0,
+        "unknown": 63
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "M-BM/T/8H",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC M-BM/T/8H Вихлопна система Slip-On Line (титан) для BMW M3 (F80) / M4 (F82) Сертифікат ECE",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BMV MU21",
+          "brand": "OHLINS",
+          "title": "OHLINS BMV MU21 Комплект амортизаторів Advanced Trackday для BMW M2 (F87) / M3 (F80) / M4 (F82 / F83) (пружини та аксесуари придбаваються окремо)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-186",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-186 Комплект передніх гальмівних дисків 380 мм для BMW M2 (F87) / M3 (F80) / M4 (F83) 2014-2020",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-3935607193715",
+          "brand": "Burger Motorsports",
+          "title": "Пакет 600 к.с. для S55 F8x BMW M2C/M3/M4",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "M3F80ADROKIT",
+          "brand": "ADRO",
+          "title": "ADRO M3F80ADROKIT Аеродинамічний обвіс, карбон для BMW M3 (F80)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8082",
+          "brand": "CSF",
+          "title": "CSF 8082 Двоходовий охолоджувач наддувного повітря з верхнім кріпленням (чорний) для BMW M2 (F87) / M3 (F80) / M4 (F82 / F83)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-BMW-M3-3-0-T-COMPETITION-2979CCM-450HP-331KW-550NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — BMW M3 F80 (2014–2020) M3 3.0 T Competition 2979cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "E-BM/T/3",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC E-BM/T/3 Лінк-пайп Evolution (титан) для BMW M3 (F80) / М4 (F82)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 1491,
+        "filterWithYear": 1759,
+        "textAndFilters": 2624,
+        "textOnly": 3317
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "bmw-m4-g82",
+        "query": "BMW M4 G82 2022",
+        "scope": "auto",
+        "make": "BMW",
+        "model": "M4",
+        "chassis": "G82",
+        "year": 2022
+      },
+      "totals": {
+        "filterOnly": 85,
+        "filterWithYear": 83,
+        "textAndFilters": 83,
+        "textOnly": 83
+      },
+      "inspected": 83,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 18,
+        "contradicted": 0,
+        "unknown": 65
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "BURGER-7310174290094",
+          "brand": "Burger Motorsports",
+          "title": "Фронтальна високопродуктивна впускна система BMS Elite G8x M2 M3 M4 S58 BMW Performance Intake",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "S-BM/TI/33H",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC S-BM/TI/33H Вихлопна система Slip-On Line (титан) для BMW M3 (G80 / G81) / M4 (G82 / G83) 2021-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BMV MX01",
+          "brand": "OHLINS",
+          "title": "OHLINS BMV MX01 Комплект амортизаторів Advanced Trackday TTX для BMW M2 (G87) / M3 (G80) / M4 (G82) без xDrive (пружини та аксесуари придбаваються окремо)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-322",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-322 Комплект передніх гальмівних дисків для BMW M2 (G87) / M3 (G80) / M4 (G82) (400x38 мм, заміна CCB)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A14A11-1101",
+          "brand": "ADRO",
+          "title": "ADRO A14A11-1101 Комплект розширення кузова Option 4 (без бампера ADRO, багажника, крила AT-R3) для BMW M4 (G82)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8233B",
+          "brand": "CSF",
+          "title": "CSF 8233B Колектор охолоджувача наддувного повітря S58 “Level-Up” (чорний) для BMW M3 (G80/G81) / M4 (G82/G83) / M2 (G87)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-BMW-M4-2993CCM-480HP-353KW-550NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — BMW M4 G82 (2020+) M4 2993cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0WM4G8-NVNM0-201",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система BMW M3 / M4 (G80 / G82)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2569,
+        "filterWithYear": 2655,
+        "textAndFilters": 2566,
+        "textOnly": 3217
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "porsche-911-turbo-9912",
+        "query": "Porsche 911 Turbo 991.2 2018",
+        "scope": "auto",
+        "make": "Porsche",
+        "model": "911 Turbo",
+        "chassis": "991.2",
+        "year": 2018
+      },
+      "totals": {
+        "filterOnly": 6,
+        "filterWithYear": 5,
+        "textAndFilters": 5,
+        "textOnly": 5
+      },
+      "inspected": 5,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 2,
+        "contradicted": 0,
+        "unknown": 3
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "A1-032",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-032 Комплект переднього гальмівного ротора для PORSCHE 911 (997) Turbo/(991.2) Carrera S/4S/GTS",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BIG-200SV-Gen2",
+          "brand": "DO88",
+          "title": "Big Pack Porsche 911 Turbo (991.2) 2015-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "1P991T-11-N000-1S",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Porsche 911 Turbo / Turbo S (991/991.2)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "do88-kit249S",
+          "brand": "DO88",
+          "title": "Porsche 911 Carrera (991.2) впускні шланги турбіни",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "FB798-20",
+          "brand": "DO88",
+          "title": "Porsche 991 991.2, BMC модельний Повітряний фільтр",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2512,
+        "filterWithYear": 2371,
+        "textAndFilters": 2629,
+        "textOnly": 3167
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "porsche-911-carrera-9921",
+        "query": "Porsche 911 Carrera 992.1 2021",
+        "scope": "auto",
+        "make": "Porsche",
+        "model": "911 Carrera",
+        "chassis": "992.1",
+        "year": 2021
+      },
+      "totals": {
+        "filterOnly": 7,
+        "filterWithYear": 7,
+        "textAndFilters": 7,
+        "textOnly": 7
+      },
+      "inspected": 7,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 0,
+        "contradicted": 0,
+        "unknown": 7
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "BIG-310-SD",
+          "brand": "DO88",
+          "title": "Big Pack Porsche 911 Carrera (992.1)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "ICM-360-SD",
+          "brand": "DO88",
+          "title": "Porsche 911 Carrera (992.1) інтеркулер комплект",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "LF-160-ST-66",
+          "brand": "DO88",
+          "title": "Porsche 911 Carrera (992) впускна система",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "do88-kit212ST-OE-66",
+          "brand": "DO88",
+          "title": "Porsche 911 Carrera (992) впускні шланги турбіни, OE/do88 66 мм короб повітряного фільтра",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "TR-300-992",
+          "brand": "DO88",
+          "title": "Porsche 911 Turbo / Carrera (992) пленум",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "TR-310-SST-OEr",
+          "brand": "DO88",
+          "title": "Porsche 911 Turbo / Carrera (992) труба інтеркулера",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "do88-kit215ST",
+          "brand": "DO88",
+          "title": "Porsche 911 Turbo / Carrera (992) патрубки наддуву",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2541,
+        "filterWithYear": 2737,
+        "textAndFilters": 2443,
+        "textOnly": 3035
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "audi-rs6-c8",
+        "query": "Audi RS6 C8 2021",
+        "scope": "auto",
+        "make": "Audi",
+        "model": "RS6",
+        "chassis": "C8",
+        "year": 2021
+      },
+      "totals": {
+        "filterOnly": 52,
+        "filterWithYear": 17,
+        "textAndFilters": 17,
+        "textOnly": 17
+      },
+      "inspected": 17,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 5,
+        "contradicted": 0,
+        "unknown": 12
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "L-AU/SS/6",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC L-AU/SS/6 Середня частина вихлопної системи комплект link-pipe SS AUDI RS6/RS7",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0446 70CSRX",
+          "brand": "Remus",
+          "title": "4-Piece Carbon Tailpipe (Ø 102mm) angled",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "URB-DIF-25358226-V1",
+          "brand": "Urban Automotive",
+          "title": "Задній дифузор Urban Visual Carbon Fibre для Audi C8 RS6 / RS7",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8194B",
+          "brand": "CSF",
+          "title": "CSF 8194B Комплект із двох інтеркулерів (чорний) для AUDI C8 RS6/RS7",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "ICM-500",
+          "brand": "DO88",
+          "title": "do88 інтеркулер MERA, Audi RS6 RS7 8C",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-7218975408302",
+          "brand": "Burger Motorsports",
+          "title": "Група 15: JB4 для Audi EA825 4.0TT C8 RS6/7, RS Q8, SQ7/8, & Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-AUDI-RS6-4-0-TFSI-3996CCM-600HP-441KW-800NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Audi RS6 C8 (2019+) RS6 4.0 TFSI 3996cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0446 70SGBR",
+          "brand": "Remus",
+          "title": "4-Piece Black chrome Tailpipes (145mm Ø 102 mm) angled",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2991,
+        "filterWithYear": 3442,
+        "textAndFilters": 3364,
+        "textOnly": 3848
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "audi-rs3-8y",
+        "query": "Audi RS3 8Y 2023",
+        "scope": "auto",
+        "make": "Audi",
+        "model": "RS3",
+        "chassis": "8Y",
+        "year": 2023
+      },
+      "totals": {
+        "filterOnly": 33,
+        "filterWithYear": 22,
+        "textAndFilters": 22,
+        "textOnly": 22
+      },
+      "inspected": 22,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 9,
+        "contradicted": 0,
+        "unknown": 13
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "DI-AU/CA/2/G",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC DI-AU/CA/2/G Задній карбоновий дифузор (глянцевий) для AUDI RS3 Sedan/Sportback (8Y) 2022-2024",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "VWS MU21S2",
+          "brand": "OHLINS",
+          "title": "OHLINS VWS MU21S2 Комплект койловеров ROAD & TRACK для AUDI RS3 (8Y) 2021 –",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-355",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-355 Комплект передніх гальмівних дисків для AUDI RS3 (8Y) 2022-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "URB-DIF-25358211-V1",
+          "brand": "Urban Automotive",
+          "title": "Задній дифузор Urban Visual Carbon Fibre для Audi RS3 8Y Hatchback",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BIG-380",
+          "brand": "DO88",
+          "title": "Big Pack Audi RS3 8V 8Y",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-1931489509491",
+          "brand": "Burger Motorsports",
+          "title": "Група 9: JB4 Тюнер 2017+ Audi RS3 & TTRS",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-AUDI-2-5-TFSI-RS-2480CCM-400HP-294KW-500NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Audi RS3 8Y (2021+) 2.5 TFSI RS 2480cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "P-HF1433",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC P-HF1433 Звуковий комплект для AUDI RS3 Sedan/Sportback (8Y) 2022-2025",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 3198,
+        "filterWithYear": 2794,
+        "textAndFilters": 3221,
+        "textOnly": 4191
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "volkswagen-golf-mk7",
+        "query": "Volkswagen Golf MK7 2017",
+        "scope": "auto",
+        "make": "Volkswagen",
+        "model": "Golf",
+        "chassis": "MK7",
+        "year": 2017
+      },
+      "totals": {
+        "filterOnly": 6,
+        "filterWithYear": 5,
+        "textAndFilters": 5,
+        "textOnly": 5
+      },
+      "inspected": 5,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 2,
+        "contradicted": 0,
+        "unknown": 3
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "BURGER-10972647566",
+          "brand": "Burger Motorsports",
+          "title": "BMS Комплект масловловлювача для Volkswagen MK7",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "WC-330",
+          "brand": "DO88",
+          "title": "VW Golf GTI Mk7 (MQB) Extra DSG радіатор охолодження",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0VM7R-B0N00-3",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Volkswagen Golf R (Mk7.5)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-3925048230003",
+          "brand": "Burger Motorsports",
+          "title": "Проставка BMS BOV для VW Golf/GTI MK7 та MK8 2015+",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "MK-110",
+          "brand": "DO88",
+          "title": "VW Golf MK7 GTI / R карбонова кришка двигуна",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 3243,
+        "filterWithYear": 2708,
+        "textAndFilters": 2461,
+        "textOnly": 3141
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "toyota-gr-supra-a90",
+        "query": "Toyota GR Supra A90 2021",
+        "scope": "auto",
+        "make": "Toyota",
+        "model": "GR Supra",
+        "chassis": "A90",
+        "year": 2021
+      },
+      "totals": {
+        "filterOnly": 18,
+        "filterWithYear": 18,
+        "textAndFilters": 18,
+        "textOnly": 18
+      },
+      "inspected": 18,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 9,
+        "contradicted": 0,
+        "unknown": 9
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "S-TY/T/1H",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC S-TY/T/1H Вихлопна система Slip-on Line (титан) для TOYOTA Supra (A90) 2019-2024",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8400B",
+          "brand": "CSF",
+          "title": "CSF 8400B Впускний колектор RACE X (термічна чорна обробка) для TOYOTA GR Supra (A90/A91) / BMW M340iX (G20/G21)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "GRSUPRAADROKIT",
+          "brand": "ADRO",
+          "title": "ADRO GRSUPRAADROKIT Аеродинамічний комплект (карбон) для TOYOTA GR Supra (A90/A91)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "X58_JB4PRO",
+          "brand": "Burger Motorsports",
+          "title": "JB4 Тюнер для 2020-2026 Toyota Supra Mk5",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-TOYOTA-GR-SUPRA-3-0I-NON-OPF-GPF-2998CCM-340HP-250KW-500NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Toyota Supra A90 (2019+) GR Supra 3 0I NON Opf_gpf 2998cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "MK-140",
+          "brand": "DO88",
+          "title": "Карбонова кришка двигуна, Toyota GR Supra A90 (B58)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0WX505-B0NN0-3",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Toyota A90 GR Supra 3.0T",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8400C",
+          "brand": "CSF",
+          "title": "CSF 8400C Впускний колектор RACE X (індивідуальне оздоблення) для TOYOTA GR Supra (A90/A91) / BMW M340iX (G20/G21)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2187,
+        "filterWithYear": 2335,
+        "textAndFilters": 3200,
+        "textOnly": 3306
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "nissan-gtr-r35",
+        "query": "Nissan GT-R R35 2020",
+        "scope": "auto",
+        "make": "Nissan",
+        "model": "Gt-R",
+        "chassis": "R35",
+        "year": 2020
+      },
+      "totals": {
+        "filterOnly": 29,
+        "filterWithYear": 28,
+        "textAndFilters": 28,
+        "textOnly": 28
+      },
+      "inspected": 28,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 14,
+        "contradicted": 0,
+        "unknown": 14
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "ME-NI/T/1",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC ME-NI/T/1 Вихлопна система Evolution Line (титан) для NISSAN GT-R (R35)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "NIS MI31S1",
+          "brand": "OHLINS",
+          "title": "OHLINS NIS MI31S1 Комплект койловерів ROAD & TRACK для NISSAN GT-R (R35) 2008-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-232",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-232 Комплект передніх гальмівних дисків для NISSAN GT-R (R35) DBA 2012-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-NISSAN-3-8-V6-3799CCM-486HP-357KW-588NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Nissan GT R R35 (2007+) 3.8 V6 3799cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8097C",
+          "brand": "CSF",
+          "title": "CSF 8097C Масляний радіатор для NISSAN GT-R (R35) 2009-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0NGR35-B0N00-302",
+          "brand": "iPE exhaust",
+          "title": "Nissan GT-R (R35)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "TP-NIR35C",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC TP-NIR35C Комплект насадок вихлопу (карбон, діаметр 125 мм) для NISSAN GT-R (R35) / CHEVROLET Corvette ZO6/ZR1 (C6)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "NIS 6I30",
+          "brand": "OHLINS",
+          "title": "OHLINS NIS 6i30 Амортизатор для NISSAN GT-R R35, задній",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2245,
+        "filterWithYear": 2419,
+        "textAndFilters": 2936,
+        "textOnly": 3416
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "land-rover-defender-l663",
+        "query": "Land Rover Defender L663 2022",
+        "scope": "auto",
+        "make": "Land Rover",
+        "model": "Defender",
+        "chassis": "L663",
+        "year": 2022
+      },
+      "totals": {
+        "filterOnly": 8,
+        "filterWithYear": 8,
+        "textAndFilters": 8,
+        "textOnly": 8
+      },
+      "inspected": 8,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 8,
+        "contradicted": 0,
+        "unknown": 0
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "RC-GTS5-LAND-ROVER-5-0-P500-5000CCM-500HP-368KW-610NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 5.0 P500 5000cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-5-0-P525-5000CCM-525HP-386KW-625NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 5.0 P525 5000cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-OCTA-4395CCM-635HP-467KW-750NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) Octa 4395cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-3-0-D350-MHEV-2997CCM-350HP-257KW-700NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 3.0 D350 Mhev 2997cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-5-0-P425-5000CCM-426HP-313KW-550NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 5.0 P425 5000cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-2-0-P300-1997CCM-300HP-221KW-400NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 2.0 P300 1997cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-3-0-D300-MHEV-2997CCM-300HP-221KW-650NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 3.0 D300 Mhev 2997cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAND-ROVER-2-0-D240-1999CCM-241HP-177KW-430NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Land Rover Defender L663 (2020+) 2.0 D240 1999cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2458,
+        "filterWithYear": 2530,
+        "textAndFilters": 2525,
+        "textOnly": 2794
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "mercedes-amg-c-w205",
+        "query": "Mercedes-AMG C-Class W205 2019",
+        "scope": "auto",
+        "make": "Mercedes-AMG",
+        "model": "C-Class",
+        "chassis": "W205",
+        "year": 2019
+      },
+      "totals": {
+        "filterOnly": 4,
+        "filterWithYear": 4,
+        "textAndFilters": 4,
+        "textOnly": 4
+      },
+      "inspected": 4,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 1,
+        "contradicted": 0,
+        "unknown": 3
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "BURGER-1151353347",
+          "brand": "Burger Motorsports",
+          "title": "JB4 Тюнер для 2014+ Mercedes-Benz",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8088",
+          "brand": "CSF",
+          "title": "CSF 8088 Радіатор охолодження для MERCEDES-Benz AMG W205 C63 AMG 4.0T",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-9323565326",
+          "brand": "Burger Motorsports",
+          "title": "BMS Type2 Цілофрезерований Впуск для Mercedes-Benz 2.0L Turbo l4",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8187",
+          "brand": "CSF",
+          "title": "CSF 8187 Радіатор для MERCEDES-Benz W205 C63 AMG S",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2411,
+        "filterWithYear": 2371,
+        "textAndFilters": 2351,
+        "textOnly": 2816
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "ford-mustang-2019",
+        "query": "Ford Mustang 2019",
+        "scope": "auto",
+        "make": "Ford",
+        "model": "Mustang",
+        "year": 2019
+      },
+      "totals": {
+        "filterOnly": 157,
+        "filterWithYear": 55,
+        "textAndFilters": 55,
+        "textOnly": 55
+      },
+      "inspected": 55,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 43,
+        "contradicted": 0,
+        "unknown": 12
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "1-209017-1000-20",
+          "brand": "Remus",
+          "title": "Cat-Back System for FORD Mustang VI Facelift S550 Cat-Back | 4x GT Black Tips",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-067",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-067 Комплект передніх гальмівних дисків для FORD Mustang GT, Mach 1 (S550) 2015-",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "FOS 1R00",
+          "brand": "OHLINS",
+          "title": "OHLINS FOS 1R00 Амортизатор для FORD Mustang, 2015 -, передній лівий damper",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "BURGER-8989541597358",
+          "brand": "Burger Motorsports",
+          "title": "JB4 для Ford F150 Raptor R з наддувом (BETA)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-FORD-2-3-ECOBOOST-2264CCM-317HP-233KW-434NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Ford Mustang VI (2014+) 2.3 EcoBoost 2264cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A16A10-1211/A16A10-1221",
+          "brand": "ADRO",
+          "title": "ADRO A16A10-1211/A16A10-1221 Комплект двокомпонентного переднього спліттера для FORD Mustang EcoBoost / GT 2018-2023",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "7072",
+          "brand": "CSF",
+          "title": "CSF 7072 Радіатор для FORD Mustang 2.3L Ecoboost 2015+",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0RMU61-A0N00-3",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Ford Mustang EcoBoost 2.3T",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2311,
+        "filterWithYear": 2756,
+        "textAndFilters": 2746,
+        "textOnly": 2885
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "lamborghini-urus-2021",
+        "query": "Lamborghini Urus 2021",
+        "scope": "auto",
+        "make": "Lamborghini",
+        "model": "Urus",
+        "year": 2021
+      },
+      "totals": {
+        "filterOnly": 8,
+        "filterWithYear": 8,
+        "textAndFilters": 8,
+        "textOnly": 8
+      },
+      "inspected": 8,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 4,
+        "contradicted": 0,
+        "unknown": 4
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "URB-FRO-25358164-V1",
+          "brand": "Urban Automotive",
+          "title": "Нижня накладка переднього бампера Urban Visual Carbon Fibre для Lamborghini Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8211",
+          "brand": "CSF",
+          "title": "CSF 8211 Високоефективні інтеркулери (чорне покриття) для LAMBORGHINI Urus 2019+ / AUDI RSQ8 2020+",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "RC-GTS5-LAMBORGHINI-4-0T-3996CCM-650HP-478KW-850NM",
+          "brand": "RaceChip",
+          "title": "RaceChip GTS 5 — Lamborghini Urus (2018+) 4 0T 3996cc",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0LURS-A0NO0-3",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Lamborghini Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "URB-DIF-25358167-V1",
+          "brand": "Urban Automotive",
+          "title": "Задній дифузор Urban Visual Carbon Fibre для Lamborghini Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8211R",
+          "brand": "CSF",
+          "title": "CSF 8211R Високоефективні інтеркулери для LAMBORGHINI Urus 2019+ / AUDI RSQ8 2020+",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "URB-FRO-25358169-V1",
+          "brand": "Urban Automotive",
+          "title": "Накладка-брова переднього бампера Urban Visual Carbon Fibre для Lamborghini Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "URB-FRO-25358170-V1",
+          "brand": "Urban Automotive",
+          "title": "Комплект tuning fork переднього бампера Urban Visual Carbon Fibre для Lamborghini Urus",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2226,
+        "filterWithYear": 2051,
+        "textAndFilters": 2331,
+        "textOnly": 2957
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "ferrari-488-2018",
+        "query": "Ferrari 488 2018",
+        "scope": "auto",
+        "make": "Ferrari",
+        "model": "488",
+        "year": 2018
+      },
+      "totals": {
+        "filterOnly": 8,
+        "filterWithYear": 8,
+        "textAndFilters": 8,
+        "textOnly": 8
+      },
+      "inspected": 8,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 3,
+        "contradicted": 0,
+        "unknown": 5
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "MTP-FE488H",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC MTP-FE488H Система вихлопу Slip-On Line (титан) для FERRARI 488 GTB / 488 Spider 2016-2019",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A1-183",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-183 Комплект передніх гальмівних дисків для FERRARI 458 / 488 Challenge / EVO",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8210B",
+          "brand": "CSF",
+          "title": "CSF 8210 Комплект Твін Інтеркулерів (чорні) для FERRARI 488 GTB/Spider/Pista, F8 Tributo/Spider",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "0F488-TNVF00-2",
+          "brand": "iPE exhaust",
+          "title": "Вихлопна система Ferrari 488 GTB / Spider (Titanium)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "L-FE/SS/2",
+          "brand": "AKRAPOVIC",
+          "title": "AKRAPOVIC L-FE/SS/2 Комплект лінк-пайпів без каталізатора (нержавіюча сталь) для FERRARI 488 GTB / 488 Spider 2016–2019",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A2-285",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A2-285 Комплект задніх гальмівних дисків для FERRARI 488 Challenge Evo",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8210",
+          "brand": "CSF",
+          "title": "CSF 8210 Комплект Твін Інтеркулерів для FERRARI 488 GTB/Spider/Pista, F8 Tributo/Spider",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A2-183",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A2-183 Комплект задніх гальмівних дисків для FERRARI 458/488 Challenge",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2147,
+        "filterWithYear": 2364,
+        "textAndFilters": 2358,
+        "textOnly": 2861
+      },
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "case": {
+        "id": "mclaren-720s-2020",
+        "query": "McLaren 720S 2020",
+        "scope": "auto",
+        "make": "McLaren",
+        "model": "720S",
+        "year": 2020
+      },
+      "totals": {
+        "filterOnly": 6,
+        "filterWithYear": 6,
+        "textAndFilters": 6,
+        "textOnly": 6
+      },
+      "inspected": 6,
+      "contamination": {
+        "count": 0,
+        "samples": []
+      },
+      "textOnlyContamination": {
+        "count": 0,
+        "samples": []
+      },
+      "yearEvidence": {
+        "confirmed": 0,
+        "contradicted": 0,
+        "unknown": 6
+      },
+      "contradictedYearSamples": [],
+      "textRecallAgainstStructured": 1,
+      "structuredMissingFromTextSamples": [],
+      "sampleResults": [
+        {
+          "sku": "A1-206",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A1-206 Комплект передніх гальмівних дисків для MCLAREN 600LT / 720S / 765LT",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8352",
+          "brand": "CSF",
+          "title": "CSF 8352 Високопродуктивні інтеркулери для MCLAREN 720S / 765LT / 750S / GT / GTS",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "A2-159",
+          "brand": "GiroDisc",
+          "title": "GIRODISC A2-159 Комплект задніх гальмівних дисків для MCLAREN 600LT / 650S / 675LT / 720S / 570S / 570GT заміна CCM / 765LT (380 мм)",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "8212",
+          "brand": "CSF",
+          "title": "CSF 8212 Високопродуктивний теплообмінник для MCLAREN 570S / 600LT / 720S / 765LT / 750S / GT / GTS",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "GP30-4003.16",
+          "brand": "GiroDisc",
+          "title": "GIRODISC GP30-4003.16 Передние тормозные колодки GP30 Endurance Racing для MCLAREN Artura / 600LT / 620R / 720S",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        },
+        {
+          "sku": "GP35-4003.16",
+          "brand": "GiroDisc",
+          "title": "GIRODISC GP35-4003.16 Передні гальмівні колодки GP35 Racing для MCLAREN 600LT / 620R / 720S / 750S / Artura",
+          "fitmentStatus": "inferred",
+          "fitmentSource": "automatic"
+        }
+      ],
+      "timingsMs": {
+        "filterOnly": 2581,
+        "filterWithYear": 2329,
+        "textAndFilters": 2822,
+        "textOnly": 3228
+      },
+      "issues": [],
+      "status": "pass"
+    }
+  ]
+}

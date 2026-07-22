@@ -88,8 +88,8 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     id: "porsche-911",
     aliases: ["911", "992", "991", "gt3", "gt3 rs", "gt4", "turbo", "carrera", "gts"],
     makes: ["Porsche"],
-    models: ["911", "GT3", "GT4", "Turbo", "Carrera", "GTS"],
-    chassis: ["991", "992"],
+    models: ["911", "911 Turbo", "911 Carrera", "911 GT3", "911 GT3 RS", "911 GTS"],
+    chassis: ["991", "991.1", "991.2", "992", "992.1", "992.2"],
     platforms: ["911"],
   },
   {
@@ -270,7 +270,12 @@ function selectMentionedValues(
       normalizedIncludesPhrase(normalizedQuery, value) ||
       compactQuery.includes(compactShopCode(value))
   );
-  return mentioned.length > 0 ? uniq([...canonicalValues, ...mentioned]) : values;
+  if (mentioned.length === 0) return values;
+  const mostSpecificLength = Math.max(...mentioned.map((value) => compactShopCode(value).length));
+  const mostSpecific = mentioned.filter(
+    (value) => compactShopCode(value).length === mostSpecificLength
+  );
+  return uniq([...canonicalValues, ...mostSpecific]);
 }
 
 function hasVehicleSignal(expansion: Omit<ShopVehicleSearchExpansion, "intent">) {
@@ -575,12 +580,12 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
         (expandedMake) => normalizeShopSearchText(expandedMake) === normalizeShopSearchText(make)
       )
     );
-  if (resolvedMakes.length === 0 || catalogOverridesAliasMake) {
+  if (catalogMentionedMakes.length > 0) {
     resolvedMakes = catalogMentionedMakes;
   }
 
   let resolvedModels = catalogOverridesAliasMake ? [] : expandedQuery.models;
-  if (resolvedModels.length === 0 && resolvedMakes.length > 0) {
+  if (resolvedMakes.length > 0) {
     const makeKeys = new Set(resolvedMakes.map(normalizeShopSearchText));
     const modelCounts = new Map<string, number>();
     for (const item of items) {
@@ -605,7 +610,7 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
           right[1] - left[1]
       )
       .map(([model]) => model);
-    resolvedModels = modelCandidates
+    const catalogMentionedModels = modelCandidates
       .filter((model, index) => {
         const normalizedModel = normalizeShopSearchText(model);
         return !modelCandidates
@@ -613,6 +618,9 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
           .some((candidate) => normalizeShopSearchText(candidate).includes(normalizedModel));
       })
       .slice(0, 4);
+    if (catalogMentionedModels.length > 0) {
+      resolvedModels = catalogMentionedModels;
+    }
   }
 
   const resolvedMakeKeys = new Set(resolvedMakes.map(normalizeShopSearchText));
@@ -646,10 +654,10 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
         intent: expandedQuery.intent === "text" ? "vehicle" : "mixed",
         makes: uniq(resolvedMakes),
         models: uniq(resolvedModels),
-        chassis: uniq([
-          ...catalogMentionedChassis,
-          ...(catalogOverridesAliasMake ? [] : expandedQuery.chassis),
-        ]),
+        chassis:
+          expandedQuery.chassis.length > 0 && !catalogOverridesAliasMake
+            ? uniq(expandedQuery.chassis)
+            : uniq(catalogMentionedChassis),
         platforms: catalogOverridesAliasMake ? [] : expandedQuery.platforms,
         engines: catalogOverridesAliasMake ? [] : expandedQuery.engines,
         requiredTokens: uniq([
@@ -662,6 +670,7 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
     : expandedQuery;
 
   if (
+    expandedQuery.chassis.length > 0 ||
     resolvedQuery.years.length === 0 ||
     resolvedQuery.models.length === 0 ||
     resolvedQuery.makes.length === 0

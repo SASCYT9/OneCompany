@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 import {
   syncBrandShippingData,
   listShopBrands,
   type SyncBrandShippingResult,
-} from '@/lib/turn14ShippingSync';
-import { lookupShippingDims } from '@/lib/perplexityDimensions';
+} from "@/lib/turn14ShippingSync";
+import { lookupShippingDims } from "@/lib/perplexityDimensions";
 
 /**
  * SHIPPING-DATA-ONLY Turn14 sync.
@@ -21,7 +22,15 @@ import { lookupShippingDims } from '@/lib/perplexityDimensions';
 
 export async function GET() {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
   const brands = await listShopBrands(prisma);
   return NextResponse.json({ success: true, brands });
@@ -29,7 +38,15 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
 
   let payload: {
     brand?: string;
@@ -45,11 +62,11 @@ export async function POST(req: Request) {
     payload = {};
   }
 
-  const brandName = (payload.brand || '').trim();
+  const brandName = (payload.brand || "").trim();
   if (!brandName) {
     return NextResponse.json(
-      { success: false, error: 'Missing required field: brand' },
-      { status: 400 },
+      { success: false, error: "Missing required field: brand" },
+      { status: 400 }
     );
   }
 
@@ -67,7 +84,7 @@ export async function POST(req: Request) {
     let perplexity: {
       attempted: number;
       resolved: number;
-      changes: SyncBrandShippingResult['changes'];
+      changes: SyncBrandShippingResult["changes"];
       skips: Array<{ variantId: string; reason: string; detail?: string }>;
     } | null = null;
 
@@ -90,13 +107,13 @@ export async function POST(req: Request) {
           },
         });
         if (!variant) {
-          perplexity.skips.push({ variantId: candidate.variantId, reason: 'variant disappeared' });
+          perplexity.skips.push({ variantId: candidate.variantId, reason: "variant disappeared" });
           continue;
         }
 
         const lookup = await lookupShippingDims({
           brand: variant.product.brand || brandName,
-          productTitle: variant.product.titleEn || variant.product.titleUa || '(untitled)',
+          productTitle: variant.product.titleEn || variant.product.titleUa || "(untitled)",
           sku: variant.sku,
         });
 
@@ -125,10 +142,10 @@ export async function POST(req: Request) {
         perplexity.changes.push({
           variantId: variant.id,
           sku: variant.sku,
-          productTitle: variant.product.titleUa || variant.product.titleEn || '(untitled)',
+          productTitle: variant.product.titleUa || variant.product.titleEn || "(untitled)",
           before,
           after,
-          source: 'perplexity',
+          source: "perplexity",
         });
         perplexity.resolved++;
 
@@ -151,10 +168,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, result, perplexity });
   } catch (error: any) {
-    console.error('[Turn14 ShippingSync] error:', error);
+    console.error("[Turn14 ShippingSync] error:", error);
     return NextResponse.json(
       { success: false, error: error?.message || String(error) },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

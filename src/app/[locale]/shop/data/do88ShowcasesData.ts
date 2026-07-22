@@ -29,8 +29,8 @@ export const DO88_SHOWCASES: Do88Showcase[] = [
       "Engineered in Sweden. Massive core volume increases, CAD-designed cast end tanks, and drop-in fitment.",
     subtitleUk:
       'Розроблено у Швеції. Значне збільшення об\'єму ядра, литі бачки спроектовані в CAD, та встановлення на штатні місця.',
-    exploreLink: '/shop/stock?distributor=DO88&q=Intercooler',
-    shopLink: '/shop/stock?distributor=DO88&q=Intercooler',
+    exploreLink: '/shop/catalog?distributor=DO88&q=Intercooler',
+    shopLink: '/shop/catalog?distributor=DO88&q=Intercooler',
     avail: 'Available to Order',
     availUk: 'Доступно під замовлення',
   },
@@ -47,8 +47,8 @@ export const DO88_SHOWCASES: Do88Showcase[] = [
       "Multi-layer reinforced silicone hoses. Withstands higher temperatures and pressures than OEM rubber hoses.",
     subtitleUk:
       'Багатошарові армовані силіконові патрубки. Витримують вищі температури та тиск, ніж заводські гумові.',
-    exploreLink: '/shop/stock?distributor=DO88&q=Hose',
-    shopLink: '/shop/stock?distributor=DO88&q=Hose',
+    exploreLink: '/shop/catalog?distributor=DO88&q=Hose',
+    shopLink: '/shop/catalog?distributor=DO88&q=Hose',
     avail: 'In Stock',
     availUk: 'В наявності',
   },
@@ -65,8 +65,8 @@ export const DO88_SHOWCASES: Do88Showcase[] = [
       "High-efficiency core design. Keeps temperatures down on the street and dominant on the track.",
     subtitleUk:
       'Високоефективний дизайн ядра. Знижує температуру як під час щоденних поїздок, так і на трек-днях.',
-    exploreLink: '/shop/stock?distributor=DO88&q=Radiator',
-    shopLink: '/shop/stock?distributor=DO88&q=Radiator',
+    exploreLink: '/shop/catalog?distributor=DO88&q=Radiator',
+    shopLink: '/shop/catalog?distributor=DO88&q=Radiator',
     avail: 'Available to Order',
     availUk: 'Доступно під замовлення',
   },

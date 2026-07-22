@@ -96,16 +96,30 @@ model TelegramAdmin {
 }
 
 model AdminUser {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  name         String?
-  isActive     Boolean         @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  passwordHash String?
-  auditLogs    AdminAuditLog[]
-  roles        AdminUserRole[]
+  id                       String                 @id @default(cuid())
+  email                    String                 @unique
+  name                     String?
+  isActive                 Boolean                @default(true)
+  lastLoginAt              DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  passwordHash             String?
+  auditLogs                AdminAuditLog[]
+  roles                    AdminUserRole[]
+  opsProfile               OpsMemberProfile?
+  opsProjects              OpsProject[]           @relation("OpsProjectOwner")
+  opsTasksCreated          OpsTask[]              @relation("OpsTaskCreator")
+  opsTasksAssigned         OpsTask[]              @relation("OpsTaskAssignee")
+  opsTaskEvents            OpsTaskEvent[]         @relation("OpsTaskEventActor")
+  opsComments              OpsComment[]           @relation("OpsCommentAuthor")
+  opsTaskAttachments       OpsTaskAttachment[]    @relation("OpsTaskAttachmentActor")
+  opsKnowledgeArticles     OpsKnowledgeArticle[]  @relation("OpsKnowledgeAuthor")
+  opsKnowledgePublications OpsKnowledgeArticle[]  @relation("OpsKnowledgePublisher")
+  opsKnowledgeRevisions    OpsKnowledgeRevision[] @relation("OpsKnowledgeRevisionActor")
+  opsAutomationRuns        OpsAutomationRun[]     @relation("OpsAutomationRequester")
+  opsApprovalRequests      OpsApproval[]          @relation("OpsApprovalRequester")
+  opsApprovalDecisions     OpsApproval[]          @relation("OpsApprovalApprover")
+  opsTelegramBatches       OpsTelegramBatch[]     @relation("OpsTelegramBatchActor")
 
   @@index([isActive])
 }
@@ -164,76 +178,84 @@ model RequestRateLimit {
 }
 
 model ShopProduct {
-  id                    String                  @id @default(cuid())
-  slug                  String                  @unique
-  sku                   String?
-  scope                 String                  @default("auto")
-  brand                 String?
-  titleUa               String
-  titleEn               String
-  categoryUa            String?
-  categoryEn            String?
-  shortDescUa           String?
-  shortDescEn           String?
-  longDescUa            String?
-  longDescEn            String?
-  leadTimeUa            String?
-  leadTimeEn            String?
-  stock                 String                  @default("inStock")
-  collectionUa          String?
-  collectionEn          String?
-  priceEur              Decimal?                @db.Decimal(12, 2)
-  priceEurEurope        Decimal?                @db.Decimal(12, 2)
-  priceUsd              Decimal?                @db.Decimal(12, 2)
-  priceUah              Decimal?                @db.Decimal(12, 2)
-  compareAtEur          Decimal?                @db.Decimal(12, 2)
-  compareAtUsd          Decimal?                @db.Decimal(12, 2)
-  compareAtUah          Decimal?                @db.Decimal(12, 2)
-  image                 String?
-  gallery               Json?
-  highlights            Json?
-  isPublished           Boolean                 @default(true)
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  vendor                String?
-  productType           String?
-  productCategory       String?
-  tags                  String[]                @default([])
-  status                ShopCatalogStatus       @default(ACTIVE)
-  bodyHtmlUa            String?
-  bodyHtmlEn            String?
-  seoTitleUa            String?
-  seoTitleEn            String?
-  seoDescriptionUa      String?
-  seoDescriptionEn      String?
-  publishedAt           DateTime?
-  categoryId            String?
-  compareAtEurB2b       Decimal?                @db.Decimal(12, 2)
-  compareAtUahB2b       Decimal?                @db.Decimal(12, 2)
-  compareAtUsdB2b       Decimal?                @db.Decimal(12, 2)
-  priceEurB2b           Decimal?                @db.Decimal(12, 2)
-  priceUahB2b           Decimal?                @db.Decimal(12, 2)
-  priceUsdB2b           Decimal?                @db.Decimal(12, 2)
-  airtableRecordId      String?
-  airtableSyncedAt      DateTime?
-  height                Float?
-  isDimensionsEstimated Boolean                 @default(false)
-  length                Float?
-  originCountry         String?
-  supplier              String?
-  weight                Float?
-  width                 Float?
-  bundle                ShopBundle?
-  bundleComponentItems  ShopBundleItem[]        @relation("ShopBundleComponentProduct")
-  cartItems             ShopCartItem[]
-  orderItems            ShopOrderItem[]
-  category              ShopCategory?           @relation(fields: [categoryId], references: [id])
-  collections           ShopProductCollection[]
-  media                 ShopProductMedia[]
-  metafields            ShopProductMetafield[]
-  knowledge             ShopProductKnowledge?
-  options               ShopProductOption[]
-  variants              ShopProductVariant[]
+  id                       String                      @id @default(cuid())
+  slug                     String                      @unique
+  sku                      String?
+  scope                    String                      @default("auto")
+  brand                    String?
+  titleUa                  String
+  titleEn                  String
+  categoryUa               String?
+  categoryEn               String?
+  shortDescUa              String?
+  shortDescEn              String?
+  longDescUa               String?
+  longDescEn               String?
+  leadTimeUa               String?
+  leadTimeEn               String?
+  stock                    String                      @default("inStock")
+  collectionUa             String?
+  collectionEn             String?
+  priceEur                 Decimal?                    @db.Decimal(12, 2)
+  priceEurEurope           Decimal?                    @db.Decimal(12, 2)
+  priceUsd                 Decimal?                    @db.Decimal(12, 2)
+  priceUah                 Decimal?                    @db.Decimal(12, 2)
+  compareAtEur             Decimal?                    @db.Decimal(12, 2)
+  compareAtUsd             Decimal?                    @db.Decimal(12, 2)
+  compareAtUah             Decimal?                    @db.Decimal(12, 2)
+  image                    String?
+  gallery                  Json?
+  highlights               Json?
+  isPublished              Boolean                     @default(true)
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+  vendor                   String?
+  productType              String?
+  productCategory          String?
+  tags                     String[]                    @default([])
+  status                   ShopCatalogStatus           @default(ACTIVE)
+  bodyHtmlUa               String?
+  bodyHtmlEn               String?
+  seoTitleUa               String?
+  seoTitleEn               String?
+  seoDescriptionUa         String?
+  seoDescriptionEn         String?
+  publishedAt              DateTime?
+  categoryId               String?
+  compareAtEurB2b          Decimal?                    @db.Decimal(12, 2)
+  compareAtUahB2b          Decimal?                    @db.Decimal(12, 2)
+  compareAtUsdB2b          Decimal?                    @db.Decimal(12, 2)
+  priceEurB2b              Decimal?                    @db.Decimal(12, 2)
+  priceUahB2b              Decimal?                    @db.Decimal(12, 2)
+  priceUsdB2b              Decimal?                    @db.Decimal(12, 2)
+  airtableRecordId         String?
+  airtableSyncedAt         DateTime?
+  height                   Float?
+  isDimensionsEstimated    Boolean                     @default(false)
+  length                   Float?
+  originCountry            String?
+  supplier                 String?
+  weight                   Float?
+  width                    Float?
+  bundle                   ShopBundle?
+  bundleComponentItems     ShopBundleItem[]            @relation("ShopBundleComponentProduct")
+  cartItems                ShopCartItem[]
+  orderItems               ShopOrderItem[]
+  category                 ShopCategory?               @relation(fields: [categoryId], references: [id])
+  collections              ShopProductCollection[]
+  media                    ShopProductMedia[]
+  metafields               ShopProductMetafield[]
+  knowledge                ShopProductKnowledge?
+  knowledgeAttributeValues ShopProductAttributeValue[]
+  knowledgeChunks          ShopKnowledgeChunk[]
+  knowledgeEvidence        ShopKnowledgeEvidence[]
+  knowledgeOutboxEvents    ShopKnowledgeOutbox[]
+  knowledgeReviewTasks     ShopKnowledgeReviewTask[]
+  knowledgeRevisions       ShopKnowledgeRevision[]
+  variantKnowledge         ShopVariantKnowledge[]
+  vehicleApplications      ShopVehicleApplication[]
+  options                  ShopProductOption[]
+  variants                 ShopProductVariant[]
 
   @@index([scope])
   @@index([isPublished])
@@ -241,57 +263,569 @@ model ShopProduct {
   @@index([categoryId])
   @@index([brand])
   @@index([vendor])
+  @@index([slug], map: "ShopProduct_slug_idx")
 }
 
 model ShopProductKnowledge {
-  id               String                      @id @default(cuid())
-  productId        String                      @unique
-  schemaVersion    Int                         @default(1)
-  vehicleType      String                      @default("unknown")
-  makes            String[]                    @default([])
-  models           String[]                    @default([])
-  chassisCodes     String[]                    @default([])
-  yearRanges       Json                        @default("[]")
-  engines          String[]                    @default([])
-  bodyStyles       String[]                    @default([])
-  markets          String[]                    @default([])
-  categoryGroup    String?
-  powerGainHp      Int?
-  torqueGainNm     Int?
-  material         String?
-  opfGpf           String?
-  installationType String?
-  fitmentStatus    String                      @default("needs_review")
-  fitmentSource    String                      @default("automatic")
-  applications     Json                        @default("[]")
-  facts            Json                        @default("{}")
-  searchText       String                      @db.Text
-  contentHash      String
-  embeddingModel   String?
-  embedding        Unsupported("vector(768)")?
-  indexedAt        DateTime                    @default(now())
-  createdAt        DateTime                    @default(now())
-  updatedAt        DateTime                    @updatedAt
-  product          ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id                  String                      @id @default(cuid())
+  productId           String                      @unique
+  schemaVersion       Int                         @default(1)
+  revision            Int                         @default(1)
+  activeRevision      Int                         @default(1)
+  status              ShopKnowledgeStatus         @default(PENDING)
+  completenessScore   Float                       @default(0)
+  qualityFlags        String[]                    @default([])
+  sourceUpdatedAt     DateTime?
+  statusChangedAt     DateTime                    @default(now())
+  readyAt             DateTime?
+  failedAt            DateTime?
+  failureReason       String?                     @db.Text
+  vehicleType         String                      @default("unknown")
+  makes               String[]                    @default([])
+  models              String[]                    @default([])
+  chassisCodes        String[]                    @default([])
+  yearRanges          Json                        @default("[]")
+  engines             String[]                    @default([])
+  bodyStyles          String[]                    @default([])
+  markets             String[]                    @default([])
+  categoryGroup       String?
+  powerGainHp         Int?
+  torqueGainNm        Int?
+  material            String?
+  opfGpf              String?
+  installationType    String?
+  fitmentStatus       String                      @default("needs_review")
+  fitmentSource       String                      @default("automatic")
+  applications        Json                        @default("[]")
+  facts               Json                        @default("{}")
+  searchText          String                      @db.Text
+  contentHash         String
+  embeddingModel      String?
+  embedding           Unsupported("vector(768)")?
+  indexedAt           DateTime                    @default(now())
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+  product             ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributeValues     ShopProductAttributeValue[]
+  chunks              ShopKnowledgeChunk[]
+  evidence            ShopKnowledgeEvidence[]
+  outboxEvents        ShopKnowledgeOutbox[]
+  reviewTasks         ShopKnowledgeReviewTask[]
+  revisions           ShopKnowledgeRevision[]
+  variantKnowledge    ShopVariantKnowledge[]
+  vehicleApplications ShopVehicleApplication[]
 
   @@index([schemaVersion])
+  @@index([status, sourceUpdatedAt], map: "ShopProductKnowledge_status_sourceUpdated_idx")
+  @@index([status, updatedAt], map: "ShopProductKnowledge_status_updated_idx")
   @@index([vehicleType])
   @@index([categoryGroup])
   @@index([fitmentStatus])
   @@index([contentHash])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin, map: "ShopProductKnowledge_searchText_trgm_idx")
 }
 
 model ShopAiConversation {
-  id              String   @id @default(cuid())
-  locale          String   @default("ua")
-  currency        String   @default("EUR")
-  state           Json     @default("{}")
-  shownProductIds String[] @default([])
+  id              String           @id @default(cuid())
+  locale          String           @default("ua")
+  currency        String           @default("EUR")
+  state           Json             @default("{}")
+  shownProductIds String[]         @default([])
   expiresAt       DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  feedback        ShopAiFeedback[]
+  runs            ShopAiRun[]
 
   @@index([expiresAt])
+}
+
+model ShopVehicleApplication {
+  id                  String                          @id @default(cuid())
+  applicationKey      String
+  knowledgeId         String
+  productId           String
+  variantId           String?
+  variantKnowledgeId  String?
+  vehicleGenerationId String?
+  scope               String                          @default("auto")
+  make                String?
+  model               String?
+  generation          String?
+  chassisCode         String?
+  yearFrom            Int?
+  yearTo              Int?
+  engine              String?
+  fuel                String?
+  bodyStyle           String?
+  drivetrain          String?
+  transmission        String?
+  market              String?
+  opfGpf              String?
+  categoryGroup       String?
+  productKind         String?
+  material            String?
+  isUniversal         Boolean                         @default(false)
+  verificationStatus  ShopKnowledgeVerificationStatus @default(EXTRACTED)
+  source              ShopKnowledgeSource             @default(CATEGORY_ADAPTER)
+  sourcePriority      Int                             @default(5)
+  confidence          Float                           @default(0)
+  revision            Int                             @default(1)
+  isActive            Boolean                         @default(true)
+  verifiedById        String?
+  verifiedAt          DateTime?
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+  knowledge           ShopProductKnowledge            @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product             ShopProduct                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant             ShopProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantKnowledge    ShopVariantKnowledge?           @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
+  vehicleGeneration   VehicleGeneration?              @relation(fields: [vehicleGenerationId], references: [id], onDelete: SetNull, map: "ShopVehicleApplication_generationId_fkey")
+  evidence            ShopKnowledgeEvidence[]
+  reviewTasks         ShopKnowledgeReviewTask[]
+
+  @@unique([applicationKey, revision])
+  @@index([knowledgeId, isActive], map: "ShopVehicleApplication_knowledge_active_idx")
+  @@index([productId, isActive], map: "ShopVehicleApplication_product_active_idx")
+  @@index([variantId, isActive], map: "ShopVehicleApplication_variant_active_idx")
+  @@index([vehicleGenerationId], map: "ShopVehicleApplication_generation_idx")
+  @@index([scope, make, model, chassisCode], map: "ShopVehicleApplication_scope_vehicle_idx")
+  @@index([make, model, yearFrom, yearTo], map: "ShopVehicleApplication_years_idx")
+  @@index([categoryGroup, productKind], map: "ShopVehicleApplication_category_kind_idx")
+  @@index([verificationStatus, isActive], map: "ShopVehicleApplication_verification_active_idx")
+  @@index([opfGpf, isActive], map: "ShopVehicleApplication_opf_active_idx")
+}
+
+model ShopVariantKnowledge {
+  id                String                      @id @default(cuid())
+  knowledgeId       String
+  productId         String
+  variantId         String
+  sku               String?
+  optionValues      Json                        @default("{}")
+  facts             Json                        @default("{}")
+  searchText        String                      @db.Text
+  contentHash       String
+  schemaVersion     Int                         @default(2)
+  revision          Int                         @default(1)
+  status            ShopKnowledgeStatus         @default(PENDING)
+  completenessScore Float                       @default(0)
+  qualityFlags      String[]                    @default([])
+  isActive          Boolean                     @default(true)
+  sourceUpdatedAt   DateTime?
+  indexedAt         DateTime                    @default(now())
+  readyAt           DateTime?
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  knowledge         ShopProductKnowledge        @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product           ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant           ShopProductVariant          @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  applications      ShopVehicleApplication[]
+  attributeValues   ShopProductAttributeValue[]
+  chunks            ShopKnowledgeChunk[]
+  evidence          ShopKnowledgeEvidence[]
+
+  @@unique([knowledgeId, variantId, revision], map: "ShopVariantKnowledge_knowledge_variant_revision_key")
+  @@index([knowledgeId, status], map: "ShopVariantKnowledge_knowledge_status_idx")
+  @@index([productId, isActive], map: "ShopVariantKnowledge_product_active_idx")
+  @@index([sku])
+  @@index([contentHash])
+}
+
+model ShopKnowledgeChunk {
+  id                 String                      @id @default(cuid())
+  chunkKey           String
+  knowledgeId        String
+  productId          String
+  variantKnowledgeId String?
+  locale             String
+  sourceField        String
+  ordinal            Int
+  content            String                      @db.Text
+  contentHash        String
+  tokenCount         Int?
+  embeddingModel     String?
+  embedding          Unsupported("vector(768)")?
+  revision           Int                         @default(1)
+  isActive           Boolean                     @default(true)
+  embeddedAt         DateTime?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  knowledge          ShopProductKnowledge        @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product            ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantKnowledge   ShopVariantKnowledge?       @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
+
+  @@unique([chunkKey, revision])
+  @@index([knowledgeId, revision, isActive], map: "ShopKnowledgeChunk_knowledge_revision_active_idx")
+  @@index([productId, locale, isActive], map: "ShopKnowledgeChunk_product_locale_active_idx")
+  @@index([variantKnowledgeId, isActive], map: "ShopKnowledgeChunk_variant_active_idx")
+  @@index([locale, sourceField], map: "ShopKnowledgeChunk_locale_source_idx")
+  @@index([contentHash])
+  @@index([embeddingModel, embeddedAt], map: "ShopKnowledgeChunk_embedding_model_idx")
+  @@index([content(ops: raw("gin_trgm_ops"))], type: Gin, map: "ShopKnowledgeChunk_content_trgm_idx")
+}
+
+model ShopProductAttributeDefinition {
+  id               String                        @id @default(cuid())
+  key              String                        @unique
+  nameUa           String
+  nameEn           String
+  categoryGroups   String[]                      @default([])
+  valueType        ShopProductAttributeValueType
+  unit             String?
+  allowedValues    Json                          @default("[]")
+  aliases          Json                          @default("{}")
+  isHardConstraint Boolean                       @default(false)
+  isFilterable     Boolean                       @default(false)
+  isRequired       Boolean                       @default(false)
+  isActive         Boolean                       @default(true)
+  schemaVersion    Int                           @default(1)
+  sortOrder        Int                           @default(0)
+  createdAt        DateTime                      @default(now())
+  updatedAt        DateTime                      @updatedAt
+  values           ShopProductAttributeValue[]
+
+  @@index([isActive, isFilterable], map: "ShopProductAttributeDefinition_active_filter_idx")
+  @@index([isHardConstraint, isRequired], map: "ShopProductAttributeDefinition_hard_required_idx")
+}
+
+model ShopProductAttributeValue {
+  id                 String                          @id @default(cuid())
+  valueKey           String
+  definitionId       String
+  knowledgeId        String
+  productId          String
+  variantId          String?
+  variantKnowledgeId String?
+  valueText          String?
+  valueNumber        Decimal?                        @db.Decimal(18, 6)
+  valueBoolean       Boolean?
+  valueJson          Json?
+  normalizedValue    String?
+  unit               String?
+  source             ShopKnowledgeSource             @default(CATEGORY_ADAPTER)
+  verificationStatus ShopKnowledgeVerificationStatus @default(EXTRACTED)
+  confidence         Float                           @default(0)
+  revision           Int                             @default(1)
+  isActive           Boolean                         @default(true)
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
+  definition         ShopProductAttributeDefinition  @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  knowledge          ShopProductKnowledge            @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product            ShopProduct                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant            ShopProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantKnowledge   ShopVariantKnowledge?           @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
+  evidence           ShopKnowledgeEvidence[]
+  reviewTasks        ShopKnowledgeReviewTask[]
+
+  @@unique([valueKey, revision])
+  @@index([definitionId, normalizedValue, isActive], map: "ShopProductAttributeValue_definition_value_idx")
+  @@index([knowledgeId, revision, isActive], map: "ShopProductAttributeValue_knowledge_revision_idx")
+  @@index([productId, isActive], map: "ShopProductAttributeValue_product_active_idx")
+  @@index([variantId, isActive], map: "ShopProductAttributeValue_variant_active_idx")
+  @@index([verificationStatus, isActive], map: "ShopProductAttributeValue_verification_idx")
+}
+
+model VehicleGeneration {
+  id             String                   @id @default(cuid())
+  generationKey  String                   @unique
+  scope          String                   @default("auto")
+  make           String
+  model          String
+  generationName String?
+  chassisCode    String?
+  yearFrom       Int?
+  yearTo         Int?
+  bodyStyles     String[]                 @default([])
+  markets        String[]                 @default([])
+  isActive       Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  aliases        VehicleAlias[]
+  applications   ShopVehicleApplication[]
+
+  @@index([scope, make, model])
+  @@index([chassisCode])
+  @@index([yearFrom, yearTo])
+}
+
+model VehicleAlias {
+  id                  String              @id @default(cuid())
+  vehicleGenerationId String
+  alias               String
+  normalizedAlias     String
+  aliasType           String
+  locale              String?
+  source              ShopKnowledgeSource @default(CATEGORY_ADAPTER)
+  confidence          Float               @default(1)
+  isActive            Boolean             @default(true)
+  verifiedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  vehicleGeneration   VehicleGeneration   @relation(fields: [vehicleGenerationId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleGenerationId, normalizedAlias], map: "VehicleAlias_generation_alias_key")
+  @@index([normalizedAlias, isActive], map: "VehicleAlias_normalizedAlias_active_idx")
+  @@index([aliasType, isActive], map: "VehicleAlias_aliasType_active_idx")
+}
+
+model ShopKnowledgeEvidence {
+  id                   String                     @id @default(cuid())
+  evidenceKey          String
+  knowledgeId          String
+  productId            String
+  variantKnowledgeId   String?
+  vehicleApplicationId String?
+  attributeValueId     String?
+  fieldPath            String
+  source               ShopKnowledgeSource
+  sourceRef            String?
+  excerpt              String?                    @db.Text
+  sourceHash           String
+  confidence           Float                      @default(0)
+  extractorVersion     String?
+  isManagerVerified    Boolean                    @default(false)
+  verifiedById         String?
+  verifiedAt           DateTime?
+  revision             Int                        @default(1)
+  isActive             Boolean                    @default(true)
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  knowledge            ShopProductKnowledge       @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product              ShopProduct                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantKnowledge     ShopVariantKnowledge?      @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
+  vehicleApplication   ShopVehicleApplication?    @relation(fields: [vehicleApplicationId], references: [id], onDelete: SetNull)
+  attributeValue       ShopProductAttributeValue? @relation(fields: [attributeValueId], references: [id], onDelete: SetNull)
+
+  @@unique([evidenceKey, revision])
+  @@index([knowledgeId, fieldPath, isActive], map: "ShopKnowledgeEvidence_knowledge_field_idx")
+  @@index([productId, revision], map: "ShopKnowledgeEvidence_product_revision_idx")
+  @@index([vehicleApplicationId], map: "ShopKnowledgeEvidence_application_idx")
+  @@index([attributeValueId], map: "ShopKnowledgeEvidence_attribute_idx")
+  @@index([source, isManagerVerified], map: "ShopKnowledgeEvidence_source_verified_idx")
+}
+
+model ShopKnowledgeRevision {
+  id            String               @id @default(cuid())
+  knowledgeId   String
+  productId     String
+  revision      Int
+  schemaVersion Int                  @default(2)
+  status        ShopKnowledgeStatus
+  changeType    String
+  source        ShopKnowledgeSource
+  snapshot      Json
+  diff          Json?
+  reason        String?              @db.Text
+  changedById   String?
+  activatedAt   DateTime?
+  createdAt     DateTime             @default(now())
+  knowledge     ShopProductKnowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  product       ShopProduct          @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeId, revision], map: "ShopKnowledgeRevision_knowledge_revision_key")
+  @@index([productId, createdAt], map: "ShopKnowledgeRevision_product_created_idx")
+  @@index([status, createdAt], map: "ShopKnowledgeRevision_status_created_idx")
+}
+
+model ShopKnowledgeCatalogState {
+  id          String   @id
+  revision    BigInt   @default(0)
+  fingerprint String   @db.VarChar(64)
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model ShopKnowledgeOutbox {
+  id          String                    @id @default(cuid())
+  dedupeKey   String                    @unique
+  knowledgeId String?
+  productId   String
+  variantId   String?
+  eventType   String
+  payload     Json                      @default("{}")
+  status      ShopKnowledgeOutboxStatus @default(PENDING)
+  attempts    Int                       @default(0)
+  maxAttempts Int                       @default(8)
+  availableAt DateTime                  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  processedAt DateTime?
+  lastError   String?                   @db.Text
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  knowledge   ShopProductKnowledge?     @relation(fields: [knowledgeId], references: [id], onDelete: SetNull)
+  product     ShopProduct               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant     ShopProductVariant?       @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt], map: "ShopKnowledgeOutbox_status_available_idx")
+  @@index([productId, status], map: "ShopKnowledgeOutbox_product_status_idx")
+  @@index([variantId, status], map: "ShopKnowledgeOutbox_variant_status_idx")
+  @@index([lockedAt])
+}
+
+model ShopKnowledgeReviewTask {
+  id                   String                      @id @default(cuid())
+  knowledgeId          String?
+  productId            String?
+  variantId            String?
+  vehicleApplicationId String?
+  attributeValueId     String?
+  aiRunId              String?
+  feedbackId           String?                     @unique
+  taskType             String
+  status               ShopKnowledgeReviewStatus   @default(OPEN)
+  priority             ShopKnowledgeReviewPriority @default(MEDIUM)
+  title                String
+  details              Json                        @default("{}")
+  reasonCodes          String[]                    @default([])
+  assignedToId         String?
+  resolvedById         String?
+  resolution           Json?
+  dueAt                DateTime?
+  resolvedAt           DateTime?
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+  knowledge            ShopProductKnowledge?       @relation(fields: [knowledgeId], references: [id], onDelete: SetNull)
+  product              ShopProduct?                @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant              ShopProductVariant?         @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  vehicleApplication   ShopVehicleApplication?     @relation(fields: [vehicleApplicationId], references: [id], onDelete: SetNull)
+  attributeValue       ShopProductAttributeValue?  @relation(fields: [attributeValueId], references: [id], onDelete: SetNull)
+  aiRun                ShopAiRun?                  @relation(fields: [aiRunId], references: [id], onDelete: SetNull)
+  feedback             ShopAiFeedback?             @relation(fields: [feedbackId], references: [id], onDelete: SetNull)
+
+  @@index([status, priority, createdAt], map: "ShopKnowledgeReviewTask_status_priority_idx")
+  @@index([knowledgeId, status], map: "ShopKnowledgeReviewTask_knowledge_status_idx")
+  @@index([productId, status], map: "ShopKnowledgeReviewTask_product_status_idx")
+  @@index([assignedToId, status], map: "ShopKnowledgeReviewTask_assignee_status_idx")
+  @@index([aiRunId], map: "ShopKnowledgeReviewTask_aiRun_idx")
+}
+
+model ShopAiRun {
+  id                 String                    @id @default(cuid())
+  requestId          String?                   @unique
+  conversationId     String?
+  evaluationRunId    String?
+  locale             String                    @default("ua")
+  currency           String                    @default("EUR")
+  scope              String?
+  redactedQuery      String                    @db.Text
+  normalizedQuery    String?                   @db.Text
+  status             ShopAiRunStatus           @default(PROCESSING)
+  mode               ShopAiResponseMode?
+  constraints        Json                      @default("{}")
+  response           Json?
+  exactCount         Int                       @default(0)
+  verificationCount  Int                       @default(0)
+  candidateCount     Int                       @default(0)
+  acceptedCount      Int                       @default(0)
+  generationCalls    Int                       @default(0)
+  embeddingCalls     Int                       @default(0)
+  retrievalLatencyMs Int?
+  totalLatencyMs     Int?
+  activeCpuMs        Int?
+  degraded           Boolean                   @default(false)
+  traceSampled       Boolean                   @default(false)
+  errorCode          String?
+  errorMessage       String?                   @db.Text
+  startedAt          DateTime                  @default(now())
+  completedAt        DateTime?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  conversation       ShopAiConversation?       @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  evaluationRun      ShopAiEvaluationRun?      @relation(fields: [evaluationRunId], references: [id], onDelete: SetNull)
+  candidateDecisions ShopAiCandidateDecision[]
+  feedback           ShopAiFeedback[]
+  reviewTasks        ShopKnowledgeReviewTask[]
+
+  @@index([conversationId, createdAt], map: "ShopAiRun_conversation_created_idx")
+  @@index([status, createdAt], map: "ShopAiRun_status_created_idx")
+  @@index([mode, createdAt], map: "ShopAiRun_mode_created_idx")
+  @@index([evaluationRunId], map: "ShopAiRun_evaluation_idx")
+  @@index([traceSampled, createdAt], map: "ShopAiRun_trace_created_idx")
+}
+
+model ShopAiCandidateDecision {
+  id                   String            @id @default(cuid())
+  runId                String
+  productId            String
+  variantId            String?
+  vehicleApplicationId String?
+  productSnapshot      Json              @default("{}")
+  matchStatus          ShopAiMatchStatus
+  rank                 Int?
+  lexicalScore         Float?
+  semanticScore        Float?
+  softScore            Float?
+  totalScore           Float?
+  reasonCodes          String[]          @default([])
+  missingFacts         String[]          @default([])
+  shown                Boolean           @default(false)
+  createdAt            DateTime          @default(now())
+  run                  ShopAiRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  feedback             ShopAiFeedback[]
+
+  @@index([runId, matchStatus], map: "ShopAiCandidateDecision_run_status_idx")
+  @@index([runId, rank], map: "ShopAiCandidateDecision_run_rank_idx")
+  @@index([productId, createdAt], map: "ShopAiCandidateDecision_product_created_idx")
+  @@index([vehicleApplicationId], map: "ShopAiCandidateDecision_application_idx")
+}
+
+model ShopAiFeedback {
+  id                  String                   @id @default(cuid())
+  runId               String?
+  conversationId      String?
+  candidateDecisionId String?
+  productId           String?
+  variantId           String?
+  signal              ShopAiFeedbackSignal
+  reason              ShopAiFeedbackReason?
+  comment             String?                  @db.Text
+  metadata            Json                     @default("{}")
+  status              ShopAiFeedbackStatus     @default(NEW)
+  reviewedById        String?
+  reviewedAt          DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  run                 ShopAiRun?               @relation(fields: [runId], references: [id], onDelete: SetNull)
+  conversation        ShopAiConversation?      @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  candidateDecision   ShopAiCandidateDecision? @relation(fields: [candidateDecisionId], references: [id], onDelete: SetNull)
+  reviewTask          ShopKnowledgeReviewTask?
+
+  @@index([status, createdAt], map: "ShopAiFeedback_status_created_idx")
+  @@index([signal, createdAt], map: "ShopAiFeedback_signal_created_idx")
+  @@index([runId], map: "ShopAiFeedback_run_idx")
+  @@index([conversationId], map: "ShopAiFeedback_conversation_idx")
+  @@index([productId, createdAt], map: "ShopAiFeedback_product_created_idx")
+}
+
+model ShopAiEvaluationRun {
+  id                 String                 @id @default(cuid())
+  suiteName          String
+  suiteVersion       String
+  categoryGroup      String?
+  datasetHash        String
+  status             ShopAiEvaluationStatus @default(PENDING)
+  config             Json                   @default("{}")
+  results            Json                   @default("{}")
+  totalCases         Int                    @default(0)
+  passedCases        Int                    @default(0)
+  failedCases        Int                    @default(0)
+  recallAt20         Float?
+  noMatchAccuracy    Float?
+  wrongExactCount    Int                    @default(0)
+  hallucinationCount Int                    @default(0)
+  p95RetrievalMs     Int?
+  p95TurnMs          Int?
+  errorMessage       String?                @db.Text
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  runs               ShopAiRun[]
+
+  @@index([status, createdAt], map: "ShopAiEvaluationRun_status_created_idx")
+  @@index([categoryGroup, createdAt], map: "ShopAiEvaluationRun_category_created_idx")
+  @@index([suiteName, suiteVersion], map: "ShopAiEvaluationRun_suite_idx")
 }
 
 model ShopWarehouse {
@@ -394,6 +928,7 @@ model ShopCollection {
 
   @@index([isUrban, sortOrder])
   @@index([isPublished])
+  @@index([handle], map: "ShopCollection_handle_idx")
 }
 
 model ShopCategory {
@@ -414,6 +949,7 @@ model ShopCategory {
 
   @@index([parentId, sortOrder])
   @@index([isPublished, sortOrder])
+  @@index([slug], map: "ShopCategory_slug_idx")
 }
 
 model ShopProductCollection {
@@ -459,59 +995,64 @@ model ShopProductOption {
 }
 
 model ShopProductVariant {
-  id                    String               @id @default(cuid())
-  productId             String
-  title                 String?
-  sku                   String?
-  position              Int                  @default(1)
-  option1Value          String?
-  option1LinkedTo       String?
-  option2Value          String?
-  option2LinkedTo       String?
-  option3Value          String?
-  option3LinkedTo       String?
-  grams                 Int?
-  inventoryTracker      String?
-  inventoryQty          Int                  @default(0)
-  inventoryPolicy       ShopInventoryPolicy  @default(CONTINUE)
-  fulfillmentService    String?
-  priceEur              Decimal?             @db.Decimal(12, 2)
-  priceEurEurope        Decimal?             @db.Decimal(12, 2)
-  priceUsd              Decimal?             @db.Decimal(12, 2)
-  priceUah              Decimal?             @db.Decimal(12, 2)
-  compareAtEur          Decimal?             @db.Decimal(12, 2)
-  compareAtUsd          Decimal?             @db.Decimal(12, 2)
-  compareAtUah          Decimal?             @db.Decimal(12, 2)
-  requiresShipping      Boolean              @default(true)
-  taxable               Boolean              @default(true)
-  barcode               String?
-  image                 String?
-  weightUnit            String?
-  taxCode               String?
-  costPerItem           Decimal?             @db.Decimal(12, 2)
-  isDefault             Boolean              @default(false)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  compareAtEurB2b       Decimal?             @db.Decimal(12, 2)
-  compareAtUahB2b       Decimal?             @db.Decimal(12, 2)
-  compareAtUsdB2b       Decimal?             @db.Decimal(12, 2)
-  priceEurB2b           Decimal?             @db.Decimal(12, 2)
-  priceUahB2b           Decimal?             @db.Decimal(12, 2)
-  priceUsdB2b           Decimal?             @db.Decimal(12, 2)
-  airtableRecordId      String?
-  airtableSyncedAt      DateTime?
-  height                Float?
-  isDimensionsEstimated Boolean              @default(false)
-  length                Float?
-  originCountry         String?
-  turn14Hash            String?
-  turn14Id              String?              @unique
-  weight                Float?
-  width                 Float?
-  bundleComponentItems  ShopBundleItem[]
-  cartItems             ShopCartItem[]
-  inventoryLevels       ShopInventoryLevel[]
-  product               ShopProduct          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id                       String                      @id @default(cuid())
+  productId                String
+  title                    String?
+  sku                      String?
+  position                 Int                         @default(1)
+  option1Value             String?
+  option1LinkedTo          String?
+  option2Value             String?
+  option2LinkedTo          String?
+  option3Value             String?
+  option3LinkedTo          String?
+  grams                    Int?
+  inventoryTracker         String?
+  inventoryQty             Int                         @default(0)
+  inventoryPolicy          ShopInventoryPolicy         @default(CONTINUE)
+  fulfillmentService       String?
+  priceEur                 Decimal?                    @db.Decimal(12, 2)
+  priceEurEurope           Decimal?                    @db.Decimal(12, 2)
+  priceUsd                 Decimal?                    @db.Decimal(12, 2)
+  priceUah                 Decimal?                    @db.Decimal(12, 2)
+  compareAtEur             Decimal?                    @db.Decimal(12, 2)
+  compareAtUsd             Decimal?                    @db.Decimal(12, 2)
+  compareAtUah             Decimal?                    @db.Decimal(12, 2)
+  requiresShipping         Boolean                     @default(true)
+  taxable                  Boolean                     @default(true)
+  barcode                  String?
+  image                    String?
+  weightUnit               String?
+  taxCode                  String?
+  costPerItem              Decimal?                    @db.Decimal(12, 2)
+  isDefault                Boolean                     @default(false)
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+  compareAtEurB2b          Decimal?                    @db.Decimal(12, 2)
+  compareAtUahB2b          Decimal?                    @db.Decimal(12, 2)
+  compareAtUsdB2b          Decimal?                    @db.Decimal(12, 2)
+  priceEurB2b              Decimal?                    @db.Decimal(12, 2)
+  priceUahB2b              Decimal?                    @db.Decimal(12, 2)
+  priceUsdB2b              Decimal?                    @db.Decimal(12, 2)
+  airtableRecordId         String?
+  airtableSyncedAt         DateTime?
+  height                   Float?
+  isDimensionsEstimated    Boolean                     @default(false)
+  length                   Float?
+  originCountry            String?
+  turn14Hash               String?
+  turn14Id                 String?                     @unique
+  weight                   Float?
+  width                    Float?
+  bundleComponentItems     ShopBundleItem[]
+  cartItems                ShopCartItem[]
+  inventoryLevels          ShopInventoryLevel[]
+  knowledgeAttributeValues ShopProductAttributeValue[]
+  knowledgeOutboxEvents    ShopKnowledgeOutbox[]
+  knowledgeReviewTasks     ShopKnowledgeReviewTask[]
+  knowledge                ShopVariantKnowledge[]
+  product                  ShopProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vehicleApplications      ShopVehicleApplication[]
 
   @@unique([productId, position])
   @@index([productId])
@@ -611,12 +1152,22 @@ model ShopSettings {
   appDarkMode               Boolean  @default(true)
   appDefaultLanguage        String   @default("ua")
   appDefaultMarkup          Int      @default(25)
+  appAtomicDiscountPercent  Decimal? @default(7.00) @db.Decimal(5, 2)
   appLogoUrl                String?  @default("/branding/one-company-logo.png")
   appMetaDescription        String?
   appMetaTitle              String?  @default("OneCompany — Premium Tuning & Performance Parts")
   appOgImage                String?  @default("/branding/one-company-logo.png")
   appShowPricesWithVat      Boolean  @default(false)
   appSoundEnabled           Boolean  @default(false)
+}
+
+model ShopBrandB2bDiscount {
+  id          String   @id @default(cuid())
+  brand       String   @unique
+  discountPct Decimal  @db.Decimal(5, 2)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ShopCustomer {
@@ -785,17 +1336,21 @@ model ShopOrder {
   quoteDeclinedAt DateTime?
   internalNote    String?
 
-  customer  ShopCustomer?          @relation(fields: [customerId], references: [id])
-  items     ShopOrderItem[]
-  events    ShopOrderStatusEvent[]
-  shipments ShopShipment[]
-  returns   ShopOrderReturn[]
+  customer            ShopCustomer?          @relation(fields: [customerId], references: [id])
+  items               ShopOrderItem[]
+  events              ShopOrderStatusEvent[]
+  shipments           ShopShipment[]
+  returns             ShopOrderReturn[]
+  opsTasks            OpsTask[]
+  opsComments         OpsComment[]
+  opsTelegramContexts OpsTelegramContext[]
 
   @@index([status])
   @@index([createdAt])
   @@index([customerId])
   @@index([discountCode])
   @@index([isDraft])
+  @@index([orderNumber], map: "ShopOrder_orderNumber_idx")
 }
 
 model ShopOrderItem {
@@ -1116,6 +1671,110 @@ model ShopifyStore {
   scope       String?
   installedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum ShopKnowledgeStatus {
+  PENDING
+  PROCESSING
+  READY
+  NEEDS_REVIEW
+  FAILED
+  BLOCKED
+}
+
+enum ShopKnowledgeVerificationStatus {
+  EXTRACTED
+  VERIFIED
+  NEEDS_REVIEW
+  BLOCKED
+}
+
+enum ShopKnowledgeSource {
+  MANAGER
+  MANUAL_OVERRIDE
+  SUPPLIER
+  CATEGORY_ADAPTER
+  DESCRIPTION_EXTRACTION
+}
+
+enum ShopKnowledgeOutboxStatus {
+  PENDING
+  PROCESSING
+  RETRY
+  COMPLETED
+  DEAD_LETTER
+}
+
+enum ShopKnowledgeReviewStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ShopKnowledgeReviewPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ShopProductAttributeValueType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+enum ShopAiRunStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ShopAiResponseMode {
+  RESULTS
+  CLARIFICATION
+  NO_MATCH
+}
+
+enum ShopAiMatchStatus {
+  EXACT
+  REQUIRES_VERIFICATION
+  REJECTED
+}
+
+enum ShopAiFeedbackSignal {
+  THUMBS_UP
+  THUMBS_DOWN
+  CLICK
+  ADD_TO_CART
+  ORDER_COMPLETED
+  NO_RESULT
+  MANAGER_CONFIRMED
+  MANAGER_REJECTED
+}
+
+enum ShopAiFeedbackReason {
+  WRONG_FITMENT
+  WRONG_CATEGORY
+  IRRELEVANT
+  MISSING_PRODUCT
+  OTHER
+}
+
+enum ShopAiFeedbackStatus {
+  NEW
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum ShopAiEvaluationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
 }
 
 enum ContactMethod {
@@ -1606,4 +2265,657 @@ model ShopIntegration {
   updatedAt      DateTime            @updatedAt
 
   @@index([provider, isActive])
+}
+
+enum OpsProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum OpsPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum OpsTaskStatus {
+  INBOX
+  PLANNED
+  IN_PROGRESS
+  AGENT_RUNNING
+  WAITING_HUMAN
+  WAITING_EXTERNAL
+  NEEDS_APPROVAL
+  REVIEW
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum OpsExecutorType {
+  HUMAN
+  AUTOMATION
+  MIXED
+}
+
+enum OpsBlockerType {
+  HUMAN
+  EXTERNAL
+  APPROVAL
+  TECHNICAL
+  INFORMATION
+  OTHER
+}
+
+enum OpsTaskSourceType {
+  ADMIN
+  TELEGRAM
+  AUTOMATION
+  IMPORT
+}
+
+enum OpsTaskEventType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  ASSIGNED
+  COMMENTED
+  AUTOMATION_STARTED
+  AUTOMATION_FINISHED
+  RETRIED
+  BLOCKED
+  APPROVED
+  UNDONE
+  REOPENED
+}
+
+enum OpsKnowledgeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OpsInboxExtractionStatus {
+  RECEIVED
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum OpsInboxReviewStatus {
+  PENDING
+  APPLIED
+  IGNORED
+  UNDONE
+}
+
+enum OpsProposalKind {
+  PROJECT
+  TASK
+  NOTE
+}
+
+enum OpsProposalStatus {
+  PENDING
+  APPLIED
+  REJECTED
+}
+
+enum OpsAttachmentState {
+  PENDING
+  READY
+  QUARANTINED
+  REJECTED
+  DELETED
+}
+
+enum OpsJobStatus {
+  QUEUED
+  RUNNING
+  WAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  DEAD_LETTER
+}
+
+enum OpsJobStage {
+  INGEST
+  DOWNLOAD_MEDIA
+  TRANSCRIBE
+  EXTRACT
+  RESOLVE_CONTEXT
+  CREATE_PREVIEW_OR_ENTITIES
+  EXECUTE_AUTOMATIONS
+  NOTIFY
+  WATCHDOG
+}
+
+enum OpsTelegramBatchStatus {
+  OPEN
+  PROCESSING
+  READY
+  CANCELLED
+  EXPIRED
+}
+
+enum OpsTelegramBatchMode {
+  ONE_TASK
+  SPLIT_TASKS
+}
+
+enum OpsAutomationStatus {
+  QUEUED
+  RUNNING
+  WAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum OpsApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+model OpsMemberProfile {
+  id              String    @id @default(cuid())
+  adminUserId     String    @unique
+  telegramUserId  BigInt?   @unique
+  timezone        String    @default("Europe/Kyiv")
+  telegramEnabled Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  adminUser       AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([telegramEnabled])
+}
+
+model OpsProject {
+  id                String                @id @default(cuid())
+  externalId        String                @unique
+  title             String
+  description       String?
+  status            OpsProjectStatus      @default(ACTIVE)
+  ownerId           String?
+  priority          OpsPriority           @default(NORMAL)
+  startDate         DateTime?
+  dueDate           DateTime?
+  nextAction        String?
+  version           Int                   @default(1)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  archivedAt        DateTime?
+  owner             AdminUser?            @relation("OpsProjectOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  tasks             OpsTask[]
+  comments          OpsComment[]
+  knowledgeArticles OpsKnowledgeArticle[]
+  telegramContexts  OpsTelegramContext[]
+
+  @@index([status, archivedAt])
+  @@index([ownerId, status])
+  @@index([priority, dueDate])
+}
+
+model OpsTask {
+  id                  String                 @id @default(cuid())
+  externalId          String                 @unique
+  projectId           String?
+  shopOrderId         String?
+  parentTaskId        String?
+  title               String
+  description         String?
+  status              OpsTaskStatus          @default(INBOX)
+  priority            OpsPriority            @default(NORMAL)
+  assigneeId          String?
+  isShared            Boolean                @default(false)
+  executorType        OpsExecutorType        @default(HUMAN)
+  dueAt               DateTime?
+  nextAction          String?
+  definitionOfDone    String?
+  blockerType         OpsBlockerType?
+  blockerDescription  String?
+  retryAt             DateTime?
+  attemptCount        Int                    @default(0)
+  rank                Decimal                @default(0) @db.Decimal(20, 8)
+  sourceType          OpsTaskSourceType      @default(ADMIN)
+  sourceId            String?
+  sourceKey           String?                @unique
+  createdById         String
+  version             Int                    @default(1)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  completedAt         DateTime?
+  archivedAt          DateTime?
+  project             OpsProject?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  shopOrder           ShopOrder?             @relation(fields: [shopOrderId], references: [id], onDelete: SetNull)
+  parent              OpsTask?               @relation("OpsTaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  children            OpsTask[]              @relation("OpsTaskHierarchy")
+  assignee            AdminUser?             @relation("OpsTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy           AdminUser              @relation("OpsTaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  events              OpsTaskEvent[]
+  comments            OpsComment[]
+  attachments         OpsTaskAttachment[]
+  knowledgeLinks      OpsTaskKnowledgeLink[]
+  automationRuns      OpsAutomationRun[]
+  approvals           OpsApproval[]
+  jobs                OpsJob[]
+  telegramDeliveries  OpsTelegramDelivery[]
+  opsTelegramContexts OpsTelegramContext[]
+
+  @@index([status, archivedAt, rank])
+  @@index([assigneeId, status, dueAt])
+  @@index([projectId, status])
+  @@index([shopOrderId])
+  @@index([parentTaskId])
+  @@index([sourceType, sourceId])
+}
+
+model OpsTaskEvent {
+  id             String            @id @default(cuid())
+  taskId         String
+  type           OpsTaskEventType
+  actorId        String?
+  sourceType     OpsTaskSourceType @default(ADMIN)
+  sourceId       String?
+  idempotencyKey String?
+  payload        Json              @default("{}")
+  createdAt      DateTime          @default(now())
+  task           OpsTask           @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  actor          AdminUser?        @relation("OpsTaskEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([sourceType, sourceId])
+}
+
+model OpsComment {
+  id                String       @id @default(cuid())
+  taskId            String?
+  projectId         String?
+  shopOrderId       String?
+  authorId          String
+  text              String
+  telegramSourceId  String?
+  correctsCommentId String?
+  createdAt         DateTime     @default(now())
+  task              OpsTask?     @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  project           OpsProject?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  shopOrder         ShopOrder?   @relation(fields: [shopOrderId], references: [id], onDelete: Restrict)
+  author            AdminUser    @relation("OpsCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  correctsComment   OpsComment?  @relation("OpsCommentCorrection", fields: [correctsCommentId], references: [id], onDelete: Restrict)
+  corrections       OpsComment[] @relation("OpsCommentCorrection")
+
+  @@index([taskId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([shopOrderId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model OpsAttachment {
+  id                   String              @id @default(cuid())
+  inboxItemId          String?
+  storageKey           String              @unique
+  checksum             String
+  mimeType             String
+  sizeBytes            BigInt
+  fileName             String?
+  telegramFileId       String?
+  telegramFileUniqueId String?
+  state                OpsAttachmentState  @default(PENDING)
+  retentionAt          DateTime?
+  pinned               Boolean             @default(false)
+  quarantineReason     String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  inboxItem            OpsInboxItem?       @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  tasks                OpsTaskAttachment[]
+
+  @@index([inboxItemId])
+  @@index([checksum])
+  @@index([state, retentionAt])
+  @@index([telegramFileId])
+}
+
+model OpsTaskAttachment {
+  taskId       String
+  attachmentId String
+  attachedById String?
+  createdAt    DateTime      @default(now())
+  task         OpsTask       @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  attachment   OpsAttachment @relation(fields: [attachmentId], references: [id], onDelete: Restrict)
+  attachedBy   AdminUser?    @relation("OpsTaskAttachmentActor", fields: [attachedById], references: [id], onDelete: SetNull)
+
+  @@id([taskId, attachmentId])
+  @@index([attachmentId])
+}
+
+model OpsKnowledgeArticle {
+  id                String                 @id @default(cuid())
+  slug              String                 @unique
+  projectId         String?
+  title             String
+  excerpt           String?
+  contentMarkdown   String
+  locale            String                 @default("ru")
+  category          String
+  brandKey          String?
+  tags              String[]               @default([])
+  searchText        String                 @default("")
+  status            OpsKnowledgeStatus     @default(DRAFT)
+  authorId          String
+  publishedById     String?
+  publishedRevision Int?
+  publishedAt       DateTime?
+  version           Int                    @default(1)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  archivedAt        DateTime?
+  project           OpsProject?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  author            AdminUser              @relation("OpsKnowledgeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  publishedBy       AdminUser?             @relation("OpsKnowledgePublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+  revisions         OpsKnowledgeRevision[]
+  taskLinks         OpsTaskKnowledgeLink[]
+
+  @@index([status, locale, category])
+  @@index([brandKey, status])
+  @@index([updatedAt])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin, map: "OpsKnowledgeArticle_searchText_trgm_idx")
+}
+
+model OpsKnowledgeRevision {
+  id              String              @id @default(cuid())
+  articleId       String
+  revision        Int
+  status          OpsKnowledgeStatus
+  title           String
+  excerpt         String?
+  contentMarkdown String
+  locale          String
+  category        String
+  brandKey        String?
+  tags            String[]            @default([])
+  changeNote      String?
+  changedById     String
+  createdAt       DateTime            @default(now())
+  article         OpsKnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Restrict)
+  changedBy       AdminUser           @relation("OpsKnowledgeRevisionActor", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@unique([articleId, revision])
+  @@index([articleId, createdAt])
+}
+
+model OpsTaskKnowledgeLink {
+  taskId    String
+  articleId String
+  createdAt DateTime            @default(now())
+  task      OpsTask             @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  article   OpsKnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Restrict)
+
+  @@id([taskId, articleId])
+  @@index([articleId])
+}
+
+model OpsTelegramUpdate {
+  id                 String                @id @default(cuid())
+  telegramUpdateId   BigInt                @unique
+  chatId             BigInt
+  telegramUserId     BigInt?
+  messageId          Int?
+  messageThreadId    Int?
+  updateType         String
+  rawUpdate          Json
+  isUntrustedForward Boolean               @default(false)
+  receivedAt         DateTime              @default(now())
+  inboxItem          OpsInboxItem?
+  batchItem          OpsTelegramBatchItem?
+
+  @@index([chatId, messageThreadId, receivedAt])
+  @@index([telegramUserId, receivedAt])
+}
+
+model OpsInboxItem {
+  id                  String                   @id @default(cuid())
+  telegramUpdateId    String                   @unique
+  originalMessage     String?
+  transcription       String?
+  extractionStatus    OpsInboxExtractionStatus @default(RECEIVED)
+  reviewStatus        OpsInboxReviewStatus     @default(PENDING)
+  confidence          Decimal?                 @db.Decimal(4, 3)
+  summary             String?
+  ambiguities         String[]                 @default([])
+  requiresApproval    Boolean                  @default(false)
+  processingErrorType String?
+  processingError     String?
+  appliedTaskIds      String[]                 @default([])
+  undoExpiresAt       DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  processedAt         DateTime?
+  reviewedAt          DateTime?
+  telegramUpdate      OpsTelegramUpdate        @relation(fields: [telegramUpdateId], references: [id], onDelete: Restrict)
+  telegramBatch       OpsTelegramBatch?
+  proposals           OpsInboxProposal[]
+  attachments         OpsAttachment[]
+  jobs                OpsJob[]
+  deliveries          OpsTelegramDelivery[]
+
+  @@index([reviewStatus, createdAt])
+  @@index([extractionStatus, createdAt])
+}
+
+model OpsTelegramBatch {
+  id               String                 @id @default(cuid())
+  scopeKey         String                 @unique
+  actorAdminUserId String
+  chatId           BigInt
+  telegramUserId   BigInt
+  status           OpsTelegramBatchStatus @default(OPEN)
+  mode             OpsTelegramBatchMode?
+  itemCount        Int                    @default(0)
+  statusMessageId  Int?
+  inboxItemId      String?                @unique
+  expiresAt        DateTime
+  finalizedAt      DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  actor            AdminUser              @relation("OpsTelegramBatchActor", fields: [actorAdminUserId], references: [id], onDelete: Restrict)
+  inboxItem        OpsInboxItem?          @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  items            OpsTelegramBatchItem[]
+
+  @@index([telegramUserId, status, updatedAt])
+  @@index([status, expiresAt])
+}
+
+model OpsTelegramBatchItem {
+  id               String            @id @default(cuid())
+  batchId          String
+  telegramUpdateId String            @unique
+  ordinal          Int
+  createdAt        DateTime          @default(now())
+  batch            OpsTelegramBatch  @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  telegramUpdate   OpsTelegramUpdate @relation(fields: [telegramUpdateId], references: [id], onDelete: Restrict)
+
+  @@unique([batchId, ordinal])
+  @@index([batchId, createdAt])
+}
+
+model OpsInboxProposal {
+  id            String            @id @default(cuid())
+  inboxItemId   String
+  kind          OpsProposalKind
+  ordinal       Int               @default(0)
+  payload       Json
+  payloadHash   String
+  confidence    Decimal?          @db.Decimal(4, 3)
+  status        OpsProposalStatus @default(PENDING)
+  appliedTaskId String?
+  createdAt     DateTime          @default(now())
+  appliedAt     DateTime?
+  inboxItem     OpsInboxItem      @relation(fields: [inboxItemId], references: [id], onDelete: Restrict)
+
+  @@unique([inboxItemId, payloadHash])
+  @@index([inboxItemId, status, ordinal])
+}
+
+model OpsTelegramContext {
+  id              String      @id @default(cuid())
+  chatId          BigInt
+  messageThreadId Int?
+  telegramUserId  BigInt?
+  projectId       String?
+  taskId          String?
+  shopOrderId     String?
+  active          Boolean     @default(true)
+  lastMessageId   Int?
+  expiresAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  project         OpsProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  task            OpsTask?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  shopOrder       ShopOrder?  @relation(fields: [shopOrderId], references: [id], onDelete: SetNull)
+
+  @@unique([chatId, messageThreadId, telegramUserId])
+  @@index([taskId, active])
+  @@index([projectId, active])
+  @@index([expiresAt])
+}
+
+model OpsTelegramDelivery {
+  id                String        @id @default(cuid())
+  inboxItemId       String?
+  taskId            String?
+  chatId            BigInt
+  telegramMessageId Int
+  kind              String
+  createdAt         DateTime      @default(now())
+  inboxItem         OpsInboxItem? @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  task              OpsTask?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@unique([chatId, telegramMessageId])
+  @@index([inboxItemId])
+  @@index([taskId])
+}
+
+model OpsJob {
+  id                String        @id @default(cuid())
+  idempotencyKey    String        @unique
+  inboxItemId       String?
+  taskId            String?
+  type              String
+  status            OpsJobStatus  @default(QUEUED)
+  stage             OpsJobStage   @default(INGEST)
+  payload           Json          @default("{}")
+  result            Json?
+  errorType         String?
+  errorMessage      String?
+  attempts          Int           @default(0)
+  maxAttempts       Int           @default(4)
+  availableAt       DateTime      @default(now())
+  leaseOwner        String?
+  leaseExpiresAt    DateTime?
+  heartbeatAt       DateTime?
+  cancelRequestedAt DateTime?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  inboxItem         OpsInboxItem? @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  task              OpsTask?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt])
+  @@index([leaseExpiresAt])
+  @@index([inboxItemId, status])
+  @@index([taskId, status])
+}
+
+model OpsIdempotencyRecord {
+  id           String   @id @default(cuid())
+  scope        String
+  key          String
+  requestHash  String
+  responseBody Json
+  statusCode   Int
+  resourceType String?
+  resourceId   String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@unique([scope, key])
+  @@index([expiresAt])
+  @@index([resourceType, resourceId])
+}
+
+model OpsAutomationRun {
+  id             String              @id @default(cuid())
+  taskId         String
+  automationType String
+  status         OpsAutomationStatus @default(QUEUED)
+  stage          String?
+  attempts       Int                 @default(0)
+  maxAttempts    Int                 @default(4)
+  inputSnapshot  Json
+  result         Json?
+  errorType      String?
+  errorMessage   String?
+  requestedById  String?
+  budget         Json                @default("{}")
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  task           OpsTask             @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  requestedBy    AdminUser?          @relation("OpsAutomationRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OpsApproval {
+  id           String            @id @default(cuid())
+  taskId       String
+  action       String
+  payload      Json
+  payloadHash  String
+  requesterId  String
+  approverId   String?
+  status       OpsApprovalStatus @default(PENDING)
+  decisionNote String?
+  expiresAt    DateTime
+  approvedAt   DateTime?
+  rejectedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  task         OpsTask           @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  requester    AdminUser         @relation("OpsApprovalRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  approver     AdminUser?        @relation("OpsApprovalApprover", fields: [approverId], references: [id], onDelete: SetNull)
+
+  @@index([status, expiresAt])
+  @@index([taskId, createdAt])
+  @@index([approverId, status])
+}
+
+model OpsUsageBucket {
+  id             String   @id @default(cuid())
+  month          DateTime
+  feature        String
+  inputTokens    BigInt   @default(0)
+  outputTokens   BigInt   @default(0)
+  audioSeconds   Int      @default(0)
+  costMicros     BigInt   @default(0)
+  storageBytes   BigInt   @default(0)
+  warningMicros  BigInt   @default(1500000)
+  hardStopMicros BigInt   @default(2000000)
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  @@unique([month, feature])
+  @@index([month])
 }

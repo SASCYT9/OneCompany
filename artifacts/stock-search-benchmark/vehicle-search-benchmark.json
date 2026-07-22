@@ -1,0 +1,1690 @@
+{
+  "generatedAt": "2026-07-10T12:15:55.411Z",
+  "targetRank": 10,
+  "total": 120,
+  "passed": 120,
+  "failed": 0,
+  "passRate": 100,
+  "results": [
+    {
+      "query": "BMW M235i/M240i 2019",
+      "make": "BMW",
+      "model": "M235i/M240i",
+      "year": 2019,
+      "pass": true,
+      "firstRelevantRank": 4,
+      "resultCount": 3201,
+      "topResult": {
+        "slug": "akrapovic-wm-bm-ca-1-m",
+        "title": "AKRAPOVIC WM-BM/CA/1/M Накладки на дзеркала (карбон / матовий) для BMW M2 (F87) / M240i (F22) / 340i (F30) / 440i (F32)",
+        "score": 349
+      }
+    },
+    {
+      "query": "Audi S3 2013",
+      "make": "Audi",
+      "model": "S3",
+      "year": 2013,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 5133,
+      "topResult": {
+        "slug": "remus-bundle-1-046913-1000-11",
+        "title": "Sport Exhaust Bundle for Audi S3 Type 8V Connection Tube | 4x 84mm Chrome Rolled Edge Tips",
+        "score": 529
+      }
+    },
+    {
+      "query": "Porsche Cayenne 2020",
+      "make": "Porsche",
+      "model": "Cayenne",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 2,
+      "resultCount": 2125,
+      "topResult": {
+        "slug": "akrapovic-s-po-ti-20",
+        "title": "Evolution Line — Akrapovič",
+        "score": 535
+      }
+    },
+    {
+      "query": "Mercedes-Benz A-Class 2024",
+      "make": "Mercedes-Benz",
+      "model": "A-Class",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 2,
+      "resultCount": 2498,
+      "topResult": {
+        "slug": "ipe-mercedes-benz-cla35-c118-exhaust",
+        "title": "Вихлопна система Mercedes-Benz CLA35 (C118)",
+        "score": 276
+      }
+    },
+    {
+      "query": "Mercedes-AMG A45 2020",
+      "make": "Mercedes-AMG",
+      "model": "A45",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 3171,
+      "topResult": {
+        "slug": "akrapovic-s-me-t-1h",
+        "title": "AKRAPOVIC S-ME/T/1H Вихлопна система Evolution Line (титан) для MERCEDES-AMG A45 / A45S (W177) 2020-",
+        "score": 543
+      }
+    },
+    {
+      "query": "Volkswagen Golf 2018",
+      "make": "Volkswagen",
+      "model": "Golf",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2827,
+      "topResult": {
+        "slug": "ipe-volkswagen-golf-r-mk7-5-exhaust",
+        "title": "Вихлопна система Volkswagen Golf R (Mk7.5)",
+        "score": 529
+      }
+    },
+    {
+      "query": "Ford Mustang 2015",
+      "make": "Ford",
+      "model": "Mustang",
+      "year": 2015,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1889,
+      "topResult": {
+        "slug": "burger-fuel-it-flex-fuel-kits-ford-mustang-5-0",
+        "title": "Ford Mustang 5.0 Bluetooth Flex Fuel Комплекти для 2015-2023 років",
+        "score": 315
+      }
+    },
+    {
+      "query": "Volvo S60 2016",
+      "make": "Volvo",
+      "model": "S60",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1877,
+      "topResult": {
+        "slug": "do88-tr-160-br",
+        "title": "Volvo S60 V60 XC60 V70 XC70 S80 3.0L T6 пайп наддуву",
+        "score": 309
+      }
+    },
+    {
+      "query": "Toyota Tacoma 2025",
+      "make": "Toyota",
+      "model": "Tacoma",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 641,
+      "topResult": {
+        "slug": "burger-340-horsepower-2024-2026-toyota-tacoma-package",
+        "title": "330 к.с. 2024+ Toyota Tacoma та 2025+ 4Runner пакет",
+        "score": 315
+      }
+    },
+    {
+      "query": "Ferrari 296 2024",
+      "make": "Ferrari",
+      "model": "296",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 997,
+      "topResult": {
+        "slug": "ipe-ferrari-296-gtb-exhaust-system",
+        "title": "Вихлопна система Ferrari 296 GTB",
+        "score": 309
+      }
+    },
+    {
+      "query": "McLaren 765LT 2020",
+      "make": "McLaren",
+      "model": "765LT",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1498,
+      "topResult": {
+        "slug": "girodisc-d2-206-komplekt-zminnykh-kilets-zadnikh-halmivnykh-dyskiv-dlia-mclaren-765lt-2020",
+        "title": "GIRODISC D2-206 Комплект змінних кілець задніх гальмівних дисків для MCLAREN 765LT 2020-",
+        "score": 315
+      }
+    },
+    {
+      "query": "Nissan Armada 2025",
+      "make": "Nissan",
+      "model": "Armada",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 431,
+      "topResult": {
+        "slug": "burger-jb4-performance-tuner-for-2025-nissan-armada-vr35ddtt",
+        "title": "JB4 Продуктивний тюнер для 2025+ Nissan Armada/Patrol 3.5L V6 Twin Turbo",
+        "score": 315
+      }
+    },
+    {
+      "query": "Maserati Ghibli 2013",
+      "make": "Maserati",
+      "model": "Ghibli",
+      "year": 2013,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 924,
+      "topResult": {
+        "slug": "remus-bundle-1-428014-1001-18",
+        "title": "Cat-Back System for MASERATI Ghibli III S Q4 4x 100mm Titanium Black Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Cupra formentor 2020",
+      "make": "Cupra",
+      "model": "formentor",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1639,
+      "topResult": {
+        "slug": "remus-bundle-1-790020-1000-32",
+        "title": "Exhaust Bundle for Cupra Formentor VZ Rear Silencer + Racing | 4x 102mm Chrome R-Logo Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Saab 9-5 2004",
+      "make": "Saab",
+      "model": "9-5",
+      "year": 2004,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 391,
+      "topResult": {
+        "slug": "do88-do88-kit19br",
+        "title": "SAAB 9-5 впускний шланг",
+        "score": 299
+      }
+    },
+    {
+      "query": "Skoda Octavia 2020",
+      "make": "Skoda",
+      "model": "Octavia",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1601,
+      "topResult": {
+        "slug": "remus-bundle-1-800021-1000-1",
+        "title": "GPF-Back Exhaust System for SKODA Octavia IV RS (Type NX) Racing Non-Resonated",
+        "score": 309
+      }
+    },
+    {
+      "query": "Peugeot 3008 2012",
+      "make": "Peugeot",
+      "model": "3008",
+      "year": 2012,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1018,
+      "topResult": {
+        "slug": "racechip-gts5-peugeot-3008-2009-to-2016-1-6-thp-165-1598ccm-165hp-121kw-240nm",
+        "title": "RaceChip GTS 5 — Peugeot 3008 (2009–2016) 1.6 THP 165 1598cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Mini Cooper 2016",
+      "make": "Mini",
+      "model": "Cooper",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2063,
+      "topResult": {
+        "slug": "ohlins-bms-mi20s1",
+        "title": "OHLINS BMS MI20S1 Комплект койловерів ROAD & TRACK для MINI Cooper (R56) 2007-2016",
+        "score": 535
+      }
+    },
+    {
+      "query": "Ducati Panigale V2 2025",
+      "make": "Ducati",
+      "model": "Panigale V2",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 511,
+      "topResult": {
+        "slug": "akrapovic-s-d9e7-ckot",
+        "title": "Evolution Line (Titanium) — Akrapovič для Ducati Panigale / Streetfighter V2 (2025-2026) (S-D9E7-CKOT)",
+        "score": 288
+      }
+    },
+    {
+      "query": "Hyundai i30 N 2018",
+      "make": "Hyundai",
+      "model": "i30 N",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1893,
+      "topResult": {
+        "slug": "remus-bundle-1-285723-1000-12",
+        "title": "Sport Exhaust for HYUNDAI i30 N PDE 2x 102mm Chrome Straight Cut Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Subaru wrx 2024",
+      "make": "Subaru",
+      "model": "wrx",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 851,
+      "topResult": {
+        "slug": "csf-7224b",
+        "title": "CSF 7224B Радіатор охолодження (чорний) для SUBARU WRX (VB) 2022+",
+        "score": 527
+      }
+    },
+    {
+      "query": "Vauxhall mokka a 2024",
+      "make": "Vauxhall",
+      "model": "mokka a",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 801,
+      "topResult": {
+        "slug": "racechip-gts5-vauxhall-mokka-a-from-2012-1-6-cdti-ecoflex-1598ccm-136hp-100kw-320nm",
+        "title": "RaceChip GTS 5 — Vauxhall Mokka A (2012+) 1.6 Cdti Ecoflex 1598cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Honda civic 2023",
+      "make": "Honda",
+      "model": "civic",
+      "year": 2023,
+      "pass": true,
+      "firstRelevantRank": 2,
+      "resultCount": 729,
+      "topResult": {
+        "slug": "csf-7221",
+        "title": "CSF 7221 Високоефективний радіатор охолодження для HONDA Civic Type R (FL5) 2023+",
+        "score": 535
+      }
+    },
+    {
+      "query": "Chevrolet Corvette 2025",
+      "make": "Chevrolet",
+      "model": "Corvette",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 475,
+      "topResult": {
+        "slug": "burger-jb4-for-2025-c8-corvette-zr1",
+        "title": "JB4PRO для 2025+ C8 Chevrolet Corvette ZR1 LT7 (BETA)",
+        "score": 535
+      }
+    },
+    {
+      "query": "SEAT Leon 2014",
+      "make": "SEAT",
+      "model": "Leon",
+      "year": 2014,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1591,
+      "topResult": {
+        "slug": "remus-bundle-1-956017-1002-2",
+        "title": "Sport Exhaust System for SEAT Leon 5F 3 (2014) Resonated + Racing Sport Silencer",
+        "score": 315
+      }
+    },
+    {
+      "query": "Abarth 500 2007",
+      "make": "Abarth",
+      "model": "500",
+      "year": 2007,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1358,
+      "topResult": {
+        "slug": "racechip-gts5-fiat-500-from-2007-1-4-abarth-asseto-corse-1368ccm-190hp-140kw-300nm",
+        "title": "RaceChip GTS 5 — Fiat 500 (2007+) 1.4 Abarth Asseto Corse 1368cc",
+        "score": 315
+      }
+    },
+    {
+      "query": "Lamborghini Urus 2024",
+      "make": "Lamborghini",
+      "model": "Urus",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 847,
+      "topResult": {
+        "slug": "csf-8211",
+        "title": "CSF 8211 Високоефективні інтеркулери (чорне покриття) для LAMBORGHINI Urus 2019+ / AUDI RSQ8 2020+",
+        "score": 307
+      }
+    },
+    {
+      "query": "Lexus IS 2024",
+      "make": "Lexus",
+      "model": "IS",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2684,
+      "topResult": {
+        "slug": "racechip-gts5-lexus-is-xe3-from-2013-200t-1998ccm-245hp-180kw-350nm",
+        "title": "RaceChip GTS 5 — Lexus IS XE3 (2013+) 200t 1998cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Alfa Romeo Giulia 2016",
+      "make": "Alfa Romeo",
+      "model": "Giulia",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1710,
+      "topResult": {
+        "slug": "akrapovic-e-ar-t-1",
+        "title": "AKRAPOVIC E-AR/T/1 Комплект лінк пайпів Evolution (титан) для ALFA ROMEO Giulia Quadrifoglio 2016-2020",
+        "score": 323
+      }
+    },
+    {
+      "query": "Fiat Tipo 2024",
+      "make": "Fiat",
+      "model": "Tipo",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 947,
+      "topResult": {
+        "slug": "racechip-gts5-fiat-tipo-from-2015-1-6-multijet-1598ccm-120hp-88kw-320nm",
+        "title": "RaceChip GTS 5 — Fiat Tipo (2015+) 1.6 MultiJet 1598cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Land Rover Discovery 2024",
+      "make": "Land Rover",
+      "model": "Discovery",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1036,
+      "topResult": {
+        "slug": "urb-bod-25353141-v1",
+        "title": "Обвіси для Land Rover Discovery 5",
+        "score": 315
+      }
+    },
+    {
+      "query": "Suzuki Jimny 2018",
+      "make": "Suzuki",
+      "model": "Jimny",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1686,
+      "topResult": {
+        "slug": "ohlins-suv-mu10",
+        "title": "OHLINS SUV MU10 до-т підвіски Adventure SUZUKI Jimny, Gen3, 1998-2018, set",
+        "score": 315
+      }
+    },
+    {
+      "query": "Range Rover Sport 2017",
+      "make": "Range Rover",
+      "model": "Sport",
+      "year": 2017,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 4278,
+      "topResult": {
+        "slug": "urb-int-25353077-v1",
+        "title": "Спинки сидінь Visual Carbon Fibre для Range Rover Sport L494 SVR",
+        "score": 543
+      }
+    },
+    {
+      "query": "Kia K5 2024",
+      "make": "Kia",
+      "model": "K5",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 969,
+      "topResult": {
+        "slug": "burger-dual-oil-catch-can-kit-for-kia-k5",
+        "title": "Подвійний комплект масловловлювачів BMS для KIA K5/Hyundai Sonata 1.6L 2021+ (вакуум та наддув)",
+        "score": 307
+      }
+    },
+    {
+      "query": "Mazda rx-8 2006",
+      "make": "Mazda",
+      "model": "rx-8",
+      "year": 2006,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 704,
+      "topResult": {
+        "slug": "csf-3164",
+        "title": "CSF 3164 Радіатор для MAZDA RX-8 2004-2008",
+        "score": 307
+      }
+    },
+    {
+      "query": "Citroen DS3 2012",
+      "make": "Citroen",
+      "model": "DS3",
+      "year": 2012,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1663,
+      "topResult": {
+        "slug": "racechip-gts5-citroen-ds3-2009-to-2015-1-6-ehdi-110-1560ccm-112hp-82kw-270nm",
+        "title": "RaceChip GTS 5 — Citroen DS3 (2009–2015) 1.6 Ehdi 110 1560cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Dacia Duster 2013",
+      "make": "Dacia",
+      "model": "Duster",
+      "year": 2013,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 932,
+      "topResult": {
+        "slug": "racechip-gts5-dacia-duster-2010-to-2016-1-5-dci-110-1461ccm-107hp-79kw-240nm",
+        "title": "RaceChip GTS 5 — Dacia Duster (2010–2016) 1.5 DCI 110 1461cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Jeep Wrangler 2005",
+      "make": "Jeep",
+      "model": "Wrangler",
+      "year": 2005,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 376,
+      "topResult": {
+        "slug": "csf-7035",
+        "title": "CSF 7035 Радіатор для JEEP Wrangler 2005-2006",
+        "score": 315
+      }
+    },
+    {
+      "query": "Genesis G70 2024",
+      "make": "Genesis",
+      "model": "G70",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 874,
+      "topResult": {
+        "slug": "adro-a11a10-1101",
+        "title": "ADRO A11A10-1101 Комплект розширення кузова для GENESIS G70 2019-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Mitsubishi Evo 2004",
+      "make": "Mitsubishi",
+      "model": "Evo",
+      "year": 2004,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 455,
+      "topResult": {
+        "slug": "ohlins-25633-03",
+        "title": "OHLINS 25633-03 Верхня опора амортизатора MITSUBISHI Lancer, EVO VII-IX, 2001-2007, передня",
+        "score": 307
+      }
+    },
+    {
+      "query": "Dodge RAM 2006",
+      "make": "Dodge",
+      "model": "RAM",
+      "year": 2006,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 716,
+      "topResult": {
+        "slug": "csf-7104",
+        "title": "CSF 7104 Інтеркулер для DODGE Ram 5.9L/6.7L Turbo Diesel 2003-2009",
+        "score": 307
+      }
+    },
+    {
+      "query": "Tesla Model 3 2024",
+      "make": "Tesla",
+      "model": "Model 3",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 11950,
+      "topResult": {
+        "slug": "ohlins-tes-mx00s1",
+        "title": "OHLINS TES MX00S1 Комплект койловерів ROAD & TRACK для TESLA Model 3 / Model Y 2017+",
+        "score": 307
+      }
+    },
+    {
+      "query": "DS DS3 2024",
+      "make": "DS",
+      "model": "DS3",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1428,
+      "topResult": {
+        "slug": "racechip-gts5-ds-ds3-from-2015-1-6-bluehdi-75-1560ccm-75hp-55kw-175nm",
+        "title": "RaceChip GTS 5 — DS DS3 (2015+) 1.6 Bluehdi 75 1560cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Tata Sumo 2024",
+      "make": "Tata",
+      "model": "Sumo",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 754,
+      "topResult": {
+        "slug": "racechip-gts5-tata-sumo-from-2008-2-2-dicor-2179ccm-120hp-88kw-250nm",
+        "title": "RaceChip GTS 5 — Tata Sumo (2008+) 2.2 Dicor 2179cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Infiniti Q50 1991",
+      "make": "Infiniti",
+      "model": "Q50",
+      "year": 1991,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 173,
+      "topResult": {
+        "slug": "racechip-gts5-infiniti-q50-from-2013-2-0-t-1991ccm-211hp-155kw-350nm",
+        "title": "RaceChip GTS 5 — Infiniti Q50 (2013+) 2.0 T 1991cc",
+        "score": 315
+      }
+    },
+    {
+      "query": "Renault Twingo 2007",
+      "make": "Renault",
+      "model": "Twingo",
+      "year": 2007,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 662,
+      "topResult": {
+        "slug": "remus-bundle-1-733007-1000-1",
+        "title": "Sportexhaust for RENAULT Twingo 2",
+        "score": 309
+      }
+    },
+    {
+      "query": "Bentley Continental GTC 2024",
+      "make": "Bentley",
+      "model": "Continental GTC",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 781,
+      "topResult": {
+        "slug": "racechip-gts5-bentley-continental-gtc-from-2006-gtc-v8-s-3993ccm-528hp-388kw-680nm",
+        "title": "RaceChip GTS 5 — Bentley Continental GTC (2006+) GTC V8 S 3993cc",
+        "score": 315
+      }
+    },
+    {
+      "query": "Maruti ritz 2024",
+      "make": "Maruti",
+      "model": "ritz",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 748,
+      "topResult": {
+        "slug": "racechip-gts5-maruti-ritz-from-2009-1-3-crdi-16v-1248ccm-75hp-55kw-190nm",
+        "title": "RaceChip GTS 5 — Maruti Ritz (2009+) 1.3 Crdi 16V 1248cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Lotus Emira 2024",
+      "make": "Lotus",
+      "model": "Emira",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 767,
+      "topResult": {
+        "slug": "burger-jb4-tuner-for-lotus-emira",
+        "title": "JB4 Тюнер для 2022+ Lotus Emira",
+        "score": 307
+      }
+    },
+    {
+      "query": "GMC Sierra 2024",
+      "make": "GMC",
+      "model": "Sierra",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 751,
+      "topResult": {
+        "slug": "burger-jb4-tuner-for-gmc-sierra-1500",
+        "title": "JB4 тюнер для 2019+ GMC Sierra 1500 2.7L Turbo",
+        "score": 307
+      }
+    },
+    {
+      "query": "Alpine A110 2024",
+      "make": "Alpine",
+      "model": "A110",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 751,
+      "topResult": {
+        "slug": "ohlins-alv-gy10",
+        "title": "OHLINS ALV GY10 Комплект койловерів Advanced Trackday TTX (включаючи пружини) для ALPINE A110 / A110GT / A110S (AEF) 2017-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Opel Vectra 2005",
+      "make": "Opel",
+      "model": "Vectra",
+      "year": 2005,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 521,
+      "topResult": {
+        "slug": "do88-icm-110-vev6",
+        "title": "Opel Vectra C OPC V6 2005-08 інтеркулер",
+        "score": 315
+      }
+    },
+    {
+      "query": "Acura NSX 2024",
+      "make": "Acura",
+      "model": "NSX",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 757,
+      "topResult": {
+        "slug": "girodisc-a2-174-komplekt-zadnikh-halmivnykh-dyskiv-dlia-acura-nsx-2016",
+        "title": "GIRODISC A2-174 Комплект задніх гальмівних дисків для ACURA NSX 2016-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Aston Martin Vantage 2024",
+      "make": "Aston Martin",
+      "model": "Vantage",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 746,
+      "topResult": {
+        "slug": "burger-jb4-performance-tuner-for-2019-aston-martin-vantage",
+        "title": "JB4 Чіп-тюнер продуктивності для 2019+ Aston Martin Vantage BETA",
+        "score": 315
+      }
+    },
+    {
+      "query": "Buick Envista 2024",
+      "make": "Buick",
+      "model": "Envista",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 746,
+      "topResult": {
+        "slug": "burger-jb4-for-2024-buick-envista-1-2l-turbo-3-cylinder",
+        "title": "JB4 для 2024+ Buick Envista 1.2L Turbo 3-циліндровий",
+        "score": 315
+      }
+    },
+    {
+      "query": "Isuzu D-Max 2024",
+      "make": "Isuzu",
+      "model": "D-Max",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 820,
+      "topResult": {
+        "slug": "ohlins-isv-1x00",
+        "title": "OHLINS ISV 1X00 Амортизатор передній лівий для ISUZU D-MAX 2020-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Cadillac CTS-V 2011",
+      "make": "Cadillac",
+      "model": "CTS-V",
+      "year": 2011,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 564,
+      "topResult": {
+        "slug": "csf-8028",
+        "title": "CSF 8028 Радіатор для CADILLAC CTS-V 2009-2013",
+        "score": 307
+      }
+    },
+    {
+      "query": "Iveco Massif 2009",
+      "make": "Iveco",
+      "model": "Massif",
+      "year": 2009,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 601,
+      "topResult": {
+        "slug": "racechip-gts5-iveco-massif-2008-to-2011-xx-15-3-0-hpi-2998ccm-146hp-107kw-350nm",
+        "title": "RaceChip GTS 5 — Iveco Massif (2008–2011) XX 15 3.0 HPI 2998cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Ldv maxus 2007",
+      "make": "Ldv",
+      "model": "maxus",
+      "year": 2007,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 442,
+      "topResult": {
+        "slug": "racechip-gts5-ldv-maxus-2005-to-2009-2-5-d-2499ccm-135hp-99kw-330nm",
+        "title": "RaceChip GTS 5 — LDV Maxus (2005–2009) 2.5 D 2499cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "SsangYong Stavic 2024",
+      "make": "SsangYong",
+      "model": "Stavic",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 763,
+      "topResult": {
+        "slug": "racechip-gts5-ssangyong-stavic-from-2004-2-7-xdi-2696ccm-165hp-121kw-342nm",
+        "title": "RaceChip GTS 5 — SsangYong Stavic (2004+) 2.7 XDI 2696cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "BMW M235i/M240i 2020",
+      "make": "BMW",
+      "model": "M235i/M240i",
+      "year": 2020,
+      "pass": true,
+      "firstRelevantRank": 4,
+      "resultCount": 3412,
+      "topResult": {
+        "slug": "akrapovic-wm-bm-ca-1-m",
+        "title": "AKRAPOVIC WM-BM/CA/1/M Накладки на дзеркала (карбон / матовий) для BMW M2 (F87) / M240i (F22) / 340i (F30) / 440i (F32)",
+        "score": 349
+      }
+    },
+    {
+      "query": "Audi S3 2016",
+      "make": "Audi",
+      "model": "S3",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 5233,
+      "topResult": {
+        "slug": "remus-bundle-1-046913-1000-11",
+        "title": "Sport Exhaust Bundle for Audi S3 Type 8V Connection Tube | 4x 84mm Chrome Rolled Edge Tips",
+        "score": 529
+      }
+    },
+    {
+      "query": "Porsche Cayenne 2021",
+      "make": "Porsche",
+      "model": "Cayenne",
+      "year": 2021,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1337,
+      "topResult": {
+        "slug": "remus-bundle-1-680023-1000-6",
+        "title": "Front section-back-system for Porsche Cayenne E-Hybrid PO536/9YA 4x 98mm Street Race Chrome Tips",
+        "score": 529
+      }
+    },
+    {
+      "query": "Mercedes-Benz C-Class 2024",
+      "make": "Mercedes-Benz",
+      "model": "C-Class",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2498,
+      "topResult": {
+        "slug": "burger-jb4-tuner-c-class-mercedes-benz",
+        "title": "JB4 Тюнер для 2014+ Mercedes-Benz",
+        "score": 274
+      }
+    },
+    {
+      "query": "Mercedes-AMG G63 2024",
+      "make": "Mercedes-AMG",
+      "model": "G63",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2537,
+      "topResult": {
+        "slug": "akrapovic-s-me-t-15",
+        "title": "AKRAPOVIC S-ME/T/15 Вихлопна система Evolution Line (титан) для MERCEDES-BENZ AMG G63 (W463A) 2019-2024",
+        "score": 362
+      }
+    },
+    {
+      "query": "Volkswagen Golf 2017",
+      "make": "Volkswagen",
+      "model": "Golf",
+      "year": 2017,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2514,
+      "topResult": {
+        "slug": "ipe-volkswagen-golf-r-mk7-5-exhaust",
+        "title": "Вихлопна система Volkswagen Golf R (Mk7.5)",
+        "score": 529
+      }
+    },
+    {
+      "query": "Ford Mustang 2016",
+      "make": "Ford",
+      "model": "Mustang",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2063,
+      "topResult": {
+        "slug": "remus-bundle-1-206715-1000-32",
+        "title": "Cat-Back System for FORD Mustang VI S550 Racing Non-Resonated | 2x 100mm Titanium Brushed Tips | Sound Controller",
+        "score": 309
+      }
+    },
+    {
+      "query": "Volvo S60 2024",
+      "make": "Volvo",
+      "model": "S60",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1062,
+      "topResult": {
+        "slug": "burger-jb4-performance-tuner-for-2014-2018-volvo-s50-s60-s90-t5-t6-engines",
+        "title": "JB4 Продуктивний Тюнер для 2014+ Volvo S50/S60/S90 T5/T6 Turbo Engines BETA",
+        "score": 307
+      }
+    },
+    {
+      "query": "Toyota Tacoma 2024",
+      "make": "Toyota",
+      "model": "Tacoma",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1059,
+      "topResult": {
+        "slug": "burger-340-horsepower-2024-2026-toyota-tacoma-package",
+        "title": "330 к.с. 2024+ Toyota Tacoma та 2025+ 4Runner пакет",
+        "score": 315
+      }
+    },
+    {
+      "query": "Ferrari 360 Modena 2004",
+      "make": "Ferrari",
+      "model": "360 Modena",
+      "year": 2004,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 525,
+      "topResult": {
+        "slug": "csf-7246",
+        "title": "CSF 7246 Високопродуктивний алюмінієвий радіатор FERRARI 360 Modena / Spider / Challenge / Challenge Stradale 2000–2008",
+        "score": 315
+      }
+    },
+    {
+      "query": "McLaren 765LT 2021",
+      "make": "McLaren",
+      "model": "765LT",
+      "year": 2021,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 709,
+      "topResult": {
+        "slug": "ipe-mclaren-765lt-exhaust",
+        "title": "Вихлопна система McLaren 765LT",
+        "score": 309
+      }
+    },
+    {
+      "query": "Nissan Patrol 2025",
+      "make": "Nissan",
+      "model": "Patrol",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 431,
+      "topResult": {
+        "slug": "burger-jb4-performance-tuner-for-2025-nissan-armada-vr35ddtt",
+        "title": "JB4 Продуктивний тюнер для 2025+ Nissan Armada/Patrol 3.5L V6 Twin Turbo",
+        "score": 315
+      }
+    },
+    {
+      "query": "Maserati Ghibli 2014",
+      "make": "Maserati",
+      "model": "Ghibli",
+      "year": 2014,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1320,
+      "topResult": {
+        "slug": "remus-bundle-1-428014-1001-18",
+        "title": "Cat-Back System for MASERATI Ghibli III S Q4 4x 100mm Titanium Black Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Cupra formentor 2021",
+      "make": "Cupra",
+      "model": "formentor",
+      "year": 2021,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 890,
+      "topResult": {
+        "slug": "remus-bundle-1-791122-1000-4",
+        "title": "GPF-Back Exhaust System for Cupra Formentor KM VZ 5 Racing | 4x 84mm Full Carbon Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Saab 9-3 2001",
+      "make": "Saab",
+      "model": "9-3",
+      "year": 2001,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 348,
+      "topResult": {
+        "slug": "do88-do88-kit101br",
+        "title": "SAAB 9-3 турбо T7 99-03 шланги охолодження",
+        "score": 299
+      }
+    },
+    {
+      "query": "Skoda Octavia 2019",
+      "make": "Skoda",
+      "model": "Octavia",
+      "year": 2019,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1363,
+      "topResult": {
+        "slug": "remus-bundle-1-806715-1001-2",
+        "title": "Cat-Back System for SKODA Octavia III RS 245 Facelift (Type 5E) Resonated (#1)",
+        "score": 309
+      }
+    },
+    {
+      "query": "Peugeot 5008 2024",
+      "make": "Peugeot",
+      "model": "5008",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 971,
+      "topResult": {
+        "slug": "racechip-gts5-peugeot-5008-from-2009-1-6-hdi-115-1560ccm-114hp-84kw-270nm",
+        "title": "RaceChip GTS 5 — Peugeot 5008 (2009+) 1.6 HDI 115 1560cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Mini Cooper 2014",
+      "make": "Mini",
+      "model": "Cooper",
+      "year": 2014,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1831,
+      "topResult": {
+        "slug": "ohlins-mcs-mu00s1",
+        "title": "OHLINS MCS MU00S1 Комплект койловерів Road & Track (DFV) для MINI COOPER (F55/F56/F57) 2014-",
+        "score": 535
+      }
+    },
+    {
+      "query": "Ducati Streetfighter V2 2025",
+      "make": "Ducati",
+      "model": "Streetfighter V2",
+      "year": 2025,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 511,
+      "topResult": {
+        "slug": "akrapovic-s-d9e7-ckot",
+        "title": "Evolution Line (Titanium) — Akrapovič для Ducati Panigale / Streetfighter V2 (2025-2026) (S-D9E7-CKOT)",
+        "score": 323
+      }
+    },
+    {
+      "query": "Hyundai i30 N 2019",
+      "make": "Hyundai",
+      "model": "i30 N",
+      "year": 2019,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1471,
+      "topResult": {
+        "slug": "remus-bundle-1-285723-1000-12",
+        "title": "Sport Exhaust for HYUNDAI i30 N PDE 2x 102mm Chrome Straight Cut Tips",
+        "score": 309
+      }
+    },
+    {
+      "query": "Subaru wrx sti 2018",
+      "make": "Subaru",
+      "model": "wrx sti",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1815,
+      "topResult": {
+        "slug": "csf-7095b",
+        "title": "CSF 7095B Високоефективний радіатор охолодження (чорний) для SUBARU WRX STI (MT/CTV) 2015-2021",
+        "score": 315
+      }
+    },
+    {
+      "query": "Vauxhall antara l a 2010",
+      "make": "Vauxhall",
+      "model": "antara l a",
+      "year": 2010,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 788,
+      "topResult": {
+        "slug": "racechip-gts5-vauxhall-antara-l-a-2006-to-2014-2-2-cdti-2231ccm-184hp-135kw-400nm",
+        "title": "RaceChip GTS 5 — Vauxhall Antara L A (2006–2014) 2.2 Cdti 2231cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Honda civic 1977",
+      "make": "Honda",
+      "model": "civic",
+      "year": 1977,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 208,
+      "topResult": {
+        "slug": "remus-bundle-1-257017-1000-29",
+        "title": "Sport Exhaust for Honda Civic Type-R (FK8) 3x 98mm Street Race Black Chrome Tips | Sound Controller (#1)",
+        "score": 529
+      }
+    },
+    {
+      "query": "Chevrolet Corvette 1997",
+      "make": "Chevrolet",
+      "model": "Corvette",
+      "year": 1997,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 753,
+      "topResult": {
+        "slug": "burger-corvette-1997-present-floor-jack-pad-adapter",
+        "title": "Адаптер-підкладка для підлогового домкрата для Corvette C5, C6, C7, C8 1997 року випуску і новіших",
+        "score": 529
+      }
+    },
+    {
+      "query": "SEAT Leon 2013",
+      "make": "SEAT",
+      "model": "Leon",
+      "year": 2013,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1203,
+      "topResult": {
+        "slug": "remus-bundle-1-955113-1005-17",
+        "title": "Axle-Back Exhaust System for Seat Leon 5F 3 FR Silencer (954112 1600) | 4x 84mm Full Carbon Tips | Part 792303 HES",
+        "score": 309
+      }
+    },
+    {
+      "query": "Abarth 500 2008",
+      "make": "Abarth",
+      "model": "500",
+      "year": 2008,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1386,
+      "topResult": {
+        "slug": "akrapovic-m-fi-ss-1h",
+        "title": "AKRAPOVIC M-FI/SS/1H Вихлопна система Slip-On Line (нержавіюча сталь) для ABARTH 500/500C 2008-2017",
+        "score": 315
+      }
+    },
+    {
+      "query": "Lamborghini Aventador 2019",
+      "make": "Lamborghini",
+      "model": "Aventador",
+      "year": 2019,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1316,
+      "topResult": {
+        "slug": "ipe-lamborghini-aventador-svj-lp770-4",
+        "title": "Вихлопна система Lamborghini Aventador SVJ",
+        "score": 309
+      }
+    },
+    {
+      "query": "Lexus RX 2024",
+      "make": "Lexus",
+      "model": "RX",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 894,
+      "topResult": {
+        "slug": "burger-jb4-tuner-for-lexus-nx-350",
+        "title": "JB4 Тюнер для 2022+ Lexus NX, RX, TX 350 2.4L 4 CYL Turbo",
+        "score": 307
+      }
+    },
+    {
+      "query": "Alfa Romeo Giulia 2018",
+      "make": "Alfa Romeo",
+      "model": "Giulia",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1842,
+      "topResult": {
+        "slug": "akrapovic-s-ar-ti-7h",
+        "title": "Slip-On Line — Akrapovič",
+        "score": 323
+      }
+    },
+    {
+      "query": "Fiat 500 2024",
+      "make": "Fiat",
+      "model": "500",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1807,
+      "topResult": {
+        "slug": "racechip-gts5-fiat-500-from-2007-0-9-8v-twinair-875ccm-86hp-63kw-145nm",
+        "title": "RaceChip GTS 5 — Fiat 500 (2007+) 0.9 8V Twinair 875cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Land Rover Discovery 2018",
+      "make": "Land Rover",
+      "model": "Discovery",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1944,
+      "topResult": {
+        "slug": "urb-bod-25353139-v1",
+        "title": "Аеродинамічний комплект Urban для Land Rover Discovery 5",
+        "score": 315
+      }
+    },
+    {
+      "query": "Suzuki Swift 2012",
+      "make": "Suzuki",
+      "model": "Swift",
+      "year": 2012,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 868,
+      "topResult": {
+        "slug": "remus-bundle-1-855111-1000-1",
+        "title": "Sport Exhaust Bundle for Suzuki Swift Sport NZ (2012) Racing",
+        "score": 315
+      }
+    },
+    {
+      "query": "Range Rover Sport 2015",
+      "make": "Range Rover",
+      "model": "Sport",
+      "year": 2015,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 4510,
+      "topResult": {
+        "slug": "urb-bod-25353062-v1",
+        "title": "Пакет заміни бамперів Urban для Range Rover Sport L494 SVR",
+        "score": 535
+      }
+    },
+    {
+      "query": "Kia Sportage 2010",
+      "make": "Kia",
+      "model": "Sportage",
+      "year": 2010,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 922,
+      "topResult": {
+        "slug": "remus-bundle-1-286111-1000-1",
+        "title": "Sport Exhaust for HYUNDAI iX35 EL & KIA Sportage SL",
+        "score": 309
+      }
+    },
+    {
+      "query": "Mazda miata 2001",
+      "make": "Mazda",
+      "model": "miata",
+      "year": 2001,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 247,
+      "topResult": {
+        "slug": "csf-2863",
+        "title": "CSF 2863 Радіатор для MAZDA Miata 1998-2005",
+        "score": 482
+      }
+    },
+    {
+      "query": "Citroen Berlingo 2024",
+      "make": "Citroen",
+      "model": "Berlingo",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 964,
+      "topResult": {
+        "slug": "racechip-gts5-citroen-berlingo-from-2008-1-6-bluehdi-120-1560ccm-120hp-88kw-300nm",
+        "title": "RaceChip GTS 5 — Citroen Berlingo (2008+) 1.6 Bluehdi 120 1560cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Dacia Lodgy 2024",
+      "make": "Dacia",
+      "model": "Lodgy",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 776,
+      "topResult": {
+        "slug": "racechip-gts5-dacia-lodgy-from-2012-1-5-dci-1461ccm-109hp-80kw-240nm",
+        "title": "RaceChip GTS 5 — Dacia Lodgy (2012+) 1.5 DCI 1461cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Jeep Wrangler 2011",
+      "make": "Jeep",
+      "model": "Wrangler",
+      "year": 2011,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 596,
+      "topResult": {
+        "slug": "csf-7036",
+        "title": "CSF 7036 Радіатор для JEEP Wrangler (JK) Heavy Duty (Automatic & Manual) 2007-2015",
+        "score": 307
+      }
+    },
+    {
+      "query": "Genesis G80 2024",
+      "make": "Genesis",
+      "model": "G80",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1073,
+      "topResult": {
+        "slug": "adro-a11a21-1402",
+        "title": "ADRO A11A21-1402 Бічні пороги V2 для GENESIS G80 (RG3) 2021-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Mitsubishi Evo 2024",
+      "make": "Mitsubishi",
+      "model": "Evo",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 928,
+      "topResult": {
+        "slug": "ohlins-25633-08",
+        "title": "OHLINS 25633-08 Верхня опора амортизатора MITSUBISHI Lancer, EVO X CZ4A 2007 -, задня",
+        "score": 307
+      }
+    },
+    {
+      "query": "Dodge RAM 2011",
+      "make": "Dodge",
+      "model": "RAM",
+      "year": 2011,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 754,
+      "topResult": {
+        "slug": "csf-7100",
+        "title": "CSF 7100 Радіатор для Dodge Ram 6.7L Turbo Diesel 2010-2012",
+        "score": 307
+      }
+    },
+    {
+      "query": "Tesla Model Y 2024",
+      "make": "Tesla",
+      "model": "Model Y",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 11950,
+      "topResult": {
+        "slug": "ohlins-tes-mx00s1",
+        "title": "OHLINS TES MX00S1 Комплект койловерів ROAD & TRACK для TESLA Model 3 / Model Y 2017+",
+        "score": 307
+      }
+    },
+    {
+      "query": "DS DS 3 Crossback 2024",
+      "make": "DS",
+      "model": "DS 3 Crossback",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1428,
+      "topResult": {
+        "slug": "racechip-gts5-ds-ds-3-crossback-from-2018-1-2-puretech-100-1199ccm-101hp-74kw-205nm",
+        "title": "RaceChip GTS 5 — DS DS 3 Crossback (2018+) 1.2 Puretech 100 1199cc",
+        "score": 157.5
+      }
+    },
+    {
+      "query": "Tata Indica 2024",
+      "make": "Tata",
+      "model": "Indica",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 754,
+      "topResult": {
+        "slug": "racechip-gts5-tata-indica-from-2008-1-3-quadrajet-1248ccm-75hp-55kw-190nm",
+        "title": "RaceChip GTS 5 — Tata Indica (2008+) 1.3 Quadrajet 1248cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Infiniti Q50 2024",
+      "make": "Infiniti",
+      "model": "Q50",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 782,
+      "topResult": {
+        "slug": "racechip-gts5-infiniti-q50-from-2013-2-0-t-1991ccm-211hp-155kw-350nm",
+        "title": "RaceChip GTS 5 — Infiniti Q50 (2013+) 2.0 T 1991cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Renault Talisman 2024",
+      "make": "Renault",
+      "model": "Talisman",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 987,
+      "topResult": {
+        "slug": "racechip-gts5-renault-talisman-from-2013-1-5-dci-110-1461ccm-110hp-81kw-260nm",
+        "title": "RaceChip GTS 5 — Renault Talisman (2013+) 1.5 DCI 110 1461cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Bentley Continental GT 2024",
+      "make": "Bentley",
+      "model": "Continental GT",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 2,
+      "resultCount": 7270,
+      "topResult": {
+        "slug": "racechip-gts5-bentley-continental-gtc-from-2006-gtc-v8-s-3993ccm-528hp-388kw-680nm",
+        "title": "RaceChip GTS 5 — Bentley Continental GTC (2006+) GTC V8 S 3993cc",
+        "score": 315
+      }
+    },
+    {
+      "query": "Maruti sx4 2024",
+      "make": "Maruti",
+      "model": "sx4",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 754,
+      "topResult": {
+        "slug": "racechip-gts5-maruti-sx4-from-2006-1-3-crdi-1248ccm-90hp-66kw-200nm",
+        "title": "RaceChip GTS 5 — Maruti SX4 (2006+) 1.3 Crdi 1248cc",
+        "score": 307
+      }
+    },
+    {
+      "query": "Lotus Evora 2012",
+      "make": "Lotus",
+      "model": "Evora",
+      "year": 2012,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 835,
+      "topResult": {
+        "slug": "girodisc-d2-108-komplekt-zminnykh-kilets-zadnoho-halmivnoho-dyska-dlia-lotus-evora-2009-2015",
+        "title": "GIRODISC D2-108 Комплект змінних кілець заднього гальмівного диска для LOTUS Evora 2009-2015",
+        "score": 307
+      }
+    },
+    {
+      "query": "GMC Canyon 2024",
+      "make": "GMC",
+      "model": "Canyon",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 751,
+      "topResult": {
+        "slug": "burger-jb4-tuner-for-gmc-canyon-2-7l-turbo",
+        "title": "JB4 тюнер для 2023+ GMC Canyon 2.7L Turbo",
+        "score": 307
+      }
+    },
+    {
+      "query": "Alpine A110GT 2024",
+      "make": "Alpine",
+      "model": "A110GT",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 751,
+      "topResult": {
+        "slug": "ohlins-alv-gy10",
+        "title": "OHLINS ALV GY10 Комплект койловерів Advanced Trackday TTX (включаючи пружини) для ALPINE A110 / A110GT / A110S (AEF) 2017-",
+        "score": 307
+      }
+    },
+    {
+      "query": "Opel Vectra 2006",
+      "make": "Opel",
+      "model": "Vectra",
+      "year": 2006,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 690,
+      "topResult": {
+        "slug": "do88-icm-110-vei4-br",
+        "title": "Opel Vectra C 2.0T 2002-08 інтеркулер",
+        "score": 307
+      }
+    },
+    {
+      "query": "Acura TLX 2024",
+      "make": "Acura",
+      "model": "TLX",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 755,
+      "topResult": {
+        "slug": "girodisc-d1-284-komplekt-zapasnykh-kilets-perednoho-rotora-dlia-acura-tlx-type-s-2021",
+        "title": "GIRODISC D1-284 Комплект запасних кілець переднього ротора для ACURA TLX Type-S 2021-",
+        "score": 307
+      }
+    },
+    {
+      "query": "BMW M135i/M140i 2024",
+      "make": "BMW",
+      "model": "M135i/M140i",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2790,
+      "topResult": {
+        "slug": "akrapovic-s-bm-t-15h",
+        "title": "Slip-On Line — Akrapovič для BMW M135i (F40)",
+        "score": 282
+      }
+    },
+    {
+      "query": "Audi S3 2018",
+      "make": "Audi",
+      "model": "S3",
+      "year": 2018,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 5201,
+      "topResult": {
+        "slug": "remus-bundle-1-046913-1000-11",
+        "title": "Sport Exhaust Bundle for Audi S3 Type 8V Connection Tube | 4x 84mm Chrome Rolled Edge Tips",
+        "score": 529
+      }
+    },
+    {
+      "query": "Porsche Cayenne 2022",
+      "make": "Porsche",
+      "model": "Cayenne",
+      "year": 2022,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1123,
+      "topResult": {
+        "slug": "remus-bundle-1-680023-1000-6",
+        "title": "Front section-back-system for Porsche Cayenne E-Hybrid PO536/9YA 4x 98mm Street Race Chrome Tips",
+        "score": 529
+      }
+    },
+    {
+      "query": "Mercedes-Benz E-Class 2024",
+      "make": "Mercedes-Benz",
+      "model": "E-Class",
+      "year": 2024,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2498,
+      "topResult": {
+        "slug": "burger-jb4-tuner-c-class-mercedes-benz",
+        "title": "JB4 Тюнер для 2014+ Mercedes-Benz",
+        "score": 274
+      }
+    },
+    {
+      "query": "Mercedes-AMG E63 2021",
+      "make": "Mercedes-AMG",
+      "model": "E63",
+      "year": 2021,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2411,
+      "topResult": {
+        "slug": "akrapovic-s-me-ti-14h-1",
+        "title": "AKRAPOVIC S-ME/TI/14H/1 Вихлопна система Evolution Line (титан) для MERCEDES-AMG GLE 63 S / GLE 63 S Coupe (C293) 2020-2023",
+        "score": 274
+      }
+    },
+    {
+      "query": "Volkswagen Golf 2016",
+      "make": "Volkswagen",
+      "model": "Golf",
+      "year": 2016,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 2804,
+      "topResult": {
+        "slug": "ipe-volkswagen-golf-r-mk7-5-exhaust",
+        "title": "Вихлопна система Volkswagen Golf R (Mk7.5)",
+        "score": 529
+      }
+    },
+    {
+      "query": "Ford Mustang 2017",
+      "make": "Ford",
+      "model": "Mustang",
+      "year": 2017,
+      "pass": true,
+      "firstRelevantRank": 1,
+      "resultCount": 1844,
+      "topResult": {
+        "slug": "ohlins-fos-mr00s1",
+        "title": "OHLINS FOS MR00S1 Комплект койловерів Road & Track для FORD Mustang (S550) 2014-2017",
+        "score": 315
+      }
+    }
+  ]
+}

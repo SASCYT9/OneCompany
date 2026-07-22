@@ -64,7 +64,8 @@ data/.chrome-scraper-profile/
 temp_pgsql/
 temp_env.txt
 *.sql
-!prisma/migrations/20260623123000_add_shop_europe_net_price/migration.sql
+!prisma/migrations/**/migration.sql
+backups/ops-preflight/
 backups/europe-price-migration-2026-06-23T10-15-41-202Z.json
 .env*.local
 .shop-products-dev-cache.json
@@ -88,6 +89,12 @@ reference/urban-shopify-theme/*
 !reference/urban-shopify-theme/templates/
 !reference/urban-shopify-theme/templates/*.json
 docs/
+!docs/
+docs/*
+!docs/operations/
+docs/operations/*
+!docs/operations/phase0-rollout-runbook.md
+!docs/operations/production-rollout-runbook.md
 __pycache__/
 *.part
 *.rar
@@ -135,6 +142,8 @@ scripts/_check_*.mjs
 /*.log
 /.codex-*
 /.tmp-*
+/.ops-data/
+/.playwright-cli/
 
 # Obsidian vault — share config, ignore per-user UI state and plugin binaries
 wiki/.obsidian/workspace.json

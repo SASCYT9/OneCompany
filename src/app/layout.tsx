@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
-import AuthProvider from "@/components/AuthProvider";
 import { IBM_Plex_Mono, Unbounded, Bebas_Neue } from "next/font/google";
 import {
   OrganizationSchema,
@@ -14,6 +13,7 @@ import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
 import { Analytics } from "@vercel/analytics/react";
 import { siteConfig } from "@/lib/seo";
+import SuppressAutomaticInstallPrompt from "@/components/pwa/SuppressAutomaticInstallPrompt";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 const siteUrl = siteConfig.url;
@@ -22,6 +22,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
   themeColor: "#000000",
 };
 
@@ -181,6 +182,8 @@ export default function RootLayout({
         className={cn("min-h-screen bg-background text-foreground antialiased")}
         suppressHydrationWarning
       >
+        <SuppressAutomaticInstallPrompt />
+
         {/* Schema.org Structured Data */}
         <OrganizationSchema />
         <WebSiteSchema />
@@ -206,11 +209,9 @@ export default function RootLayout({
             src="https://plausible.io/js/script.js"
           />
         ) : null}
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

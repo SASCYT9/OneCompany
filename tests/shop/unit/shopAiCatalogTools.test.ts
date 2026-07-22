@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildShopAiComparisonSet,
   buildShopAiNoExactMatchMessage,
+  detectShopAiProductKind,
   runShopAiCandidatePipeline,
 } from "../../../src/lib/shopAiCatalogTools";
 import type { ShopAiPlan, ShopAiProduct } from "../../../src/lib/shopAiAssistantTypes";
@@ -40,6 +41,11 @@ function candidate(id: string, brand: string, chassis: string, gain: number | nu
     slug: id,
     variantId: null,
     turn14Id: "",
+    matchStatus: "exact",
+    compatibility: "confirmed",
+    facts: gain
+      ? { powerGainHp: gain, powerGainVerified: true }
+      : { powerGainHp: null, powerGainVerified: false },
     fitments: [
       {
         make: "BMW",
@@ -115,6 +121,8 @@ test("high-confidence exact chassis is marked as confirmed", () => {
     message: "BMW M5 G90",
   });
   assert.equal(result.products[0].compatibility, "confirmed");
+  assert.equal(result.products[0].matchStatus, "exact");
+  assert.deepEqual(result.products[0].missingFacts, []);
 });
 
 test("automatic high-confidence fitment is not presented as confirmed", () => {
@@ -128,6 +136,31 @@ test("automatic high-confidence fitment is not presented as confirmed", () => {
     message: "BMW M5 G90",
   });
   assert.equal(result.products[0].compatibility, "likely");
+  assert.equal(result.products[0].matchStatus, "requires_verification");
+  assert.deepEqual(result.products[0].missingFacts, ["verified_fitment"]);
+});
+
+test("exact products stay ahead of unverified products in the same response", () => {
+  const unverified = candidate("unverified", "Akrapovic", "G90", null);
+  unverified.fitmentStatus = "inferred";
+  unverified.fitmentSource = "automatic";
+  const exact = candidate("exact", "Remus", "G90", null);
+  exact.fitmentStatus = "verified";
+  exact.fitmentSource = "manual";
+
+  const result = runShopAiCandidatePipeline({
+    products: [unverified, exact],
+    plan: { ...plan, powerGainHp: null },
+    message: "BMW M5 G90",
+  });
+
+  assert.deepEqual(
+    result.products.map((product) => [product.id, product.matchStatus]),
+    [
+      ["exact", "exact"],
+      ["unverified", "requires_verification"],
+    ]
+  );
 });
 
 test("an explicit engine code rejects products for another engine", () => {
@@ -190,6 +223,31 @@ test("a complete exhaust request excludes tips, downpipes and link pipes", () =>
     ["system", "system-with-tips"]
   );
   assert.equal(result.products[0].facts?.productKind, "system");
+});
+
+test("product kind uses title and category instead of incidental description copy", () => {
+  const tips = {
+    ...candidate("tips-title", "Akrapovic", "F80", null),
+    name: "TP-CT/26 Exhaust Tailpipes (Carbon)",
+    category: "Exhaust Accessories",
+    description: "Designed to complete the Evolution Line exhaust system.",
+  };
+  const mirrors = {
+    ...candidate("mirrors", "Akrapovic", "F80", null),
+    name: "Carbon Mirror Caps",
+    category: "Mirrors",
+    description: "Premium Akrapovic accessory for vehicles with an exhaust system.",
+  };
+  const downpipe = {
+    ...candidate("downpipe-ua", "Akrapovic", "F80", null),
+    name: "Комплект даунпайпів OPF/GPF",
+    category: "Каталізатори",
+    description: "Part of an Evolution Line exhaust system.",
+  };
+
+  assert.equal(detectShopAiProductKind(tips), "tips");
+  assert.equal(detectShopAiProductKind(mirrors), "any");
+  assert.equal(detectShopAiProductKind(downpipe), "downpipe");
 });
 
 test("no-match copy names hard constraints and refuses an incompatible substitute", () => {

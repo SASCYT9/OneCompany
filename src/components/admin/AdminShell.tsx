@@ -8,8 +8,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Archive,
-  ArrowRight,
   Bell,
+  BookOpen,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -20,8 +20,10 @@ import {
   FolderTree,
   Image as ImageIcon,
   ImagePlus,
+  Inbox,
   Layers,
   LayoutDashboard,
+  ListTodo,
   LogOut,
   MessageSquare,
   Package,
@@ -36,6 +38,7 @@ import {
   Plug,
   Tag,
   Truck,
+  FolderKanban,
   X as XIcon,
   Undo2,
   Users,
@@ -47,15 +50,17 @@ import {
 } from "lucide-react";
 
 import {
-  ADMIN_NAV_SECTIONS,
+  canAccessAdminPath,
+  filterAdminNavSections,
   flattenAdminNavItems,
-  getActiveAdminNavItem,
-  getActiveAdminNavSection,
+  getFirstAllowedAdminRoute,
   isAdminNavItemActive,
   type AdminNavIconKey,
   type AdminNavItemDefinition,
   type AdminNavSectionDefinition,
 } from "@/lib/admin/adminNavigation";
+import type { CurrentAdminAccess } from "@/lib/admin/adminAccess";
+import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
 import { useAdminCurrency, type AdminCurrency } from "@/lib/admin/currencyContext";
 import { cn } from "@/lib/utils";
 
@@ -90,6 +95,11 @@ const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string 
   email: Mail,
   segments: UsersRound,
   integrations: Plug,
+  tasks: ListTodo,
+  inbox: Inbox,
+  projects: FolderKanban,
+  knowledge: BookOpen,
+  approvals: Shield,
 };
 
 const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string }[] = [
@@ -178,10 +188,12 @@ const COMMAND_ACTIONS = [
 
 export default function AdminShell({
   children,
-  onLogout,
+  access,
+  operationsUiEnabled,
 }: {
   children: ReactNode;
-  onLogout: () => void | Promise<void>;
+  access: CurrentAdminAccess;
+  operationsUiEnabled: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -203,6 +215,49 @@ export default function AdminShell({
     }>
   >([]);
   const notifCount = notifications.filter((n) => n.tone === "red" || n.tone === "amber").length;
+  const allowedSections = useMemo(
+    () =>
+      filterAdminNavSections(access.permissions, undefined, {
+        operationsUiEnabled,
+      }),
+    [access.permissions, operationsUiEnabled]
+  );
+  const quickLinks = useMemo(() => flattenAdminNavItems(allowedSections), [allowedSections]);
+  const allowedHrefSet = useMemo(() => new Set(quickLinks.map((item) => item.href)), [quickLinks]);
+  const firstAllowedHref =
+    getFirstAllowedAdminRoute(access.permissions, { operationsUiEnabled }) ?? "/admin";
+  const canAccessCurrentPath =
+    (access.isOwner && (operationsUiEnabled || !pathname.startsWith("/admin/operations"))) ||
+    canAccessAdminPath(pathname, access.permissions, { operationsUiEnabled });
+  const homeHref = matchesAdminPermission(
+    access.permissions,
+    ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ
+  )
+    ? "/admin"
+    : firstAllowedHref;
+  const canReadDashboard = matchesAdminPermission(
+    access.permissions,
+    ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ
+  );
+  const canUseGlobalSearch = [
+    ADMIN_PERMISSIONS.SHOP_ORDERS_READ,
+    ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ,
+    ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ,
+    ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE,
+  ].some((permission) => matchesAdminPermission(access.permissions, permission));
+  const canUseCurrency = [
+    ADMIN_PERMISSIONS.SHOP_ORDERS_READ,
+    ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ,
+    ADMIN_PERMISSIONS.SHOP_PRICING_READ,
+    ADMIN_PERMISSIONS.SHOP_SETTINGS_READ,
+  ].some((permission) => matchesAdminPermission(access.permissions, permission));
+  const allowedCommandActions = useMemo(
+    () =>
+      COMMAND_ACTIONS.filter((action) =>
+        canAccessAdminPath(action.href, access.permissions, { operationsUiEnabled })
+      ),
+    [access.permissions, operationsUiEnabled]
+  );
 
   useEffect(() => {
     const saved = window.localStorage.getItem("adminSidebarCollapsed");
@@ -211,6 +266,11 @@ export default function AdminShell({
 
   // Fetch notifications from dashboard API
   useEffect(() => {
+    if (!canReadDashboard) {
+      setNotifications([]);
+      return;
+    }
+
     fetch("/api/admin/dashboard?period=monthly", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -233,10 +293,29 @@ export default function AdminShell({
             href: risk.href,
           });
         }
-        setNotifications(items.slice(0, 8));
+        setNotifications(
+          items
+            .filter(
+              (item) =>
+                (access.isOwner &&
+                  (operationsUiEnabled || !item.href.startsWith("/admin/operations"))) ||
+                canAccessAdminPath(item.href, access.permissions, { operationsUiEnabled })
+            )
+            .slice(0, 8)
+        );
       })
       .catch(() => {});
-  }, [pathname]);
+  }, [access.isOwner, access.permissions, canReadDashboard, operationsUiEnabled, pathname]);
+
+  useEffect(() => {
+    if (canAccessCurrentPath) {
+      return;
+    }
+
+    if (pathname !== firstAllowedHref) {
+      router.replace(firstAllowedHref);
+    }
+  }, [canAccessCurrentPath, firstAllowedHref, pathname, router]);
 
   // Keyboard shortcuts: Cmd+K, ?, g+o, g+p, g+c
   useEffect(() => {
@@ -284,7 +363,11 @@ export default function AdminShell({
           t: "/admin/shop/turn14",
         };
         const route = map[event.key.toLowerCase()];
-        if (route) {
+        if (
+          route &&
+          ((access.isOwner && (operationsUiEnabled || !route.startsWith("/admin/operations"))) ||
+            canAccessAdminPath(route, access.permissions, { operationsUiEnabled }))
+        ) {
           event.preventDefault();
           router.push(route);
           lastG = 0;
@@ -293,7 +376,7 @@ export default function AdminShell({
     }
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [router]);
+  }, [access.isOwner, access.permissions, operationsUiEnabled, router]);
 
   // Close popovers on outside click
   useEffect(() => {
@@ -307,9 +390,6 @@ export default function AdminShell({
     return () => document.removeEventListener("mousedown", onClick);
   }, [bellOpen]);
 
-  const activeItem = useMemo(() => getActiveAdminNavItem(pathname), [pathname]);
-  const activeSection = useMemo(() => getActiveAdminNavSection(pathname), [pathname]);
-  const quickLinks = useMemo(() => flattenAdminNavItems(), []);
   const filteredQuickLinks = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return quickLinks.slice(0, 12);
@@ -322,7 +402,7 @@ export default function AdminShell({
 
   useEffect(() => {
     const needle = query.trim();
-    if (needle.length < 2) {
+    if (needle.length < 2 || !canUseGlobalSearch) {
       setGlobalSearch(EMPTY_SEARCH);
       setGlobalSearchLoading(false);
       return;
@@ -350,7 +430,15 @@ export default function AdminShell({
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [query]);
+  }, [canUseGlobalSearch, query]);
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+    } finally {
+      router.refresh();
+    }
+  }
 
   function toggleCollapsed() {
     setCollapsed((current) => {
@@ -429,7 +517,7 @@ export default function AdminShell({
         <div className="flex items-center justify-between px-5 py-5">
           {/* Full logo: always visible on mobile, only when not collapsed on desktop */}
           <Link
-            href="/admin"
+            href={homeHref}
             className={cn("block", collapsed ? "lg:hidden" : "lg:block")}
             aria-label="OneCompany Admin home"
           >
@@ -445,7 +533,7 @@ export default function AdminShell({
           {/* Collapsed mark: only on desktop when collapsed */}
           {collapsed ? (
             <Link
-              href="/admin"
+              href={homeHref}
               className="mx-auto hidden h-10 w-10 items-center justify-center rounded-none bg-blue-600 text-sm font-bold tracking-tight text-white lg:flex"
               aria-label="OneCompany Admin home"
             >
@@ -490,7 +578,7 @@ export default function AdminShell({
         ) : null}
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2 scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10">
-          {ADMIN_NAV_SECTIONS.map((section) => (
+          {allowedSections.map((section) => (
             <AdminSidebarSection
               key={section.key}
               collapsed={collapsed}
@@ -526,12 +614,13 @@ export default function AdminShell({
         ) : null}
 
         <div className="border-t border-white/5 px-3 py-3">
-          <AdminCurrencySwitcher collapsed={collapsed} />
+          {canUseCurrency ? <AdminCurrencySwitcher collapsed={collapsed} /> : null}
           <button
             type="button"
-            onClick={() => void onLogout()}
+            onClick={() => void handleLogout()}
             className={cn(
-              "mt-2 flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/6 hover:text-red-300",
+              "flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/6 hover:text-red-300",
+              canUseCurrency && "mt-2",
               collapsed && "justify-center px-0"
             )}
           >
@@ -585,6 +674,7 @@ export default function AdminShell({
                 loading={globalSearchLoading}
                 search={globalSearch}
                 quickLinks={filteredQuickLinks}
+                actions={allowedCommandActions}
                 onNavigate={(href) => {
                   setQuery("");
                   router.push(href);
@@ -605,85 +695,87 @@ export default function AdminShell({
               </button>
 
               {/* Notification bell with dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  data-bell-trigger
-                  onClick={() => setBellOpen((v) => !v)}
-                  aria-label={`${notifCount} notification${notifCount === 1 ? "" : "s"}`}
-                  aria-expanded={bellOpen}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
-                >
-                  <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
-                  {notifCount > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                      {notifCount > 9 ? "9+" : notifCount}
-                    </span>
-                  ) : null}
-                </button>
-
-                {bellOpen ? (
-                  <div
-                    data-bell-popover
-                    className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              {canReadDashboard ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    data-bell-trigger
+                    onClick={() => setBellOpen((v) => !v)}
+                    aria-label={`${notifCount} notification${notifCount === 1 ? "" : "s"}`}
+                    aria-expanded={bellOpen}
+                    className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
                   >
-                    <div className="flex items-center justify-between border-b border-white/4 px-4 py-3">
-                      <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
-                      {notifCount > 0 ? (
-                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
-                          {notifCount} нових
-                        </span>
+                    <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
+                    {notifCount > 0 ? (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+                        {notifCount > 9 ? "9+" : notifCount}
+                      </span>
+                    ) : null}
+                  </button>
+
+                  {bellOpen ? (
+                    <div
+                      data-bell-popover
+                      className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+                    >
+                      <div className="flex items-center justify-between border-b border-white/4 px-4 py-3">
+                        <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
+                        {notifCount > 0 ? (
+                          <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
+                            {notifCount} нових
+                          </span>
+                        ) : null}
+                      </div>
+                      <ul className="max-h-[420px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <li className="px-4 py-8 text-center text-sm text-zinc-500">
+                            Все спокійно. Активних проблем немає.
+                          </li>
+                        ) : (
+                          notifications.map((n) => (
+                            <li key={n.id}>
+                              <Link
+                                href={n.href}
+                                onClick={() => setBellOpen(false)}
+                                className="flex items-start gap-3 border-b border-white/3 px-4 py-3 transition last:border-0 hover:bg-white/2"
+                              >
+                                <span
+                                  className={cn(
+                                    "mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                                    n.tone === "red" &&
+                                      "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",
+                                    n.tone === "amber" &&
+                                      "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]",
+                                    n.tone === "green" && "bg-green-500"
+                                  )}
+                                  aria-hidden="true"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-medium text-zinc-100">{n.label}</div>
+                                  <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">
+                                    {n.detail}
+                                  </div>
+                                </div>
+                              </Link>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                      {notifications.length > 0 ? (
+                        <div className="border-t border-white/4 px-4 py-2.5">
+                          <Link
+                            href={homeHref}
+                            onClick={() => setBellOpen(false)}
+                            className="block text-center text-xs font-medium text-blue-400 hover:text-blue-300"
+                          >
+                            Переглянути все в дашборді →
+                          </Link>
+                        </div>
                       ) : null}
                     </div>
-                    <ul className="max-h-[420px] overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <li className="px-4 py-8 text-center text-sm text-zinc-500">
-                          Все спокійно. Активних проблем немає.
-                        </li>
-                      ) : (
-                        notifications.map((n) => (
-                          <li key={n.id}>
-                            <Link
-                              href={n.href}
-                              onClick={() => setBellOpen(false)}
-                              className="flex items-start gap-3 border-b border-white/3 px-4 py-3 transition last:border-0 hover:bg-white/2"
-                            >
-                              <span
-                                className={cn(
-                                  "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                                  n.tone === "red" &&
-                                    "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",
-                                  n.tone === "amber" &&
-                                    "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]",
-                                  n.tone === "green" && "bg-green-500"
-                                )}
-                                aria-hidden="true"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-medium text-zinc-100">{n.label}</div>
-                                <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">
-                                  {n.detail}
-                                </div>
-                              </div>
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                    {notifications.length > 0 ? (
-                      <div className="border-t border-white/4 px-4 py-2.5">
-                        <Link
-                          href="/admin"
-                          onClick={() => setBellOpen(false)}
-                          className="block text-center text-xs font-medium text-blue-400 hover:text-blue-300"
-                        >
-                          Переглянути все в дашборді →
-                        </Link>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               {/* User profile chip */}
               <button
@@ -696,9 +788,11 @@ export default function AdminShell({
                 </div>
                 <div className="hidden flex-col items-start leading-tight md:flex">
                   <span className="whitespace-nowrap text-[12px] font-semibold text-zinc-100">
-                    Адмін
+                    {access.name}
                   </span>
-                  <span className="whitespace-nowrap text-[10px] text-zinc-500">Керівник</span>
+                  <span className="max-w-40 truncate whitespace-nowrap text-[10px] text-zinc-500">
+                    {access.isOwner ? "Owner" : access.roleKeys.join(", ") || "Admin"}
+                  </span>
                 </div>
                 <ChevronDown
                   className="hidden h-3.5 w-3.5 text-zinc-500 md:block"
@@ -714,7 +808,18 @@ export default function AdminShell({
           tabIndex={-1}
           className="relative min-h-0 flex-1 overflow-auto bg-[#0A0A0A] focus-visible:outline-hidden"
         >
-          {children}
+          {canAccessCurrentPath ? (
+            children
+          ) : (
+            <div className="flex min-h-full items-center justify-center p-6">
+              <div className="max-w-md border border-white/8 bg-[#171717] px-6 py-5 text-center">
+                <div className="text-sm font-semibold text-zinc-100">Проверяем доступ…</div>
+                <div className="mt-1 text-xs leading-5 text-zinc-500">
+                  Открываем первый разрешённый раздел.
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -752,13 +857,27 @@ export default function AdminShell({
                 <ShortcutRow keys={["Esc"]} label="Закрити попап" />
               </ShortcutGroup>
               <ShortcutGroup title="Навігація">
-                <ShortcutRow keys={["G", "D"]} label="Дашборд" />
-                <ShortcutRow keys={["G", "O"]} label="Замовлення" />
-                <ShortcutRow keys={["G", "P"]} label="Товари" />
-                <ShortcutRow keys={["G", "C"]} label="Клієнти" />
-                <ShortcutRow keys={["G", "I"]} label="Склад" />
-                <ShortcutRow keys={["G", "T"]} label="Turn14" />
-                <ShortcutRow keys={["G", "S"]} label="Налаштування" />
+                {allowedHrefSet.has("/admin") ? (
+                  <ShortcutRow keys={["G", "D"]} label="Дашборд" />
+                ) : null}
+                {allowedHrefSet.has("/admin/shop/orders") ? (
+                  <ShortcutRow keys={["G", "O"]} label="Замовлення" />
+                ) : null}
+                {allowedHrefSet.has("/admin/shop") ? (
+                  <ShortcutRow keys={["G", "P"]} label="Товари" />
+                ) : null}
+                {allowedHrefSet.has("/admin/shop/customers") ? (
+                  <ShortcutRow keys={["G", "C"]} label="Клієнти" />
+                ) : null}
+                {allowedHrefSet.has("/admin/shop/inventory") ? (
+                  <ShortcutRow keys={["G", "I"]} label="Склад" />
+                ) : null}
+                {allowedHrefSet.has("/admin/shop/turn14") ? (
+                  <ShortcutRow keys={["G", "T"]} label="Turn14" />
+                ) : null}
+                {allowedHrefSet.has("/admin/settings") ? (
+                  <ShortcutRow keys={["G", "S"]} label="Налаштування" />
+                ) : null}
               </ShortcutGroup>
             </div>
             <div className="border-t border-white/5 bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
@@ -828,12 +947,14 @@ function CommandCenterResults({
   loading,
   search,
   quickLinks,
+  actions,
   onNavigate,
 }: {
   query: string;
   loading: boolean;
   search: GlobalSearchResponse;
   quickLinks: AdminNavItemDefinition[];
+  actions: typeof COMMAND_ACTIONS;
   onNavigate: (href: string) => void;
 }) {
   const trimmed = query.trim();
@@ -920,7 +1041,7 @@ function CommandCenterResults({
               Швидкі дії
             </div>
             <div className="grid gap-2">
-              {COMMAND_ACTIONS.map((action) => {
+              {actions.map((action) => {
                 const Icon = action.icon;
                 return (
                   <button

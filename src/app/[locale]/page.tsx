@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import clsx from "clsx";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
+import { HomeShopShowcase } from "@/components/home/HomeShopShowcase";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
 export { generateMetadata } from "./metadata";
@@ -40,8 +40,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("hypercarDescription"),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
-      bgImageDark: "/images/hero-auto-mono.png",
-      bgImageLight: "/images/hero-auto-light-v9.png",
+      bgImageDark: "/images/hero-auto-mono-1280.webp",
+      bgImageLight: "/images/hero-auto-light-v9-941.webp",
       stats: [
         { value: "160+", note: t("autoBrands") },
         { value: "11", note: t("autoCategories") },
@@ -53,8 +53,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
       description: t("factoryRaceDescription"),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
-      bgImageDark: "/images/hero-moto-mono.png",
-      bgImageLight: "/images/hero-moto-light-v10.png",
+      bgImageDark: "/images/hero-moto-mono-1280.webp",
+      bgImageLight: "/images/hero-moto-light-v10-941.webp",
       stats: [
         { value: "60+", note: t("motoPartners") },
         { value: "6", note: t("motoSeries") },
@@ -157,7 +157,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
             correctly. Text uses semantic tokens so it inverts with theme. */}
         <section className="relative flex min-h-[70vh] flex-col justify-center pt-8 text-foreground">
           <div
-            className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
+            className={`px-4 pt-10 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 sm:pt-24 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
           >
             <p className="inline-flex items-center gap-3">
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -173,12 +173,21 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
               : "One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins in Kyiv."}
           </h1>
 
-          <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
+          <HomeShopShowcase
+            locale={locale}
+            ariaLabel={locale === "ua" ? "Швидкі дії магазину" : "Shop quick actions"}
+            eyebrow={t("shopShowcaseEyebrow")}
+            meta={t("shopShowcaseMeta")}
+            primaryLabel={t("shopShowcasePrimary")}
+          />
+
+          <div className="relative isolate mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-4 pb-4 pt-3 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-4 md:flex-row md:gap-4 md:px-8">
             <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
               {experiences.map((experience, index) => (
                 <Link
                   key={experience.label}
                   href={experience.href}
+                  prefetch={false}
                   className={clsx(
                     "group relative flex flex-1 min-h-[360px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[360px] sm:gap-6 sm:p-5 md:min-h-[420px] xl:min-h-[480px] 2xl:min-h-[540px]",
                     "border border-foreground/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-foreground/30 hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
@@ -193,30 +202,15 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                       (no overflow for object-position to use) so we lift it
                       via translate-y; the freed strip at the bottom hosts
                       the description without overlapping the car. */}
-                  <Image
-                    src={experience.bgImageDark}
-                    alt={
-                      experience.label === "AUTO" || experience.label === "АВТО"
-                        ? "Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна"
-                        : "Мото тюнінг Україна - Akrapovic, Ohlins, SC-Project Київ"
-                    }
-                    fill
-                    className={`object-cover ${index === 0 ? "object-[center_83%]" : "object-[center_87%]"} md:object-center group-hover:scale-105 transition-transform duration-700 hidden dark:block -translate-y-[30%] sm:translate-y-0`}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    priority
-                    fetchPriority="high"
-                    quality={85}
-                  />
-                  <Image
-                    src={experience.bgImageLight}
-                    alt=""
+                  <div
                     aria-hidden="true"
-                    fill
-                    className={`object-cover ${index === 0 ? "object-[center_98%] sm:object-[center_83%] md:object-[center_70%]" : "object-[center_100%] sm:object-[center_87%] md:object-[center_75%]"} group-hover:scale-105 transition-transform duration-700 dark:hidden`}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    priority
-                    fetchPriority="high"
-                    quality={85}
+                    style={{ backgroundImage: `url(${experience.bgImageDark})` }}
+                    className={`absolute inset-0 hidden bg-cover bg-no-repeat transition-transform duration-700 -translate-y-[30%] group-hover:scale-105 sm:translate-y-0 dark:block ${index === 0 ? "bg-[position:center_83%]" : "bg-[position:center_87%]"} md:bg-center`}
+                  />
+                  <div
+                    aria-hidden="true"
+                    style={{ backgroundImage: `url(${experience.bgImageLight})` }}
+                    className={`absolute inset-0 bg-cover bg-no-repeat ${index === 0 ? "bg-[position:center_98%] sm:bg-[position:center_83%] md:bg-[position:center_70%]" : "bg-[position:center_100%] sm:bg-[position:center_87%] md:bg-[position:center_75%]"} transition-transform duration-700 group-hover:scale-105 dark:hidden`}
                   />
                   {/* Veil — light covers the entire photo with a uniform dark
                       overlay so white text reads anywhere on the card. Dark
@@ -358,6 +352,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
               <li key={href}>
                 <Link
                   href={href}
+                  prefetch={false}
                   aria-label={locale === "ua" ? `Перейти до ${href}` : `Open ${href}`}
                 >
                   {href}

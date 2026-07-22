@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import {
   fetchAirtableCustomers,
   fetchAirtableOrders,
   fetchAllAirtableRecords,
   fetchAirtableOrderItems,
-} from '@/lib/airtable';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/airtable";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/admin/crm
@@ -20,16 +21,24 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'orders';
-    const maxRecords = parseInt(searchParams.get('maxRecords') || '100', 10);
-    const filter = searchParams.get('filter') || undefined;
-    const customerId = searchParams.get('customerId') || undefined;
+    const type = searchParams.get("type") || "orders";
+    if (!["customers", "orders", "order-items"].includes(type)) {
+      return NextResponse.json({ error: `Unknown type: ${type}` }, { status: 400 });
+    }
+    const cookieStore = await cookies();
+    await assertAdminRequest(
+      cookieStore,
+      type === "customers"
+        ? ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ
+        : ADMIN_PERMISSIONS.SHOP_ORDERS_READ
+    );
+    const maxRecords = parseInt(searchParams.get("maxRecords") || "100", 10);
+    const filter = searchParams.get("filter") || undefined;
+    const customerId = searchParams.get("customerId") || undefined;
 
     switch (type) {
-      case 'customers': {
+      case "customers": {
         const result = await fetchAirtableCustomers({
           maxRecords,
           filterFormula: filter,
@@ -37,7 +46,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ data: result.records, hasMore: !!result.offset });
       }
 
-      case 'orders': {
+      case "orders": {
         let filterFormula = filter;
         if (customerId) {
           // Filter orders for a specific customer
@@ -46,30 +55,34 @@ export async function GET(request: NextRequest) {
         const result = await fetchAirtableOrders({
           maxRecords,
           filterFormula,
-          sort: [{ field: 'Номер', direction: 'desc' }],
+          sort: [{ field: "Номер", direction: "desc" }],
         });
 
         // --- INJECT DYNAMIC B2B CALCULATION ---
-        const uniqueAirtableCustomerIds = Array.from(new Set(result.records.flatMap(o => o.customerIds || [])));
+        const uniqueAirtableCustomerIds = Array.from(
+          new Set(result.records.flatMap((o) => o.customerIds || []))
+        );
         const b2bDiscountMap = new Map<string, number>();
 
         if (uniqueAirtableCustomerIds.length > 0) {
           const shopCustomers = await prisma.shopCustomer.findMany({
             where: {
-              OR: uniqueAirtableCustomerIds.map(id => ({ notes: { contains: `[Airtable:${id}]` } }))
+              OR: uniqueAirtableCustomerIds.map((id) => ({
+                notes: { contains: `[Airtable:${id}]` },
+              })),
             },
-            select: { notes: true, b2bDiscountPercent: true }
+            select: { notes: true, b2bDiscountPercent: true },
           });
 
           for (const cid of uniqueAirtableCustomerIds) {
-            const sc = shopCustomers.find(c => c.notes?.includes(`[Airtable:${cid}]`));
+            const sc = shopCustomers.find((c) => c.notes?.includes(`[Airtable:${cid}]`));
             if (sc && sc.b2bDiscountPercent !== null) {
               b2bDiscountMap.set(cid, Number(sc.b2bDiscountPercent));
             }
           }
         }
 
-        const enhancedRecords = result.records.map(order => {
+        const enhancedRecords = result.records.map((order) => {
           let calculatedB2bTotal: number | undefined;
           if (order.customerIds && order.customerIds.length > 0) {
             const discount = b2bDiscountMap.get(order.customerIds[0]) || 0;
@@ -86,7 +99,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ data: enhancedRecords, hasMore: !!result.offset });
       }
 
-      case 'order-items': {
+      case "order-items": {
         const result = await fetchAirtableOrderItems({
           filterFormula: filter,
         });
@@ -97,7 +110,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `Unknown type: ${type}` }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('[CRM API Error]', error);
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("[CRM API Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

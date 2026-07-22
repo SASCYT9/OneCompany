@@ -92,9 +92,6 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
     ua: "Вихлопні системи",
     en: "Exhaust systems",
     keywords: [
-      "akrapovic",
-      "remus",
-      "ipe",
       "exhaust",
       "cat back",
       "cat-back",

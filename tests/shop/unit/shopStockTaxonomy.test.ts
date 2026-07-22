@@ -123,3 +123,13 @@ test("classifies Akrapovic exterior aero separately from exhaust systems", () =>
   assert.equal(getShopStockCategoryGroupForProduct(diffuser, "ua").id, "carbonAero");
   assert.equal(getShopStockCategoryGroupForProduct(exhaust, "ua").id, "exhaust");
 });
+
+test("an Akrapovic brand name alone does not turn accessories into exhaust products", () => {
+  const mirrorCaps = taxonomyItem({
+    brand: "AKRAPOVIC",
+    sku: "WM-BM/CA/2/G",
+    title: "Carbon gloss mirror caps for BMW M3 F80",
+  });
+
+  assert.notEqual(getShopStockCategoryGroupForProduct(mirrorCaps, "ua").id, "exhaust");
+});

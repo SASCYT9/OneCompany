@@ -1,0 +1,72 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import test from "node:test";
+
+const migrationRoot = path.join(process.cwd(), "prisma", "migrations");
+
+function migration(name: string) {
+  return fs.readFileSync(path.join(migrationRoot, name, "migration.sql"), "utf8");
+}
+
+test("Ops event, comment and knowledge history are append-only at the database boundary", () => {
+  const board = migration("20260719010000_add_ops_board_foundation");
+  const knowledge = migration("20260719011000_add_ops_knowledge_base");
+  assert.match(board, /OpsTaskEvent_append_only/);
+  assert.match(board, /OpsComment_append_only/);
+  assert.match(board, /BEFORE UPDATE OR DELETE/);
+  assert.match(knowledge, /OpsKnowledgeRevision_append_only/);
+});
+
+test("Ops migrations only link to ShopOrder and never alter commerce state", () => {
+  const all = [
+    migration("20260719010000_add_ops_board_foundation"),
+    migration("20260719011000_add_ops_knowledge_base"),
+    migration("20260719012000_add_ops_telegram_intake_jobs"),
+    migration("20260719013000_add_ops_automation_approvals_usage"),
+    migration("20260720123000_simplify_ops_human_task_workflow"),
+  ].join("\n");
+  assert.doesNotMatch(all, /ALTER TABLE "ShopOrder"/);
+  assert.doesNotMatch(all, /UPDATE "ShopOrder"/);
+  assert.doesNotMatch(all, /DELETE FROM "ShopOrder"/);
+  assert.match(all, /REFERENCES "ShopOrder"\("id"\)/);
+});
+
+test("database constraints keep agent work explicit without blocking human Kanban movement", () => {
+  const board = migration("20260719010000_add_ops_board_foundation");
+  const simplified = migration("20260720123000_simplify_ops_human_task_workflow");
+  assert.match(board, /OpsTask_active_action_or_blocker_check/);
+  assert.match(simplified, /DROP CONSTRAINT IF EXISTS "OpsTask_active_action_or_blocker_check"/);
+  assert.match(simplified, /OpsTask_agent_action_check/);
+  assert.match(simplified, /"status" <> 'AGENT_RUNNING'/);
+  assert.match(board, /OpsAttachment_size_check/);
+  assert.match(board, /20971520/);
+});
+
+test("knowledge search uses PostgreSQL full-text and trigram indexes", () => {
+  const knowledge = migration("20260719011000_add_ops_knowledge_base");
+  const route = fs.readFileSync(
+    path.join(process.cwd(), "src", "app", "api", "admin", "operations", "knowledge", "route.ts"),
+    "utf8"
+  );
+  assert.match(knowledge, /CREATE EXTENSION IF NOT EXISTS pg_trgm/);
+  assert.match(knowledge, /to_tsvector\('simple', "searchText"\)/);
+  assert.match(knowledge, /gin_trgm_ops/);
+  assert.match(route, /websearch_to_tsquery\('simple'/);
+  assert.match(route, /similarity\("searchText"/);
+});
+
+test("role templates are seeded without removing existing custom permissions", () => {
+  const board = migration("20260719010000_add_ops_board_foundation");
+  for (const role of [
+    "owner",
+    "task_member",
+    "task_manager",
+    "knowledge_editor",
+    "knowledge_publisher",
+    "catalog_editor",
+  ]) {
+    assert.match(board, new RegExp(`'${role}'`));
+  }
+  assert.match(board, /"AdminRole"\."permissions" \|\| EXCLUDED\."permissions"/);
+});

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { Prisma } from "@prisma/client";
+import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import {
   extractProductFitment,
-  areChassisCompatible,
   isExpectedChassisForMakeModel,
   type Fitment,
 } from "@/lib/crossShopFitment";
@@ -23,6 +23,7 @@ import {
   normalizeShopSearchText,
 } from "@/lib/shopSearch";
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
+import { cleanShopAiProductKind, inferShopAiProductKind } from "@/lib/shopAiProductKind";
 import { diversifyShopStockItems } from "@/lib/shopStockRanking";
 import {
   buildVehicleSearchDebug,
@@ -40,7 +41,20 @@ import {
 } from "@/lib/shopStockTaxonomy";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
-import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
+import {
+  filterShopStockItemsByVehicleScope,
+  isVehicleMakeCompatibleWithScope,
+  parseShopStockVehicleScope,
+  resolveShopStockVehicleScope,
+  type ShopStockVehicleScope,
+} from "@/lib/shopStockVehicleScope";
+import {
+  shopFitmentMatchesVehicleConstraints,
+  shopVehicleChassisMatches,
+  shopVehicleMakesMatch,
+  shopVehicleModelsMatch,
+  shopVehicleYearAllows,
+} from "@/lib/shopVehicleConstraints";
 import {
   classifyProductFitment,
   mergePersistedFitment,
@@ -50,6 +64,19 @@ import {
   type NormalizedFitmentSource,
   type NormalizedFitmentStatus,
 } from "@/lib/shopFitmentQuality";
+import {
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+  SUPPLIER_FITMENT_KEY,
+} from "@/lib/shopImportFitment";
+import {
+  classifyStrictCatalogKnowledgeRow,
+  getStrictCatalogMatchRank,
+  parseStrictCatalogSearchConstraints,
+  type StrictCatalogKnowledgeRow,
+  type StrictCatalogMatch,
+  type StrictCatalogSearchConstraints,
+} from "./strictCatalog";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -112,6 +139,7 @@ let cachedProductsWithFitment: Array<{
   fitments: Fitment[];
   fitmentStatus: NormalizedFitmentStatus;
   fitmentSource: NormalizedFitmentSource;
+  vehicleScope: ShopStockVehicleScope;
   searchText: string;
   titleText: string;
   skuText: string;
@@ -135,7 +163,7 @@ export async function getShopProductsWithFitments() {
     const overrideVersion = await prisma.shopProductMetafield.aggregate({
       where: {
         namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: NORMALIZED_FITMENT_KEY,
+        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
       },
       _max: { updatedAt: true },
     });
@@ -151,18 +179,22 @@ export async function getShopProductsWithFitments() {
   }
 
   const [products, fitmentOverrides] = await Promise.all([
-    getShopProductsServer(),
+    getShopFitmentCatalogProducts(),
     prisma.shopProductMetafield.findMany({
       where: {
         namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: NORMALIZED_FITMENT_KEY,
+        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
       },
-      select: { productId: true, value: true },
+      select: { productId: true, key: true, value: true },
     }),
   ]);
-  const fitmentOverrideByProductId = new Map(
-    fitmentOverrides.map((item) => [item.productId, item.value])
-  );
+  const fitmentOverrideByProductId = new Map<string, { manual?: string; supplier?: string }>();
+  for (const item of fitmentOverrides) {
+    const current = fitmentOverrideByProductId.get(item.productId) ?? {};
+    if (item.key === NORMALIZED_FITMENT_KEY) current.manual = item.value;
+    if (item.key === SUPPLIER_FITMENT_KEY) current.supplier = item.value;
+    fitmentOverrideByProductId.set(item.productId, current);
+  }
 
   if (
     !cachedProductsWithFitment ||
@@ -172,12 +204,24 @@ export async function getShopProductsWithFitments() {
   ) {
     cachedProductsWithFitment = products.map((product) => {
       const automaticFitment = extractProductFitment(product);
-      const persistedValue = product.id ? fitmentOverrideByProductId.get(product.id) : null;
+      const persisted = product.id ? fitmentOverrideByProductId.get(product.id) : null;
+      const automaticNormalized = classifyProductFitment(product, automaticFitment);
+      const supplierContract = parseSupplierFitmentContract(persisted?.supplier);
+      const supplierNormalized = supplierContract
+        ? supplierContractToNormalizedFitment(supplierContract)
+        : null;
+      const automaticSafetyValue =
+        automaticNormalized.status === "needs_review" || automaticNormalized.status === "universal"
+          ? JSON.stringify(automaticNormalized)
+          : null;
+      const effectivePersistedValue =
+        persisted?.manual ??
+        (supplierNormalized ? JSON.stringify(supplierNormalized) : automaticSafetyValue);
       const normalizedFitment = mergePersistedFitment(
-        classifyProductFitment(product, automaticFitment),
-        persistedValue
+        supplierNormalized ?? automaticNormalized,
+        persisted?.manual
       );
-      const fitments = resolveSearchFitments(automaticFitment, persistedValue);
+      const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
       const fitment = fitments[0];
       const displayBrand = getProductDisplayBrand(product.brand);
       const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
@@ -245,6 +289,7 @@ export async function getShopProductsWithFitments() {
         fitments,
         fitmentStatus: normalizedFitment.status,
         fitmentSource: normalizedFitment.source,
+        vehicleScope: resolveShopStockVehicleScope(product.scope, normalizedFitment.vehicleType),
         searchText,
         titleText,
         skuText,
@@ -373,40 +418,36 @@ function narrowVehicleSearchResults<
   const structuredMatches = hasStructuredVehicleTarget
     ? items.filter((item) =>
         (item.fitments ?? []).some((fitment) => {
-          const makeMatches = expandedQuery.makes.some(
-            (make) => normalizeShopSearchText(make) === normalizeShopSearchText(fitment.make)
+          const makeMatches = expandedQuery.makes.some((make) =>
+            shopVehicleMakesMatch(fitment.make, make)
           );
           if (!makeMatches) return false;
           const modelMatches =
             expandedQuery.models.length === 0 ||
             fitment.models.some((model) =>
-              expandedQuery.models.some(
-                (queryModel) =>
-                  normalizeShopSearchText(queryModel) === normalizeShopSearchText(model)
-              )
+              expandedQuery.models.some((queryModel) => shopVehicleModelsMatch(model, queryModel))
             );
           if (!modelMatches) return false;
           const chassisMatches =
             expandedQuery.chassis.length === 0 ||
             fitment.chassisCodes.some((chassis) =>
               expandedQuery.chassis.some((queryChassis) =>
-                areChassisCompatible(chassis, queryChassis)
+                shopVehicleChassisMatches(chassis, queryChassis)
               )
             );
           if (!chassisMatches) return false;
           return (
             expandedQuery.years.length === 0 ||
-            (fitment.yearRanges.length > 0 &&
-              expandedQuery.years.some((year) =>
-                fitment.yearRanges.some((range) => vehicleYearRangeContains(range, year))
-              ))
+            expandedQuery.years.some((year) => shopVehicleYearAllows(fitment, year))
           );
         })
       )
     : [];
   const hasStructuredMatches = structuredMatches.length > 0;
-  if (hasStructuredMatches) {
-    narrowed = structuredMatches;
+  if (hasStructuredVehicleTarget) {
+    // Once make + model/chassis were parsed, never relax back to token-only
+    // matching. An honest no-match is safer than a neighbouring vehicle.
+    return structuredMatches;
   }
 
   if (!hasStructuredMatches && expandedQuery.requiredTokens.length > 0) {
@@ -526,14 +567,261 @@ function buildFilterStats(
   };
 }
 
+function nullableStrictApplicationEquals(column: Prisma.Sql, value: string | null) {
+  if (!value) return null;
+  return Prisma.sql`
+    (${column} IS NULL OR lower(trim(${column})) = lower(trim(${value})))
+  `;
+}
+
+function presentStrictApplicationEquals(column: Prisma.Sql, value: string | null) {
+  if (!value) return null;
+  return Prisma.sql`
+    (${column} IS NOT NULL AND lower(trim(${column})) = lower(trim(${value})))
+  `;
+}
+
+function isMissingStrictCatalogSchema(error: unknown) {
+  const code = String((error as { code?: unknown })?.code ?? "");
+  const message = String((error as { message?: unknown })?.message ?? "");
+  return (
+    code === "P2021" ||
+    code === "P2010" ||
+    code === "42P01" ||
+    code === "42703" ||
+    /ShopProductKnowledge|ShopVehicleApplication|column .* does not exist|does not exist/i.test(
+      message
+    )
+  );
+}
+
+type StrictCatalogResolution = {
+  available: boolean;
+  matches: Map<string, StrictCatalogMatch>;
+};
+
+let strictCoverageCache: { expiresAt: number; ready: boolean } | null = null;
+
+async function hasStrictCatalogCoverage() {
+  const now = Date.now();
+  if (strictCoverageCache && strictCoverageCache.expiresAt > now) {
+    return strictCoverageCache.ready;
+  }
+  const [publishedProducts, indexedProducts, activeApplications] = await Promise.all([
+    prisma.shopProduct.count({ where: { isPublished: true, status: "ACTIVE" } }),
+    prisma.shopProductKnowledge.count({
+      where: {
+        schemaVersion: { gte: 2 },
+        activeRevision: { gt: 0 },
+        status: { in: ["READY", "NEEDS_REVIEW"] },
+        product: { isPublished: true, status: "ACTIVE" },
+      },
+    }),
+    prisma.shopVehicleApplication.count({
+      where: {
+        isActive: true,
+        verificationStatus: { not: "BLOCKED" },
+        product: { isPublished: true, status: "ACTIVE" },
+      },
+    }),
+  ]);
+  const ready =
+    publishedProducts > 0 && indexedProducts / publishedProducts >= 0.95 && activeApplications > 0;
+  strictCoverageCache = { expiresAt: now + 5 * 60_000, ready };
+  return ready;
+}
+
+async function resolveStrictCatalogMatches(
+  constraints: StrictCatalogSearchConstraints,
+  locale: "ua" | "en"
+): Promise<StrictCatalogResolution> {
+  if (constraints.invalid) {
+    return { available: true, matches: new Map() };
+  }
+  if (!(await hasStrictCatalogCoverage())) {
+    return { available: false, matches: new Map() };
+  }
+
+  const applicationClauses = [
+    nullableStrictApplicationEquals(Prisma.sql`application."make"`, constraints.make),
+    nullableStrictApplicationEquals(Prisma.sql`application."model"`, constraints.model),
+    nullableStrictApplicationEquals(Prisma.sql`application."chassisCode"`, constraints.chassis),
+    nullableStrictApplicationEquals(Prisma.sql`application."engine"`, constraints.engine),
+    nullableStrictApplicationEquals(Prisma.sql`application."opfGpf"`, constraints.opfGpf),
+    constraints.year
+      ? Prisma.sql`
+          (application."yearFrom" IS NULL OR application."yearFrom" <= ${constraints.year})
+          AND (application."yearTo" IS NULL OR application."yearTo" >= ${constraints.year})
+        `
+      : null,
+  ].filter((clause): clause is Prisma.Sql => clause !== null);
+  const exactApplicationClauses = [
+    presentStrictApplicationEquals(Prisma.sql`application."make"`, constraints.make),
+    presentStrictApplicationEquals(Prisma.sql`application."model"`, constraints.model),
+    presentStrictApplicationEquals(Prisma.sql`application."chassisCode"`, constraints.chassis),
+    presentStrictApplicationEquals(Prisma.sql`application."engine"`, constraints.engine),
+    presentStrictApplicationEquals(Prisma.sql`application."opfGpf"`, constraints.opfGpf),
+    constraints.year
+      ? Prisma.sql`
+          (application."yearFrom" IS NOT NULL OR application."yearTo" IS NOT NULL)
+          AND (application."yearFrom" IS NULL OR application."yearFrom" <= ${constraints.year})
+          AND (application."yearTo" IS NULL OR application."yearTo" >= ${constraints.year})
+        `
+      : null,
+  ].filter((clause): clause is Prisma.Sql => clause !== null);
+  const requestedProductKind =
+    constraints.productKind && constraints.productKind !== "any" ? constraints.productKind : null;
+
+  try {
+    const rows = await prisma.$queryRaw<StrictCatalogKnowledgeRow[]>(Prisma.sql`
+      SELECT
+        product."id" AS "productId",
+        knowledge."categoryGroup" AS "categoryGroup",
+        COALESCE(
+          matched."productKind",
+          knowledge."facts"->>'productKind'
+        ) AS "productKind",
+        knowledge."qualityFlags" AS "qualityFlags",
+        knowledge."makes" AS "knowledgeMakes",
+        knowledge."models" AS "knowledgeModels",
+        knowledge."chassisCodes" AS "knowledgeChassisCodes",
+        knowledge."yearRanges" AS "knowledgeYearRanges",
+        knowledge."engines" AS "knowledgeEngines",
+        COALESCE(
+          knowledge."opfGpf",
+          knowledge."facts"->>'opfGpf'
+        ) AS "knowledgeOpfGpf",
+        matched."id" AS "applicationId",
+        matched."variantId" AS "applicationVariantId",
+        matched."make" AS "applicationMake",
+        matched."model" AS "applicationModel",
+        matched."chassisCode" AS "applicationChassis",
+        matched."yearFrom" AS "applicationYearFrom",
+        matched."yearTo" AS "applicationYearTo",
+        matched."engine" AS "applicationEngine",
+        matched."opfGpf" AS "applicationOpfGpf",
+        matched."isUniversal" AS "applicationUniversal",
+        matched."verificationStatus"::text AS "applicationVerificationStatus",
+        matched."source"::text AS "applicationSource",
+        EXISTS (
+          SELECT 1
+          FROM "ShopVehicleApplication" known_application
+          WHERE known_application."knowledgeId" = knowledge."id"
+            AND known_application."isActive" = true
+            AND known_application."revision" = knowledge."activeRevision"
+        ) AS "hasApplications"
+      FROM "ShopProduct" product
+      JOIN "ShopProductKnowledge" knowledge
+        ON knowledge."productId" = product."id"
+      LEFT JOIN LATERAL (
+        SELECT application.*
+        FROM "ShopVehicleApplication" application
+        WHERE application."knowledgeId" = knowledge."id"
+          AND application."isActive" = true
+          AND application."revision" = knowledge."activeRevision"
+          AND application."verificationStatus"::text <> 'BLOCKED'
+          ${
+            constraints.scope
+              ? Prisma.sql`AND application."scope" = ${constraints.scope}`
+              : Prisma.empty
+          }
+          ${
+            requestedProductKind
+              ? Prisma.sql`
+                  AND (
+                    application."productKind" IS NULL
+                    OR lower(trim(application."productKind")) =
+                       lower(trim(${requestedProductKind}))
+                  )
+                `
+              : Prisma.empty
+          }
+          ${
+            applicationClauses.length
+              ? Prisma.sql`
+                  AND (
+                    application."isUniversal" = true
+                    OR (${Prisma.join(applicationClauses, " AND ")})
+                  )
+                `
+              : Prisma.empty
+          }
+        ORDER BY
+          (
+            application."verificationStatus"::text = 'VERIFIED'
+            AND application."source"::text IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
+            ${
+              exactApplicationClauses.length
+                ? Prisma.sql`
+                    AND (
+                      application."isUniversal" = true
+                      OR (${Prisma.join(exactApplicationClauses, " AND ")})
+                    )
+                  `
+                : Prisma.empty
+            }
+          ) DESC,
+          application."confidence" DESC,
+          application."updatedAt" DESC
+        LIMIT 1
+      ) matched ON true
+      WHERE product."isPublished" = true
+        AND product."status"::text = 'ACTIVE'
+        AND knowledge."schemaVersion" >= 2
+        AND knowledge."activeRevision" > 0
+        AND knowledge."status"::text IN ('READY', 'NEEDS_REVIEW')
+        AND NOT (
+          'v2_backfill_required' = ANY(COALESCE(knowledge."qualityFlags", ARRAY[]::TEXT[]))
+        )
+        ${
+          constraints.category
+            ? Prisma.sql`
+                AND lower(trim(COALESCE(knowledge."categoryGroup", ''))) =
+                    lower(trim(${constraints.category}))
+              `
+            : Prisma.empty
+        }
+        ${
+          requestedProductKind
+            ? Prisma.sql`
+                AND lower(trim(COALESCE(
+                  matched."productKind",
+                  knowledge."facts"->>'productKind',
+                  ''
+                ))) = lower(trim(${requestedProductKind}))
+              `
+            : Prisma.empty
+        }
+    `);
+
+    const matches = new Map<string, StrictCatalogMatch>();
+    for (const row of rows) {
+      const match = classifyStrictCatalogKnowledgeRow(row, constraints, locale);
+      if (match) matches.set(row.productId, match);
+    }
+    return { available: true, matches };
+  } catch (error) {
+    if (!isMissingStrictCatalogSchema(error)) throw error;
+    return { available: false, matches: new Map() };
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     const q = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
+    const productKind = cleanShopAiProductKind(searchParams.get("productKind"));
+    const strictMatch = strictCatalogConstraints.enabled;
+    const allowFallback = searchParams.get("allowFallback") !== "0";
     const make = searchParams.get("make")?.trim() || "";
     const model = searchParams.get("model")?.trim() || "";
     const chassis = searchParams.get("chassis")?.trim() || "";
+    const requestedYear = strictCatalogConstraints.year;
+    const requestedEngine = strictCatalogConstraints.engine;
+    const requestedOpfGpf = strictCatalogConstraints.opfGpf;
+    const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
     const stock = parseStockSearchStock(searchParams.get("stock"));
     const sort = parseStockSearchSort(searchParams.get("sort"));
     const locale = searchParams.get("locale")?.trim() || "ua";
@@ -554,12 +842,52 @@ export async function GET(request: NextRequest) {
       normalizeShopSearchText(value)
     );
     const hasBrandFilter = brandNames.length > 0;
+    const hasVehicleConstraints = Boolean(
+      make || model || chassis || requestedYear || requestedEngine || requestedOpfGpf
+    );
+    const strictCatalogApplied =
+      strictMatch &&
+      (strictCatalogConstraints.invalid || strictCatalogConstraints.hasKnowledgeConstraints);
+    const strictCatalogPromise = strictCatalogApplied
+      ? resolveStrictCatalogMatches(strictCatalogConstraints, locale === "en" ? "en" : "ua")
+      : Promise.resolve<StrictCatalogResolution | null>(null);
 
-    const [settingsRecord, session, productsWithFitments] = await Promise.all([
-      getOrCreateShopSettings(prisma),
-      getCurrentShopCustomerSession(),
-      getShopProductsWithFitments(),
-    ]);
+    const [settingsRecord, session, allProductsWithFitments, strictCatalogResolution] =
+      await Promise.all([
+        getOrCreateShopSettings(prisma),
+        getCurrentShopCustomerSession(),
+        getShopProductsWithFitments(),
+        strictCatalogPromise,
+      ]);
+    const scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
+      allProductsWithFitments,
+      vehicleScope
+    );
+    const strictCatalogEffective =
+      strictCatalogApplied && strictCatalogResolution?.available === true;
+    const strictCatalogMatches = strictCatalogEffective
+      ? (strictCatalogResolution?.matches ?? null)
+      : null;
+    const productsWithFitments =
+      strictCatalogEffective && strictCatalogMatches
+        ? scopedProductsWithFitments.filter((item) => strictCatalogMatches.has(item.product.id))
+        : scopedProductsWithFitments;
+    const matchesProductKind = (item: (typeof productsWithFitments)[number]) => {
+      if (!productKind || productKind === "any") return true;
+      const categoryGroup = getShopStockCategoryGroupForProduct(item, locale);
+      const evidence = [
+        item.product.title?.ua,
+        item.product.title?.en,
+        item.product.category?.ua,
+        item.product.category?.en,
+        item.product.productType,
+        item.product.sku,
+        ...(item.product.tags ?? []),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return inferShopAiProductKind(evidence, categoryGroup.id) === productKind;
+    };
 
     const settings = getShopSettingsRuntime(settingsRecord);
     const pricingContext = buildShopViewerPricingContext(
@@ -629,8 +957,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (category) {
+    if (category && !strictCatalogEffective) {
       filtered = filtered.filter((item) => matchesShopStockCategory(item, category, locale));
+    }
+    if (productKind && productKind !== "any" && !strictCatalogEffective) {
+      filtered = filtered.filter(matchesProductKind);
     }
 
     if (stock !== "all") {
@@ -641,38 +972,24 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter(matchesPriceRange);
     }
 
-    if (make) {
-      const makeNorm = normalizeShopSearchText(make);
-      filtered = filtered.filter(
-        (item) =>
-          item.fitments.some(
-            (fitment) => fitment.make && normalizeShopSearchText(fitment.make) === makeNorm
-          ) || item.searchText.includes(makeNorm)
-      );
-    }
-
-    if (model) {
-      const modelNorm = normalizeShopSearchText(model);
-      filtered = filtered.filter(
-        (item) =>
-          item.fitments.some((fitment) =>
-            fitment.models.some((m: string) => normalizeShopSearchText(m) === modelNorm)
-          ) || item.searchText.includes(modelNorm)
-      );
-    }
-
-    if (chassis) {
-      const chassisNorm = normalizeShopSearchText(chassis);
-      if (make && model && !isExpectedChassisForMakeModel(make, model, chassis)) {
+    if ((make || model || chassis || requestedYear) && !strictCatalogEffective) {
+      if (
+        (make && !isVehicleMakeCompatibleWithScope(make, vehicleScope)) ||
+        (make && model && chassis && !isExpectedChassisForMakeModel(make, model, chassis))
+      ) {
         filtered = [];
       } else {
-        filtered = filtered.filter(
-          (item) =>
-            item.fitments.some((fitment) =>
-              fitment.chassisCodes.some((c: string) =>
-                areChassisCompatible(c, chassis.toUpperCase())
-              )
-            ) || item.searchText.includes(chassisNorm)
+        const makeNorm = normalizeShopSearchText(make);
+        const modelNorm = normalizeShopSearchText(model);
+        filtered = filtered.filter((item) =>
+          item.fitments.some((fitment) =>
+            shopFitmentMatchesVehicleConstraints(fitment, {
+              make: makeNorm,
+              model: modelNorm,
+              chassis,
+              year: requestedYear,
+            })
+          )
         );
       }
     }
@@ -864,19 +1181,30 @@ export async function GET(request: NextRequest) {
     };
 
     if (q && queryTokens.length > 0) {
-      // Keep only matches
-      scoredItems = scoredItems.filter((item) => item.score > 0);
-      if (structuredPartQuery) {
-        const exactSkuMatches = scoredItems.filter((item) =>
-          item.compactSkuText.includes(compactQuery)
-        );
-        if (exactSkuMatches.length > 0) {
-          scoredItems = exactSkuMatches;
-        } else if (expandedQuery) {
+      if (!strictCatalogEffective) {
+        if (structuredPartQuery) {
+          const lexicalMatches = scoredItems.filter((item) => item.score > 0);
+          const exactSkuMatches = lexicalMatches.filter((item) =>
+            item.compactSkuText.includes(compactQuery)
+          );
+          if (exactSkuMatches.length > 0) {
+            scoredItems = exactSkuMatches;
+          } else if (expandedQuery) {
+            scoredItems = narrowVehicleSearchResults(lexicalMatches, expandedQuery);
+          } else {
+            scoredItems = lexicalMatches;
+          }
+        } else if (
+          expandedQuery &&
+          (expandedQuery.intent === "vehicle" || expandedQuery.intent === "mixed")
+        ) {
+          // Vehicle identity is a constraint; product text is ranking-only.
+          // Correct parts must not disappear merely because the selected year
+          // or chassis is absent from their storefront title.
           scoredItems = narrowVehicleSearchResults(scoredItems, expandedQuery);
+        } else {
+          scoredItems = scoredItems.filter((item) => item.score > 0);
         }
-      } else if (expandedQuery) {
-        scoredItems = narrowVehicleSearchResults(scoredItems, expandedQuery);
       }
       // Sort by relevance score descending
       scoredItems.sort((a, b) => b.score - a.score);
@@ -893,13 +1221,28 @@ export async function GET(request: NextRequest) {
       sortByDefaultCatalogOrder(scoredItems);
     }
 
+    if (strictCatalogEffective && strictCatalogMatches) {
+      scoredItems.sort(
+        (left, right) =>
+          getStrictCatalogMatchRank(strictCatalogMatches.get(left.product.id)) -
+          getStrictCatalogMatchRank(strictCatalogMatches.get(right.product.id))
+      );
+    }
+
     let totalItems = scoredItems.length;
     let totalPages = Math.ceil(totalItems / limit);
     let paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
     let fallbackApplied: "fitment" | "all" | null = null;
     let statsItems = scoredItems;
 
-    if (totalItems === 0 && q && (make || model || chassis || hasBrandFilter)) {
+    if (
+      allowFallback &&
+      !strictMatch &&
+      !hasVehicleConstraints &&
+      totalItems === 0 &&
+      q &&
+      (make || model || chassis || hasBrandFilter)
+    ) {
       // Fallback 1: Ignore vehicle fitment filters
       let fallbackFiltered = productsWithFitments;
       if (hasBrandFilter) {
@@ -917,6 +1260,9 @@ export async function GET(request: NextRequest) {
         fallbackFiltered = fallbackFiltered.filter((item) =>
           matchesShopStockCategory(item, category, locale)
         );
+      }
+      if (productKind && productKind !== "any") {
+        fallbackFiltered = fallbackFiltered.filter(matchesProductKind);
       }
 
       const fallbackScored = fallbackFiltered
@@ -964,6 +1310,9 @@ export async function GET(request: NextRequest) {
         if (hasPriceFilter) {
           globalSource = globalSource.filter(matchesPriceRange);
         }
+        if (productKind && productKind !== "any") {
+          globalSource = globalSource.filter(matchesProductKind);
+        }
         const globalScored = globalSource
           .map((item) => {
             const displayBrand = getProductDisplayBrand(item.product.brand);
@@ -1008,6 +1357,11 @@ export async function GET(request: NextRequest) {
     const sanitizedItems = paginatedItems.map(
       ({ product, fitments, fitmentStatus, fitmentSource }) => {
         const pricing = getProductPricing(product);
+        const strictCatalogMatch = strictCatalogMatches?.get(product.id);
+        const sourceCategory =
+          locale === "en"
+            ? product.category?.en || product.category?.ua || ""
+            : product.category?.ua || product.category?.en || "";
 
         const usdRate = settings.currencyRates.USD || 1.152174;
         const uahRate = settings.currencyRates.UAH || 53.0;
@@ -1063,10 +1417,7 @@ export async function GET(request: NextRequest) {
             locale === "en"
               ? product.shortDescription?.en || product.shortDescription?.ua || ""
               : product.shortDescription?.ua || product.shortDescription?.en || "",
-          category:
-            locale === "en"
-              ? product.category?.en || product.category?.ua || ""
-              : product.category?.ua || product.category?.en || "",
+          category: sourceCategory || getShopStockCategoryLabelForProduct({ product }, locale),
           thumbnail: product.image || null,
           inStock: product.stock === "inStock",
           price: dealerPrice,
@@ -1079,9 +1430,17 @@ export async function GET(request: NextRequest) {
           markupPct: pricing.discountPercent || 0,
           slug: product.slug,
           href: buildShopStorefrontProductPathForProduct(locale, product),
-          variantId: defaultVariant?.id || null,
+          variantId: strictCatalogMatch?.variantId || defaultVariant?.id || null,
           turn14Id: "", // empty so frontend knows it's a shop product
           source: "local" as const,
+          ...(strictCatalogMatch
+            ? {
+                matchStatus: strictCatalogMatch.matchStatus,
+                missingFacts: strictCatalogMatch.missingFacts,
+                matchReason: strictCatalogMatch.matchReason,
+                matchedApplicationId: strictCatalogMatch.matchedApplicationId,
+              }
+            : {}),
           ...(includeFitment
             ? {
                 fitmentStatus,

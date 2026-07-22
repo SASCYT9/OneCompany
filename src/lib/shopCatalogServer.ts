@@ -37,8 +37,20 @@ import { prisma } from "@/lib/prisma";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
+import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 
-const prismaCached = prisma.$extends(withAccelerate());
+let prismaCached: ReturnType<typeof createPrismaCachedClient> | null = null;
+
+function createPrismaCachedClient() {
+  return prisma.$extends(withAccelerate());
+}
+
+function getPrismaCachedClient() {
+  if (!prismaCached) {
+    prismaCached = createPrismaCachedClient();
+  }
+  return prismaCached;
+}
 
 const CATALOG_FALLBACK_DIR = path.join(process.cwd(), "public", "catalog-fallback");
 const CATALOG_FALLBACK_VERSION = 2;
@@ -1622,7 +1634,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     slug: row.slug,
     sku: rowSku || variantSku || fallbackAkrapovicSku || "",
     scope: row.scope as ShopScope,
-    brand: row.brand ?? "",
+    brand: resolveShopProductBrand(row),
     vendor: row.vendor ?? undefined,
     productType: row.productType ?? undefined,
     tags: row.tags ?? [],
@@ -2248,7 +2260,7 @@ export async function getShopProductsByBrandServer(
       if (isAccelerateEnabled) {
         queryParams.cacheStrategy = { ttl: 300, swr: 60 };
       }
-      dbRows = (await prismaCached.shopProduct.findMany(
+      dbRows = (await getPrismaCachedClient().shopProduct.findMany(
         queryParams
       )) as unknown as AdminShopProductRecord[];
     } catch (err) {
@@ -2416,7 +2428,9 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       if (isAccelerateEnabled) {
         queryParams.cacheStrategy = { ttl: 300, swr: 60 };
       }
-      rows = (await prismaCached.shopProduct.findMany(queryParams)) as unknown as LightRow[];
+      rows = (await getPrismaCachedClient().shopProduct.findMany(
+        queryParams
+      )) as unknown as LightRow[];
     } catch (err) {
       console.error("[shopCatalogServer] getRacechipProductsLightServer DB query failed:", err);
       if (process.env.NODE_ENV === "production") {
@@ -2794,7 +2808,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
     if (isAccelerateEnabled) {
       queryParams.cacheStrategy = { ttl: 3600, swr: 300 };
     }
-    const raw = await prismaCached.shopProduct.findMany(queryParams);
+    const raw = await getPrismaCachedClient().shopProduct.findMany(queryParams);
     rows = raw.map((r) => ({
       slug: r.slug,
       brand: r.brand ?? "",
@@ -3082,7 +3096,7 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
     if (isAccelerateEnabled) {
       queryParams.cacheStrategy = { ttl: 300, swr: 60 };
     }
-    const row = await prismaCached.shopProduct.findFirst(queryParams);
+    const row = await getPrismaCachedClient().shopProduct.findFirst(queryParams);
     if (row) {
       const product = applyShopProductImageOverrides(
         mapDbToCatalog(row as unknown as AdminShopProductRecord)

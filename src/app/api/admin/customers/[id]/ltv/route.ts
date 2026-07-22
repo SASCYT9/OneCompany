@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Computes LTV stats for a customer:
@@ -19,18 +19,15 @@ import { prisma } from '@/lib/prisma';
  * (a multi-currency customer is rare; pick the most-used one).
  */
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
 
     const { id } = await params;
     const orders = await prisma.shopOrder.findMany({
-      where: { customerId: id, status: { not: 'CANCELLED' } },
-      orderBy: { createdAt: 'desc' },
+      where: { customerId: id, status: { not: "CANCELLED" } },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         currency: true,
@@ -51,15 +48,16 @@ export async function GET(
         lastOrderAt: null,
         firstOrderAt: null,
         retentionScore: 0,
-        currency: 'EUR',
+        currency: "EUR",
         creditBalance: 0,
       });
     }
 
     // Pick most-frequent currency
     const currencyCounts = new Map<string, number>();
-    for (const o of orders) currencyCounts.set(o.currency, (currencyCounts.get(o.currency) || 0) + 1);
-    let currency = 'EUR';
+    for (const o of orders)
+      currencyCounts.set(o.currency, (currencyCounts.get(o.currency) || 0) + 1);
+    let currency = "EUR";
     let bestCount = 0;
     for (const [c, n] of currencyCounts) {
       if (n > bestCount) {
@@ -70,7 +68,7 @@ export async function GET(
 
     const ordersInCurrency = orders.filter((o) => o.currency === currency);
     const totalSpent = ordersInCurrency.reduce((sum, o) => sum + o.amountPaid, 0);
-    const paidOrders = ordersInCurrency.filter((o) => o.paymentStatus === 'PAID');
+    const paidOrders = ordersInCurrency.filter((o) => o.paymentStatus === "PAID");
     const aov = paidOrders.length > 0 ? totalSpent / paidOrders.length : 0;
     const lastOrder = orders[0];
     const firstOrder = orders[orders.length - 1];
@@ -84,7 +82,10 @@ export async function GET(
     if (daysSince > 90) recency = 0.2;
     if (daysSince > 180) recency = 0;
 
-    const tenureMonths = Math.max(1, Math.floor((Date.now() - firstOrder.createdAt.getTime()) / (86_400_000 * 30)));
+    const tenureMonths = Math.max(
+      1,
+      Math.floor((Date.now() - firstOrder.createdAt.getTime()) / (86_400_000 * 30))
+    );
     const ordersPerMonth = orders.length / tenureMonths;
     const frequency = Math.min(1, ordersPerMonth / 2); // 2+ orders/month = max
     const retentionScore = Math.round((recency * 0.6 + frequency * 0.4) * 100);
@@ -95,11 +96,14 @@ export async function GET(
       where: {
         customerId: id,
         currency,
-        status: { in: ['ACTIVE', 'PARTIALLY_USED'] },
+        status: { in: ["ACTIVE", "PARTIALLY_USED"] },
       },
       select: { amount: true, amountUsed: true },
     })) as Array<{ amount: { toString(): string }; amountUsed: { toString(): string } }>;
-    const creditBalance = credits.reduce((sum, c) => sum + (Number(c.amount) - Number(c.amountUsed)), 0);
+    const creditBalance = credits.reduce(
+      (sum, c) => sum + (Number(c.amount) - Number(c.amountUsed)),
+      0
+    );
 
     return NextResponse.json({
       totalSpent,
@@ -114,10 +118,11 @@ export async function GET(
       creditBalance,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('LTV error:', error);
-    return NextResponse.json({ error: 'Failed to compute LTV' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("LTV error:", error);
+    return NextResponse.json({ error: "Failed to compute LTV" }, { status: 500 });
   }
 }

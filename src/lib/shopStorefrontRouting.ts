@@ -81,3 +81,32 @@ export function buildShopStorefrontProductPathForProduct(
 export function buildShopStorefrontRootPath(locale: string, segment: StorefrontSegment) {
   return `/${locale}/shop/${segment}`;
 }
+
+/**
+ * Prefer the canonical storefront URL returned by the catalog API, but never
+ * allow an unexpected locale or a non-shop URL to become a client-side
+ * navigation target. Older API responses without `href` continue to use the
+ * legacy short product route, which redirects to the canonical storefront.
+ */
+export function resolveShopCatalogProductHref(
+  locale: string,
+  href: string | null | undefined,
+  slug: string
+) {
+  const resolvedLocale = locale === "en" ? "en" : "ua";
+  const shopPrefix = `/${resolvedLocale}/shop/`;
+  const normalizedHref = href?.trim();
+
+  if (
+    normalizedHref?.startsWith(shopPrefix) &&
+    !normalizedHref.includes("\\") &&
+    !/[\u0000-\u001f\u007f]/.test(normalizedHref)
+  ) {
+    return normalizedHref;
+  }
+
+  const normalizedSlug = slug.trim();
+  return normalizedSlug
+    ? `${shopPrefix}${encodeURIComponent(normalizedSlug)}`
+    : `/${resolvedLocale}/shop`;
+}

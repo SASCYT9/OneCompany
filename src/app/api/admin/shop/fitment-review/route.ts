@@ -12,7 +12,7 @@ const STATUSES: NormalizedFitmentStatus[] = ["needs_review", "inferred", "verifi
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
 
     const params = request.nextUrl.searchParams;
     const statusValue = params.get("status") || "needs_review";
