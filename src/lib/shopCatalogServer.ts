@@ -3070,6 +3070,37 @@ const storefrontProductInclude = {
   },
 } satisfies Prisma.ShopProductInclude;
 
+/**
+ * Build-time recovery for active products omitted by catalog normalization.
+ *
+ * Keep this as one bounded database query. Calling the PDP lookup once per
+ * slug creates a burst of Prisma/Accelerate connections and can make Vercel
+ * builds fail during a short database network interruption.
+ */
+export async function getShopProductsBySlugsServer(slugs: string[]): Promise<ShopProduct[]> {
+  const uniqueSlugs = [...new Set(slugs.map((slug) => slug.trim()).filter(Boolean))];
+  if (uniqueSlugs.length === 0) return [];
+
+  const queryParams: any = {
+    where: {
+      slug: { in: uniqueSlugs },
+      isPublished: true,
+      status: "ACTIVE",
+    },
+    include: storefrontProductInclude,
+  };
+  if (isAccelerateEnabled) {
+    queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+  }
+
+  const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
+  return rows
+    .map((row: unknown) =>
+      applyShopProductImageOverrides(mapDbToCatalog(row as AdminShopProductRecord))
+    )
+    .filter(shouldExposeCatalogProduct);
+}
+
 export type ShopProductLookupResult =
   | { kind: "found"; product: ShopProduct; source: "database" | "snapshot" | "static" }
   | { kind: "missing" }

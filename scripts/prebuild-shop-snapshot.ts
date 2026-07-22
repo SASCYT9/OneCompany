@@ -26,13 +26,34 @@ import fs from "fs";
 import path from "path";
 import crypto from "node:crypto";
 
-import { getShopProductBySlugServer, getShopProductsServer } from "../src/lib/shopCatalogServer";
+import {
+  getShopProductsBySlugsServer,
+  getShopProductsServer,
+} from "../src/lib/shopCatalogServer";
 import { resolveShopStorefrontSegment } from "../src/lib/shopStorefrontRouting";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
 const PRODUCTS_OUTPUT = path.join(process.cwd(), "data", "shop-products.snapshot.json");
 const FALLBACK_OUTPUT_DIR = path.join(process.cwd(), "public", "catalog-fallback");
 const FALLBACK_VERSION = 2;
+
+async function recoverProductsWithRetry(slugs: string[]) {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await getShopProductsBySlugsServer(slugs);
+    } catch (error) {
+      if (attempt === maxAttempts) throw error;
+      const delayMs = attempt * 1_000;
+      console.warn(
+        `[prebuild-shop-snapshot] recovery query failed; retrying in ${delayMs}ms ` +
+          `(attempt ${attempt}/${maxAttempts})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return [];
+}
 
 async function main() {
   const prisma = new PrismaClient();
@@ -84,9 +105,7 @@ async function main() {
       console.log(
         `[prebuild-shop-snapshot] recovering ${missingActiveSlugs.length} active rows removed by catalog deduplication`
       );
-      const recovered = await Promise.all(
-        missingActiveSlugs.map((slug) => getShopProductBySlugServer(slug))
-      );
+      const recovered = await recoverProductsWithRetry(missingActiveSlugs);
       for (const product of recovered) {
         if (product && !loadedSlugs.has(product.slug)) {
           products.push(product);
