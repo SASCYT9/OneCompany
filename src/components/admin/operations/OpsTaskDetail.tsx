@@ -182,6 +182,18 @@ function initials(name?: string | null) {
     .toUpperCase();
 }
 
+function displayPersonName(person?: { name?: string | null; email?: string | null } | null) {
+  const name = person?.name?.trim();
+  const email = person?.email?.trim();
+  if (
+    name?.toLocaleLowerCase("en-US") === "sasha" &&
+    email?.toLocaleLowerCase("en-US") === "sashatsompel@gmail.com"
+  ) {
+    return "Саша Цомпель";
+  }
+  return name || email || "Неизвестно";
+}
+
 export function OpsTaskDetail({
   task,
   compact = false,
@@ -238,6 +250,7 @@ export function OpsTaskDetail({
   const [transitionBlockerDescription, setTransitionBlockerDescription] = useState("");
   const [transitionComment, setTransitionComment] = useState("");
   const [previewAttachment, setPreviewAttachment] = useState<OpsAttachment | null>(null);
+  const [dueDraft, setDueDraft] = useState(dueInputValue(task.dueAt));
   const attachments =
     current.attachments
       ?.map(({ attachment }) => attachment)
@@ -266,8 +279,13 @@ export function OpsTaskDetail({
 
   useEffect(() => {
     setCurrent(task);
+    setDueDraft(dueInputValue(task.dueAt));
     setPreviewAttachment(null);
   }, [task]);
+
+  useEffect(() => {
+    setDueDraft(dueInputValue(current.dueAt));
+  }, [current.dueAt]);
 
   useEffect(() => {
     if (!canAssign || demoMode) return;
@@ -401,7 +419,7 @@ export function OpsTaskDetail({
   }
 
   async function saveInlineTaskPatch(patch: Record<string, unknown>, scope: string) {
-    if (!canWrite || pending) return;
+    if (!canWrite || pending) return false;
     setPending(true);
     setError(null);
     try {
@@ -433,11 +451,26 @@ export function OpsTaskDetail({
       }
       setCurrent(updated);
       onTaskChange?.(updated);
+      return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Не удалось сохранить изменение");
+      return false;
     } finally {
       setPending(false);
     }
+  }
+
+  async function saveDueDraft() {
+    if (!canWrite || pending) return;
+    const currentValue = dueInputValue(current.dueAt);
+    if (dueDraft === currentValue) return;
+    const parsed = dueDraft ? new Date(dueDraft) : null;
+    if (parsed && Number.isNaN(parsed.getTime())) {
+      setError("Укажите корректные дату и время");
+      return;
+    }
+    const saved = await saveInlineTaskPatch({ dueAt: parsed?.toISOString() ?? null }, "due");
+    if (!saved) setDueDraft(currentValue);
   }
 
   async function loadInlineMembers() {
@@ -708,7 +741,7 @@ export function OpsTaskDetail({
               <h2
                 className={cn(
                   "min-w-0 flex-1 font-bold leading-tight tracking-tight text-slate-950",
-                  compact ? "text-2xl xl:text-[30px]" : "text-[28px] sm:text-3xl"
+                  compact ? "text-[24px] sm:text-2xl xl:text-[30px]" : "text-[24px] sm:text-3xl"
                 )}
               >
                 {current.title}
@@ -810,7 +843,7 @@ export function OpsTaskDetail({
               </div>
             )}
           </div>
-          <div className="mt-4 border-r border-slate-200 pr-3 sm:mt-0 sm:px-4">
+          <div className="col-span-2 mt-4 border-t border-slate-200 pt-4 sm:col-span-1 sm:mt-0 sm:border-r sm:border-t-0 sm:px-4 sm:pt-0">
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <CircleUserRound className="h-4 w-4" />
               Исполнитель
@@ -861,7 +894,7 @@ export function OpsTaskDetail({
               </div>
             )}
           </div>
-          <div className="mt-4 pl-3 sm:mt-0 sm:pl-4">
+          <div className="col-span-2 mt-4 border-t border-slate-200 pt-4 sm:col-span-1 sm:mt-0 sm:border-t-0 sm:pl-4 sm:pt-0">
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <CalendarDays className="h-4 w-4" />
               Срок
@@ -870,16 +903,17 @@ export function OpsTaskDetail({
               <input
                 type="datetime-local"
                 aria-label="Срок задачи"
-                value={dueInputValue(current.dueAt)}
+                value={dueDraft}
                 disabled={pending}
-                onChange={(event) =>
-                  void saveInlineTaskPatch(
-                    {
-                      dueAt: event.target.value ? new Date(event.target.value).toISOString() : null,
-                    },
-                    "due"
-                  )
-                }
+                onChange={(event) => setDueDraft(event.target.value)}
+                onBlur={() => void saveDueDraft()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") event.currentTarget.blur();
+                  if (event.key === "Escape") {
+                    setDueDraft(dueInputValue(current.dueAt));
+                    event.preventDefault();
+                  }
+                }}
                 className="mt-2 h-9 w-full min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-xs font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
               />
             ) : (
@@ -894,7 +928,7 @@ export function OpsTaskDetail({
             <UserRoundCheck className="h-4 w-4 text-slate-400" />
             Поставил:
             <strong className="font-semibold text-slate-900">
-              {current.createdBy?.name || current.createdBy?.email || "Неизвестно"}
+              {displayPersonName(current.createdBy)}
             </strong>
           </span>
           <ArrowRight className="hidden h-4 w-4 text-slate-300 sm:block" />
@@ -1083,7 +1117,7 @@ export function OpsTaskDetail({
                   <audio
                     className="h-10 w-full"
                     controls
-                    preload="none"
+                    preload="metadata"
                     src={
                       demoMode
                         ? undefined

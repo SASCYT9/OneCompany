@@ -1144,11 +1144,16 @@ export function WarehouseCarSilhouette({ className }: { className?: string }) {
    12. DATE RANGE BADGE — Top right of dashboard
 ═══════════════════════════════════════════════════════════════ */
 
-export function DashboardDateRange({ label }: { label: string }) {
+export function DashboardDateRange({ label, className }: { label: string; className?: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-none border border-white/6 bg-[#171717] px-3 py-2 text-xs font-medium text-zinc-200">
+    <div
+      className={cn(
+        "inline-flex min-w-0 items-center gap-2 rounded-none border border-white/6 bg-[#171717] px-3 py-2 text-xs font-medium text-zinc-200",
+        className
+      )}
+    >
       <Calendar className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-      {label}
+      <span className="truncate">{label}</span>
     </div>
   );
 }

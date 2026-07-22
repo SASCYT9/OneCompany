@@ -56,16 +56,21 @@ export function DashboardKpiCard({
         "hover:border-white/12"
       )}
     >
-      <div className={cn("flex flex-1 flex-col px-5 pt-5", hasSpark ? "pb-3" : "pb-5")}>
+      <div
+        className={cn(
+          "flex flex-1 flex-col px-3.5 pt-3.5 sm:px-5 sm:pt-5",
+          hasSpark ? "pb-2 sm:pb-3" : "pb-3.5 sm:pb-5"
+        )}
+      >
         <div className="flex items-start gap-3">
           {icon ? (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600/15 text-blue-400 [&>svg]:h-4 [&>svg]:w-4">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/15 text-blue-400 sm:h-9 sm:w-9 [&>svg]:h-4 [&>svg]:w-4">
               {icon}
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-medium text-zinc-500">{label}</div>
-            <div className="mt-1.5 truncate text-[26px] font-semibold leading-none tracking-tight tabular-nums text-zinc-50">
+            <div className="mt-1 truncate text-[22px] font-semibold leading-none tracking-tight tabular-nums text-zinc-50 sm:mt-1.5 sm:text-[26px]">
               {value}
             </div>
 

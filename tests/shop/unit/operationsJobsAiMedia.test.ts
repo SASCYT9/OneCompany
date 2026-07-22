@@ -32,6 +32,10 @@ import {
   validateOpsTelegramMedia,
 } from "../../../src/lib/operations/media";
 import type { OpsAiBudget, OpsAiProvider } from "../../../src/lib/operations/ai";
+import {
+  createOpsMediaResponse,
+  parseOpsMediaRange,
+} from "../../../src/lib/operations/mediaResponse";
 
 const serverOnlyStub = pathToFileURL(
   path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
@@ -78,6 +82,33 @@ test("local Ops media store keeps Lab attachments private and blocks path traver
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("protected Ops audio supports browser byte ranges", async () => {
+  const body = new TextEncoder().encode("0123456789");
+  assert.deepEqual(parseOpsMediaRange("bytes=2-5", body.byteLength), { start: 2, end: 5 });
+  assert.deepEqual(parseOpsMediaRange("bytes=-3", body.byteLength), { start: 7, end: 9 });
+  assert.equal(parseOpsMediaRange("bytes=99-100", body.byteLength), undefined);
+
+  const partial = createOpsMediaResponse({
+    body,
+    fileName: "voice.ogg",
+    mimeType: "audio/ogg",
+    rangeHeader: "bytes=2-5",
+  });
+  assert.equal(partial.status, 206);
+  assert.equal(partial.headers.get("accept-ranges"), "bytes");
+  assert.equal(partial.headers.get("content-range"), "bytes 2-5/10");
+  assert.equal(await partial.text(), "2345");
+
+  const unsatisfied = createOpsMediaResponse({
+    body,
+    fileName: "voice.ogg",
+    mimeType: "audio/ogg",
+    rangeHeader: "bytes=99-100",
+  });
+  assert.equal(unsatisfied.status, 416);
+  assert.equal(unsatisfied.headers.get("content-range"), "bytes */10");
 });
 
 test("Inbox notifications stay concise and leave navigation to the action button", () => {

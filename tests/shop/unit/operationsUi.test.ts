@@ -195,7 +195,9 @@ test("task details render protected media and board cards open a detail drawer",
     /\/api\/admin\/operations\/tasks\/\$\{current\.id\}\/attachments\/\$\{attachment\.id\}\/access/
   );
   assert.match(detail, /loading="lazy"/);
-  assert.match(detail, /preload="none"/);
+  assert.match(detail, /preload="metadata"/);
+  assert.match(detail, /onBlur=\{\(\) => void saveDueDraft\(\)\}/);
+  assert.match(detail, /Саша Цомпель/);
   assert.match(detail, /aria-label="Просмотр изображения"/);
   assert.match(workspace, /setBoardDetailOpen\(true\)/);
   assert.match(workspace, /Подробности задачи/);

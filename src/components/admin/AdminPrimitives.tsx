@@ -34,7 +34,7 @@ export function AdminPage({
   return (
     <div
       className={cn(
-        "mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-8 xl:px-10",
+        "mx-auto min-w-0 w-full px-3 py-3 sm:px-4 sm:py-6 md:px-8 xl:px-10",
         wide ? "max-w-none" : "max-w-[1640px]",
         className
       )}
@@ -59,25 +59,30 @@ export function AdminPageHeader({
 }) {
   return (
     <section
-      className={cn("flex flex-wrap items-start justify-between gap-4 pb-2 sm:gap-6", className)}
+      className={cn(
+        "flex min-w-0 flex-col items-stretch gap-3 pb-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-6",
+        className
+      )}
     >
-      <div className="min-w-0 max-w-3xl flex-1 space-y-2">
+      <div className="min-w-0 w-full max-w-3xl space-y-1.5 sm:w-auto sm:flex-1 sm:space-y-2">
         {eyebrow ? (
           <div className="text-[11px] font-medium uppercase tracking-wider text-blue-400 sm:text-xs">
             {eyebrow}
           </div>
         ) : null}
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl md:text-[32px]">
+          <h1 className="break-words text-[22px] font-semibold leading-[1.12] tracking-tight text-zinc-50 sm:text-3xl md:text-[32px]">
             {title}
           </h1>
           {description ? (
-            <p className="max-w-2xl text-sm leading-6 text-zinc-400">{description}</p>
+            <p className="max-w-2xl text-[13px] leading-5 text-zinc-400 sm:text-sm sm:leading-6">
+              {description}
+            </p>
           ) : null}
         </div>
       </div>
       {actions ? (
-        <div className="-mx-4 flex w-full items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0">
+        <div className="flex min-w-0 w-full flex-wrap items-center gap-2 pb-1 sm:w-auto sm:overflow-visible">
           {actions}
         </div>
       ) : null}

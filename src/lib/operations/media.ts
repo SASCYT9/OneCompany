@@ -477,7 +477,7 @@ export function opsAttachmentRetentionAt(now = new Date()) {
 }
 
 export function createVercelPrivateOpsMediaStore(
-  token = process.env.OPS_BLOB_READ_WRITE_TOKEN,
+  token = process.env.OPS_BLOB_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN,
   storeId = process.env.OPS_BLOB_STORE_ID
 ): OpsPrivateMediaStore {
   const normalizedToken = String(token ?? "").trim();
@@ -581,13 +581,19 @@ export function getOpsMediaConfiguration(
   env: Partial<
     Pick<
       NodeJS.ProcessEnv,
-      "NODE_ENV" | "OPS_LOCAL_MEDIA_DIR" | "OPS_BLOB_READ_WRITE_TOKEN" | "OPS_BLOB_STORE_ID"
+      | "NODE_ENV"
+      | "OPS_LOCAL_MEDIA_DIR"
+      | "OPS_BLOB_READ_WRITE_TOKEN"
+      | "BLOB_READ_WRITE_TOKEN"
+      | "OPS_BLOB_STORE_ID"
     >
   > = process.env
 ): OpsMediaConfiguration {
   const localConfigured = Boolean(env.OPS_LOCAL_MEDIA_DIR?.trim());
   const blobConfigured = Boolean(
-    env.OPS_BLOB_READ_WRITE_TOKEN?.trim() || env.OPS_BLOB_STORE_ID?.trim()
+    env.OPS_BLOB_READ_WRITE_TOKEN?.trim() ||
+      env.BLOB_READ_WRITE_TOKEN?.trim() ||
+      env.OPS_BLOB_STORE_ID?.trim()
   );
 
   if (localConfigured) {
@@ -619,7 +625,9 @@ export function getOpsMediaConfiguration(
 }
 
 export function getOpsBlobAuthOptions() {
-  const token = process.env.OPS_BLOB_READ_WRITE_TOKEN?.trim();
+  const token = (
+    process.env.OPS_BLOB_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN
+  )?.trim();
   if (token) return { token } as const;
   const storeId = process.env.OPS_BLOB_STORE_ID?.trim();
   if (storeId) return { storeId } as const;

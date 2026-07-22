@@ -10,10 +10,11 @@ import {
   getOpsBlobAuthOptions,
   isLocalOpsMediaStoreConfigured,
 } from "@/lib/operations/media";
+import { createOpsMediaResponse } from "@/lib/operations/mediaResponse";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; attachmentId: string }> }
 ) {
   try {
@@ -31,17 +32,17 @@ export async function GET(
     if (!attachment) {
       throw new OpsError("NOT_FOUND", 404, "Attachment not found");
     }
-    if (isLocalOpsMediaStoreConfigured()) {
+    if (
+      isLocalOpsMediaStoreConfigured() ||
+      attachment.mimeType.startsWith("audio/") ||
+      attachment.mimeType.startsWith("video/")
+    ) {
       const body = await createConfiguredOpsMediaStore().get(attachment.storageKey);
-      return new NextResponse(Buffer.from(body), {
-        headers: {
-          "Cache-Control": "private, no-store",
-          "Content-Type": attachment.mimeType,
-          "Content-Disposition": `inline; filename="${String(
-            attachment.fileName ?? "attachment"
-          ).replaceAll('"', "")}"`,
-          "X-Content-Type-Options": "nosniff",
-        },
+      return createOpsMediaResponse({
+        body,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        rangeHeader: request.headers.get("range"),
       });
     }
     const auth = getOpsBlobAuthOptions();

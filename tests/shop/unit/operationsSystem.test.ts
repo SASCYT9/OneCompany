@@ -150,6 +150,20 @@ test("Ops media readiness is secret-free and rejects local storage in production
       productionReady: true,
     }
   );
+  assert.deepEqual(
+    getOpsMediaConfiguration({
+      NODE_ENV: "production",
+      OPS_LOCAL_MEDIA_DIR: "",
+      OPS_BLOB_READ_WRITE_TOKEN: "",
+      BLOB_READ_WRITE_TOKEN: "blob-integration-secret",
+      OPS_BLOB_STORE_ID: "",
+    }),
+    {
+      provider: "vercel_blob",
+      configured: true,
+      productionReady: true,
+    }
+  );
 });
 
 test("manual System retry only accepts terminal human-action states and starts a bounded cycle", () => {

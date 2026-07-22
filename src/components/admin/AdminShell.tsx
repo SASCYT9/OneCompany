@@ -483,7 +483,7 @@ export default function AdminShell({
   }
 
   return (
-    <div className="flex h-dvh bg-[#0A0A0A] text-zinc-100">
+    <div className="admin-context flex h-dvh max-w-full overflow-hidden bg-[#0A0A0A] text-zinc-100">
       {/* Skip link */}
       <a
         href="#admin-main-content"
@@ -631,13 +631,13 @@ export default function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-3 py-3 backdrop-blur-xl sm:px-6 sm:py-3.5">
-          <div className="flex items-center justify-between gap-4">
+        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-2 py-2 backdrop-blur-xl sm:px-6 sm:py-3.5">
+          <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-4">
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
               aria-label="Відкрити навігацію"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 lg:hidden"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 sm:h-11 sm:w-11 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -649,7 +649,7 @@ export default function AdminShell({
                   submitQuickLink();
                 }}
                 className={cn(
-                  "flex items-center gap-2 rounded-none border bg-[#171717] px-3.5 py-2 transition-all",
+                  "flex h-9 items-center gap-2 rounded-none border bg-[#171717] px-2.5 transition-all sm:h-auto sm:px-3.5 sm:py-2",
                   searchFocused
                     ? "border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
                     : "border-white/6 hover:border-white/15"
@@ -682,7 +682,7 @@ export default function AdminShell({
               />
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Keyboard shortcuts hint button */}
               <button
                 type="button"
@@ -716,7 +716,7 @@ export default function AdminShell({
                   {bellOpen ? (
                     <div
                       data-bell-popover
-                      className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+                      className="absolute right-0 z-50 mt-2 w-[calc(100vw-1rem)] max-w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
                     >
                       <div className="flex items-center justify-between border-b border-white/4 px-4 py-3">
                         <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
@@ -781,7 +781,7 @@ export default function AdminShell({
               <button
                 type="button"
                 aria-label="Меню користувача"
-                className="ml-1 flex items-center gap-2.5 rounded-none border border-white/5 bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
+                className="flex h-9 items-center gap-2.5 rounded-none border border-white/5 bg-[#171717] px-1.5 transition hover:bg-[#1F1F1F] sm:ml-1 sm:h-auto sm:px-2 sm:py-1.5"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
                   OC
@@ -806,7 +806,7 @@ export default function AdminShell({
         <main
           id="admin-main-content"
           tabIndex={-1}
-          className="relative min-h-0 flex-1 overflow-auto bg-[#0A0A0A] focus-visible:outline-hidden"
+          className="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-[#0A0A0A] focus-visible:outline-hidden"
         >
           {canAccessCurrentPath ? (
             children

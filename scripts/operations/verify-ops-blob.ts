@@ -5,12 +5,8 @@ import { checksumOpsMedia, createVercelPrivateOpsMediaStore } from "../../src/li
 async function main() {
   const allowGeneric = process.argv.includes("--allow-generic-token");
   const storeId = String(process.env.OPS_BLOB_STORE_ID ?? "").trim();
-  const hasOidc = Boolean(String(process.env.VERCEL_OIDC_TOKEN ?? "").trim());
-  // A project may also have a legacy public Blob token. Never let that token
-  // override the explicitly configured private Ops store when OIDC is present.
   const token = String(
-    process.env.OPS_BLOB_READ_WRITE_TOKEN ??
-      ((!storeId || !hasOidc) && allowGeneric ? process.env.BLOB_READ_WRITE_TOKEN : "")
+    process.env.OPS_BLOB_READ_WRITE_TOKEN ?? (allowGeneric ? process.env.BLOB_READ_WRITE_TOKEN : "")
   ).trim();
   if (!token && !storeId) {
     throw new Error(

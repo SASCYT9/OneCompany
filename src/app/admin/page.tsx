@@ -761,14 +761,15 @@ export default function AdminDashboardPage() {
         title="Вітаємо, Адміністраторе"
         description="Ось що відбувається з вашим бізнесом сьогодні."
         actions={
-          <>
+          <div className="grid min-w-0 w-full grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
             <DashboardDateRange
+              className="w-full sm:w-auto"
               label={`Останні ${data.shop.monthlyRevenue.length} ${period === "daily" ? "днів" : period === "weekly" ? "тижнів" : "місяців"}`}
             />
             <div
               role="group"
               aria-label="Вибір періоду"
-              className="flex items-center gap-1 rounded-none border border-white/8 bg-black/30 p-1"
+              className="col-span-2 grid grid-cols-3 items-center gap-1 rounded-none border border-white/8 bg-black/30 p-1 sm:flex"
             >
               {PERIOD_OPTIONS.map((opt) => (
                 <button
@@ -776,7 +777,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   onClick={() => setPeriod(opt.value)}
                   aria-pressed={period === opt.value}
-                  className={`rounded-none px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] ${
+                  className={`rounded-none px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide transition sm:px-3 sm:text-[11px] sm:tracking-wider focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] ${
                     period === opt.value
                       ? "bg-blue-600 text-white"
                       : "text-zinc-400 hover:text-zinc-200"
@@ -791,15 +792,15 @@ export default function AdminDashboardPage() {
               onClick={() => void fetchDashboard("refresh")}
               disabled={refreshing}
               aria-label={refreshing ? "Оновлення дашборду" : "Оновити дашборд"}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/4 hover:text-blue-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50"
+              className="col-start-2 row-start-1 inline-flex h-full items-center justify-center gap-2 rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/4 hover:text-blue-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50 sm:h-auto"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${refreshing ? "motion-safe:animate-spin" : ""}`}
                 aria-hidden="true"
               />
-              Оновити
+              <span className="hidden sm:inline">Оновити</span>
             </button>
-          </>
+          </div>
         }
       />
 
