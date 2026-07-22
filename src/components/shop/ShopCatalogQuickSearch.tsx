@@ -42,7 +42,7 @@ type VehicleScope = "auto" | "moto";
 type StockFilter = "all" | "inStock" | "preOrder";
 
 const fieldClass =
-  "h-11 w-full min-w-0 appearance-none rounded-[8px] border border-foreground/15 bg-foreground/[0.025] px-3 pr-9 text-xs font-light text-foreground outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.04]";
+  "h-11 w-full min-w-0 appearance-none rounded-[8px] border border-foreground/15 bg-foreground/[0.025] px-3 pr-9 text-xs font-light text-foreground [color-scheme:light] outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.04] dark:[color-scheme:dark] [&>optgroup]:bg-background [&>optgroup]:text-foreground [&>option]:bg-background [&>option]:text-foreground";
 
 const formatPrice = (price: number | null, locale: string) => {
   if (price === null || !Number.isFinite(price) || price <= 0) return null;
