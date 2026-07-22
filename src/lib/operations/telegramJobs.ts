@@ -123,6 +123,7 @@ export type TelegramJobPayload = {
   context?: ResolvedOpsContext;
   callbackResponse?: string;
   callbackLink?: string | null;
+  taskUpdateEventId?: string | null;
   autoApplied?: boolean;
   autoAppliedTaskIds?: string[];
   batchId?: string;
@@ -1055,9 +1056,10 @@ async function resolveAutoCreateActor(
 
 export function parseTelegramTaskDescriptionUpdate(text: string | null | undefined) {
   const source = String(text ?? "").trim();
-  const match = /(?:^|\s)(?:по\s+)?(?:задач(?:а|е|у|і|и)|таск(?:е|у)?)\s*[#№]?(\d{1,9})\b/iu.exec(
-    source
-  );
+  const match =
+    /(?:^|\s)(?:(?:по\s+)?(?:задач(?:а|е|у|і|и)|таск(?:е|у)?)\s*[#№]?|[#№])(\d{1,9})\b/iu.exec(
+      source
+    );
   if (!match) return null;
   const number = Number.parseInt(match[1], 10);
   const update = source
@@ -1068,21 +1070,57 @@ export function parseTelegramTaskDescriptionUpdate(text: string | null | undefin
   return Number.isSafeInteger(number) && update ? { number, update } : null;
 }
 
+function cleanTelegramProgressText(value: string | null | undefined) {
+  return String(value ?? "")
+    .replace(/@[A-Za-z0-9_]{3,64}/gu, "")
+    .replace(/^[\s:—–,.-]+/u, "")
+    .trim()
+    .slice(0, 3_000);
+}
+
+function taskStatusLabel(status: OpsTaskStatus) {
+  const labels: Record<OpsTaskStatus, string> = {
+    INBOX: "Входящие",
+    PLANNED: "Запланировано",
+    IN_PROGRESS: "В работе",
+    AGENT_RUNNING: "Выполняет помощник",
+    WAITING_HUMAN: "Ждём сотрудника",
+    WAITING_EXTERNAL: "Ждём внешнюю сторону",
+    NEEDS_APPROVAL: "Нужно согласование",
+    REVIEW: "Готово к проверке",
+    BLOCKED: "Заблокировано",
+    DONE: "Готово",
+    CANCELLED: "Отменено",
+  };
+  return labels[status];
+}
+
 async function applyTelegramTaskDescriptionUpdate(input: {
   client: PrismaClient;
   job: OpsJob;
   payload: TelegramJobPayload;
 }) {
-  const command =
+  const explicitCommand =
     input.payload.isUntrustedForward || input.payload.batchId
       ? null
       : (parseTelegramTaskDescriptionUpdate(input.payload.text) ??
         parseTelegramTaskDescriptionUpdate(input.payload.transcription));
-  if (!command || !input.job.inboxItemId) return null;
+  const replyTaskId =
+    !input.payload.isUntrustedForward &&
+    !input.payload.batchId &&
+    input.payload.context?.source === "reply"
+      ? input.payload.context.taskId
+      : null;
+  const progressText =
+    explicitCommand?.update ??
+    (replyTaskId
+      ? cleanTelegramProgressText(input.payload.transcription ?? input.payload.text)
+      : "");
+  if ((!explicitCommand && !replyTaskId) || !progressText || !input.job.inboxItemId) return null;
   return input.client.$transaction(async (tx) => {
     const actor = await resolveAutoCreateActor(tx, input.payload.actorAdminUserId);
     const task = await tx.opsTask.findUnique({
-      where: { number: command.number },
+      where: explicitCommand ? { number: explicitCommand.number } : { id: replyTaskId! },
       select: {
         id: true,
         number: true,
@@ -1093,6 +1131,8 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         isShared: true,
         archivedAt: true,
         version: true,
+        status: true,
+        nextAction: true,
       },
     });
     const canWrite = Boolean(
@@ -1113,8 +1153,8 @@ async function applyTelegramTaskDescriptionUpdate(input: {
           requiresApproval: true,
           ambiguities: [
             !task
-              ? `Задача #${command.number} не найдена.`
-              : `Нет доступа к обновлению задачи #${command.number}.`,
+              ? `Задача ${explicitCommand ? `#${explicitCommand.number}` : "из ответа"} не найдена.`
+              : `Нет доступа к обновлению задачи #${task?.number ?? explicitCommand?.number ?? ""}.`,
           ],
           processedAt: new Date(),
         },
@@ -1124,8 +1164,8 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         updated: false,
         taskId: null,
         response: !task
-          ? `Не нашёл задачу #${command.number}. Сообщение оставил во Входящих.`
-          : `Нет доступа к задаче #${command.number}. Сообщение оставил во Входящих.`,
+          ? `Не нашёл задачу ${explicitCommand ? `#${explicitCommand.number}` : "из ответа"}. Сообщение оставил во Входящих.`
+          : `Нет доступа к задаче #${task?.number ?? explicitCommand?.number ?? ""}. Сообщение оставил во Входящих.`,
       };
     }
     const eventKey = `telegram:task-update:${input.payload.telegramUpdateId}`;
@@ -1138,6 +1178,7 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         handled: true,
         updated: true,
         taskId: task.id,
+        updateEventId: existingEvent.id,
         response: `Описание задачи #${task.number} уже обновлено.`,
       };
     }
@@ -1149,14 +1190,33 @@ async function applyTelegramTaskDescriptionUpdate(input: {
       hour: "2-digit",
       minute: "2-digit",
     }).format(new Date());
-    const addition = `Обновление из Telegram · ${timestamp}\n${command.update}`;
+    const addition = `Обновление из Telegram · ${timestamp}\n${progressText}`;
     const description = [task.description?.trim(), addition].filter(Boolean).join("\n\n");
+    const extractedTask =
+      input.payload.extraction &&
+      !input.payload.extraction.requires_approval &&
+      Number.parseFloat(input.payload.extraction.confidence) >= 0.75 &&
+      input.payload.extraction.tasks.length === 1
+        ? input.payload.extraction.tasks[0]
+        : null;
+    const nextAction = extractedTask?.next_action?.trim() || task.nextAction;
+    const readyAttachments = await tx.opsAttachment.findMany({
+      where: { inboxItemId: input.job.inboxItemId!, state: OpsAttachmentState.READY },
+      select: { id: true },
+    });
     const updated = await tx.opsTask.update({
       where: { id: task.id },
-      data: { description, version: { increment: 1 } },
-      select: { id: true, number: true, title: true, version: true },
+      data: { description, nextAction, version: { increment: 1 } },
+      select: {
+        id: true,
+        number: true,
+        title: true,
+        version: true,
+        status: true,
+        nextAction: true,
+      },
     });
-    await tx.opsTaskEvent.create({
+    const updateEvent = await tx.opsTaskEvent.create({
       data: {
         taskId: task.id,
         type: OpsTaskEventType.UPDATED,
@@ -1165,14 +1225,32 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         sourceId: input.job.inboxItemId,
         idempotencyKey: eventKey,
         payload: {
-          field: "description",
+          kind: "progress_update",
+          fields: nextAction !== task.nextAction ? ["description", "nextAction"] : ["description"],
           taskNumber: task.number,
-          update: command.update,
+          update: progressText,
+          descriptionBefore: task.description,
+          descriptionAfter: description,
+          nextActionBefore: task.nextAction,
+          nextActionAfter: nextAction,
+          attachmentIds: readyAttachments.map((attachment) => attachment.id),
+          status: task.status,
           previousVersion: task.version,
           version: updated.version,
         },
       },
+      select: { id: true },
     });
+    if (readyAttachments.length) {
+      await tx.opsTaskAttachment.createMany({
+        data: readyAttachments.map((attachment) => ({
+          taskId: task.id,
+          attachmentId: attachment.id,
+          attachedById: actor.id,
+        })),
+        skipDuplicates: true,
+      });
+    }
     await tx.opsInboxItem.update({
       where: { id: input.job.inboxItemId! },
       data: {
@@ -1197,6 +1275,8 @@ async function applyTelegramTaskDescriptionUpdate(input: {
           taskNumber: task.number,
           telegramUpdateId: input.payload.telegramUpdateId,
           version: updated.version,
+          updateEventId: updateEvent.id,
+          attachmentCount: readyAttachments.length,
         },
       },
     });
@@ -1204,7 +1284,17 @@ async function applyTelegramTaskDescriptionUpdate(input: {
       handled: true,
       updated: true,
       taskId: task.id,
-      response: `Обновил описание задачи #${task.number}: ${task.title}`,
+      updateEventId: updateEvent.id,
+      response: [
+        `✅ Обновил задачу #${task.number} «${task.title}»`,
+        "",
+        `Статус: ${taskStatusLabel(updated.status)}`,
+        `Новое: ${progressText.slice(0, 1_200)}`,
+        updated.nextAction ? `Дальше: ${updated.nextAction.slice(0, 600)}` : null,
+        readyAttachments.length ? `Вложения: ${readyAttachments.length}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
     };
   });
 }
@@ -2207,6 +2297,8 @@ async function executeTelegramIntakeStage(input: {
               ),
           autoApplied: taskUpdate.updated,
           autoAppliedTaskIds: taskUpdate.taskId ? [taskUpdate.taskId] : [],
+          taskUpdateEventId:
+            "updateEventId" in taskUpdate ? (taskUpdate.updateEventId ?? null) : null,
         },
         result: taskUpdate,
       };
@@ -2293,7 +2385,7 @@ async function executeTelegramIntakeStage(input: {
       return task ? [task] : [];
     });
     const text = payload.callbackResponse
-      ? [payload.callbackResponse, payload.callbackLink].filter(Boolean).join("\n")
+      ? payload.callbackResponse
       : buildOpsInboxNotification({
           taskCount: inbox._count.proposals,
           summary: inbox.summary,
@@ -2307,25 +2399,40 @@ async function executeTelegramIntakeStage(input: {
               : "message",
           autoAppliedTasks,
         });
-    const cancelData = await createOpsTelegramCallbackState({
-      client: input.client,
-      action: "cancel_creation",
-      resourceId: inbox.id,
-      actorAdminUserId: payload.actorAdminUserId,
-      ttlMs: 10 * 60 * 1000,
-    });
-    const openUrl = autoAppliedTasks[0]
-      ? opsAdminLink(`/admin/operations/tasks/${encodeURIComponent(autoAppliedTasks[0].id)}`)
-      : opsAdminLink(`/admin/operations/inbox?selected=${encodeURIComponent(inbox.id)}`);
+    const cancelData = payload.callbackResponse
+      ? payload.taskUpdateEventId
+        ? await createOpsTelegramCallbackState({
+            client: input.client,
+            action: "undo_task_update",
+            resourceId: payload.taskUpdateEventId,
+            actorAdminUserId: payload.actorAdminUserId,
+            ttlMs: 10 * 60 * 1000,
+          })
+        : null
+      : await createOpsTelegramCallbackState({
+          client: input.client,
+          action: "cancel_creation",
+          resourceId: inbox.id,
+          actorAdminUserId: payload.actorAdminUserId,
+          ttlMs: 10 * 60 * 1000,
+        });
+    const openUrl =
+      payload.callbackLink ??
+      (autoAppliedTasks[0]
+        ? opsAdminLink(`/admin/operations/tasks/${encodeURIComponent(autoAppliedTasks[0].id)}`)
+        : opsAdminLink(`/admin/operations/inbox?selected=${encodeURIComponent(inbox.id)}`));
     const replyMarkup =
-      !payload.callbackResponse && (openUrl || cancelData)
+      openUrl || cancelData
         ? {
             inline_keyboard: [
               ...(openUrl
                 ? [
                     [
                       {
-                        text: autoAppliedTasks[0] ? "📋 Открыть задачу" : "📥 Проверить",
+                        text:
+                          payload.callbackResponse || autoAppliedTasks[0]
+                            ? "📋 Открыть задачу"
+                            : "📥 Проверить",
                         url: openUrl,
                         style: "primary" as const,
                       },
@@ -2336,7 +2443,9 @@ async function executeTelegramIntakeStage(input: {
                 ? [
                     [
                       {
-                        text: "↩️ Отменить создание",
+                        text: payload.callbackResponse
+                          ? "↩️ Отменить обновление"
+                          : "↩️ Отменить создание",
                         callback_data: cancelData,
                         style: "danger" as const,
                       },

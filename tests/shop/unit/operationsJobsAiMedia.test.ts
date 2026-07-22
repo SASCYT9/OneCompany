@@ -461,6 +461,10 @@ test("Telegram task-number updates are explicit and keep the factual status text
     ),
     { number: 1007, update: "товар отримано" }
   );
+  assert.deepEqual(
+    telegramJobs.parseTelegramTaskDescriptionUpdate("#1433 оплатили, ждём склад США"),
+    { number: 1433, update: "оплатили, ждём склад США" }
+  );
   assert.equal(telegramJobs.parseTelegramTaskDescriptionUpdate("создай новую задачу"), null);
 
   const source = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
@@ -468,6 +472,17 @@ test("Telegram task-number updates are explicit and keep the factual status text
   assert.match(source, /keepInboxPending: true/);
   assert.match(source, /telegram:task-update:/);
   assert.match(source, /processedAttachments/);
+  assert.match(source, /context\?\.source === "reply"/);
+  assert.match(source, /kind: "progress_update"/);
+  assert.match(source, /opsTaskAttachment\.createMany/);
+  assert.match(source, /Отменить обновление/);
+
+  const callbacks = fs.readFileSync(
+    path.resolve("src/lib/operations/telegramCallbacks.ts"),
+    "utf8"
+  );
+  assert.match(callbacks, /"undo_task_update"/);
+  assert.match(callbacks, /telegram\.task\.progress_update_undo/);
 });
 
 test("job retry uses bounded backoff and the fourth failure is dead-letter", () => {

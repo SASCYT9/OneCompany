@@ -27,6 +27,7 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "change_due",
   "done",
   "cancel_creation",
+  "undo_task_update",
 ] as const;
 
 export type OpsTelegramCallbackAction = (typeof OPS_TELEGRAM_CALLBACK_ACTIONS)[number];
@@ -87,7 +88,12 @@ export async function createOpsTelegramCallbackState(input: {
       requestHash: callbackStateHash(state),
       responseBody: state,
       statusCode: 202,
-      resourceType: input.action === "cancel_creation" ? "ops.inbox" : "ops.task",
+      resourceType:
+        input.action === "cancel_creation"
+          ? "ops.inbox"
+          : input.action === "undo_task_update"
+            ? "ops.task_event"
+            : "ops.task",
       resourceId: input.resourceId,
       expiresAt: new Date(Date.now() + Math.max(60_000, input.ttlMs ?? 24 * 60 * 60 * 1000)),
     },
@@ -419,6 +425,90 @@ async function cancelInboxCreation(input: {
   });
 }
 
+async function undoTaskProgressUpdate(input: {
+  client: PrismaClient;
+  actor: TelegramActor;
+  eventId: string;
+}) {
+  return input.client.$transaction(async (tx) => {
+    const event = await tx.opsTaskEvent.findUnique({
+      where: { id: input.eventId },
+      select: {
+        id: true,
+        type: true,
+        payload: true,
+        task: {
+          select: {
+            id: true,
+            number: true,
+            title: true,
+            version: true,
+            assigneeId: true,
+            createdById: true,
+            isShared: true,
+          },
+        },
+      },
+    });
+    if (!event || event.type !== OpsTaskEventType.UPDATED) {
+      throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+    }
+    canWriteTask(input.actor, event.task);
+    const payload =
+      event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
+        ? (event.payload as Record<string, unknown>)
+        : {};
+    if (payload.kind !== "progress_update") throw new Error("UNDO_TASK_CHANGED");
+    const appliedVersion = Number(payload.version);
+    if (!Number.isSafeInteger(appliedVersion) || event.task.version !== appliedVersion) {
+      throw new Error("UNDO_TASK_CHANGED");
+    }
+    const descriptionBefore =
+      typeof payload.descriptionBefore === "string" ? payload.descriptionBefore : null;
+    const nextActionBefore =
+      typeof payload.nextActionBefore === "string" ? payload.nextActionBefore : null;
+    const changed = await tx.opsTask.updateMany({
+      where: { id: event.task.id, version: appliedVersion },
+      data: {
+        description: descriptionBefore,
+        nextAction: nextActionBefore,
+        version: { increment: 1 },
+      },
+    });
+    if (changed.count !== 1) throw new Error("UNDO_TASK_CHANGED");
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: event.task.id,
+        type: OpsTaskEventType.UNDONE,
+        actorId: input.actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: event.id,
+        idempotencyKey: `telegram:undo-task-update:${event.id}`,
+        payload: {
+          kind: "progress_update_undo",
+          revertedEventId: event.id,
+          taskNumber: event.task.number,
+          previousVersion: appliedVersion,
+          version: appliedVersion + 1,
+        },
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: auditData(
+        input.actor,
+        "telegram.task.progress_update_undo",
+        "ops.task",
+        event.task.id,
+        { eventId: event.id, taskNumber: event.task.number }
+      ),
+    });
+    return {
+      message: `Обновление задачи #${event.task.number} отменено.`,
+      link: adminLink(`/admin/operations/tasks/${event.task.id}`),
+    };
+  });
+}
+
 async function markTaskDone(input: { client: PrismaClient; actor: TelegramActor; taskId: string }) {
   return input.client.$transaction(async (tx) => {
     const task = await tx.opsTask.findUnique({
@@ -661,6 +751,12 @@ export async function executeOpsTelegramCallback(input: {
         client: input.client,
         actor,
         inboxItemId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "undo_task_update") {
+      result = await undoTaskProgressUpdate({
+        client: input.client,
+        actor,
+        eventId: claimed.state.resourceId,
       });
     } else if (claimed.state.action === "done") {
       result = await markTaskDone({

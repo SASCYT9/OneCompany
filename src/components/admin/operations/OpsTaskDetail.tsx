@@ -304,6 +304,25 @@ export function OpsTaskDetail({
         ?.transcription;
 
   const activity = useMemo(() => current.events ?? [], [current.events]);
+  const progressUpdates = useMemo(() => {
+    const events = current.events ?? [];
+    const reverted = new Set(
+      events.flatMap((event) =>
+        event.type === "UNDONE" &&
+        event.payload?.kind === "progress_update_undo" &&
+        typeof event.payload.revertedEventId === "string"
+          ? [event.payload.revertedEventId]
+          : []
+      )
+    );
+    return events.flatMap((event) =>
+      event.type === "UPDATED" &&
+      event.payload?.kind === "progress_update" &&
+      typeof event.payload.update === "string"
+        ? [{ ...event, update: event.payload.update, reverted: reverted.has(event.id) }]
+        : []
+    );
+  }, [current.events]);
 
   useEffect(() => {
     setCurrent(task);
@@ -1561,6 +1580,53 @@ export function OpsTaskDetail({
             onTaskChange?.(updated);
           }}
         />
+
+        {progressUpdates.length ? (
+          <section className="mt-5 border border-blue-200 bg-white shadow-sm">
+            <div className="flex items-center gap-2 border-b border-blue-100 px-4 py-3">
+              <Activity className="h-5 w-5 text-blue-600" />
+              <h3 className="text-sm font-semibold">Прогресс</h3>
+              <span className="text-xs text-slate-500">· {progressUpdates.length}</span>
+            </div>
+            <ol className="divide-y divide-slate-100">
+              {progressUpdates.map((event) => (
+                <li key={event.id} className="grid grid-cols-[auto_1fr] gap-3 px-4 py-3">
+                  <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-[11px] font-semibold text-blue-700">
+                    {initials(event.actor?.name)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-slate-600">
+                        {event.actor?.name || "Система"}
+                      </span>
+                      <time dateTime={event.createdAt} className="text-xs text-slate-400">
+                        {new Intl.DateTimeFormat("ru-RU", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }).format(new Date(event.createdAt))}
+                      </time>
+                    </div>
+                    <p
+                      className={cn(
+                        "mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-800",
+                        event.reverted && "text-slate-400 line-through"
+                      )}
+                    >
+                      {event.update}
+                    </p>
+                    {event.reverted ? (
+                      <span className="mt-1 inline-block text-[11px] font-medium text-amber-700">
+                        Обновление отменено
+                      </span>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
 
         <section className="mt-5 rounded-xl border border-slate-200 bg-white shadow-sm">
           <button

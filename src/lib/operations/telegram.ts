@@ -686,9 +686,11 @@ export function createOpsTelegramWebhookReply(
   const text =
     result.outcome === "duplicate"
       ? "✅ Уже принято. Повторную задачу не создаю."
-      : result.update.media
-        ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
-        : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
+      : result.update.media && result.update.replyToMessageId
+        ? "✅ Принял голосовое или файл как обновление. Расшифрую, проверю связанную задачу и пришлю результат."
+        : result.update.media
+          ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
+          : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
   return {
     method: "sendMessage",
     chat_id: result.update.chatId.toString(),

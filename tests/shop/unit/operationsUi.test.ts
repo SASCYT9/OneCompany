@@ -199,6 +199,9 @@ test("task details render protected media and the board keeps a persistent detai
   assert.match(detail, /attachment\.transcription/);
   assert.match(detail, /Транскрипция голосового/);
   assert.match(detail, /Транскрипция видеосообщения/);
+  assert.match(detail, /Прогресс/);
+  assert.match(detail, /progress_update/);
+  assert.match(detail, /Обновление отменено/);
   assert.match(detail, /Теги задачи/);
   assert.match(detail, /Задача #\{current\.number\}/);
   assert.match(detail, /Убрать задачу с доски/);
