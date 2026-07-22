@@ -1,25 +1,25 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { render } from '@react-email/render';
-import { Resend } from 'resend';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   approveCustomerB2B,
   archiveShopCustomer,
   createShopCustomerPasswordSetup,
   restoreShopCustomer,
   revertCustomerToB2C,
-} from '@/lib/shopCustomers';
+} from "@/lib/shopCustomers";
 import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
-} from '@/lib/shopAdminCustomers';
-import { prisma } from '@/lib/prisma';
-import ShopPasswordResetEmail from '@/emails/ShopPasswordResetEmail';
+} from "@/lib/shopAdminCustomers";
+import { prisma } from "@/lib/prisma";
+import ShopPasswordResetEmail from "@/emails/ShopPasswordResetEmail";
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
-const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'One Company <noreply@onecompany.global>';
+const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
+const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || "One Company <noreply@onecompany.global>";
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -28,50 +28,57 @@ type Params = {
 export async function GET(_request: NextRequest, context: Params) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
     const { id } = await context.params;
     const customer = await getShopCustomerAdminDetail(prisma, id);
 
     if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     }
 
     return NextResponse.json(customer);
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin customer detail', error);
-    return NextResponse.json({ error: 'Failed to load customer' }, { status: 500 });
+    console.error("Admin customer detail", error);
+    return NextResponse.json({ error: "Failed to load customer" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest, context: Params) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
     const { id } = await context.params;
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-    const action = String(body.action ?? '').trim();
+    const action = String(body.action ?? "").trim();
 
     const existing = await prisma.shopCustomer.findUnique({
       where: { id },
-      select: { id: true, email: true, group: true, firstName: true, lastName: true, preferredLocale: true },
+      select: {
+        id: true,
+        email: true,
+        group: true,
+        firstName: true,
+        lastName: true,
+        preferredLocale: true,
+      },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     }
 
-    if (action === 'approve_b2b') {
+    if (action === "approve_b2b") {
       const customer = await approveCustomerB2B(prisma, id);
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.b2b.approve',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.b2b.approve",
+        entityType: "shop.customer",
         entityId: id,
         metadata: {
           email: customer.email,
@@ -83,12 +90,12 @@ export async function PATCH(request: NextRequest, context: Params) {
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
 
-    if (action === 'revert_b2c') {
+    if (action === "revert_b2c") {
       const customer = await revertCustomerToB2C(prisma, id);
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.b2b.revert',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.b2b.revert",
+        entityType: "shop.customer",
         entityId: id,
         metadata: {
           email: customer.email,
@@ -99,34 +106,34 @@ export async function PATCH(request: NextRequest, context: Params) {
 
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
-    
-    if (action === 'archive') {
+
+    if (action === "archive") {
       await archiveShopCustomer(prisma, id);
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.archive',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.archive",
+        entityType: "shop.customer",
         entityId: id,
         metadata: { email: existing.email },
       });
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
 
-    if (action === 'restore') {
+    if (action === "restore") {
       await restoreShopCustomer(prisma, id);
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.restore',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.restore",
+        entityType: "shop.customer",
         entityId: id,
         metadata: { email: existing.email },
       });
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
 
-    if (action === 'send_password_reset') {
-      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
-      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+    if (action === "send_password_reset") {
+      const proto = request.headers.get("x-forwarded-proto") ?? "https";
+      const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
       const requestBaseUrl = host ? `${proto}://${host}` : undefined;
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,
@@ -134,13 +141,13 @@ export async function PATCH(request: NextRequest, context: Params) {
         baseUrl: requestBaseUrl,
       });
 
-      const targetLocale: 'ua' | 'en' = existing.preferredLocale === 'ua' ? 'ua' : 'en';
+      const targetLocale: "ua" | "en" = existing.preferredLocale === "ua" ? "ua" : "en";
       const html = await render(
         ShopPasswordResetEmail({
           resetUrl: setupLink.url,
           firstName: existing.firstName,
           locale: targetLocale,
-        }),
+        })
       );
 
       let emailSent = true;
@@ -149,20 +156,20 @@ export async function PATCH(request: NextRequest, context: Params) {
           from: FROM_ADDRESS,
           to: existing.email,
           subject:
-            targetLocale === 'ua'
-              ? 'Скидання пароля — One Company'
-              : 'Reset your One Company password',
+            targetLocale === "ua"
+              ? "Скидання пароля — One Company"
+              : "Reset your One Company password",
           html,
         });
       } catch (sendError) {
         emailSent = false;
-        console.error('Admin send_password_reset email send', sendError);
+        console.error("Admin send_password_reset email send", sendError);
       }
 
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.password_reset.send',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.password_reset.send",
+        entityType: "shop.customer",
         entityId: id,
         metadata: {
           email: existing.email,
@@ -178,9 +185,9 @@ export async function PATCH(request: NextRequest, context: Params) {
       });
     }
 
-    if (action === 'generate_password' || action === 'create_setup_link') {
-      const proto = request.headers.get('x-forwarded-proto') ?? 'https';
-      const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+    if (action === "generate_password" || action === "create_setup_link") {
+      const proto = request.headers.get("x-forwarded-proto") ?? "https";
+      const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
       const requestBaseUrl = host ? `${proto}://${host}` : undefined;
       const setupLink = await createShopCustomerPasswordSetup(prisma, {
         customerId: id,
@@ -189,9 +196,9 @@ export async function PATCH(request: NextRequest, context: Params) {
       });
 
       await writeAdminAuditLog(prisma, session, {
-        scope: 'shop',
-        action: 'customer.password_setup.create',
-        entityType: 'shop.customer',
+        scope: "shop",
+        action: "customer.password_setup.create",
+        entityType: "shop.customer",
         entityId: id,
         metadata: {
           email: existing.email,
@@ -231,29 +238,30 @@ export async function PATCH(request: NextRequest, context: Params) {
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'customer.update',
-      entityType: 'shop.customer',
+      scope: "shop",
+      action: "customer.update",
+      entityType: "shop.customer",
       entityId: id,
       metadata: {
         email: updated.email,
         group: updated.group,
-        b2bDiscountPercent: updated.b2bDiscountPercent != null ? Number(updated.b2bDiscountPercent) : null,
+        b2bDiscountPercent:
+          updated.b2bDiscountPercent != null ? Number(updated.b2bDiscountPercent) : null,
         isActive: updated.isActive,
       },
     });
 
     return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin customer patch', error);
-    return NextResponse.json({ error: 'Failed to update customer' }, { status: 500 });
+    console.error("Admin customer patch", error);
+    return NextResponse.json({ error: "Failed to update customer" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

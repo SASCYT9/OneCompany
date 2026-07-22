@@ -83,6 +83,78 @@ test("specific model queries do not expand to every model in a broad alias famil
   assert.deepEqual(expanded.years, [2018]);
 });
 
+test("specific Porsche generation and family remain exact", () => {
+  const turbo = expandVehicleAliases("Porsche 911 Turbo 991.2 2018");
+  const carrera = expandVehicleAliases("Porsche 911 Carrera 992.1 2021");
+
+  assert.deepEqual(turbo.models, ["911 Turbo"]);
+  assert.deepEqual(turbo.chassis, ["991.2"]);
+  assert.deepEqual(carrera.models, ["911 Carrera"]);
+  assert.deepEqual(carrera.chassis, ["992.1"]);
+
+  const enriched = enrichVehicleSearchFromCatalog(turbo, [
+    {
+      titleText: "porsche 911 turbo 991 exhaust",
+      fitment: {
+        make: "Porsche",
+        models: ["911 Turbo"],
+        chassisCodes: ["991"],
+        yearRanges: [{ from: 2011, to: 2019 }],
+      },
+    },
+    {
+      titleText: "porsche 911 turbo 991 2 exhaust",
+      fitment: {
+        make: "Porsche",
+        models: ["911 Turbo"],
+        chassisCodes: ["991.2"],
+        yearRanges: [{ from: 2016, to: 2019 }],
+      },
+    },
+  ]);
+  assert.deepEqual(enriched.chassis, ["991.2"]);
+});
+
+test("specific GR Supra model wins over the shorter Supra alias", () => {
+  assert.deepEqual(expandVehicleAliases("Toyota GR Supra A90 2021").models, ["GR Supra"]);
+});
+
+test("catalog mentions remove unrelated makes and models from overlapping aliases", () => {
+  const enriched = enrichVehicleSearchFromCatalog(expandVehicleAliases("Audi RS3 8Y 2023"), [
+    {
+      titleText: "audi rs3 8y exhaust",
+      fitment: {
+        make: "Audi",
+        models: ["RS3"],
+        chassisCodes: ["8Y"],
+        yearRanges: [{ from: 2021, to: null }],
+      },
+    },
+    {
+      titleText: "volkswagen golf mk8 exhaust",
+      fitment: {
+        make: "Volkswagen",
+        models: ["Golf"],
+        chassisCodes: ["MK8"],
+        yearRanges: [{ from: 2021, to: null }],
+      },
+    },
+    {
+      titleText: "audi rs3 8v exhaust",
+      fitment: {
+        make: "Audi",
+        models: ["RS3"],
+        chassisCodes: ["8V"],
+        yearRanges: [{ from: 2021, to: null }],
+      },
+    },
+  ]);
+
+  assert.deepEqual(enriched.makes, ["Audi"]);
+  assert.deepEqual(enriched.models, ["RS3"]);
+  assert.deepEqual(enriched.chassis, ["8Y"]);
+});
+
 test("catalog year evidence resolves a query to matching chassis", () => {
   const expanded = expandVehicleAliases("BMW M3 2018");
   const enriched = enrichVehicleSearchFromCatalog(

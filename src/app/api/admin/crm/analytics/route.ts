@@ -1,36 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/admin/crm/analytics
  * Rich analytics from local CRM data
- * 
+ *
  * Query params:
  * - type: 'dashboard' | 'monthly' | 'top-customers' | 'top-products'
  */
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
   const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type') || 'dashboard';
+  const type = searchParams.get("type") || "dashboard";
 
   try {
-    if (type === 'dashboard') {
+    if (type === "dashboard") {
       return NextResponse.json(await getDashboardData());
     }
-    if (type === 'monthly') {
+    if (type === "monthly") {
       return NextResponse.json(await getMonthlyData());
     }
-    if (type === 'top-customers') {
+    if (type === "top-customers") {
       return NextResponse.json(await getTopCustomers());
     }
-    if (type === 'top-products') {
+    if (type === "top-products") {
       return NextResponse.json(await getTopProducts());
     }
-    return NextResponse.json({ error: 'Unknown type' }, { status: 400 });
+    return NextResponse.json({ error: "Unknown type" }, { status: 400 });
   } catch (error: any) {
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -51,20 +57,26 @@ async function getDashboardData() {
     prisma.crmOrder.count(),
     prisma.crmOrderItem.count(),
     prisma.crmOrder.aggregate({
-      _sum: { clientTotal: true, profit: true, purchaseCost: true, fullCost: true, additionalCosts: true },
+      _sum: {
+        clientTotal: true,
+        profit: true,
+        purchaseCost: true,
+        fullCost: true,
+        additionalCosts: true,
+      },
       _avg: { marginality: true },
     }),
-    prisma.crmOrder.groupBy({ by: ['orderStatus'], _count: true }),
-    prisma.crmOrder.groupBy({ by: ['paymentStatus'], _count: true }),
-    prisma.crmOrder.findFirst({ orderBy: { syncedAt: 'desc' }, select: { syncedAt: true } }),
+    prisma.crmOrder.groupBy({ by: ["orderStatus"], _count: true }),
+    prisma.crmOrder.groupBy({ by: ["paymentStatus"], _count: true }),
+    prisma.crmOrder.findFirst({ orderBy: { syncedAt: "desc" }, select: { syncedAt: true } }),
     prisma.crmOrder.findMany({
-      orderBy: { orderDate: 'desc' },
+      orderBy: { orderDate: "desc" },
       take: 10,
       include: { customer: { select: { name: true } } },
     }),
     prisma.crmCustomer.findMany({
       where: { balance: { lt: 0 } },
-      orderBy: { balance: 'asc' },
+      orderBy: { balance: "asc" },
       take: 10,
     }),
   ]);
@@ -83,10 +95,13 @@ async function getDashboardData() {
       totalAdditionalCosts: sums.additionalCosts || 0,
       avgMargin: Math.round((orderAggregates._avg.marginality || 0) * 1000) / 10,
     },
-    statusDistribution: statusCounts.map(s => ({ status: s.orderStatus, count: s._count })),
-    paymentDistribution: paymentStatusCounts.map(s => ({ status: s.paymentStatus, count: s._count })),
+    statusDistribution: statusCounts.map((s) => ({ status: s.orderStatus, count: s._count })),
+    paymentDistribution: paymentStatusCounts.map((s) => ({
+      status: s.paymentStatus,
+      count: s._count,
+    })),
     lastSyncAt: lastSync?.syncedAt || null,
-    recentOrders: recentOrders.map(o => ({
+    recentOrders: recentOrders.map((o) => ({
       id: o.id,
       airtableId: o.airtableId,
       number: o.number,
@@ -98,7 +113,7 @@ async function getDashboardData() {
       orderDate: o.orderDate,
       customerName: o.customer?.name || null,
     })),
-    debtors: debtors.map(d => ({
+    debtors: debtors.map((d) => ({
       id: d.id,
       airtableId: d.airtableId,
       name: d.name,
@@ -113,14 +128,15 @@ async function getMonthlyData() {
   const orders = await prisma.crmOrder.findMany({
     where: { orderDate: { not: null } },
     select: { orderDate: true, clientTotal: true, profit: true, purchaseCost: true },
-    orderBy: { orderDate: 'asc' },
+    orderBy: { orderDate: "asc" },
   });
 
-  const monthly: Record<string, { revenue: number; profit: number; cost: number; count: number }> = {};
+  const monthly: Record<string, { revenue: number; profit: number; cost: number; count: number }> =
+    {};
 
   for (const o of orders) {
     if (!o.orderDate) continue;
-    const key = `${o.orderDate.getFullYear()}-${String(o.orderDate.getMonth() + 1).padStart(2, '0')}`;
+    const key = `${o.orderDate.getFullYear()}-${String(o.orderDate.getMonth() + 1).padStart(2, "0")}`;
     if (!monthly[key]) monthly[key] = { revenue: 0, profit: 0, cost: 0, count: 0 };
     monthly[key].revenue += o.clientTotal;
     monthly[key].profit += o.profit;
@@ -135,12 +151,12 @@ async function getMonthlyData() {
 
 async function getTopCustomers() {
   const customers = await prisma.crmCustomer.findMany({
-    orderBy: { totalSales: 'desc' },
+    orderBy: { totalSales: "desc" },
     take: 15,
     include: { orders: { select: { id: true } } },
   });
 
-  return customers.map(c => ({
+  return customers.map((c) => ({
     id: c.id,
     airtableId: c.airtableId,
     name: c.name,
@@ -155,14 +171,14 @@ async function getTopCustomers() {
 async function getTopProducts() {
   // Aggregate order items by productName
   const items = await prisma.crmOrderItem.groupBy({
-    by: ['productName'],
+    by: ["productName"],
     _sum: { quantity: true, clientTotal: true, profitPerItem: true, purchaseTotal: true },
     _count: true,
-    orderBy: { _sum: { clientTotal: 'desc' } },
+    orderBy: { _sum: { clientTotal: "desc" } },
     take: 20,
   });
 
-  return items.map(i => ({
+  return items.map((i) => ({
     productName: i.productName,
     totalQuantity: i._sum.quantity || 0,
     totalRevenue: i._sum.clientTotal || 0,
@@ -172,4 +188,4 @@ async function getTopProducts() {
   }));
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

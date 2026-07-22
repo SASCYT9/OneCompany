@@ -13,6 +13,12 @@ import {
   NORMALIZED_FITMENT_KEY,
   NORMALIZED_FITMENT_NAMESPACE,
 } from "@/lib/shopFitmentQuality";
+import {
+  isSupplierFitmentMetafield,
+  normalizeSupplierFitmentContract,
+  SUPPLIER_FITMENT_KEY,
+  SUPPLIER_FITMENT_NAMESPACE,
+} from "@/lib/shopImportFitment";
 
 export {
   buildStorefrontBackfillPlan,
@@ -554,6 +560,33 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   const media = normalizeMedia(source.media);
   const variants = ensureSingleDefaultVariant(normalizeVariants(source.variants));
   const errors: string[] = [];
+  let metafields = normalizeMetafields(source.metafields);
+
+  const hasSupplierFitment =
+    Object.prototype.hasOwnProperty.call(source, "fitment") ||
+    Object.prototype.hasOwnProperty.call(source, "fitmentContract");
+  if (hasSupplierFitment) {
+    const normalizedFitment = normalizeSupplierFitmentContract(
+      source.fitmentContract ?? source.fitment
+    );
+    if (normalizedFitment.errors.length) {
+      errors.push(
+        ...normalizedFitment.errors.map(
+          (error) => `fitment.${error.path} [${error.code}]: ${error.message}`
+        )
+      );
+    } else if (normalizedFitment.data) {
+      metafields = [
+        ...metafields.filter((item) => !isSupplierFitmentMetafield(item)),
+        {
+          namespace: SUPPLIER_FITMENT_NAMESPACE,
+          key: SUPPLIER_FITMENT_KEY,
+          value: JSON.stringify(normalizedFitment.data),
+          valueType: "json",
+        },
+      ];
+    }
+  }
 
   if (!slug) errors.push("slug is required");
   if (!titleUa && !titleEn) errors.push("titleUa or titleEn is required");
@@ -629,7 +662,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     media,
     options: normalizeOptions(source.options),
     variants,
-    metafields: normalizeMetafields(source.metafields),
+    metafields,
   };
 
   if (!data.media.length && data.image) {

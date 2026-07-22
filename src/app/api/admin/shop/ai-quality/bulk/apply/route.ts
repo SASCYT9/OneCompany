@@ -69,7 +69,7 @@ async function processTargetedOutboxJobs(outboxIds: string[]) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = assertAdminRequest(await cookies(), ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
+    const session = await assertAdminRequest(await cookies(), ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
     if (!(request.headers.get("content-type") ?? "").includes("application/json")) {
       return json({ error: "Content-Type must be application/json" }, 415);
     }

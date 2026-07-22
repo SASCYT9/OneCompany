@@ -96,16 +96,30 @@ model TelegramAdmin {
 }
 
 model AdminUser {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  name         String?
-  isActive     Boolean         @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  passwordHash String?
-  auditLogs    AdminAuditLog[]
-  roles        AdminUserRole[]
+  id                       String                 @id @default(cuid())
+  email                    String                 @unique
+  name                     String?
+  isActive                 Boolean                @default(true)
+  lastLoginAt              DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  passwordHash             String?
+  auditLogs                AdminAuditLog[]
+  roles                    AdminUserRole[]
+  opsProfile               OpsMemberProfile?
+  opsProjects              OpsProject[]           @relation("OpsProjectOwner")
+  opsTasksCreated          OpsTask[]              @relation("OpsTaskCreator")
+  opsTasksAssigned         OpsTask[]              @relation("OpsTaskAssignee")
+  opsTaskEvents            OpsTaskEvent[]         @relation("OpsTaskEventActor")
+  opsComments              OpsComment[]           @relation("OpsCommentAuthor")
+  opsTaskAttachments       OpsTaskAttachment[]    @relation("OpsTaskAttachmentActor")
+  opsKnowledgeArticles     OpsKnowledgeArticle[]  @relation("OpsKnowledgeAuthor")
+  opsKnowledgePublications OpsKnowledgeArticle[]  @relation("OpsKnowledgePublisher")
+  opsKnowledgeRevisions    OpsKnowledgeRevision[] @relation("OpsKnowledgeRevisionActor")
+  opsAutomationRuns        OpsAutomationRun[]     @relation("OpsAutomationRequester")
+  opsApprovalRequests      OpsApproval[]          @relation("OpsApprovalRequester")
+  opsApprovalDecisions     OpsApproval[]          @relation("OpsApprovalApprover")
+  opsTelegramBatches       OpsTelegramBatch[]     @relation("OpsTelegramBatchActor")
 
   @@index([isActive])
 }
@@ -249,6 +263,7 @@ model ShopProduct {
   @@index([categoryId])
   @@index([brand])
   @@index([vendor])
+  @@index([slug], map: "ShopProduct_slug_idx")
 }
 
 model ShopProductKnowledge {
@@ -301,12 +316,13 @@ model ShopProductKnowledge {
   vehicleApplications ShopVehicleApplication[]
 
   @@index([schemaVersion])
-  @@index([status, sourceUpdatedAt])
-  @@index([status, updatedAt])
+  @@index([status, sourceUpdatedAt], map: "ShopProductKnowledge_status_sourceUpdated_idx")
+  @@index([status, updatedAt], map: "ShopProductKnowledge_status_updated_idx")
   @@index([vehicleType])
   @@index([categoryGroup])
   @@index([fitmentStatus])
   @@index([contentHash])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin, map: "ShopProductKnowledge_searchText_trgm_idx")
 }
 
 model ShopAiConversation {
@@ -364,20 +380,20 @@ model ShopVehicleApplication {
   product             ShopProduct                     @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant             ShopProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
   variantKnowledge    ShopVariantKnowledge?           @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
-  vehicleGeneration   VehicleGeneration?              @relation(fields: [vehicleGenerationId], references: [id], onDelete: SetNull)
+  vehicleGeneration   VehicleGeneration?              @relation(fields: [vehicleGenerationId], references: [id], onDelete: SetNull, map: "ShopVehicleApplication_generationId_fkey")
   evidence            ShopKnowledgeEvidence[]
   reviewTasks         ShopKnowledgeReviewTask[]
 
   @@unique([applicationKey, revision])
-  @@index([knowledgeId, isActive])
-  @@index([productId, isActive])
-  @@index([variantId, isActive])
-  @@index([vehicleGenerationId])
-  @@index([scope, make, model, chassisCode])
-  @@index([make, model, yearFrom, yearTo])
-  @@index([categoryGroup, productKind])
-  @@index([verificationStatus, isActive])
-  @@index([opfGpf, isActive])
+  @@index([knowledgeId, isActive], map: "ShopVehicleApplication_knowledge_active_idx")
+  @@index([productId, isActive], map: "ShopVehicleApplication_product_active_idx")
+  @@index([variantId, isActive], map: "ShopVehicleApplication_variant_active_idx")
+  @@index([vehicleGenerationId], map: "ShopVehicleApplication_generation_idx")
+  @@index([scope, make, model, chassisCode], map: "ShopVehicleApplication_scope_vehicle_idx")
+  @@index([make, model, yearFrom, yearTo], map: "ShopVehicleApplication_years_idx")
+  @@index([categoryGroup, productKind], map: "ShopVehicleApplication_category_kind_idx")
+  @@index([verificationStatus, isActive], map: "ShopVehicleApplication_verification_active_idx")
+  @@index([opfGpf, isActive], map: "ShopVehicleApplication_opf_active_idx")
 }
 
 model ShopVariantKnowledge {
@@ -409,9 +425,9 @@ model ShopVariantKnowledge {
   chunks            ShopKnowledgeChunk[]
   evidence          ShopKnowledgeEvidence[]
 
-  @@unique([knowledgeId, variantId, revision])
-  @@index([knowledgeId, status])
-  @@index([productId, isActive])
+  @@unique([knowledgeId, variantId, revision], map: "ShopVariantKnowledge_knowledge_variant_revision_key")
+  @@index([knowledgeId, status], map: "ShopVariantKnowledge_knowledge_status_idx")
+  @@index([productId, isActive], map: "ShopVariantKnowledge_product_active_idx")
   @@index([sku])
   @@index([contentHash])
 }
@@ -440,12 +456,13 @@ model ShopKnowledgeChunk {
   variantKnowledge   ShopVariantKnowledge?       @relation(fields: [variantKnowledgeId], references: [id], onDelete: SetNull)
 
   @@unique([chunkKey, revision])
-  @@index([knowledgeId, revision, isActive])
-  @@index([productId, locale, isActive])
-  @@index([variantKnowledgeId, isActive])
-  @@index([locale, sourceField])
+  @@index([knowledgeId, revision, isActive], map: "ShopKnowledgeChunk_knowledge_revision_active_idx")
+  @@index([productId, locale, isActive], map: "ShopKnowledgeChunk_product_locale_active_idx")
+  @@index([variantKnowledgeId, isActive], map: "ShopKnowledgeChunk_variant_active_idx")
+  @@index([locale, sourceField], map: "ShopKnowledgeChunk_locale_source_idx")
   @@index([contentHash])
-  @@index([embeddingModel, embeddedAt])
+  @@index([embeddingModel, embeddedAt], map: "ShopKnowledgeChunk_embedding_model_idx")
+  @@index([content(ops: raw("gin_trgm_ops"))], type: Gin, map: "ShopKnowledgeChunk_content_trgm_idx")
 }
 
 model ShopProductAttributeDefinition {
@@ -468,8 +485,8 @@ model ShopProductAttributeDefinition {
   updatedAt        DateTime                      @updatedAt
   values           ShopProductAttributeValue[]
 
-  @@index([isActive, isFilterable])
-  @@index([isHardConstraint, isRequired])
+  @@index([isActive, isFilterable], map: "ShopProductAttributeDefinition_active_filter_idx")
+  @@index([isHardConstraint, isRequired], map: "ShopProductAttributeDefinition_hard_required_idx")
 }
 
 model ShopProductAttributeValue {
@@ -502,11 +519,11 @@ model ShopProductAttributeValue {
   reviewTasks        ShopKnowledgeReviewTask[]
 
   @@unique([valueKey, revision])
-  @@index([definitionId, normalizedValue, isActive])
-  @@index([knowledgeId, revision, isActive])
-  @@index([productId, isActive])
-  @@index([variantId, isActive])
-  @@index([verificationStatus, isActive])
+  @@index([definitionId, normalizedValue, isActive], map: "ShopProductAttributeValue_definition_value_idx")
+  @@index([knowledgeId, revision, isActive], map: "ShopProductAttributeValue_knowledge_revision_idx")
+  @@index([productId, isActive], map: "ShopProductAttributeValue_product_active_idx")
+  @@index([variantId, isActive], map: "ShopProductAttributeValue_variant_active_idx")
+  @@index([verificationStatus, isActive], map: "ShopProductAttributeValue_verification_idx")
 }
 
 model VehicleGeneration {
@@ -547,9 +564,9 @@ model VehicleAlias {
   updatedAt           DateTime            @updatedAt
   vehicleGeneration   VehicleGeneration   @relation(fields: [vehicleGenerationId], references: [id], onDelete: Cascade)
 
-  @@unique([vehicleGenerationId, normalizedAlias])
-  @@index([normalizedAlias, isActive])
-  @@index([aliasType, isActive])
+  @@unique([vehicleGenerationId, normalizedAlias], map: "VehicleAlias_generation_alias_key")
+  @@index([normalizedAlias, isActive], map: "VehicleAlias_normalizedAlias_active_idx")
+  @@index([aliasType, isActive], map: "VehicleAlias_aliasType_active_idx")
 }
 
 model ShopKnowledgeEvidence {
@@ -581,11 +598,11 @@ model ShopKnowledgeEvidence {
   attributeValue       ShopProductAttributeValue? @relation(fields: [attributeValueId], references: [id], onDelete: SetNull)
 
   @@unique([evidenceKey, revision])
-  @@index([knowledgeId, fieldPath, isActive])
-  @@index([productId, revision])
-  @@index([vehicleApplicationId])
-  @@index([attributeValueId])
-  @@index([source, isManagerVerified])
+  @@index([knowledgeId, fieldPath, isActive], map: "ShopKnowledgeEvidence_knowledge_field_idx")
+  @@index([productId, revision], map: "ShopKnowledgeEvidence_product_revision_idx")
+  @@index([vehicleApplicationId], map: "ShopKnowledgeEvidence_application_idx")
+  @@index([attributeValueId], map: "ShopKnowledgeEvidence_attribute_idx")
+  @@index([source, isManagerVerified], map: "ShopKnowledgeEvidence_source_verified_idx")
 }
 
 model ShopKnowledgeRevision {
@@ -606,16 +623,16 @@ model ShopKnowledgeRevision {
   knowledge     ShopProductKnowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
   product       ShopProduct          @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([knowledgeId, revision])
-  @@index([productId, createdAt])
-  @@index([status, createdAt])
+  @@unique([knowledgeId, revision], map: "ShopKnowledgeRevision_knowledge_revision_key")
+  @@index([productId, createdAt], map: "ShopKnowledgeRevision_product_created_idx")
+  @@index([status, createdAt], map: "ShopKnowledgeRevision_status_created_idx")
 }
 
 model ShopKnowledgeCatalogState {
   id          String   @id
   revision    BigInt   @default(0)
   fingerprint String   @db.VarChar(64)
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model ShopKnowledgeOutbox {
@@ -640,9 +657,9 @@ model ShopKnowledgeOutbox {
   product     ShopProduct               @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant     ShopProductVariant?       @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
-  @@index([status, availableAt])
-  @@index([productId, status])
-  @@index([variantId, status])
+  @@index([status, availableAt], map: "ShopKnowledgeOutbox_status_available_idx")
+  @@index([productId, status], map: "ShopKnowledgeOutbox_product_status_idx")
+  @@index([variantId, status], map: "ShopKnowledgeOutbox_variant_status_idx")
   @@index([lockedAt])
 }
 
@@ -676,11 +693,11 @@ model ShopKnowledgeReviewTask {
   aiRun                ShopAiRun?                  @relation(fields: [aiRunId], references: [id], onDelete: SetNull)
   feedback             ShopAiFeedback?             @relation(fields: [feedbackId], references: [id], onDelete: SetNull)
 
-  @@index([status, priority, createdAt])
-  @@index([knowledgeId, status])
-  @@index([productId, status])
-  @@index([assignedToId, status])
-  @@index([aiRunId])
+  @@index([status, priority, createdAt], map: "ShopKnowledgeReviewTask_status_priority_idx")
+  @@index([knowledgeId, status], map: "ShopKnowledgeReviewTask_knowledge_status_idx")
+  @@index([productId, status], map: "ShopKnowledgeReviewTask_product_status_idx")
+  @@index([assignedToId, status], map: "ShopKnowledgeReviewTask_assignee_status_idx")
+  @@index([aiRunId], map: "ShopKnowledgeReviewTask_aiRun_idx")
 }
 
 model ShopAiRun {
@@ -720,11 +737,11 @@ model ShopAiRun {
   feedback           ShopAiFeedback[]
   reviewTasks        ShopKnowledgeReviewTask[]
 
-  @@index([conversationId, createdAt])
-  @@index([status, createdAt])
-  @@index([mode, createdAt])
-  @@index([evaluationRunId])
-  @@index([traceSampled, createdAt])
+  @@index([conversationId, createdAt], map: "ShopAiRun_conversation_created_idx")
+  @@index([status, createdAt], map: "ShopAiRun_status_created_idx")
+  @@index([mode, createdAt], map: "ShopAiRun_mode_created_idx")
+  @@index([evaluationRunId], map: "ShopAiRun_evaluation_idx")
+  @@index([traceSampled, createdAt], map: "ShopAiRun_trace_created_idx")
 }
 
 model ShopAiCandidateDecision {
@@ -747,10 +764,10 @@ model ShopAiCandidateDecision {
   run                  ShopAiRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
   feedback             ShopAiFeedback[]
 
-  @@index([runId, matchStatus])
-  @@index([runId, rank])
-  @@index([productId, createdAt])
-  @@index([vehicleApplicationId])
+  @@index([runId, matchStatus], map: "ShopAiCandidateDecision_run_status_idx")
+  @@index([runId, rank], map: "ShopAiCandidateDecision_run_rank_idx")
+  @@index([productId, createdAt], map: "ShopAiCandidateDecision_product_created_idx")
+  @@index([vehicleApplicationId], map: "ShopAiCandidateDecision_application_idx")
 }
 
 model ShopAiFeedback {
@@ -774,11 +791,11 @@ model ShopAiFeedback {
   candidateDecision   ShopAiCandidateDecision? @relation(fields: [candidateDecisionId], references: [id], onDelete: SetNull)
   reviewTask          ShopKnowledgeReviewTask?
 
-  @@index([status, createdAt])
-  @@index([signal, createdAt])
-  @@index([runId])
-  @@index([conversationId])
-  @@index([productId, createdAt])
+  @@index([status, createdAt], map: "ShopAiFeedback_status_created_idx")
+  @@index([signal, createdAt], map: "ShopAiFeedback_signal_created_idx")
+  @@index([runId], map: "ShopAiFeedback_run_idx")
+  @@index([conversationId], map: "ShopAiFeedback_conversation_idx")
+  @@index([productId, createdAt], map: "ShopAiFeedback_product_created_idx")
 }
 
 model ShopAiEvaluationRun {
@@ -806,9 +823,9 @@ model ShopAiEvaluationRun {
   updatedAt          DateTime               @updatedAt
   runs               ShopAiRun[]
 
-  @@index([status, createdAt])
-  @@index([categoryGroup, createdAt])
-  @@index([suiteName, suiteVersion])
+  @@index([status, createdAt], map: "ShopAiEvaluationRun_status_created_idx")
+  @@index([categoryGroup, createdAt], map: "ShopAiEvaluationRun_category_created_idx")
+  @@index([suiteName, suiteVersion], map: "ShopAiEvaluationRun_suite_idx")
 }
 
 model ShopWarehouse {
@@ -911,6 +928,7 @@ model ShopCollection {
 
   @@index([isUrban, sortOrder])
   @@index([isPublished])
+  @@index([handle], map: "ShopCollection_handle_idx")
 }
 
 model ShopCategory {
@@ -931,6 +949,7 @@ model ShopCategory {
 
   @@index([parentId, sortOrder])
   @@index([isPublished, sortOrder])
+  @@index([slug], map: "ShopCategory_slug_idx")
 }
 
 model ShopProductCollection {
@@ -1133,12 +1152,22 @@ model ShopSettings {
   appDarkMode               Boolean  @default(true)
   appDefaultLanguage        String   @default("ua")
   appDefaultMarkup          Int      @default(25)
+  appAtomicDiscountPercent  Decimal? @default(7.00) @db.Decimal(5, 2)
   appLogoUrl                String?  @default("/branding/one-company-logo.png")
   appMetaDescription        String?
   appMetaTitle              String?  @default("OneCompany — Premium Tuning & Performance Parts")
   appOgImage                String?  @default("/branding/one-company-logo.png")
   appShowPricesWithVat      Boolean  @default(false)
   appSoundEnabled           Boolean  @default(false)
+}
+
+model ShopBrandB2bDiscount {
+  id          String   @id @default(cuid())
+  brand       String   @unique
+  discountPct Decimal  @db.Decimal(5, 2)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ShopCustomer {
@@ -1307,17 +1336,21 @@ model ShopOrder {
   quoteDeclinedAt DateTime?
   internalNote    String?
 
-  customer  ShopCustomer?          @relation(fields: [customerId], references: [id])
-  items     ShopOrderItem[]
-  events    ShopOrderStatusEvent[]
-  shipments ShopShipment[]
-  returns   ShopOrderReturn[]
+  customer            ShopCustomer?          @relation(fields: [customerId], references: [id])
+  items               ShopOrderItem[]
+  events              ShopOrderStatusEvent[]
+  shipments           ShopShipment[]
+  returns             ShopOrderReturn[]
+  opsTasks            OpsTask[]
+  opsComments         OpsComment[]
+  opsTelegramContexts OpsTelegramContext[]
 
   @@index([status])
   @@index([createdAt])
   @@index([customerId])
   @@index([discountCode])
   @@index([isDraft])
+  @@index([orderNumber], map: "ShopOrder_orderNumber_idx")
 }
 
 model ShopOrderItem {
@@ -2232,4 +2265,657 @@ model ShopIntegration {
   updatedAt      DateTime            @updatedAt
 
   @@index([provider, isActive])
+}
+
+enum OpsProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum OpsPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum OpsTaskStatus {
+  INBOX
+  PLANNED
+  IN_PROGRESS
+  AGENT_RUNNING
+  WAITING_HUMAN
+  WAITING_EXTERNAL
+  NEEDS_APPROVAL
+  REVIEW
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum OpsExecutorType {
+  HUMAN
+  AUTOMATION
+  MIXED
+}
+
+enum OpsBlockerType {
+  HUMAN
+  EXTERNAL
+  APPROVAL
+  TECHNICAL
+  INFORMATION
+  OTHER
+}
+
+enum OpsTaskSourceType {
+  ADMIN
+  TELEGRAM
+  AUTOMATION
+  IMPORT
+}
+
+enum OpsTaskEventType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  ASSIGNED
+  COMMENTED
+  AUTOMATION_STARTED
+  AUTOMATION_FINISHED
+  RETRIED
+  BLOCKED
+  APPROVED
+  UNDONE
+  REOPENED
+}
+
+enum OpsKnowledgeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OpsInboxExtractionStatus {
+  RECEIVED
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum OpsInboxReviewStatus {
+  PENDING
+  APPLIED
+  IGNORED
+  UNDONE
+}
+
+enum OpsProposalKind {
+  PROJECT
+  TASK
+  NOTE
+}
+
+enum OpsProposalStatus {
+  PENDING
+  APPLIED
+  REJECTED
+}
+
+enum OpsAttachmentState {
+  PENDING
+  READY
+  QUARANTINED
+  REJECTED
+  DELETED
+}
+
+enum OpsJobStatus {
+  QUEUED
+  RUNNING
+  WAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  DEAD_LETTER
+}
+
+enum OpsJobStage {
+  INGEST
+  DOWNLOAD_MEDIA
+  TRANSCRIBE
+  EXTRACT
+  RESOLVE_CONTEXT
+  CREATE_PREVIEW_OR_ENTITIES
+  EXECUTE_AUTOMATIONS
+  NOTIFY
+  WATCHDOG
+}
+
+enum OpsTelegramBatchStatus {
+  OPEN
+  PROCESSING
+  READY
+  CANCELLED
+  EXPIRED
+}
+
+enum OpsTelegramBatchMode {
+  ONE_TASK
+  SPLIT_TASKS
+}
+
+enum OpsAutomationStatus {
+  QUEUED
+  RUNNING
+  WAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum OpsApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+model OpsMemberProfile {
+  id              String    @id @default(cuid())
+  adminUserId     String    @unique
+  telegramUserId  BigInt?   @unique
+  timezone        String    @default("Europe/Kyiv")
+  telegramEnabled Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  adminUser       AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([telegramEnabled])
+}
+
+model OpsProject {
+  id                String                @id @default(cuid())
+  externalId        String                @unique
+  title             String
+  description       String?
+  status            OpsProjectStatus      @default(ACTIVE)
+  ownerId           String?
+  priority          OpsPriority           @default(NORMAL)
+  startDate         DateTime?
+  dueDate           DateTime?
+  nextAction        String?
+  version           Int                   @default(1)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  archivedAt        DateTime?
+  owner             AdminUser?            @relation("OpsProjectOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  tasks             OpsTask[]
+  comments          OpsComment[]
+  knowledgeArticles OpsKnowledgeArticle[]
+  telegramContexts  OpsTelegramContext[]
+
+  @@index([status, archivedAt])
+  @@index([ownerId, status])
+  @@index([priority, dueDate])
+}
+
+model OpsTask {
+  id                  String                 @id @default(cuid())
+  externalId          String                 @unique
+  projectId           String?
+  shopOrderId         String?
+  parentTaskId        String?
+  title               String
+  description         String?
+  status              OpsTaskStatus          @default(INBOX)
+  priority            OpsPriority            @default(NORMAL)
+  assigneeId          String?
+  isShared            Boolean                @default(false)
+  executorType        OpsExecutorType        @default(HUMAN)
+  dueAt               DateTime?
+  nextAction          String?
+  definitionOfDone    String?
+  blockerType         OpsBlockerType?
+  blockerDescription  String?
+  retryAt             DateTime?
+  attemptCount        Int                    @default(0)
+  rank                Decimal                @default(0) @db.Decimal(20, 8)
+  sourceType          OpsTaskSourceType      @default(ADMIN)
+  sourceId            String?
+  sourceKey           String?                @unique
+  createdById         String
+  version             Int                    @default(1)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  completedAt         DateTime?
+  archivedAt          DateTime?
+  project             OpsProject?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  shopOrder           ShopOrder?             @relation(fields: [shopOrderId], references: [id], onDelete: SetNull)
+  parent              OpsTask?               @relation("OpsTaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  children            OpsTask[]              @relation("OpsTaskHierarchy")
+  assignee            AdminUser?             @relation("OpsTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy           AdminUser              @relation("OpsTaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  events              OpsTaskEvent[]
+  comments            OpsComment[]
+  attachments         OpsTaskAttachment[]
+  knowledgeLinks      OpsTaskKnowledgeLink[]
+  automationRuns      OpsAutomationRun[]
+  approvals           OpsApproval[]
+  jobs                OpsJob[]
+  telegramDeliveries  OpsTelegramDelivery[]
+  opsTelegramContexts OpsTelegramContext[]
+
+  @@index([status, archivedAt, rank])
+  @@index([assigneeId, status, dueAt])
+  @@index([projectId, status])
+  @@index([shopOrderId])
+  @@index([parentTaskId])
+  @@index([sourceType, sourceId])
+}
+
+model OpsTaskEvent {
+  id             String            @id @default(cuid())
+  taskId         String
+  type           OpsTaskEventType
+  actorId        String?
+  sourceType     OpsTaskSourceType @default(ADMIN)
+  sourceId       String?
+  idempotencyKey String?
+  payload        Json              @default("{}")
+  createdAt      DateTime          @default(now())
+  task           OpsTask           @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  actor          AdminUser?        @relation("OpsTaskEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([sourceType, sourceId])
+}
+
+model OpsComment {
+  id                String       @id @default(cuid())
+  taskId            String?
+  projectId         String?
+  shopOrderId       String?
+  authorId          String
+  text              String
+  telegramSourceId  String?
+  correctsCommentId String?
+  createdAt         DateTime     @default(now())
+  task              OpsTask?     @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  project           OpsProject?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  shopOrder         ShopOrder?   @relation(fields: [shopOrderId], references: [id], onDelete: Restrict)
+  author            AdminUser    @relation("OpsCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  correctsComment   OpsComment?  @relation("OpsCommentCorrection", fields: [correctsCommentId], references: [id], onDelete: Restrict)
+  corrections       OpsComment[] @relation("OpsCommentCorrection")
+
+  @@index([taskId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([shopOrderId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model OpsAttachment {
+  id                   String              @id @default(cuid())
+  inboxItemId          String?
+  storageKey           String              @unique
+  checksum             String
+  mimeType             String
+  sizeBytes            BigInt
+  fileName             String?
+  telegramFileId       String?
+  telegramFileUniqueId String?
+  state                OpsAttachmentState  @default(PENDING)
+  retentionAt          DateTime?
+  pinned               Boolean             @default(false)
+  quarantineReason     String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  inboxItem            OpsInboxItem?       @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  tasks                OpsTaskAttachment[]
+
+  @@index([inboxItemId])
+  @@index([checksum])
+  @@index([state, retentionAt])
+  @@index([telegramFileId])
+}
+
+model OpsTaskAttachment {
+  taskId       String
+  attachmentId String
+  attachedById String?
+  createdAt    DateTime      @default(now())
+  task         OpsTask       @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  attachment   OpsAttachment @relation(fields: [attachmentId], references: [id], onDelete: Restrict)
+  attachedBy   AdminUser?    @relation("OpsTaskAttachmentActor", fields: [attachedById], references: [id], onDelete: SetNull)
+
+  @@id([taskId, attachmentId])
+  @@index([attachmentId])
+}
+
+model OpsKnowledgeArticle {
+  id                String                 @id @default(cuid())
+  slug              String                 @unique
+  projectId         String?
+  title             String
+  excerpt           String?
+  contentMarkdown   String
+  locale            String                 @default("ru")
+  category          String
+  brandKey          String?
+  tags              String[]               @default([])
+  searchText        String                 @default("")
+  status            OpsKnowledgeStatus     @default(DRAFT)
+  authorId          String
+  publishedById     String?
+  publishedRevision Int?
+  publishedAt       DateTime?
+  version           Int                    @default(1)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  archivedAt        DateTime?
+  project           OpsProject?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  author            AdminUser              @relation("OpsKnowledgeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  publishedBy       AdminUser?             @relation("OpsKnowledgePublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+  revisions         OpsKnowledgeRevision[]
+  taskLinks         OpsTaskKnowledgeLink[]
+
+  @@index([status, locale, category])
+  @@index([brandKey, status])
+  @@index([updatedAt])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin, map: "OpsKnowledgeArticle_searchText_trgm_idx")
+}
+
+model OpsKnowledgeRevision {
+  id              String              @id @default(cuid())
+  articleId       String
+  revision        Int
+  status          OpsKnowledgeStatus
+  title           String
+  excerpt         String?
+  contentMarkdown String
+  locale          String
+  category        String
+  brandKey        String?
+  tags            String[]            @default([])
+  changeNote      String?
+  changedById     String
+  createdAt       DateTime            @default(now())
+  article         OpsKnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Restrict)
+  changedBy       AdminUser           @relation("OpsKnowledgeRevisionActor", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@unique([articleId, revision])
+  @@index([articleId, createdAt])
+}
+
+model OpsTaskKnowledgeLink {
+  taskId    String
+  articleId String
+  createdAt DateTime            @default(now())
+  task      OpsTask             @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  article   OpsKnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Restrict)
+
+  @@id([taskId, articleId])
+  @@index([articleId])
+}
+
+model OpsTelegramUpdate {
+  id                 String                @id @default(cuid())
+  telegramUpdateId   BigInt                @unique
+  chatId             BigInt
+  telegramUserId     BigInt?
+  messageId          Int?
+  messageThreadId    Int?
+  updateType         String
+  rawUpdate          Json
+  isUntrustedForward Boolean               @default(false)
+  receivedAt         DateTime              @default(now())
+  inboxItem          OpsInboxItem?
+  batchItem          OpsTelegramBatchItem?
+
+  @@index([chatId, messageThreadId, receivedAt])
+  @@index([telegramUserId, receivedAt])
+}
+
+model OpsInboxItem {
+  id                  String                   @id @default(cuid())
+  telegramUpdateId    String                   @unique
+  originalMessage     String?
+  transcription       String?
+  extractionStatus    OpsInboxExtractionStatus @default(RECEIVED)
+  reviewStatus        OpsInboxReviewStatus     @default(PENDING)
+  confidence          Decimal?                 @db.Decimal(4, 3)
+  summary             String?
+  ambiguities         String[]                 @default([])
+  requiresApproval    Boolean                  @default(false)
+  processingErrorType String?
+  processingError     String?
+  appliedTaskIds      String[]                 @default([])
+  undoExpiresAt       DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  processedAt         DateTime?
+  reviewedAt          DateTime?
+  telegramUpdate      OpsTelegramUpdate        @relation(fields: [telegramUpdateId], references: [id], onDelete: Restrict)
+  telegramBatch       OpsTelegramBatch?
+  proposals           OpsInboxProposal[]
+  attachments         OpsAttachment[]
+  jobs                OpsJob[]
+  deliveries          OpsTelegramDelivery[]
+
+  @@index([reviewStatus, createdAt])
+  @@index([extractionStatus, createdAt])
+}
+
+model OpsTelegramBatch {
+  id               String                 @id @default(cuid())
+  scopeKey         String                 @unique
+  actorAdminUserId String
+  chatId           BigInt
+  telegramUserId   BigInt
+  status           OpsTelegramBatchStatus @default(OPEN)
+  mode             OpsTelegramBatchMode?
+  itemCount        Int                    @default(0)
+  statusMessageId  Int?
+  inboxItemId      String?                @unique
+  expiresAt        DateTime
+  finalizedAt      DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  actor            AdminUser              @relation("OpsTelegramBatchActor", fields: [actorAdminUserId], references: [id], onDelete: Restrict)
+  inboxItem        OpsInboxItem?          @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  items            OpsTelegramBatchItem[]
+
+  @@index([telegramUserId, status, updatedAt])
+  @@index([status, expiresAt])
+}
+
+model OpsTelegramBatchItem {
+  id               String            @id @default(cuid())
+  batchId          String
+  telegramUpdateId String            @unique
+  ordinal          Int
+  createdAt        DateTime          @default(now())
+  batch            OpsTelegramBatch  @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  telegramUpdate   OpsTelegramUpdate @relation(fields: [telegramUpdateId], references: [id], onDelete: Restrict)
+
+  @@unique([batchId, ordinal])
+  @@index([batchId, createdAt])
+}
+
+model OpsInboxProposal {
+  id            String            @id @default(cuid())
+  inboxItemId   String
+  kind          OpsProposalKind
+  ordinal       Int               @default(0)
+  payload       Json
+  payloadHash   String
+  confidence    Decimal?          @db.Decimal(4, 3)
+  status        OpsProposalStatus @default(PENDING)
+  appliedTaskId String?
+  createdAt     DateTime          @default(now())
+  appliedAt     DateTime?
+  inboxItem     OpsInboxItem      @relation(fields: [inboxItemId], references: [id], onDelete: Restrict)
+
+  @@unique([inboxItemId, payloadHash])
+  @@index([inboxItemId, status, ordinal])
+}
+
+model OpsTelegramContext {
+  id              String      @id @default(cuid())
+  chatId          BigInt
+  messageThreadId Int?
+  telegramUserId  BigInt?
+  projectId       String?
+  taskId          String?
+  shopOrderId     String?
+  active          Boolean     @default(true)
+  lastMessageId   Int?
+  expiresAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  project         OpsProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  task            OpsTask?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  shopOrder       ShopOrder?  @relation(fields: [shopOrderId], references: [id], onDelete: SetNull)
+
+  @@unique([chatId, messageThreadId, telegramUserId])
+  @@index([taskId, active])
+  @@index([projectId, active])
+  @@index([expiresAt])
+}
+
+model OpsTelegramDelivery {
+  id                String        @id @default(cuid())
+  inboxItemId       String?
+  taskId            String?
+  chatId            BigInt
+  telegramMessageId Int
+  kind              String
+  createdAt         DateTime      @default(now())
+  inboxItem         OpsInboxItem? @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  task              OpsTask?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@unique([chatId, telegramMessageId])
+  @@index([inboxItemId])
+  @@index([taskId])
+}
+
+model OpsJob {
+  id                String        @id @default(cuid())
+  idempotencyKey    String        @unique
+  inboxItemId       String?
+  taskId            String?
+  type              String
+  status            OpsJobStatus  @default(QUEUED)
+  stage             OpsJobStage   @default(INGEST)
+  payload           Json          @default("{}")
+  result            Json?
+  errorType         String?
+  errorMessage      String?
+  attempts          Int           @default(0)
+  maxAttempts       Int           @default(4)
+  availableAt       DateTime      @default(now())
+  leaseOwner        String?
+  leaseExpiresAt    DateTime?
+  heartbeatAt       DateTime?
+  cancelRequestedAt DateTime?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  inboxItem         OpsInboxItem? @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  task              OpsTask?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt])
+  @@index([leaseExpiresAt])
+  @@index([inboxItemId, status])
+  @@index([taskId, status])
+}
+
+model OpsIdempotencyRecord {
+  id           String   @id @default(cuid())
+  scope        String
+  key          String
+  requestHash  String
+  responseBody Json
+  statusCode   Int
+  resourceType String?
+  resourceId   String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@unique([scope, key])
+  @@index([expiresAt])
+  @@index([resourceType, resourceId])
+}
+
+model OpsAutomationRun {
+  id             String              @id @default(cuid())
+  taskId         String
+  automationType String
+  status         OpsAutomationStatus @default(QUEUED)
+  stage          String?
+  attempts       Int                 @default(0)
+  maxAttempts    Int                 @default(4)
+  inputSnapshot  Json
+  result         Json?
+  errorType      String?
+  errorMessage   String?
+  requestedById  String?
+  budget         Json                @default("{}")
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  task           OpsTask             @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  requestedBy    AdminUser?          @relation("OpsAutomationRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OpsApproval {
+  id           String            @id @default(cuid())
+  taskId       String
+  action       String
+  payload      Json
+  payloadHash  String
+  requesterId  String
+  approverId   String?
+  status       OpsApprovalStatus @default(PENDING)
+  decisionNote String?
+  expiresAt    DateTime
+  approvedAt   DateTime?
+  rejectedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  task         OpsTask           @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  requester    AdminUser         @relation("OpsApprovalRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  approver     AdminUser?        @relation("OpsApprovalApprover", fields: [approverId], references: [id], onDelete: SetNull)
+
+  @@index([status, expiresAt])
+  @@index([taskId, createdAt])
+  @@index([approverId, status])
+}
+
+model OpsUsageBucket {
+  id             String   @id @default(cuid())
+  month          DateTime
+  feature        String
+  inputTokens    BigInt   @default(0)
+  outputTokens   BigInt   @default(0)
+  audioSeconds   Int      @default(0)
+  costMicros     BigInt   @default(0)
+  storageBytes   BigInt   @default(0)
+  warningMicros  BigInt   @default(1500000)
+  hardStopMicros BigInt   @default(2000000)
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  @@unique([month, feature])
+  @@index([month])
 }

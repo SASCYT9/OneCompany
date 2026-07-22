@@ -1,28 +1,39 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { registerHooks } from "node:module";
+import { pathToFileURL } from "node:url";
 
 import type { PrismaClient } from "@prisma/client";
 
-import {
-  bumpShopKnowledgeCatalogState,
-  isShopKnowledgeCatalogFingerprintCurrent,
-  normalizeShopKnowledgeCatalogFingerprint,
-  readShopKnowledgeCatalogState,
-  requiresShopKnowledgeCatalogRuntimeGuard,
-} from "../../../src/lib/shopKnowledgeV2/catalogState";
+const serverOnlyStub = pathToFileURL(
+  path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
+).href;
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") {
+      return { url: serverOnlyStub, shortCircuit: true };
+    }
+    return nextResolve(specifier, context);
+  },
+});
+
+const catalogStateModule = import("../../../src/lib/shopKnowledgeV2/catalogState");
 
 const FINGERPRINT = "a".repeat(64);
 
 test("catalog state reads one canonical fingerprint and fails closed when absent", async () => {
+  const { readShopKnowledgeCatalogState } = await catalogStateModule;
   const availableClient = {
     async $queryRaw() {
-      return [{ revision: 7n, fingerprint: FINGERPRINT.toUpperCase() }];
+      return [{ revision: BigInt(7), fingerprint: FINGERPRINT.toUpperCase() }];
     },
   } as unknown as PrismaClient;
   assert.deepEqual(await readShopKnowledgeCatalogState(availableClient), {
     available: true,
-    revision: 7n,
+    revision: BigInt(7),
     fingerprint: FINGERPRINT,
   });
 
@@ -41,6 +52,7 @@ test("catalog state reads one canonical fingerprint and fails closed when absent
 });
 
 test("catalog state bump produces a new 64-character epoch in one write", async () => {
+  const { bumpShopKnowledgeCatalogState } = await catalogStateModule;
   let writes = 0;
   const client = {
     async $executeRaw() {
@@ -58,7 +70,12 @@ test("catalog state bump produces a new 64-character epoch in one write", async 
   assert.equal(writes, 2);
 });
 
-test("production runtime accepts only the exact current database fingerprint", () => {
+test("production runtime accepts only the exact current database fingerprint", async () => {
+  const {
+    isShopKnowledgeCatalogFingerprintCurrent,
+    normalizeShopKnowledgeCatalogFingerprint,
+    requiresShopKnowledgeCatalogRuntimeGuard,
+  } = await catalogStateModule;
   assert.equal(normalizeShopKnowledgeCatalogFingerprint(FINGERPRINT.toUpperCase()), FINGERPRINT);
   assert.equal(normalizeShopKnowledgeCatalogFingerprint("not-a-fingerprint"), null);
   assert.equal(

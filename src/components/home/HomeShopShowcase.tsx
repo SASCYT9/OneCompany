@@ -10,7 +10,6 @@ type HomeShopShowcaseProps = {
   eyebrow: string;
   meta: string;
   primaryLabel: string;
-  selectionLabel: string;
   ariaLabel: string;
 };
 
@@ -21,7 +20,6 @@ export function HomeShopShowcase({
   eyebrow,
   meta,
   primaryLabel,
-  selectionLabel,
   ariaLabel,
 }: HomeShopShowcaseProps) {
   const reduceMotion = useReducedMotion();
@@ -36,7 +34,7 @@ export function HomeShopShowcase({
       transition={{ duration: reduceMotion ? 0 : 0.78, ease: revealEase }}
       className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-4 sm:px-6 md:px-8"
     >
-      <div className="group relative isolate min-h-[258px] overflow-hidden rounded-[24px] border border-foreground/16 bg-background/78 text-foreground shadow-[0_16px_44px_rgba(0,0,0,0.07)] backdrop-blur-xl transition-[border-color,box-shadow] duration-700 hover:border-foreground/22 hover:shadow-[0_20px_52px_rgba(0,0,0,0.10)] sm:min-h-[224px] sm:rounded-[28px] dark:border-white/12 dark:bg-background/72 dark:shadow-[0_22px_58px_rgba(0,0,0,0.24)] dark:hover:border-white/18 dark:hover:shadow-[0_26px_68px_rgba(0,0,0,0.30)] lg:min-h-[210px]">
+      <div className="group relative isolate min-h-[258px] overflow-hidden rounded-[24px] border border-[#746b61]/25 bg-[#cec5ba] text-foreground shadow-[0_18px_48px_rgba(58,49,39,0.13)] transition-[border-color,box-shadow] duration-700 hover:border-[#746b61]/38 hover:shadow-[0_22px_56px_rgba(58,49,39,0.17)] sm:min-h-[224px] sm:rounded-[28px] dark:border-white/12 dark:bg-background/72 dark:shadow-[0_22px_58px_rgba(0,0,0,0.24)] dark:hover:border-white/18 dark:hover:shadow-[0_26px_68px_rgba(0,0,0,0.30)] lg:min-h-[210px]">
         <motion.div
           aria-hidden="true"
           initial={reduceMotion ? false : { opacity: 0, x: 34, scale: 1.035 }}
@@ -55,7 +53,7 @@ export function HomeShopShowcase({
             fill
             priority
             sizes="(max-width: 640px) 100vw, 48vw"
-            className="object-cover object-right opacity-24 transition-transform duration-[1400ms] ease-out group-hover:scale-[1.018] motion-reduce:transform-none motion-reduce:transition-none sm:opacity-100 dark:hidden"
+            className="object-cover object-right opacity-35 mix-blend-multiply saturate-[0.72] contrast-[0.94] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.018] motion-reduce:transform-none motion-reduce:transition-none sm:opacity-90 dark:hidden"
           />
           <Image
             src="/images/one-company-forged-wheel-banner-v1.webp"
@@ -86,7 +84,7 @@ export function HomeShopShowcase({
             {meta}
           </p>
 
-          <div className="mt-5 flex flex-col items-start gap-4 min-[460px]:flex-row min-[460px]:items-center sm:mt-6 sm:gap-5 lg:gap-7">
+          <div className="mt-5 flex items-center sm:mt-6">
             <Link
               href={`/${locale}/shop/catalog`}
               prefetch={false}
@@ -98,19 +96,6 @@ export function HomeShopShowcase({
               <ArrowRight
                 aria-hidden="true"
                 className="h-5 w-5 shrink-0 transition-transform duration-300 group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none"
-                strokeWidth={1.7}
-              />
-            </Link>
-
-            <Link
-              href={`/${locale}/contact#selection-form`}
-              prefetch={false}
-              className="group/selection inline-flex items-center gap-3 border-b border-foreground/50 pb-2 text-[14px] text-foreground/92 transition-colors hover:border-[#d5001c] hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:text-[15px]"
-            >
-              <span>{selectionLabel}</span>
-              <ArrowRight
-                aria-hidden="true"
-                className="h-[17px] w-[17px] text-[#e50020] transition-transform duration-300 group-hover/selection:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none"
                 strokeWidth={1.7}
               />
             </Link>

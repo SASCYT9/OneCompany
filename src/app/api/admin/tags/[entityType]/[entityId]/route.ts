@@ -1,8 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { resolveAdminEntityPermission } from "@/lib/admin/adminEntityPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Universal tags endpoint.
@@ -12,10 +13,8 @@ import { prisma } from '@/lib/prisma';
  * DELETE /api/admin/tags/[entityType]/[entityId]?tag={tag}          → remove tag
  */
 
-const VALID_ENTITY_PREFIXES = ['shop.', 'admin.', 'crm.'] as const;
-
 function normalizeTag(t: string): string {
-  return t.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 64);
+  return t.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 64);
 }
 
 export async function GET(
@@ -23,18 +22,18 @@ export async function GET(
   { params }: { params: Promise<{ entityType: string; entityId: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
-
     const { entityType, entityId } = await params;
-    if (!VALID_ENTITY_PREFIXES.some((p) => entityType.startsWith(p))) {
-      return NextResponse.json({ error: 'Unsupported entityType' }, { status: 400 });
+    const requiredPermission = resolveAdminEntityPermission(entityType, "read");
+    if (!requiredPermission) {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
     }
+    const cookieStore = await cookies();
+    await assertAdminRequest(cookieStore, requiredPermission);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tags = await (prisma as any).shopEntityTag.findMany({
       where: { entityType, entityId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
       select: { id: true, tag: true, createdAt: true },
     });
 
@@ -46,9 +45,11 @@ export async function GET(
       })),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to load tags' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to load tags" }, { status: 500 });
   }
 }
 
@@ -57,17 +58,17 @@ export async function POST(
   { params }: { params: Promise<{ entityType: string; entityId: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore);
-
     const { entityType, entityId } = await params;
-    if (!VALID_ENTITY_PREFIXES.some((p) => entityType.startsWith(p))) {
-      return NextResponse.json({ error: 'Unsupported entityType' }, { status: 400 });
+    const requiredPermission = resolveAdminEntityPermission(entityType, "write");
+    if (!requiredPermission) {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
     }
+    const cookieStore = await cookies();
+    const session = await assertAdminRequest(cookieStore, requiredPermission);
 
     const body = (await request.json().catch(() => ({}))) as { tag?: string };
-    const tag = normalizeTag(body.tag ?? '');
-    if (!tag) return NextResponse.json({ error: 'Tag is required' }, { status: 400 });
+    const tag = normalizeTag(body.tag ?? "");
+    if (!tag) return NextResponse.json({ error: "Tag is required" }, { status: 400 });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existing = await (prisma as any).shopEntityTag.findUnique({
@@ -82,9 +83,11 @@ export async function POST(
 
     return NextResponse.json({ id: created.id, tag });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to add tag' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to add tag" }, { status: 500 });
   }
 }
 
@@ -93,12 +96,15 @@ export async function DELETE(
   { params }: { params: Promise<{ entityType: string; entityId: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
-
     const { entityType, entityId } = await params;
-    const tag = normalizeTag(request.nextUrl.searchParams.get('tag') ?? '');
-    if (!tag) return NextResponse.json({ error: 'tag query param required' }, { status: 400 });
+    const requiredPermission = resolveAdminEntityPermission(entityType, "write");
+    if (!requiredPermission) {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
+    }
+    const cookieStore = await cookies();
+    await assertAdminRequest(cookieStore, requiredPermission);
+    const tag = normalizeTag(request.nextUrl.searchParams.get("tag") ?? "");
+    if (!tag) return NextResponse.json({ error: "tag query param required" }, { status: 400 });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prisma as any).shopEntityTag.deleteMany({
@@ -107,8 +113,10 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Failed to remove tag' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to remove tag" }, { status: 500 });
   }
 }

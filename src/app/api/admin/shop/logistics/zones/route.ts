@@ -1,43 +1,54 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
 
   try {
     const { searchParams } = new URL(req.url);
-    const warehouseId = searchParams.get('warehouseId');
+    const warehouseId = searchParams.get("warehouseId");
 
     const where: any = {};
     if (warehouseId) where.warehouseId = warehouseId;
 
     const zones = await prisma.shopShippingZone.findMany({
       where,
-      orderBy: { zoneCode: 'asc' },
+      orderBy: { zoneCode: "asc" },
       include: { warehouse: { select: { code: true, name: true } } },
     });
 
     return NextResponse.json({ zones });
   } catch (error: any) {
-    console.error('[ShippingZonesAPI]', error);
+    console.error("[ShippingZonesAPI]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const data = await req.json();
-    const { id, zoneCode, label, labelUa, ratePerKg, volSurchargePerKg, baseFee, warehouseId, etaMinDays, etaMaxDays } = data;
+    const {
+      id,
+      zoneCode,
+      label,
+      labelUa,
+      ratePerKg,
+      volSurchargePerKg,
+      baseFee,
+      warehouseId,
+      etaMinDays,
+      etaMaxDays,
+    } = data;
 
     if (!zoneCode) {
-      return NextResponse.json({ error: 'Zone code is required' }, { status: 400 });
+      return NextResponse.json({ error: "Zone code is required" }, { status: 400 });
     }
 
     // Use compound unique: warehouseId + zoneCode
@@ -92,24 +103,24 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, zone: upserted });
   } catch (error: any) {
-    console.error('[ShippingZonesAPI POST]', error);
+    console.error("[ShippingZonesAPI POST]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'Zone ID is required' }, { status: 400 });
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Zone ID is required" }, { status: 400 });
 
     await prisma.shopShippingZone.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('[ShippingZonesAPI DELETE]', error);
+    console.error("[ShippingZonesAPI DELETE]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

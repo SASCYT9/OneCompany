@@ -63,6 +63,35 @@ test("unknown explicit universal products are separated from review defects", ()
   assert.equal(incomplete.status, "needs_review");
 });
 
+test("GiroDisc replacement rings inherit compatibility from the matching rotor kit", () => {
+  const result = classifyProductFitment(
+    product({
+      brand: "GiroDisc",
+      sku: "D1-264",
+      title: { ua: "Змінне кільце", en: "Replacement rotor ring" },
+    }),
+    { make: null, models: [], chassisCodes: [], yearRanges: [], confidence: "unknown" }
+  );
+
+  assert.equal(result.status, "needs_review");
+  assert.equal(result.make, null);
+  assert.deepEqual(result.dependency, { type: "parent_product", parentSku: "A1-264" });
+});
+
+test("dimensional DO88 plumbing is classified as universal instead of missing fitment", () => {
+  const result = classifyProductFitment(
+    product({
+      brand: "DO88",
+      sku: "H75-90",
+      title: { ua: "Силіконове коліно 75 мм 90°", en: "Silicone hose elbow 75 mm 90 degrees" },
+    }),
+    { make: null, models: [], chassisCodes: [], yearRanges: [], confidence: "unknown" }
+  );
+
+  assert.equal(result.status, "universal");
+  assert.equal(result.vehicleType, "universal");
+});
+
 test("low-confidence make-only extraction remains in review", () => {
   const result = classifyProductFitment(product(), {
     make: "BMW",

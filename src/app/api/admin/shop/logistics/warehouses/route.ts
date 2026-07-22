@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
 
   try {
     const warehouses = await prisma.shopWarehouse.findMany({
-      orderBy: { sortOrder: 'asc' },
+      orderBy: { sortOrder: "asc" },
       include: {
         _count: { select: { zones: true, brands: true } },
       },
@@ -18,21 +18,36 @@ export async function GET() {
 
     return NextResponse.json({ warehouses });
   } catch (error: any) {
-    console.error('[WarehouseAPI GET]', error);
+    console.error("[WarehouseAPI GET]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const data = await req.json();
-    const { id, code, name, nameUa, country, city, address, address2, state, postalCode, phone, contactName, isActive, sortOrder } = data;
+    const {
+      id,
+      code,
+      name,
+      nameUa,
+      country,
+      city,
+      address,
+      address2,
+      state,
+      postalCode,
+      phone,
+      contactName,
+      isActive,
+      sortOrder,
+    } = data;
 
     if (!code || !name) {
-      return NextResponse.json({ error: 'Code and name are required' }, { status: 400 });
+      return NextResponse.json({ error: "Code and name are required" }, { status: 400 });
     }
 
     const addressFields = {
@@ -49,7 +64,7 @@ export async function POST(req: Request) {
       update: {
         name: String(name),
         nameUa: String(nameUa || name),
-        country: String(country || ''),
+        country: String(country || ""),
         city: city ? String(city) : null,
         ...addressFields,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
@@ -59,7 +74,7 @@ export async function POST(req: Request) {
         code: String(code),
         name: String(name),
         nameUa: String(nameUa || name),
-        country: String(country || ''),
+        country: String(country || ""),
         city: city ? String(city) : null,
         ...addressFields,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
@@ -69,19 +84,19 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, warehouse: upserted });
   } catch (error: any) {
-    console.error('[WarehouseAPI POST]', error);
+    console.error("[WarehouseAPI POST]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
     // Soft delete — set isActive to false
     await prisma.shopWarehouse.update({
@@ -91,7 +106,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('[WarehouseAPI DELETE]', error);
+    console.error("[WarehouseAPI DELETE]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

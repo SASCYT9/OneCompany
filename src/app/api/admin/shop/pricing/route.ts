@@ -18,7 +18,7 @@ function decimalOrNull(value: unknown): number | null {
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_READ);
 
     const variants = await prisma.shopProductVariant.findMany({
       orderBy: [{ productId: "asc" }, { position: "asc" }],
@@ -41,7 +41,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_WRITE);
 
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const variantIds = Array.isArray(body.variantIds)

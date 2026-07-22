@@ -958,7 +958,7 @@ function StockPageContent() {
         thumbnail: item.thumbnail,
         slug: item.slug,
         href: item.href,
-        category: item.category,
+        category: item.category ?? "",
       }));
     const immediateSuggestions = [
       ...immediateBrands,

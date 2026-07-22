@@ -1,34 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 
 /**
  * POST /api/admin/stock/import
- * 
+ *
  * Imports CSV data for a distributor into StockProduct table.
  * Body: { distributor: string, data: Array<{ partNumber, name, brand?, category?, price?, retailPrice?, inStock?, description?, thumbnail?, metadata? }> }
- * 
+ *
  * For file-based CSV parsing, the admin UI parses the CSV client-side
  * and sends the structured array here.
  */
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   try {
-    assertAdminRequest(cookieStore);
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_INVENTORY_WRITE);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: message === "FORBIDDEN" ? "Forbidden" : "Unauthorized" },
+      { status: message === "FORBIDDEN" ? 403 : 401 }
+    );
   }
 
   try {
     const body = await request.json();
     const { distributor, data } = body;
 
-    if (!distributor || typeof distributor !== 'string') {
-      return NextResponse.json({ error: 'distributor is required' }, { status: 400 });
+    if (!distributor || typeof distributor !== "string") {
+      return NextResponse.json({ error: "distributor is required" }, { status: 400 });
     }
     if (!Array.isArray(data) || data.length === 0) {
-      return NextResponse.json({ error: 'data array is required and must not be empty' }, { status: 400 });
+      return NextResponse.json(
+        { error: "data array is required and must not be empty" },
+        { status: 400 }
+      );
     }
 
     let imported = 0;
@@ -44,10 +52,10 @@ export async function POST(request: NextRequest) {
       const batch = data.slice(i, i + batchSize);
       const results = await Promise.allSettled(
         batch.map(async (item: any) => {
-          const partNumber = String(item.partNumber || '').trim();
+          const partNumber = String(item.partNumber || "").trim();
           if (!partNumber) throw new Error(`Row ${i}: missing partNumber`);
 
-          const name = String(item.name || item.title || '').trim();
+          const name = String(item.name || item.title || "").trim();
           if (!name) throw new Error(`Row ${i}: partNumber ${partNumber} has no name`);
 
           const result = await prisma.stockProduct.upsert({
@@ -61,36 +69,36 @@ export async function POST(request: NextRequest) {
               distributor: distributorUpper,
               partNumber,
               name,
-              brand: String(item.brand || '').trim(),
-              category: String(item.category || '').trim(),
-              description: String(item.description || '').trim(),
+              brand: String(item.brand || "").trim(),
+              category: String(item.category || "").trim(),
+              description: String(item.description || "").trim(),
               price: item.price != null ? Number(item.price) || null : null,
               retailPrice: item.retailPrice != null ? Number(item.retailPrice) || null : null,
               markupPct: item.markupPct != null ? Number(item.markupPct) : 25,
-              inStock: item.inStock !== false && item.inStock !== 'false' && item.inStock !== '0',
+              inStock: item.inStock !== false && item.inStock !== "false" && item.inStock !== "0",
               thumbnail: item.thumbnail || null,
               metadata: item.metadata || null,
             },
             update: {
               name,
-              brand: String(item.brand || '').trim(),
-              category: String(item.category || '').trim(),
-              description: String(item.description || '').trim(),
+              brand: String(item.brand || "").trim(),
+              category: String(item.category || "").trim(),
+              description: String(item.description || "").trim(),
               price: item.price != null ? Number(item.price) || null : null,
               retailPrice: item.retailPrice != null ? Number(item.retailPrice) || null : null,
               markupPct: item.markupPct != null ? Number(item.markupPct) : 25,
-              inStock: item.inStock !== false && item.inStock !== 'false' && item.inStock !== '0',
+              inStock: item.inStock !== false && item.inStock !== "false" && item.inStock !== "0",
               thumbnail: item.thumbnail || null,
               metadata: item.metadata || null,
             },
           });
 
           return result;
-        }),
+        })
       );
 
       for (const r of results) {
-        if (r.status === 'fulfilled') {
+        if (r.status === "fulfilled") {
           // Check if it was created or updated by checking createdAt vs updatedAt
           const prod = r.value;
           if (prod.createdAt.getTime() === prod.updatedAt.getTime()) {
@@ -100,7 +108,7 @@ export async function POST(request: NextRequest) {
           }
         } else {
           errors++;
-          errorDetails.push(r.reason?.message || 'Unknown error');
+          errorDetails.push(r.reason?.message || "Unknown error");
         }
       }
     }
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
       ...(errorDetails.length > 0 ? { errorDetails: errorDetails.slice(0, 10) } : {}),
     });
   } catch (error: any) {
-    console.error('[Stock Import Error]', error);
+    console.error("[Stock Import Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -124,13 +132,17 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   const cookieStore = await cookies();
   try {
-    assertAdminRequest(cookieStore);
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_INVENTORY_READ);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: message === "FORBIDDEN" ? "Forbidden" : "Unauthorized" },
+      { status: message === "FORBIDDEN" ? 403 : 401 }
+    );
   }
 
   const stats = await prisma.stockProduct.groupBy({
-    by: ['distributor'],
+    by: ["distributor"],
     _count: { id: true },
   });
 
@@ -138,22 +150,26 @@ export async function GET() {
 
   return NextResponse.json({
     total,
-    distributors: stats.map(s => ({
+    distributors: stats.map((s) => ({
       name: s.distributor,
       count: s._count.id,
     })),
   });
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // DELETE — remove all products for a distributor
 export async function DELETE(request: NextRequest) {
   const cookieStore = await cookies();
   try {
-    assertAdminRequest(cookieStore);
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_INVENTORY_WRITE);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: message === "FORBIDDEN" ? "Forbidden" : "Unauthorized" },
+      { status: message === "FORBIDDEN" ? 403 : 401 }
+    );
   }
 
   try {
@@ -161,7 +177,7 @@ export async function DELETE(request: NextRequest) {
     const distributor = body.distributor?.toUpperCase();
 
     if (!distributor) {
-      return NextResponse.json({ error: 'distributor is required' }, { status: 400 });
+      return NextResponse.json({ error: "distributor is required" }, { status: 400 });
     }
 
     const result = await prisma.stockProduct.deleteMany({
@@ -174,7 +190,7 @@ export async function DELETE(request: NextRequest) {
       deleted: result.count,
     });
   } catch (error: any) {
-    console.error('[Stock Delete Error]', error);
+    console.error("[Stock Delete Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

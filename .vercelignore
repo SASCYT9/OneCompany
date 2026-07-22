@@ -1,6 +1,11 @@
 node_modules
 .next
 .git
+.vercel
+.env
+.env.*
+tmp
+.ops-data
 .vscode
 .cursor
 .claude
@@ -14,6 +19,7 @@ node_modules
 /scripts/**
 !/scripts/
 !/scripts/cleanup-prisma-temp-engines.js
+!/scripts/build-site.mjs
 !/scripts/prebuild-shop-snapshot.ts
 !/scripts/generate-shop-filter-indexes.ts
 /tests/

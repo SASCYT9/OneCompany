@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "lucide-react";
+import { ShopCatalogQuickSearch } from "@/components/shop/ShopCatalogQuickSearch";
 import { ShopHubNavigation } from "@/components/shop/ShopHubNavigation";
 import type { SupportedLocale } from "@/lib/seo";
 import { OUR_STORES } from "../data/ourStores";
@@ -162,7 +163,6 @@ function StoreCard({
 export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
   const isUa = locale === "ua";
   const storesMap = new Map(OUR_STORES.filter((s) => !s.isHidden).map((s) => [s.id, s]));
-  const storeCount = storesMap.size;
 
   const ordered = STORE_ORDER.map((id) => storesMap.get(id)).filter(
     Boolean
@@ -224,27 +224,16 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
         <ShopHubNavigation
           locale={locale}
           active="brands"
-          className="relative z-20 -mt-12 mb-8 sm:-mt-14 sm:mb-10"
+          className="relative z-20 -mt-12 mb-4 sm:-mt-14 sm:mb-5"
         />
 
-        {/* Section label */}
-        <div
-          id="shop-brands"
-          className="mb-5 flex scroll-mt-28 items-end justify-between border-b border-foreground/10 pb-5 sm:mb-6 sm:scroll-mt-32 sm:pb-6"
-        >
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-foreground/55 dark:text-foreground/30">
-              {t(isUa, "One shop", "Один магазин")}
-            </p>
-            <h2 className="mt-2 font-display text-xl font-semibold uppercase tracking-[-0.02em] text-foreground sm:text-2xl">
-              {storeCount} {t(isUa, "brands", "брендів")}
-            </h2>
-          </div>
-          <div className="mb-1 h-px w-16 bg-linear-to-r from-primary/70 to-transparent sm:w-28" />
-        </div>
+        <ShopCatalogQuickSearch locale={locale} className="mb-5 sm:mb-6" />
 
         {/* Seamless grid */}
-        <div className="overflow-hidden rounded-2xl border border-foreground/10">
+        <div
+          id="shop-brands"
+          className="scroll-mt-28 overflow-hidden rounded-2xl border border-foreground/10 sm:scroll-mt-32"
+        >
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
           <div data-shop-store-grid="featured" className="grid grid-cols-1 sm:grid-cols-3">
             {heroStores.map((store) => (

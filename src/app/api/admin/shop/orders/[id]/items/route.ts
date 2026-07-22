@@ -1,20 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 async function requireAdmin() {
   const cookieStore = await cookies();
-  return assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+  return await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
 }
 
 async function recalcOrderTotals(orderId: string) {
   const items = await prisma.shopOrderItem.findMany({ where: { orderId } });
   const subtotal = items.reduce((sum, i) => sum + Number(i.total), 0);
-  const order = await prisma.shopOrder.findUnique({ where: { id: orderId }, select: { shippingCost: true, taxAmount: true } });
+  const order = await prisma.shopOrder.findUnique({
+    where: { id: orderId },
+    select: { shippingCost: true, taxAmount: true },
+  });
   const shipping = Number(order?.shippingCost || 0);
   const tax = Number(order?.taxAmount || 0);
   await prisma.shopOrder.update({
@@ -31,14 +34,14 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
     await requireAdmin();
     const { id: orderId } = await ctx.params;
     const body = await request.json();
-    const { title, price, quantity = 1, image = null, productSlug = '' } = body;
+    const { title, price, quantity = 1, image = null, productSlug = "" } = body;
 
     if (!title || price == null) {
-      return NextResponse.json({ error: 'title and price are required' }, { status: 400 });
+      return NextResponse.json({ error: "title and price are required" }, { status: 400 });
     }
 
     const order = await prisma.shopOrder.findUnique({ where: { id: orderId } });
-    if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
     const unitPrice = parseFloat(price);
     const qty = parseInt(quantity, 10) || 1;
@@ -63,8 +66,9 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
       item: { ...item, price: Number(item.price), total: Number(item.total) },
     });
   } catch (error: any) {
-    if (error.message === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.error('[Admin Items POST]', error);
+    if (error.message === "Unauthorized")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("[Admin Items POST]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -80,12 +84,12 @@ export async function PATCH(request: NextRequest, ctx: RouteContext) {
     const body = await request.json();
     const { itemId, title, price, quantity, image } = body;
 
-    if (!itemId) return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
+    if (!itemId) return NextResponse.json({ error: "itemId is required" }, { status: 400 });
 
     const existing = await prisma.shopOrderItem.findFirst({
       where: { id: itemId, orderId },
     });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    if (!existing) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
     const newPrice = price != null ? parseFloat(price) : Number(existing.price);
     const newQty = quantity != null ? parseInt(quantity, 10) : existing.quantity;
@@ -109,8 +113,9 @@ export async function PATCH(request: NextRequest, ctx: RouteContext) {
       item: { ...updated, price: Number(updated.price), total: Number(updated.total) },
     });
   } catch (error: any) {
-    if (error.message === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.error('[Admin Items PATCH]', error);
+    if (error.message === "Unauthorized")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("[Admin Items PATCH]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -126,22 +131,23 @@ export async function DELETE(request: NextRequest, ctx: RouteContext) {
     const body = await request.json();
     const { itemId } = body;
 
-    if (!itemId) return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
+    if (!itemId) return NextResponse.json({ error: "itemId is required" }, { status: 400 });
 
     const existing = await prisma.shopOrderItem.findFirst({
       where: { id: itemId, orderId },
     });
-    if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    if (!existing) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
     await prisma.shopOrderItem.delete({ where: { id: itemId } });
     await recalcOrderTotals(orderId);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    if (error.message === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.error('[Admin Items DELETE]', error);
+    if (error.message === "Unauthorized")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("[Admin Items DELETE]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

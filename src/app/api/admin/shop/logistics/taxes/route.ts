@@ -1,40 +1,50 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
 
   try {
     const rules = await prisma.shopTaxRegionRule.findMany({
-      orderBy: [{ sortOrder: 'asc' }, { regionCode: 'asc' }],
+      orderBy: [{ sortOrder: "asc" }, { regionCode: "asc" }],
     });
 
     return NextResponse.json({ rules });
   } catch (error: any) {
-    console.error('[TaxRegionAPI GET]', error);
+    console.error("[TaxRegionAPI GET]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const data = await req.json();
     const {
-      regionCode, regionName, regionNameUa, taxType, taxRate,
-      taxLabel, taxLabelUa, customsDutyPct, isInclusive, isActive, notes, sortOrder,
+      regionCode,
+      regionName,
+      regionNameUa,
+      taxType,
+      taxRate,
+      taxLabel,
+      taxLabelUa,
+      customsDutyPct,
+      isInclusive,
+      isActive,
+      notes,
+      sortOrder,
     } = data;
 
     if (!regionCode || !regionName) {
-      return NextResponse.json({ error: 'Region code and name are required' }, { status: 400 });
+      return NextResponse.json({ error: "Region code and name are required" }, { status: 400 });
     }
 
     const upserted = await prisma.shopTaxRegionRule.upsert({
@@ -42,7 +52,7 @@ export async function POST(req: Request) {
       update: {
         regionName: String(regionName),
         regionNameUa: String(regionNameUa || regionName),
-        taxType: String(taxType || 'VAT'),
+        taxType: String(taxType || "VAT"),
         taxRate: Number(taxRate || 0),
         taxLabel: taxLabel ? String(taxLabel) : null,
         taxLabelUa: taxLabelUa ? String(taxLabelUa) : null,
@@ -56,7 +66,7 @@ export async function POST(req: Request) {
         regionCode: String(regionCode).toUpperCase(),
         regionName: String(regionName),
         regionNameUa: String(regionNameUa || regionName),
-        taxType: String(taxType || 'VAT'),
+        taxType: String(taxType || "VAT"),
         taxRate: Number(taxRate || 0),
         taxLabel: taxLabel ? String(taxLabel) : null,
         taxLabelUa: taxLabelUa ? String(taxLabelUa) : null,
@@ -70,24 +80,24 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, rule: upserted });
   } catch (error: any) {
-    console.error('[TaxRegionAPI POST]', error);
+    console.error("[TaxRegionAPI POST]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+  await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
     await prisma.shopTaxRegionRule.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('[TaxRegionAPI DELETE]', error);
+    console.error("[TaxRegionAPI DELETE]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

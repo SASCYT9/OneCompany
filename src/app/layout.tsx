@@ -13,6 +13,7 @@ import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
 import { Analytics } from "@vercel/analytics/react";
 import { siteConfig } from "@/lib/seo";
+import SuppressAutomaticInstallPrompt from "@/components/pwa/SuppressAutomaticInstallPrompt";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 const siteUrl = siteConfig.url;
@@ -181,6 +182,8 @@ export default function RootLayout({
         className={cn("min-h-screen bg-background text-foreground antialiased")}
         suppressHydrationWarning
       >
+        <SuppressAutomaticInstallPrompt />
+
         {/* Schema.org Structured Data */}
         <OrganizationSchema />
         <WebSiteSchema />

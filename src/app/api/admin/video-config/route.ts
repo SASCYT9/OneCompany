@@ -1,43 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { AdminConfigValidationError, validateVideoConfigUpdate } from '@/lib/adminConfigValidation';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
-import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { AdminConfigValidationError, validateVideoConfigUpdate } from "@/lib/adminConfigValidation";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
+import { readVideoConfig, writeVideoConfig } from "@/lib/videoConfig";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
     return NextResponse.json(await readVideoConfig());
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    return NextResponse.json(
-      { error: 'Failed to load video config' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load video config" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
     const payload = validateVideoConfigUpdate(await request.json());
 
     const nextConfig = await writeVideoConfig(payload);
 
     try {
       await writeAdminAuditLog(prisma, session, {
-        scope: 'content',
-        action: 'video-config.update',
-        entityType: 'site.video-config',
+        scope: "content",
+        action: "video-config.update",
+        entityType: "site.video-config",
         metadata: {
           heroVideo: nextConfig.heroVideo,
           heroEnabled: nextConfig.heroEnabled,
@@ -46,25 +43,22 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (auditError) {
-      console.error('Failed to write video config audit log', auditError);
+      console.error("Failed to write video config audit log", auditError);
     }
 
     return NextResponse.json(nextConfig);
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     if (error instanceof AdminConfigValidationError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: 'Failed to save video config' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to save video config" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

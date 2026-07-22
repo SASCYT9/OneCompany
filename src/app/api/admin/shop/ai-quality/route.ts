@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_READ);
 
     return NextResponse.json(await getOneAiQualitySnapshot(prisma), {
       headers: {

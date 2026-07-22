@@ -1,23 +1,32 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { searchTurn14Items, findTurn14BrandIdByName } from '@/lib/turn14';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { searchTurn14Items, findTurn14BrandIdByName } from "@/lib/turn14";
 
 /**
  * GET /api/admin/shop/turn14?q=keyword&page=1
  *
  * Admin Turn14 search — flattens JSON:API attributes for easier frontend usage.
- * 
+ *
  * NOTE: Turn14 pricing endpoint (/items/{id}/data/pricing) returns 404 with current
  * credentials. Pricing is NOT available from the API. The admin page shows "dealer_price"
  * field as 0 — actual pricing must be managed through our markup system.
  */
 export async function GET(request: Request) {
   const cookieStore = await cookies();
-  assertAdminRequest(cookieStore);
+  try {
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Failed to authorize request" }, { status: 500 });
+  }
   const { searchParams } = new URL(request.url);
-  const keyword = searchParams.get('q');
-  const page = parseInt(searchParams.get('page') || '1', 10);
+  const keyword = searchParams.get("q");
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
   if (!keyword) {
     return NextResponse.json({ data: [], meta: { current_page: 1, total_pages: 1 } });
@@ -25,7 +34,7 @@ export async function GET(request: Request) {
 
   try {
     let brandId: string | undefined = undefined;
-    
+
     // Turn14's /items API doesn't support raw text search, only brand_id filtering.
     // Try to resolve the keyword into a brand ID first.
     if (keyword) {
@@ -42,8 +51,8 @@ export async function GET(request: Request) {
 
     const results = await searchTurn14Items(
       // We still pass keyword but it might be ignored by Turn14 API if brandId is the only valid param
-      keyword, 
-      page, 
+      keyword,
+      page,
       { brandId }
     );
     const rawItems = results.data || [];
@@ -55,22 +64,22 @@ export async function GET(request: Request) {
       return {
         id: item.id,
         type: item.type,
-        product_name: attrs.product_name || attrs.item_name || '',
-        part_number: attrs.part_number || '',
-        internal_part_number: attrs.internal_part_number || attrs.mfr_part_number || '',
-        brand: attrs.brand_short_description || attrs.brand || '',
-        brand_id: attrs.brand_id || '',
-        weight: attrs.weight || (attrs.dimensions?.[0]?.weight) || null,
+        product_name: attrs.product_name || attrs.item_name || "",
+        part_number: attrs.part_number || "",
+        internal_part_number: attrs.internal_part_number || attrs.mfr_part_number || "",
+        brand: attrs.brand_short_description || attrs.brand || "",
+        brand_id: attrs.brand_id || "",
+        weight: attrs.weight || attrs.dimensions?.[0]?.weight || null,
         // Pricing not available from Turn14 API with current credentials
         dealer_price: null,
         jobber_price: null,
         retail_price: null,
         map_price: null,
         // Media
-        primary_image: attrs.thumbnail || attrs.primary_image || '',
+        primary_image: attrs.thumbnail || attrs.primary_image || "",
         // Category
-        category: attrs.category || '',
-        subcategory: attrs.subcategory || '',
+        category: attrs.category || "",
+        subcategory: attrs.subcategory || "",
         // Raw attributes backup
         attributes: attrs,
       };
@@ -81,7 +90,10 @@ export async function GET(request: Request) {
       meta: results.meta || {},
     });
   } catch (error) {
-    console.error('[API] Turn14 Search Error:', error);
-    return NextResponse.json({ error: 'Failed to search Turn14 catalog. Please verify your API credentials.' }, { status: 500 });
+    console.error("[API] Turn14 Search Error:", error);
+    return NextResponse.json(
+      { error: "Failed to search Turn14 catalog. Please verify your API credentials." },
+      { status: 500 }
+    );
   }
 }

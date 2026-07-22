@@ -17,6 +17,12 @@ import { writeAdminAuditLog } from "@/lib/adminRbac";
 import type { ShopProduct, ShopScope, ShopStock } from "@/lib/shopCatalog";
 import { extractProductFitment } from "@/lib/crossShopFitment";
 import { classifyProductFitment, type NormalizedFitmentStatus } from "@/lib/shopFitmentQuality";
+import {
+  isSupplierFitmentMetafield,
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+  validateSupplierFitmentParentReference,
+} from "@/lib/shopImportFitment";
 
 export const adminImportTemplateSelect = {
   id: true,
@@ -136,7 +142,12 @@ function summarizeImportFitment(
   for (const item of items) {
     if (invalidRows.has(item.rowIndex)) continue;
     const product = toFitmentProduct(item.data);
-    const classification = classifyProductFitment(product, extractProductFitment(product));
+    const supplierContract = parseSupplierFitmentContract(
+      item.data.metafields.find(isSupplierFitmentMetafield)?.value
+    );
+    const classification = supplierContract
+      ? supplierContractToNormalizedFitment(supplierContract)
+      : classifyProductFitment(product, extractProductFitment(product));
     counts[classification.status] += 1;
     if (classification.status === "needs_review" && reviewProducts.length < 100) {
       reviewProducts.push({
@@ -524,6 +535,50 @@ export async function runShopCsvImport(
       rowIndex: rowNumber,
     };
   });
+
+  const supplierContracts = productsToUpsert.map((item) => ({
+    ...item,
+    contract: parseSupplierFitmentContract(
+      item.data.metafields.find(isSupplierFitmentMetafield)?.value
+    ),
+  }));
+  const requestedParentSkus = supplierContracts
+    .map((item) => item.contract?.parentSku)
+    .filter((sku): sku is string => Boolean(sku));
+  if (requestedParentSkus.length > 0) {
+    const parentProducts = await prisma.shopProduct.findMany({
+      where: {
+        OR: [
+          { sku: { in: requestedParentSkus, mode: "insensitive" } },
+          { variants: { some: { sku: { in: requestedParentSkus, mode: "insensitive" } } } },
+        ],
+      },
+      select: { sku: true, variants: { select: { sku: true } } },
+    });
+    const knownSkus = new Set(
+      [
+        ...productsToUpsert.flatMap((item) => [
+          item.data.sku,
+          ...item.data.variants.map((variant) => variant.sku),
+        ]),
+        ...parentProducts.flatMap((product) => [
+          product.sku,
+          ...product.variants.map((variant) => variant.sku),
+        ]),
+      ].filter((sku): sku is string => Boolean(sku))
+    );
+    for (const item of supplierContracts) {
+      if (!item.contract) continue;
+      for (const error of validateSupplierFitmentParentReference(item.contract, knownSkus)) {
+        validationErrors.push({
+          rowNumber: item.rowIndex,
+          handle: item.data.slug,
+          message: `fitment.${error.path} [${error.code}]: ${error.message}`,
+          payload: { slug: item.data.slug, parentSku: item.contract.parentSku },
+        });
+      }
+    }
+  }
 
   // --- TURN14 FALLBACK LOGIC ---
   const allSkus = productsToUpsert

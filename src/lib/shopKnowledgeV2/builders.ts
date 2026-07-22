@@ -8,6 +8,12 @@ import {
   type NormalizedFitment,
   type VehicleApplication,
 } from "@/lib/shopFitmentQuality";
+import {
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+  SUPPLIER_FITMENT_KEY,
+  SUPPLIER_FITMENT_NAMESPACE,
+} from "@/lib/shopImportFitment";
 import { buildShopSearchText } from "@/lib/shopSearch";
 import {
   extractCategoryAttributes,
@@ -91,7 +97,13 @@ function resolveFitment(product: KnowledgeSourceProduct): NormalizedFitment {
       metafield.namespace === NORMALIZED_FITMENT_NAMESPACE &&
       metafield.key === NORMALIZED_FITMENT_KEY
   );
-  return mergePersistedFitment(automatic, persisted?.value);
+  if (persisted) return mergePersistedFitment(automatic, persisted.value);
+  const supplierValue = product.metafields.find(
+    (metafield) =>
+      metafield.namespace === SUPPLIER_FITMENT_NAMESPACE && metafield.key === SUPPLIER_FITMENT_KEY
+  )?.value;
+  const supplierContract = parseSupplierFitmentContract(supplierValue);
+  return supplierContract ? supplierContractToNormalizedFitment(supplierContract) : automatic;
 }
 
 function sourceForFitment(fitment: NormalizedFitment): KnowledgeEvidenceSource {
@@ -152,6 +164,8 @@ type CorrelatedApplicationRow = {
   bodyStyle: string | null;
   drivetrain: string | null;
   market: string | null;
+  transmission: string | null;
+  opfGpf: KnowledgeOpfGpf;
 };
 
 type CorrelatedApplicationExpansion = {
@@ -215,6 +229,8 @@ function expandCorrelatedApplication(
           bodyStyle: bodyStyles.length === 1 ? bodyStyles[0] : null,
           drivetrain: drivetrains.length === 1 ? drivetrains[0] : null,
           market: markets.length === 1 ? markets[0] : null,
+          transmission: application.transmission ?? null,
+          opfGpf: application.opfGpf ?? "unknown",
         },
       ],
     };
@@ -234,6 +250,8 @@ function expandCorrelatedApplication(
         bodyStyle: valueForApplicationRow(bodyStyles, index),
         drivetrain: valueForApplicationRow(drivetrains, index),
         market: valueForApplicationRow(markets, index),
+        transmission: application.transmission ?? null,
+        opfGpf: application.opfGpf ?? "unknown",
       };
     }),
   };
@@ -290,7 +308,9 @@ function buildApplicationEvidence(
     sourceField:
       source === "manager" || source === "manual_fitment"
         ? `metafield:${NORMALIZED_FITMENT_NAMESPACE}.${NORMALIZED_FITMENT_KEY}`
-        : "aggregate",
+        : source === "supplier"
+          ? `metafield:${SUPPLIER_FITMENT_NAMESPACE}.${SUPPLIER_FITMENT_KEY}`
+          : "aggregate",
     locale: "neutral" as const,
     excerpt,
   };
@@ -405,9 +425,9 @@ function buildApplicationRecords(
         fuel,
         bodyStyle: row.bodyStyle,
         drivetrain: row.drivetrain,
-        transmission: null,
+        transmission: row.transmission,
         market: row.market,
-        opfGpf,
+        opfGpf: row.opfGpf === "unknown" ? opfGpf : row.opfGpf,
         categoryGroup,
         productKind,
         material,

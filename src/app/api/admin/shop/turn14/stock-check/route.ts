@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * POST /api/admin/shop/turn14/stock-check
@@ -12,7 +13,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_INVENTORY_READ);
     const { partNumbers } = await request.json();
 
     if (!Array.isArray(partNumbers) || partNumbers.length === 0) {
@@ -56,7 +57,8 @@ export async function POST(request: Request) {
     });
 
     // Build lookup map: partNumber -> product info
-    const inStock: Record<string, { productId: string; slug: string; title: string; sku: string }> = {};
+    const inStock: Record<string, { productId: string; slug: string; title: string; sku: string }> =
+      {};
 
     for (const p of products) {
       if (p.sku) {
@@ -82,7 +84,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ inStock, count: Object.keys(inStock).length });
   } catch (error) {
-    console.error('[stock-check] Error:', error);
-    return NextResponse.json({ error: 'Failed to check stock' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("[stock-check] Error:", error);
+    return NextResponse.json({ error: "Failed to check stock" }, { status: 500 });
   }
 }

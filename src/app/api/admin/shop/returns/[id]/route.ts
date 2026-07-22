@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { writeAdminAuditLog, ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { writeAdminAuditLog, ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET    /api/admin/shop/returns/[id]   → full RMA detail
@@ -25,14 +25,21 @@ import { prisma } from '@/lib/prisma';
  *   REJECTED  → set rejectedAt
  */
 
-type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'IN_TRANSIT' | 'RECEIVED' | 'INSPECTED' | 'REFUNDED' | 'REJECTED';
+type ReturnStatus =
+  | "REQUESTED"
+  | "APPROVED"
+  | "IN_TRANSIT"
+  | "RECEIVED"
+  | "INSPECTED"
+  | "REFUNDED"
+  | "REJECTED";
 
 const ALLOWED_TRANSITIONS: Record<ReturnStatus, ReturnStatus[]> = {
-  REQUESTED: ['APPROVED', 'REJECTED'],
-  APPROVED: ['IN_TRANSIT', 'REJECTED'],
-  IN_TRANSIT: ['RECEIVED'],
-  RECEIVED: ['INSPECTED'],
-  INSPECTED: ['REFUNDED'],
+  REQUESTED: ["APPROVED", "REJECTED"],
+  APPROVED: ["IN_TRANSIT", "REJECTED"],
+  IN_TRANSIT: ["RECEIVED"],
+  RECEIVED: ["INSPECTED"],
+  INSPECTED: ["REFUNDED"],
   REFUNDED: [],
   REJECTED: [],
 };
@@ -42,19 +49,16 @@ type PatchBody = {
   reasonNote?: string | null;
   adminNote?: string | null;
   customerNote?: string | null;
-  refundMethod?: 'STRIPE_REFUND' | 'STORE_CREDIT' | 'BANK_TRANSFER' | 'REPLACEMENT' | 'NONE';
+  refundMethod?: "STRIPE_REFUND" | "STORE_CREDIT" | "BANK_TRANSFER" | "REPLACEMENT" | "NONE";
   refundAmount?: number;
   externalRefundId?: string | null;
   restockOnReceive?: boolean;
 };
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
 
     const { id } = await params;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,7 +85,7 @@ export async function GET(
       },
     });
 
-    if (!ret) return NextResponse.json({ error: 'Return not found' }, { status: 404 });
+    if (!ret) return NextResponse.json({ error: "Return not found" }, { status: 404 });
 
     const allowedNext = ALLOWED_TRANSITIONS[ret.status as ReturnStatus] || [];
 
@@ -92,12 +96,20 @@ export async function GET(
         total: Number(ret.order.total),
         createdAt: ret.order.createdAt.toISOString(),
       },
-      items: ret.items.map((it: { unitPrice: { toString(): string }; refundAmount: { toString(): string }; restockedAt: Date | null } & Record<string, unknown>) => ({
-        ...it,
-        unitPrice: Number(it.unitPrice),
-        refundAmount: Number(it.refundAmount),
-        restockedAt: it.restockedAt ? it.restockedAt.toISOString() : null,
-      })),
+      items: ret.items.map(
+        (
+          it: {
+            unitPrice: { toString(): string };
+            refundAmount: { toString(): string };
+            restockedAt: Date | null;
+          } & Record<string, unknown>
+        ) => ({
+          ...it,
+          unitPrice: Number(it.unitPrice),
+          refundAmount: Number(it.refundAmount),
+          restockedAt: it.restockedAt ? it.restockedAt.toISOString() : null,
+        })
+      ),
       refundAmount: Number(ret.refundAmount),
       allowedNextStatuses: allowedNext,
       createdAt: ret.createdAt.toISOString(),
@@ -111,21 +123,19 @@ export async function GET(
       rejectedAt: ret.rejectedAt ? ret.rejectedAt.toISOString() : null,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Return GET error:', error);
-    return NextResponse.json({ error: 'Failed to load return' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Return GET error:", error);
+    return NextResponse.json({ error: "Failed to load return" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
 
     const { id } = await params;
     const body = (await request.json().catch(() => ({}))) as PatchBody;
@@ -135,7 +145,7 @@ export async function PATCH(
       where: { id },
       include: { items: true },
     });
-    if (!current) return NextResponse.json({ error: 'Return not found' }, { status: 404 });
+    if (!current) return NextResponse.json({ error: "Return not found" }, { status: 404 });
 
     const data: Record<string, unknown> = {};
     const now = new Date();
@@ -151,23 +161,23 @@ export async function PATCH(
 
       data.status = body.status;
       switch (body.status) {
-        case 'APPROVED':
+        case "APPROVED":
           data.approvedAt = now;
           break;
-        case 'IN_TRANSIT':
+        case "IN_TRANSIT":
           data.inTransitAt = now;
           break;
-        case 'RECEIVED':
+        case "RECEIVED":
           data.receivedAt = now;
           break;
-        case 'INSPECTED':
+        case "INSPECTED":
           data.inspectedAt = now;
           break;
-        case 'REFUNDED':
+        case "REFUNDED":
           data.refundedAt = now;
           if (body.externalRefundId !== undefined) data.externalRefundId = body.externalRefundId;
           break;
-        case 'REJECTED':
+        case "REJECTED":
           data.rejectedAt = now;
           break;
       }
@@ -188,7 +198,7 @@ export async function PATCH(
     });
 
     // Side effect: restock on RECEIVED if flag set
-    if (body.status === 'RECEIVED' && current.restockOnReceive) {
+    if (body.status === "RECEIVED" && current.restockOnReceive) {
       try {
         // For each item with a variantId, increment inventory at first available location
         for (const it of current.items) {
@@ -211,24 +221,25 @@ export async function PATCH(
           }
         }
       } catch (restockError) {
-        console.error('Restock failed (return marked RECEIVED anyway):', restockError);
+        console.error("Restock failed (return marked RECEIVED anyway):", restockError);
       }
     }
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: body.status ? `return.status.${body.status.toLowerCase()}` : 'return.update',
-      entityType: 'shop.return',
+      scope: "shop",
+      action: body.status ? `return.status.${body.status.toLowerCase()}` : "return.update",
+      entityType: "shop.return",
       entityId: id,
       metadata: { fromStatus: current.status, toStatus: body.status, updates: Object.keys(data) },
     });
 
     return NextResponse.json({ id: updated.id, status: updated.status });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Return PATCH error:', error);
-    return NextResponse.json({ error: 'Failed to update return' }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Return PATCH error:", error);
+    return NextResponse.json({ error: "Failed to update return" }, { status: 500 });
   }
 }

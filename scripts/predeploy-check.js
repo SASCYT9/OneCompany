@@ -2,7 +2,7 @@
 /**
  * Pre-deploy safety checks.
  * 1. Ensure clean git working tree.
- * 2. Warn if not on 'stable' branch.
+ * 2. Require the configured production branch (master by default).
  * 3. Run prisma generate (fast) & a dry build check (optional flag).
  */
 const { execSync } = require("child_process");
@@ -106,12 +106,19 @@ try {
     process.exit(1);
   }
   const branch = run("git branch --show-current");
-  if (branch !== "stable") {
-    console.warn(
-      `[WARN] Current branch is '${branch}', expected 'stable'. Continue only if intentional.`
+  const productionBranch = process.env.VERCEL_PRODUCTION_BRANCH || "master";
+  if (branch !== productionBranch) {
+    console.error(
+      `[FAIL] Current branch is '${branch}', but production deploys require '${productionBranch}'.`
     );
+    process.exit(1);
   }
   console.log("[OK] Git clean. Branch:", branch);
+
+  console.log("[STEP] Verifying Operations release files and fail-closed rollout configuration...");
+  execSync("node scripts/operations/check-production-readiness.mjs --mode=prepare", {
+    stdio: "inherit",
+  });
 
   const deployedCommitSha = run("git rev-parse HEAD");
   console.log("[STEP] Verifying commit-bound One AI V2 production activation...");

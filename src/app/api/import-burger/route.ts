@@ -1,21 +1,25 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
-import fs from 'fs';
-import path from 'path';
-import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
+import fs from "fs";
+import path from "path";
+import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
-    const filePath = path.join(process.cwd(), 'data', 'burger-products.json');
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const filePath = path.join(process.cwd(), "data", "burger-products.json");
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: 'data/burger-products.json not found. Run scraper first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: "data/burger-products.json not found. Run scraper first." },
+        { status: 400 }
+      );
     }
 
-    const products = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const products = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     let created = 0;
     let updated = 0;
     let skipped = 0;
@@ -40,9 +44,9 @@ export async function POST() {
           titleUa: p.title,
           slug,
           sku,
-          brand: 'Burger Motorsports',
-          bodyHtmlEn: sanitizeRichTextHtml(p.descriptionEn || ''),
-          bodyHtmlUa: sanitizeRichTextHtml(p.descriptionUa || ''),
+          brand: "Burger Motorsports",
+          bodyHtmlEn: sanitizeRichTextHtml(p.descriptionEn || ""),
+          bodyHtmlUa: sanitizeRichTextHtml(p.descriptionUa || ""),
           priceEur,
           priceUsd: p.priceUsd,
           tags: p.tags,
@@ -50,7 +54,7 @@ export async function POST() {
           image: p.media?.[0]?.url || null,
           gallery: p.media?.map((m: any) => m.url) || [],
           productType: p.productType || null,
-          vendor: p.vendor || 'Burger Motorsports Inc',
+          vendor: p.vendor || "Burger Motorsports Inc",
         };
 
         let productId: string;
@@ -77,7 +81,7 @@ export async function POST() {
               src: m.url,
               altText: m.alt || p.title,
               position: i,
-              mediaType: 'IMAGE',
+              mediaType: "IMAGE",
             })),
           });
         }
@@ -87,7 +91,7 @@ export async function POST() {
         await prisma.shopProductVariant.create({
           data: {
             productId,
-            title: p.selectedVariant || 'Default',
+            title: p.selectedVariant || "Default",
             sku,
             priceEur,
             priceUsd: p.priceUsd,
@@ -100,10 +104,13 @@ export async function POST() {
         const unknownArg = msg.match(/Unknown argument `(\w+)`/);
         const missing = msg.match(/Argument `(\w+)` is missing/);
         const unique = msg.match(/Unique constraint.*`(\w+)`/);
-        const detail = unknownArg ? `Unknown arg: ${unknownArg[1]}` 
-          : missing ? `Missing arg: ${missing[1]}` 
-          : unique ? `Duplicate: ${unique[1]}`
-          : msg.slice(0, 300);
+        const detail = unknownArg
+          ? `Unknown arg: ${unknownArg[1]}`
+          : missing
+            ? `Missing arg: ${missing[1]}`
+            : unique
+              ? `Duplicate: ${unique[1]}`
+              : msg.slice(0, 300);
         errors.push(`[${p.slug}] ${p.title}: ${detail}`);
         skipped++;
         if (skipped <= 5) console.error(`IMPORT ERROR [${p.slug}]: ${detail}`);
@@ -119,6 +126,10 @@ export async function POST() {
       errors: errors.slice(0, 20),
     });
   } catch (err: any) {
+    if (err?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (err?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

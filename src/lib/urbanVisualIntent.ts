@@ -1,14 +1,17 @@
-import type { UrbanCollectionPageConfig } from '@/app/[locale]/shop/data/urbanCollectionPages';
-import type { ShopProduct } from '@/lib/shopCatalog';
-import { getUrbanCollectionMediaRoleOverrides } from '@/lib/urbanProductOverrides';
+import type { UrbanCollectionPageConfig } from "@/app/[locale]/shop/data/urbanCollectionPages";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { getUrbanCollectionMediaRoleOverrides } from "@/lib/urbanProductOverrides";
 
-export type UrbanVisualIntent = 'front' | 'rear' | 'side' | 'detail' | 'package';
-export type UrbanMediaRole = 'hero' | 'front' | 'rear' | 'side' | 'detail' | 'neutral';
+export type UrbanVisualIntent = "front" | "rear" | "side" | "detail" | "package";
+export type UrbanMediaRole = "hero" | "front" | "rear" | "side" | "detail" | "neutral";
 
-type UrbanVisualProduct = Pick<ShopProduct, 'slug' | 'title' | 'category' | 'productType' | 'tags' | 'bundle'>;
+type UrbanVisualProduct = Pick<
+  ShopProduct,
+  "slug" | "title" | "category" | "productType" | "tags" | "bundle"
+>;
 
 type UrbanMediaRoleMap = Record<UrbanMediaRole, string[]>;
-type UrbanBlueprintRoleMap = Record<'front' | 'rear' | 'side', string[]>;
+type UrbanBlueprintRoleMap = Record<"front" | "rear" | "side", string[]>;
 
 export type UrbanCollectionMediaSet = {
   photoGallery: string[];
@@ -28,27 +31,23 @@ const DETAIL_REGEX =
   /\bbadge\b|\btrim\b|\baccessor(y|ies)\b|\bkey fob\b|\bfinisher\b|\bemblem\b|\bcover\b|\bdecal\b|\blettering\b|\bicon\b|\binsert\b|накладк|емблем|значок|наклейк|шильдик|ікон|літер|вставк|логотип/i;
 
 function normalizeText(value: string | null | undefined) {
-  return String(value ?? '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
+  return String(value ?? "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
 
 function normalizeUrbanMediaUrl(url: string | null | undefined) {
-  const raw = String(url ?? '').replace(/^["']|["']$/g, '').trim();
-  if (!raw) return '';
-  return raw.startsWith('//') ? `https:${raw}` : raw;
+  const raw = String(url ?? "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  if (!raw) return "";
+  return raw.startsWith("//") ? `https:${raw}` : raw;
 }
 
 function uniqueUrls(urls: Array<string | null | undefined>) {
-  return Array.from(
-    new Set(
-      urls
-        .map((url) => normalizeUrbanMediaUrl(url))
-        .filter(Boolean)
-    )
-  );
+  return Array.from(new Set(urls.map((url) => normalizeUrbanMediaUrl(url)).filter(Boolean)));
 }
 
 function createRoleMap(): UrbanMediaRoleMap {
@@ -80,45 +79,48 @@ function pushUnique(target: string[], value: string | null | undefined) {
 function inferRealPhotoRoles(
   url: string,
   hintText: string,
-  sourceKind: 'hero' | 'overview' | 'banner' | 'gallery'
+  sourceKind: "hero" | "overview" | "banner" | "gallery"
 ): UrbanMediaRole[] {
   const haystack = normalizeText(`${url} ${hintText}`);
   const roles: UrbanMediaRole[] = [];
 
-  if (sourceKind === 'hero') {
-    roles.push('hero');
+  if (sourceKind === "hero") {
+    roles.push("hero");
   }
 
   if (/\bdetail\b|\bclose\b|\bmirror\b|\btrim\b|\bbadge\b|\bemblem\b/.test(haystack)) {
-    roles.push('detail');
+    roles.push("detail");
   } else if (/\brear\b|\bback\b|\bdiffuser\b|\bexhaust\b|\bspoiler\b/.test(haystack)) {
-    roles.push('rear');
+    roles.push("rear");
   } else if (/\bleft\b|\bright\b|\bside\b|\bprofile\b|\bwheel\b|\barch\b/.test(haystack)) {
-    roles.push('side');
+    roles.push("side");
   } else if (/\bfront\b|\bgrille\b|\bhood\b|\bsplitter\b|\bcanard\b/.test(haystack)) {
-    roles.push('front');
-  } else if (sourceKind !== 'hero') {
-    roles.push('neutral');
+    roles.push("front");
+  } else if (sourceKind !== "hero") {
+    roles.push("neutral");
   }
 
   if (!roles.length) {
-    roles.push('neutral');
+    roles.push("neutral");
   }
 
   return Array.from(new Set(roles));
 }
 
-function blueprintIntentFromLabel(label: string | null | undefined): keyof UrbanBlueprintRoleMap | null {
+function blueprintIntentFromLabel(
+  label: string | null | undefined
+): keyof UrbanBlueprintRoleMap | null {
   const normalized = normalizeText(label);
-  if (normalized.includes('front')) return 'front';
-  if (normalized.includes('back') || normalized.includes('rear')) return 'rear';
-  if (normalized.includes('left') || normalized.includes('right') || normalized.includes('side')) return 'side';
+  if (normalized.includes("front")) return "front";
+  if (normalized.includes("back") || normalized.includes("rear")) return "rear";
+  if (normalized.includes("left") || normalized.includes("right") || normalized.includes("side"))
+    return "side";
   return null;
 }
 
 export function resolveUrbanVisualIntent(product: UrbanVisualProduct): UrbanVisualIntent {
   if (product.bundle) {
-    return 'package';
+    return "package";
   }
 
   const haystack = normalizeText(
@@ -129,15 +131,15 @@ export function resolveUrbanVisualIntent(product: UrbanVisualProduct): UrbanVisu
       product.category.ua,
       product.productType,
       ...(product.tags ?? []),
-    ].join(' ')
+    ].join(" ")
   );
 
-  if (REAR_REGEX.test(haystack)) return 'rear';
-  if (FRONT_REGEX.test(haystack)) return 'front';
-  if (SIDE_REGEX.test(haystack)) return 'side';
-  if (DETAIL_REGEX.test(haystack)) return 'detail';
-  if (PACKAGE_REGEX.test(haystack)) return 'package';
-  return 'detail';
+  if (REAR_REGEX.test(haystack)) return "rear";
+  if (FRONT_REGEX.test(haystack)) return "front";
+  if (SIDE_REGEX.test(haystack)) return "side";
+  if (DETAIL_REGEX.test(haystack)) return "detail";
+  if (PACKAGE_REGEX.test(haystack)) return "package";
+  return "detail";
 }
 
 export function resolveUrbanCardVisualIntent(product: UrbanVisualProduct): UrbanVisualIntent {
@@ -149,15 +151,15 @@ export function resolveUrbanCardVisualIntent(product: UrbanVisualProduct): Urban
       product.category.ua,
       product.productType,
       ...(product.tags ?? []),
-    ].join(' ')
+    ].join(" ")
   );
 
-  if (REAR_REGEX.test(haystack)) return 'rear';
-  if (FRONT_REGEX.test(haystack)) return 'front';
-  if (SIDE_REGEX.test(haystack)) return 'side';
-  if (DETAIL_REGEX.test(haystack)) return 'detail';
-  if (product.bundle || PACKAGE_REGEX.test(haystack)) return 'package';
-  return 'detail';
+  if (REAR_REGEX.test(haystack)) return "rear";
+  if (FRONT_REGEX.test(haystack)) return "front";
+  if (SIDE_REGEX.test(haystack)) return "side";
+  if (DETAIL_REGEX.test(haystack)) return "detail";
+  if (product.bundle || PACKAGE_REGEX.test(haystack)) return "package";
+  return "detail";
 }
 
 export function buildUrbanCollectionMediaSet(
@@ -175,7 +177,7 @@ export function buildUrbanCollectionMediaSet(
   const addPhoto = (
     url: string | null | undefined,
     hintText: string,
-    sourceKind: 'hero' | 'overview' | 'banner' | 'gallery'
+    sourceKind: "hero" | "overview" | "banner" | "gallery"
   ) => {
     const normalized = normalizeUrbanMediaUrl(url);
     if (!normalized) {
@@ -187,18 +189,24 @@ export function buildUrbanCollectionMediaSet(
     });
   };
 
-  addPhoto(config.hero.externalPosterUrl, `${config.hero.title} ${config.hero.subtitle}`, 'hero');
-  addPhoto(config.overview.externalImageUrl, `${config.overview.title} ${config.overview.subtitle}`, 'overview');
+  addPhoto(config.hero.externalPosterUrl, `${config.hero.title} ${config.hero.subtitle}`, "hero");
+  addPhoto(
+    config.overview.externalImageUrl,
+    `${config.overview.title} ${config.overview.subtitle}`,
+    "overview"
+  );
   config.bannerStack.banners
-    .filter((banner) => banner.mediaType === 'image')
+    .filter((banner) => banner.mediaType === "image")
     .forEach((banner) =>
       addPhoto(
         banner.externalImageUrl,
         `${banner.title} ${banner.subtitle} ${banner.eyebrow}`,
-        'banner'
+        "banner"
       )
     );
-  config.gallery.slides.forEach((slide) => addPhoto(slide.externalImageUrl, slide.caption, 'gallery'));
+  config.gallery.slides.forEach((slide) =>
+    addPhoto(slide.externalImageUrl, slide.caption, "gallery")
+  );
 
   config.blueprint.views.forEach((view) => {
     const intent = blueprintIntentFromLabel(view.positionLabel);
@@ -209,9 +217,14 @@ export function buildUrbanCollectionMediaSet(
 
   const overrides = getUrbanCollectionMediaRoleOverrides(collectionHandle);
   if (overrides) {
+    const availablePhotos = new Set(photoGallery);
     Object.entries(overrides).forEach(([role, urls]) => {
       if (role in rolePhotos) {
-        rolePhotos[role as UrbanMediaRole] = uniqueUrls([...(urls ?? []), ...rolePhotos[role as UrbanMediaRole]]);
+        const availableOverrides = (urls ?? []).filter((url) => availablePhotos.has(url));
+        rolePhotos[role as UrbanMediaRole] = uniqueUrls([
+          ...availableOverrides,
+          ...rolePhotos[role as UrbanMediaRole],
+        ]);
       }
     });
   }

@@ -60,7 +60,7 @@ function authErrorResponse(error: unknown) {
 export async function GET(_request: NextRequest, { params }: RouteContext) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_REVIEW);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_REVIEW);
 
     const productId = cleanProductId((await params).productId);
     if (!productId) {
@@ -92,7 +92,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
 
     const productId = cleanProductId((await params).productId);
     if (!productId) {

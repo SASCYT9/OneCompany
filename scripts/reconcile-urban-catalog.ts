@@ -1,50 +1,50 @@
 #!/usr/bin/env tsx
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import fs from "node:fs/promises";
+import path from "node:path";
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
-import { URBAN_COLLECTION_CARDS } from '../src/app/[locale]/shop/data/urbanCollectionsList';
-import { replaceStorefrontTag } from '../src/lib/shopProductStorefront';
-import { getUrbanCollectionHandleForProduct } from '../src/lib/urbanCollectionMatcher';
+import { URBAN_COLLECTION_CARDS } from "../src/app/[locale]/shop/data/urbanCollectionsList";
+import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
+import { getUrbanCollectionHandleForProduct } from "../src/lib/urbanCollectionMatcher";
 
 const prisma = new PrismaClient();
 
 const args = new Set(process.argv.slice(2));
-const COMMIT = args.has('--commit');
-const DRY_RUN = !COMMIT || args.has('--dry-run');
-const GP_ONLY = args.has('--gp-only');
-const LIMIT_ARG = process.argv.find((arg) => arg.startsWith('--limit='));
-const LIMIT = LIMIT_ARG ? Number(LIMIT_ARG.split('=')[1]) : null;
+const COMMIT = args.has("--commit");
+const DRY_RUN = !COMMIT || args.has("--dry-run");
+const GP_ONLY = args.has("--gp-only");
+const LIMIT_ARG = process.argv.find((arg) => arg.startsWith("--limit="));
+const LIMIT = LIMIT_ARG ? Number(LIMIT_ARG.split("=")[1]) : null;
 
-const URBAN_VENDOR = 'Urban Automotive';
-const GP_PORTAL_SOURCE = 'gp-portal';
-const LEGACY_CURATED_SOURCE = 'legacy-curated';
-const STOREFRONT_TAG_PREFIX = 'store:';
-const URBAN_SOURCE_TAG_PREFIX = 'urban-source:';
-const URBAN_VEHICLE_BRAND_TAG_PREFIX = 'urban-vehicle-brand:';
-const URBAN_MANUFACTURER_TAG = 'urban-manufacturer:urban-automotive';
+const URBAN_VENDOR = "Urban Automotive";
+const GP_PORTAL_SOURCE = "gp-portal";
+const LEGACY_CURATED_SOURCE = "legacy-curated";
+const STOREFRONT_TAG_PREFIX = "store:";
+const URBAN_SOURCE_TAG_PREFIX = "urban-source:";
+const URBAN_VEHICLE_BRAND_TAG_PREFIX = "urban-vehicle-brand:";
+const URBAN_MANUFACTURER_TAG = "urban-manufacturer:urban-automotive";
 const URBAN_SYNC_SOURCE_METAFIELD = {
-  namespace: 'custom',
-  key: 'urban_sync_source',
-  valueType: 'single_line_text_field',
+  namespace: "custom",
+  key: "urban_sync_source",
+  valueType: "single_line_text_field",
 } as const;
 const URBAN_MANUFACTURER_METAFIELD = {
-  namespace: 'custom',
-  key: 'manufacturer',
-  valueType: 'single_line_text_field',
+  namespace: "custom",
+  key: "manufacturer",
+  valueType: "single_line_text_field",
   value: URBAN_VENDOR,
 } as const;
 const URBAN_BRAND_METAFIELD = {
-  namespace: 'custom',
-  key: 'brand',
-  valueType: 'single_line_text_field',
+  namespace: "custom",
+  key: "brand",
+  valueType: "single_line_text_field",
 } as const;
 const URBAN_VEHICLE_BRAND_METAFIELD = {
-  namespace: 'custom',
-  key: 'vehicle_brand',
-  valueType: 'single_line_text_field',
+  namespace: "custom",
+  key: "vehicle_brand",
+  valueType: "single_line_text_field",
 } as const;
 
 const COLLECTION_CARD_BY_HANDLE = new Map(
@@ -54,13 +54,13 @@ const COLLECTION_CARD_BY_HANDLE = new Map(
 async function fetchUrbanCatalogRows(limit: number | null) {
   return prisma.shopProduct.findMany({
     where: {
-      status: 'ACTIVE',
+      status: "ACTIVE",
       OR: [
         {
           metafields: {
             some: {
-              namespace: 'custom',
-              key: 'urban_sync_source',
+              namespace: "custom",
+              key: "urban_sync_source",
               value: {
                 in: [GP_PORTAL_SOURCE, LEGACY_CURATED_SOURCE],
               },
@@ -69,28 +69,33 @@ async function fetchUrbanCatalogRows(limit: number | null) {
         },
         {
           tags: {
-            hasSome: ['store:urban', 'urban-source:gp-portal', 'urban-source:legacy-curated', URBAN_MANUFACTURER_TAG],
+            hasSome: [
+              "store:urban",
+              "urban-source:gp-portal",
+              "urban-source:legacy-curated",
+              URBAN_MANUFACTURER_TAG,
+            ],
           },
         },
         {
           vendor: {
-            in: ['Urban', URBAN_VENDOR],
+            in: ["Urban", URBAN_VENDOR],
           },
         },
         {
           brand: {
-            in: ['Urban', URBAN_VENDOR],
+            in: ["Urban", URBAN_VENDOR],
           },
         },
         {
           slug: {
-            startsWith: 'urb-',
+            startsWith: "urb-",
           },
         },
       ],
     },
     orderBy: {
-      slug: 'asc',
+      slug: "asc",
     },
     ...(limit ? { take: limit } : {}),
     select: {
@@ -116,7 +121,7 @@ async function fetchUrbanCatalogRows(limit: number | null) {
       },
       collections: {
         orderBy: {
-          sortOrder: 'asc',
+          sortOrder: "asc",
         },
         select: {
           collection: {
@@ -143,14 +148,15 @@ type ArchivePlan = {
   sku: string | null;
   titleEn: string;
   source: string | null;
-  reason: 'duplicate-legacy' | 'gp-only-prune';
+  reason: "duplicate-legacy" | "gp-only-prune";
   keepSlug?: string;
 };
 
 type ProductPlan = {
   id: string;
   slug: string;
-  targetBrand: string;
+  targetProductBrand: string;
+  targetVehicleBrand: string;
   targetSource: string;
   targetTags: string[];
   targetVendor: string;
@@ -172,15 +178,13 @@ type ProductPlan = {
 };
 
 function normalizeWhitespace(value: string | null | undefined) {
-  return String(value ?? '')
-    .replace(/\s+/g, ' ')
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function uniqueStrings(values: Array<string | null | undefined>) {
-  return Array.from(
-    new Set(values.map((value) => normalizeWhitespace(value)).filter(Boolean))
-  );
+  return Array.from(new Set(values.map((value) => normalizeWhitespace(value)).filter(Boolean)));
 }
 
 function stripTagPrefixes(tags: readonly string[], prefixes: string[]) {
@@ -209,20 +213,20 @@ function arraysEqual(left: readonly string[], right: readonly string[]) {
 
 function canonicalizeBrand(value: string | null | undefined) {
   const normalized = normalizeWhitespace(value);
-  if (!normalized) return '';
+  if (!normalized) return "";
 
-  const compact = normalized.toLowerCase().replace(/\s+/g, ' ');
-  if (compact === 'urban') return URBAN_VENDOR;
-  if (compact === 'urban automotive') return URBAN_VENDOR;
-  if (compact === 'land rover') return 'Land Rover';
-  if (compact === 'range rover') return 'Range Rover';
-  if (compact === 'lamborghini') return 'Lamborghini';
-  if (compact === 'audi') return 'Audi';
-  if (compact === 'bentley') return 'Bentley';
-  if (compact === 'volkswagen') return 'Volkswagen';
-  if (compact === 'ineos') return 'INEOS';
-  if (compact === 'rolls royce' || compact === 'rolls-royce') return 'Rolls-Royce';
-  if (compact === 'mercedes benz' || compact === 'mercedes-benz') return 'Mercedes-Benz';
+  const compact = normalized.toLowerCase().replace(/\s+/g, " ");
+  if (compact === "urban") return URBAN_VENDOR;
+  if (compact === "urban automotive") return URBAN_VENDOR;
+  if (compact === "land rover") return "Land Rover";
+  if (compact === "range rover") return "Range Rover";
+  if (compact === "lamborghini") return "Lamborghini";
+  if (compact === "audi") return "Audi";
+  if (compact === "bentley") return "Bentley";
+  if (compact === "volkswagen") return "Volkswagen";
+  if (compact === "ineos") return "INEOS";
+  if (compact === "rolls royce" || compact === "rolls-royce") return "Rolls-Royce";
+  if (compact === "mercedes benz" || compact === "mercedes-benz") return "Mercedes-Benz";
 
   return normalized;
 }
@@ -235,27 +239,32 @@ function isMeaningfulVehicleBrand(value: string | null | undefined) {
 function slugifyBrand(value: string) {
   return canonicalizeBrand(value)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function getMetafieldValue(row: UrbanCatalogRow, key: string) {
   return (
-    row.metafields.find((metafield) => metafield.namespace === 'custom' && metafield.key === key)?.value ?? null
+    row.metafields.find((metafield) => metafield.namespace === "custom" && metafield.key === key)
+      ?.value ?? null
   );
 }
 
 function getTagValue(tags: readonly string[], prefix: string) {
   const normalizedPrefix = prefix.toLowerCase();
-  const match = tags.find((tag) => normalizeWhitespace(tag).toLowerCase().startsWith(normalizedPrefix));
+  const match = tags.find((tag) =>
+    normalizeWhitespace(tag).toLowerCase().startsWith(normalizedPrefix)
+  );
   if (!match) return null;
 
   return normalizeWhitespace(match.slice(prefix.length));
 }
 
 function resolveUrbanSource(row: UrbanCatalogRow) {
-  const metafieldValue = normalizeWhitespace(getMetafieldValue(row, URBAN_SYNC_SOURCE_METAFIELD.key));
+  const metafieldValue = normalizeWhitespace(
+    getMetafieldValue(row, URBAN_SYNC_SOURCE_METAFIELD.key)
+  );
   if (metafieldValue === GP_PORTAL_SOURCE) return GP_PORTAL_SOURCE;
   if (metafieldValue === LEGACY_CURATED_SOURCE) return LEGACY_CURATED_SOURCE;
 
@@ -278,7 +287,7 @@ function buildCollectionLabel(handles: readonly string[]) {
   return handles
     .map((handle) => normalizeWhitespace(COLLECTION_CARD_BY_HANDLE.get(handle)?.title))
     .filter(Boolean)
-    .join(' / ');
+    .join(" / ");
 }
 
 function buildMatcherProduct(row: UrbanCatalogRow) {
@@ -294,7 +303,7 @@ function buildMatcherProduct(row: UrbanCatalogRow) {
       en: row.collectionEn,
       ua: row.collectionUa,
     },
-    tags: replaceStorefrontTag(row.tags, 'urban'),
+    tags: replaceStorefrontTag(row.tags, "urban"),
     collections: row.collections.map((entry) => ({
       handle: entry.collection.handle,
       brand: entry.collection.brand,
@@ -308,32 +317,36 @@ function buildMatcherProduct(row: UrbanCatalogRow) {
 }
 
 function resolveTargetCollectionHandle(row: UrbanCatalogRow) {
-  return getUrbanCollectionHandleForProduct(buildMatcherProduct(row)) ?? getCurrentUrbanCollectionHandles(row)[0] ?? null;
+  return (
+    getUrbanCollectionHandleForProduct(buildMatcherProduct(row)) ??
+    getCurrentUrbanCollectionHandles(row)[0] ??
+    null
+  );
 }
 
 function resolveRsq8CollectionHandles(row: UrbanCatalogRow) {
   const haystack = normalizeWhitespace(row.titleEn).toLowerCase();
-  if (!haystack.includes('rsq8')) {
+  if (!haystack.includes("rsq8")) {
     return null;
   }
 
   const hasPreFacelift = /\bpre[\s-]?facelift\b/.test(haystack);
-  const haystackWithoutPreFacelift = haystack.replace(/\bpre[\s-]?facelift\b/g, ' ');
+  const haystackWithoutPreFacelift = haystack.replace(/\bpre[\s-]?facelift\b/g, " ");
   const hasFacelift = /\bfacelift\b|\b2024\b|\b2025\b/.test(haystackWithoutPreFacelift);
 
   if (hasPreFacelift && hasFacelift) {
-    return ['audi-rsq8', 'audi-rsq8-facelift'];
+    return ["audi-rsq8", "audi-rsq8-facelift"];
   }
 
   if (hasPreFacelift) {
-    return ['audi-rsq8'];
+    return ["audi-rsq8"];
   }
 
   if (hasFacelift) {
-    return ['audi-rsq8-facelift'];
+    return ["audi-rsq8-facelift"];
   }
 
-  return ['audi-rsq8'];
+  return ["audi-rsq8"];
 }
 
 function resolveTargetCollectionHandles(row: UrbanCatalogRow) {
@@ -348,13 +361,14 @@ function resolveTargetCollectionHandles(row: UrbanCatalogRow) {
 function resolveTargetBrand(row: UrbanCatalogRow, targetCollectionHandle: string | null) {
   const brandFromCollection = targetCollectionHandle
     ? canonicalizeBrand(COLLECTION_CARD_BY_HANDLE.get(targetCollectionHandle)?.brand ?? null)
-    : '';
+    : "";
   if (isMeaningfulVehicleBrand(brandFromCollection)) {
     return brandFromCollection;
   }
 
   const vehicleBrand = canonicalizeBrand(
-    getMetafieldValue(row, URBAN_VEHICLE_BRAND_METAFIELD.key) ?? getMetafieldValue(row, URBAN_BRAND_METAFIELD.key)
+    getMetafieldValue(row, URBAN_VEHICLE_BRAND_METAFIELD.key) ??
+      getMetafieldValue(row, URBAN_BRAND_METAFIELD.key)
   );
   if (isMeaningfulVehicleBrand(vehicleBrand)) {
     return vehicleBrand;
@@ -373,39 +387,49 @@ function buildTargetTags(row: UrbanCatalogRow, source: string, brand: string) {
     STOREFRONT_TAG_PREFIX,
     URBAN_SOURCE_TAG_PREFIX,
     URBAN_VEHICLE_BRAND_TAG_PREFIX,
-    'urban-manufacturer:',
+    "urban-manufacturer:",
   ]);
 
   return uniqueStrings([
     ...baseTags,
     `${STOREFRONT_TAG_PREFIX}urban`,
     `${URBAN_SOURCE_TAG_PREFIX}${source}`,
-    isMeaningfulVehicleBrand(brand) ? `${URBAN_VEHICLE_BRAND_TAG_PREFIX}${slugifyBrand(brand)}` : null,
+    isMeaningfulVehicleBrand(brand)
+      ? `${URBAN_VEHICLE_BRAND_TAG_PREFIX}${slugifyBrand(brand)}`
+      : null,
     URBAN_MANUFACTURER_TAG,
   ]);
 }
 
-function buildMetafieldOps(row: UrbanCatalogRow, targetSource: string, targetBrand: string) {
-  const ops: ProductPlan['metafieldOps'] = [];
-  const currentSource = normalizeWhitespace(getMetafieldValue(row, URBAN_SYNC_SOURCE_METAFIELD.key));
+function buildMetafieldOps(row: UrbanCatalogRow, targetSource: string, targetVehicleBrand: string) {
+  const ops: ProductPlan["metafieldOps"] = [];
+  const currentSource = normalizeWhitespace(
+    getMetafieldValue(row, URBAN_SYNC_SOURCE_METAFIELD.key)
+  );
   if (currentSource !== targetSource) {
     ops.push({ ...URBAN_SYNC_SOURCE_METAFIELD, value: targetSource });
   }
 
-  const currentManufacturer = canonicalizeBrand(getMetafieldValue(row, URBAN_MANUFACTURER_METAFIELD.key));
+  const currentManufacturer = canonicalizeBrand(
+    getMetafieldValue(row, URBAN_MANUFACTURER_METAFIELD.key)
+  );
   if (currentManufacturer !== URBAN_VENDOR) {
     ops.push({ ...URBAN_MANUFACTURER_METAFIELD });
   }
 
-  const currentBrandMetafield = canonicalizeBrand(getMetafieldValue(row, URBAN_BRAND_METAFIELD.key));
-  if (currentBrandMetafield !== targetBrand) {
-    ops.push({ ...URBAN_BRAND_METAFIELD, value: targetBrand });
+  const currentBrandMetafield = canonicalizeBrand(
+    getMetafieldValue(row, URBAN_BRAND_METAFIELD.key)
+  );
+  if (currentBrandMetafield !== URBAN_VENDOR) {
+    ops.push({ ...URBAN_BRAND_METAFIELD, value: URBAN_VENDOR });
   }
 
-  if (isMeaningfulVehicleBrand(targetBrand)) {
-    const currentVehicleBrand = canonicalizeBrand(getMetafieldValue(row, URBAN_VEHICLE_BRAND_METAFIELD.key));
-    if (currentVehicleBrand !== targetBrand) {
-      ops.push({ ...URBAN_VEHICLE_BRAND_METAFIELD, value: targetBrand });
+  if (isMeaningfulVehicleBrand(targetVehicleBrand)) {
+    const currentVehicleBrand = canonicalizeBrand(
+      getMetafieldValue(row, URBAN_VEHICLE_BRAND_METAFIELD.key)
+    );
+    if (currentVehicleBrand !== targetVehicleBrand) {
+      ops.push({ ...URBAN_VEHICLE_BRAND_METAFIELD, value: targetVehicleBrand });
     }
   }
 
@@ -414,17 +438,19 @@ function buildMetafieldOps(row: UrbanCatalogRow, targetSource: string, targetBra
 
 function buildProductPlan(row: UrbanCatalogRow): ProductPlan | null {
   const currentSource = resolveUrbanSource(row);
-  const targetSource = currentSource === GP_PORTAL_SOURCE ? GP_PORTAL_SOURCE : LEGACY_CURATED_SOURCE;
+  const targetSource =
+    currentSource === GP_PORTAL_SOURCE ? GP_PORTAL_SOURCE : LEGACY_CURATED_SOURCE;
   const rsq8RepairHandles = resolveRsq8CollectionHandles(row);
   const targetCollectionHandles = resolveTargetCollectionHandles(row);
   const primaryTargetCollectionHandle = targetCollectionHandles[0] ?? null;
-  const targetBrand = resolveTargetBrand(row, primaryTargetCollectionHandle);
+  const targetVehicleBrand = resolveTargetBrand(row, primaryTargetCollectionHandle);
+  const targetProductBrand = URBAN_VENDOR;
   const targetVendor = URBAN_VENDOR;
-  const targetTags = buildTargetTags(row, targetSource, targetBrand);
-  const productData: ProductPlan['productData'] = {};
+  const targetTags = buildTargetTags(row, targetSource, targetVehicleBrand);
+  const productData: ProductPlan["productData"] = {};
 
-  if (canonicalizeBrand(row.brand) !== targetBrand) {
-    productData.brand = targetBrand;
+  if (canonicalizeBrand(row.brand) !== targetProductBrand) {
+    productData.brand = targetProductBrand;
   }
 
   if (canonicalizeBrand(row.vendor) !== targetVendor) {
@@ -436,7 +462,7 @@ function buildProductPlan(row: UrbanCatalogRow): ProductPlan | null {
   }
 
   const currentUrbanCollectionHandles = getCurrentUrbanCollectionHandles(row);
-  const metafieldOps = buildMetafieldOps(row, targetSource, targetBrand);
+  const metafieldOps = buildMetafieldOps(row, targetSource, targetVehicleBrand);
   let syncCollectionHandles = false;
   let finalTargetCollectionHandles = targetCollectionHandles;
 
@@ -450,14 +476,16 @@ function buildProductPlan(row: UrbanCatalogRow): ProductPlan | null {
       productData.collectionUa = targetCollectionLabel;
     }
 
-    const currentVehicleModelHandles = normalizeWhitespace(getMetafieldValue(row, 'vehicle_model_handles'));
-    const targetVehicleModelHandles = targetCollectionHandles.join(',');
+    const currentVehicleModelHandles = normalizeWhitespace(
+      getMetafieldValue(row, "vehicle_model_handles")
+    );
+    const targetVehicleModelHandles = targetCollectionHandles.join(",");
     if (currentVehicleModelHandles !== targetVehicleModelHandles) {
       metafieldOps.push({
-        namespace: 'custom',
-        key: 'vehicle_model_handles',
+        namespace: "custom",
+        key: "vehicle_model_handles",
         value: targetVehicleModelHandles,
-        valueType: 'multi_line_text_field',
+        valueType: "multi_line_text_field",
       });
     }
 
@@ -477,7 +505,8 @@ function buildProductPlan(row: UrbanCatalogRow): ProductPlan | null {
   return {
     id: row.id,
     slug: row.slug,
-    targetBrand,
+    targetProductBrand,
+    targetVehicleBrand,
     targetSource,
     targetTags,
     targetVendor,
@@ -513,7 +542,7 @@ function findArchiveDuplicatePlans(rows: UrbanCatalogRow[]) {
       return;
     }
 
-    if (!gpPortalRow.slug.startsWith('urb-') || legacyRow.slug.startsWith('urb-')) {
+    if (!gpPortalRow.slug.startsWith("urb-") || legacyRow.slug.startsWith("urb-")) {
       return;
     }
 
@@ -530,7 +559,7 @@ function findArchiveDuplicatePlans(rows: UrbanCatalogRow[]) {
       sku: legacyRow.sku,
       titleEn: legacyRow.titleEn,
       source: resolveUrbanSource(legacyRow),
-      reason: 'duplicate-legacy',
+      reason: "duplicate-legacy",
       keepSlug: gpPortalRow.slug,
     });
   });
@@ -547,17 +576,21 @@ function findGpOnlyArchivePlans(rows: UrbanCatalogRow[]) {
       sku: row.sku,
       titleEn: row.titleEn,
       source: resolveUrbanSource(row),
-      reason: 'gp-only-prune' as const,
+      reason: "gp-only-prune" as const,
     }))
     .sort((left, right) => left.slug.localeCompare(right.slug));
 }
 
 function nowStamp() {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+  return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
-async function writeBackup(rows: UrbanCatalogRow[], archivePlans: ArchivePlan[], productPlans: ProductPlan[]) {
-  const directory = path.join(process.cwd(), 'backups', 'urban-reconcile');
+async function writeBackup(
+  rows: UrbanCatalogRow[],
+  archivePlans: ArchivePlan[],
+  productPlans: ProductPlan[]
+) {
+  const directory = path.join(process.cwd(), "backups", "urban-reconcile");
   await fs.mkdir(directory, { recursive: true });
   const filePath = path.join(directory, `urban-reconcile-${nowStamp()}.json`);
 
@@ -573,7 +606,7 @@ async function writeBackup(rows: UrbanCatalogRow[], archivePlans: ArchivePlan[],
       null,
       2
     ),
-    'utf8'
+    "utf8"
   );
 
   return filePath;
@@ -624,7 +657,7 @@ async function applyArchivePlans(archivePlans: ArchivePlan[]) {
         id: plan.id,
       },
       data: {
-        status: 'ARCHIVED',
+        status: "ARCHIVED",
         isPublished: false,
         publishedAt: null,
       },
@@ -632,7 +665,10 @@ async function applyArchivePlans(archivePlans: ArchivePlan[]) {
   }
 }
 
-async function applyProductPlans(productPlans: ProductPlan[], collectionIdByHandle: Map<string, string>) {
+async function applyProductPlans(
+  productPlans: ProductPlan[],
+  collectionIdByHandle: Map<string, string>
+) {
   for (const plan of productPlans) {
     await prisma.$transaction(async (tx) => {
       if (Object.keys(plan.productData).length) {
@@ -709,12 +745,12 @@ async function main() {
     .filter((plan): plan is ProductPlan => Boolean(plan));
 
   const summary = {
-    mode: DRY_RUN ? 'dry-run' : 'commit',
+    mode: DRY_RUN ? "dry-run" : "commit",
     gpOnly: GP_ONLY,
     totalRows: rows.length,
     archiveTotal: archivePlans.length,
-    archiveDuplicates: archivePlans.filter((plan) => plan.reason === 'duplicate-legacy').length,
-    archiveGpOnlyPrune: archivePlans.filter((plan) => plan.reason === 'gp-only-prune').length,
+    archiveDuplicates: archivePlans.filter((plan) => plan.reason === "duplicate-legacy").length,
+    archiveGpOnlyPrune: archivePlans.filter((plan) => plan.reason === "gp-only-prune").length,
     normalizeProducts: productPlans.length,
     vendorUpdates: productPlans.filter((plan) => Boolean(plan.productData.vendor)).length,
     brandUpdates: productPlans.filter((plan) => Boolean(plan.productData.brand)).length,
@@ -724,7 +760,8 @@ async function main() {
     sampleArchives: archivePlans.slice(0, 20),
     samplePlans: productPlans.slice(0, 30).map((plan) => ({
       slug: plan.slug,
-      targetBrand: plan.targetBrand,
+      targetProductBrand: plan.targetProductBrand,
+      targetVehicleBrand: plan.targetVehicleBrand,
       targetSource: plan.targetSource,
       targetCollectionHandles: plan.targetCollectionHandles,
       productFields: Object.keys(plan.productData),

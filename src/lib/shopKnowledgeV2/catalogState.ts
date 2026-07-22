@@ -39,9 +39,10 @@ export function isShopKnowledgeCatalogFingerprintCurrent(input: {
   return Boolean(actual && expected && actual === expected);
 }
 
-export function requiresShopKnowledgeCatalogRuntimeGuard(
-  environment: Pick<NodeJS.ProcessEnv, "NODE_ENV" | "VERCEL_ENV">
-) {
+export function requiresShopKnowledgeCatalogRuntimeGuard(environment: {
+  NODE_ENV?: string;
+  VERCEL_ENV?: string;
+}) {
   if (environment.VERCEL_ENV) return environment.VERCEL_ENV === "production";
   return environment.NODE_ENV === "production";
 }

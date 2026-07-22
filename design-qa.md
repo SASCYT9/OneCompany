@@ -42,6 +42,46 @@ final result: passed
 
 ---
 
+# Design QA — One Company Operations workspace
+
+- Desktop source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_drp3vXPXAjYBMyTb9ave5c7M.png`
+- Mobile list source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_9HfJLMvXZuGJw2lnVNh7Fyvx.png`
+- Mobile detail source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_ATad6k9OdjdkTdx6smFmgi6C.png`
+- Route: `http://127.0.0.1:3000/admin/operations/tasks`
+- Intended states: desktop split task workspace; mobile task list; mobile task detail
+
+## Implemented visual contract
+
+- The Operations workspace is scoped to the existing admin shell; it does not create a second site or restyle legacy commerce screens.
+- Desktop uses a dark admin navigation frame, light working surface, task list/detail split, and list/board/calendar views.
+- Mobile defaults to `Мои / Сегодня / Все`, uses a permission-aware bottom navigation, opens task detail as a separate route, and keeps safe-area actions sticky.
+- Kanban is a desktop enhancement with pointer and keyboard sensors; mobile is not forced into compressed horizontal columns.
+- Audio uses `preload="none"` and the transcript starts collapsed.
+- Colors are isolated in Operations/admin theme tokens rather than treated as fixed source-image values.
+
+## Static and interaction verification completed
+
+- Operations pages are server-guarded by the same feature flag and current-database permission checks as their APIs.
+- Navigation, mobile destinations, Inbox review actions, task transitions, comments, editing, knowledge links, and private attachment access have focused source/integration tests.
+- Responsive classes cover compact mobile layouts, `sm`, `md`, `lg`, and wide desktop states; sticky controls include `env(safe-area-inset-bottom)`.
+- No placeholder task action or blocker text is fabricated during a mutation.
+- Focused TypeScript, ESLint, UI/RBAC, and Operations tests pass.
+
+## Visual comparison blocker
+
+The in-app browser initially opened the admin and Operations routes, but the browser URL safety policy then blocked further reads/reloads. That policy explicitly prohibits retries or switching to another browser, so no compliant post-implementation screenshot or side-by-side comparison could be produced in this turn.
+
+Required staging acceptance remains:
+
+- Capture and compare the same states at 360, 390, 768, and 1440 px.
+- Check typography, spacing, wrapping, horizontal overflow, sticky safe-area actions, board scrolling, drag keyboard announcements, and task-detail focus order.
+- Verify the light Operations surface inside the dark existing admin shell with real Russian data, long titles, empty states, and error states.
+- Re-run the source/prototype side-by-side comparison and resolve every visible P0/P1/P2 issue before production rollout.
+
+final result: blocked — visual browser comparison must be completed in staging; implementation and source-level checks are complete
+
+---
+
 # Design QA — supplied sport-bike SVG
 
 - Source visual truth: `D:/sport-bike-motorcycle-icon.svg`

@@ -2,14 +2,15 @@ import { config } from "dotenv";
 
 import { prisma } from "../src/lib/prisma";
 import {
-  createPrismaShopKnowledgeV2Repository,
-  buildShopKnowledgeV2,
   isShopKnowledgeBackfillAllowed,
-  indexShopKnowledgeProduct,
-  listShopKnowledgeSourceProducts,
   parseShopKnowledgeBackfillCategories,
+} from "../src/lib/shopKnowledgeV2/backfillPolicy";
+import { buildShopKnowledgeV2 } from "../src/lib/shopKnowledgeV2/builders";
+import {
+  indexShopKnowledgeProduct,
   previewShopKnowledgeProduct,
-} from "../src/lib/shopKnowledgeV2";
+} from "../src/lib/shopKnowledgeV2/indexer";
+import { listShopKnowledgeSourceProducts } from "../src/lib/shopKnowledgeV2/source";
 
 config({ path: ".env.local", override: false, quiet: true });
 
@@ -72,7 +73,11 @@ async function main() {
   }
   if (commit) assertSafeCommitEnvironment();
 
-  const repository = commit ? createPrismaShopKnowledgeV2Repository(prisma) : null;
+  const repository = commit
+    ? (
+        await import("../src/lib/shopKnowledgeV2/prismaRepository")
+      ).createPrismaShopKnowledgeV2Repository(prisma)
+    : null;
   const stats: BackfillStats = {
     scanned: 0,
     created: 0,

@@ -1,17 +1,17 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminShopBundleInclude,
   normalizeAdminShopBundlePayload,
   serializeAdminShopBundleDetail,
-} from '@/lib/shopAdminBundles';
-import { prisma } from '@/lib/prisma';
+} from "@/lib/shopAdminBundles";
+import { prisma } from "@/lib/prisma";
 
 async function validateBundlePayload(
   bundleId: string,
-  data: ReturnType<typeof normalizeAdminShopBundlePayload>['data']
+  data: ReturnType<typeof normalizeAdminShopBundlePayload>["data"]
 ) {
   const product = await prisma.shopProduct.findUnique({
     where: { id: data.productId },
@@ -19,7 +19,7 @@ async function validateBundlePayload(
   });
 
   if (!product) {
-    return { error: 'Bundle product not found' };
+    return { error: "Bundle product not found" };
   }
 
   const duplicate = await prisma.shopBundle.findFirst({
@@ -31,17 +31,19 @@ async function validateBundlePayload(
   });
 
   if (duplicate) {
-    return { error: 'Selected product already has a bundle' };
+    return { error: "Selected product already has a bundle" };
   }
 
-  const componentProductIds = Array.from(new Set(data.items.map((item) => item.componentProductId)));
+  const componentProductIds = Array.from(
+    new Set(data.items.map((item) => item.componentProductId))
+  );
   const componentProducts = await prisma.shopProduct.findMany({
     where: { id: { in: componentProductIds } },
     select: { id: true },
   });
 
   if (componentProducts.length !== componentProductIds.length) {
-    return { error: 'One or more bundle component products were not found' };
+    return { error: "One or more bundle component products were not found" };
   }
 
   const variantIds = Array.from(
@@ -63,7 +65,7 @@ async function validateBundlePayload(
       if (!item.componentVariantId) continue;
       const variant = variantById.get(item.componentVariantId);
       if (!variant || variant.productId !== item.componentProductId) {
-        return { error: 'Bundle component variant must belong to the selected component product' };
+        return { error: "Bundle component variant must belong to the selected component product" };
       }
     }
   }
@@ -71,13 +73,10 @@ async function validateBundlePayload(
   return { ok: true as const };
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
     const { id } = await params;
 
     const bundle = await prisma.shopBundle.findUnique({
@@ -86,34 +85,31 @@ export async function GET(
     });
 
     if (!bundle) {
-      return NextResponse.json({ error: 'Bundle not found' }, { status: 404 });
+      return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
     }
 
     return NextResponse.json(serializeAdminShopBundleDetail(bundle));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin bundle detail', error);
-    return NextResponse.json({ error: 'Failed to get bundle' }, { status: 500 });
+    console.error("Admin bundle detail", error);
+    return NextResponse.json({ error: "Failed to get bundle" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
     const body = await request.json();
     const { data, errors } = normalizeAdminShopBundlePayload(body);
     if (errors.length) {
-      return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
+      return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
     }
 
     const existing = await prisma.shopBundle.findUnique({
@@ -122,11 +118,11 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: 'Bundle not found' }, { status: 404 });
+      return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
     }
 
     const validation = await validateBundlePayload(id, data);
-    if ('error' in validation) {
+    if ("error" in validation) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
@@ -156,9 +152,9 @@ export async function PATCH(
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'bundle.update',
-      entityType: 'shop.bundle',
+      scope: "shop",
+      action: "bundle.update",
+      entityType: "shop.bundle",
       entityId: bundle.id,
       metadata: {
         productId: bundle.productId,
@@ -168,14 +164,14 @@ export async function PATCH(
 
     return NextResponse.json(serializeAdminShopBundleDetail(bundle));
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin bundle update', error);
-    return NextResponse.json({ error: 'Failed to update bundle' }, { status: 500 });
+    console.error("Admin bundle update", error);
+    return NextResponse.json({ error: "Failed to update bundle" }, { status: 500 });
   }
 }
 
@@ -185,7 +181,7 @@ export async function DELETE(
 ) {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
 
     const deleted = await prisma.shopBundle.delete({
@@ -194,9 +190,9 @@ export async function DELETE(
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'bundle.delete',
-      entityType: 'shop.bundle',
+      scope: "shop",
+      action: "bundle.delete",
+      entityType: "shop.bundle",
       entityId: deleted.id,
       metadata: {
         productId: deleted.productId,
@@ -205,15 +201,15 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin bundle delete', error);
-    return NextResponse.json({ error: 'Failed to delete bundle' }, { status: 500 });
+    console.error("Admin bundle delete", error);
+    return NextResponse.json({ error: "Failed to delete bundle" }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

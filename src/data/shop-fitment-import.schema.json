@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://onecompany.global/schemas/shop-fitment-import-v1.json",
+  "title": "One Company Shop Fitment Import V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "mode", "scope", "applications", "source"],
+  "properties": {
+    "version": { "const": 1 },
+    "mode": {
+      "enum": ["vehicle_specific", "universal", "parent_dependent", "needs_review"]
+    },
+    "scope": { "enum": ["auto", "moto"] },
+    "applications": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/application" }
+    },
+    "parentSku": { "type": ["string", "null"], "minLength": 1 },
+    "source": { "$ref": "#/$defs/source" },
+    "note": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mode": { "const": "vehicle_specific" } } },
+      "then": { "properties": { "applications": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "mode": { "enum": ["universal", "parent_dependent"] } } },
+      "then": { "properties": { "applications": { "maxItems": 0 } } }
+    },
+    {
+      "if": { "properties": { "mode": { "const": "parent_dependent" } } },
+      "then": { "required": ["parentSku"] }
+    }
+  ],
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supplier", "sourceRef"],
+      "properties": {
+        "supplier": { "type": "string", "minLength": 1 },
+        "sourceRef": { "type": "string", "minLength": 1 },
+        "sourceUpdatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vehicleType", "make"],
+      "properties": {
+        "vehicleType": { "enum": ["car", "motorcycle"] },
+        "make": { "type": "string", "minLength": 1 },
+        "model": { "type": ["string", "null"] },
+        "chassisCode": { "type": ["string", "null"] },
+        "yearFrom": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 },
+        "yearTo": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 },
+        "engine": { "type": ["string", "null"] },
+        "bodyStyle": { "type": ["string", "null"] },
+        "drivetrain": { "type": ["string", "null"] },
+        "transmission": { "type": ["string", "null"] },
+        "market": { "type": ["string", "null"] },
+        "opfGpf": { "enum": ["with", "without", "unknown"] }
+      },
+      "anyOf": [
+        {
+          "required": ["model"],
+          "properties": { "model": { "type": "string", "minLength": 1 } }
+        },
+        {
+          "required": ["chassisCode"],
+          "properties": { "chassisCode": { "type": "string", "minLength": 1 } }
+        }
+      ]
+    }
+  }
+}

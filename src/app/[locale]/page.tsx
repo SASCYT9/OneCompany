@@ -179,7 +179,6 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
             eyebrow={t("shopShowcaseEyebrow")}
             meta={t("shopShowcaseMeta")}
             primaryLabel={t("shopShowcasePrimary")}
-            selectionLabel={t("shopShowcaseSelection")}
           />
 
           <div className="relative isolate mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-4 pb-4 pt-3 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-4 md:flex-row md:gap-4 md:px-8">

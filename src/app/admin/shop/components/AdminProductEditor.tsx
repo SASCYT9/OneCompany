@@ -895,7 +895,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
     async function loadSettings() {
       try {
-        const response = await fetch("/api/admin/shop/settings");
+        const response = await fetch("/api/admin/shop/products/editor-context");
         const data = await response.json();
         if (response.ok && data.currencyRates && !cancelled) {
           setRates(data.currencyRates);

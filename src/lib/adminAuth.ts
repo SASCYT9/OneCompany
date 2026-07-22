@@ -1,7 +1,14 @@
-import crypto from 'crypto';
+import crypto from "crypto";
+import {
+  resolveCurrentAdminSession,
+  type AdminIdentityRepository,
+} from "@/lib/admin/adminIdentity";
+import { matchesAdminPermission } from "@/lib/admin/adminPermissions";
 
-export const ADMIN_SESSION_COOKIE = 'onecompany-admin-session';
-const DEFAULT_SECRET = 'dev-admin-session-secret';
+export { matchesAdminPermission } from "@/lib/admin/adminPermissions";
+
+export const ADMIN_SESSION_COOKIE = "onecompany-admin-session";
+const DEFAULT_SECRET = "dev-admin-session-secret";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 export type AdminSession = {
@@ -12,7 +19,7 @@ export type AdminSession = {
   nonce: string;
 };
 
-type CookieReader = {
+export type CookieReader = {
   get: (name: string) => { value: string } | undefined;
 };
 
@@ -25,20 +32,20 @@ type SessionTokenPayload = {
 };
 
 function getSecret(): string {
-  const configured = (process.env.ADMIN_SESSION_SECRET || '').trim();
+  const configured = (process.env.ADMIN_SESSION_SECRET || "").trim();
   if (configured) {
     return configured;
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('ADMIN_SESSION_SECRET is required in production');
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ADMIN_SESSION_SECRET is required in production");
   }
 
   return DEFAULT_SECRET;
 }
 
 function signPayload(payload: string): string {
-  return crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
+  return crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
 }
 
 function toSession(payload: SessionTokenPayload): AdminSession {
@@ -52,19 +59,19 @@ function toSession(payload: SessionTokenPayload): AdminSession {
 }
 
 function encodePayload(payload: SessionTokenPayload) {
-  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
 }
 
 function decodePayload(encoded: string): SessionTokenPayload | null {
   try {
-    const raw = Buffer.from(encoded, 'base64url').toString('utf8');
+    const raw = Buffer.from(encoded, "base64url").toString("utf8");
     const payload = JSON.parse(raw) as Partial<SessionTokenPayload>;
     if (
-      typeof payload.sub !== 'string' ||
-      typeof payload.name !== 'string' ||
+      typeof payload.sub !== "string" ||
+      typeof payload.name !== "string" ||
       !Array.isArray(payload.permissions) ||
-      typeof payload.iat !== 'number' ||
-      typeof payload.nonce !== 'string'
+      typeof payload.iat !== "number" ||
+      typeof payload.nonce !== "string"
     ) {
       return null;
     }
@@ -72,9 +79,7 @@ function decodePayload(encoded: string): SessionTokenPayload | null {
     return {
       sub: payload.sub.trim().toLowerCase(),
       name: payload.name.trim(),
-      permissions: payload.permissions
-        .map((entry) => String(entry ?? '').trim())
-        .filter(Boolean),
+      permissions: payload.permissions.map((entry) => String(entry ?? "").trim()).filter(Boolean),
       iat: payload.iat,
       nonce: payload.nonce,
     };
@@ -88,7 +93,7 @@ function isFresh(issuedAtMs: number) {
 }
 
 function verifyLegacySessionToken(token: string): AdminSession | null {
-  const parts = token.split('.');
+  const parts = token.split(".");
   if (parts.length !== 3) {
     return null;
   }
@@ -96,8 +101,8 @@ function verifyLegacySessionToken(token: string): AdminSession | null {
   const [issuedAt, nonce, signature] = parts;
   const payload = `${issuedAt}.${nonce}`;
   const expectedSignature = signPayload(payload);
-  const providedBuffer = Buffer.from(signature, 'hex');
-  const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+  const providedBuffer = Buffer.from(signature, "hex");
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
 
   if (
     providedBuffer.length !== expectedBuffer.length ||
@@ -112,9 +117,9 @@ function verifyLegacySessionToken(token: string): AdminSession | null {
   }
 
   return {
-    email: 'legacy-admin@onecompany.local',
-    name: 'Legacy Admin',
-    permissions: ['*'],
+    email: "legacy-admin@onecompany.local",
+    name: "Legacy Admin",
+    permissions: ["*"],
     issuedAt: issuedAtMs,
     nonce,
   };
@@ -127,10 +132,12 @@ export function createSessionToken(session: {
 }): string {
   const payload: SessionTokenPayload = {
     sub: session.email.trim().toLowerCase(),
-    name: session.name.trim() || 'Admin',
-    permissions: Array.from(new Set(session.permissions.map((entry) => entry.trim()).filter(Boolean))),
+    name: session.name.trim() || "Admin",
+    permissions: Array.from(
+      new Set(session.permissions.map((entry) => entry.trim()).filter(Boolean))
+    ),
     iat: Date.now(),
-    nonce: crypto.randomBytes(16).toString('hex'),
+    nonce: crypto.randomBytes(16).toString("hex"),
   };
   const encodedPayload = encodePayload(payload);
   const signature = signPayload(encodedPayload);
@@ -142,12 +149,12 @@ export function verifySessionToken(token?: string | null): AdminSession | null {
     return null;
   }
 
-  const parts = token.split('.');
+  const parts = token.split(".");
   if (parts.length === 2) {
     const [encodedPayload, signature] = parts;
     const expectedSignature = signPayload(encodedPayload);
-    const providedBuffer = Buffer.from(signature, 'hex');
-    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    const providedBuffer = Buffer.from(signature, "hex");
+    const expectedBuffer = Buffer.from(expectedSignature, "hex");
 
     if (
       providedBuffer.length !== expectedBuffer.length ||
@@ -169,26 +176,11 @@ export function verifySessionToken(token?: string | null): AdminSession | null {
 
 export const adminSessionCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-  path: '/',
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  path: "/",
   maxAge: SESSION_TTL_MS / 1000,
 };
-
-export function matchesAdminPermission(grantedPermissions: string[], requiredPermission: string): boolean {
-  return grantedPermissions.some((permission) => {
-    if (permission === '*' || permission === requiredPermission) {
-      return true;
-    }
-
-    if (permission.endsWith('.*')) {
-      const prefix = permission.slice(0, -1);
-      return requiredPermission.startsWith(prefix);
-    }
-
-    return false;
-  });
-}
 
 export function getAdminSession(cookieStore: CookieReader): AdminSession | null {
   const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
@@ -199,14 +191,42 @@ export function isAdminRequestAuthenticated(cookieStore: CookieReader): boolean 
   return getAdminSession(cookieStore) !== null;
 }
 
-export function assertAdminRequest(cookieStore: CookieReader, requiredPermission?: string): AdminSession {
-  const session = getAdminSession(cookieStore);
+const currentAdminSessionByCookieStore = new WeakMap<object, Promise<AdminSession | null>>();
+
+async function getCurrentAdminSession(
+  cookieStore: CookieReader,
+  repository?: AdminIdentityRepository
+): Promise<AdminSession | null> {
+  if (repository) {
+    return resolveCurrentAdminSession(getAdminSession(cookieStore), repository);
+  }
+
+  const cacheKey = cookieStore as object;
+  const cached = currentAdminSessionByCookieStore.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const resolution = resolveCurrentAdminSession(getAdminSession(cookieStore)).catch((error) => {
+    currentAdminSessionByCookieStore.delete(cacheKey);
+    throw error;
+  });
+  currentAdminSessionByCookieStore.set(cacheKey, resolution);
+  return resolution;
+}
+
+export async function assertAdminRequest(
+  cookieStore: CookieReader,
+  requiredPermission?: string,
+  repository?: AdminIdentityRepository
+): Promise<AdminSession> {
+  const session = await getCurrentAdminSession(cookieStore, repository);
   if (!session) {
-    throw new Error('UNAUTHORIZED');
+    throw new Error("UNAUTHORIZED");
   }
 
   if (requiredPermission && !matchesAdminPermission(session.permissions, requiredPermission)) {
-    throw new Error('FORBIDDEN');
+    throw new Error("FORBIDDEN");
   }
 
   return session;

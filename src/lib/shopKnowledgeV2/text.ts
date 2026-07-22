@@ -265,7 +265,32 @@ export function collectKnowledgeTextSources(
 }
 
 export function buildKnowledgeChunks(product: KnowledgeSourceProduct): ShopKnowledgeChunkDraft[] {
-  return collectKnowledgeTextSources(product).flatMap((source) =>
+  const sources = collectKnowledgeTextSources(product);
+  const productSources = sources.filter((source) => source.variantId === null);
+  const variantSources = sources.filter((source) => source.variantId !== null);
+  const compactProductSources = (["ua", "en", "neutral"] as const).flatMap((locale) => {
+    const localized = productSources.filter((source) => source.locale === locale);
+    if (localized.length === 0) return [];
+    return [
+      {
+        variantId: null,
+        locale,
+        sourceField: `product:${locale}`,
+        sourceOrdinal: 0,
+        // Field labels preserve inspectability while avoiding one tiny embedding
+        // chunk for every short catalog field. This keeps the full source text
+        // but targets roughly three product chunks plus variant-owned chunks.
+        text: localized
+          .map(
+            (source) =>
+              `[${source.sourceField}${source.sourceOrdinal ? `:${source.sourceOrdinal}` : ""}]\n${source.text}`
+          )
+          .join("\n\n"),
+      },
+    ];
+  });
+
+  return [...compactProductSources, ...variantSources].flatMap((source) =>
     chunkKnowledgeText(source.text).map((chunk, ordinal) => {
       const identity = {
         productId: product.id,

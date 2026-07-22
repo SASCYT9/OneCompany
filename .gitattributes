@@ -5,3 +5,7 @@ public/videos/fi-exhaust.mp4 filter=lfs diff=lfs merge=lfs -text
 # Treat other mp4s as binary but NOT LFS
 *.mp4 binary
 
+# Prisma stores migration checksums byte-for-byte. Keep SQL line endings stable
+# across Windows workstations so Git does not create false checksum drift.
+prisma/migrations/**/migration.sql text eol=lf
+

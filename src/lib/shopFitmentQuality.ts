@@ -1,6 +1,7 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { Fitment } from "@/lib/crossShopFitment";
 import type { VehicleYearRange } from "@/lib/shopVehicleYears";
+import { classifyAutomaticFitmentDisposition } from "@/lib/shopFitmentDisposition";
 
 export const NORMALIZED_FITMENT_NAMESPACE = "onecompany";
 export const NORMALIZED_FITMENT_KEY = "normalized_fitment";
@@ -28,6 +29,8 @@ export type VehicleApplication = {
   bodyStyles: string[];
   drivetrains: string[];
   markets: string[];
+  transmission?: string | null;
+  opfGpf?: "with" | "without" | "unknown";
 };
 
 export type NormalizedFitment = {
@@ -44,6 +47,7 @@ export type NormalizedFitment = {
   verifiedAt: string | null;
   verifiedBy: string | null;
   note: string | null;
+  dependency?: { type: "parent_product"; parentSku: string | null } | null;
 };
 
 const MOTORCYCLE_MAKES = new Set([
@@ -128,6 +132,8 @@ function cleanVehicleApplication(value: unknown): VehicleApplication | null {
     bodyStyles: cleanStrings(source.bodyStyles),
     drivetrains: cleanStrings(source.drivetrains),
     markets: cleanStrings(source.markets),
+    transmission: String(source.transmission ?? "").trim() || null,
+    opfGpf: source.opfGpf === "with" || source.opfGpf === "without" ? source.opfGpf : "unknown",
   };
 }
 
@@ -155,6 +161,45 @@ function legacyApplication(
 }
 
 export function classifyProductFitment(product: ShopProduct, fitment: Fitment): NormalizedFitment {
+  const disposition = classifyAutomaticFitmentDisposition(product, fitment);
+  if (disposition.mode === "parent_dependent") {
+    return {
+      version: NORMALIZED_FITMENT_VERSION,
+      status: "needs_review",
+      vehicleType: "unknown",
+      make: null,
+      models: [],
+      chassisCodes: [],
+      yearRanges: [],
+      applications: [],
+      confidence: "unknown",
+      source: "automatic",
+      verifiedAt: null,
+      verifiedBy: null,
+      note: disposition.reason,
+      dependency: { type: "parent_product", parentSku: disposition.parentSku },
+    };
+  }
+
+  if (disposition.mode === "universal") {
+    return {
+      version: NORMALIZED_FITMENT_VERSION,
+      status: "universal",
+      vehicleType: "universal",
+      make: null,
+      models: [],
+      chassisCodes: [],
+      yearRanges: [],
+      applications: [],
+      confidence: "high",
+      source: "automatic",
+      verifiedAt: null,
+      verifiedBy: null,
+      note: disposition.reason,
+      dependency: null,
+    };
+  }
+
   if (isExplicitlyUniversal(product, fitment)) {
     return {
       version: NORMALIZED_FITMENT_VERSION,
@@ -170,6 +215,7 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
       verifiedAt: null,
       verifiedBy: null,
       note: null,
+      dependency: null,
     };
   }
 
@@ -251,6 +297,13 @@ export function parseNormalizedFitment(value: string | null | undefined): Normal
       verifiedAt: parsed.verifiedAt ? String(parsed.verifiedAt) : null,
       verifiedBy: parsed.verifiedBy ? String(parsed.verifiedBy) : null,
       note: parsed.note ? String(parsed.note).trim() || null : null,
+      dependency:
+        parsed.dependency && typeof parsed.dependency === "object"
+          ? {
+              type: "parent_product",
+              parentSku: String(parsed.dependency.parentSku ?? "").trim() || null,
+            }
+          : null,
     };
   } catch {
     return null;
@@ -363,6 +416,7 @@ export function normalizeManualFitment(
       verifiedAt: isConfirmed ? now.toISOString() : null,
       verifiedBy: isConfirmed ? actor : null,
       note: String(source.note ?? "").trim() || null,
+      dependency: null,
     },
     errors: [],
   };

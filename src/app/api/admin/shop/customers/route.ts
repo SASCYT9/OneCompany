@@ -1,47 +1,58 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
-import { listShopCustomersAdmin } from '@/lib/shopAdminCustomers';
-import { hashShopCustomerPassword } from '@/lib/shopCustomers';
-import { prisma } from '@/lib/prisma';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { listShopCustomersAdmin } from "@/lib/shopAdminCustomers";
+import { hashShopCustomerPassword } from "@/lib/shopCustomers";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
 
     const url = new URL(request.url);
     const customers = await listShopCustomersAdmin(prisma, {
-      q: url.searchParams.get('q'),
-      group: url.searchParams.get('group'),
-      status: url.searchParams.get('status'),
+      q: url.searchParams.get("q"),
+      group: url.searchParams.get("group"),
+      status: url.searchParams.get("status"),
     });
 
     return NextResponse.json(customers);
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin customers list', error);
-    return NextResponse.json({ error: 'Failed to list customers' }, { status: 500 });
+    console.error("Admin customers list", error);
+    return NextResponse.json({ error: "Failed to list customers" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
 
     const data = await request.json();
-    const { email, firstName, lastName, phone, companyName, group, isActive, preferredLocale, b2bDiscountPercent, password } = data;
+    const {
+      email,
+      firstName,
+      lastName,
+      phone,
+      companyName,
+      group,
+      isActive,
+      preferredLocale,
+      b2bDiscountPercent,
+      password,
+    } = data;
 
     if (!email || !firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Email, First Name, and Last Name are required' },
+        { error: "Email, First Name, and Last Name are required" },
         { status: 400 }
       );
     }
@@ -52,12 +63,12 @@ export async function POST(request: NextRequest) {
     });
     if (existing) {
       return NextResponse.json(
-        { error: 'Customer with this email already exists' },
+        { error: "Customer with this email already exists" },
         { status: 400 }
       );
     }
 
-    const normalizedPassword = password ? String(password).trim() : '';
+    const normalizedPassword = password ? String(password).trim() : "";
 
     const customer = await prisma.shopCustomer.create({
       data: {
@@ -66,9 +77,9 @@ export async function POST(request: NextRequest) {
         lastName: String(lastName).trim(),
         phone: phone ? String(phone).trim() : null,
         companyName: companyName ? String(companyName).trim() : null,
-        group: group || 'B2C',
+        group: group || "B2C",
         isActive: isActive !== false,
-        preferredLocale: preferredLocale || 'en',
+        preferredLocale: preferredLocale || "en",
         b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : null,
         ...(normalizedPassword
           ? {
@@ -95,11 +106,16 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    if (error.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (error.message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    console.error('Admin customer create', error);
-    return NextResponse.json({ error: error.message || 'Failed to create customer' }, { status: 500 });
+    if (error.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("Admin customer create", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to create customer" },
+      { status: 500 }
+    );
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

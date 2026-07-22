@@ -1,16 +1,16 @@
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { fetchShopCurrencyRatesFromNbu } from '@/lib/shopCurrencyNbu';
-import { getOrCreateShopSettings, serializeShopSettings } from '@/lib/shopAdminSettings';
-import { prisma } from '@/lib/prisma';
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
+import { fetchShopCurrencyRatesFromNbu } from "@/lib/shopCurrencyNbu";
+import { getOrCreateShopSettings, serializeShopSettings } from "@/lib/shopAdminSettings";
+import { prisma } from "@/lib/prisma";
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
     const nbuRates = await fetchShopCurrencyRatesFromNbu();
     const currentSettings = await getOrCreateShopSettings(prisma);
@@ -22,9 +22,9 @@ export async function POST() {
     });
 
     await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'settings.currency_rates.refresh_nbu',
-      entityType: 'shop.settings',
+      scope: "shop",
+      action: "settings.currency_rates.refresh_nbu",
+      entityType: "shop.settings",
       entityId: settings.key,
       metadata: {
         source: nbuRates.source,
@@ -41,13 +41,13 @@ export async function POST() {
       nbu: nbuRates,
     });
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if ((error as Error).message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Admin shop settings NBU refresh', error);
-    return NextResponse.json({ error: 'Не вдалося оновити курси з НБУ' }, { status: 500 });
+    console.error("Admin shop settings NBU refresh", error);
+    return NextResponse.json({ error: "Не вдалося оновити курси з НБУ" }, { status: 500 });
   }
 }

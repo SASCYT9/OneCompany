@@ -1,9 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
-import { getAllCustomerMarkups, upsertCustomerMarkup, deleteCustomerMarkup } from '@/lib/turn14Pricing';
-import { fetchAirtableCustomers } from '@/lib/airtable';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
+import {
+  getAllCustomerMarkups,
+  upsertCustomerMarkup,
+  deleteCustomerMarkup,
+} from "@/lib/turn14Pricing";
+import { fetchAirtableCustomers } from "@/lib/airtable";
 
 /**
  * GET /api/admin/shop/pricing/customer-markups
@@ -12,21 +17,27 @@ import { fetchAirtableCustomers } from '@/lib/airtable';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_READ);
     const markups = await getAllCustomerMarkups();
 
     // Also fetch Airtable customers for dropdown
     let airtableCustomers: { id: string; name: string }[] = [];
     try {
       const { records } = await fetchAirtableCustomers({ maxRecords: 200 });
-      airtableCustomers = records.map(r => ({ id: r.id, name: r.name }));
-    } catch { /* Airtable may not be configured */ }
+      airtableCustomers = records.map((r) => ({ id: r.id, name: r.name }));
+    } catch {
+      /* Airtable may not be configured */
+    }
 
     return NextResponse.json({
       markups,
       airtableCustomers,
     });
   } catch (error: any) {
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -38,12 +49,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_WRITE);
     const body = await request.json();
     const { customerId, customerName, markupPct, notes } = body;
 
     if (!customerId || !customerName) {
-      return NextResponse.json({ error: 'customerId and customerName required' }, { status: 400 });
+      return NextResponse.json({ error: "customerId and customerName required" }, { status: 400 });
     }
 
     const markup = await upsertCustomerMarkup({
@@ -55,6 +66,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, markup });
   } catch (error: any) {
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -66,19 +81,23 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRICING_WRITE);
     const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId');
+    const customerId = searchParams.get("customerId");
 
     if (!customerId) {
-      return NextResponse.json({ error: 'customerId required' }, { status: 400 });
+      return NextResponse.json({ error: "customerId required" }, { status: 400 });
     }
 
     await deleteCustomerMarkup(customerId);
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";

@@ -1,5 +1,8 @@
+import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
+
 export type AdminNavSectionKey =
   | "overview"
+  | "work"
   | "orders"
   | "customers"
   | "catalog"
@@ -40,7 +43,12 @@ export type AdminNavIconKey =
   | "drafts"
   | "email"
   | "segments"
-  | "integrations";
+  | "integrations"
+  | "tasks"
+  | "inbox"
+  | "projects"
+  | "knowledge"
+  | "approvals";
 
 export type AdminNavItemDefinition = {
   href: string;
@@ -48,6 +56,7 @@ export type AdminNavItemDefinition = {
   description: string;
   icon: AdminNavIconKey;
   exactMatch?: boolean;
+  requiredPermissions?: readonly string[];
 };
 
 export type AdminNavSectionDefinition = {
@@ -69,6 +78,70 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Метрики компанії та поточні сповіщення.",
         icon: "dashboard",
         exactMatch: true,
+      },
+    ],
+  },
+  {
+    key: "work",
+    label: "Работа",
+    description: "Проекты, задачи, входящие и база знаний команды.",
+    items: [
+      {
+        href: "/admin/operations",
+        label: "Обзор",
+        description: "Текущая работа команды, сроки и блокеры.",
+        icon: "dashboard",
+        exactMatch: true,
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ],
+      },
+      {
+        href: "/admin/operations/inbox",
+        label: "Входящие",
+        description: "Сообщения Telegram и предложения перед созданием задач.",
+        icon: "inbox",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_INBOX_READ],
+      },
+      {
+        href: "/admin/operations/projects",
+        label: "Проекты",
+        description: "Активные проекты, владельцы и следующие действия.",
+        icon: "projects",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ],
+      },
+      {
+        href: "/admin/operations/tasks",
+        label: "Задачи",
+        description: "Общая доска и личные задачи команды.",
+        icon: "tasks",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ],
+      },
+      {
+        href: "/admin/operations/directory",
+        label: "Справочник",
+        description: "Бренды, формулы, источники и ориентиры доставки.",
+        icon: "knowledge",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ],
+      },
+      {
+        href: "/admin/operations/knowledge",
+        label: "БАЗА",
+        description: "Обучение, инструкции и процессы для команды.",
+        icon: "knowledge",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ],
+      },
+      {
+        href: "/admin/operations/approvals",
+        label: "Согласования",
+        description: "Запросы, которые требуют зафиксированного решения сотрудника.",
+        icon: "approvals",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_APPROVALS_DECIDE],
+      },
+      {
+        href: "/admin/operations/system",
+        label: "Система",
+        description: "Очередь, dead letter, ошибки Входящих и лимиты Operations.",
+        icon: "settings",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_SYSTEM_MANAGE],
       },
     ],
   },
@@ -318,8 +391,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
       },
       {
         href: "/admin/users",
-        label: "Користувачі та доступи",
-        description: "Внутрішні контролі доступу.",
+        label: "Команда и доступы",
+        description: "Логины, пароли, роли и Telegram.",
         icon: "users",
       },
       {
@@ -348,6 +421,114 @@ export function flattenAdminNavItems(sections: AdminNavSectionDefinition[] = ADM
   );
 }
 
+const ADMIN_NAV_PERMISSION_BY_HREF: Readonly<Record<string, readonly string[]>> = {
+  "/admin": [ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ],
+  "/admin/shop/orders": [ADMIN_PERMISSIONS.SHOP_ORDERS_READ],
+  "/admin/shop/drafts": [ADMIN_PERMISSIONS.SHOP_ORDERS_READ],
+  "/admin/shop/customers": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
+  "/admin/shop/customers/segments": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
+  "/admin/crm": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
+  "/admin/shop": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/inventory": [ADMIN_PERMISSIONS.SHOP_INVENTORY_READ],
+  "/admin/shop/categories": [ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ],
+  "/admin/shop/collections": [ADMIN_PERMISSIONS.SHOP_COLLECTIONS_READ],
+  "/admin/shop/bundles": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/media": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/quality": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/fitment": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/ai-quality": [ADMIN_PERMISSIONS.SHOP_AI_READ],
+  "/admin/shop/pricing": [ADMIN_PERMISSIONS.SHOP_PRICING_READ],
+  "/admin/shop/seo": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE],
+  "/admin/shop/import": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
+  "/admin/shop/stock": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
+  "/admin/shop/feed": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/turn14": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
+  "/admin/shop/audit": [ADMIN_PERMISSIONS.SHOP_AUDIT_READ],
+  "/admin/shop/logistics": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/shop/logistics/taxes": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/messages": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/blog": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/shop/discounts": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE],
+  "/admin/marketing/email-rules": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/shop/returns": [ADMIN_PERMISSIONS.SHOP_ORDERS_READ],
+  "/admin/settings": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/shop/settings": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/users": [ADMIN_PERMISSIONS.ADMIN_USERS_MANAGE],
+  "/admin/settings/integrations": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+  "/admin/backups": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
+};
+
+export function getAdminNavItemRequiredPermissions(
+  item: AdminNavItemDefinition
+): readonly string[] {
+  return item.requiredPermissions ?? ADMIN_NAV_PERMISSION_BY_HREF[item.href] ?? [];
+}
+
+export function canAccessAdminNavItem(
+  permissions: readonly string[],
+  item: AdminNavItemDefinition
+) {
+  const requiredPermissions = getAdminNavItemRequiredPermissions(item);
+  return (
+    requiredPermissions.length > 0 &&
+    requiredPermissions.some((permission) => matchesAdminPermission([...permissions], permission))
+  );
+}
+
+export function filterAdminNavSections(
+  permissions: readonly string[],
+  sections: AdminNavSectionDefinition[] = ADMIN_NAV_SECTIONS,
+  options: { operationsUiEnabled?: boolean } = {}
+) {
+  const operationsUiEnabled = options.operationsUiEnabled ?? true;
+  return sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) =>
+          (operationsUiEnabled || !item.href.startsWith("/admin/operations")) &&
+          canAccessAdminNavItem(permissions, item)
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+export function getFirstAllowedAdminRoute(
+  permissions: readonly string[],
+  options: { operationsUiEnabled?: boolean } = {}
+) {
+  return (
+    flattenAdminNavItems(filterAdminNavSections(permissions, ADMIN_NAV_SECTIONS, options))[0]
+      ?.href ?? null
+  );
+}
+
+export function getAdminNavAccessItem(
+  pathname: string,
+  sections: AdminNavSectionDefinition[] = ADMIN_NAV_SECTIONS,
+  options: { operationsUiEnabled?: boolean } = {}
+) {
+  const operationsUiEnabled = options.operationsUiEnabled ?? true;
+  return (
+    flattenAdminNavItems(sections)
+      .filter((item) => operationsUiEnabled || !item.href.startsWith("/admin/operations"))
+      .sort((left, right) => right.href.length - left.href.length)
+      .find(
+        (item) =>
+          pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`))
+      ) ?? null
+  );
+}
+
+export function canAccessAdminPath(
+  pathname: string,
+  permissions: readonly string[],
+  options: { operationsUiEnabled?: boolean } = {}
+) {
+  const item = getAdminNavAccessItem(pathname, ADMIN_NAV_SECTIONS, options);
+  return Boolean(item && canAccessAdminNavItem(permissions, item));
+}
+
 export function isAdminNavItemActive(pathname: string, item: AdminNavItemDefinition) {
   if (item.exactMatch) {
     return pathname === item.href;
@@ -356,15 +537,23 @@ export function isAdminNavItemActive(pathname: string, item: AdminNavItemDefinit
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export function getActiveAdminNavItem(pathname: string) {
-  return flattenAdminNavItems().find((item) => isAdminNavItemActive(pathname, item)) ?? null;
+export function getActiveAdminNavItem(
+  pathname: string,
+  sections: AdminNavSectionDefinition[] = ADMIN_NAV_SECTIONS
+) {
+  return (
+    flattenAdminNavItems(sections).find((item) => isAdminNavItemActive(pathname, item)) ?? null
+  );
 }
 
-export function getActiveAdminNavSection(pathname: string) {
-  const activeItem = getActiveAdminNavItem(pathname);
+export function getActiveAdminNavSection(
+  pathname: string,
+  sections: AdminNavSectionDefinition[] = ADMIN_NAV_SECTIONS
+) {
+  const activeItem = getActiveAdminNavItem(pathname, sections);
   if (!activeItem) {
     return null;
   }
 
-  return ADMIN_NAV_SECTIONS.find((section) => section.key === activeItem.sectionKey) ?? null;
+  return sections.find((section) => section.key === activeItem.sectionKey) ?? null;
 }

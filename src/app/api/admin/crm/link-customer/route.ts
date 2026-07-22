@@ -1,27 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
-import { fetchAirtableCustomers, fetchAllAirtableRecords, AirtableCustomer } from '@/lib/airtable';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { prisma } from "@/lib/prisma";
+import { fetchAirtableCustomers, fetchAllAirtableRecords, AirtableCustomer } from "@/lib/airtable";
 
 /**
  * POST /api/admin/crm/link-customer
- * 
+ *
  * Links a ShopCustomer to an Airtable Контрагент.
  * Body: { shopCustomerId: string, airtableCustomerId: string }
- * 
+ *
  * This allows admin to manually connect a website account
  * to an Airtable CRM customer, so all their orders show up in the cabinet.
  */
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
     const { shopCustomerId, airtableCustomerId } = await request.json();
 
     if (!shopCustomerId || !airtableCustomerId) {
       return NextResponse.json(
-        { error: 'Both shopCustomerId and airtableCustomerId are required' },
+        { error: "Both shopCustomerId and airtableCustomerId are required" },
         { status: 400 }
       );
     }
@@ -33,10 +34,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (atCustomers.records.length === 0) {
-      return NextResponse.json(
-        { error: 'Airtable customer not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Airtable customer not found" }, { status: 404 });
     }
 
     const atCustomer = atCustomers.records[0];
@@ -61,28 +59,34 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('[CRM Link Error]', error);
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error("[CRM Link Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 /**
  * GET /api/admin/crm/link-customer
- * 
+ *
  * Returns all Airtable customers (Контрагенти) for the admin to pick from.
  * Useful in the admin UI when linking a ShopCustomer to an Airtable record.
  */
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
     const customers = await fetchAllAirtableRecords<AirtableCustomer>((opts) =>
       fetchAirtableCustomers({ ...opts, maxRecords: 100 })
     );
 
     // Only return customers tagged as "Клиент"
-    const clients = customers.filter(c => c.tags.includes('Клиент'));
+    const clients = customers.filter((c) => c.tags.includes("Клиент"));
 
     return NextResponse.json({
-      data: clients.map(c => ({
+      data: clients.map((c) => ({
         id: c.id,
         name: c.name,
         email: c.email,
@@ -96,6 +100,10 @@ export async function GET() {
       totalAll: customers.length,
     });
   } catch (error: any) {
+    if (error?.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error?.message === "FORBIDDEN")
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

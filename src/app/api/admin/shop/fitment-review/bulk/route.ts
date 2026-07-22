@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
+    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_AI_MANAGE);
 
     return NextResponse.json(
       {

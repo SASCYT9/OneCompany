@@ -1,8 +1,9 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-import { assertAdminRequest } from '@/lib/adminAuth';
-import { prisma } from '@/lib/prisma';
+import { assertAdminRequest } from "@/lib/adminAuth";
+import { resolveAdminEntityPermission } from "@/lib/admin/adminEntityPermissions";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Activity timeline endpoint — returns recent AdminAuditLog entries for
@@ -13,27 +14,25 @@ import { prisma } from '@/lib/prisma';
  * entityType examples: shop.order, shop.product, shop.customer
  */
 
-const VALID_ENTITY_PREFIXES = ['shop.', 'admin.', 'crm.'] as const;
-
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ entityType: string; entityId: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
-
     const { entityType, entityId } = await params;
-    if (!VALID_ENTITY_PREFIXES.some((prefix) => entityType.startsWith(prefix))) {
-      return NextResponse.json({ error: 'Unsupported entityType' }, { status: 400 });
+    const requiredPermission = resolveAdminEntityPermission(entityType, "read");
+    if (!requiredPermission) {
+      return NextResponse.json({ error: "Unsupported entityType" }, { status: 400 });
     }
+    const cookieStore = await cookies();
+    await assertAdminRequest(cookieStore, requiredPermission);
 
     const logs = await prisma.adminAuditLog.findMany({
       where: {
         entityType,
         entityId,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 50,
     });
 
@@ -51,10 +50,13 @@ export async function GET(
       }))
     );
   } catch (error) {
-    if ((error as Error).message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if ((error as Error).message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error('Activity timeline error:', error);
-    return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 });
+    if ((error as Error).message === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    console.error("Activity timeline error:", error);
+    return NextResponse.json({ error: "Failed to load activity" }, { status: 500 });
   }
 }
