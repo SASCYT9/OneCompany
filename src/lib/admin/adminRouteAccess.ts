@@ -182,7 +182,7 @@ export const ADMIN_ROUTE_POLICY: readonly AdminRoutePolicyRule[] = [
     id: "ops-members-read",
     pattern: "/api/admin/operations/members",
     methods: READ,
-    permission: ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN,
+    permission: ADMIN_PERMISSIONS.OPS_TASKS_READ,
   },
   {
     id: "ops-knowledge-list",

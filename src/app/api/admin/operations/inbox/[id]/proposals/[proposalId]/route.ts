@@ -26,6 +26,7 @@ import { prisma } from "@/lib/prisma";
 const EDITABLE_PROPOSAL_FIELDS = new Set([
   "title",
   "description",
+  "tags",
   "priority",
   "dueAt",
   "nextAction",
@@ -113,6 +114,7 @@ export async function PATCH(
           ...(proposal.payload as Record<string, unknown>),
           title: normalized.title,
           description: normalized.description,
+          tags: normalized.tags,
           status: normalized.status,
           priority: normalized.priority,
           executorType: normalized.executorType,

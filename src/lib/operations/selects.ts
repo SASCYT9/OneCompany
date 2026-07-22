@@ -2,9 +2,11 @@ import { Prisma } from "@prisma/client";
 
 export const opsTaskListSelect = {
   id: true,
+  number: true,
   externalId: true,
   title: true,
   description: true,
+  tags: true,
   status: true,
   priority: true,
   isShared: true,
@@ -95,6 +97,10 @@ export const opsTaskDetailSelect = {
           retentionAt: true,
           pinned: true,
           createdAt: true,
+          transcription: true,
+          transcriptionLanguage: true,
+          transcriptionConfidence: true,
+          transcriptionModel: true,
           inboxItem: {
             select: {
               transcription: true,

@@ -146,8 +146,10 @@ export type TelegramJobPayload = {
       telegramUserId: string | null;
       displayName: string | null;
     } | null;
+    attachmentId: string | null;
     storageKey: string | null;
     mimeType: string | null;
+    transcription: string | null;
   }>;
 };
 
@@ -444,8 +446,10 @@ export function asPayload(job: OpsJob): TelegramJobPayload {
                       null,
                   }
                 : null,
+            attachmentId: value.attachmentId ? String(value.attachmentId) : null,
             storageKey: value.storageKey ? String(value.storageKey) : null,
             mimeType: value.mimeType ? String(value.mimeType) : null,
+            transcription: value.transcription ? String(value.transcription) : null,
           };
         })
       : undefined,
@@ -475,6 +479,29 @@ function dateOrNull(value: string | null) {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function extractedTaskTags(task: OpsExtraction["tasks"][number]) {
+  const prefixes = [
+    ["brand", task.brand_tags ?? []],
+    ["product", task.product_tags ?? []],
+    ["process", task.process_tags ?? []],
+  ] as const;
+  const seen = new Set<string>();
+  return prefixes.flatMap(([prefix, values]) =>
+    values.flatMap((value) => {
+      const clean = value
+        .replace(/\u0000/g, "")
+        .trim()
+        .slice(0, 90);
+      if (!clean) return [];
+      const tag = `${prefix}:${clean}`;
+      const key = tag.toLocaleLowerCase("en-US");
+      if (seen.has(key)) return [];
+      seen.add(key);
+      return [tag];
+    })
+  );
 }
 
 export async function extractionContext(client: PrismaClient, payload: TelegramJobPayload) {
@@ -854,6 +881,7 @@ async function createProposals(client: PrismaClient, job: OpsJob, payload: Teleg
     const proposal = {
       title: extracted.title,
       description: extracted.description,
+      tags: extractedTaskTags(extracted),
       status: "INBOX",
       priority: extracted.priority.toUpperCase(),
       executorType: extracted.executor_type.toUpperCase(),
@@ -1025,11 +1053,169 @@ async function resolveAutoCreateActor(
   };
 }
 
+export function parseTelegramTaskDescriptionUpdate(text: string | null | undefined) {
+  const source = String(text ?? "").trim();
+  const match = /(?:^|\s)(?:по\s+)?(?:задач(?:а|е|у|і|и)|таск(?:е|у)?)\s*[#№]?(\d{1,9})\b/iu.exec(
+    source
+  );
+  if (!match) return null;
+  const number = Number.parseInt(match[1], 10);
+  const update = source
+    .slice((match.index ?? 0) + match[0].length)
+    .replace(/^[\s:—–,.-]+/u, "")
+    .trim()
+    .slice(0, 3_000);
+  return Number.isSafeInteger(number) && update ? { number, update } : null;
+}
+
+async function applyTelegramTaskDescriptionUpdate(input: {
+  client: PrismaClient;
+  job: OpsJob;
+  payload: TelegramJobPayload;
+}) {
+  const command =
+    input.payload.isUntrustedForward || input.payload.batchId
+      ? null
+      : (parseTelegramTaskDescriptionUpdate(input.payload.text) ??
+        parseTelegramTaskDescriptionUpdate(input.payload.transcription));
+  if (!command || !input.job.inboxItemId) return null;
+  return input.client.$transaction(async (tx) => {
+    const actor = await resolveAutoCreateActor(tx, input.payload.actorAdminUserId);
+    const task = await tx.opsTask.findUnique({
+      where: { number: command.number },
+      select: {
+        id: true,
+        number: true,
+        title: true,
+        description: true,
+        assigneeId: true,
+        createdById: true,
+        isShared: true,
+        archivedAt: true,
+        version: true,
+      },
+    });
+    const canWrite = Boolean(
+      actor &&
+        matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_WRITE) &&
+        task &&
+        !task.archivedAt &&
+        (task.isShared ||
+          task.assigneeId === actor.id ||
+          task.createdById === actor.id ||
+          matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN))
+    );
+    if (!actor || !task || !canWrite) {
+      await tx.opsInboxItem.update({
+        where: { id: input.job.inboxItemId! },
+        data: {
+          extractionStatus: OpsInboxExtractionStatus.READY,
+          requiresApproval: true,
+          ambiguities: [
+            !task
+              ? `Задача #${command.number} не найдена.`
+              : `Нет доступа к обновлению задачи #${command.number}.`,
+          ],
+          processedAt: new Date(),
+        },
+      });
+      return {
+        handled: true,
+        updated: false,
+        taskId: null,
+        response: !task
+          ? `Не нашёл задачу #${command.number}. Сообщение оставил во Входящих.`
+          : `Нет доступа к задаче #${command.number}. Сообщение оставил во Входящих.`,
+      };
+    }
+    const eventKey = `telegram:task-update:${input.payload.telegramUpdateId}`;
+    const existingEvent = await tx.opsTaskEvent.findFirst({
+      where: { taskId: task.id, idempotencyKey: eventKey },
+      select: { id: true },
+    });
+    if (existingEvent) {
+      return {
+        handled: true,
+        updated: true,
+        taskId: task.id,
+        response: `Описание задачи #${task.number} уже обновлено.`,
+      };
+    }
+    const timestamp = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Kyiv",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date());
+    const addition = `Обновление из Telegram · ${timestamp}\n${command.update}`;
+    const description = [task.description?.trim(), addition].filter(Boolean).join("\n\n");
+    const updated = await tx.opsTask.update({
+      where: { id: task.id },
+      data: { description, version: { increment: 1 } },
+      select: { id: true, number: true, title: true, version: true },
+    });
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: task.id,
+        type: OpsTaskEventType.UPDATED,
+        actorId: actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: input.job.inboxItemId,
+        idempotencyKey: eventKey,
+        payload: {
+          field: "description",
+          taskNumber: task.number,
+          update: command.update,
+          previousVersion: task.version,
+          version: updated.version,
+        },
+      },
+    });
+    await tx.opsInboxItem.update({
+      where: { id: input.job.inboxItemId! },
+      data: {
+        extractionStatus: OpsInboxExtractionStatus.READY,
+        reviewStatus: OpsInboxReviewStatus.APPLIED,
+        summary: `Обновлена задача #${task.number}`,
+        appliedTaskIds: [task.id],
+        reviewedAt: new Date(),
+        processedAt: new Date(),
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: {
+        actorId: actor.id,
+        actorEmail: actor.email,
+        actorName: actor.name,
+        scope: "operations",
+        action: "telegram.task.description_update",
+        entityType: "ops.task",
+        entityId: task.id,
+        metadata: {
+          taskNumber: task.number,
+          telegramUpdateId: input.payload.telegramUpdateId,
+          version: updated.version,
+        },
+      },
+    });
+    return {
+      handled: true,
+      updated: true,
+      taskId: task.id,
+      response: `Обновил описание задачи #${task.number}: ${task.title}`,
+    };
+  });
+}
+
 export async function autoApplyTelegramTaskProposals(input: {
   client: PrismaClient;
   job: OpsJob;
   payload: TelegramJobPayload;
   autoCreateEnabled?: boolean;
+  keepInboxPending?: boolean;
+  bypassSafetyForInboxDraft?: boolean;
 }) {
   const { client, job, payload } = input;
   if (!job.inboxItemId || !payload.extraction) {
@@ -1063,7 +1249,7 @@ export async function autoApplyTelegramTaskProposals(input: {
                 id: { in: inbox.appliedTaskIds },
                 sourceKey: { startsWith: `telegram:${payload.telegramUpdateId}:task:` },
               },
-              select: { id: true, externalId: true, title: true },
+              select: { id: true, number: true, externalId: true, title: true },
             })
           : [];
         const autoApplied =
@@ -1102,21 +1288,23 @@ export async function autoApplyTelegramTaskProposals(input: {
           | undefined;
         return !proposalPayload?.assigneeId;
       });
-      const safetyDecision = decideOpsTelegramAutoCreate({
-        enabled:
-          input.autoCreateEnabled ?? flagEnabled(process.env.OPS_TELEGRAM_AUTO_CREATE_ENABLED),
-        hasExplicitText: Boolean(payload.text?.trim()),
-        hasMedia: Boolean(payload.media),
-        previewOnly: payload.previewOnly,
-        isUntrustedForward: payload.isUntrustedForward,
-        intent: extraction.intent,
-        taskCount: extraction.tasks.length,
-        confidence: extraction.confidence,
-        requiresApproval: inbox.requiresApproval || extraction.requires_approval,
-        ambiguityCount: inbox.ambiguities.length,
-        unresolvedAssignee,
-        unresolvedContext,
-      });
+      const safetyDecision = input.bypassSafetyForInboxDraft
+        ? ({ eligible: true, reason: "inbox_draft" } as const)
+        : decideOpsTelegramAutoCreate({
+            enabled:
+              input.autoCreateEnabled ?? flagEnabled(process.env.OPS_TELEGRAM_AUTO_CREATE_ENABLED),
+            hasExplicitText: Boolean(payload.text?.trim()),
+            hasMedia: Boolean(payload.media),
+            previewOnly: payload.previewOnly,
+            isUntrustedForward: payload.isUntrustedForward,
+            intent: extraction.intent,
+            taskCount: extraction.tasks.length,
+            confidence: extraction.confidence,
+            requiresApproval: inbox.requiresApproval || extraction.requires_approval,
+            ambiguityCount: inbox.ambiguities.length,
+            unresolvedAssignee,
+            unresolvedContext,
+          });
       if (!safetyDecision.eligible) {
         return {
           autoApplied: false,
@@ -1149,7 +1337,7 @@ export async function autoApplyTelegramTaskProposals(input: {
           decision: "actor_forbidden" as const,
         };
       }
-      if (!assignmentAllowed) {
+      if (!assignmentAllowed && !input.keepInboxPending) {
         return {
           autoApplied: false,
           autoAppliedTaskIds: [] as string[],
@@ -1157,14 +1345,53 @@ export async function autoApplyTelegramTaskProposals(input: {
         };
       }
 
-      const tasks: Array<{ id: string; externalId: string; title: string }> = [];
+      const tasks: Array<{ id: string; number: number; externalId: string; title: string }> = [];
       for (const { proposal, input: taskInput } of normalized) {
+        if (
+          input.keepInboxPending &&
+          taskInput.assigneeId &&
+          taskInput.assigneeId !== actor.id &&
+          !matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN)
+        ) {
+          taskInput.assigneeId = null;
+        }
         taskInput.description = appendOpsSourceUrls(taskInput.description, [
           inbox.originalMessage,
           inbox.transcription,
           payload.text,
         ]);
         await assertValidOpsTaskRelations(tx, taskInput);
+        const sourceKey = `telegram:${payload.telegramUpdateId}:task:${proposal.ordinal}`;
+        const existingTask = await tx.opsTask.findUnique({
+          where: { sourceKey },
+          select: {
+            id: true,
+            number: true,
+            externalId: true,
+            title: true,
+            assigneeId: true,
+            dueAt: true,
+            version: true,
+          },
+        });
+        if (existingTask) {
+          await tx.opsInboxProposal.update({
+            where: { id: proposal.id },
+            data: {
+              appliedTaskId: existingTask.id,
+              ...(input.keepInboxPending
+                ? {}
+                : { status: OpsProposalStatus.APPLIED, appliedAt: new Date() }),
+            },
+          });
+          tasks.push({
+            id: existingTask.id,
+            number: existingTask.number,
+            externalId: existingTask.externalId,
+            title: existingTask.title,
+          });
+          continue;
+        }
         const task = await tx.opsTask.create({
           data: {
             ...taskInput,
@@ -1173,10 +1400,11 @@ export async function autoApplyTelegramTaskProposals(input: {
             createdById: actor.id,
             sourceType: OpsTaskSourceType.TELEGRAM,
             sourceId: proposal.id,
-            sourceKey: `telegram:${payload.telegramUpdateId}:task:${proposal.ordinal}`,
+            sourceKey,
           },
           select: {
             id: true,
+            number: true,
             externalId: true,
             title: true,
             assigneeId: true,
@@ -1190,6 +1418,7 @@ export async function autoApplyTelegramTaskProposals(input: {
             taskInput.title,
             taskInput.description,
             taskInput.nextAction,
+            ...taskInput.tags,
             inbox.originalMessage,
             inbox.transcription,
             payload.text,
@@ -1233,13 +1462,15 @@ export async function autoApplyTelegramTaskProposals(input: {
         await tx.opsInboxProposal.update({
           where: { id: proposal.id },
           data: {
-            status: OpsProposalStatus.APPLIED,
             appliedTaskId: task.id,
-            appliedAt: new Date(),
+            ...(input.keepInboxPending
+              ? {}
+              : { status: OpsProposalStatus.APPLIED, appliedAt: new Date() }),
           },
         });
         tasks.push({
           id: task.id,
+          number: task.number,
           externalId: task.externalId,
           title: task.title,
         });
@@ -1250,15 +1481,17 @@ export async function autoApplyTelegramTaskProposals(input: {
           data: { retentionAt: null },
         });
       }
-      const undoExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      const undoExpiresAt = input.keepInboxPending ? null : new Date(Date.now() + 10 * 60 * 1000);
       await tx.opsInboxItem.update({
         where: { id: inbox.id },
-        data: {
-          reviewStatus: OpsInboxReviewStatus.APPLIED,
-          reviewedAt: new Date(),
-          appliedTaskIds: tasks.map((task) => task.id),
-          undoExpiresAt,
-        },
+        data: input.keepInboxPending
+          ? { appliedTaskIds: tasks.map((task) => task.id) }
+          : {
+              reviewStatus: OpsInboxReviewStatus.APPLIED,
+              reviewedAt: new Date(),
+              appliedTaskIds: tasks.map((task) => task.id),
+              undoExpiresAt,
+            },
       });
       await tx.adminAuditLog.create({
         data: {
@@ -1266,7 +1499,9 @@ export async function autoApplyTelegramTaskProposals(input: {
           actorEmail: actor.email,
           actorName: actor.name,
           scope: "operations",
-          action: "telegram.inbox.auto_apply",
+          action: input.keepInboxPending
+            ? "telegram.inbox.draft_materialize"
+            : "telegram.inbox.auto_apply",
           entityType: "ops.inbox",
           entityId: inbox.id,
           metadata: {
@@ -1274,7 +1509,7 @@ export async function autoApplyTelegramTaskProposals(input: {
             proposalIds: inbox.proposals.map((proposal) => proposal.id),
             telegramUpdateId: payload.telegramUpdateId,
             confidence: payload.extraction!.confidence,
-            undoExpiresAt: undoExpiresAt.toISOString(),
+            undoExpiresAt: undoExpiresAt?.toISOString() ?? null,
           },
         },
       });
@@ -1283,7 +1518,7 @@ export async function autoApplyTelegramTaskProposals(input: {
         autoAppliedTaskIds: tasks.map((task) => task.id),
         autoAppliedTasks: tasks,
         undoExpiresAt,
-        decision: "enabled" as const,
+        decision: input.keepInboxPending ? ("inbox_draft" as const) : ("enabled" as const),
       };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
@@ -1377,8 +1612,10 @@ async function executeTelegramBatchMediaStages(input: {
           text: item.text,
           media: null,
           forwardedFrom: item.forwardedFrom,
+          attachmentId: null,
           storageKey: null,
           mimeType: null,
+          transcription: null,
         });
         continue;
       }
@@ -1392,7 +1629,12 @@ async function executeTelegramBatchMediaStages(input: {
             { telegramFileId: item.media.fileId },
           ],
         },
-        select: { storageKey: true, mimeType: true },
+        select: {
+          id: true,
+          storageKey: true,
+          mimeType: true,
+          transcription: true,
+        },
       });
       if (existing) {
         storedItems.push({
@@ -1400,8 +1642,10 @@ async function executeTelegramBatchMediaStages(input: {
           text: item.text,
           media: item.media,
           forwardedFrom: item.forwardedFrom,
+          attachmentId: existing.id,
           storageKey: existing.storageKey,
           mimeType: existing.mimeType,
+          transcription: existing.transcription,
         });
         continue;
       }
@@ -1439,7 +1683,7 @@ async function executeTelegramBatchMediaStages(input: {
           body,
           contentType: validated.mimeType,
         });
-        await input.client.opsAttachment.upsert({
+        const attachment = await input.client.opsAttachment.upsert({
           where: { storageKey: stored.storageKey },
           create: {
             inboxItemId: input.job.inboxItemId,
@@ -1457,6 +1701,22 @@ async function executeTelegramBatchMediaStages(input: {
             state: OpsAttachmentState.READY,
             retentionAt: opsAttachmentRetentionAt(),
           },
+          select: {
+            id: true,
+            storageKey: true,
+            mimeType: true,
+            transcription: true,
+          },
+        });
+        storedItems.push({
+          ordinal: index + 1,
+          text: item.text,
+          media: item.media,
+          forwardedFrom: item.forwardedFrom,
+          attachmentId: attachment.id,
+          storageKey: attachment.storageKey,
+          mimeType: attachment.mimeType,
+          transcription: attachment.transcription,
         });
       } catch (error) {
         if (stored) await store.remove(stored.storageKey).catch(() => undefined);
@@ -1466,14 +1726,6 @@ async function executeTelegramBatchMediaStages(input: {
         });
         throw error;
       }
-      storedItems.push({
-        ordinal: index + 1,
-        text: item.text,
-        media: item.media,
-        forwardedFrom: item.forwardedFrom,
-        storageKey: stored.storageKey,
-        mimeType: validated.mimeType,
-      });
     }
     return {
       outcome: "advance" as const,
@@ -1486,9 +1738,13 @@ async function executeTelegramBatchMediaStages(input: {
     const store = input.dependencies.mediaStore ?? createConfiguredOpsMediaStore();
     const transcriptSections: string[] = [];
     const extractionSections: string[] = [];
+    const processedAttachments = new Set<string>();
     for (const item of input.payload.batchStoredItems ?? []) {
       let extracted = "";
-      if (item.storageKey && item.mimeType) {
+      const attachmentKey = item.attachmentId ?? item.storageKey;
+      const repeatedAttachment = Boolean(attachmentKey && processedAttachments.has(attachmentKey));
+      if (attachmentKey) processedAttachments.add(attachmentKey);
+      if (item.storageKey && item.mimeType && !repeatedAttachment) {
         const body = await store.get(item.storageKey);
         if (item.mimeType === "text/plain") {
           extracted = new TextDecoder("utf-8", { fatal: false })
@@ -1497,13 +1753,28 @@ async function executeTelegramBatchMediaStages(input: {
             .trim()
             .slice(0, 30_000);
         } else {
-          const response = await transcribeOpsMediaWithAi({
-            bytes: body,
-            mimeType: item.mimeType,
-            durationSeconds: item.media?.durationSeconds ?? 0,
-            budget: createPrismaOpsAiBudget(input.client),
-          });
-          extracted = response.value.transcript;
+          if (isTelegramAudioMedia(item.media) && item.transcription) {
+            extracted = item.transcription;
+          } else {
+            const response = await transcribeOpsMediaWithAi({
+              bytes: body,
+              mimeType: item.mimeType,
+              durationSeconds: item.media?.durationSeconds ?? 0,
+              budget: createPrismaOpsAiBudget(input.client),
+            });
+            extracted = response.value.transcript;
+            if (item.attachmentId && isTelegramAudioMedia(item.media)) {
+              await input.client.opsAttachment.update({
+                where: { id: item.attachmentId },
+                data: {
+                  transcription: response.value.transcript,
+                  transcriptionLanguage: response.value.language,
+                  transcriptionConfidence: response.value.confidence,
+                  transcriptionModel: response.model,
+                },
+              });
+            }
+          }
         }
       }
       extractionSections.push(
@@ -1512,6 +1783,7 @@ async function executeTelegramBatchMediaStages(input: {
           item.forwardedFrom?.displayName ? `Автор: ${item.forwardedFrom.displayName}` : null,
           item.text ? `Текст: ${item.text}` : null,
           extracted ? `Расшифровка: ${extracted}` : null,
+          repeatedAttachment ? "Вложение уже учтено выше." : null,
         ]
           .filter(Boolean)
           .join("\n")
@@ -1813,10 +2085,25 @@ async function executeTelegramIntakeStage(input: {
     const isAudio = isTelegramAudioMedia(payload.media);
     const transcription = isAudio ? response.value.transcript : null;
     const extractionText = [payload.text, response.value.transcript].filter(Boolean).join("\n\n");
-    await input.client.opsInboxItem.update({
-      where: { id: input.job.inboxItemId },
-      data: { transcription },
-    });
+    await input.client.$transaction([
+      input.client.opsInboxItem.update({
+        where: { id: input.job.inboxItemId },
+        data: { transcription },
+      }),
+      ...(isAudio && payload.attachmentId
+        ? [
+            input.client.opsAttachment.update({
+              where: { id: payload.attachmentId },
+              data: {
+                transcription: response.value.transcript,
+                transcriptionLanguage: response.value.language,
+                transcriptionConfidence: response.value.confidence,
+                transcriptionModel: response.model,
+              },
+            }),
+          ]
+        : []),
+    ]);
     return {
       outcome: "advance" as const,
       stage: OpsJobStage.EXTRACT,
@@ -1901,34 +2188,45 @@ async function executeTelegramIntakeStage(input: {
   }
 
   if (input.job.stage === OpsJobStage.CREATE_PREVIEW_OR_ENTITIES) {
-    const preview = await createProposals(input.client, input.job, payload);
-    const autoCreateEnabled = flagEnabled(process.env.OPS_TELEGRAM_AUTO_CREATE_ENABLED);
-    const decision = decideOpsTelegramAutoCreate({
-      enabled: autoCreateEnabled,
-      hasExplicitText: Boolean(payload.text?.trim()),
-      hasMedia: Boolean(payload.media),
-      previewOnly: payload.previewOnly,
-      isUntrustedForward: payload.isUntrustedForward,
-      intent: payload.extraction?.intent ?? "note",
-      taskCount: payload.extraction?.tasks.length ?? 0,
-      confidence: payload.extraction?.confidence ?? "0.00",
-      requiresApproval: payload.extraction?.requires_approval === true,
-      ambiguityCount: preview.ambiguities.length,
-      unresolvedAssignee: preview.unresolvedAssignee,
-      unresolvedContext: preview.unresolvedContext,
+    const taskUpdate = await applyTelegramTaskDescriptionUpdate({
+      client: input.client,
+      job: input.job,
+      payload,
     });
-    const applied = decision.eligible
-      ? await autoApplyTelegramTaskProposals({
-          client: input.client,
-          job: input.job,
-          payload,
-          autoCreateEnabled,
-        })
-      : {
-          autoApplied: false,
-          autoAppliedTaskIds: [] as string[],
-          decision: decision.reason,
-        };
+    if (taskUpdate?.handled) {
+      return {
+        outcome: "advance" as const,
+        stage: OpsJobStage.NOTIFY,
+        payload: {
+          ...payload,
+          callbackResponse: taskUpdate.response,
+          callbackLink: taskUpdate.taskId
+            ? opsAdminLink(`/admin/operations/tasks/${encodeURIComponent(taskUpdate.taskId)}`)
+            : opsAdminLink(
+                `/admin/operations/inbox?selected=${encodeURIComponent(input.job.inboxItemId!)}`
+              ),
+          autoApplied: taskUpdate.updated,
+          autoAppliedTaskIds: taskUpdate.taskId ? [taskUpdate.taskId] : [],
+        },
+        result: taskUpdate,
+      };
+    }
+    const preview = await createProposals(input.client, input.job, payload);
+    const applied =
+      preview.proposalCount > 0
+        ? await autoApplyTelegramTaskProposals({
+            client: input.client,
+            job: input.job,
+            payload,
+            autoCreateEnabled: true,
+            keepInboxPending: true,
+            bypassSafetyForInboxDraft: true,
+          })
+        : {
+            autoApplied: false,
+            autoAppliedTaskIds: [] as string[],
+            decision: "no_task_proposals" as const,
+          };
     const result = { ...preview, ...applied };
     return {
       outcome: "advance" as const,
@@ -1986,7 +2284,7 @@ async function executeTelegramIntakeStage(input: {
     const unorderedTasks = requestedTaskIds.length
       ? await input.client.opsTask.findMany({
           where: { id: { in: requestedTaskIds } },
-          select: { id: true, externalId: true, title: true },
+          select: { id: true, number: true, externalId: true, title: true },
         })
       : [];
     const tasksById = new Map(unorderedTasks.map((task) => [task.id, task]));

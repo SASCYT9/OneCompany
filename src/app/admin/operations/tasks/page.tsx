@@ -32,6 +32,9 @@ export default async function OperationsTasksPage({
       initialScope={initialScope}
       initialStatus={initialStatus}
       initialProjectId={initialProjectId}
+      initialAssigneeId={
+        typeof query.assignee === "string" && query.assignee !== "none" ? query.assignee : undefined
+      }
       initialAssigneeNone={query.assignee === "none"}
       initialMissingNextAction={query.missingNextAction === "1"}
       inboxCount={demo?.inbox.filter((item) => item.reviewStatus === "PENDING").length ?? 0}

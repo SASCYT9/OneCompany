@@ -155,6 +155,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             isShared: true,
             title: true,
             description: true,
+            tags: true,
           },
         });
         if (!current) throw new OpsError("NOT_FOUND", 404, "Task not found");
@@ -189,6 +190,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             "title" in input ? (input.title as string) : current.title,
             "description" in input ? (input.description as string | null) : current.description,
             "nextAction" in input ? (input.nextAction as string | null) : current.nextAction,
+            ...("tags" in input ? (input.tags as string[]) : current.tags),
           ],
         });
         const task = await tx.opsTask.findUniqueOrThrow({

@@ -1,170 +1,69 @@
-# Design QA — active Brands navigation
+# Design QA — Operations task board, variant 3
 
-- Source visual truth: `C:/Users/sascy/AppData/Local/Temp/codex-clipboard-a3b23206-af05-4b06-b507-480fb64da288.png`
-- Implementation full screenshot: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/implementation-full.png`
-- Focused implementation screenshot: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/implementation-nav.png`
-- Side-by-side comparison: `D:/One Company/OneCompany/.codex-artifacts/brand-arrow-qa/comparison.png`
-- Viewport: requested 1641 × 700; browser content capture 1626 × 694 due to native scrollbar/chrome
-- Route: `http://localhost:3000/ua/shop`
-- State: Brands is the active shop section
+## Evidence
 
-## Full-view comparison evidence
-
-The existing three-card navigation layout, typography, spacing, colors, borders, radii, icons, copy, and responsive structure were preserved. The implementation changes only the directional affordance and active-card destination requested by the annotation.
-
-## Focused region comparison evidence
-
-The side-by-side focused comparison confirms that the active Brands card now uses a downward arrow in the same icon slot and visual weight as the previous diagonal arrow. Catalog and vehicle-selection cards retain their diagonal arrows.
-
-## Findings
-
-- No actionable P0, P1, or P2 differences within the requested scope.
-- Fonts and typography: unchanged.
-- Spacing and layout rhythm: unchanged; no card resizing or wrapping introduced.
-- Colors and visual tokens: unchanged; the existing theme tokens remain intact.
-- Image quality and asset fidelity: unchanged; no image assets were modified.
-- Copy and content: unchanged.
-- Interaction: clicking Brands updates the URL to `#shop-brands` and scrolls to the `15 брендів` section without reloading the page.
-- Accessibility: the destination is a real anchor target; keyboard and standard link behavior are preserved.
-- Console errors: none observed.
-
-## Comparison history
-
-- Initial issue: the active Brands card used an up-right arrow and linked back to the same page root.
-- Fix: changed the active Brands direction icon to ArrowDown and its destination to `#shop-brands`; added the matching scroll target with header offset.
-- Post-fix evidence: focused comparison and successful browser interaction at `/ua/shop#shop-brands`.
-
-## Follow-up polish
-
-- None required for this scoped change.
-
-final result: passed
-
----
-
-# Design QA — production dark catalog and Operations activation
-
-- Source visual truth: `C:/Users/sascy/AppData/Local/Temp/codex-clipboard-127ea10f-3c97-4d25-96d2-29869da669a1.png`
-- Catalog implementation screenshot: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/catalog-dark-after.png`
-- Combined comparison: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/catalog-dark-comparison.png`
-- Operations implementation screenshot: `C:/Users/sascy/.codex/visualizations/2026/07/19/019f7b8b-495b-7a02-9824-3b723fe063be/production-hotfix/ops-production-after.png`
-- Source pixels: 1533 × 693; catalog implementation pixels/CSS viewport: 3440 × 1519 at device scale 1.
-- Comparison normalization: both catalog captures scaled to 1533 px width on a shared canvas; no crop or density-only finding was filed.
-- Routes: `https://onecompany.global/ua/shop` and `https://onecompany.global/admin/operations`
-- State: production, authenticated admin, desktop, dark storefront; Operations light workspace inside the existing dark admin shell.
+- Source visual truth: `C:\Users\sascy\.codex\generated_images\019f7b8b-495b-7a02-9824-3b723fe063be\exec-f0b83314-a2eb-4584-886c-c969043565e8.png`
+- Rendered implementation: `D:\One Company\OneCompany\artifacts\design-qa\task-board-no-team-rail.png`
+- Side-by-side comparison: `D:\One Company\OneCompany\artifacts\design-qa\task-board-no-team-rail-comparison.png`
+- Local route: `http://127.0.0.1:3000/admin/operations/tasks`
+- Source pixels: 1486 × 1058.
+- Implementation capture: 1465 × 1272, CSS viewport 1465 × 1272, device density 1.
+- Responsive check: 390 × 844 CSS px.
+- Latest desktop detail evidence: `D:\One Company\OneCompany\artifacts\design-qa\task-board-detail-fixed.png`.
+- Latest mobile detail evidence: `D:\One Company\OneCompany\artifacts\design-qa\task-detail-mobile-390-fixed.png`.
+- State: authenticated owner, Tasks → Board, real local task data, selected task detail visible.
+- Density normalization: both images reviewed at their native 1× density. The in-app browser window is smaller than the generated source, so comparison focuses on layout proportions and responsive behavior rather than literal pixel alignment.
 
 ## Full-view comparison evidence
 
-The catalog layout, typography, spacing, imagery, controls, copy, and dark palette remain unchanged outside the native select theme correction. The Operations production capture shows the permission-aware `Работа` navigation and a rendered `Обзор работы` page rather than the prior server error.
+The implementation preserves the selected design's defining structure: existing dark global navigation, four focused Kanban lanes, persistent task detail panel, blue active accents, and compact light workspace. Following the latest user direction, the participant rail is removed from Board view and its filtering remains available in the toolbar. The freed width is split between the Kanban lanes and a wider task-detail panel.
 
 ## Focused region comparison evidence
 
-The supplied source shows a Windows/Chrome native category popup rendered white while inheriting near-white option text. The deployed select now computes to `color-scheme: dark`; every inspected option computes to `rgb(250, 250, 250)` text on `rgb(5, 5, 5)` background. The supported browser API cannot keep an operating-system native select popup open for capture, so focused verification combines the shared visual canvas, computed production styles, and the regression contract in `tests/shop/unit/shopCatalogQuickSearchTheme.test.ts`.
+- Board cards: compared title density, priority marker, assignee color, deadline, next-action excerpt, borders, and drag affordance.
+- Task detail: compared persistent right-panel placement, title hierarchy, edit action, task metadata, and scroll behavior.
+- Participant filtering: verified the toolbar select retains all participant filters without occupying a permanent board column.
+- Mobile: verified the board is replaced by the existing task list/detail flow; no global horizontal overflow and no promo image at 390 px.
 
 ## Findings
 
-- No actionable P0, P1, or P2 findings remain in the requested scope.
-- Fonts and typography: unchanged from the existing storefront/admin systems.
-- Spacing and layout rhythm: unchanged; no new overflow, crop, radius, or alignment regression is visible.
-- Colors and visual tokens: native selects and options now use a dark color scheme with explicit foreground/background tokens; contrast is no longer dependent on the browser's light popup default.
-- Image quality and asset fidelity: existing product and brand assets are unchanged and remain sharp at the tested viewport.
-- Copy and content: unchanged, except the already-implemented Russian Operations labels now appear in production.
-- Primary interactions tested: authenticated Operations route load, permission-aware navigation render, production catalog select token resolution.
-- Console/runtime errors: no new browser error boundary; no Vercel HTTP 500 logs after the production verification request.
+No actionable P0, P1, or P2 mismatch remains.
+
+- [P3] Real task titles are longer than the mock data and wrap more often in narrow lanes. This is expected dynamic-content behavior; the lane itself scrolls horizontally and the selected task remains readable in the persistent detail panel.
+- [P3] The source mock shows more populated lanes than the local database. This is data-state variance, not a missing UI state; empty lanes are rendered deliberately and drag targets remain available.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing One Company display/body typography retained; compact detail title reduced for narrow desktop panels; no clipped controls.
+- Spacing and layout rhythm: squared cards and dividers match the selected direction; board and detail remain separate regions without body overflow. The task detail is 500 px wide at the captured desktop viewport.
+- Colors and visual tokens: existing blue, slate, amber, violet, and member identity accents retained with adequate contrast.
+- Image quality and asset fidelity: the requested car promo asset and the obsolete handcrafted car SVG were removed; no replacement image or fake decorative asset was introduced.
+- Copy and content: Russian operations labels are concise and preserve existing task terminology.
+
+## Interaction and runtime verification
+
+- Board view switch: passed.
+- Selecting a Kanban task and updating the persistent detail panel: passed.
+- Participant filter renders from current server data while the Board participant rail stays absent: passed.
+- Drag-and-drop implementation and keyboard sensor remain wired to server-validated transitions.
+- Mobile 390 px body overflow: none.
+- Browser console errors during verification: none.
+- TypeScript: passed.
+- Ops tests: 137/137 passed.
 
 ## Comparison history
 
-- Earlier P1: white native select popup with nearly white option labels in dark mode.
-- Fix: added light/dark `color-scheme` plus explicit option/optgroup background and foreground tokens.
-- Post-fix evidence: production computed styles resolve the select and options to the dark palette; focused tests pass.
-- Earlier P0: Operations menu was feature-flagged off and enabling it exposed Prisma direct-connection exhaustion.
-- Fix: enabled only the Ops UI, moved runtime traffic to Prisma Postgres pooled TCP, retained `DIRECT_URL` for migrations, and reused one Prisma client per warm isolate.
-- Post-fix evidence: authenticated `/admin/operations` renders successfully and the new deployment has no HTTP 500 log entries after verification.
+1. Initial implementation finding: global `--radius` mapped `rounded-md` cards to a 997 px pill radius (P2). Fix: board cards and their compact actions now use `rounded-none`. Post-fix computed radius: 0 px.
+2. Initial implementation finding: a fixed 720 px board track pushed the persistent detail pane beyond a 1280 px viewport (P2). Fix: outer board track changed to `minmax(0,1fr)` and horizontal overflow is isolated to the Kanban region. Post-fix evidence: body width equals viewport width (1280 px) and the detail pane remains visible.
+3. Requested sidebar cleanup: removed the rendered car promo block and unused custom car SVG. Post-fix desktop and 390 px checks both report no promo image.
+4. Follow-up finding: the compact right panel inherited a viewport-based four-column metadata layout, leaving roughly 90 px per field on wide screens and truncating assignee/deadline values (P1). Fix: compact details now always use a stable two-column grid; the full mobile task page uses one metadata column. Post-fix evidence shows complete assignee text, readable controls, 390 px body width equal to viewport width, and no horizontal overflow.
+5. The fourth focus lane was renamed from `На проверке` to `Готово` and now maps to the terminal `DONE` status instead of `REVIEW`.
+6. Latest density finding: the permanent participant rail left insufficient horizontal space for both Kanban copy and the assignee control (P1). Fix: removed the rail from Board view, retained the participant select in the toolbar, widened the detail panel to 500 px at the captured viewport, hid the redundant compact avatar, and preserved the full assignee name in the select and tooltip. Post-fix evidence: no `Участники` rail heading in Board view, selected assignee `Olexandr Tsompel` is fully visible, and document horizontal overflow is false.
 
 ## Follow-up polish
 
-- Manually open one native select on each supported desktop OS during the next cross-browser regression pass; native popup chrome is operating-system controlled.
+- At a later data-rich canary, re-check card density with 20+ simultaneous tasks and several urgent/blocked states.
 
-final result: passed
-
----
-
-# Design QA — One Company Operations workspace
-
-- Desktop source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_drp3vXPXAjYBMyTb9ave5c7M.png`
-- Mobile list source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_9HfJLMvXZuGJw2lnVNh7Fyvx.png`
-- Mobile detail source visual truth: `C:/Users/sascy/.codex/generated_images/019f7b8b-495b-7a02-9824-3b723fe063be/call_ATad6k9OdjdkTdx6smFmgi6C.png`
-- Route: `http://127.0.0.1:3000/admin/operations/tasks`
-- Intended states: desktop split task workspace; mobile task list; mobile task detail
-
-## Implemented visual contract
-
-- The Operations workspace is scoped to the existing admin shell; it does not create a second site or restyle legacy commerce screens.
-- Desktop uses a dark admin navigation frame, light working surface, task list/detail split, and list/board/calendar views.
-- Mobile defaults to `Мои / Сегодня / Все`, uses a permission-aware bottom navigation, opens task detail as a separate route, and keeps safe-area actions sticky.
-- Kanban is a desktop enhancement with pointer and keyboard sensors; mobile is not forced into compressed horizontal columns.
-- Audio uses `preload="none"` and the transcript starts collapsed.
-- Colors are isolated in Operations/admin theme tokens rather than treated as fixed source-image values.
-
-## Static and interaction verification completed
-
-- Operations pages are server-guarded by the same feature flag and current-database permission checks as their APIs.
-- Navigation, mobile destinations, Inbox review actions, task transitions, comments, editing, knowledge links, and private attachment access have focused source/integration tests.
-- Responsive classes cover compact mobile layouts, `sm`, `md`, `lg`, and wide desktop states; sticky controls include `env(safe-area-inset-bottom)`.
-- No placeholder task action or blocker text is fabricated during a mutation.
-- Focused TypeScript, ESLint, UI/RBAC, and Operations tests pass.
-
-## Visual comparison blocker
-
-The in-app browser initially opened the admin and Operations routes, but the browser URL safety policy then blocked further reads/reloads. That policy explicitly prohibits retries or switching to another browser, so no compliant post-implementation screenshot or side-by-side comparison could be produced in this turn.
-
-Required staging acceptance remains:
-
-- Capture and compare the same states at 360, 390, 768, and 1440 px.
-- Check typography, spacing, wrapping, horizontal overflow, sticky safe-area actions, board scrolling, drag keyboard announcements, and task-detail focus order.
-- Verify the light Operations surface inside the dark existing admin shell with real Russian data, long titles, empty states, and error states.
-- Re-run the source/prototype side-by-side comparison and resolve every visible P0/P1/P2 issue before production rollout.
-
-final result: blocked — visual browser comparison must be completed in staging; implementation and source-level checks are complete
-
----
-
-# Design QA — supplied sport-bike SVG
-
-- Source visual truth: `D:/sport-bike-motorcycle-icon.svg`
-- Implementation screenshot: `C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/catalog-user-moto-svg-implementation.png`
-- Side-by-side focused comparison: `C:/Users/sascy/.codex/generated_images/019f5a61-4f2f-7fd0-8308-13b53c1b962e/catalog-user-moto-svg-comparison.png`
-- Viewport: 1280 × 720
-- Route: `http://localhost:3000/ua/shop/catalog?q=M3+2018`
-- State: Moto selected, light theme
-
-## Full-view comparison evidence
-
-The supplied sport-bike silhouette is used directly as the Moto mask asset. The vehicle toggle retains the existing catalog layout, typography, spacing, borders, colors, and interaction behavior.
-
-## Focused region comparison evidence
-
-The side-by-side comparison confirms identical motorcycle geometry between the source SVG and the rendered Moto control. Its wide aspect ratio is accommodated with a 28 × 20 px slot so the fairing and wheels remain legible without touching the icon container.
-
-## Findings
-
-- No actionable P0, P1, or P2 differences within the requested scope.
-- Fonts and typography: unchanged.
-- Spacing and layout rhythm: unchanged; the wider Moto icon remains centered within the existing 32 px container.
-- Colors and visual tokens: the CSS mask inherits the selected and unselected theme colors.
-- Image quality and asset fidelity: native vector rendering; no rasterization, stretching, clipping, or transparency halo.
-- Copy and content: unchanged.
-- Interaction: Auto/Moto selection remains functional.
-- Console errors: none observed.
-
-## Comparison history
-
-- Earlier implementation: generic library motorcycle glyph did not match the requested sport-bike character.
-- Fix: replaced it with the user-supplied SVG and adjusted only its display width for the source aspect ratio.
-- Post-fix evidence: focused source/implementation comparison shows matching geometry and a legible active state.
-
-## Follow-up polish
-
-- Verify the same asset in dark theme during the next broader catalog QA pass.
+## Final result
 
 final result: passed

@@ -113,6 +113,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const tasks = [];
         for (const proposal of inbox.proposals) {
+          if (proposal.appliedTaskId) {
+            const existingTask = await tx.opsTask.findUnique({
+              where: { id: proposal.appliedTaskId },
+              select: opsTaskListSelect,
+            });
+            if (existingTask) {
+              await tx.opsInboxProposal.update({
+                where: { id: proposal.id },
+                data: {
+                  status: OpsProposalStatus.APPLIED,
+                  appliedAt: new Date(),
+                },
+              });
+              tasks.push(existingTask);
+              continue;
+            }
+          }
           const input = normalizeTaskCreateInput(proposal.payload);
           input.description = appendOpsSourceUrls(input.description, [
             inbox.originalMessage,
@@ -138,6 +155,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               input.title,
               input.description,
               input.nextAction,
+              ...input.tags,
               inbox.originalMessage,
               inbox.transcription,
             ],

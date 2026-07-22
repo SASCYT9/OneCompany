@@ -15,6 +15,8 @@ import {
   Plus,
   Search,
   Send,
+  UserRound,
+  UserX,
   UsersRound,
   Volume2,
   X,
@@ -48,10 +50,16 @@ import { OpsPageHeader } from "./OpsPageHeader";
 import { OpsSurface } from "./OpsSurface";
 import { OpsTaskDetail } from "./OpsTaskDetail";
 import { opsGet, opsMutation } from "./opsApi";
-import type { OpsKnowledgeArticle, OpsPriority, OpsTask, OpsTaskStatus } from "./types";
+import type { OpsKnowledgeArticle, OpsPerson, OpsPriority, OpsTask, OpsTaskStatus } from "./types";
 
 type View = "list" | "board" | "calendar";
 type Scope = "all" | "mine" | "today" | "overdue" | "waiting";
+
+type TeamSummary = {
+  members: OpsPerson[];
+  sharedTaskCount: number;
+  activeTaskCount: number;
+};
 
 const lanes: Array<{
   id: string;
@@ -61,41 +69,33 @@ const lanes: Array<{
   tone: string;
 }> = [
   {
-    id: "lane-inbox",
-    label: "Входящие",
-    statuses: ["INBOX"],
-    target: "INBOX",
-    tone: "bg-slate-400",
-  },
-  {
-    id: "lane-planned",
-    label: "Запланировано",
-    statuses: ["PLANNED"],
+    id: "lane-todo",
+    label: "К выполнению",
+    statuses: ["INBOX", "PLANNED"],
     target: "PLANNED",
-    tone: "bg-blue-400",
+    tone: "bg-indigo-500",
   },
   {
     id: "lane-work",
     label: "В работе",
     statuses: ["IN_PROGRESS", "AGENT_RUNNING"],
     target: "IN_PROGRESS",
-    tone: "bg-blue-600",
+    tone: "bg-blue-500",
   },
   {
     id: "lane-waiting",
     label: "Ожидание",
-    statuses: ["WAITING_HUMAN", "WAITING_EXTERNAL", "NEEDS_APPROVAL"],
+    statuses: ["WAITING_HUMAN", "WAITING_EXTERNAL", "NEEDS_APPROVAL", "BLOCKED"],
     target: "WAITING_HUMAN",
     tone: "bg-amber-400",
   },
   {
-    id: "lane-review",
-    label: "Проверка / Блок",
-    statuses: ["REVIEW", "BLOCKED"],
-    target: "REVIEW",
-    tone: "bg-violet-500",
+    id: "lane-done",
+    label: "Готово",
+    statuses: ["DONE"],
+    target: "DONE",
+    tone: "bg-emerald-500",
   },
-  { id: "lane-done", label: "Готово", statuses: ["DONE"], target: "DONE", tone: "bg-emerald-500" },
 ];
 
 const priorityDot: Record<OpsPriority, string> = {
@@ -104,6 +104,34 @@ const priorityDot: Record<OpsPriority, string> = {
   HIGH: "bg-red-500",
   URGENT: "bg-rose-600",
 };
+
+const memberTones = [
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-violet-100 text-violet-700",
+  "bg-amber-100 text-amber-700",
+  "bg-cyan-100 text-cyan-700",
+  "bg-rose-100 text-rose-700",
+] as const;
+
+const statusTone: Record<OpsTaskStatus, string> = {
+  INBOX: "text-slate-600",
+  PLANNED: "text-blue-700",
+  IN_PROGRESS: "text-blue-700",
+  AGENT_RUNNING: "text-violet-700",
+  WAITING_HUMAN: "text-amber-700",
+  WAITING_EXTERNAL: "text-amber-700",
+  NEEDS_APPROVAL: "text-orange-700",
+  REVIEW: "text-violet-700",
+  BLOCKED: "text-red-700",
+  DONE: "text-emerald-700",
+  CANCELLED: "text-slate-500",
+};
+
+function memberTone(id: string) {
+  const hash = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0);
+  return memberTones[hash % memberTones.length];
+}
 
 function initials(name?: string | null) {
   if (!name) return "—";
@@ -141,10 +169,12 @@ function taskGroup(task: OpsTask) {
 function TaskListRow({
   task,
   selected,
+  showAssignee,
   onSelect,
 }: {
   task: OpsTask;
   selected?: boolean;
+  showAssignee?: boolean;
   onSelect: () => void;
 }) {
   return (
@@ -152,28 +182,54 @@ function TaskListRow({
       type="button"
       onClick={onSelect}
       className={cn(
-        "group grid w-full grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-100 px-3 py-3 text-left transition last:border-0 hover:bg-slate-50 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-blue-500 sm:grid-cols-[12px_minmax(0,1fr)_36px_96px_auto]",
-        selected && "rounded-lg bg-blue-50 ring-1 ring-inset ring-blue-500"
+        "group grid w-full grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-3 border-b border-l-2 border-b-slate-100 border-l-transparent px-3 py-3 text-left transition last:border-b-0 hover:bg-slate-50 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-blue-500",
+        selected && "border-l-blue-600 bg-blue-50/80"
       )}
     >
       <span className={cn("h-2.5 w-2.5 rounded-full", priorityDot[task.priority])} />
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-5 text-slate-900">{task.title}</span>
-        <span className="mt-1 block truncate text-xs text-slate-500 sm:hidden">
-          {OPS_STATUS_LABELS[task.status]} · {dueText(task.dueAt)}
+        <span className="block text-sm font-semibold leading-5 text-slate-900">
+          {task.number ? <span className="mr-1.5 text-blue-600">#{task.number}</span> : null}
+          {task.title}
         </span>
-      </span>
-      <span className="hidden h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[11px] text-slate-700 sm:flex">
-        {task.isShared ? "ВСЕ" : initials(task.assignee?.name)}
-      </span>
-      <span
-        className={cn(
-          "hidden items-center gap-1.5 text-xs sm:flex",
-          taskGroup(task) === "Просрочено" ? "text-red-600" : "text-slate-500"
-        )}
-      >
-        <CalendarDays className="h-4 w-4" />
-        {dueText(task.dueAt)}
+        {task.nextAction ? (
+          <span className="mt-0.5 hidden truncate text-xs text-slate-500 sm:block">
+            {task.nextAction}
+          </span>
+        ) : null}
+        <span className="mt-1.5 flex min-w-0 items-center gap-2 text-xs text-slate-500">
+          {showAssignee ? (
+            <span className="flex min-w-0 items-center gap-1.5 border-r border-slate-200 pr-2">
+              <span
+                className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold",
+                  task.isShared
+                    ? "bg-blue-600 text-white"
+                    : memberTone(task.assignee?.id ?? "unassigned")
+                )}
+              >
+                {task.isShared ? "ВС" : initials(task.assignee?.name)}
+              </span>
+              <span className="max-w-20 truncate">
+                {task.isShared
+                  ? "Вся команда"
+                  : task.assignee?.name?.split(" ")[0] || "Не назначен"}
+              </span>
+            </span>
+          ) : null}
+          <span className={cn("shrink-0 font-medium", statusTone[task.status])}>
+            {OPS_STATUS_LABELS[task.status]}
+          </span>
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-1",
+              taskGroup(task) === "Просрочено" && "font-medium text-red-600"
+            )}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            {dueText(task.dueAt)}
+          </span>
+        </span>
       </span>
       <span className="flex items-center gap-1 text-slate-400">
         {task.sourceType === "TELEGRAM" || task.attachments?.length ? (
@@ -189,6 +245,137 @@ function TaskListRow({
         <ChevronRight className="h-4 w-4 group-hover:text-blue-600" />
       </span>
     </button>
+  );
+}
+
+function TeamRail({
+  members,
+  currentAdminId,
+  selectedMemberId,
+  assigneeNone,
+  activeTaskCount,
+  scope,
+  onSelect,
+  onScopeChange,
+}: {
+  members: OpsPerson[];
+  currentAdminId: string;
+  selectedMemberId: string | null;
+  assigneeNone: boolean;
+  activeTaskCount: number;
+  scope?: Scope;
+  onSelect: (memberId: string | null | "none") => void;
+  onScopeChange?: (scope: Scope) => void;
+}) {
+  const current = members.find((member) => member.id === currentAdminId);
+  const others = members.filter((member) => member.id !== currentAdminId);
+  const maxCount = Math.max(1, ...members.map((member) => member.activeTaskCount ?? 0));
+
+  const memberButton = (member: OpsPerson, mine = false) => {
+    const selected = selectedMemberId === member.id && !assigneeNone;
+    return (
+      <button
+        key={mine ? `mine-${member.id}` : member.id}
+        type="button"
+        onClick={() => onSelect(member.id)}
+        aria-pressed={selected}
+        className={cn(
+          "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-slate-50",
+          selected && "border-l-blue-600 bg-blue-50"
+        )}
+      >
+        <span
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold",
+            memberTone(member.id)
+          )}
+        >
+          {initials(member.name)}
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium text-slate-800">
+            {mine ? "Мои задачи" : member.name || member.email}
+          </span>
+          <span className="mt-1 block h-1 overflow-hidden bg-slate-100">
+            <span
+              className="block h-full bg-blue-600"
+              style={{ width: `${Math.max(8, ((member.activeTaskCount ?? 0) / maxCount) * 100)}%` }}
+            />
+          </span>
+        </span>
+        <span className="text-right text-xs font-semibold text-slate-600">
+          {member.activeTaskCount ?? 0}
+        </span>
+      </button>
+    );
+  };
+
+  return (
+    <aside className="hidden border-r border-slate-200 bg-white lg:block">
+      <div className="sticky top-0 py-4">
+        <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+          Участники
+        </h2>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          aria-pressed={!selectedMemberId && !assigneeNone}
+          className={cn(
+            "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-slate-50",
+            !selectedMemberId && !assigneeNone && "border-l-blue-600 bg-blue-50"
+          )}
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white">
+            <UsersRound className="h-4 w-4" />
+          </span>
+          <span className="truncate text-sm font-medium text-slate-800">Все задачи</span>
+          <span className="text-right text-xs font-semibold text-slate-600">{activeTaskCount}</span>
+        </button>
+        {current ? memberButton(current, true) : null}
+        <div className="my-1 border-t border-slate-100" />
+        {others.map((member) => memberButton(member))}
+        <button
+          type="button"
+          onClick={() => onSelect("none")}
+          aria-pressed={assigneeNone}
+          className={cn(
+            "mt-1 flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-3 text-left text-sm text-slate-600 hover:bg-slate-50",
+            assigneeNone && "border-l-blue-600 bg-blue-50 text-slate-900"
+          )}
+        >
+          <UserX className="h-4 w-4 text-slate-400" />
+          Без исполнителя
+        </button>
+        {onScopeChange ? (
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+              Представления
+            </h2>
+            {(
+              [
+                ["today", "Сегодня", CalendarDays],
+                ["overdue", "Просрочено", CircleAlert],
+                ["waiting", "Ожидание", Loader2],
+              ] as const
+            ).map(([value, label, Icon]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onScopeChange(value)}
+                aria-pressed={scope === value}
+                className={cn(
+                  "flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50",
+                  scope === value && "border-l-blue-600 bg-blue-50 font-medium text-blue-700"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </aside>
   );
 }
 
@@ -224,7 +411,7 @@ function SortableTaskCard({
         }
       }}
       className={cn(
-        "cursor-pointer rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:border-blue-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-500",
+        "cursor-pointer rounded-none border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-blue-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500",
         isDragging && "opacity-40"
       )}
     >
@@ -234,15 +421,26 @@ function SortableTaskCard({
             className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", priorityDot[task.priority])}
           />
           <h3 className="min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-900">
+            {task.number ? <span className="mr-1.5 text-blue-600">#{task.number}</span> : null}
             {task.title}
           </h3>
         </div>
         {task.project ? (
           <p className="mt-2 truncate text-[11px] text-slate-500">{task.project.title}</p>
         ) : null}
+        {task.nextAction || task.blockerDescription ? (
+          <p className="mt-2 line-clamp-2 text-xs leading-4 text-slate-500">
+            {task.nextAction || task.blockerDescription}
+          </p>
+        ) : null}
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-slate-100 px-1.5 text-[10px]">
+        <span
+          className={cn(
+            "flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+            task.isShared ? "bg-blue-600 text-white" : memberTone(task.assignee?.id ?? task.id)
+          )}
+        >
           {task.isShared ? "ВСЕ" : initials(task.assignee?.name)}
         </span>
         <div className="flex items-center gap-2">
@@ -254,7 +452,7 @@ function SortableTaskCard({
                 onQuickComment();
               }}
               aria-label={`Добавить заметку к задаче ${task.title}`}
-              className="rounded-md p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-blue-500"
+              className="rounded-none p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-blue-500"
             >
               <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -272,7 +470,7 @@ function SortableTaskCard({
             onClick={(event) => event.stopPropagation()}
             aria-label={`Переместить задачу ${task.title}. Используйте пробел и стрелки.`}
             disabled={!canWrite || ["AGENT_RUNNING", "DONE", "CANCELLED"].includes(task.status)}
-            className="cursor-grab touch-none rounded-md px-2 py-1 text-xs font-bold text-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 active:cursor-grabbing"
+            className="cursor-grab touch-none rounded-none px-2 py-1 text-xs font-bold text-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
@@ -305,14 +503,14 @@ function Lane({
     <section
       ref={setNodeRef}
       className={cn(
-        "flex min-h-[520px] w-[280px] shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-3",
-        isOver && "border-blue-400 bg-blue-50"
+        "flex min-h-[620px] min-w-[190px] flex-col bg-slate-50/70 px-2.5 py-3",
+        isOver && "bg-blue-50"
       )}
     >
-      <header className="mb-3 flex items-center gap-2 px-1">
+      <header className="mb-3 flex items-center gap-2 border-b border-slate-200 px-1 pb-3">
         <span className={cn("h-2.5 w-2.5 rounded-full", lane.tone)} />
         <h2 className="text-xs font-bold uppercase tracking-wide text-slate-600">{lane.label}</h2>
-        <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] text-slate-500 shadow-sm">
+        <span className="ml-auto bg-white px-2 py-0.5 text-[11px] text-slate-500">
           {tasks.length}
         </span>
       </header>
@@ -330,8 +528,8 @@ function Lane({
         </div>
       </SortableContext>
       {!tasks.length ? (
-        <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">
-          {tasks.some(canWriteTask) ? "Перетащите задачу сюда" : "Нет задач"}
+        <div className="flex flex-1 items-start justify-center border-t border-dashed border-slate-200 px-3 pt-8 text-center text-xs text-slate-400">
+          Нет задач
         </div>
       ) : null}
     </section>
@@ -374,6 +572,7 @@ function TaskCalendar({ tasks, onOpen }: { tasks: OpsTask[]; onOpen: (task: OpsT
                   onClick={() => onOpen(task)}
                   className="block w-full rounded-lg bg-blue-50 px-2 py-1.5 text-left text-[11px] font-medium leading-4 text-blue-900 hover:bg-blue-100"
                 >
+                  {task.number ? `#${task.number} ` : ""}
                   {task.title}
                 </button>
               ))}
@@ -399,6 +598,7 @@ export function OpsTaskWorkspace({
   initialScope = "all",
   initialStatus,
   initialProjectId,
+  initialAssigneeId,
   initialAssigneeNone = false,
   initialMissingNextAction = false,
   automationsEnabled = false,
@@ -418,6 +618,7 @@ export function OpsTaskWorkspace({
   initialScope?: Scope;
   initialStatus?: string;
   initialProjectId?: string;
+  initialAssigneeId?: string;
   initialAssigneeNone?: boolean;
   initialMissingNextAction?: boolean;
   automationsEnabled?: boolean;
@@ -433,6 +634,9 @@ export function OpsTaskWorkspace({
     initialStatus && initialStatus in OPS_STATUS_LABELS ? (initialStatus as OpsTaskStatus) : null
   );
   const [projectId, setProjectId] = useState(initialProjectId ?? "");
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
+    initialScope === "mine" ? currentAdminId : (initialAssigneeId ?? null)
+  );
   const [assigneeNone, setAssigneeNone] = useState(initialAssigneeNone);
   const [missingNextAction, setMissingNextAction] = useState(initialMissingNextAction);
   const [query, setQuery] = useState("");
@@ -448,7 +652,12 @@ export function OpsTaskWorkspace({
   const [quickCommentTaskId, setQuickCommentTaskId] = useState<string | null>(null);
   const [quickCommentText, setQuickCommentText] = useState("");
   const [quickCommentSaving, setQuickCommentSaving] = useState(false);
-  const [boardDetailOpen, setBoardDetailOpen] = useState(false);
+  const [teamSummary, setTeamSummary] = useState<TeamSummary>({
+    members: [],
+    sharedTaskCount: 0,
+    activeTaskCount:
+      initialTasks?.filter((task) => !["DONE", "CANCELLED"].includes(task.status)).length ?? 0,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 7 } }),
@@ -467,6 +676,7 @@ export function OpsTaskWorkspace({
       if (query.trim()) params.set("search", query.trim());
       if (statusFilter) params.set("status", statusFilter);
       if (projectId) params.set("projectId", projectId);
+      if (selectedMemberId) params.set("assignee", selectedMemberId);
       if (assigneeNone) params.set("assignee", "none");
       if (missingNextAction) params.set("missingNextAction", "1");
       if (scope === "waiting") {
@@ -487,7 +697,44 @@ export function OpsTaskWorkspace({
     } finally {
       setLoading(false);
     }
-  }, [assigneeNone, demoMode, missingNextAction, projectId, query, scope, statusFilter]);
+  }, [
+    assigneeNone,
+    demoMode,
+    missingNextAction,
+    projectId,
+    query,
+    scope,
+    selectedMemberId,
+    statusFilter,
+  ]);
+
+  useEffect(() => {
+    if (demoMode) {
+      const byId = new Map<string, OpsPerson>();
+      for (const task of initialTasks ?? []) {
+        if (!task.assignee) continue;
+        const existing = byId.get(task.assignee.id);
+        byId.set(task.assignee.id, {
+          ...task.assignee,
+          activeTaskCount:
+            (existing?.activeTaskCount ?? 0) +
+            (!["DONE", "CANCELLED"].includes(task.status) ? 1 : 0),
+        });
+      }
+      setTeamSummary((current) => ({ ...current, members: Array.from(byId.values()) }));
+      return;
+    }
+    const controller = new AbortController();
+    void opsGet<TeamSummary>("/api/admin/operations/members", controller.signal)
+      .then(setTeamSummary)
+      .catch((cause) => {
+        if (controller.signal.aborted) return;
+        setTransitionError(
+          cause instanceof Error ? cause.message : "Не удалось загрузить участников"
+        );
+      });
+    return () => controller.abort();
+  }, [demoMode, initialTasks]);
 
   useEffect(() => {
     if (initialTasks) return;
@@ -534,6 +781,8 @@ export function OpsTaskWorkspace({
         return false;
       }
       if (scope === "mine" && task.assignee?.id !== currentAdminId && !task.isShared) return false;
+      if (selectedMemberId && task.assignee?.id !== selectedMemberId && !task.isShared)
+        return false;
       if (statusFilter && task.status !== statusFilter) return false;
       if (projectId && task.project?.id !== projectId) return false;
       if (assigneeNone && (task.assignee || task.isShared)) return false;
@@ -547,6 +796,7 @@ export function OpsTaskWorkspace({
     projectId,
     query,
     scope,
+    selectedMemberId,
     statusFilter,
     tasks,
   ]);
@@ -559,7 +809,15 @@ export function OpsTaskWorkspace({
     [filtered]
   );
 
+  useEffect(() => {
+    setSelectedId((current) =>
+      current && filtered.some((task) => task.id === current) ? current : (filtered[0]?.id ?? null)
+    );
+  }, [filtered]);
+
   const selected = tasks.find((task) => task.id === selectedId) ?? null;
+  const selectedMember =
+    teamSummary.members.find((member) => member.id === selectedMemberId) ?? null;
   const dragged = tasks.find((task) => task.id === draggedId) ?? null;
   const canWriteTask = useCallback(
     (task: OpsTask) =>
@@ -577,7 +835,6 @@ export function OpsTaskWorkspace({
       return;
     }
     setSelectedId(task.id);
-    if (view === "board") setBoardDetailOpen(true);
   }
 
   async function transitionTask(task: OpsTask, target: OpsTaskStatus) {
@@ -766,6 +1023,23 @@ export function OpsTaskWorkspace({
     },
   ];
 
+  function selectTeamMember(memberId: string | null | "none") {
+    const nextMemberId = memberId === "none" ? null : memberId;
+    setSelectedMemberId(nextMemberId);
+    setAssigneeNone(memberId === "none");
+    setScope("all");
+    const params = new URLSearchParams(window.location.search);
+    if (memberId) params.set("assignee", memberId);
+    else params.delete("assignee");
+    params.delete("scope");
+    const queryString = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+    );
+  }
+
   return (
     <OpsSurface inboxCount={inboxCount} permissions={permissions}>
       <OpsPageHeader
@@ -806,10 +1080,7 @@ export function OpsTaskWorkspace({
                 <button
                   key={value}
                   type="button"
-                  onClick={() => {
-                    setView(value);
-                    if (value !== "board") setBoardDetailOpen(false);
-                  }}
+                  onClick={() => setView(value)}
                   aria-pressed={view === value}
                   className={cn(
                     "flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-slate-600",
@@ -836,33 +1107,25 @@ export function OpsTaskWorkspace({
               className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-            <button
-              type="button"
-              onClick={() => setScope("mine")}
-              className={cn(
-                "h-10 shrink-0 rounded-lg border px-3 text-sm font-medium",
-                scope === "mine"
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-200 bg-white text-slate-600"
-              )}
+          <label className={cn("relative min-w-0", view === "list" ? "lg:hidden" : "lg:w-64")}>
+            <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <select
+              value={assigneeNone ? "none" : (selectedMemberId ?? "")}
+              onChange={(event) => selectTeamMember(event.target.value || null)}
+              aria-label="Фильтр по участнику"
+              className="h-11 w-full appearance-none border border-slate-300 bg-white pl-10 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              Мои
-              <span
-                className={cn(
-                  "ml-2 rounded-full px-1.5 py-0.5 text-xs",
-                  scope === "mine" ? "bg-white/20" : "bg-slate-100 text-slate-700"
-                )}
-              >
-                {
-                  tasks.filter(
-                    (task) =>
-                      (task.assignee?.id === currentAdminId || task.isShared) &&
-                      !["DONE", "CANCELLED"].includes(task.status)
-                  ).length
-                }
-              </span>
-            </button>
+              <option value="">Все участники</option>
+              {teamSummary.members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.id === currentAdminId ? "Мои задачи" : member.name || member.email} ·{" "}
+                  {member.activeTaskCount ?? 0}
+                </option>
+              ))}
+              <option value="none">Без исполнителя</option>
+            </select>
+          </label>
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
             {scopeButtons.map((button) => (
               <button
                 key={button.value}
@@ -889,13 +1152,13 @@ export function OpsTaskWorkspace({
               </button>
             ))}
           </div>
-          {statusFilter || projectId || assigneeNone || missingNextAction ? (
+          {statusFilter || projectId || selectedMemberId || assigneeNone || missingNextAction ? (
             <button
               type="button"
               onClick={() => {
                 setStatusFilter(null);
                 setProjectId("");
-                setAssigneeNone(false);
+                selectTeamMember(null);
                 setMissingNextAction(false);
               }}
               className="h-10 shrink-0 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-medium text-blue-700"
@@ -938,7 +1201,7 @@ export function OpsTaskWorkspace({
           </button>
         </div>
       ) : view === "board" ? (
-        <>
+        <div className="hidden min-h-[650px] grid-cols-[minmax(720px,1fr)_480px] bg-white lg:grid xl:grid-cols-[minmax(760px,1fr)_500px] 2xl:grid-cols-[minmax(820px,1fr)_540px]">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -946,8 +1209,8 @@ export function OpsTaskWorkspace({
             onDragEnd={handleDragEnd}
             onDragCancel={() => setDraggedId(null)}
           >
-            <div className="hidden overflow-x-auto p-5 lg:block lg:px-8">
-              <div className="flex min-w-max gap-4 pb-4">
+            <div className="min-w-0 overflow-x-auto border-r border-slate-200 bg-slate-50/70">
+              <div className="grid min-w-[720px] grid-cols-4 divide-x divide-slate-200">
                 {lanes.map((lane) => (
                   <Lane
                     key={lane.id}
@@ -965,7 +1228,7 @@ export function OpsTaskWorkspace({
             </div>
             <DragOverlay>
               {dragged ? (
-                <div className="w-[272px] rotate-1 border border-blue-300 bg-white p-3 shadow-2xl">
+                <div className="w-[240px] rotate-1 border border-blue-300 bg-white p-3 shadow-2xl">
                   <div className="text-sm font-semibold">{dragged.title}</div>
                   <div className="mt-2 text-xs text-slate-500">
                     {OPS_STATUS_LABELS[dragged.status]}
@@ -974,64 +1237,78 @@ export function OpsTaskWorkspace({
               ) : null}
             </DragOverlay>
           </DndContext>
-
-          {boardDetailOpen && selected ? (
-            <div
-              className="fixed inset-0 z-[74] hidden bg-slate-950/35 lg:block"
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Задача: ${selected.title}`}
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) setBoardDetailOpen(false);
-              }}
-            >
-              <aside className="absolute inset-y-0 right-0 w-full max-w-[760px] overflow-y-auto border-l border-slate-200 bg-white shadow-2xl">
-                <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
-                  <span className="truncate text-sm font-semibold text-slate-700">
-                    Подробности задачи
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setBoardDetailOpen(false)}
-                    aria-label="Закрыть подробности"
-                    className="flex h-10 w-10 items-center justify-center text-slate-500 hover:bg-slate-100"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <OpsTaskDetail
-                  key={selected.id}
-                  task={selected}
-                  compact
-                  demoMode={demoMode}
-                  canLinkKnowledge={canLinkKnowledge}
-                  initialKnowledge={initialKnowledge}
-                  canWrite={canWriteTask(selected)}
-                  canAssign={canManageAll}
-                  canReadKnowledge={matchesAdminPermission(
-                    permissions,
-                    ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ
-                  )}
-                  automationsEnabled={automationsEnabled}
-                  canRunAutomation={canRunAutomation && canWriteTask(selected)}
-                  canDecideApprovals={canDecideApprovals}
-                  onTaskChange={(updated) =>
-                    setTasks((current) =>
-                      current.map((item) => (item.id === updated.id ? updated : item))
-                    )
-                  }
-                />
-              </aside>
-            </div>
-          ) : null}
-        </>
+          <aside className="min-w-0 overflow-y-auto bg-white">
+            {selected ? (
+              <OpsTaskDetail
+                key={selected.id}
+                task={selected}
+                compact
+                demoMode={demoMode}
+                canLinkKnowledge={canLinkKnowledge}
+                initialKnowledge={initialKnowledge}
+                canWrite={canWriteTask(selected)}
+                canAssign={canManageAll}
+                canReadKnowledge={matchesAdminPermission(
+                  permissions,
+                  ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ
+                )}
+                automationsEnabled={automationsEnabled}
+                canRunAutomation={canRunAutomation && canWriteTask(selected)}
+                canDecideApprovals={canDecideApprovals}
+                onTaskChange={(updated) =>
+                  setTasks((current) =>
+                    current.map((item) => (item.id === updated.id ? updated : item))
+                  )
+                }
+              />
+            ) : (
+              <div className="flex min-h-[620px] items-center justify-center px-8 text-center text-sm text-slate-500">
+                Выберите задачу на доске, чтобы открыть подробности.
+              </div>
+            )}
+          </aside>
+        </div>
       ) : view === "calendar" ? (
         <div className="hidden overflow-x-auto p-5 lg:block lg:px-8">
           <TaskCalendar tasks={filtered} onOpen={openTask} />
         </div>
       ) : (
-        <div className="grid min-h-[620px] grid-cols-1 bg-white lg:grid-cols-[minmax(390px,43%)_minmax(0,1fr)]">
+        <div className="grid min-h-[620px] grid-cols-1 bg-white lg:grid-cols-[210px_minmax(390px,38%)_minmax(0,1fr)] xl:grid-cols-[230px_460px_minmax(0,1fr)] 2xl:grid-cols-[240px_520px_minmax(0,1fr)]">
+          <TeamRail
+            members={teamSummary.members}
+            currentAdminId={currentAdminId}
+            selectedMemberId={selectedMemberId}
+            assigneeNone={assigneeNone}
+            activeTaskCount={teamSummary.activeTaskCount}
+            scope={scope}
+            onSelect={selectTeamMember}
+            onScopeChange={setScope}
+          />
           <div className="border-r border-slate-200 bg-white px-3 py-4 sm:px-5">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 px-2 pb-3">
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-bold text-slate-950">
+                  {assigneeNone
+                    ? "Задачи без исполнителя"
+                    : selectedMember
+                      ? `Задачи · ${selectedMember.name || selectedMember.email}`
+                      : "Все задачи команды"}
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {filtered.length} {filtered.length === 1 ? "задача" : "задач"}
+                </p>
+              </div>
+              {selectedMember ? (
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
+                    memberTone(selectedMember.id)
+                  )}
+                >
+                  {initials(selectedMember.name)}
+                </span>
+              ) : null}
+            </div>
             {groups.length ? (
               <div className="space-y-5">
                 {groups.map((group) => (
@@ -1057,6 +1334,7 @@ export function OpsTaskWorkspace({
                           key={task.id}
                           task={task}
                           selected={task.id === selectedId}
+                          showAssignee={!selectedMemberId && !assigneeNone}
                           onSelect={() => openTask(task)}
                         />
                       ))}

@@ -2466,12 +2466,14 @@ model OpsProject {
 
 model OpsTask {
   id                  String                 @id @default(cuid())
+  number              Int                    @unique @default(autoincrement())
   externalId          String                 @unique
   projectId           String?
   shopOrderId         String?
   parentTaskId        String?
   title               String
   description         String?
+  tags                String[]               @default([])
   status              OpsTaskStatus          @default(INBOX)
   priority            OpsPriority            @default(NORMAL)
   assigneeId          String?
@@ -2560,23 +2562,27 @@ model OpsComment {
 }
 
 model OpsAttachment {
-  id                   String              @id @default(cuid())
-  inboxItemId          String?
-  storageKey           String              @unique
-  checksum             String
-  mimeType             String
-  sizeBytes            BigInt
-  fileName             String?
-  telegramFileId       String?
-  telegramFileUniqueId String?
-  state                OpsAttachmentState  @default(PENDING)
-  retentionAt          DateTime?
-  pinned               Boolean             @default(false)
-  quarantineReason     String?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  inboxItem            OpsInboxItem?       @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
-  tasks                OpsTaskAttachment[]
+  id                      String              @id @default(cuid())
+  inboxItemId             String?
+  storageKey              String              @unique
+  checksum                String
+  mimeType                String
+  sizeBytes               BigInt
+  fileName                String?
+  telegramFileId          String?
+  telegramFileUniqueId    String?
+  transcription           String?
+  transcriptionLanguage   String?
+  transcriptionConfidence String?
+  transcriptionModel      String?
+  state                   OpsAttachmentState  @default(PENDING)
+  retentionAt             DateTime?
+  pinned                  Boolean             @default(false)
+  quarantineReason        String?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  inboxItem               OpsInboxItem?       @relation(fields: [inboxItemId], references: [id], onDelete: SetNull)
+  tasks                   OpsTaskAttachment[]
 
   @@index([inboxItemId])
   @@index([checksum])

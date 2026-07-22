@@ -53,6 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const storedPayload = toStoredJson({
           title: input.title,
           description: input.description,
+          tags: input.tags,
           status: input.status,
           priority: input.priority,
           executorType: input.executorType,

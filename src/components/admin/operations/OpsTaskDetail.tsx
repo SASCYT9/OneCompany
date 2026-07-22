@@ -82,6 +82,34 @@ const priorityColor: Record<OpsPriority, string> = {
   URGENT: "bg-rose-600",
 };
 
+const processTagLabels: Record<string, string> = {
+  pricing: "Расчёт цены",
+  delivery: "Доставка",
+  order: "Заказ",
+  catalog: "Каталог",
+  customer: "Клиент",
+  supplier: "Поставщик",
+  research: "Поиск",
+  admin: "Админка",
+  other: "Другое",
+};
+
+function taskTagPresentation(tag: string) {
+  const separator = tag.indexOf(":");
+  const type = separator > 0 ? tag.slice(0, separator) : "other";
+  const value = separator > 0 ? tag.slice(separator + 1) : tag;
+  if (type === "brand") {
+    return { label: value, className: "border-violet-200 bg-violet-50 text-violet-700" };
+  }
+  if (type === "product") {
+    return { label: value, className: "border-sky-200 bg-sky-50 text-sky-700" };
+  }
+  return {
+    label: processTagLabels[value] ?? value,
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  };
+}
+
 const transitionTargets: Record<OpsTaskStatus, OpsTaskStatus[]> = {
   INBOX: [
     "PLANNED",
@@ -270,10 +298,10 @@ export function OpsTaskDetail({
       !attachment.mimeType.startsWith("image/") &&
       !attachment.mimeType.startsWith("video/")
   );
-  const transcript =
-    audioAttachments.find((attachment) => attachment.transcript)?.transcript ??
-    audioAttachments.find((attachment) => attachment.inboxItem?.transcription)?.inboxItem
-      ?.transcription;
+  const legacyTranscript = audioAttachments.some((attachment) => attachment.transcription)
+    ? null
+    : audioAttachments.find((attachment) => attachment.inboxItem?.transcription)?.inboxItem
+        ?.transcription;
 
   const activity = useMemo(() => current.events ?? [], [current.events]);
 
@@ -313,7 +341,7 @@ export function OpsTaskDetail({
     setError(null);
   }
 
-  async function transition(status: OpsTaskStatus) {
+  async function transition(status: OpsTaskStatus, commentOverride?: string) {
     if (!canWrite || pending || status === current.status) return;
     const waiting = waitingStatuses.has(status);
     const reopening = ["DONE", "CANCELLED"].includes(current.status);
@@ -323,7 +351,10 @@ export function OpsTaskDetail({
         ? transitionNextAction.trim() || null
         : (current.nextAction ?? null);
     const blockerDescription = waiting ? transitionBlockerDescription.trim() || null : null;
-    const comment = status === "CANCELLED" || reopening ? transitionComment.trim() || null : null;
+    const comment =
+      status === "CANCELLED" || reopening
+        ? commentOverride?.trim() || transitionComment.trim() || null
+        : null;
 
     if ((status === "CANCELLED" || reopening) && !comment) {
       setError(
@@ -694,7 +725,7 @@ export function OpsTaskDetail({
                 rows={2}
                 className={cn(
                   "mt-2 w-full resize-none border border-slate-300 bg-white px-3 py-2 font-bold leading-tight tracking-tight text-slate-950 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
-                  compact ? "text-xl xl:text-2xl" : "text-2xl sm:text-3xl"
+                  compact ? "text-lg xl:text-xl 2xl:text-2xl" : "text-2xl sm:text-3xl"
                 )}
               />
             </label>
@@ -741,7 +772,7 @@ export function OpsTaskDetail({
               <h2
                 className={cn(
                   "min-w-0 flex-1 font-bold leading-tight tracking-tight text-slate-950",
-                  compact ? "text-[24px] sm:text-2xl xl:text-[30px]" : "text-[24px] sm:text-3xl"
+                  compact ? "text-lg xl:text-xl 2xl:text-2xl" : "text-[24px] sm:text-3xl"
                 )}
               >
                 {current.title}
@@ -757,16 +788,51 @@ export function OpsTaskDetail({
                 </button>
               ) : null}
             </div>
+            {current.number ? (
+              <p className="mt-1 font-mono text-xs font-semibold text-blue-600">
+                Задача #{current.number}
+              </p>
+            ) : null}
             {current.description ? (
               <div className="mt-3 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-slate-600">
                 <OpsLinkedText text={current.description} />
               </div>
             ) : null}
+            {current.tags?.length ? (
+              <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Теги задачи">
+                {current.tags.map((tag) => {
+                  const presentation = taskTagPresentation(tag);
+                  return (
+                    <span
+                      key={tag}
+                      className={cn(
+                        "border px-2 py-1 text-xs font-semibold",
+                        presentation.className
+                      )}
+                    >
+                      {presentation.label}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
           </>
         )}
 
-        <div className="mt-6 grid grid-cols-2 border-b border-slate-200 pb-5 sm:grid-cols-4">
-          <div className="relative border-r border-slate-200 pr-3 sm:pr-4">
+        <div
+          className={cn(
+            "mt-6 grid border-b border-slate-200 pb-5",
+            compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-4"
+          )}
+        >
+          <div
+            className={cn(
+              "relative",
+              compact
+                ? "border-r border-slate-200 pr-3"
+                : "border-b border-slate-200 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4"
+            )}
+          >
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <Check className="h-4 w-4 text-blue-600" />
               Статус
@@ -804,7 +870,13 @@ export function OpsTaskDetail({
               </div>
             ) : null}
           </div>
-          <div className="pl-3 sm:border-r sm:border-slate-200 sm:px-4">
+          <div
+            className={cn(
+              compact
+                ? "pl-3"
+                : "border-b border-slate-200 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
+            )}
+          >
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <Flag className="h-4 w-4" />
               Приоритет
@@ -843,7 +915,13 @@ export function OpsTaskDetail({
               </div>
             )}
           </div>
-          <div className="col-span-2 mt-4 border-t border-slate-200 pt-4 sm:col-span-1 sm:mt-0 sm:border-r sm:border-t-0 sm:px-4 sm:pt-0">
+          <div
+            className={cn(
+              compact
+                ? "mt-4 border-r border-t border-slate-200 pr-3 pt-4"
+                : "border-b border-slate-200 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
+            )}
+          >
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <CircleUserRound className="h-4 w-4" />
               Исполнитель
@@ -857,18 +935,27 @@ export function OpsTaskDetail({
               </div>
             ) : canAssign ? (
               <div className="mt-2 flex min-h-9 items-center gap-1">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px]">
+                <span
+                  className={cn(
+                    "h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px]",
+                    compact ? "hidden" : "flex"
+                  )}
+                >
                   {initials(current.assignee?.name)}
                 </span>
                 <select
                   aria-label="Исполнитель задачи"
+                  title={current.assignee?.name || current.assignee?.email || "Не назначен"}
                   value={current.assignee?.id ?? ""}
                   disabled={pending}
                   onFocus={() => void loadInlineMembers()}
                   onChange={(event) =>
                     void saveInlineTaskPatch({ assigneeId: event.target.value || null }, "assignee")
                   }
-                  className="h-9 min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+                  className={cn(
+                    "h-9 min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent px-1 font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50",
+                    compact ? "text-xs" : "text-sm"
+                  )}
                 >
                   <option value="">Не назначен</option>
                   {inlineMembersLoading ? <option disabled>Загрузка…</option> : null}
@@ -894,7 +981,11 @@ export function OpsTaskDetail({
               </div>
             )}
           </div>
-          <div className="col-span-2 mt-4 border-t border-slate-200 pt-4 sm:col-span-1 sm:mt-0 sm:border-t-0 sm:pl-4 sm:pt-0">
+          <div
+            className={cn(
+              compact ? "mt-4 border-t border-slate-200 pl-3 pt-4" : "pt-4 sm:pl-4 sm:pt-0"
+            )}
+          >
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <CalendarDays className="h-4 w-4" />
               Срок
@@ -1027,12 +1118,16 @@ export function OpsTaskDetail({
                 {transitionTargets[current.status].includes("CANCELLED") ? (
                   <button
                     type="button"
-                    onClick={() => openTransitionDialog("CANCELLED")}
+                    onClick={() => {
+                      if (window.confirm("Убрать задачу с доски? Её история сохранится.")) {
+                        void transition("CANCELLED", "Убрано с доски пользователем.");
+                      }
+                    }}
                     disabled={pending}
                     className="flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-medium text-red-700 disabled:opacity-50"
                   >
                     <X className="h-4 w-4" />
-                    Отменить
+                    Убрать
                   </button>
                 ) : null}
               </>
@@ -1117,7 +1212,7 @@ export function OpsTaskDetail({
                   <audio
                     className="h-10 w-full"
                     controls
-                    preload="metadata"
+                    preload="none"
                     src={
                       demoMode
                         ? undefined
@@ -1126,10 +1221,20 @@ export function OpsTaskDetail({
                   >
                     Ваш браузер не поддерживает аудио.
                   </audio>
+                  {attachment.transcription ? (
+                    <details className="mt-2 border-t border-slate-100 pt-2">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                        Транскрипция голосового {index + 1}
+                      </summary>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                        {attachment.transcription}
+                      </p>
+                    </details>
+                  ) : null}
                 </div>
               ))}
             </div>
-            {transcript ? (
+            {legacyTranscript ? (
               <div className="mt-3 border-t border-slate-100 pt-3">
                 <button
                   type="button"
@@ -1143,7 +1248,9 @@ export function OpsTaskDetail({
                   />
                 </button>
                 {transcriptOpen ? (
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{transcript}</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                    {legacyTranscript}
+                  </p>
                 ) : null}
               </div>
             ) : null}
@@ -1218,6 +1325,16 @@ export function OpsTaskDetail({
                         >
                           Ваш браузер не поддерживает видео.
                         </video>
+                      ) : null}
+                      {attachment.transcription ? (
+                        <details className="mt-2 border-t border-slate-200 pt-2">
+                          <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                            Транскрипция видеосообщения
+                          </summary>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                            {attachment.transcription}
+                          </p>
+                        </details>
                       ) : null}
                     </div>
                   );

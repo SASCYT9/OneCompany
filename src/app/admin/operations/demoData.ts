@@ -61,7 +61,7 @@ const tasks: OpsTask[] = [
           sizeBytes: 328_430,
           state: "AVAILABLE",
           createdAt: iso(0, 10),
-          transcript:
+          transcription:
             "Нужно проверить совместимость комплекта Maxton с BMW G20 до рестайлинга и подготовить ответ менеджеру.",
         },
       },
@@ -362,7 +362,7 @@ export function getOpsDemoData(): OpsDemoData | null {
             mimeType: "audio/ogg",
             sizeBytes: 214_200,
             state: "AVAILABLE",
-            transcript: "Нужно уточнить, кто завтра сможет оформить отправку.",
+            transcription: "Нужно уточнить, кто завтра сможет оформить отправку.",
           },
         ],
       },

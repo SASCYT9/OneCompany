@@ -22,7 +22,7 @@ export const opsRu = {
     mine: "Мои",
   },
   tasks: {
-    title: "Мои задачи",
+    title: "Задачи команды",
     subtitle: "Фокус на сегодня",
     create: "Создать задачу",
     views: {

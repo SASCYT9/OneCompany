@@ -17,6 +17,7 @@ export type OpsPerson = {
   id: string;
   name: string | null;
   email: string;
+  activeTaskCount?: number;
 };
 
 export type OpsAutomationRun = {
@@ -66,9 +67,11 @@ export type OpsApproval = OpsTaskApproval & {
 
 export type OpsTask = {
   id: string;
+  number?: number;
   externalId: string;
   title: string;
   description?: string | null;
+  tags?: string[];
   status: OpsTaskStatus;
   priority: OpsPriority;
   isShared?: boolean;
@@ -144,7 +147,10 @@ export type OpsAttachment = {
   pinned?: boolean;
   createdAt?: string;
   accessUrl?: string;
-  transcript?: string | null;
+  transcription?: string | null;
+  transcriptionLanguage?: string | null;
+  transcriptionConfidence?: string | null;
+  transcriptionModel?: string | null;
   inboxItem?: { transcription?: string | null } | null;
 };
 
@@ -214,6 +220,7 @@ export type OpsInboxItem = {
     payloadHash?: string;
     confidence?: number | string | null;
     status: string;
+    appliedTaskId?: string | null;
   }>;
   attachments?: OpsAttachment[];
   jobs?: Array<{ id: string; type: string; status: string; stage?: string; errorMessage?: string }>;

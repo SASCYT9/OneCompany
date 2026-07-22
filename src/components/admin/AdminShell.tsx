@@ -588,31 +588,6 @@ export default function AdminShell({
           ))}
         </nav>
 
-        {/* Hero card — real Mansory photo (matches reference) */}
-        {!collapsed ? (
-          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-none border border-white/5 bg-[#0F0F0F]">
-            <div className="relative h-32 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/hero-auto.jpg"
-                alt="Premium automotive distributor"
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-[#0F0F0F] via-transparent to-transparent" />
-            </div>
-            <div className="border-t border-white/4 px-4 py-3">
-              <div className="flex items-center gap-2 text-[11px] font-medium text-blue-400">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.7)] motion-safe:animate-pulse" />
-                onecompany.global
-              </div>
-              <div className="mt-1 text-[11px] leading-4 text-zinc-500">
-                Premium Automotive Performance &amp; Styling Distributor
-              </div>
-            </div>
-          </div>
-        ) : null}
-
         <div className="border-t border-white/5 px-3 py-3">
           {canUseCurrency ? <AdminCurrencySwitcher collapsed={collapsed} /> : null}
           <button
@@ -1191,71 +1166,6 @@ function AdminSidebarItem({
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
       {!collapsed ? <span className="truncate text-sm font-medium">{item.label}</span> : null}
     </Link>
-  );
-}
-
-function SidebarHeroCar() {
-  return (
-    <div className="relative h-full w-full">
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "radial-gradient(circle at 50% 100%, rgba(59,130,246,0.22), transparent 60%)",
-        }}
-      />
-      <svg
-        viewBox="0 0 200 110"
-        className="absolute bottom-0 h-full w-full"
-        preserveAspectRatio="xMidYEnd meet"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="oc-sidebar-car-body" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#27272A" />
-            <stop offset="60%" stopColor="#18181B" />
-            <stop offset="100%" stopColor="#09090B" />
-          </linearGradient>
-          <linearGradient id="oc-sidebar-car-window" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="rgb(59 130 246)" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="rgb(59 130 246)" stopOpacity="0.04" />
-          </linearGradient>
-        </defs>
-        <ellipse cx="100" cy="100" rx="75" ry="4" fill="rgb(59 130 246)" opacity="0.22" />
-        <path
-          d="M28 80 L33 75 L53 60 Q68 47 95 44 L130 44 Q146 46 159 57 L177 75 L182 82 L182 92 L165 95 Q140 98 100 98 Q60 98 50 95 L28 92 Z"
-          fill="url(#oc-sidebar-car-body)"
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth="0.5"
-        />
-        <path
-          d="M68 60 Q84 49 100 47 L130 47 Q141 51 152 60 L142 65 L78 65 Z"
-          fill="url(#oc-sidebar-car-window)"
-        />
-        <ellipse cx="55" cy="93" rx="14" ry="6" fill="#000" />
-        <ellipse cx="148" cy="93" rx="14" ry="6" fill="#000" />
-        <circle
-          cx="55"
-          cy="92"
-          r="9"
-          fill="#0A0A0A"
-          stroke="rgba(96,165,250,0.45)"
-          strokeWidth="1"
-        />
-        <circle cx="55" cy="92" r="4.5" fill="#1F1F1F" />
-        <circle
-          cx="148"
-          cy="92"
-          r="9"
-          fill="#0A0A0A"
-          stroke="rgba(96,165,250,0.45)"
-          strokeWidth="1"
-        />
-        <circle cx="148" cy="92" r="4.5" fill="#1F1F1F" />
-        <circle cx="174" cy="76" r="3" fill="rgb(96 165 250)" opacity="0.85" />
-        <circle cx="174" cy="76" r="7" fill="rgb(96 165 250)" opacity="0.18" />
-        <line x1="68" y1="65" x2="148" y2="65" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-      </svg>
-    </div>
   );
 }
 

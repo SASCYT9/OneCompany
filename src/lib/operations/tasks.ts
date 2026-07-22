@@ -159,6 +159,19 @@ function dateValue(value: unknown) {
   return date;
 }
 
+export function normalizeOpsTaskTags(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  return value.flatMap((item) => {
+    const tag = optionalText(item, 100);
+    if (!tag) return [];
+    const key = tag.toLocaleLowerCase("uk-UA");
+    if (seen.has(key) || seen.size >= 20) return [];
+    seen.add(key);
+    return [tag];
+  });
+}
+
 export type OpsTaskStateInput = {
   status: OpsTaskStatus;
   nextAction: string | null;
@@ -186,6 +199,7 @@ export function normalizeTaskCreateInput(body: unknown) {
   const normalized = {
     title: requiredText(input.title, "Task title"),
     description: optionalText(input.description),
+    tags: normalizeOpsTaskTags(input.tags),
     status,
     priority: enumValue(OpsPriority, input.priority, OpsPriority.NORMAL),
     executorType: enumValue(OpsExecutorType, input.executorType, OpsExecutorType.HUMAN),
@@ -214,6 +228,7 @@ export function normalizeTaskPatchInput(body: unknown) {
   const result: Record<string, unknown> = {};
   if ("title" in input) result.title = requiredText(input.title, "Task title");
   if ("description" in input) result.description = optionalText(input.description);
+  if ("tags" in input) result.tags = normalizeOpsTaskTags(input.tags);
   if ("priority" in input) {
     result.priority = enumValue(OpsPriority, input.priority, OpsPriority.NORMAL);
   }

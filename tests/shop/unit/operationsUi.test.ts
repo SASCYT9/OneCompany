@@ -178,7 +178,7 @@ test("Inbox review keeps audio lazy and proposal edits audited, idempotent, and 
   assert.match(manualProposalRoute, /inbox\.proposal\.create_manual/);
 });
 
-test("task details render protected media and board cards open a detail drawer", () => {
+test("task details render protected media and the board keeps a persistent detail panel", () => {
   const detail = readFileSync(
     new URL("../../../src/components/admin/operations/OpsTaskDetail.tsx", import.meta.url),
     "utf8"
@@ -195,13 +195,21 @@ test("task details render protected media and board cards open a detail drawer",
     /\/api\/admin\/operations\/tasks\/\$\{current\.id\}\/attachments\/\$\{attachment\.id\}\/access/
   );
   assert.match(detail, /loading="lazy"/);
-  assert.match(detail, /preload="metadata"/);
+  assert.match(detail, /preload="none"/);
+  assert.match(detail, /attachment\.transcription/);
+  assert.match(detail, /Транскрипция голосового/);
+  assert.match(detail, /Транскрипция видеосообщения/);
+  assert.match(detail, /Теги задачи/);
+  assert.match(detail, /Задача #\{current\.number\}/);
+  assert.match(detail, /Убрать задачу с доски/);
   assert.match(detail, /onBlur=\{\(\) => void saveDueDraft\(\)\}/);
   assert.match(detail, /Саша Цомпель/);
   assert.match(detail, /aria-label="Просмотр изображения"/);
-  assert.match(workspace, /setBoardDetailOpen\(true\)/);
-  assert.match(workspace, /Подробности задачи/);
-  assert.match(workspace, /role="dialog"/);
+  assert.match(workspace, /grid-cols-\[minmax\(720px,1fr\)_480px\]/);
+  assert.match(workspace, /Выберите задачу на доске, чтобы открыть подробности/);
+  assert.match(workspace, /label: "Готово"/);
+  assert.match(workspace, /statuses: \["DONE"\]/);
+  assert.doesNotMatch(workspace, /setBoardDetailOpen/);
 });
 
 test("projects can be created and edited while shared tasks are explicit on mobile and desktop", () => {
@@ -323,4 +331,35 @@ test("brand directory is separate, responsive, and linked from task details", ()
   assert.match(taskDetail, /operations\/directory\/\$\{article\.brandKey\}/);
   assert.match(taskDetail, /OpsLinkedText/);
   assert.match(navigation, /\/admin\/operations\/directory/);
+});
+
+test("task workspace exposes a permission-safe participant filter with server-side assignment filtering", () => {
+  const workspace = readFileSync(
+    new URL("../../../src/components/admin/operations/OpsTaskWorkspace.tsx", import.meta.url),
+    "utf8"
+  );
+  const membersRoute = readFileSync(
+    new URL("../../../src/app/api/admin/operations/members/route.ts", import.meta.url),
+    "utf8"
+  );
+  const tasksRoute = readFileSync(
+    new URL("../../../src/app/api/admin/operations/tasks/route.ts", import.meta.url),
+    "utf8"
+  );
+  const routeAccess = readFileSync(
+    new URL("../../../src/lib/admin/adminRouteAccess.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(workspace, /function TeamRail/);
+  assert.match(workspace, /Фильтр по участнику/);
+  assert.match(workspace, /Задачи без исполнителя/);
+  assert.match(membersRoute, /OPS_TASKS_READ/);
+  assert.match(membersRoute, /activeTaskCount/);
+  assert.match(tasksRoute, /const assigneeId/);
+  assert.match(tasksRoute, /OR: \[\{ assigneeId \}, \{ isShared: true \}\]/);
+  assert.match(
+    routeAccess,
+    /id: "ops-members-read"[\s\S]*?permission: ADMIN_PERMISSIONS\.OPS_TASKS_READ/
+  );
 });

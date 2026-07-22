@@ -318,6 +318,9 @@ test("Telegram auto-apply retry reuses the applied Inbox and never duplicates ta
       },
     },
     opsTask: {
+      async findUnique({ where }: { where: { sourceKey?: string } }) {
+        return state.tasks.find((task) => task.sourceKey === where.sourceKey) ?? null;
+      },
       async create({ data }: { data: Record<string, unknown> }) {
         const task = {
           id: `task-${state.tasks.length + 1}`,
@@ -439,6 +442,32 @@ test("Telegram auto-apply retry reuses the applied Inbox and never duplicates ta
   assert.equal(state.events, 1);
   assert.equal(state.audits, 1);
   assert.deepEqual(state.appliedTaskIds, ["task-1"]);
+});
+
+test("Telegram task-number updates are explicit and keep the factual status text", async () => {
+  const [, telegramJobs] = await notificationJobModules;
+  assert.deepEqual(
+    telegramJobs.parseTelegramTaskDescriptionUpdate(
+      "по задаче #1433 уже провели оплату и доставили на склад США"
+    ),
+    {
+      number: 1433,
+      update: "уже провели оплату и доставили на склад США",
+    }
+  );
+  assert.deepEqual(
+    telegramJobs.parseTelegramTaskDescriptionUpdate(
+      "@OneCompanyOpenClawBot по задачі 1007: товар отримано"
+    ),
+    { number: 1007, update: "товар отримано" }
+  );
+  assert.equal(telegramJobs.parseTelegramTaskDescriptionUpdate("создай новую задачу"), null);
+
+  const source = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
+  assert.match(source, /telegram\.inbox\.draft_materialize/);
+  assert.match(source, /keepInboxPending: true/);
+  assert.match(source, /telegram:task-update:/);
+  assert.match(source, /processedAttachments/);
 });
 
 test("job retry uses bounded backoff and the fourth failure is dead-letter", () => {
@@ -566,6 +595,58 @@ test("AI normalization marks RU/UA payment, purchase, and checkout tasks for hum
     assert.equal(result.requires_approval, true, title);
     assert.equal(result.tasks[0].executor_type, "human", title);
   }
+});
+
+test("AI extraction requires factual execution fields and preserves typed task tags", async () => {
+  const { normalizeOpsExtraction } = await aiModule;
+  const complete = normalizeOpsExtraction({
+    intent: "task",
+    summary: "Check a product",
+    project_candidates: [],
+    order_candidates: [],
+    confidence: "0.98",
+    ambiguities: [],
+    requires_approval: false,
+    tasks: [
+      {
+        title: "Проверить комплект Maxton для BMW G20",
+        description: "Нужно проверить совместимость указанного комплекта с BMW G20.",
+        priority: "normal",
+        due_at: null,
+        assignee_ref: null,
+        next_action: "Открыть карточку комплекта и сверить совместимость.",
+        definition_of_done: "Совместимость подтверждена или указана причина несовместимости.",
+        executor_type: "human",
+        project_ref: null,
+        order_ref: null,
+        brand_tags: ["Maxton"],
+        product_tags: ["BMW G20"],
+        process_tags: ["catalog"],
+      },
+    ],
+  });
+  assert.equal(complete.requires_approval, false);
+  assert.deepEqual(complete.tasks[0].brand_tags, ["Maxton"]);
+  assert.deepEqual(complete.tasks[0].product_tags, ["BMW G20"]);
+  assert.deepEqual(complete.tasks[0].process_tags, ["catalog"]);
+
+  const incomplete = normalizeOpsExtraction({
+    ...complete,
+    tasks: [{ title: "Проверить товар", priority: "normal", executor_type: "human" }],
+  });
+  assert.equal(incomplete.requires_approval, true);
+  assert.ok(incomplete.ambiguities.some((ambiguity) => ambiguity.includes("описание")));
+
+  const aiSource = fs.readFileSync(path.resolve("src/lib/operations/ai.ts"), "utf8");
+  assert.match(aiSource, /Do not translate, summarize, improve grammar/);
+  assert.match(aiSource, /Use \[неразборчиво\]/);
+  assert.match(aiSource, /brand_tags/);
+  assert.match(aiSource, /definition of done/);
+
+  const jobSource = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
+  assert.match(jobSource, /processedAttachments/);
+  assert.match(jobSource, /transcriptionModel: response\.model/);
+  assert.match(jobSource, /tags: extractedTaskTags\(extracted\)/);
 });
 
 test("Ops AI uses Gemini 3.5 Flash-Lite pricing and no deprecated sampling parameters", async () => {

@@ -47,7 +47,9 @@ export async function GET(request: NextRequest) {
     const mine = params.get("mine") === "1";
     const today = params.get("today") === "1";
     const overdue = params.get("overdue") === "1";
-    const assigneeNone = params.get("assignee") === "none";
+    const assignee = params.get("assignee")?.trim().slice(0, 100) || undefined;
+    const assigneeNone = assignee === "none";
+    const assigneeId = assignee && assignee !== "none" ? assignee : undefined;
     const missingNextAction = params.get("missingNextAction") === "1";
     const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
     const limit = Math.min(100, Math.max(1, Number(params.get("limit") ?? 50) || 50));
@@ -58,7 +60,14 @@ export async function GET(request: NextRequest) {
       ...(includeArchived ? {} : { archivedAt: null }),
       ...(statuses ? { status: { in: statuses } } : {}),
       ...(projectId ? { projectId } : {}),
-      ...(mine ? { AND: [{ OR: [{ assigneeId: access.id }, { isShared: true }] }] } : {}),
+      ...(mine || assigneeId
+        ? {
+            AND: [
+              ...(mine ? [{ OR: [{ assigneeId: access.id }, { isShared: true }] }] : []),
+              ...(assigneeId ? [{ OR: [{ assigneeId }, { isShared: true }] }] : []),
+            ],
+          }
+        : {}),
       ...(assigneeNone ? { assigneeId: null, isShared: false } : {}),
       ...(missingNextAction ? { nextAction: null } : {}),
       ...(today
@@ -141,7 +150,7 @@ export async function POST(request: NextRequest) {
         });
         const brandGuides = await linkMatchingBrandGuides(tx, {
           taskId: task.id,
-          texts: [input.title, input.description, input.nextAction],
+          texts: [input.title, input.description, input.nextAction, ...input.tags],
         });
         await tx.opsTaskEvent.create({
           data: {

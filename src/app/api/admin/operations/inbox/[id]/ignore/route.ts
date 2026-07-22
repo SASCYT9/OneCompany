@@ -1,4 +1,4 @@
-import { OpsInboxReviewStatus } from "@prisma/client";
+import { OpsInboxReviewStatus, OpsTaskEventType, OpsTaskStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { requireOperationsAccess, writeOpsAudit } from "@/lib/operations/access";
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       execute: async (tx) => {
         const item = await tx.opsInboxItem.findUnique({
           where: { id },
-          select: { id: true, reviewStatus: true },
+          select: { id: true, reviewStatus: true, appliedTaskIds: true },
         });
         if (!item) throw new OpsError("NOT_FOUND", 404, "Inbox item not found");
         if (item.reviewStatus !== OpsInboxReviewStatus.PENDING) {
@@ -37,10 +37,45 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           where: { id },
           data: { reviewStatus: OpsInboxReviewStatus.IGNORED, reviewedAt: new Date() },
         });
+        const draftTasks = item.appliedTaskIds.length
+          ? await tx.opsTask.findMany({
+              where: {
+                id: { in: item.appliedTaskIds },
+                status: { notIn: [OpsTaskStatus.DONE, OpsTaskStatus.CANCELLED] },
+              },
+              select: { id: true, status: true },
+            })
+          : [];
+        for (const task of draftTasks) {
+          await tx.opsTask.update({
+            where: { id: task.id },
+            data: {
+              status: OpsTaskStatus.CANCELLED,
+              completedAt: new Date(),
+              version: { increment: 1 },
+            },
+          });
+          await tx.opsTaskEvent.create({
+            data: {
+              taskId: task.id,
+              type: OpsTaskEventType.STATUS_CHANGED,
+              actorId: access.id,
+              sourceType: "TELEGRAM",
+              sourceId: id,
+              idempotencyKey: `${key}:cancel:${task.id}`,
+              payload: {
+                fromStatus: task.status,
+                toStatus: OpsTaskStatus.CANCELLED,
+                reason: "inbox_ignored",
+              },
+            },
+          });
+        }
         await writeOpsAudit(tx, access, {
           action: "inbox.ignore",
           entityType: "ops.inbox",
           entityId: id,
+          metadata: { cancelledDraftTaskIds: draftTasks.map((task) => task.id) },
         });
         return {
           body: { item: { id, reviewStatus: OpsInboxReviewStatus.IGNORED } },

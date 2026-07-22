@@ -2,12 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import {
   Check,
   ArrowLeft,
   ChevronDown,
   CircleAlert,
   FileAudio,
+  ExternalLink,
   Inbox,
   Loader2,
   MessageSquareText,
@@ -511,6 +514,15 @@ export function OpsInbox({
                                   }).format(new Date(String(proposal.payload.dueAt)))}
                                 </span>
                               ) : null}
+                              {proposal.appliedTaskId ? (
+                                <Link
+                                  href={`/admin/operations/tasks/${proposal.appliedTaskId}`}
+                                  className="inline-flex items-center gap-1 bg-blue-600 px-2 py-1 font-semibold text-white"
+                                >
+                                  Уже на доске
+                                  <ExternalLink className="h-3 w-3" />
+                                </Link>
+                              ) : null}
                             </div>
                           </div>
                           {canApply && proposal.status === "PENDING" ? (
@@ -554,7 +566,12 @@ export function OpsInbox({
                           ) : (
                             <Check className="h-4 w-4" />
                           )}
-                          Создать задачу
+                          {selected.proposals?.some(
+                            (proposal) =>
+                              proposal.status === "PENDING" && Boolean(proposal.appliedTaskId)
+                          )
+                            ? "Подтвердить"
+                            : "Создать задачу"}
                         </button>
                         <button
                           type="button"

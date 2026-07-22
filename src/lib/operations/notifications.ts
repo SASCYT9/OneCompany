@@ -43,7 +43,7 @@ export function buildOpsInboxNotification(input: {
   adminBaseUrl?: string | null;
   previewOnly: boolean;
   sourceKind?: "message" | "voice" | "batch";
-  autoAppliedTasks?: Array<{ id: string; externalId: string; title: string }>;
+  autoAppliedTasks?: Array<{ id: string; number?: number; externalId: string; title: string }>;
 }) {
   const countText =
     input.taskCount === 0
@@ -53,7 +53,8 @@ export function buildOpsInboxNotification(input: {
   const autoAppliedTasks = (input.autoAppliedTasks ?? []).slice(0, 5);
   if (autoAppliedTasks.length) {
     const taskLines = autoAppliedTasks.map(
-      (task, index) => `${index + 1}. ${task.externalId} — ${task.title}`
+      (task, index) =>
+        `${index + 1}. ${task.number ? `#${task.number}` : task.externalId} — ${task.title}`
     );
     return [
       `✅ Зафиксировал ${autoAppliedTasks.length} ${
