@@ -1,6 +1,6 @@
 import "server-only";
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 export const OPS_AI_PRIMARY_MODEL =
@@ -10,6 +10,7 @@ export const OPS_AI_FALLBACK_MODEL =
 export const OPS_AI_FEATURE = "telegram_manager";
 export const OPS_AI_WARNING_MICROS = BigInt(1_500_000);
 export const OPS_AI_HARD_STOP_MICROS = BigInt(2_000_000);
+export const OPS_AI_TASK_THINKING_LEVEL = ThinkingLevel.MEDIUM;
 
 const UNSAFE_ACTION_PATTERN =
   /(?:^|[^\p{Letter}\p{Number}_])(?:buy|purchase|pay|payment|checkout|credit[\s-]*card|банківськ\p{Letter}*|картк\p{Letter}*|оплат\p{Letter}*|купит\p{Letter}*|купівл\p{Letter}*|покупк\p{Letter}*|чекаут\p{Letter}*)(?=$|[^\p{Letter}\p{Number}_])/iu;
@@ -351,11 +352,18 @@ function usageFromResponse(response: {
   usageMetadata?: {
     promptTokenCount?: number;
     candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
   };
 }) {
   return {
     inputTokens: Math.max(0, response.usageMetadata?.promptTokenCount ?? 0),
-    outputTokens: Math.max(0, response.usageMetadata?.candidatesTokenCount ?? 0),
+    // Gemini reports internal reasoning separately from visible candidate
+    // tokens. Both are billable output and must count toward the Ops cap.
+    outputTokens: Math.max(
+      0,
+      (response.usageMetadata?.candidatesTokenCount ?? 0) +
+        (response.usageMetadata?.thoughtsTokenCount ?? 0)
+    ),
   };
 }
 
@@ -415,8 +423,11 @@ ${JSON.stringify(input.context)}
 MESSAGE:
 ${JSON.stringify(input.text)}`,
         config: {
-          httpOptions: { timeout: 80_000 },
-          maxOutputTokens: 1_500,
+          httpOptions: { timeout: 90_000 },
+          maxOutputTokens: 3_000,
+          thinkingConfig: {
+            thinkingLevel: OPS_AI_TASK_THINKING_LEVEL,
+          },
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -584,7 +595,7 @@ export async function extractOpsProposalWithAi(input: {
   const provider = input.provider ?? createGoogleOpsAiProvider();
   const reservation = estimateOpsAiReservation({
     expectedTextInputTokens: Math.ceil(input.text.length / 3),
-    expectedOutputTokens: 1_500,
+    expectedOutputTokens: 3_000,
   });
   return callWithSingleFallback({
     call: (model) => provider.extract({ model, text: input.text, context: input.context }),

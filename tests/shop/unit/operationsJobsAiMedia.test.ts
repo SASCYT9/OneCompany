@@ -698,8 +698,10 @@ test("AI extraction requires factual execution fields and preserves typed task t
 });
 
 test("Ops AI uses Gemini 3.5 Flash-Lite pricing and no deprecated sampling parameters", async () => {
-  const { calculateOpsAiCostMicros, OPS_AI_PRIMARY_MODEL } = await aiModule;
+  const { calculateOpsAiCostMicros, OPS_AI_PRIMARY_MODEL, OPS_AI_TASK_THINKING_LEVEL } =
+    await aiModule;
   assert.equal(OPS_AI_PRIMARY_MODEL, "gemini-3.5-flash-lite");
+  assert.equal(OPS_AI_TASK_THINKING_LEVEL, "MEDIUM");
   assert.equal(
     calculateOpsAiCostMicros({
       inputTokens: 1_000,
@@ -720,6 +722,8 @@ test("Ops AI uses Gemini 3.5 Flash-Lite pricing and no deprecated sampling param
   );
   const source = fs.readFileSync(path.resolve("src/lib/operations/ai.ts"), "utf8");
   assert.doesNotMatch(source, /\b(?:temperature|topP|topK|top_p|top_k)\s*:/);
+  assert.match(source, /thinkingLevel:\s*OPS_AI_TASK_THINKING_LEVEL/);
+  assert.match(source, /thoughtsTokenCount/);
 });
 
 test("AI budget stops exactly at the hard cap and provider fallback runs at most once", async () => {
