@@ -5,6 +5,7 @@ import { OpsError } from "@/lib/operations/errors";
 export const OPS_CSRF_COOKIE = "onecompany-ops-csrf";
 export const OPS_CSRF_HEADER = "x-ops-csrf-token";
 export const OPS_IDEMPOTENCY_HEADER = "idempotency-key";
+export const OPS_ENTITY_VERSION_HEADER = "x-ops-entity-version";
 
 export function createOpsCsrfToken() {
   return crypto.randomBytes(32).toString("base64url");
@@ -101,7 +102,14 @@ export function requireIdempotencyKey(request: NextRequest) {
 }
 
 export function requireIfMatch(request: NextRequest) {
-  const raw = request.headers.get("if-match")?.trim() ?? "";
+  // Vercel may evaluate the standard If-Match header before an App Router
+  // mutation reaches its Route Handler and return a platform-level 412.
+  // Keep If-Match compatibility for API callers, while the admin client uses
+  // this application-owned header for the same optimistic-lock contract.
+  const raw =
+    request.headers.get(OPS_ENTITY_VERSION_HEADER)?.trim() ??
+    request.headers.get("if-match")?.trim() ??
+    "";
   const match = raw.match(/^(?:W\/)?"?(\d+)"?$/);
   const version = match ? Number(match[1]) : Number.NaN;
   if (!Number.isSafeInteger(version) || version < 1) {

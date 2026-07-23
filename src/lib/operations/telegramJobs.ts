@@ -23,6 +23,7 @@ import {
   transcribeOpsMediaWithAi,
   type OpsExtraction,
 } from "@/lib/operations/ai";
+import { opsBrandProperNameHintsForClient } from "@/lib/operations/brandGuides";
 import { opsAdminLink, resolveOpsAdminBaseUrl } from "@/lib/operations/adminLinks";
 import {
   createOpsTelegramCallbackState,
@@ -1826,6 +1827,7 @@ async function executeTelegramBatchMediaStages(input: {
 
   if (input.job.stage === OpsJobStage.TRANSCRIBE) {
     const store = input.dependencies.mediaStore ?? createConfiguredOpsMediaStore();
+    const properNameHints = await opsBrandProperNameHintsForClient(input.client);
     const transcriptSections: string[] = [];
     const extractionSections: string[] = [];
     const processedAttachments = new Set<string>();
@@ -1850,6 +1852,7 @@ async function executeTelegramBatchMediaStages(input: {
               bytes: body,
               mimeType: item.mimeType,
               durationSeconds: item.media?.durationSeconds ?? 0,
+              properNameHints,
               budget: createPrismaOpsAiBudget(input.client),
             });
             extracted = response.value.transcript;
@@ -2166,10 +2169,12 @@ async function executeTelegramIntakeStage(input: {
         result: { transcriptionModel: "deterministic_utf8" },
       };
     }
+    const properNameHints = await opsBrandProperNameHintsForClient(input.client);
     const response = await transcribeOpsMediaWithAi({
       bytes: body,
       mimeType: payload.attachmentMimeType,
       durationSeconds: payload.media.durationSeconds ?? 0,
+      properNameHints,
       budget: createPrismaOpsAiBudget(input.client),
     });
     const isAudio = isTelegramAudioMedia(payload.media);

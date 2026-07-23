@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import {
@@ -36,7 +36,7 @@ import {
 import { OPS_PRIORITY_LABELS, OPS_STATUS_LABELS } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
 
-import { opsGet, opsMutation } from "./opsApi";
+import { OpsApiError, opsGet, opsMutation } from "./opsApi";
 import { OpsTaskAutomation } from "./OpsTaskAutomation";
 import type {
   OpsKnowledgeArticle,
@@ -47,6 +47,18 @@ import type {
   OpsTask,
   OpsTaskStatus,
 } from "./types";
+
+type OpsAiDraftSuggestion = {
+  suggestion: {
+    nextAction: string | null;
+    definitionOfDone: string | null;
+    tags: string[];
+    confidence: string;
+    ambiguities: string[];
+    requiresApproval: boolean;
+    model: string;
+  };
+};
 
 function OpsLinkedText({ text }: { text: string }) {
   return (
@@ -266,6 +278,15 @@ export function OpsTaskDetail({
   const [editDescription, setEditDescription] = useState(task.description ?? "");
   const [editNextAction, setEditNextAction] = useState(task.nextAction ?? "");
   const [editDefinitionOfDone, setEditDefinitionOfDone] = useState(task.definitionOfDone ?? "");
+  const [editTags, setEditTags] = useState(task.tags ?? []);
+  const [aiDraftStatus, setAiDraftStatus] = useState<
+    "idle" | "waiting" | "loading" | "ready" | "review" | "error"
+  >("idle");
+  const [aiDraftMessage, setAiDraftMessage] = useState("");
+  const aiDraftLastFingerprintRef = useRef("");
+  const aiDraftCurrentFingerprintRef = useRef("");
+  const aiDraftRequestRef = useRef(0);
+  const aiDraftAutoRunsRef = useRef(0);
   const [commentText, setCommentText] = useState("");
   const [editProjectId, setEditProjectId] = useState(task.project?.id ?? "");
   const [editShared, setEditShared] = useState(task.isShared);
@@ -333,6 +354,90 @@ export function OpsTaskDetail({
   useEffect(() => {
     setDueDraft(dueInputValue(current.dueAt));
   }, [current.dueAt]);
+
+  function taskDraftFingerprint() {
+    return JSON.stringify([editTitle.trim(), editDescription.trim()]);
+  }
+
+  async function refineTaskDraft(fingerprint = taskDraftFingerprint(), manual = false) {
+    if (!editOpen || demoMode || !canWrite || !editTitle.trim()) return;
+    if (!manual && aiDraftAutoRunsRef.current >= 4) return;
+    const requestId = aiDraftRequestRef.current + 1;
+    aiDraftRequestRef.current = requestId;
+    if (!manual) aiDraftAutoRunsRef.current += 1;
+    setAiDraftStatus("loading");
+    setAiDraftMessage("Gemini проверяет связанные поля…");
+    try {
+      const response = await opsMutation<OpsAiDraftSuggestion>({
+        path: `/api/admin/operations/tasks/${current.id}/ai-draft`,
+        body: {
+          title: editTitle,
+          description: editDescription,
+          nextAction: editNextAction,
+          definitionOfDone: editDefinitionOfDone,
+        },
+        scope: `task-ai-draft:${current.id}`,
+      });
+      if (
+        requestId !== aiDraftRequestRef.current ||
+        fingerprint !== aiDraftCurrentFingerprintRef.current
+      ) {
+        return;
+      }
+      const suggestion = response.suggestion;
+      const confidence = Number.parseFloat(suggestion.confidence);
+      if (!suggestion.requiresApproval && confidence >= 0.7) {
+        if (suggestion.nextAction) setEditNextAction(suggestion.nextAction);
+        if (suggestion.definitionOfDone) {
+          setEditDefinitionOfDone(suggestion.definitionOfDone);
+        }
+        if (suggestion.tags.length) setEditTags(suggestion.tags);
+        setAiDraftStatus("ready");
+        setAiDraftMessage(
+          `Gemini обновил следующее действие, критерий завершения и теги · ${suggestion.model}`
+        );
+      } else {
+        setAiDraftStatus("review");
+        setAiDraftMessage(
+          suggestion.ambiguities[0] ||
+            "Gemini не уверен в контексте — связанные поля оставлены без изменений."
+        );
+      }
+      aiDraftLastFingerprintRef.current = fingerprint;
+    } catch (cause) {
+      if (requestId !== aiDraftRequestRef.current) return;
+      setAiDraftStatus("error");
+      setAiDraftMessage(
+        cause instanceof Error ? cause.message : "Gemini не смог обновить черновик."
+      );
+    }
+  }
+
+  useEffect(() => {
+    if (!editOpen) {
+      aiDraftRequestRef.current += 1;
+      return;
+    }
+    const fingerprint = taskDraftFingerprint();
+    aiDraftCurrentFingerprintRef.current = fingerprint;
+    if (
+      demoMode ||
+      !canWrite ||
+      editTitle.trim().length + editDescription.trim().length < 12 ||
+      fingerprint === aiDraftLastFingerprintRef.current ||
+      aiDraftAutoRunsRef.current >= 4
+    ) {
+      return;
+    }
+    setAiDraftStatus("waiting");
+    setAiDraftMessage("Gemini обновит связанные поля после паузы…");
+    const timer = window.setTimeout(() => {
+      void refineTaskDraft(fingerprint);
+    }, 1_800);
+    return () => window.clearTimeout(timer);
+    // The authored text is the trigger; AI-derived fields intentionally are not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editOpen, editTitle, editDescription, canWrite, demoMode]);
 
   useEffect(() => {
     if (!canAssign || demoMode) return;
@@ -442,6 +547,7 @@ export function OpsTaskDetail({
         description: editDescription.trim() || null,
         nextAction: editNextAction.trim() || null,
         definitionOfDone: editDefinitionOfDone.trim() || null,
+        tags: editTags,
         projectId: editProjectId || null,
         isShared: editShared,
       };
@@ -449,14 +555,7 @@ export function OpsTaskDetail({
         await new Promise((resolve) => setTimeout(resolve, 250));
         updated = { ...current, ...patch, version: current.version + 1 };
       } else {
-        const response = await opsMutation<{ task: OpsTask }>({
-          path: `/api/admin/operations/tasks/${current.id}`,
-          method: "PATCH",
-          body: patch,
-          version: current.version,
-          scope: `task-edit:${current.id}`,
-        });
-        updated = response.task;
+        updated = await mutateTaskPatchWithRefresh(patch, `task-edit:${current.id}`);
       }
       setCurrent(updated);
       onTaskChange?.(updated);
@@ -465,6 +564,32 @@ export function OpsTaskDetail({
       setError(cause instanceof Error ? cause.message : "Не удалось сохранить задачу");
     } finally {
       setPending(false);
+    }
+  }
+
+  async function mutateTaskPatchWithRefresh(
+    patch: Record<string, unknown>,
+    scope: string
+  ): Promise<OpsTask> {
+    const mutate = (version: number) =>
+      opsMutation<{ task: OpsTask }>({
+        path: `/api/admin/operations/tasks/${current.id}`,
+        method: "PATCH",
+        body: patch,
+        version,
+        scope,
+      });
+    try {
+      return (await mutate(current.version)).task;
+    } catch (cause) {
+      const isVersionConflict =
+        cause instanceof OpsApiError &&
+        (cause.status === 409 || cause.status === 412 || cause.code === "VERSION_CONFLICT");
+      if (!isVersionConflict) throw cause;
+      const latest = await opsGet<{ task: OpsTask }>(`/api/admin/operations/tasks/${current.id}`);
+      setCurrent(latest.task);
+      onTaskChange?.(latest.task);
+      return (await mutate(latest.task.version)).task;
     }
   }
 
@@ -490,14 +615,7 @@ export function OpsTaskDetail({
           version: current.version + 1,
         } as OpsTask;
       } else {
-        const response = await opsMutation<{ task: OpsTask }>({
-          path: `/api/admin/operations/tasks/${current.id}`,
-          method: "PATCH",
-          body: patch,
-          version: current.version,
-          scope: `task-inline-${scope}:${current.id}`,
-        });
-        updated = response.task;
+        updated = await mutateTaskPatchWithRefresh(patch, `task-inline-${scope}:${current.id}`);
       }
       setCurrent(updated);
       onTaskChange?.(updated);
@@ -542,8 +660,17 @@ export function OpsTaskDetail({
     setEditDescription(current.description ?? "");
     setEditNextAction(current.nextAction ?? "");
     setEditDefinitionOfDone(current.definitionOfDone ?? "");
+    setEditTags(current.tags ?? []);
     setEditProjectId(current.project?.id ?? "");
     setEditShared(current.isShared);
+    aiDraftAutoRunsRef.current = 0;
+    aiDraftLastFingerprintRef.current = JSON.stringify([
+      current.title.trim(),
+      (current.description ?? "").trim(),
+    ]);
+    aiDraftCurrentFingerprintRef.current = aiDraftLastFingerprintRef.current;
+    setAiDraftStatus("idle");
+    setAiDraftMessage("");
     setEditOpen(true);
     setError(null);
     if (demoMode || taskProjects.length || taskReferencesLoading) return;
@@ -761,6 +888,73 @@ export function OpsTaskDetail({
                 className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </label>
+            <div
+              className={cn(
+                "mt-3 flex items-start justify-between gap-3 border px-3 py-2 text-xs",
+                aiDraftStatus === "error"
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : aiDraftStatus === "review"
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                    : "border-blue-200 bg-blue-50 text-blue-700"
+              )}
+            >
+              <span className="min-w-0 leading-5">
+                {aiDraftMessage ||
+                  "После ручной правки Gemini уточнит следующее действие, критерий завершения и теги."}
+              </span>
+              <button
+                type="button"
+                disabled={aiDraftStatus === "loading" || !editTitle.trim()}
+                onClick={() => void refineTaskDraft(taskDraftFingerprint(), true)}
+                className="shrink-0 font-semibold underline underline-offset-2 disabled:opacity-50"
+              >
+                {aiDraftStatus === "loading" ? "Проверяю…" : "Проверить сейчас"}
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Следующее действие
+                </span>
+                <textarea
+                  aria-label="Следующее действие"
+                  value={editNextAction}
+                  onChange={(event) => setEditNextAction(event.target.value)}
+                  rows={3}
+                  className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Готово, когда
+                </span>
+                <textarea
+                  aria-label="Критерий готовности"
+                  value={editDefinitionOfDone}
+                  onChange={(event) => setEditDefinitionOfDone(event.target.value)}
+                  rows={3}
+                  className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+            </div>
+            {editTags.length ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {editTags.map((tag) => {
+                  const presentation = taskTagPresentation(tag);
+                  return (
+                    <span
+                      key={tag}
+                      className={cn(
+                        "border px-2 py-1 text-xs font-semibold",
+                        presentation.className
+                      )}
+                    >
+                      {presentation.label}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
             <div className="mt-3 flex flex-wrap justify-end gap-2">
               <button
                 type="button"
@@ -1403,23 +1597,7 @@ export function OpsTaskDetail({
           </section>
         ) : null}
 
-        {editOpen ? (
-          <section className="mt-5 border border-blue-200 bg-blue-50 p-4">
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Следующее действие
-              </span>
-              <textarea
-                aria-label="Следующее действие"
-                value={editNextAction}
-                onChange={(event) => setEditNextAction(event.target.value)}
-                rows={3}
-                placeholder="Что конкретно нужно сделать дальше"
-                className="mt-2 w-full resize-y border border-blue-200 bg-white p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-          </section>
-        ) : current.nextAction ? (
+        {!editOpen && current.nextAction ? (
           <section className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
               Следующее действие
@@ -1519,47 +1697,7 @@ export function OpsTaskDetail({
           </section>
         ) : null}
 
-        {editOpen ? (
-          <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <label className="block">
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <Clipboard className="h-4 w-4 text-emerald-600" />
-                Готово, когда
-              </span>
-              <textarea
-                aria-label="Критерий готовности"
-                value={editDefinitionOfDone}
-                onChange={(event) => setEditDefinitionOfDone(event.target.value)}
-                rows={3}
-                placeholder="Как понять, что задача действительно завершена"
-                className="mt-3 w-full resize-y border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-            <div className="mt-3 flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setEditOpen(false)}
-                disabled={pending}
-                className="h-10 border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
-              >
-                Отмена
-              </button>
-              <button
-                type="button"
-                onClick={() => void saveTask()}
-                disabled={!editTitle.trim() || pending || taskReferencesLoading}
-                className="flex h-10 items-center gap-2 bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {pending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Сохранить изменения
-              </button>
-            </div>
-          </section>
-        ) : current.definitionOfDone ? (
+        {!editOpen && current.definitionOfDone ? (
           <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="flex items-center gap-2 text-sm font-semibold">
               <Clipboard className="h-4 w-4 text-emerald-600" />

@@ -47,6 +47,7 @@ import {
 } from "../../../src/lib/operations/brandGuides";
 import {
   hashOpsRequest,
+  requireIfMatch,
   resolveOpsAllowedMutationOrigins,
 } from "../../../src/lib/operations/request";
 import {
@@ -67,6 +68,25 @@ test("operations feature flag fails closed in production", () => {
   assert.equal(
     isOperationsUiEnabled({ NODE_ENV: "production", OPS_UI_ENABLED: "true" } as NodeJS.ProcessEnv),
     true
+  );
+});
+
+test("optimistic locking accepts the application version header and legacy If-Match callers", () => {
+  assert.equal(
+    requireIfMatch(
+      new Request("https://onecompany.global/api/admin/operations/tasks/task-1", {
+        headers: { "X-Ops-Entity-Version": "12" },
+      }) as never
+    ),
+    12
+  );
+  assert.equal(
+    requireIfMatch(
+      new Request("https://onecompany.global/api/admin/operations/tasks/task-1", {
+        headers: { "If-Match": '"13"' },
+      }) as never
+    ),
+    13
   );
 });
 

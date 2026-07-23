@@ -366,3 +366,39 @@ test("task workspace exposes a permission-safe participant filter with server-si
     /id: "ops-members-read"[\s\S]*?permission: ADMIN_PERMISSIONS\.OPS_TASKS_READ/
   );
 });
+
+test("task editing avoids Vercel preconditions and offers bounded Gemini draft assistance", () => {
+  const api = readFileSync(
+    new URL("../../../src/components/admin/operations/opsApi.ts", import.meta.url),
+    "utf8"
+  );
+  const request = readFileSync(
+    new URL("../../../src/lib/operations/request.ts", import.meta.url),
+    "utf8"
+  );
+  const detail = readFileSync(
+    new URL("../../../src/components/admin/operations/OpsTaskDetail.tsx", import.meta.url),
+    "utf8"
+  );
+  const aiDraftRoute = readFileSync(
+    new URL("../../../src/app/api/admin/operations/tasks/[id]/ai-draft/route.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(api, /"X-Ops-Entity-Version"/);
+  assert.doesNotMatch(api, /\{\s*"If-Match":/);
+  assert.match(request, /OPS_ENTITY_VERSION_HEADER/);
+  assert.match(request, /request\.headers\.get\("if-match"\)/);
+  assert.match(detail, /mutateTaskPatchWithRefresh/);
+  assert.match(detail, /cause\.status === 412/);
+  assert.match(detail, /\/ai-draft/);
+  assert.match(detail, /aiDraftAutoRunsRef\.current >= 4/);
+  assert.match(detail, /1_800/);
+  assert.match(detail, /setEditNextAction/);
+  assert.match(detail, /setEditDefinitionOfDone/);
+  assert.match(detail, /setEditTags/);
+  assert.match(aiDraftRoute, /assertCanWriteTask/);
+  assert.match(aiDraftRoute, /admin-edited title and description are authoritative corrections/);
+  assert.match(aiDraftRoute, /createPrismaOpsAiBudget\(prisma\)/);
+  assert.doesNotMatch(aiDraftRoute, /opsTask\.update/);
+});

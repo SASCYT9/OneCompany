@@ -33,6 +33,10 @@ import {
 } from "../../../src/lib/operations/media";
 import type { OpsAiBudget, OpsAiProvider } from "../../../src/lib/operations/ai";
 import {
+  opsBrandProperNameHints,
+  opsBrandProperNameHintsForClient,
+} from "../../../src/lib/operations/brandGuides";
+import {
   createOpsMediaResponse,
   parseOpsMediaRange,
 } from "../../../src/lib/operations/mediaResponse";
@@ -55,6 +59,35 @@ const notificationJobModules = Promise.all([
   import("../../../src/lib/operations/jobsWatchdog"),
   import("../../../src/lib/operations/telegramJobs"),
 ]);
+
+test("voice transcription hints combine the catalog, confirmed names, knowledge aliases, and products", async () => {
+  assert.ok(opsBrandProperNameHints().includes("VF Engineering"));
+
+  const client = {
+    opsKnowledgeArticle: {
+      async findMany() {
+        return [
+          {
+            title: "Suspension setup",
+            brandKey: "ceika",
+            tags: ["alias:CEIKA Racing"],
+          },
+        ];
+      },
+    },
+    shopProduct: {
+      async findMany() {
+        return [{ brand: "VF Engineering" }, { brand: "CEIKA" }];
+      },
+    },
+  } as unknown as PrismaClient;
+
+  const hints = await opsBrandProperNameHintsForClient(client);
+  assert.ok(hints.includes("VF Engineering"));
+  assert.ok(hints.includes("CEIKA"));
+  assert.ok(hints.includes("CEIKA Racing"));
+  assert.equal(hints.filter((value) => value.toLowerCase() === "ceika").length, 1);
+});
 
 test("local Ops media store keeps Lab attachments private and blocks path traversal", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "onecompany-ops-media-"));

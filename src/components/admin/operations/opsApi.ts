@@ -81,9 +81,9 @@ export async function opsMutation<T>({
       "X-Ops-CSRF-Token": token,
       "Idempotency-Key": makeKey(scope),
       ...(etag
-        ? { "If-Match": `"${etag.replaceAll('"', "")}"` }
+        ? { "X-Ops-Entity-Version": etag.replaceAll('"', "") }
         : typeof version === "number"
-          ? { "If-Match": `"${version}"` }
+          ? { "X-Ops-Entity-Version": String(version) }
           : {}),
     },
     body: JSON.stringify(body),

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 import catalogJson from "@/data/operations/brand-guides.json";
 import {
@@ -31,6 +31,59 @@ export type BrandGuideCatalogEntry = {
 
 export const brandGuideCatalog = catalogJson.brands as BrandGuideCatalogEntry[];
 const catalog = brandGuideCatalog;
+
+export function opsBrandProperNameHints() {
+  const seen = new Set<string>();
+  return catalog.flatMap((entry) =>
+    [entry.brand, ...entry.aliases].flatMap((value) => {
+      const clean = value
+        .replace(/\u0000/g, "")
+        .trim()
+        .slice(0, 100);
+      const key = clean.toLocaleLowerCase("en-US");
+      if (!clean || clean.length < 2 || seen.has(key)) return [];
+      seen.add(key);
+      return [clean];
+    })
+  );
+}
+
+export async function opsBrandProperNameHintsForClient(client: PrismaClient) {
+  const [articles, products] = await Promise.all([
+    client.opsKnowledgeArticle.findMany({
+      where: { status: "PUBLISHED", archivedAt: null },
+      orderBy: { updatedAt: "desc" },
+      take: 500,
+      select: { title: true, brandKey: true, tags: true },
+    }),
+    client.shopProduct.findMany({
+      where: { brand: { not: null } },
+      distinct: ["brand"],
+      take: 1_000,
+      select: { brand: true },
+    }),
+  ]);
+  const seen = new Set<string>();
+  return [
+    ...opsBrandProperNameHints(),
+    "CEIKA",
+    ...articles.flatMap((article) => [
+      article.title,
+      article.brandKey,
+      ...article.tags.filter((tag) => /^alias:/iu.test(tag)).map((tag) => tag.slice(6)),
+    ]),
+    ...products.map((product) => product.brand),
+  ].flatMap((value) => {
+    const clean = String(value ?? "")
+      .replace(/\u0000/g, "")
+      .trim()
+      .slice(0, 100);
+    const key = clean.toLocaleLowerCase("en-US");
+    if (!clean || clean.length < 2 || seen.has(key)) return [];
+    seen.add(key);
+    return [clean];
+  });
+}
 
 const genericAliases = new Set([
   "usa",

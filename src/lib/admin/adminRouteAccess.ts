@@ -149,6 +149,12 @@ export const ADMIN_ROUTE_POLICY: readonly AdminRoutePolicyRule[] = [
     permission: ADMIN_PERMISSIONS.OPS_TASKS_WRITE,
   },
   {
+    id: "ops-task-ai-draft",
+    pattern: "/api/admin/operations/tasks/:taskId/ai-draft",
+    methods: ["POST"],
+    permission: ADMIN_PERMISSIONS.OPS_TASKS_WRITE,
+  },
+  {
     id: "ops-task-comments",
     pattern: "/api/admin/operations/tasks/:taskId/comments",
     methods: ["POST"],

@@ -79,6 +79,7 @@ export type OpsAiProvider = {
     model: string;
     bytes: Uint8Array;
     mimeType: string;
+    properNameHints?: string[];
   }): Promise<{ value: unknown; usage: Omit<OpsAiUsage, "audioSeconds" | "costMicros"> }>;
 };
 
@@ -481,11 +482,16 @@ ${JSON.stringify(input.text)}`,
     },
     async transcribe(input) {
       const client = getClient();
+      const properNameHint = input.properNameHints?.length
+        ? `\nKnown internal brand and product names (use only when the audio closely matches; never force a match):\n${input.properNameHints
+            .slice(0, 600)
+            .join(", ")}`
+        : "";
       const instruction = input.mimeType.startsWith("audio/")
         ? `Transcribe the supplied internal voice message verbatim in its original language.
 Do not translate, summarize, improve grammar, infer missing words, or turn it into a task.
 Preserve names, numbers, brands, SKU, URLs and vehicle/product codes exactly as heard.
-Use [неразборчиво] for uncertain fragments instead of guessing.`
+Use [неразборчиво] for uncertain fragments instead of guessing.${properNameHint}`
         : input.mimeType.startsWith("video/")
           ? `Transcribe spoken content verbatim in its original language and extract visible text.
 Do not translate, summarize or infer missing words. Use [неразборчиво] for uncertain speech.`
@@ -594,6 +600,7 @@ export async function transcribeOpsMediaWithAi(input: {
   bytes: Uint8Array;
   mimeType: string;
   durationSeconds: number;
+  properNameHints?: string[];
   budget: OpsAiBudget;
   provider?: OpsAiProvider;
 }) {
@@ -604,7 +611,13 @@ export async function transcribeOpsMediaWithAi(input: {
     expectedTextInputTokens: 500,
   });
   return callWithSingleFallback({
-    call: (model) => provider.transcribe({ model, bytes: input.bytes, mimeType: input.mimeType }),
+    call: (model) =>
+      provider.transcribe({
+        model,
+        bytes: input.bytes,
+        mimeType: input.mimeType,
+        properNameHints: input.properNameHints,
+      }),
     normalize: normalizeOpsTranscription,
     budget: input.budget,
     audioSeconds: input.durationSeconds,
