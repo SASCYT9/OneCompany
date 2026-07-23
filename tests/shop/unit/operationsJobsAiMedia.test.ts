@@ -809,7 +809,17 @@ test("Telegram Lab source has no imports from the old production bot", () => {
   assert.match(envExample, /^OPS_BLOB_READ_WRITE_TOKEN=$/m);
   assert.match(envExample, /^OPS_BLOB_STORE_ID=$/m);
   assert.match(envExample, /^OPS_TELEGRAM_CALLBACK_SECRET=$/m);
+  assert.match(envExample, /^OPS_UK_WAREHOUSE_ADDRESS=$/m);
+  assert.match(envExample, /^OPS_UK_WAREHOUSE_PHONE=$/m);
   assert.doesNotMatch(envExample, /^OPS_PRIVATE_BLOB_READ_WRITE_TOKEN=/m);
+
+  const ukRouteSync = fs.readFileSync(
+    path.resolve("scripts/sync-ops-uk-shipping-route.ts"),
+    "utf8"
+  );
+  assert.match(ukRouteSync, /OPS_UK_WAREHOUSE_ADDRESS/);
+  assert.match(ukRouteSync, /OPS_UK_WAREHOUSE_PHONE/);
+  assert.doesNotMatch(ukRouteSync, /\+447305041234|TENNYSON ROAD|Ben Hanna/);
 
   const attachmentAccess = fs.readFileSync(
     path.resolve(

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { OpsApprovalStatus, OpsBlockerType, OpsTaskStatus, type Prisma } from "@prisma/client";
+import { OpsApprovalStatus, OpsTaskStatus, type Prisma } from "@prisma/client";
 import {
   assertOpsApprovalCanBeDecided,
   assertOpsApprovalPayloadIntegrity,
@@ -42,6 +42,7 @@ import {
   getBrandGuideByKey,
   hydrateBrandGuideFromArticle,
   isProductRelatedTask,
+  isUkShippingRelatedTask,
   operatorFacingReferenceText,
   parseShippingEstimatesFromMarkdown,
 } from "../../../src/lib/operations/brandGuides";
@@ -550,6 +551,12 @@ test("product context preserves source links and finds shipping references", () 
     [["diffuser", 130]]
   );
   assert.equal(isProductRelatedTask(["Позвонить Игорю"]), false);
+  assert.equal(
+    isUkShippingRelatedTask(["Посчитать доставку из Великобритании через Medyka"]),
+    true
+  );
+  assert.equal(isUkShippingRelatedTask(["Проверить CT Carbon для BMW G80"]), true);
+  assert.equal(isUkShippingRelatedTask(["Позвонить Игорю"]), false);
   assert.equal(
     operatorFacingReferenceText("Прайс PDF из Top-Level.pdf"),
     "Прайс поставщика из внутреннего источника"

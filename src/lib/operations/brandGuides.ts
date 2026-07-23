@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import catalogJson from "@/data/operations/brand-guides.json";
 import {
   OPS_SHIPPING_REFERENCE_SLUG,
+  OPS_UK_UA_SHIPPING_ROUTE,
   OPS_USA_UA_SHIPPING_ESTIMATES,
   type OpsShippingEstimate,
 } from "@/data/operations/shipping-guides";
@@ -335,6 +336,20 @@ export function isProductRelatedTask(texts: Array<string | null | undefined>) {
   );
 }
 
+export function isUkShippingRelatedTask(texts: Array<string | null | undefined>) {
+  const text = normalizeProductText(texts);
+  if (!text) return false;
+  if (
+    OPS_UK_UA_SHIPPING_ROUTE.terms.some((term) => containsTerm(text, normalizeSearchText(term)))
+  ) {
+    return true;
+  }
+  const guideKeys = new Set(findMatchingBrandGuideKeys(texts));
+  return catalog.some(
+    (entry) => guideKeys.has(entry.guideKey) && entry.country.trim().toUpperCase() === "UK"
+  );
+}
+
 export async function linkMatchingBrandGuides(
   tx: Prisma.TransactionClient,
   input: {
@@ -344,7 +359,8 @@ export async function linkMatchingBrandGuides(
 ) {
   const guideKeys = findMatchingBrandGuideKeys(input.texts);
   const includeShipping = isProductRelatedTask(input.texts);
-  if (!guideKeys.length && !includeShipping) {
+  const includeUkShipping = isUkShippingRelatedTask(input.texts);
+  if (!guideKeys.length && !includeShipping && !includeUkShipping) {
     return {
       articles: [],
       brandArticles: [],
@@ -363,6 +379,7 @@ export async function linkMatchingBrandGuides(
           ? [{ brandKey: { in: guideKeys }, tags: { has: "brand-guide" } }]
           : []),
         ...(includeShipping ? [{ slug: OPS_SHIPPING_REFERENCE_SLUG }] : []),
+        ...(includeUkShipping ? [{ slug: OPS_UK_UA_SHIPPING_ROUTE.slug }] : []),
       ],
     },
     select: {
@@ -392,11 +409,12 @@ export async function linkMatchingBrandGuides(
     skipDuplicates: true,
   });
   const brandArticles = articles.filter((article) => article.tags.includes("brand-guide"));
-  const shippingArticles = articles.filter(
-    (article) => article.slug === OPS_SHIPPING_REFERENCE_SLUG
+  const shippingArticles = articles.filter((article) =>
+    article.tags.includes("shipping-reference")
   );
   const editableShippingEstimates = parseShippingEstimatesFromMarkdown(
-    shippingArticles[0]?.contentMarkdown
+    shippingArticles.find((article) => article.slug === OPS_SHIPPING_REFERENCE_SLUG)
+      ?.contentMarkdown
   );
   const matchedShippingEstimates = editableShippingEstimates
     .filter((estimate) =>

@@ -38,3 +38,31 @@ export const OPS_USA_UA_SHIPPING_ESTIMATES: OpsShippingEstimate[] = [
 
 export const OPS_SHIPPING_REFERENCE_SLUG = "product-shipping-reference";
 
+export const OPS_UK_UA_SHIPPING_ROUTE = {
+  key: "uk-london-medyka-ua",
+  slug: "uk-shipping-route",
+  label: "Великобритания → Medyka → Украина",
+  warehouseCode: "UK_LONDON_W7",
+  destinationReference: "UK-LONDON-W7-01",
+  formula:
+    "Цена сайта + 15% + доставка на адрес в Великобритании + доставка в Medyka + объёмная доставка в Украину",
+  steps: [
+    "Проверить цену сайта и наличие.",
+    "Добавить 15%.",
+    "Добавить доставку по Великобритании на склад UK-LONDON-W7-01.",
+    "Добавить доставку из Великобритании в Medyka.",
+    "Добавить объёмную доставку из Medyka в Украину.",
+  ],
+  terms: [
+    "британия",
+    "британии",
+    "великобритания",
+    "великобритании",
+    "англия",
+    "united kingdom",
+    "england",
+    "london",
+    "uk",
+  ],
+} as const;
+
