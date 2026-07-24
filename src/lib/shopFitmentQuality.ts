@@ -1,5 +1,5 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
-import type { Fitment } from "@/lib/crossShopFitment";
+import { isKnownVehicleModelForMake, type Fitment } from "@/lib/crossShopFitment";
 import type { VehicleYearRange } from "@/lib/shopVehicleYears";
 import { classifyAutomaticFitmentDisposition } from "@/lib/shopFitmentDisposition";
 
@@ -226,6 +226,26 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
   const models = cleanStrings(fitment.models);
   const chassisCodes = cleanStrings(fitment.chassisCodes).map((value) => value.toUpperCase());
   const yearRanges = cleanYearRanges(fitment.yearRanges);
+  const incompatibleModels = fitment.make
+    ? models.filter((model) => !isKnownVehicleModelForMake(fitment.make ?? "", model))
+    : [];
+  if (incompatibleModels.length > 0) {
+    return {
+      version: NORMALIZED_FITMENT_VERSION,
+      status: "needs_review",
+      vehicleType: "unknown",
+      make: null,
+      models: [],
+      chassisCodes: [],
+      yearRanges: [],
+      applications: [],
+      confidence: "unknown",
+      source: "automatic",
+      verifiedAt: null,
+      verifiedBy: null,
+      note: `Cross-make model conflict: ${fitment.make} / ${incompatibleModels.join(", ")}`,
+    };
+  }
   return {
     version: NORMALIZED_FITMENT_VERSION,
     status,

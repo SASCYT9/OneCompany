@@ -1802,11 +1802,8 @@ function extractTagModels(product: ShopProduct): string[] {
   return canonicalModels.length ? uniq(canonicalModels) : models;
 }
 
-function extractTagMake(product: ShopProduct): string | null {
+function extractDedicatedTagMake(product: ShopProduct): string | null {
   const tags = product.tags ?? [];
-  // Pass 1: prefer dedicated fitment tags over title inference. A model token
-  // can also be a different make's model (for example Fiat Talento 296 vs
-  // Ferrari 296), while these tags are owned by the supplier import.
   for (const tag of tags) {
     const normalized = String(tag ?? "")
       .trim()
@@ -1822,6 +1819,11 @@ function extractTagMake(product: ShopProduct): string | null {
     if (match) return match.label;
     return slug.charAt(0).toUpperCase() + slug.slice(1);
   }
+  return null;
+}
+
+function extractLegacyTagMake(product: ShopProduct): string | null {
+  const tags = product.tags ?? [];
   // Pass 2: fall back to `brand:` only when it names a known vehicle make.
   // Some catalogs (Burger) overload `brand:bmw` to mean vehicle make; others
   // (Girodisc) use `brand:girodisc` for the vendor — that latter case must NOT
@@ -1836,6 +1838,10 @@ function extractTagMake(product: ShopProduct): string | null {
     if (match) return match.label;
   }
   return null;
+}
+
+function extractTagMake(product: ShopProduct): string | null {
+  return extractDedicatedTagMake(product) ?? extractLegacyTagMake(product);
 }
 
 /**
@@ -2085,6 +2091,9 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bm440d\b/i,
     /\bm550i\b/i,
     /\bm850i\b/i,
+    /\bi4\b/i,
+    /\bi8\b/i,
+    /\bxm\b/i,
     /\bz4\b/i,
     /\bx1\b/i,
     /\bx2\b/i,
@@ -2101,6 +2110,11 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\b6\s*-?\s*series\b/i,
     /\b7\s*-?\s*series\b/i,
     /\b8\s*-?\s*series\b/i,
+    /\b1\s*-?\s*series\s*m\b/i,
+    /\b2\s*-?\s*active\s*tourer\b/i,
+    /\b6\s*-?\s*gran\s*turismo\b/i,
+    /\bx\s*-?\s*series\b/i,
+    /\bz\s*-?\s*series\b/i,
     /\b1er\b/i,
     /\b2er\b/i,
     /\b3er\b/i,
@@ -2399,6 +2413,13 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bhypermotard\b/i,
   ],
 };
+
+export function isKnownVehicleModelForMake(make: string, model: string): boolean {
+  const normalizedMake = make === "VW" ? "Volkswagen" : make;
+  const patterns = MODEL_PATTERNS[normalizedMake];
+  if (!patterns?.length) return true;
+  return patterns.some((pattern) => pattern.test(model));
+}
 
 function detectModelsFromText(text: string, make: string | null): string[] {
   if (!make) return [];
@@ -2911,14 +2932,16 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   }
 
   // 2. Generic fallbacks for anything still missing
-  if (!make) {
-    make = extractTagMake(product);
-  }
+  if (!make) make = extractDedicatedTagMake(product);
   if (!make) {
     const titleOwnedText = [product.title?.en, product.title?.ua, product.slug]
       .filter(Boolean)
       .join(" | ");
     make = detectMakeGeneric(titleOwnedText);
+    // `brand:<vehicle>` is a legacy supplier convention, notably in the
+    // Burger feed. It is weaker than an explicit vehicle make in the
+    // product-owned title/slug and must never overwrite it.
+    if (!make) make = extractLegacyTagMake(product);
     if (!make && product.brand) {
       const brandLower = product.brand.trim().toLowerCase();
       const match = MAKE_PATTERNS.find((entry) => entry.label.toLowerCase() === brandLower);

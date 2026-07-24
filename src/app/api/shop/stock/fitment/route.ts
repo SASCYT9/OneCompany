@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
-import { isExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
+import { isExpectedChassisForMakeModel, isKnownVehicleModelForMake } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
@@ -12,7 +12,9 @@ import {
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
     headers: {
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900",
+      // Keep selector data fast while bounding stale fitment exposure after a
+      // controlled Knowledge V2 reindex.
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
     },
   });
 
@@ -93,7 +95,10 @@ async function getCanonicalFitmentOptions(input: {
       select: { model: true },
       orderBy: { model: "asc" },
     });
-    let data = rows.map((row) => row.model).filter((value): value is string => Boolean(value));
+    let data = rows
+      .map((row) => row.model)
+      .filter((value): value is string => Boolean(value))
+      .filter((value) => isKnownVehicleModelForMake(input.make ?? "", value));
     if (
       input.make.toLowerCase() === "porsche" &&
       data.some((modelName) => /^911\s+\S/i.test(modelName))
@@ -167,7 +172,7 @@ export async function GET(request: NextRequest) {
         for (const fitment of item.fitments) {
           if (shopVehicleMakesMatch(fitment.make, make)) {
             for (const modelVal of fitment.models) {
-              modelsSet.add(modelVal);
+              if (isKnownVehicleModelForMake(make, modelVal)) modelsSet.add(modelVal);
             }
           }
         }

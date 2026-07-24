@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
+import { getShopProductsByIdsServer } from "@/lib/shopCatalogServer";
 import {
   extractProductFitment,
   isExpectedChassisForMakeModel,
@@ -153,6 +154,140 @@ let cachedFitmentOverrideUpdatedAt = 0;
 let lastFitmentOverrideVersionCheck = 0;
 const FITMENT_OVERRIDE_VERSION_CHECK_MS = 30 * 1000;
 
+function indexProductWithFitment(
+  product: any,
+  persisted?: { manual?: string; supplier?: string } | null
+) {
+  const automaticFitment = extractProductFitment(product);
+  const automaticNormalized = classifyProductFitment(product, automaticFitment);
+  const supplierContract = parseSupplierFitmentContract(persisted?.supplier);
+  const supplierNormalized = supplierContract
+    ? supplierContractToNormalizedFitment(supplierContract)
+    : null;
+  const automaticSafetyValue =
+    automaticNormalized.status === "needs_review" || automaticNormalized.status === "universal"
+      ? JSON.stringify(automaticNormalized)
+      : null;
+  const effectivePersistedValue =
+    persisted?.manual ??
+    (supplierNormalized ? JSON.stringify(supplierNormalized) : automaticSafetyValue);
+  const normalizedFitment = mergePersistedFitment(
+    supplierNormalized ?? automaticNormalized,
+    persisted?.manual
+  );
+  const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
+  const fitment = fitments[0];
+  const displayBrand = getProductDisplayBrand(product.brand);
+  const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
+  const skuText = buildShopSearchText([
+    product.sku,
+    ...(product.variants ?? []).flatMap((variant: any) => [variant.sku, variant.title]),
+  ]);
+  const compactSkuText = [
+    product.sku,
+    ...(product.variants ?? []).map((variant: any) => variant.sku),
+  ]
+    .map((value) => compactShopCode(value))
+    .filter(Boolean)
+    .join(" ");
+  const buildFitmentText = (value: Fitment) =>
+    buildShopSearchText([
+      value.make,
+      ...value.models,
+      ...value.chassisCodes,
+      ...value.yearRanges.map((range) =>
+        range.to === null
+          ? `${range.from}+`
+          : range.to === range.from
+            ? String(range.from)
+            : `${range.from}-${range.to}`
+      ),
+    ]);
+  const fitmentText = buildShopSearchText(fitments.map(buildFitmentText));
+  const searchText = buildShopSearchText([
+    product.title?.en,
+    product.title?.ua,
+    product.sku,
+    product.slug,
+    displayBrand,
+    product.vendor,
+    product.productType,
+    product.category?.ua,
+    product.category?.en,
+    product.collection?.ua,
+    product.collection?.en,
+    product.shortDescription?.ua,
+    product.shortDescription?.en,
+    product.longDescription?.ua,
+    product.longDescription?.en,
+    ...(product.highlights ?? []).flatMap((item: any) => [item.ua, item.en]),
+    ...(product.collections ?? []).flatMap((item: any) => [
+      item.handle,
+      item.title?.ua,
+      item.title?.en,
+      item.brand,
+    ]),
+    ...(product.variants ?? []).flatMap((variant: any) => [
+      variant.sku,
+      variant.title,
+      variant.optionValues?.join(" "),
+    ]),
+    ...fitments.flatMap((value) => [value.make, ...value.models, ...value.chassisCodes]),
+    ...(product.tags ?? []),
+  ]);
+
+  return {
+    product,
+    fitment,
+    fitments,
+    fitmentStatus: normalizedFitment.status,
+    fitmentSource: normalizedFitment.source,
+    vehicleScope: resolveShopStockVehicleScope(product.scope, normalizedFitment.vehicleType),
+    searchText,
+    titleText,
+    skuText,
+    compactSkuText,
+    fitmentText,
+    yearRanges: fitment.yearRanges,
+    fitmentMake: fitment.make,
+    fitmentItems: fitments.map((value) => ({
+      searchText,
+      titleText,
+      skuText,
+      compactSkuText,
+      fitmentText: buildFitmentText(value),
+      yearRanges: value.yearRanges,
+      fitmentMake: value.make,
+    })),
+  };
+}
+
+async function getShopProductsWithFitmentsByIds(productIds: string[]) {
+  const uniqueIds = [...new Set(productIds)];
+  if (uniqueIds.length === 0) return [];
+  const [products, fitmentOverrides] = await Promise.all([
+    getShopProductsByIdsServer(uniqueIds),
+    prisma.shopProductMetafield.findMany({
+      where: {
+        productId: { in: uniqueIds },
+        namespace: NORMALIZED_FITMENT_NAMESPACE,
+        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+      },
+      select: { productId: true, key: true, value: true },
+    }),
+  ]);
+  const overrides = new Map<string, { manual?: string; supplier?: string }>();
+  for (const item of fitmentOverrides) {
+    const current = overrides.get(item.productId) ?? {};
+    if (item.key === NORMALIZED_FITMENT_KEY) current.manual = item.value;
+    if (item.key === SUPPLIER_FITMENT_KEY) current.supplier = item.value;
+    overrides.set(item.productId, current);
+  }
+  return products.map((product) =>
+    indexProductWithFitment(product, product.id ? overrides.get(product.id) : null)
+  );
+}
+
 export async function getShopProductsWithFitments() {
   const now = Date.now();
   let overrideUpdatedAt = cachedFitmentOverrideUpdatedAt;
@@ -202,112 +337,12 @@ export async function getShopProductsWithFitments() {
     now - cachedTimestamp > 5 * 60 * 1000 ||
     overrideUpdatedAt !== cachedFitmentOverrideUpdatedAt
   ) {
-    cachedProductsWithFitment = products.map((product) => {
-      const automaticFitment = extractProductFitment(product);
-      const persisted = product.id ? fitmentOverrideByProductId.get(product.id) : null;
-      const automaticNormalized = classifyProductFitment(product, automaticFitment);
-      const supplierContract = parseSupplierFitmentContract(persisted?.supplier);
-      const supplierNormalized = supplierContract
-        ? supplierContractToNormalizedFitment(supplierContract)
-        : null;
-      const automaticSafetyValue =
-        automaticNormalized.status === "needs_review" || automaticNormalized.status === "universal"
-          ? JSON.stringify(automaticNormalized)
-          : null;
-      const effectivePersistedValue =
-        persisted?.manual ??
-        (supplierNormalized ? JSON.stringify(supplierNormalized) : automaticSafetyValue);
-      const normalizedFitment = mergePersistedFitment(
-        supplierNormalized ?? automaticNormalized,
-        persisted?.manual
-      );
-      const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
-      const fitment = fitments[0];
-      const displayBrand = getProductDisplayBrand(product.brand);
-      const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
-      const skuText = buildShopSearchText([
-        product.sku,
-        ...(product.variants ?? []).flatMap((variant: any) => [variant.sku, variant.title]),
-      ]);
-      const compactSkuText = [
-        product.sku,
-        ...(product.variants ?? []).map((variant: any) => variant.sku),
-      ]
-        .map((value) => compactShopCode(value))
-        .filter(Boolean)
-        .join(" ");
-      const buildFitmentText = (value: Fitment) =>
-        buildShopSearchText([
-          value.make,
-          ...value.models,
-          ...value.chassisCodes,
-          ...value.yearRanges.map((range) =>
-            range.to === null
-              ? `${range.from}+`
-              : range.to === range.from
-                ? String(range.from)
-                : `${range.from}-${range.to}`
-          ),
-        ]);
-      const fitmentText = buildShopSearchText(fitments.map(buildFitmentText));
-
-      const searchText = buildShopSearchText([
-        product.title?.en,
-        product.title?.ua,
-        product.sku,
-        product.slug,
-        displayBrand,
-        product.vendor,
-        product.productType,
-        product.category?.ua,
-        product.category?.en,
-        product.collection?.ua,
-        product.collection?.en,
-        product.shortDescription?.ua,
-        product.shortDescription?.en,
-        product.longDescription?.ua,
-        product.longDescription?.en,
-        ...(product.highlights ?? []).flatMap((item: any) => [item.ua, item.en]),
-        ...(product.collections ?? []).flatMap((item: any) => [
-          item.handle,
-          item.title?.ua,
-          item.title?.en,
-          item.brand,
-        ]),
-        ...(product.variants ?? []).flatMap((variant: any) => [
-          variant.sku,
-          variant.title,
-          variant.optionValues?.join(" "),
-        ]),
-        ...fitments.flatMap((value) => [value.make, ...value.models, ...value.chassisCodes]),
-        ...(product.tags ?? []),
-      ]);
-
-      return {
+    cachedProductsWithFitment = products.map((product) =>
+      indexProductWithFitment(
         product,
-        fitment,
-        fitments,
-        fitmentStatus: normalizedFitment.status,
-        fitmentSource: normalizedFitment.source,
-        vehicleScope: resolveShopStockVehicleScope(product.scope, normalizedFitment.vehicleType),
-        searchText,
-        titleText,
-        skuText,
-        compactSkuText,
-        fitmentText,
-        yearRanges: fitment.yearRanges,
-        fitmentMake: fitment.make,
-        fitmentItems: fitments.map((value) => ({
-          searchText,
-          titleText,
-          skuText,
-          compactSkuText,
-          fitmentText: buildFitmentText(value),
-          yearRanges: value.yearRanges,
-          fitmentMake: value.make,
-        })),
-      };
-    });
+        product.id ? fitmentOverrideByProductId.get(product.id) : null
+      )
+    );
     cachedTimestamp = now;
     cachedFitmentOverrideUpdatedAt = overrideUpdatedAt;
   }
@@ -631,6 +666,59 @@ async function hasStrictCatalogCoverage() {
   return ready;
 }
 
+async function resolveCanonicalVehicleProductIds(input: {
+  make: string;
+  model: string;
+  chassis: string;
+  year: number | null;
+  engine: string | null;
+  opfGpf: string | null;
+  scope: ShopStockVehicleScope | null;
+}): Promise<string[] | null> {
+  if (
+    !input.make &&
+    !input.model &&
+    !input.chassis &&
+    !input.year &&
+    !input.engine &&
+    !input.opfGpf
+  ) {
+    return null;
+  }
+  if (!(await hasStrictCatalogCoverage())) return null;
+
+  try {
+    const rows = await prisma.shopVehicleApplication.findMany({
+      where: {
+        isActive: true,
+        isUniversal: false,
+        verificationStatus: { not: "BLOCKED" },
+        ...(input.scope ? { scope: input.scope } : {}),
+        ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
+        ...(input.model ? { model: { equals: input.model, mode: "insensitive" } } : {}),
+        ...(input.chassis ? { chassisCode: { equals: input.chassis, mode: "insensitive" } } : {}),
+        ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
+        ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
+        ...(input.year
+          ? {
+              AND: [
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+              ],
+            }
+          : {}),
+        product: { isPublished: true, status: "ACTIVE" },
+      },
+      distinct: ["productId"],
+      select: { productId: true },
+    });
+    return rows.map((row) => row.productId);
+  } catch (error) {
+    if (isMissingStrictCatalogSchema(error)) return null;
+    throw error;
+  }
+}
+
 async function resolveStrictCatalogMatches(
   constraints: StrictCatalogSearchConstraints,
   locale: "ua" | "en"
@@ -852,13 +940,25 @@ export async function GET(request: NextRequest) {
       ? resolveStrictCatalogMatches(strictCatalogConstraints, locale === "en" ? "en" : "ua")
       : Promise.resolve<StrictCatalogResolution | null>(null);
 
-    const [settingsRecord, session, allProductsWithFitments, strictCatalogResolution] =
+    const [settingsRecord, session, canonicalVehicleProductIds, strictCatalogResolution] =
       await Promise.all([
         getOrCreateShopSettings(prisma),
         getCurrentShopCustomerSession(),
-        getShopProductsWithFitments(),
+        resolveCanonicalVehicleProductIds({
+          make,
+          model,
+          chassis,
+          year: requestedYear,
+          engine: requestedEngine,
+          opfGpf: requestedOpfGpf,
+          scope: vehicleScope,
+        }),
         strictCatalogPromise,
       ]);
+    const allProductsWithFitments =
+      canonicalVehicleProductIds === null
+        ? await getShopProductsWithFitments()
+        : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
     const scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
       allProductsWithFitments,
       vehicleScope
@@ -1475,7 +1575,7 @@ export async function GET(request: NextRequest) {
     const brands = globalFilterStats.brands.map((entry) => entry.label);
     const categories = globalFilterStats.categories.map((entry) => entry.label);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       data: sanitizedItems,
       meta: {
         page,
@@ -1505,6 +1605,11 @@ export async function GET(request: NextRequest) {
       filterStats,
       globalFilterStats,
     });
+    response.headers.set(
+      "Cache-Control",
+      session ? "private, no-store" : "public, s-maxage=60, stale-while-revalidate=300"
+    );
+    return response;
   } catch (error: any) {
     console.error("[Stock Search API Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

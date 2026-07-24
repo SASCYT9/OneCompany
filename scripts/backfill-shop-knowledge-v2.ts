@@ -27,7 +27,27 @@ type BackfillStats = {
   variants: number;
   categorySkipped: number;
   excludedOther: number;
+  correctedProducts: number;
+  deactivatedApplications: number;
+  suspiciousProducts: number;
 };
+
+type CleanupExample = {
+  productId: string;
+  slug: string;
+  removed: string[];
+  added: string[];
+  qualityFlags: string[];
+};
+
+const applicationSignature = (application: {
+  make?: string | null;
+  model?: string | null;
+  chassisCode?: string | null;
+}) =>
+  [application.make, application.model, application.chassisCode]
+    .map((value) => value?.trim().toLowerCase() ?? "")
+    .join("|");
 
 function parsePositiveInteger(
   argv: string[],
@@ -91,7 +111,11 @@ async function main() {
     variants: 0,
     categorySkipped: 0,
     excludedOther: 0,
+    correctedProducts: 0,
+    deactivatedApplications: 0,
+    suspiciousProducts: 0,
   };
+  const cleanupExamples: CleanupExample[] = [];
   let cursor: string | undefined;
 
   while (limit === null || stats.scanned < limit) {
@@ -102,6 +126,27 @@ async function main() {
       includeBlocked,
     });
     if (products.length === 0) break;
+    const activeApplications = await prisma.shopVehicleApplication.findMany({
+      where: {
+        productId: { in: products.map((product) => product.id) },
+        isActive: true,
+      },
+      select: {
+        productId: true,
+        make: true,
+        model: true,
+        chassisCode: true,
+      },
+    });
+    const activeByProduct = new Map<
+      string,
+      Array<{ make: string | null; model: string | null; chassisCode: string | null }>
+    >();
+    for (const application of activeApplications) {
+      const list = activeByProduct.get(application.productId) ?? [];
+      list.push(application);
+      activeByProduct.set(application.productId, list);
+    }
 
     for (const product of products) {
       const build = buildShopKnowledgeV2(product);
@@ -110,6 +155,29 @@ async function main() {
         if (category === "other") stats.excludedOther += 1;
         else stats.categorySkipped += 1;
         continue;
+      }
+      const currentSignatures = new Set(
+        (activeByProduct.get(product.id) ?? []).map(applicationSignature)
+      );
+      const nextSignatures = new Set(build.applications.map(applicationSignature));
+      const removed = [...currentSignatures].filter((value) => !nextSignatures.has(value));
+      const added = [...nextSignatures].filter((value) => !currentSignatures.has(value));
+      if (removed.length > 0 || added.length > 0) stats.correctedProducts += 1;
+      stats.deactivatedApplications += removed.length;
+      if (build.status === "NEEDS_REVIEW" || build.status === "BLOCKED") {
+        stats.suspiciousProducts += 1;
+      }
+      if (
+        cleanupExamples.length < 20 &&
+        (removed.length > 0 || added.length > 0 || build.qualityFlags.length > 0)
+      ) {
+        cleanupExamples.push({
+          productId: product.id,
+          slug: product.slug,
+          removed,
+          added,
+          qualityFlags: build.qualityFlags,
+        });
       }
       const preview = previewShopKnowledgeProduct(product);
       const outcome = repository ? await indexShopKnowledgeProduct(repository, product) : preview;
@@ -143,6 +211,7 @@ async function main() {
         limit,
         batchSize,
         ...stats,
+        cleanupExamples,
       },
       null,
       2

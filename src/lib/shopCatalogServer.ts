@@ -3101,6 +3101,37 @@ export async function getShopProductsBySlugsServer(slugs: string[]): Promise<Sho
     .filter(shouldExposeCatalogProduct);
 }
 
+/** Loads a bounded storefront projection for already-resolved product IDs. */
+export async function getShopProductsByIdsServer(ids: string[]): Promise<ShopProduct[]> {
+  const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) return [];
+
+  const queryParams: any = {
+    where: {
+      id: { in: uniqueIds },
+      isPublished: true,
+      status: "ACTIVE",
+    },
+    include: storefrontProductInclude,
+  };
+  if (isAccelerateEnabled) {
+    queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+  }
+
+  const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
+  const order = new Map(uniqueIds.map((id, index) => [id, index]));
+  return rows
+    .map((row: unknown) =>
+      applyShopProductImageOverrides(mapDbToCatalog(row as AdminShopProductRecord))
+    )
+    .filter(shouldExposeCatalogProduct)
+    .sort(
+      (left, right) =>
+        (order.get(left.id ?? "") ?? Number.MAX_SAFE_INTEGER) -
+        (order.get(right.id ?? "") ?? Number.MAX_SAFE_INTEGER)
+    );
+}
+
 export type ShopProductLookupResult =
   | { kind: "found"; product: ShopProduct; source: "database" | "snapshot" | "static" }
   | { kind: "missing" }

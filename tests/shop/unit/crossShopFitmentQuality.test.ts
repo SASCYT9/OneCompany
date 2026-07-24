@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { ShopProduct } from "../../../src/lib/shopCatalog";
-import { extractProductFitment } from "../../../src/lib/crossShopFitment";
+import {
+  extractProductFitment,
+  isKnownVehicleModelForMake,
+} from "../../../src/lib/crossShopFitment";
 
 function product(input: Partial<ShopProduct> & Pick<ShopProduct, "title">): ShopProduct {
   return {
@@ -106,6 +109,32 @@ test("Burger supplier model tags are treated as canonical fitment", () => {
 
   assert.equal(fitment.make, "Dodge");
   assert.deepEqual(fitment.models, ["Charger"]);
+});
+
+test("Burger title make overrides a contradictory legacy brand tag", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "Burger Motorsports",
+      slug: "burger-jb4-for-alfa-romeo-giulia-stelvio-quadrifoglio",
+      title: {
+        ua: "JB4 Тюнер для Alfa Romeo Quadrifoglio QV 2.9L",
+        en: "JB4 Tuner for Alfa Romeo Giulia/Stelvio Quadrifoglio QV 2.9L",
+      },
+      tags: ["brand:BMW", "model:Quadrifoglio", "model:Giulia", "model:Stelvio"],
+    })
+  );
+
+  assert.equal(fitment.make, "Alfa Romeo");
+  assert.deepEqual(fitment.models, ["Quadrifoglio", "Giulia", "Stelvio"]);
+});
+
+test("BMW model options reject known cross-make and supplier-noise labels", () => {
+  for (const model of ["Quadrifoglio", "Sonata", "Q50", "WRX", "Tundra", "RX 350", "E90 E82 N55"]) {
+    assert.equal(isKnownVehicleModelForMake("BMW", model), false, model);
+  }
+  for (const model of ["1 Series", "M3", "X6", "X6 M", "i4", "XM", "Z4"]) {
+    assert.equal(isKnownVehicleModelForMake("BMW", model), true, model);
+  }
 });
 
 test("RAM supplier tags resolve to Ram instead of Dodge", () => {
