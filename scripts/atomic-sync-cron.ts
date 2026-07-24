@@ -18,6 +18,10 @@ import { fetchPriceFromAtomicSite } from "./_lib/atomic-scraper";
 dotenv.config({ path: ".env.local" });
 const prisma = new PrismaClient();
 
+// Products intentionally excluded from the One Company storefront.
+// Keep this list explicit so a later Atomic feed sync cannot recreate them.
+const EXCLUDED_SKUS = new Set(["v-tuv049/1"]);
+
 function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
   const candidates = [row.price_uah, row.price, row.retail, row.rrp];
   for (const candidate of candidates) {
@@ -80,6 +84,9 @@ async function run() {
 
     const mpn = String(row.mpn).trim();
     const brand = String(row.brand).trim();
+    if (EXCLUDED_SKUS.has(mpn.toLowerCase())) {
+      continue;
+    }
     const stockVal = parseInt(row.stock || "0", 10);
     const title = row.title || `${brand} ${mpn}`;
     const description = row.description || null;
