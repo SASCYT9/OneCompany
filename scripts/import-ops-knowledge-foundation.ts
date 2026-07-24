@@ -188,7 +188,7 @@ One Company занимается премиальными автомобильн
     excerpt:
       "Импортированный справочник формул и заметок по брендам. Это черновик: каждое правило нужно сверить перед публикацией.",
     category: "prices-and-brands",
-    tags: ["source-import", "top-level-pdf", "needs-review", "brands", "pricing"],
+    tags: ["source-import", "needs-review", "brands", "pricing"],
     publish: false,
     source: "Внутренний архив и нормализованные правила цен",
     contentMarkdown: `# Архивные правила брендов на проверку
@@ -210,7 +210,7 @@ ${verifiedPricingRules || "Нормализованный экспорт не н
     excerpt:
       "Маршруты, объёмный вес и ориентиры доставки из старого справочника. Не использовать без проверки актуальности.",
     category: "delivery",
-    tags: ["source-import", "top-level-pdf", "needs-review", "logistics"],
+    tags: ["source-import", "needs-review", "logistics"],
     publish: false,
     source: "Внутренний архив, раздел логистики",
     contentMarkdown: `# Логистика: исходные ориентиры на проверку
@@ -247,7 +247,7 @@ ${verifiedPricingRules || "Нормализованный экспорт не н
     title: "Автомобильные термины для менеджера",
     excerpt: "Короткий словарь по охлаждению, выхлопу и моторным деталям из внутренних материалов.",
     category: "general-processes",
-    tags: ["onboarding", "glossary", "top-level-pdf", "products"],
+    tags: ["onboarding", "glossary", "products"],
     publish: true,
     source: "Внутренний архив, автомобильные термины",
     contentMarkdown: `# Автомобильные термины для менеджера

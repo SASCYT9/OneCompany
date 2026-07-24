@@ -194,8 +194,16 @@ export type OpsKnowledgeArticle = {
     id: string;
     revision: number;
     status: string;
+    title: string;
+    excerpt?: string | null;
+    contentMarkdown: string;
+    locale: string;
+    category: string;
+    brandKey?: string | null;
+    tags: string[];
     changeNote?: string | null;
     createdAt: string;
+    changedBy?: OpsPerson | null;
   }>;
 };
 

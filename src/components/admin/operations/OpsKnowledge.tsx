@@ -29,6 +29,7 @@ const categories = [
   { value: "order-processing", label: opsRu.knowledge.categories.orders },
   { value: "suppliers", label: opsRu.knowledge.categories.suppliers },
   { value: "general-processes", label: opsRu.knowledge.categories.processes },
+  { value: "notes", label: opsRu.knowledge.categories.notes },
 ];
 
 export function knowledgeCategoryLabel(value: string) {
@@ -50,7 +51,6 @@ export function OpsKnowledge({
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
   const [brandStatus, setBrandStatus] = useState<"all" | "available" | "missing">("all");
-  const [brandScope, setBrandScope] = useState<"all" | "top-level">("all");
   const [brandPage, setBrandPage] = useState(1);
   const [loading, setLoading] = useState(!initialArticles);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +110,6 @@ export function OpsKnowledge({
         .filter(
           (article) =>
             article.tags.includes("brand-guide") &&
-            (brandScope === "all" || article.tags.includes("top-level-pdf")) &&
             (brandStatus === "all" ||
               (brandStatus === "available"
                 ? article.tags.includes("formula-available")
@@ -119,7 +118,7 @@ export function OpsKnowledge({
         .sort((left, right) =>
           left.title.localeCompare(right.title, "ru", { sensitivity: "base" })
         ),
-    [brandScope, brandStatus, filtered]
+    [brandStatus, filtered]
   );
   const regularArticles =
     category === "all" && !query.trim()
@@ -136,7 +135,7 @@ export function OpsKnowledge({
 
   useEffect(() => {
     setBrandPage(1);
-  }, [brandScope, brandStatus, category, query]);
+  }, [brandStatus, category, query]);
 
   return (
     <OpsSurface permissions={permissions}>
@@ -289,26 +288,6 @@ export function OpsKnowledge({
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     <div className="flex overflow-x-auto border border-slate-200 bg-slate-50">
                       {[
-                        ["all", "Все бренды"],
-                        ["top-level", "Из внутреннего каталога"],
-                      ].map(([value, label]) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setBrandScope(value as "all" | "top-level")}
-                          className={cn(
-                            "h-9 shrink-0 border-r border-slate-200 px-3 text-xs font-semibold last:border-r-0",
-                            brandScope === value
-                              ? "bg-blue-600 text-white"
-                              : "bg-white text-slate-600 hover:bg-slate-50"
-                          )}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex overflow-x-auto border border-slate-200 bg-slate-50">
-                      {[
                         ["all", "Любой статус"],
                         ["available", "Есть правило"],
                         ["missing", "Нужна проверка"],
@@ -379,11 +358,6 @@ export function OpsKnowledge({
                                 >
                                   {article.title}
                                 </Link>
-                                {article.tags.includes("top-level-pdf") ? (
-                                  <div className="mt-0.5 text-[11px] text-blue-600">
-                                    Из внутреннего каталога
-                                  </div>
-                                ) : null}
                               </td>
                               <td className="px-4 py-3">
                                 <span

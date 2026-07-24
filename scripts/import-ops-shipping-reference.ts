@@ -2,6 +2,7 @@ import { OpsKnowledgeStatus, OpsTaskEventType } from "@prisma/client";
 import { config as loadEnv } from "dotenv";
 
 import {
+  OPS_FORGED_WHEEL_SHIPPING_ESTIMATES,
   OPS_SHIPPING_REFERENCE_SLUG,
   OPS_USA_UA_SHIPPING_ESTIMATES,
 } from "../src/data/operations/shipping-guides";
@@ -16,6 +17,9 @@ function buildContent() {
   const rows = OPS_USA_UA_SHIPPING_ESTIMATES.map(
     (estimate) => `| ${estimate.label} | ≈ $${estimate.amountUsd} |`
   ).join("\n");
+  const wheelRows = OPS_FORGED_WHEEL_SHIPPING_ESTIMATES.map(
+    (estimate) => `| ${estimate.size} | ≈ $${estimate.amountUsd} |`
+  ).join("\n");
   return `# Ориентиры доставки товаров
 
 > Это рабочие ориентиры из проверенного legacy-источника, а не финальный тариф. Перед предложением клиенту подтвердите маршрут, вес/объём, локальную доставку, страховку и актуальную ставку.
@@ -25,6 +29,12 @@ function buildContent() {
 | Категория | Исторический ориентир |
 | --- | ---: |
 ${rows}
+
+## Кованые диски
+
+| Размер | Ориентир доставки комплекта |
+| --- | ---: |
+${wheelRows}
 
 ## Другие найденные ориентиры
 

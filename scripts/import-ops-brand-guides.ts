@@ -127,7 +127,6 @@ async function main() {
           formulaAvailable ? "formula-available" : "formula-missing",
           `region-${entry.siteGroup}`,
           `record-${entry.recordType}`,
-          ...(entry.topLevelPdf ? ["top-level-pdf"] : []),
           ...(entry.ruleKey ? [`rule-${entry.ruleKey}`] : []),
         ];
         const excerpt =

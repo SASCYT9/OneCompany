@@ -221,6 +221,12 @@ export const ADMIN_ROUTE_POLICY: readonly AdminRoutePolicyRule[] = [
     permission: ADMIN_PERMISSIONS.OPS_KNOWLEDGE_PUBLISH,
   },
   {
+    id: "ops-knowledge-revision-restore",
+    pattern: "/api/admin/operations/knowledge/:articleId/revisions/:revision/restore",
+    methods: ["POST"],
+    permission: ADMIN_PERMISSIONS.OPS_KNOWLEDGE_WRITE,
+  },
+  {
     id: "ops-inbox-list",
     pattern: "/api/admin/operations/inbox",
     methods: READ,

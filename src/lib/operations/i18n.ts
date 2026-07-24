@@ -53,6 +53,7 @@ export const opsRu = {
       orders: "Оформление заказов",
       suppliers: "Поставщики",
       processes: "Общие процессы",
+      notes: "Заметки команды",
     },
   },
   inbox: {

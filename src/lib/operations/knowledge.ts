@@ -7,6 +7,7 @@ export const OPS_KNOWLEDGE_CATEGORIES = [
   "order-processing",
   "suppliers",
   "general-processes",
+  "notes",
 ] as const;
 
 export type OpsKnowledgeCategory = (typeof OPS_KNOWLEDGE_CATEGORIES)[number];

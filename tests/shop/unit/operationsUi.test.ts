@@ -258,9 +258,50 @@ test("knowledge base has onboarding, full-content search, and readable source ta
   assert.match(detail, /<table className=/);
   assert.match(detail, /overflow-x-auto/);
   assert.match(detail, /InlineMarkdown/);
+  assert.match(detail, /filterGlossaryContent/);
+  assert.match(detail, /glossaryQuery/);
+  assert.match(detail, /Найти термин, синоним или объяснение/);
+  assert.doesNotMatch(knowledge, /top-level-pdf/);
+  assert.doesNotMatch(importer, /top-level-pdf/);
   assert.match(importer, /knowledge\.source_import/);
   assert.match(importer, /OpsKnowledgeStatus\.DRAFT/);
   assert.match(importer, /publishedRevision: article\.publish \? 1 : null/);
+});
+
+test("knowledge editing protects drafts and can restore immutable revisions", () => {
+  const detail = readFileSync(
+    new URL("../../../src/components/admin/operations/OpsKnowledgeDetail.tsx", import.meta.url),
+    "utf8"
+  );
+  const editor = readFileSync(
+    new URL("../../../src/components/admin/operations/OpsKnowledgeEditor.tsx", import.meta.url),
+    "utf8"
+  );
+  const restoreRoute = readFileSync(
+    new URL(
+      "../../../src/app/api/admin/operations/knowledge/[id]/revisions/[revision]/restore/route.ts",
+      import.meta.url
+    ),
+    "utf8"
+  );
+  const sourceSync = readFileSync(
+    new URL("../../../scripts/sync-ops-internal-cheat-sheet.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(detail, /ops-knowledge-draft:/);
+  assert.match(detail, /История изменений/);
+  assert.match(detail, /Что изменилось/);
+  assert.match(detail, /OpsKnowledgeEditor/);
+  assert.match(editor, /Заголовок/);
+  assert.match(editor, /Таблица/);
+  assert.match(editor, /Просмотр/);
+  assert.match(restoreRoute, /knowledge\.revision\.restore/);
+  assert.match(restoreRoute, /Восстановлена версия/);
+  assert.match(restoreRoute, /status: OpsKnowledgeStatus\.DRAFT/);
+  assert.match(sourceSync, /--force-existing/);
+  assert.match(sourceSync, /preserve-manual/);
+  assert.match(sourceSync, /if \(current && !forceExisting\) continue/);
 });
 
 test("brand catalog is complete and every task creation path links matching guides", () => {

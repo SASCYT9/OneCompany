@@ -24,7 +24,11 @@ const include = {
   author: { select: { id: true, name: true, email: true } },
   publishedBy: { select: { id: true, name: true, email: true } },
   project: { select: { id: true, externalId: true, title: true } },
-  revisions: { orderBy: { revision: "desc" as const }, take: 50 },
+  revisions: {
+    orderBy: { revision: "desc" as const },
+    take: 50,
+    include: { changedBy: { select: { id: true, name: true, email: true } } },
+  },
   taskLinks: {
     include: { task: { select: { id: true, externalId: true, title: true, status: true } } },
   },

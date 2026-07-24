@@ -10,9 +10,12 @@ import {
   CircleAlert,
   Clock3,
   FilePenLine,
+  History,
   Loader2,
   Pencil,
+  RotateCcw,
   Save,
+  Search,
   Send,
   Tags,
   X,
@@ -21,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { knowledgeCategoryLabel } from "./OpsKnowledge";
+import { OpsKnowledgeEditor } from "./OpsKnowledgeEditor";
 import { OpsSurface } from "./OpsSurface";
 import { opsGet, opsMutation } from "./opsApi";
 import type { OpsKnowledgeArticle } from "./types";
@@ -31,6 +35,7 @@ const categoryOptions = [
   ["order-processing", "Оформление заказов"],
   ["suppliers", "Поставщики"],
   ["general-processes", "Общие процессы"],
+  ["notes", "Заметки команды"],
 ] as const;
 
 function InlineMarkdown({ value }: { value: string }) {
@@ -74,7 +79,7 @@ function InlineMarkdown({ value }: { value: string }) {
   );
 }
 
-function MarkdownContent({ content }: { content: string }) {
+export function MarkdownContent({ content }: { content: string }) {
   const blocks = useMemo(() => content.split(/\n{2,}/), [content]);
   return (
     <div className="space-y-4 text-[15px] leading-7 text-slate-700">
@@ -207,6 +212,31 @@ function MarkdownContent({ content }: { content: string }) {
   );
 }
 
+function filterGlossaryContent(content: string, query: string) {
+  const normalized = query.trim().toLocaleLowerCase("ru-RU");
+  if (!normalized) return content;
+  const lines = content.split(/\r?\n/u);
+  const tableStart = lines.findIndex(
+    (line, index) =>
+      line.trim().startsWith("|") && /^\s*\|?[\s:|-]+\|/u.test(lines[index + 1] ?? "")
+  );
+  if (tableStart < 0)
+    return content.toLocaleLowerCase("ru-RU").includes(normalized) ? content : null;
+  let tableEnd = tableStart + 2;
+  while (tableEnd < lines.length && lines[tableEnd].trim().startsWith("|")) tableEnd += 1;
+  const matchingRows = lines
+    .slice(tableStart + 2, tableEnd)
+    .filter((line) => line.toLocaleLowerCase("ru-RU").includes(normalized));
+  if (!matchingRows.length) return null;
+  return [
+    ...lines.slice(0, tableStart),
+    lines[tableStart],
+    lines[tableStart + 1],
+    ...matchingRows,
+    ...lines.slice(tableEnd),
+  ].join("\n");
+}
+
 export function OpsKnowledgeDetail({
   articleId,
   initialArticle,
@@ -231,9 +261,13 @@ export function OpsKnowledgeDetail({
   const [content, setContent] = useState(initialArticle?.contentMarkdown ?? "");
   const [category, setCategory] = useState(initialArticle?.category ?? "general-processes");
   const [tags, setTags] = useState(initialArticle?.tags.join(", ") ?? "");
+  const [changeNote, setChangeNote] = useState("");
+  const [glossaryQuery, setGlossaryQuery] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(!initialArticle && articleId !== "new");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const localDraftKey = `ops-knowledge-draft:${articleId}`;
 
   useEffect(() => {
     if (initialArticle || demoMode || articleId === "new") return;
@@ -249,6 +283,7 @@ export function OpsKnowledgeDetail({
         setContent(response.article.contentMarkdown);
         setCategory(response.article.category);
         setTags(response.article.tags.join(", "));
+        setChangeNote("");
       })
       .catch((cause) => {
         if (!controller.signal.aborted) {
@@ -258,6 +293,57 @@ export function OpsKnowledgeDetail({
       .finally(() => setLoading(false));
     return () => controller.abort();
   }, [articleId, demoMode, initialArticle]);
+
+  useEffect(() => {
+    if (!editing || typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(localDraftKey);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw) as {
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        category?: string;
+        tags?: string;
+        savedAt?: string;
+      };
+      if (!draft.content || draft.content === content) return;
+      const accepted = window.confirm(
+        `Найдена несохранённая версия${draft.savedAt ? ` от ${new Date(draft.savedAt).toLocaleString("ru-RU")}` : ""}. Восстановить её?`
+      );
+      if (accepted) {
+        setTitle(draft.title ?? title);
+        setExcerpt(draft.excerpt ?? excerpt);
+        setContent(draft.content);
+        setCategory(draft.category ?? category);
+        setTags(draft.tags ?? tags);
+      } else {
+        window.localStorage.removeItem(localDraftKey);
+      }
+    } catch {
+      window.localStorage.removeItem(localDraftKey);
+    }
+    // Draft recovery is intentionally checked only when the editor opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, localDraftKey]);
+
+  useEffect(() => {
+    if (!editing || typeof window === "undefined") return;
+    const timer = window.setTimeout(() => {
+      window.localStorage.setItem(
+        localDraftKey,
+        JSON.stringify({
+          title,
+          excerpt,
+          content,
+          category,
+          tags,
+          savedAt: new Date().toISOString(),
+        })
+      );
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [category, content, editing, excerpt, localDraftKey, tags, title]);
 
   async function save() {
     if (!title.trim() || !content.trim() || saving) return;
@@ -273,7 +359,7 @@ export function OpsKnowledgeDetail({
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      changeNote: article ? "Обновлено в админке" : "Первая версия",
+      changeNote: changeNote.trim() || (article ? "Обновлено в админке" : "Первая версия"),
     };
     try {
       let saved: OpsKnowledgeArticle;
@@ -306,11 +392,44 @@ export function OpsKnowledgeDetail({
         saved = response.article;
       }
       setArticle(saved);
+      setChangeNote("");
       setEditing(false);
+      window.localStorage.removeItem(localDraftKey);
       if (articleId === "new")
         window.history.replaceState(null, "", `/admin/operations/knowledge/${saved.id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Статья не сохранена");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function restoreRevision(revision: number) {
+    if (!article || saving) return;
+    const accepted = window.confirm(
+      `Восстановить версию ${revision}? Текущая версия сохранится в истории.`
+    );
+    if (!accepted) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await opsMutation<{ article: OpsKnowledgeArticle }>({
+        path: `/api/admin/operations/knowledge/${article.id}/revisions/${revision}/restore`,
+        body: {},
+        version: article.version,
+        scope: `knowledge-restore:${article.id}:${revision}`,
+      });
+      const restored = response.article;
+      setArticle(restored);
+      setTitle(restored.title);
+      setExcerpt(restored.excerpt ?? "");
+      setContent(restored.contentMarkdown);
+      setCategory(restored.category);
+      setTags(restored.tags.join(", "));
+      setEditing(false);
+      setHistoryOpen(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Не удалось восстановить версию");
     } finally {
       setSaving(false);
     }
@@ -412,6 +531,16 @@ export function OpsKnowledgeDetail({
               {canWrite ? (
                 <button
                   type="button"
+                  onClick={() => setHistoryOpen((current) => !current)}
+                  className="hidden h-10 items-center gap-2 border border-slate-300 px-3 text-sm font-medium sm:flex"
+                >
+                  <History className="h-4 w-4" />
+                  История
+                </button>
+              ) : null}
+              {canWrite ? (
+                <button
+                  type="button"
                   onClick={() => setEditing(true)}
                   className="flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-medium"
                 >
@@ -492,19 +621,90 @@ export function OpsKnowledgeDetail({
                 />
               </label>
             </div>
-            <label className="block">
-              <span className="text-xs font-semibold text-slate-600">Содержание · Markdown</span>
-              <textarea
+            <div>
+              <div className="mb-2">
+                <span className="text-xs font-semibold text-slate-600">Содержание статьи</span>
+                <p className="mt-1 text-xs text-slate-400">
+                  Выделите текст и используйте кнопки форматирования. Результат можно проверить во
+                  вкладке «Просмотр».
+                </p>
+              </div>
+              <OpsKnowledgeEditor
                 value={content}
-                onChange={(event) => setContent(event.target.value)}
-                rows={18}
-                placeholder={"## Первый раздел\n\nОпишите процесс по шагам."}
-                className="mt-2 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                onChange={setContent}
+                renderPreview={(preview) => <MarkdownContent content={preview} />}
+              />
+            </div>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-600">
+                Что изменилось <span className="font-normal text-slate-400">· необязательно</span>
+              </span>
+              <input
+                value={changeNote}
+                onChange={(event) => setChangeNote(event.target.value)}
+                placeholder="Например: обновлена формула доставки и контакт поставщика"
+                maxLength={1_000}
+                className="mt-2 h-11 w-full border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
               />
             </label>
           </div>
         ) : article ? (
           <article>
+            {historyOpen && article.revisions?.length ? (
+              <section className="mb-7 border border-slate-200 bg-slate-50">
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-950">История изменений</h2>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Восстановление создаёт новую черновую версию — история не удаляется.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHistoryOpen(false)}
+                    aria-label="Закрыть историю"
+                    className="p-2 text-slate-500 hover:text-slate-950"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="max-h-80 divide-y divide-slate-200 overflow-y-auto">
+                  {article.revisions.map((revision) => (
+                    <div
+                      key={revision.id}
+                      className="flex items-start justify-between gap-4 bg-white px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">
+                          Версия {revision.revision}
+                          {revision.revision === article.version ? (
+                            <span className="ml-2 text-xs font-medium text-blue-600">текущая</span>
+                          ) : null}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {revision.changedBy?.name || "Сотрудник"} ·{" "}
+                          {new Date(revision.createdAt).toLocaleString("ru-RU")}
+                        </p>
+                        {revision.changeNote ? (
+                          <p className="mt-1 text-xs text-slate-700">{revision.changeNote}</p>
+                        ) : null}
+                      </div>
+                      {revision.revision !== article.version ? (
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => void restoreRevision(revision.revision)}
+                          className="flex shrink-0 items-center gap-1.5 border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          Вернуть
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-600">
               <BookOpen className="h-4 w-4" />
               {knowledgeCategoryLabel(article.category)}
@@ -541,7 +741,32 @@ export function OpsKnowledgeDetail({
               ) : null}
             </div>
             <div className="mt-8">
-              <MarkdownContent content={article.contentMarkdown} />
+              {article.slug === "automotive-terms-for-managers" ? (
+                <div className="mb-6 border border-slate-200 bg-white p-3 sm:p-4">
+                  <label className="relative block">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      value={glossaryQuery}
+                      onChange={(event) => setGlossaryQuery(event.target.value)}
+                      placeholder="Найти термин, синоним или объяснение…"
+                      className="h-11 w-full border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+                </div>
+              ) : null}
+              {article.slug === "automotive-terms-for-managers" ? (
+                filterGlossaryContent(article.contentMarkdown, glossaryQuery) ? (
+                  <MarkdownContent
+                    content={filterGlossaryContent(article.contentMarkdown, glossaryQuery)!}
+                  />
+                ) : (
+                  <div className="border border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                    По вашему запросу терминов не найдено.
+                  </div>
+                )
+              ) : (
+                <MarkdownContent content={article.contentMarkdown} />
+              )}
             </div>
           </article>
         ) : null}

@@ -51,6 +51,7 @@ import {
   requireIfMatch,
   resolveOpsAllowedMutationOrigins,
 } from "../../../src/lib/operations/request";
+import { OPS_FORGED_WHEEL_SHIPPING_ESTIMATES } from "../../../src/data/operations/shipping-guides";
 import {
   assertTaskStateInvariant,
   assertTaskTransition,
@@ -155,7 +156,7 @@ test("operations mutations accept the browser-facing host without trusting arbit
   assert.equal(malformedOrigins.has("http://localhost:3000"), true);
 });
 
-test("knowledge articles only accept the five operator-facing categories", () => {
+test("knowledge articles only accept the operator-facing categories", () => {
   for (const category of OPS_KNOWLEDGE_CATEGORIES) {
     assert.equal(
       normalizeKnowledgeCreateInput({
@@ -261,10 +262,10 @@ test("shared tasks are editable by every task member without becoming unassigned
 });
 
 test("task assignees are normalized, deduplicated, bounded, and keep legacy primary compatibility", () => {
-  assert.deepEqual(
-    normalizeOpsTaskAssigneeIds(["member-2", "member-1", "member-2"]),
-    ["member-2", "member-1"]
-  );
+  assert.deepEqual(normalizeOpsTaskAssigneeIds(["member-2", "member-1", "member-2"]), [
+    "member-2",
+    "member-1",
+  ]);
   assert.throws(
     () =>
       normalizeOpsTaskAssigneeIds(
@@ -329,10 +330,7 @@ test("secondary assignees have the same task write access as the legacy primary 
   assert.doesNotThrow(() =>
     assertCanWriteTask(access, {
       assigneeId: "member-primary",
-      assignees: [
-        { adminUserId: "member-primary" },
-        { adminUserId: "member-secondary" },
-      ],
+      assignees: [{ adminUserId: "member-primary" }, { adminUserId: "member-secondary" }],
       createdById: "manager-1",
       isShared: false,
     })
@@ -640,7 +638,7 @@ test("product context preserves source links and finds shipping references", () 
   assert.equal(isProductRelatedTask([source]), true);
   assert.deepEqual(
     findShippingEstimates([source]).map((estimate) => [estimate.key, estimate.amountUsd]),
-    [["diffuser", 130]]
+    [["diffuser", 145]]
   );
   assert.equal(isProductRelatedTask(["Позвонить Игорю"]), false);
   assert.equal(
@@ -691,5 +689,21 @@ test("brand and delivery directory values can be hydrated from editable knowledg
 | --- | --- |
 | Китай → Киев | $18/кг |`).map(({ key, amountUsd }) => ({ key, amountUsd })),
     [{ key: "diffuser", amountUsd: 145 }]
+  );
+});
+
+test("forged wheel shipping references use the approved ten-percent uplift rounded up to five", () => {
+  assert.deepEqual(
+    OPS_FORGED_WHEEL_SHIPPING_ESTIMATES.map(({ size, amountUsd }) => [size, amountUsd]),
+    [
+      ["R17", 485],
+      ["R18", 535],
+      ["R19", 585],
+      ["R20", 730],
+      ["R21", 775],
+      ["R22", 825],
+      ["R23", 920],
+      ["R24", 1020],
+    ]
   );
 });
