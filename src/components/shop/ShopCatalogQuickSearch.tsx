@@ -39,7 +39,6 @@ type ShopCatalogQuickSearchProps = {
 };
 
 type VehicleScope = "auto" | "moto";
-type StockFilter = "all" | "inStock" | "preOrder";
 
 const fieldClass =
   "h-11 w-full min-w-0 appearance-none rounded-[8px] border border-foreground/15 bg-foreground/[0.025] px-3 pr-9 text-xs font-light text-foreground [color-scheme:light] outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.04] dark:[color-scheme:dark] [&>optgroup]:bg-background [&>optgroup]:text-foreground [&>option]:bg-background [&>option]:text-foreground";
@@ -86,7 +85,6 @@ export function ShopCatalogQuickSearch({ locale, className }: ShopCatalogQuickSe
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [chassis, setChassis] = useState("");
-  const [stock, setStock] = useState<StockFilter>("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
@@ -195,7 +193,6 @@ export function ShopCatalogQuickSearch({ locale, className }: ShopCatalogQuickSe
     setMake("");
     setModel("");
     setChassis("");
-    setStock("all");
     setMinPrice("");
     setMaxPrice("");
     setItems([]);
@@ -224,7 +221,6 @@ export function ShopCatalogQuickSearch({ locale, className }: ShopCatalogQuickSe
       params.set("strict", "1");
       params.set("allowFallback", "0");
     }
-    if (stock !== "all") params.set("stock", stock);
     if (minPrice.trim()) params.set("minPrice", minPrice.trim().replace(",", "."));
     if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim().replace(",", "."));
 
@@ -327,7 +323,7 @@ export function ShopCatalogQuickSearch({ locale, className }: ShopCatalogQuickSe
           ))}
         </div>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <SelectField
             label={isUa ? "Категорія" : "Category"}
             value={category}
@@ -361,16 +357,6 @@ export function ShopCatalogQuickSearch({ locale, className }: ShopCatalogQuickSe
                 {value}
               </option>
             ))}
-          </SelectField>
-
-          <SelectField
-            label={isUa ? "Наявність" : "Availability"}
-            value={stock}
-            onChange={(event) => setStock(event.target.value as StockFilter)}
-          >
-            <option value="all">{isUa ? "Усі товари" : "All products"}</option>
-            <option value="inStock">{isUa ? "В наявності" : "In stock"}</option>
-            <option value="preOrder">{isUa ? "Під замовлення" : "Pre-order"}</option>
           </SelectField>
 
           <div className="grid grid-cols-2 gap-2">
