@@ -52,6 +52,7 @@ import {
   resolveOpsAllowedMutationOrigins,
 } from "../../../src/lib/operations/request";
 import { OPS_FORGED_WHEEL_SHIPPING_ESTIMATES } from "../../../src/data/operations/shipping-guides";
+import { applyShippingEstimateContentPatch } from "../../../src/lib/operations/knowledgeDataPatches";
 import {
   assertTaskStateInvariant,
   assertTaskTransition,
@@ -706,4 +707,24 @@ test("forged wheel shipping references use the approved ten-percent uplift round
       ["R24", 1020],
     ]
   );
+});
+
+test("knowledge shipping patch updates body parts and forged wheels without rewriting article text", () => {
+  const source = `# Ориентиры
+
+| Категория | Исторический ориентир |
+| --- | ---: |
+| Губа / splitter | 110 USD |
+| Диффузор | ≈ $130 |
+| R18 | 484 USD |
+| R24 | 924 USD |
+
+Проверить фактические размеры.`;
+  const patched = applyShippingEstimateContentPatch(source);
+  assert.match(patched, /\| Губа \/ splitter \| 125 USD \|/);
+  assert.match(patched, /\| Диффузор \| ≈ \$145 \|/);
+  assert.match(patched, /\| R18 \| 535 USD \|/);
+  assert.match(patched, /\| R24 \| 1020 USD \|/);
+  assert.match(patched, /Проверить фактические размеры\./);
+  assert.equal(applyShippingEstimateContentPatch(patched), patched);
 });

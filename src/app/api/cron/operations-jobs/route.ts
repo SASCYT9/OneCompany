@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { drainOpsJobs } from "@/lib/operations/jobs";
 import { runOpsJobsWatchdog } from "@/lib/operations/jobsWatchdog";
+import { applyOpsKnowledgeDataPatches } from "@/lib/operations/knowledgeDataPatches";
 import { createOpsJobStageExecutor } from "@/lib/operations/telegramJobs";
 import { prisma } from "@/lib/prisma";
 
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const knowledgePatches = await applyOpsKnowledgeDataPatches(prisma);
     const watchdog = await runOpsJobsWatchdog({ client: prisma });
     const drain = await drainOpsJobs({
       client: prisma,
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
       maxJobs: 12,
       timeBudgetMs: 50_000,
     });
-    return NextResponse.json({ ok: true, watchdog, drain });
+    return NextResponse.json({ ok: true, knowledgePatches, watchdog, drain });
   } catch (error) {
     console.error("[operations.jobs.cron] failed", error);
     return NextResponse.json({ ok: false, error: "OPERATIONS_JOBS_FAILED" }, { status: 500 });
