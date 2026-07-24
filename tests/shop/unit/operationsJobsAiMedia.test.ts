@@ -70,14 +70,8 @@ test("task comments and admin edits enqueue durable bounded AI reconciliation jo
     path.resolve("src/app/api/admin/operations/tasks/[id]/route.ts"),
     "utf8"
   );
-  const reconcile = fs.readFileSync(
-    path.resolve("src/lib/operations/taskAiReconcile.ts"),
-    "utf8"
-  );
-  const worker = fs.readFileSync(
-    path.resolve("src/lib/operations/telegramJobs.ts"),
-    "utf8"
-  );
+  const reconcile = fs.readFileSync(path.resolve("src/lib/operations/taskAiReconcile.ts"), "utf8");
+  const worker = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
 
   assert.match(commentsRoute, /enqueueOpsTaskAiReconcile\(\{[\s\S]*?client:\s*tx/);
   assert.match(commentsRoute, /trigger:\s*"comment"/);
@@ -88,26 +82,18 @@ test("task comments and admin edits enqueue durable bounded AI reconciliation jo
   assert.match(reconcile, /maxAttempts:\s*4/);
   assert.match(reconcile, /status:\s*OpsJobStatus\.QUEUED/);
   assert.match(reconcile, /where:\s*\{\s*id:\s*task\.id,\s*version:\s*modelSourceVersion/);
+  assert.doesNotMatch(reconcile, /Number\(ai\.value\.confidence\)\s*</);
   assert.match(worker, /job\.type === OPS_TASK_AI_RECONCILE_JOB/);
   assert.match(worker, /executeOpsTaskAiReconcileJob/);
 });
 
 test("AI task reconciliation is evidence-bound and cannot mutate identity or privileged fields", () => {
-  const reconcile = fs.readFileSync(
-    path.resolve("src/lib/operations/taskAiReconcile.ts"),
-    "utf8"
-  );
+  const reconcile = fs.readFileSync(path.resolve("src/lib/operations/taskAiReconcile.ts"), "utf8");
   const safePatchStart = reconcile.indexOf("function proposedSafePatch");
   const safePatchEnd = reconcile.indexOf("function changedFields", safePatchStart);
   assert.ok(safePatchStart >= 0 && safePatchEnd > safePatchStart);
   const safePatch = reconcile.slice(safePatchStart, safePatchEnd);
-  for (const allowed of [
-    "title",
-    "description",
-    "nextAction",
-    "definitionOfDone",
-    "tags",
-  ]) {
+  for (const allowed of ["title", "description", "nextAction", "definitionOfDone", "tags"]) {
     assert.match(safePatch, new RegExp(`\\b${allowed}\\b`));
   }
   for (const forbidden of [
@@ -130,10 +116,7 @@ test("AI task reconciliation is evidence-bound and cannot mutate identity or pri
 });
 
 test("Telegram task-number updates are Gemini-processed against the existing task and never create a new task", () => {
-  const telegram = fs.readFileSync(
-    path.resolve("src/lib/operations/telegramJobs.ts"),
-    "utf8"
-  );
+  const telegram = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
   const start = telegram.indexOf("async function applyTelegramTaskDescriptionUpdate");
   const end = telegram.indexOf("export async function autoApplyTelegramTaskProposals", start);
   assert.ok(start >= 0 && end > start);
@@ -147,7 +130,10 @@ test("Telegram task-number updates are Gemini-processed against the existing tas
   assert.match(updateFlow, /opsTask\.updateMany/);
   assert.match(updateFlow, /version:\s*task\.version/);
   assert.doesNotMatch(updateFlow, /opsTask\.create/);
-  assert.doesNotMatch(updateFlow, /\b(?:assigneeId|requestedById|status|priority|dueAt):\s*extractedTask/);
+  assert.doesNotMatch(
+    updateFlow,
+    /\b(?:assigneeId|requestedById|status|priority|dueAt):\s*extractedTask/
+  );
 });
 
 test("voice transcription hints combine the catalog, confirmed names, knowledge aliases, and products", async () => {
@@ -1185,17 +1171,12 @@ test("assignment notifications fan out once to every newly assigned Telegram par
 
   assert.equal(enqueued, true);
   assert.equal(createdJobs.length, 2);
+  assert.deepEqual(createdJobs.map((job) => job.idempotencyKey).sort(), [
+    "notification:assignment:task-team-1:admin-2:7",
+    "notification:assignment:task-team-1:admin-3:7",
+  ]);
   assert.deepEqual(
-    createdJobs.map((job) => job.idempotencyKey).sort(),
-    [
-      "notification:assignment:task-team-1:admin-2:7",
-      "notification:assignment:task-team-1:admin-3:7",
-    ]
-  );
-  assert.deepEqual(
-    createdJobs
-      .map((job) => (job.payload as Record<string, unknown>).recipientAdminUserId)
-      .sort(),
+    createdJobs.map((job) => (job.payload as Record<string, unknown>).recipientAdminUserId).sort(),
     ["admin-2", "admin-3"]
   );
 });

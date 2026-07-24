@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowRight,
-  ChevronDown,
-  LayoutGrid,
-  SlidersHorizontal,
-  Tags,
-  UserRound,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, LayoutGrid, Tags, UserRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -32,7 +25,6 @@ type DesktopShopMenuProps = {
 const DESTINATION_ICONS = {
   brands: Tags,
   catalog: LayoutGrid,
-  selection: SlidersHorizontal,
 } as const;
 
 export function DesktopShopMenu({
@@ -54,10 +46,6 @@ export function DesktopShopMenu({
     catalog: {
       title: isUa ? "Каталог товарів" : "Product catalog",
       description: isUa ? "Усі товари в одному пошуку" : "All products in one search",
-    },
-    selection: {
-      title: isUa ? "Підбір за авто / мото" : "Vehicle finder",
-      description: isUa ? "Допомога з вибором і сумісністю" : "Help with fitment and selection",
     },
   } as const;
 
@@ -160,48 +148,57 @@ export function DesktopShopMenu({
               ) : null}
 
               <div className="space-y-1">
-                {getShopNavigationDestinations(locale).map((destination) => {
-                  const Icon = DESTINATION_ICONS[destination.key];
-                  const selected = destination.key === activeDestination;
+                {getShopNavigationDestinations(locale)
+                  .filter(
+                    (destination): destination is { key: "brands" | "catalog"; href: string } =>
+                      destination.key !== "selection"
+                  )
+                  .map((destination) => {
+                    const Icon = DESTINATION_ICONS[destination.key];
+                    const selected = destination.key === activeDestination;
 
-                  return (
-                    <Link
-                      key={destination.key}
-                      href={destination.href}
-                      prefetch={destination.key === "catalog" ? false : undefined}
-                      aria-current={selected ? "page" : undefined}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "group flex min-h-[64px] items-center gap-3 rounded-[18px] px-3 py-2.5 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/55",
-                        selected ? "bg-foreground/[0.09]" : "hover:bg-foreground/[0.055]"
-                      )}
-                    >
-                      <span
+                    return (
+                      <Link
+                        key={destination.key}
+                        href={destination.href}
+                        prefetch={destination.key === "catalog" ? false : undefined}
+                        aria-current={selected ? "page" : undefined}
+                        onClick={() => setOpen(false)}
                         className={cn(
-                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
-                          destination.key === "catalog"
-                            ? "border-primary/25 bg-primary/10 text-primary"
-                            : "border-foreground/12 bg-foreground/[0.035] text-foreground/70"
+                          "group flex min-h-[64px] items-center gap-3 rounded-[18px] px-3 py-2.5 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/55",
+                          selected ? "bg-foreground/[0.09]" : "hover:bg-foreground/[0.055]"
                         )}
                       >
-                        <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-display text-[11px] font-semibold uppercase tracking-[0.16em]">
-                          {copy[destination.key].title}
+                        <span
+                          className={cn(
+                            "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
+                            destination.key === "catalog"
+                              ? "border-primary/25 bg-primary/10 text-primary"
+                              : "border-foreground/12 bg-foreground/[0.035] text-foreground/70"
+                          )}
+                        >
+                          <Icon
+                            className="h-[18px] w-[18px]"
+                            strokeWidth={1.7}
+                            aria-hidden="true"
+                          />
                         </span>
-                        <span className="mt-0.5 block text-[11px] text-foreground/50">
-                          {copy[destination.key].description}
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-display text-[11px] font-semibold uppercase tracking-[0.16em]">
+                            {copy[destination.key].title}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] text-foreground/50">
+                            {copy[destination.key].description}
+                          </span>
                         </span>
-                      </span>
-                      <ArrowRight
-                        className="h-4 w-4 shrink-0 text-foreground/35 transition-transform group-hover:translate-x-0.5"
-                        strokeWidth={1.7}
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  );
-                })}
+                        <ArrowRight
+                          className="h-4 w-4 shrink-0 text-foreground/35 transition-transform group-hover:translate-x-0.5"
+                          strokeWidth={1.7}
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    );
+                  })}
               </div>
 
               <div className="mt-2 border-t border-foreground/10 pt-2">

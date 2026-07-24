@@ -433,7 +433,12 @@ test("task editing avoids Vercel preconditions and offers bounded Gemini draft a
   assert.match(detail, /setEditNextAction/);
   assert.match(detail, /setEditDefinitionOfDone/);
   assert.match(detail, /setEditTags/);
+  assert.match(detail, /Переработать с AI/);
+  assert.match(detail, /applyAiDraftSuggestion/);
+  assert.match(detail, /Изменения не применятся, пока вы их не подтвердите/);
+  assert.doesNotMatch(detail, /confidence\s*>=\s*0\.7/);
   assert.match(aiDraftRoute, /assertCanWriteTask/);
+  assert.match(aiDraftRoute, /recentComments/);
   assert.match(aiDraftRoute, /admin-edited title and description are authoritative corrections/);
   assert.match(aiDraftRoute, /createPrismaOpsAiBudget\(prisma\)/);
   assert.doesNotMatch(aiDraftRoute, /opsTask\.update/);

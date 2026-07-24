@@ -49,6 +49,8 @@ import type {
 
 type OpsAiDraftSuggestion = {
   suggestion: {
+    title: string;
+    description: string | null;
     nextAction: string | null;
     definitionOfDone: string | null;
     tags: string[];
@@ -296,6 +298,9 @@ export function OpsTaskDetail({
     "idle" | "waiting" | "loading" | "ready" | "review" | "error"
   >("idle");
   const [aiDraftMessage, setAiDraftMessage] = useState("");
+  const [aiDraftSuggestion, setAiDraftSuggestion] = useState<
+    OpsAiDraftSuggestion["suggestion"] | null
+  >(null);
   const aiDraftLastFingerprintRef = useRef("");
   const aiDraftCurrentFingerprintRef = useRef("");
   const aiDraftRequestRef = useRef(0);
@@ -434,7 +439,8 @@ export function OpsTaskDetail({
     aiDraftRequestRef.current = requestId;
     if (!manual) aiDraftAutoRunsRef.current += 1;
     setAiDraftStatus("loading");
-    setAiDraftMessage("Gemini проверяет связанные поля…");
+    setAiDraftSuggestion(null);
+    setAiDraftMessage("Gemini анализирует задачу, комментарии, голосовые и вложения…");
     try {
       const response = await opsMutation<OpsAiDraftSuggestion>({
         path: `/api/admin/operations/tasks/${current.id}/ai-draft`,
@@ -453,22 +459,15 @@ export function OpsTaskDetail({
         return;
       }
       const suggestion = response.suggestion;
-      const confidence = Number.parseFloat(suggestion.confidence);
-      if (!suggestion.requiresApproval && confidence >= 0.7) {
-        if (suggestion.nextAction) setEditNextAction(suggestion.nextAction);
-        if (suggestion.definitionOfDone) {
-          setEditDefinitionOfDone(suggestion.definitionOfDone);
-        }
-        if (suggestion.tags.length) setEditTags(suggestion.tags);
+      setAiDraftSuggestion(suggestion);
+      if (!suggestion.requiresApproval) {
         setAiDraftStatus("ready");
-        setAiDraftMessage(
-          `Gemini обновил следующее действие, критерий завершения и теги · ${suggestion.model}`
-        );
+        setAiDraftMessage(`AI подготовил безопасную черновую редакцию · ${suggestion.model}`);
       } else {
         setAiDraftStatus("review");
         setAiDraftMessage(
           suggestion.ambiguities[0] ||
-            "Gemini не уверен в контексте — связанные поля оставлены без изменений."
+            "AI обнаружил неоднозначность. Проверьте предложенные формулировки перед применением."
         );
       }
       aiDraftLastFingerprintRef.current = fingerprint;
@@ -476,9 +475,23 @@ export function OpsTaskDetail({
       if (requestId !== aiDraftRequestRef.current) return;
       setAiDraftStatus("error");
       setAiDraftMessage(
-        cause instanceof Error ? cause.message : "Gemini не смог обновить черновик."
+        cause instanceof Error ? cause.message : "AI не смог подготовить редакцию."
       );
     }
+  }
+
+  function applyAiDraftSuggestion() {
+    if (!aiDraftSuggestion) return;
+    if (aiDraftSuggestion.title) setEditTitle(aiDraftSuggestion.title);
+    if (aiDraftSuggestion.description) setEditDescription(aiDraftSuggestion.description);
+    if (aiDraftSuggestion.nextAction) setEditNextAction(aiDraftSuggestion.nextAction);
+    if (aiDraftSuggestion.definitionOfDone) {
+      setEditDefinitionOfDone(aiDraftSuggestion.definitionOfDone);
+    }
+    if (aiDraftSuggestion.tags.length) setEditTags(aiDraftSuggestion.tags);
+    setAiDraftSuggestion(null);
+    setAiDraftStatus("idle");
+    setAiDraftMessage("Черновик AI применён к форме. Проверьте изменения и сохраните задачу.");
   }
 
   useEffect(() => {
@@ -1012,7 +1025,7 @@ export function OpsTaskDetail({
             >
               <span className="min-w-0 leading-5">
                 {aiDraftMessage ||
-                  "После ручной правки Gemini уточнит следующее действие, критерий завершения и теги."}
+                  "AI может переработать формулировки на основе задачи, комментариев, голосовых и вложений."}
               </span>
               <button
                 type="button"
@@ -1020,9 +1033,55 @@ export function OpsTaskDetail({
                 onClick={() => void refineTaskDraft(taskDraftFingerprint(), true)}
                 className="shrink-0 font-semibold underline underline-offset-2 disabled:opacity-50"
               >
-                {aiDraftStatus === "loading" ? "Проверяю…" : "Проверить сейчас"}
+                {aiDraftStatus === "loading" ? "Анализирую…" : "Переработать с AI"}
               </button>
             </div>
+            {aiDraftSuggestion ? (
+              <div className="mt-3 border border-slate-200 bg-white p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Предложение AI</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Изменения не применятся, пока вы их не подтвердите.
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAiDraftSuggestion(null)}
+                      className="h-9 border border-slate-300 px-3 text-xs font-semibold text-slate-600"
+                    >
+                      Отклонить
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyAiDraftSuggestion}
+                      className="h-9 bg-blue-600 px-3 text-xs font-semibold text-white hover:bg-blue-700"
+                    >
+                      Применить
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                  {[
+                    ["Название", editTitle, aiDraftSuggestion.title],
+                    ["Описание", editDescription, aiDraftSuggestion.description],
+                    ["Следующее действие", editNextAction, aiDraftSuggestion.nextAction],
+                    ["Готово, когда", editDefinitionOfDone, aiDraftSuggestion.definitionOfDone],
+                  ].map(([label, before, after]) =>
+                    after && (before ?? "").trim() !== after.trim() ? (
+                      <div key={label} className="border border-slate-200 p-2.5">
+                        <p className="font-semibold text-slate-700">{label}</p>
+                        <p className="mt-1 line-clamp-2 text-slate-400 line-through">
+                          {before || "—"}
+                        </p>
+                        <p className="mt-1 line-clamp-3 text-slate-800">{after}</p>
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">

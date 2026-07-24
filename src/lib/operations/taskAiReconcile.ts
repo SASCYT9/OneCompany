@@ -399,16 +399,12 @@ export async function executeOpsTaskAiReconcileJob(input: { client: PrismaClient
     budget: createPrismaOpsAiBudget(input.client),
   });
   const proposal = ai.value.tasks.length === 1 ? ai.value.tasks[0] : null;
-  if (!proposal || ai.value.requires_approval || Number(ai.value.confidence) < 0.7) {
+  if (!proposal || ai.value.requires_approval) {
     return {
       outcome: "succeeded" as const,
       result: {
         applied: false,
-        reason: !proposal
-          ? "single_proposal_required"
-          : ai.value.requires_approval
-            ? "approval_required"
-            : "low_confidence",
+        reason: !proposal ? "single_proposal_required" : "approval_required",
         model: ai.model,
         confidence: ai.value.confidence,
         ambiguities: ai.value.ambiguities.slice(0, 10),

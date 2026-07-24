@@ -67,6 +67,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         createdById: true,
         isShared: true,
         version: true,
+        comments: {
+          take: 20,
+          orderBy: { createdAt: "desc" },
+          select: {
+            text: true,
+            createdAt: true,
+            author: { select: { name: true } },
+          },
+        },
         attachments: {
           take: 10,
           orderBy: { createdAt: "asc" },
@@ -115,6 +124,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         policy:
           "The admin-edited title and description are authoritative corrections. Preserve their proper-name spelling even when an older transcript conflicts. Return exactly one task. Improve only factual derived fields; do not invent facts.",
         knownProperNames: await opsBrandProperNameHintsForClient(prisma),
+        recentComments: task.comments
+          .slice()
+          .reverse()
+          .map((comment) => ({
+            author: comment.author.name,
+            text: comment.text,
+            createdAt: comment.createdAt.toISOString(),
+          })),
         originalTranscripts,
       },
       budget: createPrismaOpsAiBudget(prisma),
