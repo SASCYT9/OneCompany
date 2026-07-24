@@ -224,13 +224,19 @@ function requirePermission(actor: TelegramActor, permission: string) {
 
 function canWriteTask(
   actor: TelegramActor,
-  task: { assigneeId: string | null; createdById: string; isShared?: boolean }
+  task: {
+    assigneeId: string | null;
+    createdById: string;
+    isShared?: boolean;
+    assignees?: Array<{ adminUserId: string }>;
+  }
 ) {
   requirePermission(actor, ADMIN_PERMISSIONS.OPS_TASKS_WRITE);
   if (
     actor.isOwner ||
     matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN) ||
     task.isShared === true ||
+    task.assignees?.some((assignment) => assignment.adminUserId === actor.id) ||
     task.assigneeId === actor.id ||
     task.createdById === actor.id
   ) {
@@ -327,6 +333,7 @@ async function cancelInboxCreation(input: {
         status: true,
         version: true,
         assigneeId: true,
+        assignees: { select: { adminUserId: true } },
         createdById: true,
         isShared: true,
       },
@@ -444,6 +451,7 @@ async function undoTaskProgressUpdate(input: {
             title: true,
             version: true,
             assigneeId: true,
+            assignees: { select: { adminUserId: true } },
             createdById: true,
             isShared: true,
           },
@@ -467,11 +475,29 @@ async function undoTaskProgressUpdate(input: {
       typeof payload.descriptionBefore === "string" ? payload.descriptionBefore : null;
     const nextActionBefore =
       typeof payload.nextActionBefore === "string" ? payload.nextActionBefore : null;
+    const titleBefore =
+      typeof payload.titleBefore === "string" ? payload.titleBefore : event.task.title;
+    const definitionOfDoneBefore =
+      typeof payload.definitionOfDoneBefore === "string" ? payload.definitionOfDoneBefore : null;
+    const tagsBefore = Array.isArray(payload.tagsBefore)
+      ? payload.tagsBefore
+          .map((tag) => String(tag).trim())
+          .filter(Boolean)
+          .slice(0, 50)
+      : [];
+    const fields = Array.isArray(payload.fields)
+      ? payload.fields.map((field) => String(field))
+      : ["description", "nextAction"];
     const changed = await tx.opsTask.updateMany({
       where: { id: event.task.id, version: appliedVersion },
       data: {
-        description: descriptionBefore,
-        nextAction: nextActionBefore,
+        ...(fields.includes("title") ? { title: titleBefore } : {}),
+        ...(fields.includes("description") ? { description: descriptionBefore } : {}),
+        ...(fields.includes("nextAction") ? { nextAction: nextActionBefore } : {}),
+        ...(fields.includes("definitionOfDone")
+          ? { definitionOfDone: definitionOfDoneBefore }
+          : {}),
+        ...(fields.includes("tags") ? { tags: tagsBefore } : {}),
         version: { increment: 1 },
       },
     });
@@ -519,6 +545,7 @@ async function markTaskDone(input: { client: PrismaClient; actor: TelegramActor;
         status: true,
         version: true,
         assigneeId: true,
+        assignees: { select: { adminUserId: true } },
         createdById: true,
         isShared: true,
       },
@@ -605,13 +632,18 @@ async function startTask(input: { client: PrismaClient; actor: TelegramActor; ta
         status: true,
         version: true,
         assigneeId: true,
+        assignees: { select: { adminUserId: true } },
         createdById: true,
         isShared: true,
       },
     });
     if (!task) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
     canWriteTask(input.actor, task);
-    if (!task.isShared && task.assigneeId !== input.actor.id) {
+    if (
+      !task.isShared &&
+      task.assigneeId !== input.actor.id &&
+      !task.assignees.some((assignment) => assignment.adminUserId === input.actor.id)
+    ) {
       throw new Error("TELEGRAM_ACTION_FORBIDDEN");
     }
     if (task.status === OpsTaskStatus.IN_PROGRESS) {
@@ -629,7 +661,14 @@ async function startTask(input: { client: PrismaClient; actor: TelegramActor; ta
         id: task.id,
         version: task.version,
         status: task.status,
-        ...(task.isShared ? { isShared: true } : { assigneeId: input.actor.id }),
+        ...(task.isShared
+          ? { isShared: true }
+          : {
+              OR: [
+                { assignees: { some: { adminUserId: input.actor.id } } },
+                { assigneeId: input.actor.id },
+              ],
+            }),
       },
       data: {
         status: OpsTaskStatus.IN_PROGRESS,
@@ -676,6 +715,10 @@ async function rejectTaskAssignment(input: {
         externalId: true,
         version: true,
         assigneeId: true,
+        assignees: {
+          orderBy: { createdAt: "asc" },
+          select: { adminUserId: true },
+        },
         createdById: true,
         isShared: true,
       },
@@ -688,24 +731,46 @@ async function rejectTaskAssignment(input: {
         link: adminLink(`/admin/operations/tasks/${task.id}`),
       };
     }
-    if (task.assigneeId !== input.actor.id) {
+    const actorIsAssigned =
+      task.assigneeId === input.actor.id ||
+      task.assignees.some((assignment) => assignment.adminUserId === input.actor.id);
+    if (!actorIsAssigned) {
       return {
         message: `${task.externalId} уже не назначена вам.`,
         link: adminLink(`/admin/operations/tasks/${task.id}`),
       };
     }
+    const remainingAssigneeIds = task.assignees
+      .map((assignment) => assignment.adminUserId)
+      .filter((adminUserId) => adminUserId !== input.actor.id);
+    const nextPrimaryAssigneeId = remainingAssigneeIds[0] ?? null;
     const changed = await tx.opsTask.updateMany({
       where: {
         id: task.id,
         version: task.version,
-        assigneeId: input.actor.id,
+        OR: [
+          { assignees: { some: { adminUserId: input.actor.id } } },
+          { assigneeId: input.actor.id },
+        ],
       },
       data: {
-        assigneeId: null,
+        assigneeId: nextPrimaryAssigneeId,
         version: { increment: 1 },
       },
     });
     if (changed.count !== 1) throw new Error("TASK_VERSION_CONFLICT");
+    const actorAssignment = await tx.opsTaskAssignee.findUnique({
+      where: {
+        taskId_adminUserId: {
+          taskId: task.id,
+          adminUserId: input.actor.id,
+        },
+      },
+      select: { id: true },
+    });
+    if (actorAssignment) {
+      await tx.opsTaskAssignee.delete({ where: { id: actorAssignment.id } });
+    }
     await tx.opsTaskEvent.create({
       data: {
         taskId: task.id,
@@ -715,7 +780,8 @@ async function rejectTaskAssignment(input: {
         sourceId: task.id,
         payload: {
           assigneeIdFrom: input.actor.id,
-          assigneeIdTo: null,
+          assigneeIdTo: nextPrimaryAssigneeId,
+          assigneeIdsTo: remainingAssigneeIds,
           reason: "recipient_marked_not_mine",
         },
       },
@@ -723,7 +789,8 @@ async function rejectTaskAssignment(input: {
     await tx.adminAuditLog.create({
       data: auditData(input.actor, "telegram.task.not_mine", "ops.task", task.id, {
         assigneeIdFrom: input.actor.id,
-        assigneeIdTo: null,
+        assigneeIdTo: nextPrimaryAssigneeId,
+        assigneeIdsTo: remainingAssigneeIds,
       }),
     });
     return {
@@ -784,6 +851,7 @@ export async function executeOpsTelegramCallback(input: {
           id: true,
           externalId: true,
           assigneeId: true,
+          assignees: { select: { adminUserId: true } },
           createdById: true,
           isShared: true,
         },

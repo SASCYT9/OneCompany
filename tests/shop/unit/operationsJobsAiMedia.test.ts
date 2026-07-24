@@ -59,6 +59,96 @@ const notificationJobModules = Promise.all([
   import("../../../src/lib/operations/jobsWatchdog"),
   import("../../../src/lib/operations/telegramJobs"),
 ]);
+const taskNotificationModule = import("../../../src/lib/operations/taskNotifications");
+
+test("task comments and admin edits enqueue durable bounded AI reconciliation jobs", () => {
+  const commentsRoute = fs.readFileSync(
+    path.resolve("src/app/api/admin/operations/tasks/[id]/comments/route.ts"),
+    "utf8"
+  );
+  const taskRoute = fs.readFileSync(
+    path.resolve("src/app/api/admin/operations/tasks/[id]/route.ts"),
+    "utf8"
+  );
+  const reconcile = fs.readFileSync(
+    path.resolve("src/lib/operations/taskAiReconcile.ts"),
+    "utf8"
+  );
+  const worker = fs.readFileSync(
+    path.resolve("src/lib/operations/telegramJobs.ts"),
+    "utf8"
+  );
+
+  assert.match(commentsRoute, /enqueueOpsTaskAiReconcile\(\{[\s\S]*?client:\s*tx/);
+  assert.match(commentsRoute, /trigger:\s*"comment"/);
+  assert.match(commentsRoute, /task-ai-reconcile:comment:\$\{comment\.id\}/);
+  assert.match(taskRoute, /trigger:\s*"admin_edit"/);
+  assert.match(taskRoute, /task-ai-reconcile:admin-edit:\$\{key\}/);
+  assert.match(reconcile, /type:\s*OPS_TASK_AI_RECONCILE_JOB/);
+  assert.match(reconcile, /maxAttempts:\s*4/);
+  assert.match(reconcile, /status:\s*OpsJobStatus\.QUEUED/);
+  assert.match(reconcile, /where:\s*\{\s*id:\s*task\.id,\s*version:\s*modelSourceVersion/);
+  assert.match(worker, /job\.type === OPS_TASK_AI_RECONCILE_JOB/);
+  assert.match(worker, /executeOpsTaskAiReconcileJob/);
+});
+
+test("AI task reconciliation is evidence-bound and cannot mutate identity or privileged fields", () => {
+  const reconcile = fs.readFileSync(
+    path.resolve("src/lib/operations/taskAiReconcile.ts"),
+    "utf8"
+  );
+  const safePatchStart = reconcile.indexOf("function proposedSafePatch");
+  const safePatchEnd = reconcile.indexOf("function changedFields", safePatchStart);
+  assert.ok(safePatchStart >= 0 && safePatchEnd > safePatchStart);
+  const safePatch = reconcile.slice(safePatchStart, safePatchEnd);
+  for (const allowed of [
+    "title",
+    "description",
+    "nextAction",
+    "definitionOfDone",
+    "tags",
+  ]) {
+    assert.match(safePatch, new RegExp(`\\b${allowed}\\b`));
+  }
+  for (const forbidden of [
+    "assigneeId",
+    "assigneeIds",
+    "requestedById",
+    "status",
+    "priority",
+    "dueAt",
+  ]) {
+    assert.doesNotMatch(safePatch, new RegExp(`\\b${forbidden}\\b`));
+  }
+  assert.match(reconcile, /forbiddenChanges:\s*\[[\s\S]*?"assignee"[\s\S]*?"requester"/);
+  assert.match(reconcile, /forbiddenChanges:\s*\[[\s\S]*?"dueAt"[\s\S]*?"status"/);
+  assert.match(reconcile, /forbiddenChanges:\s*\[[\s\S]*?"payment"[\s\S]*?"checkout"/);
+  assert.match(reconcile, /comments:\s*task\.comments/);
+  assert.match(reconcile, /attachments:\s*task\.attachments/);
+  assert.match(reconcile, /properNameHints/);
+  assert.match(reconcile, /task-ai-reconcile:\$\{input\.job\.id\}/);
+});
+
+test("Telegram task-number updates are Gemini-processed against the existing task and never create a new task", () => {
+  const telegram = fs.readFileSync(
+    path.resolve("src/lib/operations/telegramJobs.ts"),
+    "utf8"
+  );
+  const start = telegram.indexOf("async function applyTelegramTaskDescriptionUpdate");
+  const end = telegram.indexOf("export async function autoApplyTelegramTaskProposals", start);
+  assert.ok(start >= 0 && end > start);
+  const updateFlow = telegram.slice(start, end);
+  assert.match(updateFlow, /parseTelegramTaskDescriptionUpdate/);
+  assert.match(updateFlow, /opsTask\.findUnique/);
+  assert.match(updateFlow, /payload\.extraction/);
+  assert.match(updateFlow, /extractedTask\?\.title/);
+  assert.match(updateFlow, /definitionOfDone/);
+  assert.match(updateFlow, /reconciledTaskTags/);
+  assert.match(updateFlow, /opsTask\.updateMany/);
+  assert.match(updateFlow, /version:\s*task\.version/);
+  assert.doesNotMatch(updateFlow, /opsTask\.create/);
+  assert.doesNotMatch(updateFlow, /\b(?:assigneeId|requestedById|status|priority|dueAt):\s*extractedTask/);
+});
 
 test("voice transcription hints combine the catalog, confirmed names, knowledge aliases, and products", async () => {
   assert.ok(opsBrandProperNameHints().includes("VF Engineering"));
@@ -357,9 +447,15 @@ test("Telegram auto-apply retry reuses the applied Inbox and never duplicates ta
       async create({ data }: { data: Record<string, unknown> }) {
         const task = {
           id: `task-${state.tasks.length + 1}`,
+          number: 1000 + state.tasks.length + 1,
           externalId: String(data.externalId),
           title: String(data.title),
           sourceKey: String(data.sourceKey),
+          assigneeId: null,
+          assignees: [] as Array<{ adminUserId: string }>,
+          requestedById: "admin-1",
+          dueAt: null,
+          version: 1,
         };
         state.tasks.push(task);
         return task;
@@ -807,7 +903,7 @@ test("Telegram Lab source has no imports from the old production bot", () => {
     "utf8"
   );
   assert.match(callbacks, /OpsTaskStatus\.CANCELLED/);
-  assert.doesNotMatch(callbacks, /\.delete\(|\.deleteMany\(/);
+  assert.doesNotMatch(callbacks, /opsTask\.(?:delete|deleteMany)\(/);
 
   const envExample = fs.readFileSync(path.resolve(".env.example"), "utf8");
   assert.match(envExample, /^OPS_BLOB_READ_WRITE_TOKEN=$/m);
@@ -1045,6 +1141,63 @@ test("an overdue task queues only one Telegram reminder per assignee", async () 
   assert.equal(second.reminders, 0);
   assert.equal(createdJobs.length, 1);
   assert.equal(createdJobs[0].idempotencyKey, "reminder:due-once:task-1:admin-1");
+});
+
+test("assignment notifications fan out once to every newly assigned Telegram participant", async () => {
+  const { enqueueOpsTaskAssignmentNotification } = await taskNotificationModule;
+  const createdJobs: Record<string, unknown>[] = [];
+  const client = {
+    opsMemberProfile: {
+      async findMany({ where }: { where: { adminUserId: { in: string[] } } }) {
+        assert.deepEqual(where.adminUserId.in.sort(), ["admin-2", "admin-3"]);
+        return [
+          { adminUserId: "admin-2", telegramUserId: BigInt(42) },
+          { adminUserId: "admin-3", telegramUserId: BigInt(43) },
+        ];
+      },
+    },
+    opsJob: {
+      async createMany(args: { data: Record<string, unknown>[]; skipDuplicates: boolean }) {
+        assert.equal(args.skipDuplicates, true);
+        createdJobs.push(...args.data);
+        return { count: args.data.length };
+      },
+    },
+  } as unknown as PrismaClient;
+
+  const enqueued = await enqueueOpsTaskAssignmentNotification({
+    client,
+    task: {
+      id: "task-team-1",
+      externalId: "ONE-TEAM",
+      title: "Team task",
+      assigneeId: "admin-2",
+      assigneeIds: ["admin-2", "admin-3", "admin-2", "manager-1"],
+      dueAt: null,
+      version: 7,
+    },
+    assignedBy: {
+      id: "manager-1",
+      name: "Manager",
+      email: "manager@example.com",
+    },
+  });
+
+  assert.equal(enqueued, true);
+  assert.equal(createdJobs.length, 2);
+  assert.deepEqual(
+    createdJobs.map((job) => job.idempotencyKey).sort(),
+    [
+      "notification:assignment:task-team-1:admin-2:7",
+      "notification:assignment:task-team-1:admin-3:7",
+    ]
+  );
+  assert.deepEqual(
+    createdJobs
+      .map((job) => (job.payload as Record<string, unknown>).recipientAdminUserId)
+      .sort(),
+    ["admin-2", "admin-3"]
+  );
 });
 
 test("an active task reader still receives an internal Telegram report", async () => {

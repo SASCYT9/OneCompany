@@ -48,12 +48,17 @@ async function mutateKnowledgeLink(
           id: true,
           version: true,
           assigneeId: true,
+          assignees: { select: { adminUserId: true } },
           createdById: true,
           isShared: true,
         },
       });
       if (!current) throw new OpsError("NOT_FOUND", 404, "Task not found");
-      assertCanWriteTask(access, current);
+      assertCanWriteTask(
+        access,
+        current,
+        current.assignees.map((assignment) => assignment.adminUserId)
+      );
       if (current.version !== expectedVersion) {
         throw new OpsError("VERSION_CONFLICT", 409, "Task changed since it was loaded", {
           currentVersion: current.version,

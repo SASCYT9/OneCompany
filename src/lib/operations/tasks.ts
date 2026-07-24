@@ -8,6 +8,7 @@ import {
 import { OpsError } from "@/lib/operations/errors";
 
 export const OPS_DEFAULT_TASK_DUE_MS = 24 * 60 * 60 * 1000;
+export const OPS_MAX_TASK_ASSIGNEES = 20;
 
 export function resolveOpsTaskDueAt(dueAt: Date | null, now: Date = new Date()) {
   return dueAt ?? new Date(now.getTime() + OPS_DEFAULT_TASK_DUE_MS);
@@ -172,6 +173,44 @@ export function normalizeOpsTaskTags(value: unknown) {
   });
 }
 
+export function normalizeOpsTaskAssigneeIds(value: unknown) {
+  if (value === null || value === undefined) return [];
+  if (!Array.isArray(value)) {
+    throw new OpsError("VALIDATION_ERROR", 400, "assigneeIds must be an array");
+  }
+  if (value.length > OPS_MAX_TASK_ASSIGNEES) {
+    throw new OpsError(
+      "VALIDATION_ERROR",
+      400,
+      `A task can have at most ${OPS_MAX_TASK_ASSIGNEES} assignees`
+    );
+  }
+
+  const seen = new Set<string>();
+  const assigneeIds: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") {
+      throw new OpsError("VALIDATION_ERROR", 400, "Each assigneeId must be a string");
+    }
+    const assigneeId = optionalText(item, 100);
+    if (!assigneeId) {
+      throw new OpsError("VALIDATION_ERROR", 400, "assigneeIds cannot contain empty values");
+    }
+    if (seen.has(assigneeId)) continue;
+    seen.add(assigneeId);
+    assigneeIds.push(assigneeId);
+  }
+  return assigneeIds;
+}
+
+function taskAssigneeIdsFromInput(input: Record<string, unknown>) {
+  if ("assigneeIds" in input) {
+    return normalizeOpsTaskAssigneeIds(input.assigneeIds);
+  }
+  const assigneeId = optionalText(input.assigneeId, 100);
+  return assigneeId ? [assigneeId] : [];
+}
+
 export type OpsTaskStateInput = {
   status: OpsTaskStatus;
   nextAction: string | null;
@@ -195,7 +234,9 @@ export function normalizeTaskCreateInput(body: unknown) {
       "agent_running can only be set by an automation worker"
     );
   }
-  const isShared = input.isShared === true;
+  const requestedAssigneeIds = taskAssigneeIdsFromInput(input);
+  const isShared = input.isShared === true && requestedAssigneeIds.length === 0;
+  const assigneeIds = requestedAssigneeIds;
   const normalized = {
     title: requiredText(input.title, "Task title"),
     description: optionalText(input.description),
@@ -206,7 +247,9 @@ export function normalizeTaskCreateInput(body: unknown) {
     projectId: optionalText(input.projectId, 100),
     shopOrderId: optionalText(input.shopOrderId, 100),
     parentTaskId: optionalText(input.parentTaskId, 100),
-    assigneeId: isShared ? null : optionalText(input.assigneeId, 100),
+    assigneeId: assigneeIds[0] ?? null,
+    assigneeIds,
+    requestedById: optionalText(input.requestedById, 100),
     isShared,
     dueAt: dateValue(input.dueAt),
     nextAction: optionalText(input.nextAction, 2_000),
@@ -235,17 +278,30 @@ export function normalizeTaskPatchInput(body: unknown) {
   if ("executorType" in input) {
     result.executorType = enumValue(OpsExecutorType, input.executorType, OpsExecutorType.HUMAN);
   }
-  for (const field of ["projectId", "shopOrderId", "parentTaskId", "assigneeId"] as const) {
+  for (const field of ["projectId", "shopOrderId", "parentTaskId"] as const) {
     if (field in input) result[field] = optionalText(input[field], 100);
+  }
+  if ("requestedById" in input) {
+    result.requestedById = optionalText(input.requestedById, 100);
+  }
+  if ("assigneeIds" in input || "assigneeId" in input) {
+    const assigneeIds = taskAssigneeIdsFromInput(input);
+    result.assigneeIds = assigneeIds;
+    result.assigneeId = assigneeIds[0] ?? null;
   }
   if ("isShared" in input) {
     if (typeof input.isShared !== "boolean") {
       throw new OpsError("VALIDATION_ERROR", 400, "Shared task flag must be boolean");
     }
     result.isShared = input.isShared;
-    if (input.isShared) result.assigneeId = null;
+    if (input.isShared && !(Array.isArray(result.assigneeIds) && result.assigneeIds.length > 0)) {
+      result.assigneeId = null;
+      result.assigneeIds = [];
+    }
   }
-  if (result.assigneeId) result.isShared = false;
+  if (Array.isArray(result.assigneeIds) && result.assigneeIds.length > 0) {
+    result.isShared = false;
+  }
   if ("dueAt" in input) result.dueAt = dateValue(input.dueAt);
   if ("nextAction" in input) result.nextAction = optionalText(input.nextAction, 2_000);
   if ("definitionOfDone" in input) {

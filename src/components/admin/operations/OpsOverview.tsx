@@ -40,6 +40,26 @@ function isToday(task: OpsTask) {
   return value.toDateString() === today.toDateString();
 }
 
+function taskAssignees(task: OpsTask) {
+  const people = (task.assignees ?? []).map((entry) =>
+    "adminUser" in entry ? entry.adminUser : entry
+  );
+  if (!people.length && task.assignee) people.push(task.assignee);
+  return Array.from(new Map(people.map((person) => [person.id, person])).values());
+}
+
+function taskHasAssignee(task: OpsTask, adminUserId: string) {
+  return taskAssignees(task).some((person) => person.id === adminUserId);
+}
+
+function assigneeSummary(task: OpsTask) {
+  if (task.isShared) return "Вся команда";
+  const people = taskAssignees(task);
+  if (!people.length) return "Без исполнителя";
+  const primary = people[0];
+  return `${primary.name || primary.email}${people.length > 1 ? ` +${people.length - 1}` : ""}`;
+}
+
 export function OpsOverview({
   initialData,
   demoMode = false,
@@ -94,7 +114,8 @@ export function OpsOverview({
         label: "Мои активные",
         value: tasks.filter(
           (task) =>
-            task.assignee?.id === currentAdminId && !["DONE", "CANCELLED"].includes(task.status)
+            (task.isShared || taskHasAssignee(task, currentAdminId)) &&
+            !["DONE", "CANCELLED"].includes(task.status)
         ).length,
         icon: ListTodo,
         tone: "blue",
@@ -138,7 +159,10 @@ export function OpsOverview({
       {
         label: "Без исполнителя",
         value: tasks.filter(
-          (task) => !task.assignee && !["DONE", "CANCELLED", "AGENT_RUNNING"].includes(task.status)
+          (task) =>
+            !task.isShared &&
+            taskAssignees(task).length === 0 &&
+            !["DONE", "CANCELLED", "AGENT_RUNNING"].includes(task.status)
         ).length,
         icon: UserRoundPlus,
         tone: "slate",
@@ -293,8 +317,7 @@ export function OpsOverview({
                             {task.title}
                           </span>
                           <span className="mt-0.5 block text-xs text-slate-500">
-                            {OPS_STATUS_LABELS[task.status]} ·{" "}
-                            {task.assignee?.name || "Без исполнителя"}
+                            {OPS_STATUS_LABELS[task.status]} · {assigneeSummary(task)}
                           </span>
                         </span>
                         <ArrowRight className="h-4 w-4 text-slate-400" />

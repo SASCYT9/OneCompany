@@ -12,7 +12,8 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
     id: string;
     externalId: string;
     title: string;
-    assigneeId: string | null;
+    assigneeId?: string | null;
+    assigneeIds?: string[];
     dueAt: Date | null;
     version: number;
   };
@@ -22,12 +23,19 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
     email: string;
   };
 }) {
-  const assigneeId = input.task.assigneeId;
-  if (!assigneeId || assigneeId === input.assignedBy.id) return false;
+  const assigneeIds = Array.from(
+    new Set(
+      [
+        ...(input.task.assigneeIds ?? []),
+        ...(input.task.assigneeId ? [input.task.assigneeId] : []),
+      ].filter((id) => id && id !== input.assignedBy.id)
+    )
+  );
+  if (!assigneeIds.length) return false;
 
-  const profile = await input.client.opsMemberProfile.findFirst({
+  const profiles = await input.client.opsMemberProfile.findMany({
     where: {
-      adminUserId: assigneeId,
+      adminUserId: { in: assigneeIds },
       telegramEnabled: true,
       telegramUserId: { not: null },
       adminUser: { isActive: true },
@@ -37,35 +45,39 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
       telegramUserId: true,
     },
   });
-  if (!profile?.telegramUserId) return false;
+  if (!profiles.length) return false;
 
   const result = await input.client.opsJob.createMany({
-    data: [
-      {
-        idempotencyKey: [
-          "notification",
-          "assignment",
-          input.task.id,
-          assigneeId,
-          input.task.version,
-        ].join(":"),
-        taskId: input.task.id,
-        type: "telegram_task_assigned",
-        status: OpsJobStatus.QUEUED,
-        stage: OpsJobStage.NOTIFY,
-        payload: asJson({
-          taskId: input.task.id,
-          recipientAdminUserId: profile.adminUserId,
-          telegramUserId: profile.telegramUserId.toString(),
-          externalId: input.task.externalId,
-          title: input.task.title,
-          dueAt: input.task.dueAt?.toISOString() ?? null,
-          assignedById: input.assignedBy.id,
-          assignedByName: input.assignedBy.name ?? input.assignedBy.email,
-        }),
-      },
-    ],
+    data: profiles.flatMap((profile) =>
+      profile.telegramUserId
+        ? [
+            {
+              idempotencyKey: [
+                "notification",
+                "assignment",
+                input.task.id,
+                profile.adminUserId,
+                input.task.version,
+              ].join(":"),
+              taskId: input.task.id,
+              type: "telegram_task_assigned",
+              status: OpsJobStatus.QUEUED,
+              stage: OpsJobStage.NOTIFY,
+              payload: asJson({
+                taskId: input.task.id,
+                recipientAdminUserId: profile.adminUserId,
+                telegramUserId: profile.telegramUserId.toString(),
+                externalId: input.task.externalId,
+                title: input.task.title,
+                dueAt: input.task.dueAt?.toISOString() ?? null,
+                assignedById: input.assignedBy.id,
+                assignedByName: input.assignedBy.name ?? input.assignedBy.email,
+              }),
+            },
+          ]
+        : []
+    ),
     skipDuplicates: true,
   });
-  return result.count === 1;
+  return result.count > 0;
 }

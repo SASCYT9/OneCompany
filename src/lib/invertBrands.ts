@@ -40,6 +40,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     "BMC filters",
     "Cobb tuning",
     "Melotti Racing",
+    "Maxton Design",
     "Raliw Forged",
     "Remus",
     "Rizoma",

@@ -32,7 +32,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const key = requireIdempotencyKey(request);
     const { id } = await params;
     const input = normalizeTaskCreateInput(await request.json().catch(() => ({})));
-    assertCanAssignTask(access, input.assigneeId);
+    for (const assigneeId of input.assigneeIds) {
+      assertCanAssignTask(access, assigneeId);
+    }
 
     const result = await runOpsIdempotentMutation({
       prisma,
@@ -61,6 +63,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           shopOrderId: input.shopOrderId,
           parentTaskId: input.parentTaskId,
           assigneeId: input.assigneeId,
+          assigneeIds: input.assigneeIds,
+          requestedById: input.requestedById,
           dueAt: input.dueAt?.toISOString() ?? null,
           nextAction: input.nextAction,
           definitionOfDone: input.definitionOfDone,
@@ -110,7 +114,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           action: "inbox.proposal.create_manual",
           entityType: "ops.inbox.proposal",
           entityId: proposal.id,
-          metadata: { inboxItemId: id, assigneeId: input.assigneeId },
+          metadata: {
+            inboxItemId: id,
+            assigneeIds: input.assigneeIds,
+            requestedById: input.requestedById,
+          },
         });
         return {
           body: serializeOpsJson({ proposal }),

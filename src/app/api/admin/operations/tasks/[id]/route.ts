@@ -18,6 +18,7 @@ import {
   withEntityHeaders,
 } from "@/lib/operations/request";
 import { opsTaskDetailSelect, serializeOpsJson } from "@/lib/operations/selects";
+import { enqueueOpsTaskAiReconcile } from "@/lib/operations/taskAiReconcile";
 import { assertTaskStateInvariant, normalizeTaskPatchInput } from "@/lib/operations/tasks";
 import { assertValidOpsTaskRelations } from "@/lib/operations/taskRelations";
 import { enqueueOpsTaskAssignmentNotification } from "@/lib/operations/taskNotifications";
@@ -131,8 +132,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params;
     const body = await request.json();
     const input = normalizeTaskPatchInput(body);
-    if ("assigneeId" in input) {
-      assertCanAssignTask(access, input.assigneeId as string | null);
+    const aiReconcileFields = [
+      "title",
+      "description",
+      "nextAction",
+      "definitionOfDone",
+      "tags",
+    ].filter((field) => field in input);
+    const requestedAssigneeIds =
+      "assigneeIds" in input ? (input.assigneeIds as string[]) : undefined;
+    for (const assigneeId of requestedAssigneeIds ?? []) {
+      assertCanAssignTask(access, assigneeId);
     }
 
     const result = await runOpsIdempotentMutation({
@@ -151,7 +161,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             blockerType: true,
             blockerDescription: true,
             assigneeId: true,
+            assignees: { select: { adminUserId: true } },
             createdById: true,
+            requestedById: true,
             isShared: true,
             title: true,
             description: true,
@@ -159,7 +171,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           },
         });
         if (!current) throw new OpsError("NOT_FOUND", 404, "Task not found");
-        assertCanWriteTask(access, current);
+        const currentAssigneeIds = current.assignees.length
+          ? current.assignees.map((assignment) => assignment.adminUserId)
+          : current.assigneeId
+            ? [current.assigneeId]
+            : [];
+        assertCanWriteTask(access, current, currentAssigneeIds);
         if (current.version !== expectedVersion) {
           throw new OpsError("VERSION_CONFLICT", 409, "Task changed since it was loaded", {
             currentVersion: current.version,
@@ -177,12 +194,28 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               : current.blockerDescription,
         });
 
+        const taskPatch = Object.fromEntries(
+          Object.entries(input).filter(([field]) => field !== "assigneeIds")
+        );
         const updated = await tx.opsTask.updateMany({
           where: { id, version: expectedVersion },
-          data: { ...input, version: { increment: 1 } },
+          data: { ...taskPatch, version: { increment: 1 } },
         });
         if (updated.count !== 1) {
           throw new OpsError("VERSION_CONFLICT", 409, "Task changed since it was loaded");
+        }
+        if (requestedAssigneeIds) {
+          await tx.opsTaskAssignee.deleteMany({ where: { taskId: id } });
+          if (requestedAssigneeIds.length) {
+            await tx.opsTaskAssignee.createMany({
+              data: requestedAssigneeIds.map((adminUserId) => ({
+                taskId: id,
+                adminUserId,
+                assignedById: access.id,
+              })),
+              skipDuplicates: true,
+            });
+          }
         }
         const brandGuides = await linkMatchingBrandGuides(tx, {
           taskId: id,
@@ -210,16 +243,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               shippingEstimateKeys: brandGuides.shippingEstimates.map((estimate) => estimate.key),
               versionFrom: expectedVersion,
               versionTo: task.version,
-              ...("assigneeId" in input
+              ...(requestedAssigneeIds
                 ? {
                     assigneeIdFrom: current.assigneeId,
                     assigneeIdTo: task.assignee?.id ?? null,
+                    assigneeIdsFrom: currentAssigneeIds,
+                    assigneeIdsTo: task.assignees.map((assignment) => assignment.adminUserId),
+                  }
+                : {}),
+              ...("requestedById" in input
+                ? {
+                    requestedByIdFrom: current.requestedById,
+                    requestedByIdTo: task.requestedBy?.id ?? null,
                   }
                 : {}),
             },
           },
         });
-        if ("assigneeId" in input && current.assigneeId !== (task.assignee?.id ?? null)) {
+        const newlyAssignedIds = requestedAssigneeIds
+          ? requestedAssigneeIds.filter((assigneeId) => !currentAssigneeIds.includes(assigneeId))
+          : [];
+        if (newlyAssignedIds.length) {
           await enqueueOpsTaskAssignmentNotification({
             client: tx,
             task: {
@@ -227,6 +271,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               externalId: task.externalId,
               title: task.title,
               assigneeId: task.assignee?.id ?? null,
+              assigneeIds: newlyAssignedIds,
               dueAt: task.dueAt,
               version: task.version,
             },
@@ -241,14 +286,40 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             changedFields: Object.keys(input),
             versionFrom: expectedVersion,
             versionTo: task.version,
-            ...("assigneeId" in input
+            ...(requestedAssigneeIds
               ? {
                   assigneeIdFrom: current.assigneeId,
                   assigneeIdTo: task.assignee?.id ?? null,
+                  assigneeIdsFrom: currentAssigneeIds,
+                  assigneeIdsTo: task.assignees.map((assignment) => assignment.adminUserId),
+                }
+              : {}),
+            ...("requestedById" in input
+              ? {
+                  requestedByIdFrom: current.requestedById,
+                  requestedByIdTo: task.requestedBy?.id ?? null,
                 }
               : {}),
           },
         });
+        if (aiReconcileFields.length) {
+          await enqueueOpsTaskAiReconcile({
+            client: tx,
+            taskId: id,
+            sourceVersion: task.version,
+            trigger: "admin_edit",
+            actorId: access.id,
+            idempotencyKey: `task-ai-reconcile:admin-edit:${key}`,
+            directive: JSON.stringify(
+              Object.fromEntries(
+                aiReconcileFields.map((field) => [
+                  field,
+                  input[field as keyof typeof input] ?? null,
+                ])
+              )
+            ),
+          });
+        }
         return {
           body: serializeOpsJson({ task }),
           statusCode: 200,
@@ -258,7 +329,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       },
     });
 
-    if ("assigneeId" in input && input.assigneeId && input.assigneeId !== access.id) {
+    if (
+      aiReconcileFields.length ||
+      requestedAssigneeIds?.some((assigneeId) => assigneeId !== access.id)
+    ) {
       after(async () => {
         await drainOpsJobs({
           client: prisma,

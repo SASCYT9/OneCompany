@@ -135,17 +135,29 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             inbox.originalMessage,
             inbox.transcription,
           ]);
-          assertCanAssignTask(access, input.assigneeId);
+          input.requestedById ??= taskCreatorId;
+          for (const assigneeId of input.assigneeIds) {
+            assertCanAssignTask(access, assigneeId);
+          }
           await assertValidOpsTaskRelations(tx, input);
+          const { assigneeIds, ...taskInput } = input;
           const createdTask = await tx.opsTask.create({
             data: {
-              ...input,
+              ...taskInput,
               dueAt: resolveOpsTaskDueAt(input.dueAt),
               externalId: createOpsExternalId("ONE"),
               createdById: taskCreatorId,
               sourceType: OpsTaskSourceType.TELEGRAM,
               sourceId: proposal.id,
               sourceKey: `inbox:${id}:proposal:${proposal.id}`,
+              assignees: assigneeIds.length
+                ? {
+                    create: assigneeIds.map((adminUserId) => ({
+                      adminUserId,
+                      assignedById: access.id,
+                    })),
+                  }
+                : undefined,
             },
             select: opsTaskListSelect,
           });
@@ -193,7 +205,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                 proposalId: proposal.id,
                 reviewedByHuman: true,
                 reviewedById: access.id,
-                requestedById: taskCreatorId,
+                requestedById: task.requestedBy?.id ?? null,
+                assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
                 brandGuideKeys: brandGuides.brandArticles.map((article) => article.brandKey),
                 shippingReferenceLinked: brandGuides.shippingArticles.length > 0,
                 shippingEstimateKeys: brandGuides.shippingEstimates.map((estimate) => estimate.key),
@@ -207,6 +220,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               externalId: task.externalId,
               title: task.title,
               assigneeId: task.assignee?.id ?? null,
+              assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
               dueAt: task.dueAt,
               version: task.version,
             },

@@ -1,5 +1,5 @@
 import { OpsTaskEventType } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import {
   assertCanWriteTask,
@@ -9,11 +9,17 @@ import {
 import { OpsError, opsErrorResponse } from "@/lib/operations/errors";
 import { assertOperationsEnabled } from "@/lib/operations/featureFlags";
 import { runOpsIdempotentMutation } from "@/lib/operations/idempotency";
+import { drainOpsJobs } from "@/lib/operations/jobs";
 import {
   assertOpsMutationBoundary,
   requireIdempotencyKey,
   withEntityHeaders,
 } from "@/lib/operations/request";
+import {
+  enqueueOpsTaskAiReconcile,
+  OPS_TASK_AI_RECONCILE_JOB,
+} from "@/lib/operations/taskAiReconcile";
+import { createOpsJobStageExecutor } from "@/lib/operations/telegramJobs";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -38,7 +44,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       execute: async (tx) => {
         const task = await tx.opsTask.findUnique({
           where: { id },
-          select: { id: true, version: true, assigneeId: true, createdById: true, isShared: true },
+          select: {
+            id: true,
+            version: true,
+            assigneeId: true,
+            assignees: { select: { adminUserId: true } },
+            createdById: true,
+            isShared: true,
+          },
         });
         if (!task) throw new OpsError("NOT_FOUND", 404, "Task not found");
         assertCanWriteTask(access, task);
@@ -70,6 +83,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           entityId: id,
           metadata: { commentId: comment.id, correctsCommentId },
         });
+        await enqueueOpsTaskAiReconcile({
+          client: tx,
+          taskId: id,
+          sourceVersion: task.version,
+          trigger: "comment",
+          actorId: access.id,
+          commentId: comment.id,
+          directive: text,
+          idempotencyKey: `task-ai-reconcile:comment:${comment.id}`,
+        });
         return {
           body: { comment },
           statusCode: 201,
@@ -77,6 +100,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           resourceId: comment.id,
         };
       },
+    });
+    after(async () => {
+      await drainOpsJobs({
+        client: prisma,
+        execute: createOpsJobStageExecutor({ client: prisma }),
+        maxJobs: 1,
+        timeBudgetMs: 12_000,
+        types: [OPS_TASK_AI_RECONCILE_JOB],
+      }).catch((error) => {
+        console.error("[operations.task.comment.after] AI reconcile kick failed", error);
+      });
     });
     return withEntityHeaders(
       NextResponse.json(result.body, { status: result.statusCode }),

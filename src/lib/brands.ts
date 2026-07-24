@@ -207,6 +207,14 @@ export const brandsUsa: LocalBrand[] = [
     website: "https://5150autosport.com",
   },
   {
+    name: "ADS Suspension",
+    description:
+      "American manufacturer of high-performance shock and suspension systems for demanding on-road and off-road applications, including coilovers, bypass shocks, bump stops, and air shocks.",
+    descriptionUA:
+      "Американський виробник високопродуктивних амортизаторів і систем підвіски для складних дорожніх та off-road умов: койловерів, bypass-амортизаторів, відбійників і пневматичних амортизаторів.",
+    website: "https://adsshocks.com/",
+  },
+  {
     name: "ADV.1 Wheels",
     description:
       "Iconic custom forged wheels renowned for aggressive concave profiles and precision engineering that define modern automotive luxury.",
@@ -1260,6 +1268,14 @@ export const brandsEurope: LocalBrand[] = [
     descriptionUA:
       "Польські майстри карбону, що створюють преміальні аеродинамічні компоненти з гоночною якістю та точністю.",
     website: "https://mattscarbon.com",
+  },
+  {
+    name: "Maxton Design",
+    description:
+      "Polish manufacturer of precisely fitted aerodynamic components, including front and rear splitters, side skirts, spoilers, and complete styling kits in ABS and carbon fiber.",
+    descriptionUA:
+      "Польський виробник аеродинамічних компонентів із точною посадкою: передніх і задніх спліттерів, накладок на пороги, спойлерів та повних стайлінг-комплектів з ABS і карбону.",
+    website: "https://maxtondesign.com/",
   },
   {
     name: "Milltek",
@@ -2372,6 +2388,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   "K&N": { country: "USA", subcategory: "Engine" },
   "1016 Industries": { country: "USA", subcategory: "Exterior" },
   "5150 Autosport": { country: "USA", subcategory: "Engine" },
+  "ADS Suspension": { country: "USA", subcategory: "Suspension" },
   "ADV.1 Wheels": { country: "USA", subcategory: "Wheels" },
   "Airlift Performance": { country: "USA", subcategory: "Suspension" },
   "AL13 Wheels": { country: "USA", subcategory: "Wheels" },
@@ -2502,6 +2519,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   MapEV: { country: "Germany", subcategory: "Electronics" },
   "Mamba turbo": { country: "Taiwan", subcategory: "Engine" },
   "Matts Performance": { country: "Poland", subcategory: "Exterior" },
+  "Maxton Design": { country: "Poland", subcategory: "Exterior" },
   Milltek: { country: "UK", subcategory: "Exhaust" },
   Mishimoto: { country: "USA", subcategory: "Cooling" },
   "MST Performance": { country: "Taiwan", subcategory: "Engine" },

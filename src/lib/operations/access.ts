@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin/adminAccess";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { OpsError } from "@/lib/operations/errors";
+import { OPS_MAX_TASK_ASSIGNEES } from "@/lib/operations/tasks";
 
 export async function requireOperationsAccess(requiredPermission: string) {
   return assertCurrentAdminAccess(requiredPermission);
@@ -23,12 +24,30 @@ export function assertOperationsPermission(access: CurrentAdminAccess, requiredP
 
 export function assertCanWriteTask(
   access: CurrentAdminAccess,
-  task: { assigneeId: string | null; createdById: string; isShared?: boolean }
+  task: {
+    assigneeId: string | null;
+    createdById: string;
+    isShared?: boolean;
+    assigneeIds?: readonly string[];
+    participantIds?: readonly string[];
+    assignees?: readonly {
+      adminUserId?: string;
+      adminUser?: { id: string } | null;
+    }[];
+  },
+  participantIds: readonly string[] = []
 ) {
+  const assignedParticipantIds = new Set([
+    ...(task.assigneeId ? [task.assigneeId] : []),
+    ...(task.assigneeIds ?? []),
+    ...(task.participantIds ?? []),
+    ...(task.assignees ?? []).flatMap((entry) => entry.adminUserId ?? entry.adminUser?.id ?? []),
+    ...participantIds,
+  ]);
   if (
     canManageAllOpsTasks(access) ||
     task.isShared === true ||
-    task.assigneeId === access.id ||
+    assignedParticipantIds.has(access.id) ||
     task.createdById === access.id
   ) {
     return;
@@ -36,12 +55,32 @@ export function assertCanWriteTask(
   throw new OpsError(
     "TASK_WRITE_FORBIDDEN",
     403,
-    "Task members can only edit shared tasks or tasks they created or are assigned to"
+    "Task members can only edit shared tasks or tasks they created or participate in"
   );
 }
 
-export function assertCanAssignTask(access: CurrentAdminAccess, assigneeId: string | null) {
-  if (!assigneeId || assigneeId === access.id || canManageAllOpsTasks(access)) {
+export function assertCanAssignTask(
+  access: CurrentAdminAccess,
+  assigneeIdOrIds: string | null | readonly string[]
+) {
+  const assigneeIds =
+    typeof assigneeIdOrIds === "string"
+      ? [assigneeIdOrIds]
+      : assigneeIdOrIds
+        ? [...assigneeIdOrIds]
+        : [];
+  if (assigneeIds.length > OPS_MAX_TASK_ASSIGNEES) {
+    throw new OpsError(
+      "VALIDATION_ERROR",
+      400,
+      `A task can have at most ${OPS_MAX_TASK_ASSIGNEES} assignees`
+    );
+  }
+  if (
+    assigneeIds.length === 0 ||
+    assigneeIds.every((assigneeId) => assigneeId === access.id) ||
+    canManageAllOpsTasks(access)
+  ) {
     return;
   }
   throw new OpsError("TASK_ASSIGN_FORBIDDEN", 403, "Task assignment permission is required");

@@ -32,6 +32,8 @@ const EDITABLE_PROPOSAL_FIELDS = new Set([
   "nextAction",
   "definitionOfDone",
   "assigneeId",
+  "assigneeIds",
+  "requestedById",
   "projectId",
 ]);
 
@@ -72,8 +74,10 @@ export async function PATCH(
       );
     }
     const patch = normalizeTaskPatchInput(rawBody);
-    if ("assigneeId" in patch) {
-      assertCanAssignTask(access, patch.assigneeId as string | null);
+    if ("assigneeIds" in patch) {
+      for (const assigneeId of patch.assigneeIds as string[]) {
+        assertCanAssignTask(access, assigneeId);
+      }
     }
 
     const result = await runOpsIdempotentMutation({
@@ -122,6 +126,8 @@ export async function PATCH(
           shopOrderId: normalized.shopOrderId,
           parentTaskId: normalized.parentTaskId,
           assigneeId: normalized.assigneeId,
+          assigneeIds: normalized.assigneeIds,
+          requestedById: normalized.requestedById,
           dueAt: normalized.dueAt?.toISOString() ?? null,
           nextAction: normalized.nextAction,
           definitionOfDone: normalized.definitionOfDone,

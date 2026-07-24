@@ -97,12 +97,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             archivedAt: true,
             version: true,
             assigneeId: true,
+            assignees: { select: { adminUserId: true } },
             createdById: true,
             isShared: true,
           },
         });
         if (!task) throw new OpsError("NOT_FOUND", 404, "Task not found");
-        assertCanWriteTask(access, task);
+        assertCanWriteTask(
+          access,
+          task,
+          task.assignees.map((assignment) => assignment.adminUserId)
+        );
         assertOpsAutomationTaskCanStart(task);
         if (task.version !== expectedVersion) {
           throw new OpsError("VERSION_CONFLICT", 409, "Task changed since it was loaded", {

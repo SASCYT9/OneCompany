@@ -207,6 +207,30 @@ export function getBrandStoryForBrand(
 }
 
 export const curatedBrandStories: Record<string, BrandStory> = {
+  "ADS Suspension": {
+    headline: {
+      en: "ADS Suspension · Built for the Extremes",
+      ua: "ADS Suspension · Контроль без компромісів",
+    },
+    description: {
+      en: "High-performance shock and suspension systems engineered for demanding on-road and off-road use. ADS machines, welds, and assembles its shocks in-house for precise control over performance and durability.",
+      ua: "Високопродуктивні амортизатори та системи підвіски для складних дорожніх і off-road умов. ADS самостійно обробляє, зварює та збирає амортизатори, контролюючи точність, характеристики й довговічність.",
+    },
+    highlights: [
+      {
+        en: "Coilover, bypass & internal-bypass systems",
+        ua: "Системи coilover, bypass та internal bypass",
+      },
+      {
+        en: "Application-specific tuning",
+        ua: "Індивідуальне налаштування під автомобіль",
+      },
+      {
+        en: "In-house machining, welding & assembly",
+        ua: "Власна механічна обробка, зварювання та складання",
+      },
+    ],
+  },
   // Auto-specific story for Akrapovic
   Akrapovic_Auto: {
     headline: {

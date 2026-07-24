@@ -79,6 +79,16 @@ function asJson(value: unknown) {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+function assignedTo(adminUserId: string): Prisma.OpsTaskWhereInput {
+  return {
+    OR: [
+      { assignees: { some: { adminUserId } } },
+      // Compatibility for tasks created before the participant migration.
+      { assigneeId: adminUserId },
+    ],
+  };
+}
+
 export async function enqueueOpsInternalNotifications(input: { client: PrismaClient; now: Date }) {
   const candidateProfiles = await input.client.opsMemberProfile.findMany({
     where: {
@@ -111,7 +121,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     const dueTasks = await input.client.opsTask.findMany({
       where: {
         archivedAt: null,
-        assigneeId: profile.adminUserId,
+        ...assignedTo(profile.adminUserId),
         status: { in: [...ACTIVE_TASK_STATUSES] },
         dueAt: { lte: input.now },
       },
@@ -156,7 +166,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       by: ["status"],
       where: {
         archivedAt: null,
-        assigneeId: profile.adminUserId,
+        ...assignedTo(profile.adminUserId),
         status: { in: [...ACTIVE_TASK_STATUSES] },
       },
       _count: { _all: true },
@@ -164,7 +174,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     const overdueCount = await input.client.opsTask.count({
       where: {
         archivedAt: null,
-        assigneeId: profile.adminUserId,
+        ...assignedTo(profile.adminUserId),
         status: { in: [...ACTIVE_TASK_STATUSES] },
         dueAt: { lt: input.now },
       },
@@ -175,7 +185,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       input.client.opsTask.count({
         where: {
           archivedAt: null,
-          assigneeId: profile.adminUserId,
+          ...assignedTo(profile.adminUserId),
           status: { in: [...ACTIVE_TASK_STATUSES] },
           dueAt: { gte: day.start, lt: day.end },
         },
@@ -183,7 +193,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       input.client.opsTask.count({
         where: {
           archivedAt: null,
-          assigneeId: profile.adminUserId,
+          ...assignedTo(profile.adminUserId),
           status: { in: [...ACTIVE_TASK_STATUSES] },
           dueAt: null,
         },

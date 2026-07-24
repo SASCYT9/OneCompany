@@ -110,6 +110,9 @@ model AdminUser {
   opsProjects              OpsProject[]           @relation("OpsProjectOwner")
   opsTasksCreated          OpsTask[]              @relation("OpsTaskCreator")
   opsTasksAssigned         OpsTask[]              @relation("OpsTaskAssignee")
+  opsTasksRequested        OpsTask[]              @relation("OpsTaskRequester")
+  opsTaskAssignments       OpsTaskAssignee[]      @relation("OpsTaskAssigneeUser")
+  opsTaskAssignmentsMade   OpsTaskAssignee[]      @relation("OpsTaskAssigneeActor")
   opsTaskEvents            OpsTaskEvent[]         @relation("OpsTaskEventActor")
   opsComments              OpsComment[]           @relation("OpsCommentAuthor")
   opsTaskAttachments       OpsTaskAttachment[]    @relation("OpsTaskAttachmentActor")
@@ -2491,6 +2494,7 @@ model OpsTask {
   sourceId            String?
   sourceKey           String?                @unique
   createdById         String
+  requestedById       String?
   version             Int                    @default(1)
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
@@ -2502,6 +2506,8 @@ model OpsTask {
   children            OpsTask[]              @relation("OpsTaskHierarchy")
   assignee            AdminUser?             @relation("OpsTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   createdBy           AdminUser              @relation("OpsTaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  requestedBy         AdminUser?             @relation("OpsTaskRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+  assignees           OpsTaskAssignee[]
   events              OpsTaskEvent[]
   comments            OpsComment[]
   attachments         OpsTaskAttachment[]
@@ -2518,6 +2524,23 @@ model OpsTask {
   @@index([shopOrderId])
   @@index([parentTaskId])
   @@index([sourceType, sourceId])
+  @@index([requestedById])
+}
+
+model OpsTaskAssignee {
+  id           String     @id @default(cuid())
+  taskId       String
+  adminUserId  String
+  assignedById String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  task         OpsTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  adminUser    AdminUser  @relation("OpsTaskAssigneeUser", fields: [adminUserId], references: [id], onDelete: Cascade)
+  assignedBy   AdminUser? @relation("OpsTaskAssigneeActor", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@unique([taskId, adminUserId])
+  @@index([adminUserId, taskId])
+  @@index([assignedById])
 }
 
 model OpsTaskEvent {

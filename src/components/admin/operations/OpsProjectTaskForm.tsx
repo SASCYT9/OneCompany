@@ -25,7 +25,7 @@ export function OpsProjectTaskForm({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<OpsPriority>("NORMAL");
   const [dueAt, setDueAt] = useState("");
-  const [assigneeId, setAssigneeId] = useState("");
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [isShared, setIsShared] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,19 +42,24 @@ export function OpsProjectTaskForm({
       projectId: project.id,
       dueAt: dueAt ? new Date(dueAt).toISOString() : null,
       isShared,
-      assigneeId: isShared ? null : assigneeId || null,
+      assigneeIds: isShared ? [] : assigneeIds,
     };
     try {
       if (demoMode) {
+        const selectedAssignees = members.filter((member) => assigneeIds.includes(member.id));
         onSaved({
           id: `demo-task-${Date.now()}`,
           externalId: `TSK-${Date.now().toString().slice(-6)}`,
-          ...body,
+          title: body.title,
+          description: body.description,
           status: "INBOX",
+          priority: body.priority,
+          dueAt: body.dueAt,
           isShared,
           version: 1,
           project: { id: project.id, externalId: project.externalId, title: project.title },
-          assignee: members.find((member) => member.id === assigneeId) ?? null,
+          assignee: selectedAssignees[0] ?? null,
+          assignees: selectedAssignees,
         });
         return;
       }
@@ -158,7 +163,7 @@ export function OpsProjectTaskForm({
             checked={isShared}
             onChange={(event) => {
               setIsShared(event.target.checked);
-              if (event.target.checked) setAssigneeId("");
+              if (event.target.checked) setAssigneeIds([]);
             }}
             className="mt-1 h-4 w-4 accent-blue-600"
           />
@@ -175,21 +180,46 @@ export function OpsProjectTaskForm({
         </label>
 
         {canAssign && !isShared ? (
-          <label className="mt-4 block text-sm font-medium text-slate-700">
-            Исполнитель
-            <select
-              value={assigneeId}
-              onChange={(event) => setAssigneeId(event.target.value)}
-              className={fieldClass}
-            >
-              <option value="">Не назначен</option>
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name || member.email}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="mt-4">
+            <legend className="text-sm font-medium text-slate-700">Исполнители</legend>
+            <p className="mt-1 text-xs text-slate-500">
+              Можно назначить одного или нескольких участников.
+            </p>
+            <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto border border-slate-200 p-2 sm:grid-cols-2">
+              {members.map((member) => {
+                const checked = assigneeIds.includes(member.id);
+                return (
+                  <label
+                    key={member.id}
+                    className={`flex min-w-0 cursor-pointer items-center gap-2 border px-3 py-2.5 text-sm transition ${
+                      checked
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-200"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() =>
+                        setAssigneeIds((current) =>
+                          checked
+                            ? current.filter((id) => id !== member.id)
+                            : [...current, member.id]
+                        )
+                      }
+                      className="h-4 w-4 shrink-0 accent-blue-600"
+                    />
+                    <span className="min-w-0 truncate">{member.name || member.email}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {assigneeIds.length ? (
+              <p className="mt-2 text-xs font-medium text-blue-700">
+                Выбрано: {assigneeIds.length}
+              </p>
+            ) : null}
+          </fieldset>
         ) : null}
 
         <div className="mt-6 flex justify-end gap-2 pb-[env(safe-area-inset-bottom)]">

@@ -54,7 +54,10 @@ import {
 import {
   assertTaskStateInvariant,
   assertTaskTransition,
+  normalizeOpsTaskAssigneeIds,
   normalizeTaskCreateInput,
+  normalizeTaskPatchInput,
+  OPS_MAX_TASK_ASSIGNEES,
   resolveOpsTaskDueAt,
 } from "../../../src/lib/operations/tasks";
 
@@ -253,7 +256,96 @@ test("shared tasks are editable by every task member without becoming unassigned
       isShared: true,
       assigneeId: "member-2",
     }).assigneeId,
-    null
+    "member-2"
+  );
+});
+
+test("task assignees are normalized, deduplicated, bounded, and keep legacy primary compatibility", () => {
+  assert.deepEqual(
+    normalizeOpsTaskAssigneeIds(["member-2", "member-1", "member-2"]),
+    ["member-2", "member-1"]
+  );
+  assert.throws(
+    () =>
+      normalizeOpsTaskAssigneeIds(
+        Array.from({ length: OPS_MAX_TASK_ASSIGNEES + 1 }, (_, index) => `member-${index}`)
+      ),
+    new RegExp(`at most ${OPS_MAX_TASK_ASSIGNEES}`, "i")
+  );
+
+  const created = normalizeTaskCreateInput({
+    title: "Team task",
+    assigneeIds: ["member-2", "member-1", "member-2"],
+    requestedById: "requester-1",
+  });
+  assert.deepEqual(created.assigneeIds, ["member-2", "member-1"]);
+  assert.equal(created.assigneeId, "member-2");
+  assert.equal(created.requestedById, "requester-1");
+  assert.equal(created.isShared, false);
+
+  const legacy = normalizeTaskCreateInput({
+    title: "Legacy task",
+    assigneeId: "member-3",
+  });
+  assert.deepEqual(legacy.assigneeIds, ["member-3"]);
+  assert.equal(legacy.assigneeId, "member-3");
+
+  const shared = normalizeTaskCreateInput({
+    title: "Shared task",
+    isShared: true,
+  });
+  assert.deepEqual(shared.assigneeIds, []);
+  assert.equal(shared.assigneeId, null);
+  assert.equal(shared.isShared, true);
+
+  const patch = normalizeTaskPatchInput({
+    assigneeIds: ["member-4", "member-5", "member-4"],
+    requestedById: "requester-2",
+    isShared: true,
+  });
+  assert.deepEqual(patch.assigneeIds, ["member-4", "member-5"]);
+  assert.equal(patch.assigneeId, "member-4");
+  assert.equal(patch.requestedById, "requester-2");
+  assert.equal(patch.isShared, false);
+
+  const assignedPatch = normalizeTaskPatchInput({
+    isShared: true,
+    assigneeId: "member-6",
+  });
+  assert.deepEqual(assignedPatch.assigneeIds, ["member-6"]);
+  assert.equal(assignedPatch.assigneeId, "member-6");
+  assert.equal(assignedPatch.isShared, false);
+});
+
+test("secondary assignees have the same task write access as the legacy primary assignee", () => {
+  const access = {
+    id: "member-secondary",
+    email: "secondary@example.com",
+    name: "Secondary",
+    permissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ, ADMIN_PERMISSIONS.OPS_TASKS_WRITE],
+    roleKeys: ["task_member"],
+    isOwner: false,
+  };
+  assert.doesNotThrow(() =>
+    assertCanWriteTask(access, {
+      assigneeId: "member-primary",
+      assignees: [
+        { adminUserId: "member-primary" },
+        { adminUserId: "member-secondary" },
+      ],
+      createdById: "manager-1",
+      isShared: false,
+    })
+  );
+  assert.throws(
+    () =>
+      assertCanWriteTask(access, {
+        assigneeId: "member-primary",
+        assignees: [{ adminUserId: "member-primary" }],
+        createdById: "manager-1",
+        isShared: false,
+      }),
+    /only edit shared tasks or tasks they created or participate in/i
   );
 });
 

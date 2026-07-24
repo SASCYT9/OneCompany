@@ -143,6 +143,75 @@ function initials(name?: string | null) {
     .toUpperCase();
 }
 
+function taskAssignees(task: OpsTask): OpsPerson[] {
+  const people = (task.assignees ?? []).map((entry) =>
+    "adminUser" in entry ? entry.adminUser : entry
+  );
+  if (!people.length && task.assignee) people.push(task.assignee);
+
+  return Array.from(new Map(people.map((person) => [person.id, person])).values());
+}
+
+function taskHasAssignee(task: OpsTask, adminUserId: string) {
+  return taskAssignees(task).some((person) => person.id === adminUserId);
+}
+
+function AssigneeMark({
+  task,
+  showName = false,
+  compact = false,
+}: {
+  task: OpsTask;
+  showName?: boolean;
+  compact?: boolean;
+}) {
+  const people = taskAssignees(task);
+  const primary = people[0];
+  const extraCount = Math.max(0, people.length - 1);
+  const label = task.isShared
+    ? "Вся команда"
+    : people.length
+      ? people.map((person) => person.name || person.email).join(", ")
+      : "Не назначен";
+
+  return (
+    <span className="flex min-w-0 items-center gap-1.5" title={label} aria-label={label}>
+      <span
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-full font-bold",
+          compact ? "h-6 min-w-6 px-1 text-[9px]" : "h-7 min-w-7 px-1.5 text-[10px]",
+          task.isShared
+            ? "bg-blue-600 text-white"
+            : primary
+              ? memberTone(primary.id)
+              : "bg-slate-100 text-slate-500"
+        )}
+      >
+        {task.isShared ? "ВСЕ" : initials(primary?.name)}
+      </span>
+      {!task.isShared && extraCount ? (
+        <span
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-full bg-slate-800 font-bold text-white",
+            compact ? "h-5 min-w-5 px-1 text-[9px]" : "h-6 min-w-6 px-1.5 text-[10px]"
+          )}
+        >
+          +{extraCount}
+        </span>
+      ) : null}
+      {showName ? (
+        <span className="min-w-0 truncate">
+          {task.isShared
+            ? "Вся команда"
+            : primary
+              ? `${primary.name?.split(" ")[0] || primary.email}${extraCount ? ` +${extraCount}` : ""}`
+              : "Не назначен"}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function dueText(date?: string | null) {
   if (!date) return "Без срока";
   const value = new Date(date);
@@ -197,24 +266,10 @@ function TaskListRow({
             {task.nextAction}
           </span>
         ) : null}
-        <span className="mt-1.5 flex min-w-0 items-center gap-2 text-xs text-slate-500">
+        <span className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
           {showAssignee ? (
-            <span className="flex min-w-0 items-center gap-1.5 border-r border-slate-200 pr-2">
-              <span
-                className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold",
-                  task.isShared
-                    ? "bg-blue-600 text-white"
-                    : memberTone(task.assignee?.id ?? "unassigned")
-                )}
-              >
-                {task.isShared ? "ВС" : initials(task.assignee?.name)}
-              </span>
-              <span className="max-w-20 truncate">
-                {task.isShared
-                  ? "Вся команда"
-                  : task.assignee?.name?.split(" ")[0] || "Не назначен"}
-              </span>
+            <span className="flex max-w-36 min-w-0 items-center gap-1.5 border-r border-slate-200 pr-2">
+              <AssigneeMark task={task} showName compact />
             </span>
           ) : null}
           <span className={cn("shrink-0 font-medium", statusTone[task.status])}>
@@ -435,14 +490,7 @@ function SortableTaskCard({
         ) : null}
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
-        <span
-          className={cn(
-            "flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-            task.isShared ? "bg-blue-600 text-white" : memberTone(task.assignee?.id ?? task.id)
-          )}
-        >
-          {task.isShared ? "ВСЕ" : initials(task.assignee?.name)}
-        </span>
+        <AssigneeMark task={task} />
         <div className="flex items-center gap-2">
           {canWrite ? (
             <button
@@ -712,14 +760,15 @@ export function OpsTaskWorkspace({
     if (demoMode) {
       const byId = new Map<string, OpsPerson>();
       for (const task of initialTasks ?? []) {
-        if (!task.assignee) continue;
-        const existing = byId.get(task.assignee.id);
-        byId.set(task.assignee.id, {
-          ...task.assignee,
-          activeTaskCount:
-            (existing?.activeTaskCount ?? 0) +
-            (!["DONE", "CANCELLED"].includes(task.status) ? 1 : 0),
-        });
+        for (const assignee of taskAssignees(task)) {
+          const existing = byId.get(assignee.id);
+          byId.set(assignee.id, {
+            ...assignee,
+            activeTaskCount:
+              (existing?.activeTaskCount ?? 0) +
+              (!["DONE", "CANCELLED"].includes(task.status) ? 1 : 0),
+          });
+        }
       }
       setTeamSummary((current) => ({ ...current, members: Array.from(byId.values()) }));
       return;
@@ -780,12 +829,13 @@ export function OpsTaskWorkspace({
       ) {
         return false;
       }
-      if (scope === "mine" && task.assignee?.id !== currentAdminId && !task.isShared) return false;
-      if (selectedMemberId && task.assignee?.id !== selectedMemberId && !task.isShared)
+      if (scope === "mine" && !taskHasAssignee(task, currentAdminId) && !task.isShared)
+        return false;
+      if (selectedMemberId && !taskHasAssignee(task, selectedMemberId) && !task.isShared)
         return false;
       if (statusFilter && task.status !== statusFilter) return false;
       if (projectId && task.project?.id !== projectId) return false;
-      if (assigneeNone && (task.assignee || task.isShared)) return false;
+      if (assigneeNone && (taskAssignees(task).length || task.isShared)) return false;
       if (missingNextAction && task.nextAction) return false;
       return true;
     });
@@ -824,7 +874,7 @@ export function OpsTaskWorkspace({
       canWrite &&
       (canManageAll ||
         task.isShared ||
-        task.assignee?.id === currentAdminId ||
+        taskHasAssignee(task, currentAdminId) ||
         task.createdBy?.id === currentAdminId),
     [canManageAll, canWrite, currentAdminId]
   );

@@ -385,6 +385,20 @@ function createGoogleOpsAiProvider(apiKey = process.env.OPS_GEMINI_API_KEY): Ops
   return {
     async extract(input) {
       const client = getClient();
+      const taskReconcileInstruction =
+        input.context.operation === "task_reconcile"
+          ? `This is a reconciliation of one existing task, not a request to create a new task.
+Return exactly one task containing the corrected complete title, factual description, next action,
+definition of done and typed tags. CURRENT TASK is authoritative unless MESSAGE or EVIDENCE
+explicitly corrects it. Apply the smallest evidence-backed correction. Preserve unchanged facts
+and proper names exactly. A newer comment may correct an older comment or transcription. Known
+proper-name hints are spelling references only and never evidence that a brand is involved.
+Never turn the correction instruction itself into the task title. Never append a chat log or
+"updated from Telegram" boilerplate. Do not change or propose assignee, requester, due date,
+status, priority, price, payment, purchase, checkout, or external messaging. Set project_ref,
+order_ref, assignee_ref and due_at to null, executor_type to human, and requires_approval to true
+when the requested correction cannot be supported by the supplied evidence.`
+          : "";
       const response = await client.models.generateContent({
         model: input.model,
         contents: `You are a read-only extraction component for an internal operations inbox.
@@ -416,6 +430,8 @@ that task to that member. Never infer an assignee only from the task subject or 
 Otherwise return a null assignee_ref. When
 CONTEXT.batch.oneTaskRequired is true, return exactly one task that summarizes the entire batch.
 For other batches, deduplicate repeated requests and return only distinct actionable tasks.
+
+${taskReconcileInstruction}
 
 CONTEXT:
 ${JSON.stringify(input.context)}

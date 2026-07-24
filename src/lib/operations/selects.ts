@@ -35,7 +35,29 @@ export const opsTaskListSelect = {
       email: true,
     },
   },
+  assignees: {
+    orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }],
+    select: {
+      id: true,
+      adminUserId: true,
+      createdAt: true,
+      adminUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  },
   createdBy: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  requestedBy: {
     select: {
       id: true,
       name: true,

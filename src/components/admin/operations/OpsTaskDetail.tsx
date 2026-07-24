@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Activity,
-  ArrowRight,
   ArrowLeft,
   BookOpen,
   CalendarDays,
@@ -234,6 +233,20 @@ function displayPersonName(person?: { name?: string | null; email?: string | nul
   return name || email || "Неизвестно";
 }
 
+function normalizeTaskAssignees(task: Pick<OpsTask, "assignee" | "assignees">): OpsPerson[] {
+  const people = (task.assignees ?? []).flatMap((entry) => {
+    const person =
+      entry && typeof entry === "object" && "adminUser" in entry ? entry.adminUser : entry;
+    return person && typeof person.id === "string" ? [person] : [];
+  });
+
+  if (!people.length && task.assignee) {
+    people.push(task.assignee);
+  }
+
+  return Array.from(new Map(people.map((person) => [person.id, person])).values());
+}
+
 export function OpsTaskDetail({
   task,
   compact = false,
@@ -294,6 +307,9 @@ export function OpsTaskDetail({
   const [taskMembers, setTaskMembers] = useState<OpsPerson[]>([]);
   const [taskReferencesLoading, setTaskReferencesLoading] = useState(false);
   const [inlineMembersLoading, setInlineMembersLoading] = useState(false);
+  const [assigneePickerOpen, setAssigneePickerOpen] = useState(false);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
+  const assigneePickerRef = useRef<HTMLDivElement>(null);
   const [transitionDialogStatus, setTransitionDialogStatus] = useState<OpsTaskStatus | null>(null);
   const [transitionNextAction, setTransitionNextAction] = useState("");
   const [transitionBlockerDescription, setTransitionBlockerDescription] = useState("");
@@ -325,6 +341,38 @@ export function OpsTaskDetail({
         ?.transcription;
 
   const activity = useMemo(() => current.events ?? [], [current.events]);
+  const currentAssignees = useMemo(() => normalizeTaskAssignees(current), [current]);
+  const effectiveRequester =
+    current.requestedBy === undefined ? (current.createdBy ?? null) : current.requestedBy;
+  const knownTaskMembers = useMemo(() => {
+    const byId = new Map<string, OpsPerson>();
+    for (const person of [
+      ...currentAssignees,
+      effectiveRequester,
+      current.createdBy,
+      ...taskMembers,
+    ]) {
+      if (person) byId.set(person.id, person);
+    }
+    return Array.from(byId.values());
+  }, [current.createdBy, currentAssignees, effectiveRequester, taskMembers]);
+  const filteredTaskMembers = useMemo(() => {
+    const query = assigneeSearch.trim().toLocaleLowerCase("ru-RU");
+    const selectedIds = new Set(currentAssignees.map((person) => person.id));
+    return knownTaskMembers
+      .filter((member) => {
+        if (!query) return true;
+        return `${displayPersonName(member)} ${member.email}`
+          .toLocaleLowerCase("ru-RU")
+          .includes(query);
+      })
+      .sort((left, right) => {
+        const selectedDifference =
+          Number(selectedIds.has(right.id)) - Number(selectedIds.has(left.id));
+        if (selectedDifference) return selectedDifference;
+        return displayPersonName(left).localeCompare(displayPersonName(right), "ru");
+      });
+  }, [assigneeSearch, currentAssignees, knownTaskMembers]);
   const progressUpdates = useMemo(() => {
     const events = current.events ?? [];
     const reverted = new Set(
@@ -354,6 +402,31 @@ export function OpsTaskDetail({
   useEffect(() => {
     setDueDraft(dueInputValue(current.dueAt));
   }, [current.dueAt]);
+
+  useEffect(() => {
+    if (!assigneePickerOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && !assigneePickerRef.current?.contains(event.target)) {
+        setAssigneePickerOpen(false);
+        setAssigneeSearch("");
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAssigneePickerOpen(false);
+        setAssigneeSearch("");
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [assigneePickerOpen]);
 
   function taskDraftFingerprint() {
     return JSON.stringify([editTitle.trim(), editDescription.trim()]);
@@ -569,13 +642,14 @@ export function OpsTaskDetail({
 
   async function mutateTaskPatchWithRefresh(
     patch: Record<string, unknown>,
-    scope: string
+    scope: string,
+    patchAfterRefresh?: (latest: OpsTask) => Record<string, unknown>
   ): Promise<OpsTask> {
-    const mutate = (version: number) =>
+    const mutate = (version: number, body = patch) =>
       opsMutation<{ task: OpsTask }>({
         path: `/api/admin/operations/tasks/${current.id}`,
         method: "PATCH",
-        body: patch,
+        body,
         version,
         scope,
       });
@@ -589,33 +663,60 @@ export function OpsTaskDetail({
       const latest = await opsGet<{ task: OpsTask }>(`/api/admin/operations/tasks/${current.id}`);
       setCurrent(latest.task);
       onTaskChange?.(latest.task);
-      return (await mutate(latest.task.version)).task;
+      return (await mutate(latest.task.version, patchAfterRefresh?.(latest.task) ?? patch)).task;
     }
   }
 
-  async function saveInlineTaskPatch(patch: Record<string, unknown>, scope: string) {
-    if (!canWrite || pending) return false;
+  async function saveInlineTaskPatch(
+    patch: Record<string, unknown>,
+    scope: string,
+    patchAfterRefresh?: (latest: OpsTask) => Record<string, unknown>
+  ) {
+    const participantChange = scope === "assignee" || scope === "requester";
+    if (pending || (!canWrite && !(canAssign && participantChange))) return false;
     setPending(true);
     setError(null);
     try {
       let updated: OpsTask;
       if (demoMode) {
         await new Promise((resolve) => setTimeout(resolve, 180));
-        const assigneeId = Object.hasOwn(patch, "assigneeId")
-          ? String(patch.assigneeId ?? "")
-          : null;
+        const hasAssigneeIds = Object.hasOwn(patch, "assigneeIds");
+        const assigneeIds =
+          hasAssigneeIds && Array.isArray(patch.assigneeIds)
+            ? patch.assigneeIds.filter((value): value is string => typeof value === "string")
+            : [];
+        const hasRequestedById = Object.hasOwn(patch, "requestedById");
+        const requestedById =
+          hasRequestedById && typeof patch.requestedById === "string" ? patch.requestedById : null;
+        const taskPatch = Object.fromEntries(
+          Object.entries(patch).filter(([key]) => key !== "assigneeIds" && key !== "requestedById")
+        );
+        const demoAssignees = assigneeIds.flatMap((id) => {
+          const person = knownTaskMembers.find((member) => member.id === id);
+          return person ? [person] : [];
+        });
         updated = {
           ...current,
-          ...patch,
-          ...(Object.hasOwn(patch, "assigneeId")
+          ...taskPatch,
+          ...(hasAssigneeIds
             ? {
-                assignee: taskMembers.find((member) => member.id === assigneeId) ?? null,
+                assignees: demoAssignees,
+                assignee: demoAssignees[0] ?? null,
+              }
+            : {}),
+          ...(hasRequestedById
+            ? {
+                requestedBy: knownTaskMembers.find((member) => member.id === requestedById) ?? null,
               }
             : {}),
           version: current.version + 1,
         } as OpsTask;
       } else {
-        updated = await mutateTaskPatchWithRefresh(patch, `task-inline-${scope}:${current.id}`);
+        updated = await mutateTaskPatchWithRefresh(
+          patch,
+          `task-inline-${scope}:${current.id}`,
+          patchAfterRefresh
+        );
       }
       setCurrent(updated);
       onTaskChange?.(updated);
@@ -653,6 +754,22 @@ export function OpsTaskDetail({
     } finally {
       setInlineMembersLoading(false);
     }
+  }
+
+  async function updateTaskAssignee(memberId: string, assigned: boolean) {
+    if (!canAssign || pending) return;
+    const currentIds = currentAssignees.map((person) => person.id);
+    const assigneeIds = assigned
+      ? Array.from(new Set([...currentIds, memberId]))
+      : currentIds.filter((id) => id !== memberId);
+    await saveInlineTaskPatch({ assigneeIds }, "assignee", (latest) => {
+      const latestIds = normalizeTaskAssignees(latest).map((person) => person.id);
+      return {
+        assigneeIds: assigned
+          ? Array.from(new Set([...latestIds, memberId]))
+          : latestIds.filter((id) => id !== memberId),
+      };
+    });
   }
 
   async function openTaskEditor() {
@@ -1130,6 +1247,7 @@ export function OpsTaskDetail({
           </div>
           <div
             className={cn(
+              "relative",
               compact
                 ? "mt-4 border-r border-t border-slate-200 pr-3 pt-4"
                 : "border-b border-slate-200 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
@@ -1137,7 +1255,7 @@ export function OpsTaskDetail({
           >
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <CircleUserRound className="h-4 w-4" />
-              Исполнитель
+              Исполнители
             </div>
             {current.isShared ? (
               <div className="mt-2 flex min-h-9 items-center gap-2 text-sm font-semibold text-blue-700">
@@ -1147,50 +1265,144 @@ export function OpsTaskDetail({
                 Вся команда
               </div>
             ) : canAssign ? (
-              <div className="mt-2 flex min-h-9 items-center gap-1">
-                <span
-                  className={cn(
-                    "h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px]",
-                    compact ? "hidden" : "flex"
-                  )}
-                >
-                  {initials(current.assignee?.name)}
-                </span>
-                <select
-                  aria-label="Исполнитель задачи"
-                  title={current.assignee?.name || current.assignee?.email || "Не назначен"}
-                  value={current.assignee?.id ?? ""}
-                  disabled={pending}
-                  onFocus={() => void loadInlineMembers()}
-                  onChange={(event) =>
-                    void saveInlineTaskPatch({ assigneeId: event.target.value || null }, "assignee")
-                  }
-                  className={cn(
-                    "h-9 min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent px-1 font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50",
-                    compact ? "text-xs" : "text-sm"
-                  )}
-                >
-                  <option value="">Не назначен</option>
-                  {inlineMembersLoading ? <option disabled>Загрузка…</option> : null}
-                  {current.assignee?.id &&
-                  !taskMembers.some((member) => member.id === current.assignee?.id) ? (
-                    <option value={current.assignee.id}>
-                      {current.assignee.name || current.assignee.email}
-                    </option>
-                  ) : null}
-                  {taskMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name || member.email}
-                    </option>
+              <div ref={assigneePickerRef} className="relative mt-2 min-h-9">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {currentAssignees.map((person) => (
+                    <span
+                      key={person.id}
+                      className="inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-blue-200 bg-blue-50 pl-1 pr-1.5 text-xs font-medium text-blue-800"
+                      title={displayPersonName(person)}
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[9px] font-semibold">
+                        {initials(person.name)}
+                      </span>
+                      <span className="max-w-28 truncate">{displayPersonName(person)}</span>
+                      <button
+                        type="button"
+                        onClick={() => void updateTaskAssignee(person.id, false)}
+                        disabled={pending}
+                        aria-label={`Убрать исполнителя ${displayPersonName(person)}`}
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-blue-500 hover:bg-blue-100 hover:text-blue-800 disabled:opacity-50"
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </span>
                   ))}
-                </select>
+                  <button
+                    type="button"
+                    aria-label="Исполнитель задачи"
+                    aria-expanded={assigneePickerOpen}
+                    onClick={() => {
+                      setAssigneePickerOpen((open) => !open);
+                      setAssigneeSearch("");
+                      void loadInlineMembers();
+                    }}
+                    disabled={pending}
+                    className={cn(
+                      "flex h-8 items-center gap-1 rounded-full border border-dashed border-slate-300 px-2 font-medium text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50",
+                      compact ? "text-[11px]" : "text-xs"
+                    )}
+                  >
+                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                    {currentAssignees.length ? "Добавить" : "Назначить"}
+                  </button>
+                </div>
+                {assigneePickerOpen ? (
+                  <div
+                    role="dialog"
+                    aria-label="Выбор исполнителей"
+                    className="absolute left-0 top-full z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="search"
+                        autoFocus
+                        value={assigneeSearch}
+                        onChange={(event) => setAssigneeSearch(event.target.value)}
+                        placeholder="Найти сотрудника…"
+                        aria-label="Поиск исполнителя"
+                        className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAssigneePickerOpen(false);
+                          setAssigneeSearch("");
+                        }}
+                        aria-label="Закрыть выбор исполнителей"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div className="mt-2 max-h-56 overflow-y-auto overscroll-contain">
+                      {inlineMembersLoading && taskMembers.length === 0 ? (
+                        <div className="flex h-16 items-center justify-center gap-2 text-sm text-slate-500">
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                          Загрузка…
+                        </div>
+                      ) : filteredTaskMembers.length ? (
+                        filteredTaskMembers.map((member) => {
+                          const checked = currentAssignees.some(
+                            (person) => person.id === member.id
+                          );
+                          return (
+                            <label
+                              key={member.id}
+                              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={pending}
+                                onChange={(event) =>
+                                  void updateTaskAssignee(member.id, event.target.checked)
+                                }
+                                className="h-4 w-4 shrink-0 accent-blue-600"
+                              />
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700">
+                                {initials(member.name)}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium text-slate-900">
+                                  {displayPersonName(member)}
+                                </span>
+                                {member.name ? (
+                                  <span className="block truncate text-xs text-slate-400">
+                                    {member.email}
+                                  </span>
+                                ) : null}
+                              </span>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <p className="px-2 py-4 text-center text-sm text-slate-500">
+                          Никого не найдено
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
-              <div className="mt-2 flex min-h-9 items-center gap-2 text-sm font-medium">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[11px]">
-                  {initials(current.assignee?.name)}
-                </span>
-                <span className="truncate">{current.assignee?.name || "Не назначен"}</span>
+              <div className="mt-2 flex min-h-9 flex-wrap items-center gap-1.5">
+                {currentAssignees.length ? (
+                  currentAssignees.map((person) => (
+                    <span
+                      key={person.id}
+                      className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full bg-slate-100 pl-1 pr-2 text-xs font-medium text-slate-800"
+                      title={displayPersonName(person)}
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[9px]">
+                        {initials(person.name)}
+                      </span>
+                      <span className="max-w-28 truncate">{displayPersonName(person)}</span>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm font-medium text-slate-500">Не назначены</span>
+                )}
               </div>
             )}
           </div>
@@ -1227,23 +1439,42 @@ export function OpsTaskDetail({
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-200 py-3 text-sm">
-          <span className="flex items-center gap-2 text-slate-600">
-            <UserRoundCheck className="h-4 w-4 text-slate-400" />
-            Поставил:
-            <strong className="font-semibold text-slate-900">
-              {displayPersonName(current.createdBy)}
-            </strong>
-          </span>
-          <ArrowRight className="hidden h-4 w-4 text-slate-300 sm:block" />
-          <span className="flex items-center gap-2 text-slate-600">
-            <CircleUserRound className="h-4 w-4 text-slate-400" />
-            Выполняет:
-            <strong className="font-semibold text-slate-900">
-              {current.isShared
-                ? "Вся команда"
-                : current.assignee?.name || current.assignee?.email || "Не назначен"}
-            </strong>
+        <div className="grid gap-2 border-b border-slate-200 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="flex min-w-0 items-center gap-2 text-slate-600">
+            <UserRoundCheck className="h-4 w-4 shrink-0 text-slate-400" />
+            <span className="shrink-0">Поставил:</span>
+            {canAssign ? (
+              <select
+                aria-label="Кто поставил задачу"
+                value={effectiveRequester?.id ?? ""}
+                disabled={pending}
+                onFocus={() => void loadInlineMembers()}
+                onChange={(event) =>
+                  void saveInlineTaskPatch(
+                    { requestedById: event.target.value || null },
+                    "requester"
+                  )
+                }
+                className="h-9 min-w-0 max-w-full cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+              >
+                <option value="">Не определён</option>
+                {inlineMembersLoading ? <option disabled>Загрузка…</option> : null}
+                {knownTaskMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {displayPersonName(member)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <strong className="truncate font-semibold text-slate-900">
+                {effectiveRequester ? displayPersonName(effectiveRequester) : "Не определён"}
+              </strong>
+            )}
+          </div>
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-slate-400 sm:justify-end">
+            <CircleUserRound className="h-3.5 w-3.5 shrink-0" />
+            Добавил в систему:
+            <span className="truncate">{displayPersonName(current.createdBy)}</span>
           </span>
         </div>
 

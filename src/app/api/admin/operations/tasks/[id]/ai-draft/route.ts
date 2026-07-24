@@ -63,6 +63,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         id: true,
         number: true,
         assigneeId: true,
+        assignees: { select: { adminUserId: true } },
         createdById: true,
         isShared: true,
         version: true,
@@ -81,7 +82,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
     if (!task) throw new OpsError("NOT_FOUND", 404, "Task not found");
-    assertCanWriteTask(access, task);
+    assertCanWriteTask(
+      access,
+      task,
+      task.assignees.map((assignment) => assignment.adminUserId)
+    );
 
     const originalTranscripts = task.attachments
       .flatMap(({ attachment }) =>

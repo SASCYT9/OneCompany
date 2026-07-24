@@ -118,7 +118,7 @@ test("Ops UI mutations use responsive forms and require operator input instead o
   assert.doesNotMatch(detail, /ops-task-edit-title/);
   assert.match(detail, /task-inline-\$\{scope\}/);
   assert.match(detail, /saveInlineTaskPatch\([\s\S]*?"priority"/);
-  assert.match(detail, /saveInlineTaskPatch\([\s\S]*?"assignee"/);
+  assert.match(detail, /saveInlineTaskPatch\(\{\s*assigneeIds\s*\}[\s\S]*?"assignee"/);
   assert.match(detail, /saveInlineTaskPatch\([\s\S]*?"due"/);
 });
 
@@ -360,11 +360,47 @@ test("task workspace exposes a permission-safe participant filter with server-si
   assert.match(membersRoute, /OPS_TASKS_READ/);
   assert.match(membersRoute, /activeTaskCount/);
   assert.match(tasksRoute, /const assigneeId/);
-  assert.match(tasksRoute, /OR: \[\{ assigneeId \}, \{ isShared: true \}\]/);
+  assert.match(tasksRoute, /assignees:\s*\{\s*some:\s*\{\s*adminUserId:\s*access\.id\s*\}/);
+  assert.match(tasksRoute, /assignees:\s*\{\s*some:\s*\{\s*adminUserId:\s*assigneeId\s*\}/);
+  assert.match(tasksRoute, /assignees:\s*\{\s*none:\s*\{\s*\}\s*\}/);
   assert.match(
     routeAccess,
     /id: "ops-members-read"[\s\S]*?permission: ADMIN_PERMISSIONS\.OPS_TASKS_READ/
   );
+});
+
+test("task requester is persisted separately from the immutable creator and is editable in details", () => {
+  const tasksRoute = readFileSync(
+    new URL("../../../src/app/api/admin/operations/tasks/route.ts", import.meta.url),
+    "utf8"
+  );
+  const detailRoute = readFileSync(
+    new URL("../../../src/app/api/admin/operations/tasks/[id]/route.ts", import.meta.url),
+    "utf8"
+  );
+  const select = readFileSync(
+    new URL("../../../src/lib/operations/selects.ts", import.meta.url),
+    "utf8"
+  );
+  const detail = readFileSync(
+    new URL("../../../src/components/admin/operations/OpsTaskDetail.tsx", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(tasksRoute, /requestedById:\s*normalizedInput\.requestedById\s*\?\?\s*access\.id/);
+  assert.match(tasksRoute, /createdById:\s*access\.id/);
+  assert.match(detailRoute, /requestedByIdFrom:\s*current\.requestedById/);
+  assert.match(detailRoute, /requestedByIdTo:\s*task\.requestedBy\?\.id\s*\?\?\s*null/);
+  assert.match(
+    select,
+    /requestedBy:\s*\{\s*select:\s*\{\s*id:\s*true,\s*name:\s*true,\s*email:\s*true/
+  );
+  assert.match(
+    select,
+    /createdBy:\s*\{\s*select:\s*\{\s*id:\s*true,\s*name:\s*true,\s*email:\s*true/
+  );
+  assert.match(detail, /requestedById/);
+  assert.match(detail, /current\.createdBy/);
 });
 
 test("task editing avoids Vercel preconditions and offers bounded Gemini draft assistance", () => {

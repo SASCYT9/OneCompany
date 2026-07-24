@@ -9,6 +9,14 @@ import { OpsTaskDetail } from "./OpsTaskDetail";
 import { opsGet } from "./opsApi";
 import type { OpsKnowledgeArticle, OpsTask } from "./types";
 
+function taskHasAssignee(task: OpsTask, adminUserId: string) {
+  const people = (task.assignees ?? []).map((entry) =>
+    "adminUser" in entry ? entry.adminUser : entry
+  );
+  if (!people.length && task.assignee) people.push(task.assignee);
+  return people.some((person) => person.id === adminUserId);
+}
+
 export function OpsTaskScreen({
   taskId,
   initialTask,
@@ -65,7 +73,7 @@ export function OpsTaskScreen({
             canWrite &&
             (canManageAll ||
               task.isShared ||
-              task.assignee?.id === currentAdminId ||
+              taskHasAssignee(task, currentAdminId) ||
               task.createdBy?.id === currentAdminId)
           }
           canReadKnowledge={canReadKnowledge}

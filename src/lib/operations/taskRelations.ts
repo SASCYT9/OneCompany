@@ -1,11 +1,14 @@
 import type { Prisma } from "@prisma/client";
 import { OpsError } from "@/lib/operations/errors";
+import { normalizeOpsTaskAssigneeIds } from "@/lib/operations/tasks";
 
 type RelationInput = {
   projectId?: string | null;
   shopOrderId?: string | null;
   parentTaskId?: string | null;
   assigneeId?: string | null;
+  assigneeIds?: readonly string[];
+  requestedById?: string | null;
 };
 
 async function assertParentDoesNotCreateCycle(
@@ -44,6 +47,24 @@ export async function assertValidOpsTaskRelations(
   input: RelationInput,
   currentTaskId?: string
 ) {
+  const assigneeIds =
+    input.assigneeIds === undefined
+      ? input.assigneeId
+        ? [input.assigneeId]
+        : []
+      : normalizeOpsTaskAssigneeIds(input.assigneeIds);
+  if (
+    input.assigneeIds !== undefined &&
+    input.assigneeId !== undefined &&
+    input.assigneeId !== (assigneeIds[0] ?? null)
+  ) {
+    throw new OpsError(
+      "VALIDATION_ERROR",
+      400,
+      "assigneeId must match the first assigneeIds entry"
+    );
+  }
+
   if (input.projectId) {
     const project = await tx.opsProject.findFirst({
       where: { id: input.projectId, archivedAt: null },
@@ -64,13 +85,27 @@ export async function assertValidOpsTaskRelations(
     }
   }
 
-  if (input.assigneeId) {
-    const assignee = await tx.adminUser.findFirst({
-      where: { id: input.assigneeId, isActive: true },
+  if (assigneeIds.length > 0) {
+    const assignees = await tx.adminUser.findMany({
+      where: { id: { in: assigneeIds }, isActive: true },
       select: { id: true },
     });
-    if (!assignee) {
-      throw new OpsError("ASSIGNEE_NOT_FOUND", 409, "Assignee is not an active admin");
+    const activeIds = new Set(assignees.map((assignee) => assignee.id));
+    const missingAssigneeIds = assigneeIds.filter((assigneeId) => !activeIds.has(assigneeId));
+    if (missingAssigneeIds.length > 0) {
+      throw new OpsError("ASSIGNEE_NOT_FOUND", 409, "One or more assignees are not active admins", {
+        assigneeIds: missingAssigneeIds,
+      });
+    }
+  }
+
+  if (input.requestedById) {
+    const requester = await tx.adminUser.findFirst({
+      where: { id: input.requestedById, isActive: true },
+      select: { id: true },
+    });
+    if (!requester) {
+      throw new OpsError("REQUESTER_NOT_FOUND", 409, "Task requester is not an active admin");
     }
   }
 

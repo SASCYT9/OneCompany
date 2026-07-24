@@ -64,6 +64,10 @@ import { createOpsExternalId } from "@/lib/operations/ids";
 import { appendOpsSourceUrls, linkMatchingBrandGuides } from "@/lib/operations/brandGuides";
 import { normalizeTaskCreateInput, resolveOpsTaskDueAt } from "@/lib/operations/tasks";
 import { enqueueOpsTaskAssignmentNotification } from "@/lib/operations/taskNotifications";
+import {
+  executeOpsTaskAiReconcileJob,
+  OPS_TASK_AI_RECONCILE_JOB,
+} from "@/lib/operations/taskAiReconcile";
 import { assertValidOpsTaskRelations } from "@/lib/operations/taskRelations";
 
 type ResolvedOpsContext = {
@@ -506,8 +510,52 @@ function extractedTaskTags(task: OpsExtraction["tasks"][number]) {
   );
 }
 
+function reconciledTaskTags(current: string[], task: OpsExtraction["tasks"][number] | null) {
+  if (!task) return current;
+  const sources: Array<[string, string[]]> = [
+    ["brand", task.brand_tags ?? []],
+    ["product", task.product_tags ?? []],
+    ["process", task.process_tags ?? []],
+  ];
+  const replacements = new Map<string, string[]>(
+    sources.map(([prefix, values]) => [
+      prefix,
+      Array.from(
+        new Set(
+          values
+            .map((value) =>
+              String(value)
+                .replace(/\u0000/g, "")
+                .trim()
+                .slice(0, 90)
+            )
+            .filter(Boolean)
+            .map((value) => `${prefix}:${value}`)
+        )
+      ),
+    ])
+  );
+  const preserved = current.filter((tag) => {
+    const match = /^(brand|product|process):/iu.exec(tag);
+    return !match || !(replacements.get(match[1].toLocaleLowerCase("en-US"))?.length ?? 0);
+  });
+  return Array.from(
+    new Map(
+      [...preserved, ...Array.from(replacements.values()).flat()].map((tag) => [
+        tag.toLocaleLowerCase("en-US"),
+        tag,
+      ])
+    ).values()
+  ).slice(0, 50);
+}
+
 export async function extractionContext(client: PrismaClient, payload: TelegramJobPayload) {
-  const [requester, repliedMessageAuthor, assignmentCandidates] = await Promise.all([
+  const explicitTaskUpdate =
+    !payload.isUntrustedForward && !payload.batchId
+      ? (parseTelegramTaskDescriptionUpdate(payload.text) ??
+        parseTelegramTaskDescriptionUpdate(payload.transcription))
+      : null;
+  const [requester, repliedMessageAuthor, assignmentCandidates, reconcileTask] = await Promise.all([
     client.adminUser.findUnique({
       where: { id: payload.actorAdminUserId },
       select: { id: true, name: true },
@@ -534,6 +582,24 @@ export async function extractionContext(client: PrismaClient, payload: TelegramJ
         },
       },
     }),
+    explicitTaskUpdate
+      ? client.opsTask.findUnique({
+          where: { number: explicitTaskUpdate.number },
+          select: {
+            id: true,
+            number: true,
+            title: true,
+            description: true,
+            tags: true,
+            status: true,
+            priority: true,
+            dueAt: true,
+            nextAction: true,
+            definitionOfDone: true,
+            version: true,
+          },
+        })
+      : null,
   ]);
   const assignmentDirectory = assignmentCandidates
     .filter((candidate) =>
@@ -552,6 +618,22 @@ export async function extractionContext(client: PrismaClient, payload: TelegramJ
     }));
   return {
     source: "telegram",
+    operation: reconcileTask ? "task_reconcile" : "task_extract",
+    sourceVersion: reconcileTask?.version ?? null,
+    currentTask: reconcileTask
+      ? {
+          number: reconcileTask.number,
+          title: reconcileTask.title,
+          description: reconcileTask.description,
+          tags: reconcileTask.tags,
+          status: reconcileTask.status,
+          priority: reconcileTask.priority,
+          dueAt: reconcileTask.dueAt?.toISOString() ?? null,
+          nextAction: reconcileTask.nextAction,
+          definitionOfDone: reconcileTask.definitionOfDone,
+        }
+      : null,
+    correctionDirective: explicitTaskUpdate?.update ?? null,
     commandText: payload.transcription ? payload.text : null,
     batch: payload.batchId
       ? {
@@ -1128,12 +1210,15 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         title: true,
         description: true,
         assigneeId: true,
+        assignees: { select: { adminUserId: true } },
         createdById: true,
         isShared: true,
         archivedAt: true,
         version: true,
         status: true,
         nextAction: true,
+        definitionOfDone: true,
+        tags: true,
       },
     });
     const canWrite = Boolean(
@@ -1142,6 +1227,7 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         task &&
         !task.archivedAt &&
         (task.isShared ||
+          task.assignees.some((assignment) => assignment.adminUserId === actor.id) ||
           task.assigneeId === actor.id ||
           task.createdById === actor.id ||
           matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN))
@@ -1192,7 +1278,6 @@ async function applyTelegramTaskDescriptionUpdate(input: {
       minute: "2-digit",
     }).format(new Date());
     const addition = `Обновление из Telegram · ${timestamp}\n${progressText}`;
-    const description = [task.description?.trim(), addition].filter(Boolean).join("\n\n");
     const extractedTask =
       input.payload.extraction &&
       !input.payload.extraction.requires_approval &&
@@ -1200,14 +1285,48 @@ async function applyTelegramTaskDescriptionUpdate(input: {
       input.payload.extraction.tasks.length === 1
         ? input.payload.extraction.tasks[0]
         : null;
+    const canApplyReconciledFields = Boolean(explicitCommand && extractedTask);
+    const title =
+      canApplyReconciledFields && extractedTask?.title.trim()
+        ? extractedTask.title.trim()
+        : task.title;
+    const description =
+      canApplyReconciledFields && extractedTask?.description?.trim()
+        ? extractedTask.description.trim()
+        : [task.description?.trim(), addition].filter(Boolean).join("\n\n");
     const nextAction = extractedTask?.next_action?.trim() || task.nextAction;
+    const definitionOfDone =
+      canApplyReconciledFields && extractedTask?.definition_of_done?.trim()
+        ? extractedTask.definition_of_done.trim()
+        : task.definitionOfDone;
+    const tags = canApplyReconciledFields
+      ? reconciledTaskTags(task.tags, extractedTask)
+      : task.tags;
+    const changedFields = [
+      ...(title !== task.title ? ["title"] : []),
+      ...(description !== task.description ? ["description"] : []),
+      ...(nextAction !== task.nextAction ? ["nextAction"] : []),
+      ...(definitionOfDone !== task.definitionOfDone ? ["definitionOfDone"] : []),
+      ...(JSON.stringify(tags) !== JSON.stringify(task.tags) ? ["tags"] : []),
+    ];
     const readyAttachments = await tx.opsAttachment.findMany({
       where: { inboxItemId: input.job.inboxItemId!, state: OpsAttachmentState.READY },
       select: { id: true },
     });
-    const updated = await tx.opsTask.update({
+    const changed = await tx.opsTask.updateMany({
+      where: { id: task.id, version: task.version, archivedAt: null },
+      data: {
+        title,
+        description,
+        nextAction,
+        definitionOfDone,
+        tags,
+        version: { increment: 1 },
+      },
+    });
+    if (changed.count !== 1) throw new Error("OPS_TASK_VERSION_CONFLICT");
+    const updated = await tx.opsTask.findUniqueOrThrow({
       where: { id: task.id },
-      data: { description, nextAction, version: { increment: 1 } },
       select: {
         id: true,
         number: true,
@@ -1216,6 +1335,10 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         status: true,
         nextAction: true,
       },
+    });
+    const brandGuides = await linkMatchingBrandGuides(tx, {
+      taskId: task.id,
+      texts: [title, description, nextAction, ...tags],
     });
     const updateEvent = await tx.opsTaskEvent.create({
       data: {
@@ -1227,13 +1350,20 @@ async function applyTelegramTaskDescriptionUpdate(input: {
         idempotencyKey: eventKey,
         payload: {
           kind: "progress_update",
-          fields: nextAction !== task.nextAction ? ["description", "nextAction"] : ["description"],
+          fields: changedFields,
           taskNumber: task.number,
           update: progressText,
+          titleBefore: task.title,
+          titleAfter: title,
           descriptionBefore: task.description,
           descriptionAfter: description,
           nextActionBefore: task.nextAction,
           nextActionAfter: nextAction,
+          definitionOfDoneBefore: task.definitionOfDone,
+          definitionOfDoneAfter: definitionOfDone,
+          tagsBefore: task.tags,
+          tagsAfter: tags,
+          brandGuideKeys: brandGuides.brandArticles.map((article) => article.brandKey),
           attachmentIds: readyAttachments.map((attachment) => attachment.id),
           status: task.status,
           previousVersion: task.version,
@@ -1278,6 +1408,8 @@ async function applyTelegramTaskDescriptionUpdate(input: {
           version: updated.version,
           updateEventId: updateEvent.id,
           attachmentCount: readyAttachments.length,
+          changedFields,
+          aiReconciled: canApplyReconciledFields,
         },
       },
     });
@@ -1287,7 +1419,7 @@ async function applyTelegramTaskDescriptionUpdate(input: {
       taskId: task.id,
       updateEventId: updateEvent.id,
       response: [
-        `✅ Обновил задачу #${task.number} «${task.title}»`,
+        `✅ Обновил задачу #${task.number} «${title}»`,
         "",
         `Статус: ${taskStatusLabel(updated.status)}`,
         `Новое: ${progressText.slice(0, 1_200)}`,
@@ -1414,11 +1546,12 @@ export async function autoApplyTelegramTaskProposals(input: {
       }));
       const assignmentAllowed = Boolean(
         actor &&
-          normalized.every(
-            ({ input: taskInput }) =>
-              !taskInput.assigneeId ||
-              taskInput.assigneeId === actor.id ||
-              matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN)
+          normalized.every(({ input: taskInput }) =>
+            taskInput.assigneeIds.every(
+              (assigneeId) =>
+                assigneeId === actor.id ||
+                matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN)
+            )
           )
       );
       if (!actorAllowed || !actor) {
@@ -1436,15 +1569,51 @@ export async function autoApplyTelegramTaskProposals(input: {
         };
       }
 
+      const batchForwardedTelegramUserIds = Array.from(
+        new Set(
+          (payload.batchStoredItems ?? [])
+            .map((item) => item.forwardedFrom?.telegramUserId)
+            .filter((telegramUserId): telegramUserId is string =>
+              Boolean(telegramUserId && /^\d+$/.test(telegramUserId))
+            )
+        )
+      );
+      const forwardedTelegramUserId =
+        payload.forwardedFrom?.telegramUserId && /^\d+$/.test(payload.forwardedFrom.telegramUserId)
+          ? BigInt(payload.forwardedFrom.telegramUserId)
+          : batchForwardedTelegramUserIds.length === 1
+            ? BigInt(batchForwardedTelegramUserIds[0])
+            : null;
+      const replyTelegramUserId =
+        payload.context?.source === "reply" &&
+        payload.replyToTelegramUserId &&
+        /^\d+$/.test(payload.replyToTelegramUserId)
+          ? BigInt(payload.replyToTelegramUserId)
+          : null;
+      const requestedByProfile =
+        forwardedTelegramUserId || replyTelegramUserId
+          ? await tx.opsMemberProfile.findFirst({
+              where: {
+                telegramUserId: forwardedTelegramUserId ?? replyTelegramUserId!,
+                telegramEnabled: true,
+                adminUser: { isActive: true },
+              },
+              select: { adminUserId: true },
+            })
+          : null;
+      const hasForwardedEvidence =
+        payload.isUntrustedForward ||
+        (payload.batchStoredItems ?? []).some((item) => Boolean(item.forwardedFrom));
+      const requestedById =
+        requestedByProfile?.adminUserId ?? (hasForwardedEvidence ? null : actor.id);
       const tasks: Array<{ id: string; number: number; externalId: string; title: string }> = [];
       for (const { proposal, input: taskInput } of normalized) {
         if (
           input.keepInboxPending &&
-          taskInput.assigneeId &&
-          taskInput.assigneeId !== actor.id &&
+          taskInput.assigneeIds.some((assigneeId) => assigneeId !== actor.id) &&
           !matchesAdminPermission(actor.permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN)
         ) {
-          taskInput.assigneeId = null;
+          Object.assign(taskInput, { assigneeId: null, assigneeIds: [] });
         }
         taskInput.description = appendOpsSourceUrls(taskInput.description, [
           inbox.originalMessage,
@@ -1461,6 +1630,8 @@ export async function autoApplyTelegramTaskProposals(input: {
             externalId: true,
             title: true,
             assigneeId: true,
+            assignees: { select: { adminUserId: true } },
+            requestedById: true,
             dueAt: true,
             version: true,
           },
@@ -1483,15 +1654,25 @@ export async function autoApplyTelegramTaskProposals(input: {
           });
           continue;
         }
+        const { assigneeIds, ...persistedTaskInput } = taskInput;
         const task = await tx.opsTask.create({
           data: {
-            ...taskInput,
+            ...persistedTaskInput,
             dueAt: resolveOpsTaskDueAt(taskInput.dueAt),
             externalId: createOpsExternalId("ONE"),
             createdById: actor.id,
+            requestedById,
             sourceType: OpsTaskSourceType.TELEGRAM,
             sourceId: proposal.id,
             sourceKey,
+            assignees: assigneeIds.length
+              ? {
+                  create: assigneeIds.map((adminUserId) => ({
+                    adminUserId,
+                    assignedById: actor.id,
+                  })),
+                }
+              : undefined,
           },
           select: {
             id: true,
@@ -1499,6 +1680,8 @@ export async function autoApplyTelegramTaskProposals(input: {
             externalId: true,
             title: true,
             assigneeId: true,
+            assignees: { select: { adminUserId: true } },
+            requestedById: true,
             dueAt: true,
             version: true,
           },
@@ -1539,6 +1722,8 @@ export async function autoApplyTelegramTaskProposals(input: {
               autoCreated: true,
               confidence: payload.extraction!.confidence,
               contextSource: payload.context?.source ?? "none",
+              requestedById,
+              assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
               brandGuideKeys: brandGuides.brandArticles.map((article) => article.brandKey),
               shippingReferenceLinked: brandGuides.shippingArticles.length > 0,
               shippingEstimateKeys: brandGuides.shippingEstimates.map((estimate) => estimate.key),
@@ -1547,7 +1732,10 @@ export async function autoApplyTelegramTaskProposals(input: {
         });
         await enqueueOpsTaskAssignmentNotification({
           client: tx,
-          task,
+          task: {
+            ...task,
+            assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
+          },
           assignedBy: actor,
         });
         await tx.opsInboxProposal.update({
@@ -3131,7 +3319,10 @@ async function executeInternalNotificationJob(input: {
           where: {
             id: taskId,
             archivedAt: null,
-            assigneeId: profile.adminUserId,
+            OR: [
+              { assigneeId: profile.adminUserId },
+              { assignees: { some: { adminUserId: profile.adminUserId } } },
+            ],
           },
           select: { id: true },
         })
@@ -3301,6 +3492,9 @@ export function createOpsJobStageExecutor(input: {
   dependencies?: OpsTelegramJobDependencies;
 }): OpsJobStageExecutor {
   return async ({ job }) => {
+    if (job.type === OPS_TASK_AI_RECONCILE_JOB && job.stage === OpsJobStage.EXTRACT) {
+      return executeOpsTaskAiReconcileJob({ client: input.client, job });
+    }
     if (job.type === "telegram_intake" || job.type === "telegram_batch") {
       return executeTelegramIntakeStage({
         client: input.client,

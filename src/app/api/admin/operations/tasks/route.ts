@@ -63,12 +63,32 @@ export async function GET(request: NextRequest) {
       ...(mine || assigneeId
         ? {
             AND: [
-              ...(mine ? [{ OR: [{ assigneeId: access.id }, { isShared: true }] }] : []),
-              ...(assigneeId ? [{ OR: [{ assigneeId }, { isShared: true }] }] : []),
+              ...(mine
+                ? [
+                    {
+                      OR: [
+                        { assignees: { some: { adminUserId: access.id } } },
+                        { assigneeId: access.id },
+                        { isShared: true },
+                      ],
+                    },
+                  ]
+                : []),
+              ...(assigneeId
+                ? [
+                    {
+                      OR: [
+                        { assignees: { some: { adminUserId: assigneeId } } },
+                        { assigneeId },
+                        { isShared: true },
+                      ],
+                    },
+                  ]
+                : []),
             ],
           }
         : {}),
-      ...(assigneeNone ? { assigneeId: null, isShared: false } : {}),
+      ...(assigneeNone ? { assigneeId: null, assignees: { none: {} }, isShared: false } : {}),
       ...(missingNextAction ? { nextAction: null } : {}),
       ...(today
         ? {
@@ -126,8 +146,14 @@ export async function POST(request: NextRequest) {
     const access = await requireOperationsAccess(ADMIN_PERMISSIONS.OPS_TASKS_WRITE);
     const key = requireIdempotencyKey(request);
     const body = await request.json();
-    const input = normalizeTaskCreateInput(body);
-    assertCanAssignTask(access, input.assigneeId);
+    const normalizedInput = normalizeTaskCreateInput(body);
+    const input = {
+      ...normalizedInput,
+      requestedById: normalizedInput.requestedById ?? access.id,
+    };
+    for (const assigneeId of input.assigneeIds) {
+      assertCanAssignTask(access, assigneeId);
+    }
 
     const result = await runOpsIdempotentMutation({
       prisma,
@@ -136,15 +162,24 @@ export async function POST(request: NextRequest) {
       payload: input,
       execute: async (tx) => {
         await assertValidOpsTaskRelations(tx, input);
+        const { assigneeIds, ...taskInput } = input;
         const task = await tx.opsTask.create({
           data: {
-            ...input,
+            ...taskInput,
             dueAt: resolveOpsTaskDueAt(input.dueAt),
             sourceType: OpsTaskSourceType.ADMIN,
             sourceId: null,
             sourceKey: null,
             externalId: createOpsExternalId("ONE"),
             createdById: access.id,
+            assignees: assigneeIds.length
+              ? {
+                  create: assigneeIds.map((adminUserId) => ({
+                    adminUserId,
+                    assignedById: access.id,
+                  })),
+                }
+              : undefined,
           },
           select: opsTaskListSelect,
         });
@@ -162,6 +197,8 @@ export async function POST(request: NextRequest) {
               status: task.status,
               priority: task.priority,
               assigneeId: task.assignee?.id ?? null,
+              assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
+              requestedById: task.requestedBy?.id ?? null,
               brandGuideKeys: brandGuides.brandArticles.map((article) => article.brandKey),
               shippingReferenceLinked: brandGuides.shippingArticles.length > 0,
               shippingEstimateKeys: brandGuides.shippingEstimates.map((estimate) => estimate.key),
@@ -175,6 +212,7 @@ export async function POST(request: NextRequest) {
             externalId: task.externalId,
             title: task.title,
             assigneeId: task.assignee?.id ?? null,
+            assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
             dueAt: task.dueAt,
             version: task.version,
           },
@@ -189,6 +227,8 @@ export async function POST(request: NextRequest) {
             status: task.status,
             projectId: task.project?.id ?? null,
             shopOrderId: task.shopOrder?.id ?? null,
+            assigneeIds: task.assignees.map((assignment) => assignment.adminUserId),
+            requestedById: task.requestedBy?.id ?? null,
           },
         });
         return {
@@ -199,7 +239,7 @@ export async function POST(request: NextRequest) {
         };
       },
     });
-    if (input.assigneeId && input.assigneeId !== access.id) {
+    if (input.assigneeIds.some((assigneeId) => assigneeId !== access.id)) {
       after(async () => {
         await drainOpsJobs({
           client: prisma,

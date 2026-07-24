@@ -20,6 +20,8 @@ export type OpsPerson = {
   activeTaskCount?: number;
 };
 
+export type OpsTaskAssignee = OpsPerson | { adminUser: OpsPerson };
+
 export type OpsAutomationRun = {
   id: string;
   taskId?: string;
@@ -87,6 +89,8 @@ export type OpsTask = {
   completedAt?: string | null;
   project?: { id: string; externalId: string; title: string } | null;
   assignee?: OpsPerson | null;
+  assignees?: OpsTaskAssignee[];
+  requestedBy?: OpsPerson | null;
   createdBy?: OpsPerson | null;
   shopOrder?: { id: string; orderNumber: string; status: string } | null;
   definitionOfDone?: string | null;
