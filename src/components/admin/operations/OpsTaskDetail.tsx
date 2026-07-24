@@ -344,22 +344,17 @@ export function OpsTaskDetail({
   const currentAssignees = useMemo(() => normalizeTaskAssignees(current), [current]);
   const effectiveRequester =
     current.requestedBy === undefined ? (current.createdBy ?? null) : current.requestedBy;
-  const knownTaskMembers = useMemo(() => {
+  const assignableTaskMembers = useMemo(() => {
     const byId = new Map<string, OpsPerson>();
-    for (const person of [
-      ...currentAssignees,
-      effectiveRequester,
-      current.createdBy,
-      ...taskMembers,
-    ]) {
+    for (const person of [...currentAssignees, ...taskMembers]) {
       if (person) byId.set(person.id, person);
     }
     return Array.from(byId.values());
-  }, [current.createdBy, currentAssignees, effectiveRequester, taskMembers]);
+  }, [currentAssignees, taskMembers]);
   const filteredTaskMembers = useMemo(() => {
     const query = assigneeSearch.trim().toLocaleLowerCase("ru-RU");
     const selectedIds = new Set(currentAssignees.map((person) => person.id));
-    return knownTaskMembers
+    return assignableTaskMembers
       .filter((member) => {
         if (!query) return true;
         return `${displayPersonName(member)} ${member.email}`
@@ -372,7 +367,7 @@ export function OpsTaskDetail({
         if (selectedDifference) return selectedDifference;
         return displayPersonName(left).localeCompare(displayPersonName(right), "ru");
       });
-  }, [assigneeSearch, currentAssignees, knownTaskMembers]);
+  }, [assigneeSearch, assignableTaskMembers, currentAssignees]);
   const progressUpdates = useMemo(() => {
     const events = current.events ?? [];
     const reverted = new Set(
@@ -692,7 +687,7 @@ export function OpsTaskDetail({
           Object.entries(patch).filter(([key]) => key !== "assigneeIds" && key !== "requestedById")
         );
         const demoAssignees = assigneeIds.flatMap((id) => {
-          const person = knownTaskMembers.find((member) => member.id === id);
+          const person = assignableTaskMembers.find((member) => member.id === id);
           return person ? [person] : [];
         });
         updated = {
@@ -706,7 +701,7 @@ export function OpsTaskDetail({
             : {}),
           ...(hasRequestedById
             ? {
-                requestedBy: knownTaskMembers.find((member) => member.id === requestedById) ?? null,
+                requestedBy: taskMembers.find((member) => member.id === requestedById) ?? null,
               }
             : {}),
           version: current.version + 1,
@@ -1459,7 +1454,7 @@ export function OpsTaskDetail({
               >
                 <option value="">Не определён</option>
                 {inlineMembersLoading ? <option disabled>Загрузка…</option> : null}
-                {knownTaskMembers.map((member) => (
+                {taskMembers.map((member) => (
                   <option key={member.id} value={member.id}>
                     {displayPersonName(member)}
                   </option>
