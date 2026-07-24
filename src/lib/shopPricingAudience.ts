@@ -278,7 +278,10 @@ export function resolveShopPriceBands(input: {
   const useEuropeBase =
     isEuropePricingCountry(input.context.priceCountry) && hasAnyPositiveValue(input.europePrice);
   const b2cPrice = useEuropeBase ? europePrice : normalizeMoneySet(input.b2cPrice);
-  const b2cCompareAt = normalizeCompareSet(input.b2cCompareAt);
+  // `b2cCompareAt` belongs to the default regional price. Reusing it beside
+  // an independent Europe price creates fake discounts (for example €52
+  // shown against a €650 default-market compare-at price).
+  const b2cCompareAt = useEuropeBase ? null : normalizeCompareSet(input.b2cCompareAt);
   const effectiveDiscountPercent = resolveEffectiveDiscountPercent(input.context, input.brand);
   const mergedB2B = mergeB2BPriceSet(b2cPrice, input.b2bPrice, effectiveDiscountPercent);
   const b2bPrice = mergedB2B.price;

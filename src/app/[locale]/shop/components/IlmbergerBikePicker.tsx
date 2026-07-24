@@ -421,7 +421,7 @@ export default function IlmbergerBikePicker({
                                   onPick(bike.manufacturer, bike.model);
                                 }}
                                 disabled={isEmpty}
-                                className={`group relative flex flex-col text-left rounded-sm overflow-hidden transition-all duration-500 border border-[var(--il-faint)] bg-[var(--il-bg-soft)]/20 hover:bg-[var(--il-bg-soft)]/60 ${
+                                className={`group relative flex flex-col text-left rounded-none overflow-hidden transition-all duration-500 border border-[var(--il-faint)] bg-[var(--il-bg-soft)]/20 hover:bg-[var(--il-bg-soft)]/60 ${
                                   isEmpty
                                     ? "opacity-45 cursor-not-allowed"
                                     : "cursor-pointer hover:-translate-y-1.5 hover:shadow-xl"

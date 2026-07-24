@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   return getShopProductPageMetadata({
     locale: resolveLocale(locale),
     slug,
-    mode: "default",
+    mode: "akrapovic",
   });
 }
 

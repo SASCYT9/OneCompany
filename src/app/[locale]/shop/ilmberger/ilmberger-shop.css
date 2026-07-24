@@ -1105,7 +1105,7 @@
   flex-direction: column;
   background: var(--il-card);
   border: 1px solid var(--il-border);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   text-decoration: none;
   color: var(--il-white);
@@ -1872,7 +1872,7 @@
   height: 52px;
   appearance: none;
   border: 1px solid var(--il-border);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(10, 13, 18, 0.85);
   color: rgba(255, 255, 255, 0.9);
   padding: 0 2.4rem 0 1.25rem;

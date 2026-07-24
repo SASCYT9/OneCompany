@@ -95,6 +95,23 @@ test("EU customer uses Europe net price as B2C base when present", () => {
   assert.deepEqual(pricing.effectivePrice, { eur: 1000, usd: 0, uah: 0 });
 });
 
+test("Europe price does not inherit the default-region compare-at price", () => {
+  const context = buildShopViewerPricingContext(baseSettings, null, false, null, undefined, {
+    priceCountry: "Germany",
+  });
+  const pricing = resolveShopPriceBands({
+    b2cPrice: { eur: 618, usd: 0, uah: 0 },
+    europePrice: { eur: 52 },
+    b2cCompareAt: { eur: 650 },
+    context,
+  });
+
+  assert.equal(pricing.baseRegion, "europe");
+  assert.deepEqual(pricing.effectivePrice, { eur: 52, usd: 0, uah: 0 });
+  assert.equal(pricing.effectiveCompareAt, null);
+  assert.equal(pricing.bands.b2c.compareAt, null);
+});
+
 test("explicit B2B price overrides Europe net base for approved EU customers", () => {
   const context = buildShopViewerPricingContext(baseSettings, "B2B_APPROVED", true, 20, undefined, {
     priceCountry: "PL",

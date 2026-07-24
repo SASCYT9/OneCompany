@@ -416,7 +416,7 @@ export default function IlmbergerCatalog({
             <button
               type="button"
               onClick={() => setCategorySheetOpen(true)}
-              className="w-full h-11 px-5 flex items-center justify-between rounded-full bg-[var(--il-bg-soft)]/90 border border-[var(--il-border-strong)] text-[var(--il-white)] hover:border-[var(--il-white)]/40 hover:bg-[var(--il-white)]/5 transition-all duration-300 outline-none"
+              className="w-full h-11 px-5 flex items-center justify-between rounded-none bg-[var(--il-bg-soft)]/90 border border-[var(--il-border-strong)] text-[var(--il-white)] hover:border-[var(--il-white)]/40 hover:bg-[var(--il-white)]/5 transition-all duration-300 outline-none"
             >
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)]">
@@ -481,7 +481,7 @@ export default function IlmbergerCatalog({
         {/* ── Filter Sidebar (Themed) ── */}
         {model === "all" && (
           <aside
-            className={`lg:sticky lg:top-[120px] self-start flex flex-col gap-6 p-6 bg-[var(--il-bg-soft)]/50 border border-[var(--il-faint)] rounded-sm max-h-[calc(100vh-140px)] overflow-y-auto ${
+            className={`lg:sticky lg:top-[120px] self-start flex flex-col gap-6 p-6 bg-[var(--il-bg-soft)]/50 border border-[var(--il-faint)] rounded-none max-h-[calc(100vh-140px)] overflow-y-auto ${
               mobileFilterOpen
                 ? "fixed inset-0 z-50 bg-[var(--il-bg)] border-0 rounded-none max-h-screen translate-x-0"
                 : "hidden lg:flex"
@@ -668,7 +668,7 @@ export default function IlmbergerCatalog({
                 />
                 <input
                   type="search"
-                  className="il-filter__field w-full h-9 pl-9 pr-3 !text-[11px] rounded-sm"
+                  className="il-filter__field w-full h-9 pl-9 pr-3 !text-[11px] rounded-none"
                   placeholder={L(isUa, "Search parts...", "Пошук деталей...")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -696,7 +696,7 @@ export default function IlmbergerCatalog({
               <div className="flex items-center gap-2 text-[var(--il-muted)]">
                 <ArrowUpDown size={12} className="opacity-60" />
                 <select
-                  className="il-filter__field h-9 px-3 !text-[10px] !font-semibold rounded-sm"
+                  className="il-filter__field h-9 px-3 !text-[10px] !font-semibold rounded-none"
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                 >
@@ -760,7 +760,7 @@ export default function IlmbergerCatalog({
                     <IlmbergerSpotlightCard spotlightColor="var(--il-chrome)" intensity={0.15}>
                       <Link
                         href={productHref}
-                        className="relative flex flex-col bg-[var(--il-bg-soft)]/40 border border-[var(--il-faint)] group-hover:border-[var(--il-chrome)]/40 rounded-sm overflow-hidden transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[var(--il-bg-soft)] no-underline h-full"
+                        className="relative flex flex-col bg-[var(--il-bg-soft)]/40 border border-[var(--il-faint)] group-hover:border-[var(--il-chrome)]/40 rounded-none overflow-hidden transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[var(--il-bg-soft)] no-underline h-full"
                       >
                         {/* Media Display Container */}
                         <div className="relative aspect-[4/3] bg-gradient-to-b from-[var(--il-bg-soft)] to-[var(--il-bg)] overflow-hidden">
@@ -830,14 +830,14 @@ export default function IlmbergerCatalog({
                                     retail:
                                       "text-[8px] sm:text-[9px] font-light line-through text-[var(--il-muted)]",
                                     badge:
-                                      "inline-flex items-center rounded-sm bg-[var(--il-chrome)]/20 px-0.5 py-0 text-[7px] sm:text-[8px] font-bold tracking-wider text-[var(--il-chrome)]",
+                                      "inline-flex items-center rounded-none bg-[var(--il-chrome)]/20 px-0.5 py-0 text-[7px] sm:text-[8px] font-bold tracking-wider text-[var(--il-chrome)]",
                                   }}
                                   requestLabel="—"
                                 />
                               )}
                             </div>
 
-                            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--il-muted)] group-hover:text-[var(--il-white)] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors bg-[var(--il-bg-soft)] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-sm border border-[var(--il-faint)] group-hover:border-[var(--il-titanium)] w-full sm:w-auto text-center">
+                            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--il-muted)] group-hover:text-[var(--il-white)] flex items-center justify-center gap-1 sm:gap-1.5 transition-colors bg-[var(--il-bg-soft)] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-none border border-[var(--il-faint)] group-hover:border-[var(--il-titanium)] w-full sm:w-auto text-center">
                               {isMock
                                 ? L(isUa, "Configure", "Конфігурувати")
                                 : L(isUa, "Purchase", "Купити")}
@@ -856,7 +856,7 @@ export default function IlmbergerCatalog({
           </motion.div>
 
           {filteredProducts.length === 0 && (
-            <div className="text-center py-20 border border-dashed border-[var(--il-chrome)]/40 rounded-sm">
+            <div className="text-center py-20 border border-dashed border-[var(--il-chrome)]/40 rounded-none">
               <p className="text-[var(--il-muted)] font-light text-sm mb-4">
                 {L(
                   isUa,
@@ -866,7 +866,7 @@ export default function IlmbergerCatalog({
               </p>
               <button
                 type="button"
-                className="px-5 py-2.5 bg-[var(--il-bg-soft)] border border-[var(--il-faint)] hover:border-[var(--il-chrome)] rounded-sm text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] hover:text-[var(--il-white)] transition-all"
+                className="px-5 py-2.5 bg-[var(--il-bg-soft)] border border-[var(--il-faint)] hover:border-[var(--il-chrome)] rounded-none text-[10px] font-bold uppercase tracking-widest text-[var(--il-titanium)] hover:text-[var(--il-white)] transition-all"
                 onClick={resetFilters}
               >
                 {L(isUa, "Reset all filters", "Очистити всі фільтри")}
