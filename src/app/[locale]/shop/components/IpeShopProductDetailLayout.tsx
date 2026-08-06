@@ -18,6 +18,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopResolvedPricing, ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 
 type Props = {
   locale: string;
@@ -915,6 +916,11 @@ export function IpeShopProductDetailLayout({
               variantId={currentVariant?.id ?? null}
               locale={locale}
               productName={productTitle}
+            />
+            <ProductAiOpinionPanel
+              locale={locale as SupportedLocale}
+              product={product}
+              shape="pill"
             />
           </div>
           {currentVariant?.sku || product.sku ? (

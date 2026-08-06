@@ -900,6 +900,8 @@ export async function GET(request: NextRequest) {
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     const q = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
+    const rawProductType = searchParams.get("productType")?.trim() || "";
+    const productType = rawProductType.length <= 120 ? rawProductType : "";
     const productKind = cleanShopAiProductKind(searchParams.get("productKind"));
     const strictMatch = strictCatalogConstraints.enabled;
     const allowFallback = searchParams.get("allowFallback") !== "0";
@@ -1059,6 +1061,12 @@ export async function GET(request: NextRequest) {
 
     if (category && !strictCatalogEffective) {
       filtered = filtered.filter((item) => matchesShopStockCategory(item, category, locale));
+    }
+    if (productType) {
+      const normalizedProductType = normalizeShopSearchText(productType);
+      filtered = filtered.filter(
+        (item) => normalizeShopSearchText(item.product.productType ?? "") === normalizedProductType
+      );
     }
     if (productKind && productKind !== "any" && !strictCatalogEffective) {
       filtered = filtered.filter(matchesProductKind);

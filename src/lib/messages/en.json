@@ -1,4 +1,13 @@
 {
+  "aiOpinion": {
+    "eyebrow": "AI product opinion",
+    "title": "Get a second opinion before you buy",
+    "description": "A ready-made question about the part opens directly in ChatGPT or Perplexity — just press Send.",
+    "buttonLabel": "Ask",
+    "openHint": "The prompt opens in a new tab.",
+    "compactTitle": "AI view of this part",
+    "compactHint": "A short technical opinion opens in a new tab"
+  },
   "nav": {
     "automotive": "Auto",
     "moto": "Moto",

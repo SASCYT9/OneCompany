@@ -20,6 +20,7 @@ export {
   type ShopKnowledgeChunkEmbeddingCandidate,
   type ShopKnowledgeChunkEmbeddingProvider,
   type ShopKnowledgeChunkEmbeddingRepository,
+  type ShopKnowledgeChunkEmbeddingScope,
   type ShopKnowledgeChunkEmbeddingStoreResult,
   type ShopKnowledgeChunkEmbeddingWrite,
   type ShopKnowledgeEmbeddingWorkerResult,

@@ -21,6 +21,13 @@ export type ShopProductCollectionLink = {
   sortOrder?: number;
 };
 
+export type ShopProductOptionSummary = {
+  id?: string;
+  name: string;
+  position: number;
+  values: string[];
+};
+
 export type ShopProductVariantSummary = {
   id?: string;
   title?: string | null;
@@ -103,6 +110,7 @@ export interface ShopProduct {
    */
   galleryMaterials?: Array<"ti" | "ss" | null>;
   highlights: LocalizedText[];
+  options?: ShopProductOptionSummary[];
   variants?: ShopProductVariantSummary[];
   categoryNode?: {
     id: string;

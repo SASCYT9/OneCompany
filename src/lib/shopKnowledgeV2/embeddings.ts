@@ -30,12 +30,26 @@ export type ShopKnowledgeChunkEmbeddingStoreResult = {
   finalizedKnowledge: number;
 };
 
+/** Optional scope for controlled embedding rollouts (for example one brand). */
+export type ShopKnowledgeChunkEmbeddingScope = {
+  /** `undefined` means the whole catalog; an empty array means no products. */
+  productIds?: string[];
+};
+
 export interface ShopKnowledgeChunkEmbeddingRepository {
-  getEmbeddingBacklog(model: string): Promise<ShopKnowledgeChunkEmbeddingBacklog>;
-  prepareEmbeddingLifecycle(model: string, now: Date): Promise<number>;
+  getEmbeddingBacklog(
+    model: string,
+    scope?: ShopKnowledgeChunkEmbeddingScope
+  ): Promise<ShopKnowledgeChunkEmbeddingBacklog>;
+  prepareEmbeddingLifecycle(
+    model: string,
+    now: Date,
+    scope?: ShopKnowledgeChunkEmbeddingScope
+  ): Promise<number>;
   listPendingChunkEmbeddings(
     model: string,
-    limit: number
+    limit: number,
+    scope?: ShopKnowledgeChunkEmbeddingScope
   ): Promise<ShopKnowledgeChunkEmbeddingCandidate[]>;
   storeChunkEmbeddings(input: {
     model: string;
@@ -47,6 +61,7 @@ export interface ShopKnowledgeChunkEmbeddingRepository {
     finalizedAt: Date;
     limit?: number;
     knowledgeIds?: string[];
+    scope?: ShopKnowledgeChunkEmbeddingScope;
   }): Promise<number>;
 }
 
@@ -89,6 +104,7 @@ export async function runShopKnowledgeChunkEmbeddingBatch(
     model: string;
     batchSize: number;
     embeddedAt?: Date;
+    scope?: ShopKnowledgeChunkEmbeddingScope;
   }
 ): Promise<ShopKnowledgeChunkEmbeddingBatchResult> {
   const model = input.model.trim();
@@ -97,7 +113,11 @@ export async function runShopKnowledgeChunkEmbeddingBatch(
     throw new Error("Knowledge chunk embedding batchSize must be between 1 and 100");
   }
 
-  const candidates = await repository.listPendingChunkEmbeddings(model, input.batchSize);
+  const candidates = await repository.listPendingChunkEmbeddings(
+    model,
+    input.batchSize,
+    input.scope
+  );
   if (candidates.length === 0) {
     return {
       selected: 0,
@@ -154,6 +174,7 @@ export async function runShopKnowledgeEmbeddingWorker(
     maxEstimatedCostUsd: number;
     estimatedCostPerThousandTokensUsd: number;
     embeddedAt?: Date;
+    scope?: ShopKnowledgeChunkEmbeddingScope;
   }
 ): Promise<ShopKnowledgeEmbeddingWorkerResult> {
   if (!Number.isInteger(input.maxChunks) || input.maxChunks < 1 || input.maxChunks > 10_000) {
@@ -227,6 +248,7 @@ export async function runShopKnowledgeEmbeddingWorker(
           model: input.model,
           batchSize,
           embeddedAt: input.embeddedAt,
+          scope: input.scope,
         });
         break;
       } catch (error) {

@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
+import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 
 type Props = {
   locale: SupportedLocale;
@@ -308,6 +309,8 @@ export default function RacechipShopProductDetailLayout({
                   </button>
                 </Link>
               )}
+
+              <ProductAiOpinionPanel locale={locale} product={product} shape="rounded" />
 
               <p className="text-center text-[10px] sm:text-[11px] text-foreground/55 dark:text-zinc-500 mt-4 sm:mt-6 tracking-wide leading-relaxed">
                 {isUa

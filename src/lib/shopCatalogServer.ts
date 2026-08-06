@@ -1029,27 +1029,41 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
     ],
   },
   "URB-HOO-25358201-V1": {
-    image: "/images/shop/urban/products/urus-se/Urban_G-Wagon_Bullnose_Bonnet.webp",
+    image: "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Bullnose_Bonnet.webp",
     gallery: [
-      "/images/shop/urban/products/urus-se/Urban_G-Wagon_Bullnose_Bonnet.webp",
-      "/images/shop/urban/cols/models/gwagonAeroKit2024/webp/urban-g-wagon-aerokit-bullnose-bonnet.webp",
+      "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Bullnose_Bonnet.webp",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_01.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_02.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_03.jpg",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-6-2560.webp",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp",
     ],
   },
   "URB-ROO-25358202-V1": {
-    image: "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar_1.webp",
+    image: "/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp",
     gallery: [
-      "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar_1.webp",
-      "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar.webp",
+      "/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-roo-25358202-v1_lightbar_01.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-roo-25358202-v1_lightbar_02.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-roo-25358202-v1_lightbar_03.jpg",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-8-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-7-2560.webp",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-4-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp",
     ],
   },
   "URB-SPO-25358203-V1": {
-    image: "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Spoiler.webp",
+    image: "/images/shop/urban/products/urus-se/Urban_Upper_Rear_Spoiler_1.webp",
     gallery: [
-      "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Spoiler.webp",
+      "/images/shop/urban/products/urus-se/Urban_Upper_Rear_Spoiler_1.webp",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-spo-25358203-v1_spoiler_01.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-spo-25358203-v1_spoiler_02.jpg",
+      "/images/shop/urban/products/urus-se/gwagon-official/urb-spo-25358203-v1_spoiler_03.jpg",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-11-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-12-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp",
-      "/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp",
     ],
   },
   "URB-COV-25358204-V1": {
@@ -1745,6 +1759,12 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     gallery: productGallery,
     galleryMaterials,
     highlights: highlightsArr,
+    options: (row.options ?? []).map((option) => ({
+      id: option.id,
+      name: option.name,
+      position: option.position,
+      values: option.values ?? [],
+    })),
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
         eur: num(variant.priceEurB2b),
@@ -2989,6 +3009,15 @@ const storefrontProductInclude = {
       position: true,
     },
   },
+  options: {
+    orderBy: { position: "asc" as const },
+    select: {
+      id: true,
+      name: true,
+      position: true,
+      values: true,
+    },
+  },
   variants: {
     orderBy: { position: "asc" as const },
     select: {
@@ -3151,14 +3180,18 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
   slug: string
 ): Promise<ShopProductLookupResult> {
   try {
+    const allowDraftPreview =
+      process.env.NODE_ENV !== "production" && process.env.SHOP_PREVIEW_DRAFTS === "1";
     const queryParams: any = {
-      where: { slug, isPublished: true, status: "ACTIVE" },
+      where: allowDraftPreview ? { slug } : { slug, isPublished: true, status: "ACTIVE" },
       include: storefrontProductInclude,
     };
-    if (isAccelerateEnabled) {
+    if (isAccelerateEnabled && !allowDraftPreview) {
       queryParams.cacheStrategy = { ttl: 300, swr: 60 };
     }
-    const row = await getPrismaCachedClient().shopProduct.findFirst(queryParams);
+    const row = allowDraftPreview
+      ? await prisma.shopProduct.findFirst(queryParams)
+      : await getPrismaCachedClient().shopProduct.findFirst(queryParams);
     if (row) {
       const product = applyShopProductImageOverrides(
         mapDbToCatalog(row as unknown as AdminShopProductRecord)

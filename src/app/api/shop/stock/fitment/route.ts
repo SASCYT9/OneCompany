@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
 import { isExpectedChassisForMakeModel, isKnownVehicleModelForMake } from "@/lib/crossShopFitment";
@@ -52,15 +53,29 @@ async function hasCanonicalCatalogCoverage() {
 async function getCanonicalFitmentOptions(input: {
   make: string | null;
   model: string | null;
+  chassis: string | null;
+  brand: string | null;
   scope: "auto" | "moto" | null;
 }) {
   if (!(await hasCanonicalCatalogCoverage())) return null;
+  const productWhere: Prisma.ShopProductWhereInput = {
+    isPublished: true,
+    status: "ACTIVE",
+    ...(input.brand
+      ? {
+          OR: [
+            { brand: { equals: input.brand, mode: "insensitive" } },
+            { vendor: { equals: input.brand, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
   const baseWhere = {
     isActive: true,
     isUniversal: false,
     verificationStatus: { not: "BLOCKED" as const },
     ...(input.scope ? { scope: input.scope } : {}),
-    product: { isPublished: true, status: "ACTIVE" as const },
+    product: productWhere,
   };
   const available = await prisma.shopVehicleApplication.findFirst({
     where: baseWhere,
@@ -108,6 +123,28 @@ async function getCanonicalFitmentOptions(input: {
     return { type: "models" as const, make: input.make, data };
   }
 
+  if (input.chassis) {
+    const rows = await prisma.shopVehicleApplication.findMany({
+      where: {
+        ...baseWhere,
+        make: { equals: input.make, mode: "insensitive" },
+        model: { equals: input.model, mode: "insensitive" },
+        chassisCode: { equals: input.chassis, mode: "insensitive" },
+        engine: { not: null },
+      },
+      distinct: ["engine"],
+      select: { engine: true },
+      orderBy: { engine: "asc" },
+    });
+    return {
+      type: "engines" as const,
+      make: input.make,
+      model: input.model,
+      chassis: input.chassis,
+      data: rows.map((row) => row.engine).filter((value): value is string => Boolean(value)),
+    };
+  }
+
   const rows = await prisma.shopVehicleApplication.findMany({
     where: {
       ...baseWhere,
@@ -135,18 +172,39 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const make = searchParams.get("make");
     const model = searchParams.get("model");
+    const chassis = searchParams.get("chassis");
+    const brand = searchParams.get("brand")?.trim() || null;
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await getCanonicalFitmentOptions({ make, model, scope: vehicleScope });
+    const canonical = await getCanonicalFitmentOptions({
+      make,
+      model,
+      chassis,
+      brand,
+      scope: vehicleScope,
+    });
     if (canonical) return cachedJson(canonical);
 
     // Transitional fallback until a category has completed its Knowledge V2
     // backfill. It remains deterministic and never relaxes selected values.
     const allProductsWithFitments = await getShopProductsWithFitments();
+    const brandScopedProducts = brand
+      ? allProductsWithFitments.filter((item) =>
+          [item.product.brand, item.product.vendor].some(
+            (value) => value?.trim().toLocaleLowerCase() === brand.toLocaleLowerCase()
+          )
+        )
+      : allProductsWithFitments;
     const productsWithFitments = filterShopStockItemsByVehicleScope(
-      allProductsWithFitments,
+      brandScopedProducts,
       vehicleScope
     );
+
+    // Legacy fitment does not have a dependable engine field. Keep the
+    // selector precise rather than reusing the chassis response at this level.
+    if (make && model && chassis) {
+      return cachedJson({ type: "engines", make, model, chassis, data: [] });
+    }
 
     // Level 0: Return unique makes
     if (!make) {

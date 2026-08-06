@@ -108,8 +108,21 @@ async function main() {
     100
   );
   const model = parseModel(argv);
+  const brand = argv
+    .find((argument) => argument.startsWith("--brand="))
+    ?.split("=")[1]
+    ?.trim();
+  const scopedProductIds = brand
+    ? (
+        await prisma.shopProduct.findMany({
+          where: { brand },
+          select: { id: true },
+        })
+      ).map((product) => product.id)
+    : undefined;
+  const scope = { productIds: scopedProductIds };
   const repository = createPrismaShopKnowledgeChunkEmbeddingRepository(prisma);
-  const before = await repository.getEmbeddingBacklog(model);
+  const before = await repository.getEmbeddingBacklog(model, scope);
 
   if (!commit) {
     console.log(
@@ -124,6 +137,8 @@ async function main() {
           maxAttemptsPerBatch,
           maxEstimatedCostUsd,
           estimatedCostPerThousandTokensUsd,
+          brand: brand ?? null,
+          scopedProducts: scopedProductIds?.length ?? null,
           backlog: before,
         },
         null,
@@ -134,17 +149,26 @@ async function main() {
   }
 
   assertSafeCommitEnvironment();
-  const apiKey = (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim();
-  if (!apiKey) throw new Error("SHOP_AI_API_KEY or GEMINI_API_KEY is required for --commit");
+  const apiKey = (
+    process.env.OPS_GEMINI_API_KEY ||
+    process.env.SHOP_AI_API_KEY ||
+    process.env.GEMINI_API_KEY
+  )?.trim();
+  if (!apiKey) {
+    throw new Error(
+      "OPS_GEMINI_API_KEY, SHOP_AI_API_KEY, or GEMINI_API_KEY is required for --commit"
+    );
+  }
   const provider = createGoogleEmbeddingProvider(apiKey);
   const startedAt = new Date();
-  const preparedKnowledge = await repository.prepareEmbeddingLifecycle(model, startedAt);
+  const preparedKnowledge = await repository.prepareEmbeddingLifecycle(model, startedAt, scope);
   let finalizedKnowledge = await repository.finalizeReadyKnowledge({
     model,
     finalizedAt: startedAt,
     limit: 5_000,
+    scope,
   });
-  const afterPrepare = await repository.getEmbeddingBacklog(model);
+  const afterPrepare = await repository.getEmbeddingBacklog(model, scope);
   if (afterPrepare.chunks === 0) {
     console.log(
       JSON.stringify(
@@ -152,6 +176,8 @@ async function main() {
           mode: "commit",
           model,
           dimensions: SHOP_KNOWLEDGE_CHUNK_EMBEDDING_DIMENSIONS,
+          brand: brand ?? null,
+          scopedProducts: scopedProductIds?.length ?? null,
           preparedKnowledge,
           selected: 0,
           embedded: 0,
@@ -174,6 +200,7 @@ async function main() {
     maxAttemptsPerBatch,
     maxEstimatedCostUsd,
     estimatedCostPerThousandTokensUsd,
+    scope,
   });
   finalizedKnowledge += worker.finalizedKnowledge;
 
@@ -181,14 +208,17 @@ async function main() {
     model,
     finalizedAt: new Date(),
     limit: 5_000,
+    scope,
   });
-  const remaining = await repository.getEmbeddingBacklog(model);
+  const remaining = await repository.getEmbeddingBacklog(model, scope);
   console.log(
     JSON.stringify(
       {
         mode: "commit",
         model,
         dimensions: SHOP_KNOWLEDGE_CHUNK_EMBEDDING_DIMENSIONS,
+        brand: brand ?? null,
+        scopedProducts: scopedProductIds?.length ?? null,
         preparedKnowledge,
         ...worker,
         finalizedKnowledge,

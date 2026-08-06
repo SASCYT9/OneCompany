@@ -1066,7 +1066,9 @@ export const brandsEurope: LocalBrand[] = [
       "British intake innovation featuring unique carbon fiber designs that maximize airflow while creating stunning visual impact.",
     descriptionUA:
       "Британська інновація впусків з унікальними карбоновими дизайнами, що максимізують повітряний потік та створюють приголомшливий візуальний ефект.",
-    website: "https://eventuri.shop/",
+    // The former Eventuri storefront is closed; keep the official manufacturer
+    // site here while storefront links point to OneCompany's local catalog.
+    website: "https://eventuri.net/",
   },
   {
     name: "FI Exhaust",

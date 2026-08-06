@@ -3,11 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
-import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
-import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
-import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
-import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
@@ -75,7 +71,7 @@ import {
   isExcludedFromCrossShop,
 } from "@/lib/crossShopFitment";
 import CrossShopFitment from "./CrossShopFitment";
-import { ShopDefaultProductPricingBlock } from "./ShopDefaultProductPricingBlock";
+import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
@@ -1037,83 +1033,54 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 />
               ) : null}
 
-              <ShopDefaultProductPricingBlock
+              <ShopProductVariantPurchaseSection
                 product={product}
                 ssrViewerContext={viewerContext}
                 locale={resolvedLocale}
                 isUa={isUa}
-              />
-
-              {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
-
-              {product.bundle ? (
-                <div className="space-y-3 rounded-2xl border border-foreground/18 bg-foreground/5 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-foreground/65 dark:text-foreground/50">
-                      {isUa ? "Склад комплекту" : "Bundle contents"}
-                    </p>
-                    <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/85 dark:text-foreground/70">
-                      {isUa
-                        ? `Доступно комплектів: ${product.bundle.availableQuantity}`
-                        : `Available bundles: ${product.bundle.availableQuantity}`}
-                    </span>
+                productTitle={productTitle}
+                continueShoppingHref={continueShoppingHref}
+              >
+                {product.bundle ? (
+                  <div className="space-y-3 rounded-2xl border border-foreground/18 bg-foreground/5 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-foreground/65 dark:text-foreground/50">
+                        {isUa ? "Склад комплекту" : "Bundle contents"}
+                      </p>
+                      <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/85 dark:text-foreground/70">
+                        {isUa
+                          ? `Доступно комплектів: ${product.bundle.availableQuantity}`
+                          : `Available bundles: ${product.bundle.availableQuantity}`}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {product.bundle.items.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={buildShopStorefrontProductPathForProduct(
+                            resolvedLocale,
+                            item.product
+                          )}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-foreground/12 bg-foreground/10 dark:bg-black/20 px-4 py-3 text-sm text-foreground/90 dark:text-foreground/75 transition hover:border-foreground/30 hover:text-foreground"
+                        >
+                          <div>
+                            <p className="font-medium">
+                              {localizeShopProductTitle(resolvedLocale, item.product)}
+                            </p>
+                            <p className="mt-1 text-xs text-foreground/65 dark:text-foreground/45">
+                              {item.quantity} ×{" "}
+                              {item.variantTitle || (isUa ? "Базовий варіант" : "Default variant")}
+                            </p>
+                          </div>
+                          <span className="text-xs uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
+                            {item.availableQuantity}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {product.bundle.items.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={buildShopStorefrontProductPathForProduct(
-                          resolvedLocale,
-                          item.product
-                        )}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-foreground/12 bg-foreground/10 dark:bg-black/20 px-4 py-3 text-sm text-foreground/90 dark:text-foreground/75 transition hover:border-foreground/30 hover:text-foreground"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {localizeShopProductTitle(resolvedLocale, item.product)}
-                          </p>
-                          <p className="mt-1 text-xs text-foreground/65 dark:text-foreground/45">
-                            {item.quantity} ×{" "}
-                            {item.variantTitle || (isUa ? "Базовий варіант" : "Default variant")}
-                          </p>
-                        </div>
-                        <span className="text-xs uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
-                          {item.availableQuantity}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
-                <AddToCartButton
-                  slug={product.slug}
-                  locale={resolvedLocale}
-                  variantId={defaultVariant?.id ?? null}
-                  productName={productTitle}
-                  variant="minimal"
-                  className="inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-primary bg-primary px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_18px_40px_-24px_rgba(213,0,28,0.45)] dark:shadow-[0_18px_40px_-24px_rgba(194,157,89,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_22px_46px_-24px_rgba(213,0,28,0.55)] dark:hover:shadow-[0_22px_46px_-24px_rgba(194,157,89,0.65)] disabled:translate-y-0 disabled:opacity-50"
-                />
-                <Link
-                  href={`/${resolvedLocale}/contact`}
-                  className="group relative overflow-hidden rounded-full border border-foreground/12 bg-foreground/[0.03] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 dark:text-foreground/80 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/12 hover:text-foreground"
-                >
-                  {pricing.requestQuote
-                    ? isUa
-                      ? "Запитати B2B ціну"
-                      : "Request B2B pricing"
-                    : isUa
-                      ? "Запит по товару"
-                      : "Request product"}
-                </Link>
-                <ShopBackToCatalogLink
-                  fallbackHref={continueShoppingHref}
-                  label={isUa ? "Продовжити покупки" : "Continue shopping"}
-                  disableHistoryBack
-                  className="rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-foreground/60 dark:text-foreground/40 transition-all duration-500 hover:text-foreground/95 dark:text-foreground/80"
-                />
-              </div>
+                ) : null}
+              </ShopProductVariantPurchaseSection>
             </div>
           </section>
         </div>

@@ -25,15 +25,13 @@ import {
 import { extractShopProductDescriptionSections } from "@/lib/shopProductDescription";
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
-import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
-import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
-import { ShopDefaultProductPricingBlock } from "@/app/[locale]/shop/components/ShopDefaultProductPricingBlock";
+import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -128,8 +126,6 @@ export default async function ShopProductPage({ params }: Props) {
   const rates = settingsRuntime.currencyRates;
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
   const pricing = resolveShopProductPricing(product, viewerContext);
-  const defaultVariant =
-    product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
   const shortDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
@@ -193,43 +189,25 @@ export default async function ShopProductPage({ params }: Props) {
               </MobileProductDisclosure>
             ) : null}
 
-            <ShopDefaultProductPricingBlock
+            <ShopProductVariantPurchaseSection
               product={product}
               ssrViewerContext={viewerContext}
               locale={resolvedLocale}
               isUa={isUa}
-            />
-
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
-                SKU {product.sku}
-              </span>
-              <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
-                {localizeShopText(resolvedLocale, product.collection)}
-              </span>
-              {product.productType ? (
-                <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
-                  {product.productType}
+              productTitle={productTitle}
+              continueShoppingHref={`/${resolvedLocale}/shop`}
+            >
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
+                  {localizeShopText(resolvedLocale, product.collection)}
                 </span>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-              <AddToCartButton
-                slug={product.slug}
-                locale={resolvedLocale}
-                variantId={defaultVariant?.id ?? null}
-                productName={productTitle}
-                variant="minimal"
-                className="group relative overflow-hidden rounded-full border border-foreground/10 bg-background px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-primary transition-all duration-500 hover:border-primary/50 disabled:opacity-50"
-              />
-              <Link
-                href={`/${resolvedLocale}/contact`}
-                className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-8 py-3.5 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 dark:text-foreground/80 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/10 hover:text-foreground"
-              >
-                {isUa ? "Запит по товару" : "Request product"}
-              </Link>
-            </div>
+                {product.productType ? (
+                  <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
+                    {product.productType}
+                  </span>
+                ) : null}
+              </div>
+            </ShopProductVariantPurchaseSection>
           </div>
         </section>
 

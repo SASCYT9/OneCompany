@@ -161,8 +161,9 @@ export const OUR_STORES: OurStore[] = [
       "Carbon fiber intake systems. Maximum airflow and track-proven performance.",
     descriptionUk:
       "Карбонові впускні системи. Максимальний повітряний потік та перевірена на треку продуктивність.",
-    href: "https://eventuri.shop",
-    external: true,
+    // Eventuri.shop is closed. The catalog is now served by OneCompany.
+    href: "/shop/eventuri",
+    external: false,
     // Карбоновий впуск з каталогу — BMW G8X, виразний продукт
     imageUrl: "/images/shop/products/eventuri-carbon-intake-g8x.webp",
   },

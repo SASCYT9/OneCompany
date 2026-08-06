@@ -26,6 +26,10 @@ export function shouldHideMobileBottomNavigation(pathname: string | null, locale
 
   return (
     isPathOrDescendant(pathname, `/${locale}/admin`) ||
-    isPathOrDescendant(pathname, `/${locale}/shop/checkout`)
+    isPathOrDescendant(pathname, `/${locale}/shop/checkout`) ||
+    // The Eventuri landing page has its own persistent vehicle-finder CTA.
+    // Keeping the global fixed bar here covers the finder and product-card controls
+    // on compact viewports; the header still exposes menu and cart navigation.
+    isPathOrDescendant(pathname, `/${locale}/shop/eventuri`)
   );
 }

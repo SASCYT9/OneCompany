@@ -38,6 +38,7 @@ const staticPageConfig: Record<
   "/shop/burger": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/burger/products": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/adro": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/eventuri": { priority: 0.85, changeFrequency: "weekly" },
   "/shop/adro/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/urban/products": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },

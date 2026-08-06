@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { trackEvent } from "../../lib/analytics";
 
 interface StoreHeroSectionProps {
@@ -12,6 +13,7 @@ interface StoreHeroSectionProps {
 
 export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) {
   const [isAnimated, setIsAnimated] = useState(false);
+  const locale = useLocale();
 
   useEffect(() => {
     if (isVisible) {
@@ -328,9 +330,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             className={`text-center transition-all duration-700 delay-500 ${isAnimated ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
             <Link
-              href="https://eventuri.shop"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/${locale}/shop/eventuri`}
               onClick={() =>
                 trackEvent("cta_click", {
                   store: "eventuri",

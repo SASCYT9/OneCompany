@@ -28,6 +28,7 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
     ipe: `/${locale}/shop/ipe`,
     adro: `/${locale}/shop/adro`,
     ilmberger: `/${locale}/shop/ilmberger`,
+    eventuri: `/${locale}/shop/eventuri`,
   };
   return map[store.id] ?? store.href ?? "#";
 }

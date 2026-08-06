@@ -641,6 +641,9 @@ function SafeProductImage({
   });
 
   return (
+    // This fallback intentionally uses a native image element because product media
+    // URLs are remote/tenant-defined and may not be present in next/image config.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={cleanSrc}
       alt={alt}
@@ -666,7 +669,7 @@ function StockPageContent() {
   const shouldReduceMotion = useReducedMotion();
 
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user as { group?: string } | undefined;
   const isB2B = user?.group === "B2B_APPROVED";
   const { country, currency, rates, setCurrency } = useShopCurrency();
   const displayLocale = locale === "en" ? "en" : "ua";
@@ -742,6 +745,9 @@ function StockPageContent() {
   const localCategoryLabel =
     SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === localCategory)?.[isUa ? "ua" : "en"] ??
     localCategory;
+  const [productTypeFilter, setProductTypeFilter] = useState(
+    searchParams.get("productType")?.trim().slice(0, 120) || ""
+  );
   const [requestedYear, setRequestedYear] = useState<number | null>(() => {
     const year = Number(searchParams.get("year"));
     return Number.isInteger(year) && year >= 1886 && year <= new Date().getFullYear() + 2
@@ -1097,6 +1103,7 @@ function StockPageContent() {
       if (query.trim()) params.set("q", query.trim());
       if (selectedBrands.length > 0) params.set("brand", selectedBrands.join(","));
       if (localCategory) params.set("category", localCategory);
+      if (productTypeFilter) params.set("productType", productTypeFilter);
       if (make) params.set("make", make);
       if (model) params.set("model", model);
       if (chassis) params.set("chassis", chassis);
@@ -1127,6 +1134,7 @@ function StockPageContent() {
       currency,
       engineFilter,
       localCategory,
+      productTypeFilter,
       make,
       maxPriceFilter,
       minPriceFilter,
@@ -1310,6 +1318,7 @@ function StockPageContent() {
       if (query) params.set("q", query);
       if (selectedBrands.length > 0) params.set("brand", selectedBrands.join(","));
       if (localCategory) params.set("category", localCategory);
+      if (productTypeFilter) params.set("productType", productTypeFilter);
       if (make) params.set("make", make);
       if (model) params.set("model", model);
       if (chassis) params.set("chassis", chassis);
@@ -1379,6 +1388,7 @@ function StockPageContent() {
       stockFilter,
       sortOrder,
       localCategory,
+      productTypeFilter,
       minPriceFilter,
       maxPriceFilter,
       locale,
@@ -1418,6 +1428,7 @@ function StockPageContent() {
     stockFilter,
     sortOrder,
     localCategory,
+    productTypeFilter,
     minPriceFilter,
     maxPriceFilter,
     doSearch,
@@ -1463,6 +1474,7 @@ function StockPageContent() {
     setChassis("");
     setSelectedBrands([]);
     setLocalCategory("");
+    setProductTypeFilter("");
     setRequestedYear(null);
     setEngineFilter("");
     setOpfGpfFilter(null);
@@ -1646,6 +1658,7 @@ function StockPageContent() {
     query.trim().length > 0 ||
     selectedBrands.length > 0 ||
     Boolean(localCategory) ||
+    Boolean(productTypeFilter) ||
     Boolean(make) ||
     Boolean(model) ||
     Boolean(chassis) ||
@@ -1661,6 +1674,7 @@ function StockPageContent() {
     (query.trim() ? 1 : 0) +
     selectedBrands.length +
     (localCategory ? 1 : 0) +
+    (productTypeFilter ? 1 : 0) +
     (make ? 1 : 0) +
     (model ? 1 : 0) +
     (chassis ? 1 : 0) +
@@ -2948,6 +2962,16 @@ function StockPageContent() {
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}
+                  {productTypeFilter ? (
+                    <button
+                      type="button"
+                      onClick={() => setProductTypeFilter("")}
+                      className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
+                    >
+                      {isUa ? `Тип: ${productTypeFilter}` : `Type: ${productTypeFilter}`}
+                      <X className="h-3.5 w-3.5 text-foreground/45" />
+                    </button>
+                  ) : null}
                   {[make, model, chassis].filter(Boolean).map((value) => (
                     <button
                       key={value}
@@ -3202,7 +3226,11 @@ function StockPageContent() {
                               <SafeProductImage
                                 src={item.thumbnail}
                                 alt={item.name}
-                                className="h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-[1.018] md:p-3.5"
+                                className={`h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-[1.018] md:p-3.5 ${
+                                  item.brand === "Eventuri"
+                                    ? "mix-blend-multiply dark:mix-blend-normal"
+                                    : ""
+                                }`}
                               />
                             </div>
 
@@ -3373,7 +3401,11 @@ function StockPageContent() {
                                 <SafeProductImage
                                   src={item.thumbnail}
                                   alt={item.name}
-                                  className="w-full h-full object-contain p-2 hover:scale-110 transition-transform duration-500"
+                                  className={`w-full h-full object-contain p-2 hover:scale-110 transition-transform duration-500 ${
+                                    item.brand === "Eventuri"
+                                      ? "mix-blend-multiply dark:mix-blend-normal"
+                                      : ""
+                                  }`}
                                   isMini
                                 />
                               </div>
@@ -3566,7 +3598,11 @@ function StockPageContent() {
                                 <SafeProductImage
                                   src={item.thumbnail}
                                   alt={item.name}
-                                  className="w-full h-full object-contain p-1.5"
+                                  className={`w-full h-full object-contain p-1.5 ${
+                                    item.brand === "Eventuri"
+                                      ? "mix-blend-multiply dark:mix-blend-normal"
+                                      : ""
+                                  }`}
                                   isMini
                                 />
                               </div>

@@ -25,7 +25,7 @@ export function Navigation() {
   const stores = [
     { name: "KW", url: "https://kwsuspension.shop/", color: "from-orange-500 to-red-600" },
     { name: "Fi Exhaust", url: "https://fiexhaust.shop/", color: "from-blue-500 to-cyan-600" },
-    { name: "Eventuri", url: "https://eventuri.shop/", color: "from-purple-500 to-pink-600" },
+    { name: "Eventuri", url: `/${locale}/shop/eventuri`, color: "from-purple-500 to-pink-600" },
   ];
   const extraLinks = [
     { href: "/auto", labelUa: "Авто", labelEn: "Automotive" },
@@ -150,8 +150,8 @@ export function Navigation() {
                     <Link
                       key={store.name}
                       href={store.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={store.url.startsWith("/") ? undefined : "_blank"}
+                      rel={store.url.startsWith("/") ? undefined : "noopener noreferrer"}
                       className="block px-7 py-5 text-white/80 hover:text-white transition-all duration-400 group/item relative overflow-hidden"
                       style={{ borderBottom: "none" }}
                     >
@@ -297,8 +297,8 @@ export function Navigation() {
                 <Link
                   key={store.name}
                   href={store.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target={store.url.startsWith("/") ? undefined : "_blank"}
+                  rel={store.url.startsWith("/") ? undefined : "noopener noreferrer"}
                   className="block py-2 text-white/60 hover:text-white font-light transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

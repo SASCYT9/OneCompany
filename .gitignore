@@ -23,6 +23,8 @@ wordpress/
 # production
 /build
 /reports
+/output/
+/artifacts/
 
 # misc
 .DS_Store

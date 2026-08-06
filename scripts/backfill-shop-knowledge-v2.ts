@@ -1,4 +1,6 @@
 import { config } from "dotenv";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 import { prisma } from "../src/lib/prisma";
 import {
@@ -82,6 +84,15 @@ async function main() {
   const argv = process.argv.slice(2);
   const commit = argv.includes("--commit");
   const includeBlocked = argv.includes("--include-blocked");
+  const brand =
+    argv
+      .find((argument) => argument.startsWith("--brand="))
+      ?.split("=")[1]
+      ?.trim() || undefined;
+  const outputArg = argv
+    .find((argument) => argument.startsWith("--output="))
+    ?.split("=")[1]
+    ?.trim();
   const categories = parseShopKnowledgeBackfillCategories(argv);
   const limit = parsePositiveInteger(argv, "--limit", null);
   const batchSize = parsePositiveInteger(argv, "--batch", 100) ?? 100;
@@ -124,6 +135,7 @@ async function main() {
       cursor,
       take: remaining,
       includeBlocked,
+      brand,
     });
     if (products.length === 0) break;
     const activeApplications = await prisma.shopVehicleApplication.findMany({
@@ -196,23 +208,31 @@ async function main() {
         JSON.stringify({
           progress: stats.scanned,
           mode: commit ? "commit" : "dry-run",
+          brand,
           cursor,
         })
       );
     }
   }
 
+  const result = {
+    mode: commit ? "commit" : "dry-run",
+    includeBlocked,
+    brand,
+    categories: Array.from(categories),
+    limit,
+    batchSize,
+    ...stats,
+    cleanupExamples,
+  };
+  if (outputArg) {
+    const outputPath = path.resolve(outputArg);
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");
+  }
   console.log(
     JSON.stringify(
-      {
-        mode: commit ? "commit" : "dry-run",
-        includeBlocked,
-        categories: Array.from(categories),
-        limit,
-        batchSize,
-        ...stats,
-        cleanupExamples,
-      },
+      { ...result, outputPath: outputArg ? path.resolve(outputArg) : undefined },
       null,
       2
     )

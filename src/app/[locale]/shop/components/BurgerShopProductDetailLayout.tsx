@@ -21,6 +21,7 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 
 type Props = {
   locale: string;
@@ -473,6 +474,11 @@ export function BurgerShopProductDetailLayout({
                       />
                     )}
                   </div>
+                  <ProductAiOpinionPanel
+                    locale={resolvedLocale}
+                    product={product}
+                    shape="rounded"
+                  />
                 </div>
               </div>
             </div>

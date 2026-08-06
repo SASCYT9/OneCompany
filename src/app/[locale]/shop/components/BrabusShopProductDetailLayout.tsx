@@ -22,6 +22,7 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
+import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 
 type Props = {
   locale: string;
@@ -912,6 +913,7 @@ export function BrabusShopProductDetailLayout({
                     {isUa ? "Запит на встановлення" : "Installation Request"}
                   </Link>
                 </div>
+                <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="square" />
               </div>
 
               {/* Accordions */}

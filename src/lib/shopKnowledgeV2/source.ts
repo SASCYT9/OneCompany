@@ -183,18 +183,21 @@ export type ListShopKnowledgeSourceProductsOptions = {
   cursor?: string;
   take: number;
   includeBlocked?: boolean;
+  brand?: string;
 };
 
 export async function listShopKnowledgeSourceProducts(
   options: ListShopKnowledgeSourceProductsOptions
 ): Promise<KnowledgeSourceProduct[]> {
+  const where: Prisma.ShopProductWhereInput = options.includeBlocked
+    ? {}
+    : {
+        isPublished: true,
+        status: "ACTIVE",
+      };
+  if (options.brand) where.brand = options.brand;
   const rows = await prisma.shopProduct.findMany({
-    where: options.includeBlocked
-      ? undefined
-      : {
-          isPublished: true,
-          status: "ACTIVE",
-        },
+    where,
     orderBy: { id: "asc" },
     take: options.take,
     ...(options.cursor

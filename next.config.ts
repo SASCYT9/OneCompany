@@ -36,7 +36,6 @@ const STATIC_REMOTE_IMAGE_HOSTS = [
   "images.unsplash.com",
   "kwsuspension.shop",
   "fiexhaust.shop",
-  "eventuri.shop",
   "smgassets.blob.core.windows.net",
   "parts.ford.com",
   "www.akrapovic.com",

@@ -5,6 +5,7 @@ import { bumpShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogStat
 import type {
   ShopKnowledgeChunkEmbeddingBacklog,
   ShopKnowledgeChunkEmbeddingRepository,
+  ShopKnowledgeChunkEmbeddingScope,
   ShopKnowledgeChunkEmbeddingStoreResult,
 } from "@/lib/shopKnowledgeV2/embeddings";
 import { SHOP_KNOWLEDGE_V2_SCHEMA_VERSION } from "@/lib/shopKnowledgeV2/types";
@@ -43,6 +44,15 @@ type KnowledgeProjection = {
   contentHash: string;
 };
 
+function productScopeClause(scope?: ShopKnowledgeChunkEmbeddingScope) {
+  const productIds = scope?.productIds;
+  if (productIds === undefined) return Prisma.empty;
+  const uniqueIds = Array.from(new Set(productIds.map((value) => value.trim()).filter(Boolean)));
+  return uniqueIds.length > 0
+    ? Prisma.sql`AND knowledge."productId" IN (${Prisma.join(uniqueIds)})`
+    : Prisma.sql`AND FALSE`;
+}
+
 function readKnowledgeProjection(snapshot: Prisma.JsonValue): KnowledgeProjection {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
     throw new Error("Knowledge revision snapshot is malformed");
@@ -73,6 +83,7 @@ async function finalizeReadyKnowledgeInTransaction(
     finalizedAt: Date;
     limit: number;
     knowledgeIds?: string[];
+    scope?: ShopKnowledgeChunkEmbeddingScope;
   }
 ): Promise<number> {
   const rows = await tx.$queryRaw<FinalizableKnowledgeRow[]>`
@@ -117,6 +128,7 @@ async function finalizeReadyKnowledgeInTransaction(
         WHERE evidence."knowledgeId" = knowledge."id"
           AND evidence."revision" = revision."revision"
       ) = COALESCE((revision."snapshot"->'expectedCounts'->>'evidence')::integer, 0)
+      ${productScopeClause(input.scope)}
       ${knowledgeIdFilter(input.knowledgeIds)}
       AND NOT EXISTS (
         SELECT 1
@@ -247,7 +259,10 @@ async function finalizeReadyKnowledgeInTransaction(
 class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkEmbeddingRepository {
   constructor(private readonly client: PrismaClient) {}
 
-  async getEmbeddingBacklog(model: string): Promise<ShopKnowledgeChunkEmbeddingBacklog> {
+  async getEmbeddingBacklog(
+    model: string,
+    scope?: ShopKnowledgeChunkEmbeddingScope
+  ): Promise<ShopKnowledgeChunkEmbeddingBacklog> {
     const [row] = await this.client.$queryRaw<
       Array<{ chunks: bigint; products: bigint; knowledgeRecords: bigint }>
     >`
@@ -261,12 +276,13 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
       JOIN "ShopKnowledgeRevision" revision
         ON revision."knowledgeId" = chunk."knowledgeId"
        AND revision."revision" = chunk."revision"
-      WHERE knowledge."schemaVersion" = ${SHOP_KNOWLEDGE_V2_SCHEMA_VERSION}
+        WHERE knowledge."schemaVersion" = ${SHOP_KNOWLEDGE_V2_SCHEMA_VERSION}
         AND knowledge."revision" = chunk."revision"
         AND (
           chunk."embedding" IS NULL
           OR chunk."embeddingModel" IS DISTINCT FROM ${model}
         )
+        ${productScopeClause(scope)}
     `;
     return {
       chunks: Number(row?.chunks ?? 0),
@@ -275,7 +291,11 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
     };
   }
 
-  async prepareEmbeddingLifecycle(model: string, now: Date): Promise<number> {
+  async prepareEmbeddingLifecycle(
+    model: string,
+    now: Date,
+    scope?: ShopKnowledgeChunkEmbeddingScope
+  ): Promise<number> {
     void now;
     return this.client.$transaction(async (tx) => {
       const prepared = await tx.$executeRaw`
@@ -294,16 +314,21 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
             WHERE chunk."knowledgeId" = knowledge."id"
               AND chunk."revision" = knowledge."revision"
               AND (
-                chunk."embedding" IS NULL
-                OR chunk."embeddingModel" IS DISTINCT FROM ${model}
-              )
+              chunk."embedding" IS NULL
+              OR chunk."embeddingModel" IS DISTINCT FROM ${model}
+          )
+          ${productScopeClause(scope)}
           )
       `;
       return prepared;
     });
   }
 
-  async listPendingChunkEmbeddings(model: string, limit: number) {
+  async listPendingChunkEmbeddings(
+    model: string,
+    limit: number,
+    scope?: ShopKnowledgeChunkEmbeddingScope
+  ) {
     return this.client.$queryRaw<
       Array<{
         id: string;
@@ -334,6 +359,7 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
           chunk."embedding" IS NULL
           OR chunk."embeddingModel" IS DISTINCT FROM ${model}
         )
+        ${productScopeClause(scope)}
       ORDER BY chunk."productId" ASC, chunk."ordinal" ASC, chunk."id" ASC
       LIMIT ${limit}
     `;
@@ -371,7 +397,6 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
               AND chunk."knowledgeId" = ${write.knowledgeId}
               AND chunk."revision" = ${write.revision}
               AND chunk."contentHash" = ${write.contentHash}
-              AND chunk."isActive" = true
               AND knowledge."id" = chunk."knowledgeId"
               AND knowledge."revision" = chunk."revision"
               AND EXISTS (
@@ -410,6 +435,7 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
     finalizedAt: Date;
     limit?: number;
     knowledgeIds?: string[];
+    scope?: ShopKnowledgeChunkEmbeddingScope;
   }): Promise<number> {
     return this.client.$transaction(
       (tx) =>
@@ -418,6 +444,7 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
           finalizedAt: input.finalizedAt,
           limit: Math.min(5_000, Math.max(1, input.limit ?? 1_000)),
           knowledgeIds: input.knowledgeIds,
+          scope: input.scope,
         }),
       {
         maxWait: 10_000,

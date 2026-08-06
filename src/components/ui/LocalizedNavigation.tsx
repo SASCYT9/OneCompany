@@ -23,7 +23,7 @@ export function LocalizedNavigation() {
   const stores = [
     { name: "KW", url: "https://kwsuspension.shop/" },
     { name: "Fi Exhaust", url: "https://fiexhaust.shop/" },
-    { name: "Eventuri", url: "https://eventuri.shop/" },
+    { name: "Eventuri", url: `/${locale}/shop/eventuri` },
   ];
 
   function switchLocale(nextLocale: string) {
@@ -80,8 +80,8 @@ export function LocalizedNavigation() {
                     <Link
                       key={store.name}
                       href={store.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={store.url.startsWith("/") ? undefined : "_blank"}
+                      rel={store.url.startsWith("/") ? undefined : "noopener noreferrer"}
                       className="block px-7 py-5 text-white/80 hover:text-white transition-all"
                     >
                       {store.name}
