@@ -81,11 +81,6 @@ export function buildProductAiPrompt(locale: SupportedLocale, data: ProductAiPro
       "Проаналізуй цю автомобільну або мото-деталь як технічний експерт і дай мені один самостійний чесний висновок.",
       "",
       facts,
-      "",
-      "Поясни українською простими словами, що це за деталь, що вона реально дає автомобілю та власнику і з чого вона зроблена.",
-      "Сформуй власну практичну оцінку на основі даних товару, без маркетингових перебільшень.",
-      "Якщо матеріал або технологія виготовлення не вказані, прямо скажи: «не вказано в описі товару» — нічого не вигадуй.",
-      "Відповідай коротко одним зв’язним поясненням, без анкетного формату та без додаткових уточнень до мене.",
     ].join("\n");
   }
 
@@ -126,10 +121,5 @@ export function buildProductAiPrompt(locale: SupportedLocale, data: ProductAiPro
     "Analyze this automotive or motorcycle part as a technical expert and give me one independent, honest conclusion.",
     "",
     facts.join("\n"),
-    "",
-    "Explain in simple English what this part is, what it realistically gives the vehicle and owner, and what it is made of.",
-    "Make your own practical assessment from the product data, without marketing exaggeration.",
-    'If the material or manufacturing process is not provided, say exactly: "not provided in the product description" — do not invent it.',
-    "Keep the answer short and cohesive, without an interview-style format and without asking me follow-up questions.",
   ].join("\n");
 }
