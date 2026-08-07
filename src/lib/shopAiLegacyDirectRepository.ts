@@ -13,6 +13,7 @@ import {
 } from "@/lib/shopAiProductHydration";
 import { normalizeShopSearchText, tokenizeShopSearchQuery } from "@/lib/shopSearch";
 import { getShopStockCategoryGroupForProduct } from "@/lib/shopStockTaxonomy";
+import { parseVehicleSearchQuery } from "@/lib/shopVehicleSearch";
 import {
   filterShopStockItemsByVehicleScope,
   parseShopStockVehicleScope,
@@ -107,6 +108,20 @@ export async function retrieveShopAiCandidatesFromLegacyCatalog(input: {
   context: ShopAiContext;
   excludedProductIds?: string[];
 }): Promise<ShopAiDirectResult> {
+  const query = normalizeShopSearchText(buildShopAiCatalogQuery(input.plan));
+  const queryTokens = tokenizeShopSearchQuery(query);
+  if (!input.plan.category && parseVehicleSearchQuery(input.plan.searchQuery) !== "sku") {
+    return {
+      products: [],
+      exactCount: 0,
+      requiresVerificationCount: 0,
+      rejected: {
+        alreadyShown: 0,
+        incompatibleVehicle: 0,
+        missingRequestedEvidence: 0,
+      },
+    };
+  }
   const allItems = filterShopStockItemsByVehicleScope(
     await getShopProductsWithFitments(),
     parseShopStockVehicleScope(input.context.scope)
@@ -117,8 +132,6 @@ export async function retrieveShopAiCandidatesFromLegacyCatalog(input: {
           getShopStockCategoryGroupForProduct(item, input.context.locale).id === input.plan.category
       )
     : allItems;
-  const query = normalizeShopSearchText(buildShopAiCatalogQuery(input.plan));
-  const queryTokens = tokenizeShopSearchQuery(query);
   const candidates = categoryItems
     .map((item) => ({ item, score: scoreLegacyCandidate(item, queryTokens) }))
     .filter(({ score }) => score > 0 || Boolean(input.plan.category))

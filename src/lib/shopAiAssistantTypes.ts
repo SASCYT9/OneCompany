@@ -45,6 +45,8 @@ export type ShopAiContext = {
   chassis?: string;
   year?: number | null;
   engine?: string;
+  fuel?: string | null;
+  bodyStyle?: string | null;
   powerGainHp?: number | null;
   opfGpf?: "with" | "without" | null;
   productKind?: ShopAiProductKind;
@@ -55,6 +57,8 @@ export type ShopAiContext = {
     chassis?: string;
     year?: number | null;
     engine?: string;
+    fuel?: string | null;
+    bodyStyle?: string | null;
     opfGpf?: "with" | "without" | null;
     productKind?: ShopAiProductKind;
   };
@@ -64,6 +68,13 @@ export type ShopAiRequiredDetail = "yearOrChassis" | "engine" | "opfGpf";
 export type ShopAiMatchStatus = "exact" | "requires_verification";
 export type ShopAiMatchBasis = "fitment" | "identity";
 export type ShopAiResponseMode = "results" | "clarification" | "no_match";
+export type ShopAiPipeline = "legacy" | "v2";
+export type ShopAiDegradedReason =
+  | "planner"
+  | "vehicle_resolution"
+  | "retrieval"
+  | "answer"
+  | "timeout";
 
 export type ShopAiPlan = {
   intent: "recommend" | "compare" | "compatibility" | "question";
@@ -137,8 +148,19 @@ export type ShopAiManagerContext = {
   createdAt: number;
   vehicleType: "auto" | "moto";
   vehicle: string;
+  vehicleDetails?: {
+    make: string | null;
+    model: string | null;
+    chassis: string | null;
+    year: number | null;
+    engine: string | null;
+    fuel: string | null;
+    bodyStyle: string | null;
+    opfGpf: "with" | "without" | null;
+  };
   request: string;
   products: Array<{ brand: string; sku: string; name: string }>;
+  selectedProduct?: { brand: string; sku: string; name: string };
 };
 
 export type ShopAiAssistantResponse = {
@@ -160,4 +182,6 @@ export type ShopAiAssistantResponse = {
   managerHref: string;
   managerContext: ShopAiManagerContext;
   degraded?: boolean;
+  pipeline?: ShopAiPipeline;
+  degradedReason?: ShopAiDegradedReason;
 };

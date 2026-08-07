@@ -25,8 +25,10 @@ import { isShopAiContinuation } from "@/lib/shopAiAssistantConversation";
 import type {
   ShopAiAssistantResponse,
   ShopAiContext,
+  ShopAiDegradedReason,
   ShopAiManagerContext,
   ShopAiProduct,
+  ShopAiPipeline,
 } from "@/lib/shopAiAssistantTypes";
 import { formatShopAiProductKind } from "@/lib/shopAiProductKind";
 import { formatShopMoney } from "@/lib/shopMoneyFormat";
@@ -61,6 +63,10 @@ type ChatMessage = {
   mode?: ShopAiV2Mode;
   counts?: ShopAiV2Counts;
   runId?: string;
+  conversationId?: string;
+  degraded?: boolean;
+  pipeline?: ShopAiPipeline;
+  degradedReason?: ShopAiDegradedReason;
 };
 
 type Props = ShopAiContext;
@@ -77,8 +83,18 @@ type FeedbackState = {
   status: "choosing" | "sending" | "sent" | "failed";
 };
 
+type PersistedOneAiConversation = {
+  version: 1;
+  savedAt: number;
+  contextKey: string;
+  conversationId: string | null;
+  messages: ChatMessage[];
+};
+
 const AI_FILTER_SESSION_KEY = "onecompany:stock-ai-filters";
 const MANAGER_HANDOFF_SESSION_KEY = "onecompany:one-ai-manager-handoff";
+const ONE_AI_CONVERSATION_SESSION_KEY = "onecompany:one-ai-conversation:v1";
+const ONE_AI_CONVERSATION_TTL_MS = 2 * 60 * 60 * 1000;
 const AI_FILTER_KEYS = [
   "q",
   "brand",
@@ -99,6 +115,54 @@ const AI_FILTER_KEYS = [
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function oneAiContextKey(context: ShopAiContext) {
+  return JSON.stringify([
+    context.locale,
+    context.currency,
+    context.scope ?? "auto",
+    context.category ?? null,
+    context.make ?? null,
+    context.model ?? null,
+    context.chassis ?? null,
+    context.year ?? null,
+    context.engine ?? null,
+    context.fuel ?? null,
+    context.bodyStyle ?? null,
+    context.opfGpf ?? null,
+    context.productKind ?? null,
+  ]);
+}
+
+function readPersistedOneAiConversation(contextKey: string) {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(ONE_AI_CONVERSATION_SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<PersistedOneAiConversation>;
+    if (
+      parsed.version !== 1 ||
+      typeof parsed.savedAt !== "number" ||
+      Date.now() - parsed.savedAt > ONE_AI_CONVERSATION_TTL_MS ||
+      parsed.contextKey !== contextKey ||
+      !Array.isArray(parsed.messages) ||
+      parsed.messages.length === 0
+    ) {
+      window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+      return null;
+    }
+    return {
+      version: 1 as const,
+      savedAt: parsed.savedAt,
+      contextKey,
+      conversationId: typeof parsed.conversationId === "string" ? parsed.conversationId : null,
+      messages: parsed.messages.slice(-12) as ChatMessage[],
+    } satisfies PersistedOneAiConversation;
+  } catch {
+    window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    return null;
+  }
 }
 
 function readOptionalString(value: unknown, key: string): string | undefined {
@@ -142,6 +206,22 @@ function readV2Counts(value: unknown): ShopAiV2Counts | undefined {
     exact: Math.max(0, Math.floor(exact)),
     requiresVerification: Math.max(0, Math.floor(requiresVerification)),
   };
+}
+
+function readShopAiPipeline(value: unknown): ShopAiPipeline | undefined {
+  const candidate = readOptionalString(value, "pipeline");
+  return candidate === "legacy" || candidate === "v2" ? candidate : undefined;
+}
+
+function readShopAiDegradedReason(value: unknown): ShopAiDegradedReason | undefined {
+  const candidate = readOptionalString(value, "degradedReason");
+  return candidate === "planner" ||
+    candidate === "vehicle_resolution" ||
+    candidate === "retrieval" ||
+    candidate === "answer" ||
+    candidate === "timeout"
+    ? candidate
+    : undefined;
 }
 
 function normalizeAssistantProduct(product: ShopAiProduct): AssistantProduct {
@@ -298,6 +378,16 @@ function buildDefaultManagerContext(context: ShopAiContext): ShopAiManagerContex
     createdAt: Date.now(),
     vehicleType: context.scope === "moto" ? "moto" : "auto",
     vehicle,
+    vehicleDetails: {
+      make: context.make ?? null,
+      model: context.model ?? null,
+      chassis: context.chassis ?? null,
+      year: context.year ?? null,
+      engine: context.engine ?? null,
+      fuel: context.fuel ?? null,
+      bodyStyle: context.bodyStyle ?? null,
+      opfGpf: context.opfGpf ?? null,
+    },
     request: context.query ?? "",
     products: [],
   };
@@ -341,6 +431,14 @@ export function StockAiAssistant(props: Props) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const requestRef = useRef<AbortController | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const hydratedConversationRef = useRef(false);
+
+  const conversationContextKey = oneAiContextKey(assistantContext);
+
+  const clearPersistedConversation = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+  }, []);
 
   useEffect(() => {
     setAssistantContext((current) => ({
@@ -351,10 +449,45 @@ export function StockAiAssistant(props: Props) {
     }));
   }, [props.country, props.currency, props.locale]);
 
+  useEffect(() => {
+    if (hydratedConversationRef.current) return;
+    const persisted = readPersistedOneAiConversation(conversationContextKey);
+    if (persisted) {
+      setMessages(persisted.messages);
+      conversationIdRef.current = persisted.conversationId;
+    }
+    hydratedConversationRef.current = true;
+  }, [conversationContextKey]);
+
+  useEffect(() => {
+    if (!hydratedConversationRef.current || typeof window === "undefined") return;
+    if (messages.length <= 1 && !conversationIdRef.current) {
+      clearPersistedConversation();
+      return;
+    }
+    const payload: PersistedOneAiConversation = {
+      version: 1,
+      savedAt: Date.now(),
+      contextKey: conversationContextKey,
+      conversationId: conversationIdRef.current,
+      messages: messages.slice(-12),
+    };
+    try {
+      window.sessionStorage.setItem(ONE_AI_CONVERSATION_SESSION_KEY, JSON.stringify(payload));
+    } catch {
+      // Session storage is an enhancement; a quota or privacy failure must not break chat.
+    }
+  }, [clearPersistedConversation, conversationContextKey, messages]);
+
+  useEffect(() => {
+    return () => requestRef.current?.abort();
+  }, []);
+
   function commitAssistantContext(next: ShopAiContext) {
     requestRef.current?.abort();
     requestRef.current = null;
     conversationIdRef.current = null;
+    clearPersistedConversation();
     setAssistantContext(next);
     setContextEdited(true);
     const nextVehicleLabel = [next.make, next.model, next.chassis, next.year]
@@ -368,7 +501,17 @@ export function StockAiAssistant(props: Props) {
   }
 
   function removeAssistantContextField(
-    field: "category" | "make" | "model" | "chassis" | "year" | "engine" | "opfGpf" | "productKind"
+    field:
+      | "category"
+      | "make"
+      | "model"
+      | "chassis"
+      | "year"
+      | "engine"
+      | "fuel"
+      | "bodyStyle"
+      | "opfGpf"
+      | "productKind"
   ) {
     const next: ShopAiContext = {
       ...assistantContext,
@@ -380,6 +523,8 @@ export function StockAiAssistant(props: Props) {
       fields.add("chassis");
       fields.add("year");
       fields.add("engine");
+      fields.add("fuel");
+      fields.add("bodyStyle");
       fields.add("opfGpf");
     } else if (field === "model") {
       fields.add("chassis");
@@ -403,6 +548,8 @@ export function StockAiAssistant(props: Props) {
       chassis: undefined,
       year: null,
       engine: undefined,
+      fuel: undefined,
+      bodyStyle: undefined,
       opfGpf: null,
       filters: assistantContext.filters
         ? {
@@ -412,6 +559,8 @@ export function StockAiAssistant(props: Props) {
             chassis: undefined,
             year: null,
             engine: undefined,
+            fuel: undefined,
+            bodyStyle: undefined,
             opfGpf: null,
           }
         : undefined,
@@ -467,9 +616,11 @@ export function StockAiAssistant(props: Props) {
   }, [router]);
 
   const closeAssistant = useCallback(() => {
+    requestRef.current?.abort();
+    requestRef.current = null;
     setOpen(false);
-    clearAiAppliedFilters();
-  }, [clearAiAppliedFilters]);
+    setLoading(false);
+  }, []);
 
   useEffect(() => setPortalReady(true), []);
 
@@ -521,11 +672,30 @@ export function StockAiAssistant(props: Props) {
       }
     };
 
-    if (window.innerWidth < 768) document.body.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    const panel = panelRef.current;
+    const inertSiblings = Array.from(document.body.children).filter(
+      (element): element is HTMLElement => element instanceof HTMLElement && element !== panel
+    );
+    const previousSiblingAttributes = inertSiblings.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      inert: element.getAttribute("inert"),
+    }));
+    inertSiblings.forEach((element) => {
+      element.setAttribute("aria-hidden", "true");
+      element.setAttribute("inert", "");
+    });
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
+      previousSiblingAttributes.forEach(({ element, ariaHidden, inert }) => {
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+        if (inert === null) element.removeAttribute("inert");
+        else element.setAttribute("inert", inert);
+      });
       document.removeEventListener("keydown", handleKeyDown);
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
       else launcher?.focus();
@@ -612,6 +782,10 @@ export function StockAiAssistant(props: Props) {
           mode: readV2Mode(responsePayload),
           counts: readV2Counts(responsePayload),
           runId: readOptionalString(responsePayload, "runId"),
+          conversationId,
+          degraded: data.degraded === true,
+          pipeline: readShopAiPipeline(responsePayload),
+          degradedReason: readShopAiDegradedReason(responsePayload),
         },
       ]);
     } catch (requestError) {
@@ -630,6 +804,8 @@ export function StockAiAssistant(props: Props) {
 
   function resetConversation() {
     requestRef.current?.abort();
+    requestRef.current = null;
+    clearPersistedConversation();
     setMessages([
       createGreeting(
         assistantContext.locale,
@@ -665,7 +841,7 @@ export function StockAiAssistant(props: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           runId: message.runId,
-          conversationId: conversationIdRef.current || undefined,
+          conversationId: message.conversationId || conversationIdRef.current || undefined,
           rating,
           reason,
           locale: assistantContext.locale,
@@ -774,6 +950,16 @@ export function StockAiAssistant(props: Props) {
     `${isUa ? "Двигун" : "Engine"}: ${assistantContext.engine ?? ""}`
   );
   addContextChip(
+    "fuel",
+    assistantContext.fuel,
+    `${isUa ? "Паливо" : "Fuel"}: ${assistantContext.fuel ?? ""}`
+  );
+  addContextChip(
+    "bodyStyle",
+    assistantContext.bodyStyle,
+    `${isUa ? "Кузов" : "Body"}: ${assistantContext.bodyStyle ?? ""}`
+  );
+  addContextChip(
     "opfGpf",
     assistantContext.opfGpf,
     assistantContext.opfGpf === "with"
@@ -825,6 +1011,7 @@ export function StockAiAssistant(props: Props) {
                 role="dialog"
                 aria-modal="true"
                 aria-label="One AI"
+                aria-labelledby="one-ai-panel-title"
                 initial={
                   reducedMotion ? { opacity: 0 } : desktopPanel ? { x: "100%" } : { y: "100%" }
                 }
@@ -834,7 +1021,7 @@ export function StockAiAssistant(props: Props) {
                     ? { duration: 0.12 }
                     : { type: "spring", stiffness: 360, damping: 34 }
                 }
-                className="fixed inset-x-0 bottom-0 z-[70] flex h-[min(92dvh,760px)] w-full flex-col overflow-hidden rounded-t-[24px] border border-b-0 border-foreground/14 bg-background text-foreground shadow-[0_-16px_48px_rgba(0,0,0,0.18)] md:inset-auto md:bottom-6 md:right-6 md:h-[min(680px,calc(100dvh-8rem))] md:w-[390px] md:rounded-none md:border md:border-foreground/14 md:shadow-[-16px_0_48px_rgba(0,0,0,0.18)]"
+                className="fixed inset-x-0 bottom-0 z-[70] flex h-[min(92dvh,760px)] w-full flex-col overflow-hidden rounded-t-[var(--one-ai-radius)] border border-b-0 border-foreground/14 bg-background text-foreground shadow-[0_-16px_48px_rgba(0,0,0,0.18)] md:inset-auto md:bottom-6 md:right-6 md:h-[min(680px,calc(100dvh-8rem))] md:w-[390px] md:rounded-[var(--one-ai-radius)] md:border md:border-foreground/14 md:shadow-[-16px_0_48px_rgba(0,0,0,0.18)]"
               >
                 <header className="flex h-14 shrink-0 items-center justify-between border-b border-foreground/10 px-4">
                   <div className="flex min-w-0 items-center gap-3">
@@ -847,7 +1034,9 @@ export function StockAiAssistant(props: Props) {
                       <Sparkles className="h-4 w-4 opacity-70" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold tracking-wide">One AI</div>
+                      <div id="one-ai-panel-title" className="text-sm font-semibold tracking-wide">
+                        One AI
+                      </div>
                       <div className="text-[10px] uppercase tracking-[0.16em] text-foreground/45">
                         {isUa ? "Підбір тюнінгу" : "Tuning assistant"}
                       </div>
@@ -966,6 +1155,18 @@ export function StockAiAssistant(props: Props) {
                           />
                         ) : null}
 
+                        {message.degraded ? (
+                          <div
+                            className="mt-2.5 border border-amber-500/30 bg-amber-500/8 px-3 py-2 text-[10px] leading-4 text-foreground/65"
+                            role="status"
+                            aria-live="polite"
+                          >
+                            {isUa
+                              ? "Підбір тимчасово працює в обмеженому режимі. Неперевірені товари не показуємо — спробуйте ще раз або зверніться до менеджера."
+                              : "Selection is temporarily limited. Unverified products are hidden — try again or ask a manager."}
+                          </div>
+                        ) : null}
+
                         {message.role === "assistant" &&
                         !message.plan?.needsClarification &&
                         message.plan?.requiredDetails?.length ? (
@@ -1012,11 +1213,18 @@ export function StockAiAssistant(props: Props) {
                                 managerHref={
                                   product.managerHref || message.managerHref || managerHref
                                 }
-                                onManagerClick={() => {
-                                  storeManagerHandoff(
+                                onManagerClick={(selectedProduct) => {
+                                  const baseContext =
                                     message.managerContext ||
-                                      buildDefaultManagerContext(assistantContext)
-                                  );
+                                    buildDefaultManagerContext(assistantContext);
+                                  storeManagerHandoff({
+                                    ...baseContext,
+                                    selectedProduct: {
+                                      brand: selectedProduct.brand,
+                                      sku: selectedProduct.partNumber,
+                                      name: selectedProduct.name,
+                                    },
+                                  });
                                   setOpen(false);
                                 }}
                               />
@@ -1099,6 +1307,8 @@ export function StockAiAssistant(props: Props) {
                         initial={reducedMotion ? false : { opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-3 border-l-2 border-foreground/12 py-1 pl-3 text-[11px] text-foreground/48"
+                        role="status"
+                        aria-live="polite"
                       >
                         <span className="flex items-center gap-1" aria-hidden="true">
                           {[0, 1, 2].map((dot) => (
@@ -1118,7 +1328,11 @@ export function StockAiAssistant(props: Props) {
                       </motion.div>
                     ) : null}
                     {error ? (
-                      <div className="border border-foreground/15 bg-foreground/[0.035] px-3 py-2.5 text-xs text-foreground/65">
+                      <div
+                        className="border border-foreground/15 bg-foreground/[0.035] px-3 py-2.5 text-xs text-foreground/65"
+                        role="alert"
+                        aria-live="assertive"
+                      >
                         {error}
                       </div>
                     ) : null}
@@ -1161,6 +1375,7 @@ export function StockAiAssistant(props: Props) {
                         }
                       }}
                       rows={1}
+                      aria-label={isUa ? "Повідомлення для One AI" : "Message for One AI"}
                       placeholder={inputPlaceholder}
                       className="max-h-24 min-h-12 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-3 text-sm leading-5 text-foreground outline-none placeholder:text-foreground/32"
                     />
@@ -1435,7 +1650,7 @@ function AssistantProductCard({
   product: AssistantProduct;
   context: ShopAiContext;
   managerHref: string;
-  onManagerClick: () => void;
+  onManagerClick: (product: AssistantProduct) => void;
 }) {
   const isUa = context.locale === "ua";
   const reducedMotion = useReducedMotion();
@@ -1547,19 +1762,31 @@ function AssistantProductCard({
               {price > 0 ? formatShopMoney(context.locale, price, context.currency) : "—"}
             </div>
             {isExact ? (
-              <Link
-                href={href}
-                prefetch={false}
-                className="inline-flex h-9 items-center gap-2 border border-foreground bg-foreground px-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-background transition hover:opacity-80"
-                aria-label={isUa ? "Відкрити товар" : "Open product"}
-              >
-                {isUa ? "Відкрити товар" : "Open product"}
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={href}
+                  prefetch={false}
+                  className="inline-flex h-9 items-center gap-2 border border-foreground bg-foreground px-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-background transition hover:opacity-80"
+                  aria-label={isUa ? "Відкрити товар" : "Open product"}
+                >
+                  {isUa ? "Відкрити товар" : "Open product"}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href={managerHref}
+                  onClick={() => onManagerClick(product)}
+                  className="inline-flex h-9 items-center justify-center border border-foreground/15 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/62 transition hover:border-foreground/38 hover:text-foreground"
+                  aria-label={
+                    isUa ? "Запитати менеджера про товар" : "Ask a manager about this product"
+                  }
+                >
+                  <MessageCircleMore className="h-3.5 w-3.5" />
+                </Link>
+              </div>
             ) : (
               <Link
                 href={managerHref}
-                onClick={onManagerClick}
+                onClick={() => onManagerClick(product)}
                 className="inline-flex min-h-9 items-center gap-2 border border-foreground/15 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/62 transition hover:border-foreground/38 hover:text-foreground"
               >
                 {isUa ? "Перевірити сумісність" : "Verify fitment"}

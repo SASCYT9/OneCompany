@@ -28,6 +28,18 @@ function cleanIds(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).slice(-100);
 }
 
+function cleanupMemoryConversations() {
+  const now = Date.now();
+  for (const [key, value] of memoryConversations) {
+    if (value.expiresAt.getTime() <= now) memoryConversations.delete(key);
+  }
+  if (memoryConversations.size <= 500) return;
+  const oldest = Array.from(memoryConversations.values())
+    .sort((left, right) => left.expiresAt.getTime() - right.expiresAt.getTime())
+    .slice(0, memoryConversations.size - 500);
+  for (const snapshot of oldest) memoryConversations.delete(snapshot.id);
+}
+
 function cleanHistory(value: unknown): ShopAiHistoryMessage[] {
   if (!Array.isArray(value)) return [];
   return value.slice(-MAX_CONVERSATION_HISTORY).flatMap((item) => {
@@ -157,11 +169,7 @@ export async function saveShopAiConversation(input: {
     expiresAt,
   };
   memoryConversations.set(id, snapshot);
-  if (memoryConversations.size > 500) {
-    for (const [key, value] of memoryConversations) {
-      if (value.expiresAt.getTime() <= Date.now()) memoryConversations.delete(key);
-    }
-  }
+  cleanupMemoryConversations();
   if (!databaseAvailable) return snapshot;
   try {
     await prisma.shopAiConversation.upsert({

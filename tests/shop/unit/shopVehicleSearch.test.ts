@@ -19,6 +19,17 @@ test("G8X expands to BMW M cars and G8x chassis aliases", () => {
   assert.deepEqual(expanded.platforms, ["G8X"]);
 });
 
+test("BMW X6 G06 aliases resolve the regular X6 without broadening to X6 M", () => {
+  const expanded = expandVehicleAliases("BMW X6 G06 30d mild hybrid 2020");
+
+  assert.equal(expanded.intent, "mixed");
+  assert.deepEqual(expanded.makes, ["BMW"]);
+  assert.deepEqual(expanded.models, ["X6"]);
+  assert.deepEqual(expanded.chassis, ["G06"]);
+  assert.deepEqual(expanded.years, [2020]);
+  assert.equal(expanded.models.includes("X6 M"), false);
+});
+
 test("Mercedes G-Wagon aliases map to G-Class and W463/W465 platforms", () => {
   for (const query of ["g wagon", "g-class", "g63"]) {
     const expanded = expandVehicleAliases(query);

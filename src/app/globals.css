@@ -167,6 +167,7 @@
     --logo-invert: invert(0);
 
     --radius: 4px; /* Sharp Porsche corners */
+    --one-ai-radius: 8px;
 
     --font-stack-sans:
       var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -213,6 +214,7 @@
     /* Dark theme keeps the original pill-shape corners. Light (Porsche
        Editorial) uses sharp 4px corners defined in :root. */
     --radius: 999px;
+    --one-ai-radius: 8px;
 
     /* Tailwind v4 quirk: @theme registers --color-* tokens via @property
        at :root level; nested .dark scopes don't propagate the resolved

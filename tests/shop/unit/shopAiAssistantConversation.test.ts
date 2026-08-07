@@ -93,3 +93,36 @@ test("a technical OPF clarification inherits vehicle but re-evaluates shown prod
     1
   );
 });
+
+test("an answer to a clarification inherits the full previous plan", () => {
+  const clarificationPlan: ShopAiPlan = {
+    ...previousPlan,
+    category: "exhaust",
+    needsClarification: true,
+    requiredDetails: ["opfGpf"],
+    vehicle: {
+      type: "car",
+      make: "BMW",
+      model: "X6",
+      chassis: "G06",
+      year: 2020,
+      engine: "B57",
+      fuel: "diesel",
+      bodyStyle: "suv",
+    },
+  };
+  const context = inheritShopAiConversationContext(
+    { locale: "ua", currency: "EUR" },
+    clarificationPlan,
+    "BMW X6 G06 2020"
+  );
+
+  assert.equal(context.category, "exhaust");
+  assert.equal(context.make, "BMW");
+  assert.equal(context.model, "X6");
+  assert.equal(context.chassis, "G06");
+  assert.equal(context.year, 2020);
+  assert.equal(context.engine, "B57");
+  assert.equal(context.fuel, "diesel");
+  assert.equal(context.bodyStyle, "suv");
+});

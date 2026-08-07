@@ -18,16 +18,41 @@ export function inheritShopAiConversationContext(
   previousPlan: ShopAiPlan | null,
   message: string
 ): ShopAiContext {
-  if (!previousPlan || !isShopAiContinuation(message)) return context;
+  const inheritsClarificationAnswer = Boolean(previousPlan?.needsClarification);
+  if (!previousPlan || (!isShopAiContinuation(message) && !inheritsClarificationAnswer)) {
+    return context;
+  }
+
+  const previousVehicle = previousPlan.vehicle;
+  const filters = context.filters
+    ? {
+        ...context.filters,
+        category: context.filters.category ?? previousPlan.category ?? undefined,
+        make: context.filters.make ?? previousVehicle.make ?? undefined,
+        model: context.filters.model ?? previousVehicle.model ?? undefined,
+        chassis: context.filters.chassis ?? previousVehicle.chassis ?? undefined,
+        year: context.filters.year ?? previousVehicle.year ?? null,
+        engine: context.filters.engine ?? previousVehicle.engine ?? undefined,
+        opfGpf: context.filters.opfGpf ?? previousPlan.opfGpf ?? null,
+        productKind: context.filters.productKind ?? previousPlan.productKind,
+      }
+    : undefined;
+
   return {
     ...context,
     query: previousPlan.searchQuery || context.query,
     category: previousPlan.category || context.category,
-    make: previousPlan.vehicle.make || context.make,
-    model: previousPlan.vehicle.model || context.model,
-    chassis: previousPlan.vehicle.chassis || context.chassis,
+    make: context.make || previousVehicle.make || undefined,
+    model: context.model || previousVehicle.model || undefined,
+    chassis: context.chassis || previousVehicle.chassis || undefined,
+    year: context.year ?? previousVehicle.year ?? null,
+    engine: context.engine || previousVehicle.engine || undefined,
+    fuel: context.fuel ?? previousVehicle.fuel ?? null,
+    bodyStyle: context.bodyStyle ?? previousVehicle.bodyStyle ?? null,
     powerGainHp: previousPlan.powerGainHp ?? context.powerGainHp ?? null,
     opfGpf: previousPlan.opfGpf ?? context.opfGpf ?? null,
+    productKind: context.productKind ?? previousPlan.productKind,
+    filters,
   };
 }
 

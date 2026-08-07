@@ -16,6 +16,14 @@ test("planner infers a tuning category and asks for missing vehicle", () => {
   assert.deepEqual(plan.requiredDetails, []);
 });
 
+test("planner refuses an open-ended recommendation without a category", () => {
+  const plan = buildFallbackShopAiPlan("Що варто змінити спочатку?", context);
+
+  assert.equal(plan.category, null);
+  assert.equal(plan.needsClarification, true);
+  assert.match(plan.clarification ?? "", /що саме хочете змінити/i);
+});
+
 test("planner inherits vehicle selected on the Stock page", () => {
   const plan = normalizeShopAiPlan(
     { category: "brakes", needsClarification: false, vehicle: {} },
@@ -91,6 +99,40 @@ test("fallback planner inherits a year from the current Stock query", () => {
   assert.equal(plan.vehicle.model, "M3");
   assert.equal(plan.vehicle.year, 2018);
   assert.equal(plan.searchQuery.includes("2018"), true);
+});
+
+test("fallback planner resolves BMW X6 G06 and keeps context facts", () => {
+  const plan = buildFallbackShopAiPlan(
+    "Підбери вихлоп для BMW X6 G06 30d mild hybrid 2020",
+    context
+  );
+
+  assert.equal(plan.vehicle.make, "BMW");
+  assert.equal(plan.vehicle.model, "X6");
+  assert.equal(plan.vehicle.chassis, "G06");
+  assert.equal(plan.vehicle.year, 2020);
+  assert.equal(plan.vehicle.engine, "B57");
+  assert.equal(plan.vehicle.fuel, "hybrid");
+  assert.equal(plan.category, "exhaust");
+});
+
+test("fallback planner carries vehicle facts from the active context", () => {
+  const plan = buildFallbackShopAiPlan("Підбери вихлоп для цього авто", {
+    ...context,
+    category: "exhaust",
+    make: "BMW",
+    model: "X6",
+    chassis: "G06",
+    year: 2020,
+    engine: "B57",
+    fuel: "diesel",
+    bodyStyle: "suv",
+  });
+
+  assert.equal(plan.vehicle.year, 2020);
+  assert.equal(plan.vehicle.engine, "B57");
+  assert.equal(plan.vehicle.fuel, "diesel");
+  assert.equal(plan.vehicle.bodyStyle, "suv");
 });
 
 test("planner recognizes a Ukrainian comparison request deterministically", () => {

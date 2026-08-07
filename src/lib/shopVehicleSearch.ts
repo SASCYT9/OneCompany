@@ -85,6 +85,15 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     models: ["M2", "M3", "M4", "M5", "M8", "X3 M", "X4 M", "X5 M", "X6 M"],
   },
   {
+    id: "bmw-x6-g06",
+    aliases: ["x6", "bmw x6", "x6 g06", "g06 x6", "g06"],
+    makes: ["BMW"],
+    models: ["X6"],
+    chassis: ["G06"],
+    engines: ["B57"],
+    softTerms: ["30d", "40i", "m50d", "m50i", "mild hybrid", "mhev"],
+  },
+  {
     id: "porsche-911",
     aliases: ["911", "992", "991", "gt3", "gt3 rs", "gt4", "turbo", "carrera", "gts"],
     makes: ["Porsche"],

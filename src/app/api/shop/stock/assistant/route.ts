@@ -53,6 +53,7 @@ import { resolveShopAiVehiclePlan } from "@/lib/shopAiVehicleResolver";
 import type {
   ShopAiAssistantResponse,
   ShopAiContext,
+  ShopAiDegradedReason,
   ShopAiManagerContext,
   ShopAiProduct,
 } from "@/lib/shopAiAssistantTypes";
@@ -157,6 +158,8 @@ function cleanContext(value: unknown): ShopAiContext {
         ? rawYear
         : null,
     engine: redactShopAiContextValue(filters.engine ?? source.engine, 100),
+    fuel: redactShopAiContextValue(filters.fuel ?? source.fuel, 40) || null,
+    bodyStyle: redactShopAiContextValue(filters.bodyStyle ?? source.bodyStyle, 60) || null,
     opfGpf:
       filters.opfGpf === "with" || filters.opfGpf === "without"
         ? filters.opfGpf
@@ -174,6 +177,8 @@ function cleanContext(value: unknown): ShopAiContext {
           ? rawYear
           : null,
       engine: redactShopAiContextValue(filters.engine, 100) || undefined,
+      fuel: redactShopAiContextValue(filters.fuel, 40) || undefined,
+      bodyStyle: redactShopAiContextValue(filters.bodyStyle, 60) || undefined,
       opfGpf: filters.opfGpf === "with" || filters.opfGpf === "without" ? filters.opfGpf : null,
       productKind: normalizedProductKind ?? undefined,
     },
@@ -221,8 +226,18 @@ function buildManagerContext(
       context.scope ??
       (plan.vehicle.type === "motorcycle" ? "moto" : plan.vehicle.type === "car" ? "auto" : "auto"),
     vehicle,
+    vehicleDetails: {
+      make: plan.vehicle.make,
+      model: plan.vehicle.model,
+      chassis: plan.vehicle.chassis,
+      year: plan.vehicle.year,
+      engine: plan.vehicle.engine,
+      fuel: plan.vehicle.fuel ?? context.fuel ?? null,
+      bodyStyle: plan.vehicle.bodyStyle ?? context.bodyStyle ?? null,
+      opfGpf: plan.opfGpf ?? context.opfGpf ?? null,
+    },
     request: message.slice(0, 800),
-    products: products.slice(0, 3).map((product) => ({
+    products: products.slice(0, 6).map((product) => ({
       brand: product.brand,
       sku: product.partNumber,
       name: product.name,
@@ -245,6 +260,41 @@ function requestsVinVerification(message: string) {
   return (
     /\b(?:vin|він)\b/iu.test(message) && /\b(?:не\s+знаю|not\s+sure|verify|перевір)/iu.test(message)
   );
+}
+
+function resolveShopAiDegradedReason(input: {
+  plannedDegraded?: boolean;
+  vehicleResolutionDegraded?: boolean;
+  retrievalDegraded?: boolean;
+  answerDegraded?: boolean;
+  timedOut?: boolean;
+}): ShopAiDegradedReason | undefined {
+  if (input.timedOut) return "timeout";
+  if (input.retrievalDegraded) return "retrieval";
+  if (input.vehicleResolutionDegraded) return "vehicle_resolution";
+  if (input.answerDegraded) return "answer";
+  if (input.plannedDegraded) return "planner";
+  return undefined;
+}
+
+function failClosedShopAiResponseOnTimeout(
+  response: ShopAiAssistantResponse,
+  locale: ShopAiContext["locale"]
+) {
+  response.degraded = true;
+  response.degradedReason = "timeout";
+  if (response.mode !== "results") return;
+
+  const message = buildShopAiNoExactMatchMessage(locale, response.plan);
+  response.mode = "no_match";
+  response.answer = message;
+  response.message = message;
+  response.products = [];
+  response.totalItems = 0;
+  response.counts = { exact: 0, requiresVerification: 0 };
+  response.searchHref = null;
+  response.catalogHref = null;
+  response.managerContext = { ...response.managerContext, products: [] };
 }
 
 export async function POST(request: NextRequest) {
@@ -402,6 +452,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const serveV2 = pipelineDecision.serveV2;
+    const pipeline = serveV2 ? "v2" : "legacy";
     let vehicleResolutionDegraded = false;
     if (serveV2 && hasVehicleInput) {
       const canonicalResolution = await withinShopAiDeadline(
@@ -494,6 +545,12 @@ export async function POST(request: NextRequest) {
         managerHref: `/${context.locale}/contact?source=one-ai`,
         managerContext: buildManagerContext(message, planned.plan, [], planningContext),
         degraded: planned.degraded || vehicleResolutionDegraded || turnTimedOut,
+        pipeline,
+        degradedReason: resolveShopAiDegradedReason({
+          plannedDegraded: planned.degraded,
+          vehicleResolutionDegraded,
+          timedOut: turnTimedOut,
+        }),
       };
       const nextConversationId = conversationIdForSave ?? crypto.randomUUID();
       const conversation = await withinShopAiDeadline(
@@ -515,7 +572,7 @@ export async function POST(request: NextRequest) {
         markTurnTimedOut
       );
       response.conversationId = conversation.id;
-      if (turnTimedOut) response.degraded = true;
+      if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
       response.runId = telemetryRunId ?? undefined;
       if (telemetryRunId) {
         await withinShopAiDeadline(
@@ -543,10 +600,10 @@ export async function POST(request: NextRequest) {
           markTurnTimedOut
         );
       }
-      if (turnTimedOut) response.degraded = true;
+      if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
       return NextResponse.json(boundShopAiResponse(response), {
         headers: buildShopAiPipelineHeaders({
-          pipeline: serveV2 ? "v2" : "legacy",
+          pipeline,
           retrieval: "not-run",
           evalAuthenticated: evalAccess.authorized,
           commitSha: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA,
@@ -670,10 +727,10 @@ export async function POST(request: NextRequest) {
     if (planned.plan.stockOnly) {
       candidateProducts = candidateProducts.filter((product) => product.inStock);
     }
-    const exactCount = candidateProducts.filter(
+    const candidateExactCount = candidateProducts.filter(
       (product) => product.matchStatus === "exact"
     ).length;
-    const requiresVerificationCount = candidateProducts.filter(
+    const candidateRequiresVerificationCount = candidateProducts.filter(
       (product) => product.matchStatus === "requires_verification"
     ).length;
 
@@ -696,55 +753,55 @@ export async function POST(request: NextRequest) {
       ...diversifiedProducts.filter((product) => product.matchStatus === "exact"),
       ...diversifiedProducts.filter((product) => product.matchStatus !== "exact"),
     ];
-    const products = rankedProducts.slice(0, 6);
-    const displayedExactCount = products.filter(
-      (product) => product.matchStatus === "exact"
-    ).length;
-    const totalItems = Math.max(candidateCount, products.length);
+    const candidateExactProducts = rankedProducts
+      .filter(
+        (product) =>
+          product.matchStatus === "exact" && (product.matchBasis !== "identity" || exactSkuBaseline)
+      )
+      .slice(0, 6);
     const answer = await createGroundedShopAiAnswer({
       message,
       history,
       context: planningContext,
       plan: planned.plan,
-      products,
-      totalItems,
+      products: candidateExactProducts,
+      totalItems: candidateCount,
     });
-    const noMoreOptionsMessage = buildShopAiNoMoreOptionsMessage(
-      planningContext.locale,
-      planned.plan,
-      message,
-      excludedProductIds,
-      products
-    );
-    const verificationOnlyMessage =
-      products.length && displayedExactCount === 0 && requiresVerificationCount > 0
-        ? planningContext.locale === "ua"
-          ? "Усі знайдені товари відповідають категорії та не мають відомих суперечностей, але їхню сумісність потрібно перевірити з менеджером."
-          : "All returned products match the requested category and have no known contradiction, but a manager must verify their fitment."
-        : null;
-    const hasDisplayedVerification = products.some(
-      (product) => product.matchStatus === "requires_verification"
-    );
-    const mixedVerificationMessage =
-      displayedExactCount > 0 && hasDisplayedVerification
-        ? planningContext.locale === "ua"
-          ? "Знайшов кілька варіантів. Статус сумісності вказано окремо в кожній картці; товари з позначкою перевірки потрібно підтвердити з менеджером."
-          : "I found several options. Each card shows its own fitment status; products marked for verification must be confirmed by a manager."
-        : null;
+    const responseDegraded =
+      planned.degraded ||
+      answer.degraded ||
+      vehicleResolutionDegraded ||
+      retrievalDegraded ||
+      turnTimedOut;
+    const products = responseDegraded ? [] : candidateExactProducts;
+    const exactCount = products.length;
+    const requiresVerificationCount = 0;
+    const totalItems = products.length ? Math.max(candidateCount, products.length) : 0;
+    const noMoreOptionsMessage = responseDegraded
+      ? null
+      : buildShopAiNoMoreOptionsMessage(
+          planningContext.locale,
+          planned.plan,
+          message,
+          excludedProductIds,
+          products
+        );
     const proposedResponseMessage =
       noMoreOptionsMessage ??
-      verificationOnlyMessage ??
-      mixedVerificationMessage ??
       (products.length
         ? answer.message
         : buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan));
-    const responseMessage = validateGroundedShopAiOutput(proposedResponseMessage, products, {
-      currency: planningContext.currency,
-    })
-      ? proposedResponseMessage
-      : planningContext.locale === "ua"
-        ? "Знайшов товари за вашим запитом. Перевірте окремий статус сумісності в кожній картці."
-        : "I found products for your request. Review the individual fitment status on each card.";
+    const responseMessage =
+      products.length === 0
+        ? (noMoreOptionsMessage ??
+          buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan))
+        : validateGroundedShopAiOutput(proposedResponseMessage, products, {
+              currency: planningContext.currency,
+            })
+          ? proposedResponseMessage
+          : planningContext.locale === "ua"
+            ? "Знайшов підтверджені товари за вашим запитом. Перевірте деталі кожної картки перед оформленням."
+            : "I found confirmed products for your request. Review each card before checkout.";
     const catalogHref =
       totalItems > 0 ? buildStorefrontSearchHref(planningContext, planned.plan) : null;
 
@@ -766,12 +823,15 @@ export async function POST(request: NextRequest) {
       catalogHref,
       managerHref: `/${planningContext.locale}/contact?source=one-ai`,
       managerContext: buildManagerContext(message, planned.plan, products, planningContext),
-      degraded:
-        planned.degraded ||
-        answer.degraded ||
-        vehicleResolutionDegraded ||
-        retrievalDegraded ||
-        turnTimedOut,
+      degraded: responseDegraded,
+      pipeline,
+      degradedReason: resolveShopAiDegradedReason({
+        plannedDegraded: planned.degraded,
+        answerDegraded: answer.degraded,
+        vehicleResolutionDegraded,
+        retrievalDegraded,
+        timedOut: turnTimedOut,
+      }),
     };
     const nextConversationId = conversationIdForSave ?? crypto.randomUUID();
     const conversation = await withinShopAiDeadline(
@@ -793,7 +853,7 @@ export async function POST(request: NextRequest) {
       markTurnTimedOut
     );
     response.conversationId = conversation.id;
-    if (turnTimedOut) response.degraded = true;
+    if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
     response.runId = telemetryRunId ?? undefined;
     if (telemetryRunId) {
       if (telemetryTraceSampled) {
@@ -866,8 +926,8 @@ export async function POST(request: NextRequest) {
               : null,
             catalogHref,
           },
-          exactCount,
-          verificationCount: requiresVerificationCount,
+          exactCount: candidateExactCount,
+          verificationCount: candidateRequiresVerificationCount,
           candidateCount,
           acceptedCount: products.length,
           generationCalls: planned.usedProvider || answer.usedProvider ? 1 : 0,
@@ -895,10 +955,10 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    if (turnTimedOut) response.degraded = true;
+    if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
     return NextResponse.json(boundShopAiResponse(response), {
       headers: buildShopAiPipelineHeaders({
-        pipeline: serveV2 ? "v2" : "legacy",
+        pipeline,
         retrieval: retrievalMarker,
         evalAuthenticated: evalAccess.authorized,
         commitSha: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA,

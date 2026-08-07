@@ -107,13 +107,19 @@ function buildClarification(
   context: ShopAiContext,
   vehicle: ShopAiVehicle,
   requiredDetails: ShopAiRequiredDetail[],
-  missingVehicle: boolean
+  missingVehicle: boolean,
+  missingCategory: boolean
 ) {
   const isUa = context.locale === "ua";
   if (missingVehicle) {
     return isUa
-      ? "Вкажіть марку, модель і рік авто або мото, щоб я перевірив сумісність."
-      : "Tell me the vehicle make, model and year so I can verify compatibility.";
+      ? "Вкажіть марку, модель і рік авто або мото та що саме хочете змінити, щоб я перевірив сумісність."
+      : "Tell me the vehicle make, model, year and what you want to change so I can verify compatibility.";
+  }
+  if (missingCategory) {
+    return isUa
+      ? "Напишіть, що саме хочете змінити в автомобілі або мотоциклі — наприклад вихлоп, впуск, гальма чи підвіску."
+      : "Tell me what you want to change on the vehicle — for example exhaust, intake, brakes or suspension.";
   }
 
   const vehicleIdentity = [vehicle.make, vehicle.model, vehicle.chassis].filter(Boolean).join(" ");
@@ -137,8 +143,8 @@ function buildClarification(
 }
 
 export function finalizeShopAiPlan(plan: ShopAiPlan, context: ShopAiContext): ShopAiPlan {
-  const needsVehicle = Boolean(plan.category) || plan.intent === "compatibility";
-  const missingVehicle = needsVehicle && (!plan.vehicle.make || !plan.vehicle.model);
+  const missingVehicle = !plan.vehicle.make || !plan.vehicle.model;
+  const missingCategory = !plan.category;
   const requiredDetails = missingVehicle
     ? []
     : buildRequiredDetails(
@@ -147,14 +153,14 @@ export function finalizeShopAiPlan(plan: ShopAiPlan, context: ShopAiContext): Sh
         plan.opfGpf ?? null,
         plan.vehicleResolution?.status
       );
-  const needsClarification = missingVehicle || requiredDetails.length > 0;
+  const needsClarification = missingVehicle || missingCategory || requiredDetails.length > 0;
 
   return {
     ...plan,
     requiredDetails,
     needsClarification,
     clarification: needsClarification
-      ? buildClarification(context, plan.vehicle, requiredDetails, missingVehicle)
+      ? buildClarification(context, plan.vehicle, requiredDetails, missingVehicle, missingCategory)
       : null,
   };
 }
@@ -264,10 +270,10 @@ function cleanVehicle(value: unknown, context: ShopAiContext): ShopAiVehicle {
     chassis: usesContextVehicle
       ? (cleanChassis(context.chassis) ?? cleanChassis(source.chassis))
       : (cleanChassis(source.chassis) ?? cleanChassis(context.chassis)),
-    year: cleanYear(source.year),
-    engine: cleanText(source.engine),
-    fuel: cleanText(source.fuel, 40),
-    bodyStyle: cleanText(source.bodyStyle, 40),
+    year: cleanYear(source.year) ?? cleanYear(context.year),
+    engine: cleanText(source.engine) ?? cleanText(context.engine, 100),
+    fuel: cleanText(source.fuel, 40) ?? cleanText(context.fuel, 40),
+    bodyStyle: cleanText(source.bodyStyle, 40) ?? cleanText(context.bodyStyle, 40),
     drivetrain: cleanText(source.drivetrain, 40),
     transmission: cleanText(source.transmission, 40),
     market: cleanText(source.market, 40),
@@ -383,8 +389,8 @@ export function buildFallbackShopAiPlan(message: string, context: ShopAiContext)
   const model = expanded.models[0] ?? context.model ?? null;
   const chassis =
     expanded.chassis[0] ?? inferChassisFromMessage(message) ?? cleanChassis(context.chassis);
-  const year = expanded.years[0] ?? null;
-  const category = inferCategory(message);
+  const year = expanded.years[0] ?? cleanYear(context.year);
+  const category = inferCategory(message) ?? (context.category as ShopStockCategoryGroupId | null);
   const searchQuery = [make, model, chassis, year].filter(Boolean).join(" ") || message;
 
   return normalizeShopAiPlan(
@@ -404,8 +410,13 @@ export function buildFallbackShopAiPlan(message: string, context: ShopAiContext)
         model,
         chassis,
         year,
-        engine: inferEngineFromMessage(message),
-        ...hardVehicleFacts,
+        engine:
+          inferEngineFromMessage(message) ?? expanded.engines[0] ?? cleanText(context.engine, 100),
+        fuel: hardVehicleFacts.fuel ?? context.fuel ?? null,
+        bodyStyle: hardVehicleFacts.bodyStyle ?? context.bodyStyle ?? null,
+        drivetrain: hardVehicleFacts.drivetrain ?? null,
+        transmission: hardVehicleFacts.transmission ?? null,
+        market: hardVehicleFacts.market ?? null,
       },
       category,
       searchQuery,

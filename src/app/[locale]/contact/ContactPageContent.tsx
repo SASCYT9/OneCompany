@@ -30,6 +30,43 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
       vehicle: String(parsed.vehicle ?? "")
         .trim()
         .slice(0, 160),
+      vehicleDetails:
+        parsed.vehicleDetails && typeof parsed.vehicleDetails === "object"
+          ? {
+              make:
+                String(parsed.vehicleDetails.make ?? "")
+                  .trim()
+                  .slice(0, 80) || null,
+              model:
+                String(parsed.vehicleDetails.model ?? "")
+                  .trim()
+                  .slice(0, 100) || null,
+              chassis:
+                String(parsed.vehicleDetails.chassis ?? "")
+                  .trim()
+                  .slice(0, 60) || null,
+              year: Number.isInteger(parsed.vehicleDetails.year)
+                ? Number(parsed.vehicleDetails.year)
+                : null,
+              engine:
+                String(parsed.vehicleDetails.engine ?? "")
+                  .trim()
+                  .slice(0, 100) || null,
+              fuel:
+                String(parsed.vehicleDetails.fuel ?? "")
+                  .trim()
+                  .slice(0, 40) || null,
+              bodyStyle:
+                String(parsed.vehicleDetails.bodyStyle ?? "")
+                  .trim()
+                  .slice(0, 60) || null,
+              opfGpf:
+                parsed.vehicleDetails.opfGpf === "with" ||
+                parsed.vehicleDetails.opfGpf === "without"
+                  ? parsed.vehicleDetails.opfGpf
+                  : null,
+            }
+          : undefined,
       request: String(parsed.request ?? "")
         .trim()
         .slice(0, 800),
@@ -46,6 +83,20 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
               .slice(0, 240),
           }))
         : [],
+      selectedProduct:
+        parsed.selectedProduct && typeof parsed.selectedProduct === "object"
+          ? {
+              brand: String(parsed.selectedProduct.brand ?? "")
+                .trim()
+                .slice(0, 100),
+              sku: String(parsed.selectedProduct.sku ?? "")
+                .trim()
+                .slice(0, 120),
+              name: String(parsed.selectedProduct.name ?? "")
+                .trim()
+                .slice(0, 240),
+            }
+          : undefined,
     };
   } catch {
     return null;
@@ -91,11 +142,33 @@ export default function ContactPageContent() {
     const productSummary = handoff.products
       .map((product) => [product.brand, product.sku, product.name].filter(Boolean).join(" "))
       .join("; ");
+    const selectedProduct = handoff.selectedProduct
+      ? [handoff.selectedProduct.brand, handoff.selectedProduct.sku, handoff.selectedProduct.name]
+          .filter(Boolean)
+          .join(" ")
+      : "";
+    const vehicleDetails = handoff.vehicleDetails
+      ? [
+          handoff.vehicleDetails.year ? `рік ${handoff.vehicleDetails.year}` : "",
+          handoff.vehicleDetails.engine ? `двигун ${handoff.vehicleDetails.engine}` : "",
+          handoff.vehicleDetails.fuel ? `паливо ${handoff.vehicleDetails.fuel}` : "",
+          handoff.vehicleDetails.bodyStyle ? `кузов ${handoff.vehicleDetails.bodyStyle}` : "",
+          handoff.vehicleDetails.opfGpf === "with"
+            ? "з OPF/GPF"
+            : handoff.vehicleDetails.opfGpf === "without"
+              ? "без OPF/GPF"
+              : "",
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : "";
     const wishes =
       locale === "ua"
         ? [
             "Консультація після підбору One AI.",
             handoff.request ? `Запит: ${handoff.request}` : "",
+            vehicleDetails ? `Дані авто: ${vehicleDetails}` : "",
+            selectedProduct ? `Обраний товар: ${selectedProduct}` : "",
             productSummary ? `Запропоновані товари: ${productSummary}` : "",
             "Прошу менеджера перевірити точну сумісність, комплектацію та встановлення.",
           ]
@@ -104,6 +177,8 @@ export default function ContactPageContent() {
         : [
             "Consultation after a One AI selection.",
             handoff.request ? `Request: ${handoff.request}` : "",
+            vehicleDetails ? `Vehicle details: ${vehicleDetails}` : "",
+            selectedProduct ? `Selected product: ${selectedProduct}` : "",
             productSummary ? `Suggested products: ${productSummary}` : "",
             "Please verify exact fitment, configuration and installation requirements.",
           ]
