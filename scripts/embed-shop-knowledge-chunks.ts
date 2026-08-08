@@ -227,13 +227,14 @@ async function main() {
 
   assertSafeCommitEnvironment();
   const apiKey = (
+    process.env.SHOP_AI_EMBEDDING_API_KEY ||
     process.env.OPS_GEMINI_API_KEY ||
     process.env.SHOP_AI_API_KEY ||
     process.env.GEMINI_API_KEY
   )?.trim();
   if (!apiKey) {
     throw new Error(
-      "OPS_GEMINI_API_KEY, SHOP_AI_API_KEY, or GEMINI_API_KEY is required for --commit"
+      "SHOP_AI_EMBEDDING_API_KEY, OPS_GEMINI_API_KEY, SHOP_AI_API_KEY, or GEMINI_API_KEY is required for --commit"
     );
   }
   const provider = createGoogleEmbeddingProvider(apiKey, providerModel);

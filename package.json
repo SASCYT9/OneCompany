@@ -68,6 +68,7 @@
     "shop:knowledge:v2:embed:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts",
     "shop:knowledge:v2:embed": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts --commit",
     "shop:knowledge:v2:embed:recover": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts --commit",
+    "shop:knowledge:v2:embed:batch": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks-batch.ts",
     "shop:ai:eval": "tsx --env-file=.env.local scripts/eval-shop-ai.ts",
     "shop:ai:eval:release": "tsx --env-file=.env.local scripts/eval-shop-ai.ts --release-gate",
     "shop:ai:eval:review-queue": "tsx --env-file=.env.local scripts/generate-shop-ai-eval-review-queue.ts",
