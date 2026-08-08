@@ -111,7 +111,7 @@ const CONTENT_SECURITY_POLICY = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
   "media-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://d1sfhav1wboke3.azureedge.net",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://a.clarity.ms https://c.clarity.ms https://bank.gov.ua",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://a.clarity.ms https://c.clarity.ms https://r.clarity.ms https://bank.gov.ua",
   "frame-src 'self' https://www.googletagmanager.com https://player.vimeo.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
   "upgrade-insecure-requests",
 ].join("; ");
