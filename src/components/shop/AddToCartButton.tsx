@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trackAddToCart } from "@/lib/analytics";
+import {
+  postShopAiClientAttributionEvent,
+  readShopAiClientAttribution,
+} from "@/lib/shopAiClientAttribution";
 
 type Props = {
   slug?: string;
@@ -66,6 +70,14 @@ export function AddToCartButton({
       }
       setAdded(true);
       if (slug) trackAddToCart(slug, normalizedQuantity, productName);
+      const oneAiAttribution = readShopAiClientAttribution();
+      if (
+        slug &&
+        oneAiAttribution?.slug === slug &&
+        (oneAiAttribution.variantId ?? null) === (variantId ?? null)
+      ) {
+        void postShopAiClientAttributionEvent("add_to_cart", oneAiAttribution);
+      }
       if (redirect) router.push(`/${locale}/shop/cart`);
     } catch {
       setAdding(false);

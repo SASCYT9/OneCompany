@@ -350,7 +350,7 @@ export function supplierContractToNormalizedFitment(
     status: universal
       ? "universal"
       : contract.mode === "vehicle_specific"
-        ? "inferred"
+        ? "verified"
         : "needs_review",
     vehicleType: universal
       ? "universal"

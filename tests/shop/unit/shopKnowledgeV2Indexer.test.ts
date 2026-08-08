@@ -131,11 +131,102 @@ test("empty outbox exits without product or persistence work", async () => {
     claimed: 0,
     completed: 0,
     unchanged: 0,
+    excluded: 0,
     retried: 0,
     deadLettered: 0,
     missingProducts: 0,
   });
   assert.equal(repository.commits.length, 0);
+});
+
+test("category other is never committed to Knowledge V2", async () => {
+  const repository = new FakeKnowledgeRepository();
+  const source = knowledgeSourceProduct({
+    slug: "generic-catalog-item",
+    sku: "GENERIC-ITEM-001",
+    brand: "Generic",
+    vendor: "Generic",
+    productType: "Generic item",
+    productCategory: "Generic item",
+    titleUa: "Generic item",
+    titleEn: "Generic item",
+    categoryUa: "Generic item",
+    categoryEn: "Generic item",
+    shortDescUa: "Generic item",
+    shortDescEn: "Generic item",
+    longDescUa: "Generic item",
+    longDescEn: "Generic item",
+    collectionUa: "Generic item",
+    collectionEn: "Generic item",
+    bodyHtmlUa: "",
+    bodyHtmlEn: "",
+    seoTitleUa: "Generic item",
+    seoTitleEn: "Generic item",
+    seoDescriptionUa: "Generic item",
+    seoDescriptionEn: "Generic item",
+    tags: [],
+    highlights: [],
+    variants: [],
+    options: [],
+  });
+
+  const outcome = await indexShopKnowledgeProduct(repository, source);
+
+  assert.equal(outcome.result, "excluded");
+  assert.equal(outcome.revision, 0);
+  assert.equal(repository.commits.length, 0);
+});
+
+test("outbox completes an excluded category without retrying", async () => {
+  const repository = new FakeKnowledgeRepository();
+  repository.product = knowledgeSourceProduct({
+    slug: "generic-catalog-item",
+    sku: "GENERIC-ITEM-001",
+    brand: "Generic",
+    vendor: "Generic",
+    productType: "Generic item",
+    productCategory: "Generic item",
+    titleUa: "Generic item",
+    titleEn: "Generic item",
+    categoryUa: "Generic item",
+    categoryEn: "Generic item",
+    shortDescUa: "Generic item",
+    shortDescEn: "Generic item",
+    longDescUa: "Generic item",
+    longDescEn: "Generic item",
+    collectionUa: "Generic item",
+    collectionEn: "Generic item",
+    bodyHtmlUa: "",
+    bodyHtmlEn: "",
+    seoTitleUa: "Generic item",
+    seoTitleEn: "Generic item",
+    seoDescriptionUa: "Generic item",
+    seoDescriptionEn: "Generic item",
+    tags: [],
+    highlights: [],
+    variants: [],
+    options: [],
+  });
+  repository.jobs = [
+    {
+      id: "excluded-job",
+      productId: "product-knowledge-v2",
+      dedupeKey: "product-knowledge-v2:SOURCE_CHANGED",
+      status: "PROCESSING",
+      attempts: 1,
+    },
+  ];
+
+  const result = await runShopKnowledgeOutboxWorker(repository, {
+    workerId: "worker-excluded",
+    now: new Date("2026-07-17T12:00:00.000Z"),
+  });
+
+  assert.equal(result.completed, 1);
+  assert.equal(result.excluded, 1);
+  assert.equal(result.retried, 0);
+  assert.equal(repository.commits.length, 0);
+  assert.deepEqual(repository.completed, ["excluded-job"]);
 });
 
 test("targeted outbox processing claims only the requested admin event", async () => {

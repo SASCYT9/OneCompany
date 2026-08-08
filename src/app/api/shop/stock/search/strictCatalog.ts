@@ -279,7 +279,9 @@ export function classifyStrictCatalogKnowledgeRow(
   }
 
   const qualityFlags = row.qualityFlags ?? [];
-  const missingFacts = new Set(getMissingShopAiHardFacts(qualityFlags));
+  const missingFacts = new Set(
+    getMissingShopAiHardFacts(qualityFlags, row.categoryGroup ?? constraints.category)
+  );
   if (vehicleConstrained && !row.applicationId) missingFacts.add("fitment");
   addMissingStrictApplicationFacts(missingFacts, row, constraints);
   const trustedApplication =
@@ -295,6 +297,7 @@ export function classifyStrictCatalogKnowledgeRow(
     trustedApplication,
     applicationConfirmsRequestedFacts: applicationConfirmsStrictConstraints(row, constraints),
     qualityFlags,
+    categoryGroup: row.categoryGroup ?? constraints.category,
   });
   const matchStatus = exact ? "exact" : "requires_verification";
 

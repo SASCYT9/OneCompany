@@ -1,5 +1,7 @@
 export type MobileBottomNavigationKey = "home" | "shop" | "selection" | "cart";
 
+export const SHOP_CATALOG_OPEN_FILTERS_EVENT = "onecompany:shop-catalog:open-filters";
+
 function isPathOrDescendant(pathname: string, basePath: string) {
   return pathname === basePath || pathname.startsWith(`${basePath}/`);
 }
@@ -32,4 +34,11 @@ export function shouldHideMobileBottomNavigation(pathname: string | null, locale
     // on compact viewports; the header still exposes menu and cart navigation.
     isPathOrDescendant(pathname, `/${locale}/shop/eventuri`)
   );
+}
+
+export function shouldUseCatalogFiltersNavigation(pathname: string | null, locale: string) {
+  if (!pathname) return false;
+
+  const shopRoot = `/${locale}/shop`;
+  return pathname === `${shopRoot}/catalog` || pathname === `${shopRoot}/stock`;
 }

@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Search, ShoppingBag, ShoppingCart } from "lucide-react";
+import { House, Search, ShoppingBag, ShoppingCart, SlidersHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
   getMobileBottomNavigationActiveKey,
+  SHOP_CATALOG_OPEN_FILTERS_EVENT,
   shouldHideMobileBottomNavigation,
+  shouldUseCatalogFiltersNavigation,
   type MobileBottomNavigationKey,
 } from "@/lib/mobileBottomNavigation";
 
@@ -29,6 +31,7 @@ export function MobileBottomNavigation({ locale }: MobileBottomNavigationProps) 
   if (shouldHideMobileBottomNavigation(pathname, locale)) return null;
 
   const activeKey = getMobileBottomNavigationActiveKey(pathname, locale);
+  const usesCatalogFilters = shouldUseCatalogFiltersNavigation(pathname, locale);
   const items: MobileBottomNavigationItem[] = [
     {
       key: "home",
@@ -45,8 +48,8 @@ export function MobileBottomNavigation({ locale }: MobileBottomNavigationProps) 
     {
       key: "selection",
       href: `/${locale}/contact#selection-form`,
-      label: isUa ? "Підбір" : "Finder",
-      icon: Search,
+      label: usesCatalogFilters ? (isUa ? "Фільтри" : "Filters") : isUa ? "Підбір" : "Finder",
+      icon: usesCatalogFilters ? SlidersHorizontal : Search,
     },
     {
       key: "cart",
@@ -69,21 +72,45 @@ export function MobileBottomNavigation({ locale }: MobileBottomNavigationProps) 
             {items.map((item) => {
               const Icon = item.icon;
               const isActive = item.key === activeKey;
+              const isCatalogFiltersAction = usesCatalogFilters && item.key === "selection";
+              const itemClassName = cn(
+                "relative flex min-h-[52px] touch-manipulation flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[#171717] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d5001c]/45 dark:text-white/78",
+                isActive && "text-[#d5001c]"
+              );
+
+              const content = (
+                <>
+                  <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+                  <span className="font-display text-[9px] font-medium uppercase tracking-[0.08em]">
+                    {item.label}
+                  </span>
+                </>
+              );
+
+              if (isCatalogFiltersAction) {
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    data-catalog-filter-trigger
+                    aria-controls="catalog-mobile-filters"
+                    aria-haspopup="dialog"
+                    onClick={() => window.dispatchEvent(new Event(SHOP_CATALOG_OPEN_FILTERS_EVENT))}
+                    className={itemClassName}
+                  >
+                    {content}
+                  </button>
+                );
+              }
 
               return (
                 <Link
                   key={item.key}
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "relative flex min-h-[52px] touch-manipulation flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[#171717] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d5001c]/45 dark:text-white/78",
-                    isActive && "text-[#d5001c]"
-                  )}
+                  className={itemClassName}
                 >
-                  <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-                  <span className="font-display text-[9px] font-medium uppercase tracking-[0.08em]">
-                    {item.label}
-                  </span>
+                  {content}
                 </Link>
               );
             })}

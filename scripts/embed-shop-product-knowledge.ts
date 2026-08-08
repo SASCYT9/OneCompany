@@ -1,8 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
 import { prisma } from "../src/lib/prisma";
+import {
+  SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL,
+  buildShopKnowledgeEmbeddingContents,
+  buildShopKnowledgeEmbeddingTaskConfig,
+  resolveShopKnowledgeEmbeddingStorageModel,
+} from "../src/lib/shopKnowledgeV2/embeddings";
 
-const model = process.env.SHOP_AI_EMBEDDING_MODEL || "gemini-embedding-2";
+const providerModel =
+  process.env.SHOP_AI_EMBEDDING_MODEL || SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL;
+const model = resolveShopKnowledgeEmbeddingStorageModel(providerModel);
 const dimensions = 768;
 const batchSize = 20;
 
@@ -28,6 +36,7 @@ async function main() {
     JSON.stringify({
       mode: commit ? "commit" : "dry-run",
       model,
+      providerModel,
       dimensions,
       candidates: rows.length,
     })
@@ -41,10 +50,13 @@ async function main() {
   for (let offset = 0; offset < rows.length; offset += batchSize) {
     const batch = rows.slice(offset, offset + batchSize);
     const response = await client.models.embedContent({
-      model,
-      contents: batch.map((row) => row.searchText.slice(0, 12_000)),
+      model: providerModel,
+      contents: buildShopKnowledgeEmbeddingContents(
+        batch.map((row) => row.searchText.slice(0, 12_000)),
+        providerModel
+      ),
       config: {
-        taskType: "RETRIEVAL_DOCUMENT",
+        ...buildShopKnowledgeEmbeddingTaskConfig(providerModel, "document"),
         outputDimensionality: dimensions,
         httpOptions: { timeout: 30_000 },
       },

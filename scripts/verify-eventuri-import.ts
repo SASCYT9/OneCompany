@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 import { buildProductsFromShopifyCsv } from "../src/lib/shopAdminCsv";
+import { SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL } from "../src/lib/shopKnowledgeV2/embeddings";
 
 const DEFAULT_SOURCE = "D:\\products_export_EVENTURI.csv";
 const prisma = new PrismaClient();
@@ -74,10 +75,10 @@ async function main() {
       COUNT(DISTINCT knowledge."id") FILTER (WHERE knowledge."status" = 'PROCESSING')::bigint AS "processing",
       COUNT(DISTINCT knowledge."id") FILTER (WHERE knowledge."status" = 'BLOCKED')::bigint AS "blocked",
       COUNT(DISTINCT chunk."id") FILTER (
-        WHERE chunk."embedding" IS NULL OR chunk."embeddingModel" IS DISTINCT FROM 'gemini-embedding-2'
+        WHERE chunk."embedding" IS NULL OR chunk."embeddingModel" IS DISTINCT FROM ${SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL}
       )::bigint AS "embeddingBacklogChunks",
       COUNT(DISTINCT chunk."productId") FILTER (
-        WHERE chunk."embedding" IS NULL OR chunk."embeddingModel" IS DISTINCT FROM 'gemini-embedding-2'
+        WHERE chunk."embedding" IS NULL OR chunk."embeddingModel" IS DISTINCT FROM ${SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL}
       )::bigint AS "embeddingBacklogProducts",
       COUNT(DISTINCT application."id") FILTER (WHERE application."isActive" = true)::bigint AS "activeApplications"
     FROM "ShopProductKnowledge" knowledge

@@ -34,6 +34,12 @@ import { formatShopAiProductKind } from "@/lib/shopAiProductKind";
 import { formatShopMoney } from "@/lib/shopMoneyFormat";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
+import {
+  postShopAiClientAttributionEvent,
+  storeShopAiClientAttribution,
+  type ShopAiClientAttribution,
+} from "@/lib/shopAiClientAttribution";
+import { SHOP_AI_CLIENT_ABORT_MS } from "@/lib/shopAiProviderPolicy";
 
 type ShopAiV2Mode = "results" | "clarification" | "no_match";
 type ShopAiV2MatchStatus = "exact" | "requires_verification";
@@ -137,9 +143,9 @@ function oneAiContextKey(context: ShopAiContext) {
 
 function readPersistedOneAiConversation(contextKey: string) {
   if (typeof window === "undefined") return null;
-  const raw = window.sessionStorage.getItem(ONE_AI_CONVERSATION_SESSION_KEY);
-  if (!raw) return null;
   try {
+    const raw = window.sessionStorage.getItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PersistedOneAiConversation>;
     if (
       parsed.version !== 1 ||
@@ -160,7 +166,11 @@ function readPersistedOneAiConversation(contextKey: string) {
       messages: parsed.messages.slice(-12) as ChatMessage[],
     } satisfies PersistedOneAiConversation;
   } catch {
-    window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    try {
+      window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    } catch {
+      // Session storage may be unavailable under strict privacy settings.
+    }
     return null;
   }
 }
@@ -324,6 +334,23 @@ function resolveProductHref(product: AssistantProduct, context: ShopAiContext) {
   );
 }
 
+function buildProductAttribution(
+  message: ChatMessage,
+  product: AssistantProduct,
+  context: ShopAiContext
+): ShopAiClientAttribution | null {
+  if (!message.runId) return null;
+  return {
+    savedAt: Date.now(),
+    runId: message.runId,
+    conversationId: message.conversationId ?? null,
+    productId: product.id,
+    variantId: product.variantId,
+    slug: product.slug,
+    locale: context.locale,
+  };
+}
+
 function productFactLabel(product: ShopAiProduct, isUa: boolean) {
   const facts = product.facts;
   if (!facts) return "";
@@ -437,7 +464,11 @@ export function StockAiAssistant(props: Props) {
 
   const clearPersistedConversation = useCallback(() => {
     if (typeof window === "undefined") return;
-    window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    try {
+      window.sessionStorage.removeItem(ONE_AI_CONVERSATION_SESSION_KEY);
+    } catch {
+      // Conversation persistence is optional.
+    }
   }, []);
 
   useEffect(() => {
@@ -570,15 +601,23 @@ export function StockAiAssistant(props: Props) {
 
   const storeManagerHandoff = useCallback((context: ShopAiManagerContext) => {
     if (typeof window === "undefined") return;
-    window.sessionStorage.setItem(
-      MANAGER_HANDOFF_SESSION_KEY,
-      JSON.stringify({ ...context, createdAt: Date.now() })
-    );
+    try {
+      window.sessionStorage.setItem(
+        MANAGER_HANDOFF_SESSION_KEY,
+        JSON.stringify({ ...context, createdAt: Date.now() })
+      );
+    } catch {
+      // The contact page remains reachable even if storage is unavailable.
+    }
   }, []);
 
   const hasAiAppliedFilters = useCallback(() => {
     if (typeof window === "undefined") return false;
-    return Boolean(window.sessionStorage.getItem(AI_FILTER_SESSION_KEY));
+    try {
+      return Boolean(window.sessionStorage.getItem(AI_FILTER_SESSION_KEY));
+    } catch {
+      return false;
+    }
   }, []);
 
   const markAiAppliedFilters = useCallback((href: string) => {
@@ -590,14 +629,23 @@ export function StockAiAssistant(props: Props) {
         return value === null ? [] : [[key, value]];
       })
     );
-    window.sessionStorage.setItem(AI_FILTER_SESSION_KEY, JSON.stringify(values));
+    try {
+      window.sessionStorage.setItem(AI_FILTER_SESSION_KEY, JSON.stringify(values));
+    } catch {
+      // Filter attribution is an enhancement and must not block navigation.
+    }
   }, []);
 
   const clearAiAppliedFilters = useCallback(() => {
     if (typeof window === "undefined") return;
-    const stored = window.sessionStorage.getItem(AI_FILTER_SESSION_KEY);
+    let stored: string | null = null;
+    try {
+      stored = window.sessionStorage.getItem(AI_FILTER_SESSION_KEY);
+      if (stored) window.sessionStorage.removeItem(AI_FILTER_SESSION_KEY);
+    } catch {
+      return;
+    }
     if (!stored) return;
-    window.sessionStorage.removeItem(AI_FILTER_SESSION_KEY);
     let appliedFilters: Record<string, string> = {};
     try {
       const parsed = JSON.parse(stored) as unknown;
@@ -723,6 +771,11 @@ export function StockAiAssistant(props: Props) {
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
+    let clientTimedOut = false;
+    const clientTimeout = window.setTimeout(() => {
+      clientTimedOut = true;
+      controller.abort();
+    }, SHOP_AI_CLIENT_ABORT_MS);
 
     try {
       const startsNewSearch =
@@ -789,16 +842,23 @@ export function StockAiAssistant(props: Props) {
         },
       ]);
     } catch (requestError) {
-      if ((requestError as Error).name !== "AbortError") {
+      if ((requestError as Error).name !== "AbortError" || clientTimedOut) {
         setError(
-          isUa
-            ? "Не вдалося отримати відповідь. Спробуйте ще раз."
-            : "I could not get an answer. Please try again."
+          clientTimedOut
+            ? isUa
+              ? "OneAI не встиг відповісти. Спробуйте ще раз або зверніться до менеджера."
+              : "OneAI did not respond in time. Try again or ask a manager."
+            : isUa
+              ? "Не вдалося отримати відповідь. Спробуйте ще раз."
+              : "I could not get an answer. Please try again."
         );
       }
     } finally {
-      if (requestRef.current === controller) requestRef.current = null;
-      setLoading(false);
+      window.clearTimeout(clientTimeout);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
   }
 
@@ -905,6 +965,16 @@ export function StockAiAssistant(props: Props) {
   const managerContext =
     [...messages].reverse().find((message) => message.managerContext)?.managerContext ||
     buildDefaultManagerContext(assistantContext);
+  const latestAttributableMessage = [...messages]
+    .reverse()
+    .find((message) => message.runId && message.products?.length);
+  const managerAttribution = latestAttributableMessage?.products?.[0]
+    ? buildProductAttribution(
+        latestAttributableMessage,
+        latestAttributableMessage.products[0],
+        assistantContext
+      )
+    : null;
   const contextChips: Array<{
     key: string;
     label: string;
@@ -1152,6 +1222,7 @@ export function StockAiAssistant(props: Props) {
                             mode={message.mode}
                             counts={message.counts}
                             isUa={isUa}
+                            degraded={message.degraded === true}
                           />
                         ) : null}
 
@@ -1161,9 +1232,26 @@ export function StockAiAssistant(props: Props) {
                             role="status"
                             aria-live="polite"
                           >
-                            {isUa
-                              ? "Підбір тимчасово працює в обмеженому режимі. Неперевірені товари не показуємо — спробуйте ще раз або зверніться до менеджера."
-                              : "Selection is temporarily limited. Unverified products are hidden — try again or ask a manager."}
+                            <p>
+                              {isUa
+                                ? "Підбір тимчасово працює в обмеженому режимі. Це не означає, що товарів немає."
+                                : "Selection is temporarily limited. This does not mean the products are unavailable."}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const previousUser = [...messages]
+                                  .slice(0, index)
+                                  .reverse()
+                                  .find((candidate) => candidate.role === "user");
+                                if (previousUser) void sendMessage(previousUser.text);
+                              }}
+                              disabled={loading}
+                              className="mt-2 inline-flex min-h-8 items-center gap-2 border border-amber-500/35 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] transition hover:border-amber-500/70 disabled:opacity-40"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              {isUa ? "Спробувати ще раз" : "Try again"}
+                            </button>
                           </div>
                         ) : null}
 
@@ -1204,31 +1292,123 @@ export function StockAiAssistant(props: Props) {
                             <AssistantComparison
                               products={message.products}
                               context={assistantContext}
+                              onProductClick={(product) => {
+                                const attribution = buildProductAttribution(
+                                  message,
+                                  product,
+                                  assistantContext
+                                );
+                                if (!attribution) return;
+                                storeShopAiClientAttribution(attribution);
+                                void postShopAiClientAttributionEvent("product_click", attribution);
+                              }}
                             />
-                            {message.products.slice(0, 6).map((product) => (
-                              <AssistantProductCard
-                                key={`${message.id}-${product.id}`}
-                                product={product}
-                                context={assistantContext}
-                                managerHref={
-                                  product.managerHref || message.managerHref || managerHref
-                                }
-                                onManagerClick={(selectedProduct) => {
-                                  const baseContext =
-                                    message.managerContext ||
-                                    buildDefaultManagerContext(assistantContext);
-                                  storeManagerHandoff({
-                                    ...baseContext,
-                                    selectedProduct: {
-                                      brand: selectedProduct.brand,
-                                      sku: selectedProduct.partNumber,
-                                      name: selectedProduct.name,
-                                    },
-                                  });
-                                  setOpen(false);
-                                }}
-                              />
-                            ))}
+                            {[
+                              {
+                                status: "exact" as const,
+                                label: (() => {
+                                  const exactProducts = message.products!.filter(
+                                    (product) => resolvedMatchStatus(product) === "exact"
+                                  );
+                                  const identityMatches = exactProducts.filter(
+                                    (product) => product.matchBasis === "identity"
+                                  ).length;
+                                  if (identityMatches === exactProducts.length) {
+                                    return isUa ? "Точний збіг артикулу" : "Exact SKU match";
+                                  }
+                                  if (identityMatches > 0) {
+                                    return isUa
+                                      ? "Підтверджено або знайдено за артикулом"
+                                      : "Confirmed or matched by SKU";
+                                  }
+                                  return isUa
+                                    ? "Підтверджено для вашого авто"
+                                    : "Confirmed for your vehicle";
+                                })(),
+                              },
+                              {
+                                status: "requires_verification" as const,
+                                label: isUa ? "Потребує перевірки" : "Requires verification",
+                              },
+                            ].map((group) => {
+                              const groupedProducts = message
+                                .products!.filter(
+                                  (product) => resolvedMatchStatus(product) === group.status
+                                )
+                                .slice(0, 6);
+                              if (groupedProducts.length === 0) return null;
+                              return (
+                                <section
+                                  key={`${message.id}-${group.status}`}
+                                  aria-label={group.label}
+                                  className="space-y-2"
+                                >
+                                  <div className="flex items-center justify-between px-0.5 text-[9px] font-semibold uppercase tracking-[0.13em] text-foreground/42">
+                                    <span>{group.label}</span>
+                                    <span className="font-mono text-foreground/28">
+                                      {groupedProducts.length}
+                                    </span>
+                                  </div>
+                                  {groupedProducts.map((product) => (
+                                    <AssistantProductCard
+                                      key={`${message.id}-${product.id}-${product.variantId ?? "base"}`}
+                                      product={product}
+                                      context={assistantContext}
+                                      managerHref={
+                                        product.managerHref || message.managerHref || managerHref
+                                      }
+                                      onProductClick={(selectedProduct) => {
+                                        const attribution = buildProductAttribution(
+                                          message,
+                                          selectedProduct,
+                                          assistantContext
+                                        );
+                                        if (!attribution) return;
+                                        storeShopAiClientAttribution(attribution);
+                                        void postShopAiClientAttributionEvent(
+                                          "product_click",
+                                          attribution
+                                        );
+                                      }}
+                                      onManagerClick={(selectedProduct) => {
+                                        const baseContext =
+                                          message.managerContext ||
+                                          buildDefaultManagerContext(assistantContext);
+                                        storeManagerHandoff({
+                                          ...baseContext,
+                                          runId: message.runId ?? baseContext.runId ?? null,
+                                          conversationId:
+                                            message.conversationId ??
+                                            baseContext.conversationId ??
+                                            null,
+                                          selectedProduct: {
+                                            productId: selectedProduct.id,
+                                            variantId: selectedProduct.variantId,
+                                            brand: selectedProduct.brand,
+                                            sku: selectedProduct.partNumber,
+                                            name: selectedProduct.name,
+                                            matchStatus: resolvedMatchStatus(selectedProduct),
+                                            missingFacts: selectedProduct.missingFacts,
+                                          },
+                                        });
+                                        const attribution = buildProductAttribution(
+                                          message,
+                                          selectedProduct,
+                                          assistantContext
+                                        );
+                                        if (attribution) {
+                                          void postShopAiClientAttributionEvent(
+                                            "manager_handoff",
+                                            attribution
+                                          );
+                                        }
+                                        setOpen(false);
+                                      }}
+                                    />
+                                  ))}
+                                </section>
+                              );
+                            })}
                             {message.searchHref ? (
                               <motion.div whileHover={reducedMotion ? undefined : { x: 2 }}>
                                 <Link
@@ -1344,6 +1524,12 @@ export function StockAiAssistant(props: Props) {
                     href={managerHref}
                     onClick={() => {
                       storeManagerHandoff(managerContext);
+                      if (managerAttribution) {
+                        void postShopAiClientAttributionEvent(
+                          "manager_handoff",
+                          managerAttribution
+                        );
+                      }
                       setOpen(false);
                     }}
                     className="mb-2 flex min-h-10 items-center justify-between border border-foreground/12 px-3 transition hover:border-foreground/35 hover:bg-foreground/[0.025]"
@@ -1410,11 +1596,21 @@ function AssistantResultStatus({
   mode,
   counts,
   isUa,
+  degraded,
 }: {
   mode?: ShopAiV2Mode;
   counts?: ShopAiV2Counts;
   isUa: boolean;
+  degraded: boolean;
 }) {
+  if (degraded && mode === "no_match") {
+    return (
+      <div className="mt-2.5 inline-flex items-center gap-2 border border-amber-500/25 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.11em] text-foreground/50">
+        <CircleHelp className="h-3 w-3" />
+        {isUa ? "Технічне обмеження" : "Technical limitation"}
+      </div>
+    );
+  }
   if (mode === "clarification") {
     return (
       <div className="mt-2.5 inline-flex items-center gap-2 border border-foreground/10 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.11em] text-foreground/50">
@@ -1559,9 +1755,11 @@ function AssistantFeedback({
 function AssistantComparison({
   products,
   context,
+  onProductClick,
 }: {
   products: AssistantProduct[];
   context: ShopAiContext;
+  onProductClick: (product: AssistantProduct) => void;
 }) {
   const isUa = context.locale === "ua";
   const reducedMotion = useReducedMotion();
@@ -1600,6 +1798,7 @@ function AssistantComparison({
       <div className="divide-y divide-foreground/10">
         {selected.map((product, index) => {
           const price = productPrice(product, context);
+          const factLabel = productFactLabel(product, isUa);
           return (
             <motion.div
               key={`comparison-${product.id}`}
@@ -1610,6 +1809,7 @@ function AssistantComparison({
               <Link
                 href={resolveProductHref(product, context)}
                 prefetch={false}
+                onClick={() => onProductClick(product)}
                 className="group grid min-h-13 grid-cols-[1.5rem_minmax(0,1fr)_auto_0.75rem] items-center gap-2 px-3 py-2 transition-colors hover:bg-foreground/[0.035]"
               >
                 <span className="font-mono text-[9px] text-foreground/25">
@@ -1622,11 +1822,9 @@ function AssistantComparison({
                   <span className="mt-0.5 block truncate text-[10px] text-foreground/42">
                     {product.name}
                   </span>
-                  {productFactLabel(product, isUa) ? (
-                    <span className="mt-0.5 block truncate text-[9px] text-foreground/30">
-                      {productFactLabel(product, isUa)}
-                    </span>
-                  ) : null}
+                  <span className="mt-0.5 block truncate text-[9px] text-foreground/30">
+                    {factLabel || (isUa ? "Не підтверджено" : "Not confirmed")}
+                  </span>
                 </span>
                 <span className="whitespace-nowrap text-right text-xs font-semibold tabular-nums">
                   {price > 0 ? formatShopMoney(context.locale, price, context.currency) : "—"}
@@ -1645,11 +1843,13 @@ function AssistantProductCard({
   product,
   context,
   managerHref,
+  onProductClick,
   onManagerClick,
 }: {
   product: AssistantProduct;
   context: ShopAiContext;
   managerHref: string;
+  onProductClick: (product: AssistantProduct) => void;
   onManagerClick: (product: AssistantProduct) => void;
 }) {
   const isUa = context.locale === "ua";
@@ -1689,6 +1889,8 @@ function AssistantProductCard({
           <Link
             href={href}
             prefetch={false}
+            onClick={() => onProductClick(product)}
+            aria-label={isUa ? `Відкрити товар ${product.name}` : `Open product ${product.name}`}
             className="group relative h-20 w-24 shrink-0 overflow-hidden bg-foreground/[0.035]"
           >
             {image}
@@ -1707,6 +1909,7 @@ function AssistantProductCard({
             <Link
               href={href}
               prefetch={false}
+              onClick={() => onProductClick(product)}
               className="mt-1.5 line-clamp-2 text-xs font-medium leading-4 text-foreground transition hover:opacity-65"
             >
               {product.name}
@@ -1766,6 +1969,7 @@ function AssistantProductCard({
                 <Link
                   href={href}
                   prefetch={false}
+                  onClick={() => onProductClick(product)}
                   className="inline-flex h-9 items-center gap-2 border border-foreground bg-foreground px-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-background transition hover:opacity-80"
                   aria-label={isUa ? "Відкрити товар" : "Open product"}
                 >
@@ -1784,14 +1988,24 @@ function AssistantProductCard({
                 </Link>
               </div>
             ) : (
-              <Link
-                href={managerHref}
-                onClick={() => onManagerClick(product)}
-                className="inline-flex min-h-9 items-center gap-2 border border-foreground/15 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/62 transition hover:border-foreground/38 hover:text-foreground"
-              >
-                {isUa ? "Перевірити сумісність" : "Verify fitment"}
-                <MessageCircleMore className="h-3.5 w-3.5" />
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={href}
+                  prefetch={false}
+                  onClick={() => onProductClick(product)}
+                  className="inline-flex min-h-9 items-center border border-foreground/10 px-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/48 transition hover:border-foreground/30 hover:text-foreground"
+                >
+                  {isUa ? "Деталі" : "Details"}
+                </Link>
+                <Link
+                  href={managerHref}
+                  onClick={() => onManagerClick(product)}
+                  className="inline-flex min-h-9 items-center gap-2 border border-foreground bg-foreground px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-background transition hover:opacity-80"
+                >
+                  {isUa ? "Перевірити з менеджером" : "Verify with a manager"}
+                  <MessageCircleMore className="h-3.5 w-3.5" />
+                </Link>
+              </div>
             )}
           </div>
         </div>

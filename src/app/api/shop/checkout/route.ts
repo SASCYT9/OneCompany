@@ -145,6 +145,19 @@ export async function POST(req: NextRequest) {
     postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
     country,
   };
+  const oneAiAttributionByItem = new Map(
+    activeCart.cart.items
+      .filter((item) => item.oneAiRunId && item.oneAiCandidateDecisionId)
+      .map((item) => [
+        `${item.productSlug}::${item.variantId ?? ""}`,
+        {
+          runId: item.oneAiRunId,
+          candidateDecisionId: item.oneAiCandidateDecisionId,
+          productId: item.productId,
+          variantId: item.variantId,
+        },
+      ])
+  );
 
   const orderData = {
     orderNumber,
@@ -164,16 +177,21 @@ export async function POST(req: NextRequest) {
     pricingSnapshot: quote.pricingSnapshot,
     viewToken,
     items: {
-      create: quote.items.map((i) => ({
-        productSlug: i.productSlug,
-        productId: i.productId,
-        variantId: i.variantId,
-        title: i.title,
-        quantity: i.quantity,
-        price: i.unitPrice,
-        total: i.total,
-        image: i.image,
-      })),
+      create: quote.items.map((i) => {
+        const attribution = oneAiAttributionByItem.get(`${i.productSlug}::${i.variantId ?? ""}`);
+        return {
+          productSlug: i.productSlug,
+          productId: i.productId,
+          variantId: i.variantId,
+          oneAiRunId: attribution?.runId ?? null,
+          oneAiCandidateDecisionId: attribution?.candidateDecisionId ?? null,
+          title: i.title,
+          quantity: i.quantity,
+          price: i.unitPrice,
+          total: i.total,
+          image: i.image,
+        };
+      }),
     },
   };
 
@@ -184,6 +202,35 @@ export async function POST(req: NextRequest) {
   let order = await prisma.shopOrder.create({
     data: orderData,
   });
+
+  const oneAiOrderSignals = quote.items.flatMap((item) => {
+    const attribution = oneAiAttributionByItem.get(`${item.productSlug}::${item.variantId ?? ""}`);
+    if (!attribution?.runId || !attribution.candidateDecisionId) return [];
+    return [
+      {
+        runId: attribution.runId,
+        candidateDecisionId: attribution.candidateDecisionId,
+        productId: attribution.productId ?? item.productId,
+        variantId: attribution.variantId,
+        signal: "ORDER_COMPLETED" as const,
+        metadata: {
+          source: "shop_checkout",
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+        },
+      },
+    ];
+  });
+  if (oneAiOrderSignals.length > 0) {
+    try {
+      await prisma.shopAiFeedback.createMany({ data: oneAiOrderSignals });
+    } catch (error) {
+      console.warn("OneAI order attribution could not be persisted", {
+        orderId: order.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   let redirectUrl: string | undefined = undefined;
 

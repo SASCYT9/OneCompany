@@ -36,6 +36,21 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await prisma.$transaction(async (transaction) => {
+      const abandonedRuns = await transaction.shopAiRun.updateMany({
+        where: {
+          status: "PROCESSING",
+          createdAt: { lt: cutoffs.abandonedRunBefore },
+        },
+        data: {
+          status: "FAILED",
+          errorCode: "ABANDONED_RUN",
+          errorMessage: "Run exceeded the processing lease and was closed automatically",
+          degraded: true,
+          degradedReason: "timeout",
+          traceSampled: true,
+          completedAt: new Date(),
+        },
+      });
       const deletedAggregateRuns = await transaction.shopAiRun.deleteMany({
         where: { createdAt: { lt: cutoffs.aggregateBefore } },
       });
@@ -67,6 +82,7 @@ export async function GET(request: NextRequest) {
       });
 
       return {
+        abandonedRuns: abandonedRuns.count,
         deletedAggregateRuns: deletedAggregateRuns.count,
         deletedCandidateDecisions: deletedCandidateDecisions.count,
         scrubbedDetailedRuns: scrubbedDetailedRuns.count,
@@ -81,6 +97,7 @@ export async function GET(request: NextRequest) {
       cutoffs: {
         detailedTraceBefore: cutoffs.detailedTraceBefore.toISOString(),
         aggregateBefore: cutoffs.aggregateBefore.toISOString(),
+        abandonedRunBefore: cutoffs.abandonedRunBefore.toISOString(),
       },
       ...result,
     });

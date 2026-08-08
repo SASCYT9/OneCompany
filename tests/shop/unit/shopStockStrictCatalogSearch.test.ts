@@ -184,10 +184,10 @@ test("product-level canonical evidence rejects an unknown application with a kno
   assert.equal(match, null);
 });
 
-test("missing hard evidence downgrades a verified application and exact stays first", () => {
+test("missing fitment evidence downgrades a verified application and exact stays first", () => {
   const unverified = classifyStrictCatalogKnowledgeRow(
     knowledgeRow({
-      qualityFlags: ["missing_hard_attribute:material"],
+      qualityFlags: ["missing_fitment_attribute:engine"],
     }),
     constraints(),
     "en"
@@ -202,6 +202,19 @@ test("missing hard evidence downgrades a verified application and exact stays fi
   );
 
   assert.equal(unverified?.matchStatus, "requires_verification");
-  assert.ok(unverified?.missingFacts.includes("material"));
+  assert.ok(unverified?.missingFacts.includes("engine"));
   assert.equal(ranked[0]?.matchStatus, "exact");
+});
+
+test("missing unrequested material claim does not downgrade verified exhaust fitment", () => {
+  const match = classifyStrictCatalogKnowledgeRow(
+    knowledgeRow({
+      qualityFlags: ["missing_claim_attribute:material"],
+    }),
+    constraints(),
+    "en"
+  );
+
+  assert.equal(match?.matchStatus, "exact");
+  assert.deepEqual(match?.missingFacts, []);
 });

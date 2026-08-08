@@ -1,5 +1,115 @@
 export const SHOP_KNOWLEDGE_CHUNK_EMBEDDING_DIMENSIONS = 768;
-export const SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL = "gemini-embedding-2";
+export const SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL = "gemini-embedding-2";
+export const SHOP_KNOWLEDGE_EMBEDDING_PROFILE_VERSION = "search-v1";
+
+/**
+ * Stored next to every vector. The profile suffix deliberately makes vectors
+ * generated with the old taskType-based request stale: Gemini Embedding 2 uses
+ * retrieval instructions in the input text and those spaces must never mix.
+ */
+export const SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL = `${SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL}:${SHOP_KNOWLEDGE_EMBEDDING_PROFILE_VERSION}`;
+
+// Prisma Accelerate rejects interactive transactions configured above 15s.
+// Keep a margin so external workers behave the same through Accelerate and a
+// direct PostgreSQL connection.
+export const SHOP_KNOWLEDGE_EMBEDDING_TRANSACTION_TIMEOUT_MS = 14_000;
+export const SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE = 25;
+
+export function resolveShopKnowledgeEmbeddingProviderModel(modelOrProfile: string) {
+  const normalized = modelOrProfile.trim().replace(/^models\//, "");
+  const profileSuffix = `:${SHOP_KNOWLEDGE_EMBEDDING_PROFILE_VERSION}`;
+  return normalized.endsWith(profileSuffix)
+    ? normalized.slice(0, -profileSuffix.length)
+    : normalized;
+}
+
+export function resolveShopKnowledgeEmbeddingStorageModel(providerModel: string) {
+  return `${resolveShopKnowledgeEmbeddingProviderModel(providerModel)}:${SHOP_KNOWLEDGE_EMBEDDING_PROFILE_VERSION}`;
+}
+
+export function isGeminiEmbedding2Model(modelOrProfile: string) {
+  return resolveShopKnowledgeEmbeddingProviderModel(modelOrProfile) === "gemini-embedding-2";
+}
+
+export function buildShopKnowledgeDocumentEmbeddingText(
+  text: string,
+  modelOrProfile = SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL
+) {
+  return isGeminiEmbedding2Model(modelOrProfile) ? `title: none | text: ${text}` : text;
+}
+
+export function buildShopKnowledgeQueryEmbeddingText(
+  text: string,
+  modelOrProfile = SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL
+) {
+  return isGeminiEmbedding2Model(modelOrProfile) ? `task: search result | query: ${text}` : text;
+}
+
+export function buildShopKnowledgeEmbeddingTaskConfig(
+  modelOrProfile: string,
+  task: "document" | "query"
+): { taskType?: "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY" } {
+  if (isGeminiEmbedding2Model(modelOrProfile)) return {};
+  return {
+    taskType: task === "document" ? "RETRIEVAL_DOCUMENT" : "RETRIEVAL_QUERY",
+  };
+}
+
+export function buildShopKnowledgeEmbeddingContents(
+  contents: string[],
+  modelOrProfile = SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL
+) {
+  return contents.map((text) => ({
+    role: "user" as const,
+    parts: [{ text: buildShopKnowledgeDocumentEmbeddingText(text, modelOrProfile) }],
+  }));
+}
+
+export function resolveShopKnowledgeWorkerDatabaseUrl(env: {
+  DIRECT_URL?: string;
+  DATABASE_URL?: string;
+}): string {
+  const directUrl = env.DIRECT_URL?.trim();
+  if (directUrl) return directUrl;
+  const databaseUrl = env.DATABASE_URL?.trim();
+  if (databaseUrl) return databaseUrl;
+  throw new Error("DIRECT_URL or DATABASE_URL is required for the embedding worker");
+}
+
+export function resolveShopKnowledgeEmbeddingRetryDelayMs(error: unknown): number {
+  const candidate = error as { status?: unknown; message?: unknown } | null;
+  const status = typeof candidate?.status === "number" ? candidate.status : null;
+  const message = typeof candidate?.message === "string" ? candidate.message : String(error ?? "");
+  const quotaLimited = status === 429 || /quota|resource_exhausted|rate.?limit/i.test(message);
+  if (!quotaLimited) return status !== null && status >= 500 ? 1_000 : 0;
+
+  const retrySeconds =
+    Number(message.match(/retry\s+in\s+([0-9]+(?:\.[0-9]+)?)s/i)?.[1]) ||
+    Number(message.match(/"retryDelay"\s*:\s*"([0-9]+(?:\.[0-9]+)?)s"/i)?.[1]) ||
+    59;
+  return Math.min(59_000, Math.max(1_000, Math.ceil(retrySeconds * 1_000) + 1_000));
+}
+
+export function isShopKnowledgeEmbeddingQuotaError(error: unknown): boolean {
+  const candidate = error as { status?: unknown; message?: unknown } | null;
+  const status = typeof candidate?.status === "number" ? candidate.status : null;
+  const message = typeof candidate?.message === "string" ? candidate.message : String(error ?? "");
+  return status === 429 || /quota|resource_exhausted|rate.?limit/i.test(message);
+}
+
+export function isShopKnowledgeEmbeddingDailyQuotaError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : JSON.stringify(error ?? "");
+  return /RequestsPerDay|PerDayPerUser|requests\s+per\s+day/i.test(message);
+}
+
+function waitForShopKnowledgeEmbeddingRetry(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export type ShopKnowledgeChunkEmbeddingCandidate = {
   id: string;
@@ -14,6 +124,7 @@ export type ShopKnowledgeChunkEmbeddingBacklog = {
   chunks: number;
   products: number;
   knowledgeRecords: number;
+  estimatedTokens: number;
 };
 
 export type ShopKnowledgeChunkEmbeddingWrite = {
@@ -34,6 +145,8 @@ export type ShopKnowledgeChunkEmbeddingStoreResult = {
 export type ShopKnowledgeChunkEmbeddingScope = {
   /** `undefined` means the whole catalog; an empty array means no products. */
   productIds?: string[];
+  /** `undefined` means every canonical category; an empty array means no categories. */
+  categoryGroups?: string[];
 };
 
 export interface ShopKnowledgeChunkEmbeddingRepository {
@@ -75,6 +188,25 @@ export interface ShopKnowledgeChunkEmbeddingProvider {
 
 export type ShopKnowledgeChunkEmbeddingBatchResult = ShopKnowledgeChunkEmbeddingStoreResult & {
   selected: number;
+  checkpoint: {
+    chunkId: string;
+    knowledgeId: string;
+    productId: string;
+  } | null;
+};
+
+export type ShopKnowledgeEmbeddingCheckpoint = {
+  batch: number;
+  selected: number;
+  embedded: number;
+  skippedStale: number;
+  finalizedKnowledge: number;
+  providerCalls: number;
+  estimatedTokens: number;
+  estimatedCostUsd: number;
+  lastChunkId: string | null;
+  lastKnowledgeId: string | null;
+  lastProductId: string | null;
 };
 
 export type ShopKnowledgeEmbeddingWorkerResult = ShopKnowledgeChunkEmbeddingStoreResult & {
@@ -83,8 +215,41 @@ export type ShopKnowledgeEmbeddingWorkerResult = ShopKnowledgeChunkEmbeddingStor
   estimatedTokens: number;
   estimatedCostUsd: number;
   batches: number;
-  stoppedBy: "empty" | "chunk_limit" | "call_limit" | "cost_limit";
+  lastCheckpoint: ShopKnowledgeEmbeddingCheckpoint | null;
+  stoppedBy: "empty" | "chunk_limit" | "call_limit" | "cost_limit" | "quota_limit";
 };
+
+export function estimateShopKnowledgeEmbeddingDryRun(input: {
+  backlog: ShopKnowledgeChunkEmbeddingBacklog;
+  maxChunks: number;
+  batchSize: number;
+  maxProviderCalls?: number;
+  estimatedCostPerThousandTokensUsd: number;
+  maxEstimatedCostUsd: number;
+}) {
+  const callLimitedChunks =
+    input.maxProviderCalls === undefined
+      ? Number.POSITIVE_INFINITY
+      : Math.max(0, Math.floor(input.maxProviderCalls)) * Math.max(0, input.batchSize);
+  const plannedChunks = Math.min(
+    Math.max(0, input.maxChunks),
+    input.backlog.chunks,
+    callLimitedChunks
+  );
+  const plannedEstimatedTokens =
+    input.backlog.chunks > 0
+      ? Math.ceil(input.backlog.estimatedTokens * (plannedChunks / input.backlog.chunks))
+      : 0;
+  const plannedEstimatedCostUsd =
+    (plannedEstimatedTokens / 1_000) * input.estimatedCostPerThousandTokensUsd;
+  return {
+    plannedChunks,
+    plannedProviderCalls: input.batchSize > 0 ? Math.ceil(plannedChunks / input.batchSize) : 0,
+    plannedEstimatedTokens,
+    plannedEstimatedCostUsd,
+    withinCostCeiling: plannedEstimatedCostUsd <= input.maxEstimatedCostUsd,
+  };
+}
 
 function validateEmbedding(values: number[], chunkId: string): void {
   if (values.length !== SHOP_KNOWLEDGE_CHUNK_EMBEDDING_DIMENSIONS) {
@@ -124,6 +289,7 @@ export async function runShopKnowledgeChunkEmbeddingBatch(
       embedded: 0,
       skippedStale: 0,
       finalizedKnowledge: 0,
+      checkpoint: null,
     };
   }
 
@@ -158,6 +324,11 @@ export async function runShopKnowledgeChunkEmbeddingBatch(
   });
   return {
     selected: candidates.length,
+    checkpoint: {
+      chunkId: candidates.at(-1)?.id ?? "",
+      knowledgeId: candidates.at(-1)?.knowledgeId ?? "",
+      productId: candidates.at(-1)?.productId ?? "",
+    },
     ...stored,
   };
 }
@@ -171,10 +342,13 @@ export async function runShopKnowledgeEmbeddingWorker(
     maxChunks: number;
     maxProviderCalls: number;
     maxAttemptsPerBatch: number;
+    minProviderCallIntervalMs?: number;
     maxEstimatedCostUsd: number;
     estimatedCostPerThousandTokensUsd: number;
     embeddedAt?: Date;
     scope?: ShopKnowledgeChunkEmbeddingScope;
+    onProgress?: (checkpoint: ShopKnowledgeEmbeddingCheckpoint) => void | Promise<void>;
+    sleep?: (ms: number) => Promise<void>;
   }
 ): Promise<ShopKnowledgeEmbeddingWorkerResult> {
   if (!Number.isInteger(input.maxChunks) || input.maxChunks < 1 || input.maxChunks > 10_000) {
@@ -194,6 +368,14 @@ export async function runShopKnowledgeEmbeddingWorker(
   ) {
     throw new Error("Knowledge embedding maxAttemptsPerBatch must be between 1 and 8");
   }
+  if (
+    input.minProviderCallIntervalMs !== undefined &&
+    (!Number.isInteger(input.minProviderCallIntervalMs) ||
+      input.minProviderCallIntervalMs < 0 ||
+      input.minProviderCallIntervalMs > 60_000)
+  ) {
+    throw new Error("Knowledge embedding minProviderCallIntervalMs must be between 0 and 60000");
+  }
   if (!Number.isFinite(input.maxEstimatedCostUsd) || input.maxEstimatedCostUsd <= 0) {
     throw new Error("Knowledge embedding maxEstimatedCostUsd must be positive");
   }
@@ -212,7 +394,10 @@ export async function runShopKnowledgeEmbeddingWorker(
   let estimatedTokens = 0;
   let estimatedCostUsd = 0;
   let batches = 0;
+  let lastCheckpoint: ShopKnowledgeEmbeddingCheckpoint | null = null;
   let stoppedBy: ShopKnowledgeEmbeddingWorkerResult["stoppedBy"] = "empty";
+  let lastProviderCallStartedAt = 0;
+  const sleep = input.sleep ?? waitForShopKnowledgeEmbeddingRetry;
 
   while (selected < input.maxChunks) {
     const remainingCalls = input.maxProviderCalls - providerCalls;
@@ -238,6 +423,10 @@ export async function runShopKnowledgeEmbeddingWorker(
               error.name = "KnowledgeEmbeddingCostLimitError";
               throw error;
             }
+            const minInterval = input.minProviderCallIntervalMs ?? 0;
+            const waitMs = Math.max(0, lastProviderCallStartedAt + minInterval - Date.now());
+            if (waitMs > 0) await sleep(waitMs);
+            lastProviderCallStartedAt = Date.now();
             providerCalls += 1;
             estimatedTokens += tokens;
             estimatedCostUsd += cost;
@@ -263,11 +452,49 @@ export async function runShopKnowledgeEmbeddingWorker(
             estimatedTokens,
             estimatedCostUsd,
             batches,
+            lastCheckpoint,
+            stoppedBy,
+          };
+        }
+        if (isShopKnowledgeEmbeddingDailyQuotaError(error)) {
+          stoppedBy = "quota_limit";
+          return {
+            selected,
+            embedded,
+            skippedStale,
+            finalizedKnowledge,
+            providerCalls,
+            estimatedTokens,
+            estimatedCostUsd,
+            batches,
+            lastCheckpoint,
+            stoppedBy,
+          };
+        }
+        if (
+          (attempts >= input.maxAttemptsPerBatch || providerCalls >= input.maxProviderCalls) &&
+          isShopKnowledgeEmbeddingQuotaError(error)
+        ) {
+          stoppedBy = "quota_limit";
+          return {
+            selected,
+            embedded,
+            skippedStale,
+            finalizedKnowledge,
+            providerCalls,
+            estimatedTokens,
+            estimatedCostUsd,
+            batches,
+            lastCheckpoint,
             stoppedBy,
           };
         }
         if (attempts >= input.maxAttemptsPerBatch || providerCalls >= input.maxProviderCalls) {
           throw error;
+        }
+        const retryDelayMs = resolveShopKnowledgeEmbeddingRetryDelayMs(error);
+        if (retryDelayMs > 0) {
+          await sleep(retryDelayMs);
         }
       }
     }
@@ -280,6 +507,20 @@ export async function runShopKnowledgeEmbeddingWorker(
     embedded += batch.embedded;
     skippedStale += batch.skippedStale;
     finalizedKnowledge += batch.finalizedKnowledge;
+    lastCheckpoint = {
+      batch: batches,
+      selected,
+      embedded,
+      skippedStale,
+      finalizedKnowledge,
+      providerCalls,
+      estimatedTokens,
+      estimatedCostUsd,
+      lastChunkId: batch.checkpoint?.chunkId ?? null,
+      lastKnowledgeId: batch.checkpoint?.knowledgeId ?? null,
+      lastProductId: batch.checkpoint?.productId ?? null,
+    };
+    await input.onProgress?.(lastCheckpoint);
     stoppedBy = selected >= input.maxChunks ? "chunk_limit" : "empty";
   }
 
@@ -292,6 +533,7 @@ export async function runShopKnowledgeEmbeddingWorker(
     estimatedTokens,
     estimatedCostUsd,
     batches,
+    lastCheckpoint,
     stoppedBy,
   };
 }

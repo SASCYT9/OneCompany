@@ -117,7 +117,7 @@ test("production runtime accepts only the exact current database fingerprint", a
 test("catalog epoch changes at every active Knowledge V2 mutation boundary", () => {
   assert.match(
     readFileSync("src/lib/shopKnowledgeV2/embeddingRepository.ts", "utf8"),
-    /if \(finalized > 0\)[\s\S]*bumpShopKnowledgeCatalogState\(tx, input\.finalizedAt\)/
+    /if \(rows\.length === 0\) return 0;[\s\S]*Knowledge revision status changed during finalization[\s\S]*bumpShopKnowledgeCatalogState\(tx, input\.finalizedAt\)/
   );
   assert.match(
     readFileSync("src/lib/admin/oneAiQualityProductRepository.ts", "utf8"),

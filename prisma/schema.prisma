@@ -704,47 +704,56 @@ model ShopKnowledgeReviewTask {
 }
 
 model ShopAiRun {
-  id                 String                    @id @default(cuid())
-  requestId          String?                   @unique
-  conversationId     String?
-  evaluationRunId    String?
-  locale             String                    @default("ua")
-  currency           String                    @default("EUR")
-  scope              String?
-  redactedQuery      String                    @db.Text
-  normalizedQuery    String?                   @db.Text
-  status             ShopAiRunStatus           @default(PROCESSING)
-  mode               ShopAiResponseMode?
-  constraints        Json                      @default("{}")
-  response           Json?
-  exactCount         Int                       @default(0)
-  verificationCount  Int                       @default(0)
-  candidateCount     Int                       @default(0)
-  acceptedCount      Int                       @default(0)
-  generationCalls    Int                       @default(0)
-  embeddingCalls     Int                       @default(0)
-  retrievalLatencyMs Int?
-  totalLatencyMs     Int?
-  activeCpuMs        Int?
-  degraded           Boolean                   @default(false)
-  traceSampled       Boolean                   @default(false)
-  errorCode          String?
-  errorMessage       String?                   @db.Text
-  startedAt          DateTime                  @default(now())
-  completedAt        DateTime?
-  createdAt          DateTime                  @default(now())
-  updatedAt          DateTime                  @updatedAt
-  conversation       ShopAiConversation?       @relation(fields: [conversationId], references: [id], onDelete: SetNull)
-  evaluationRun      ShopAiEvaluationRun?      @relation(fields: [evaluationRunId], references: [id], onDelete: SetNull)
-  candidateDecisions ShopAiCandidateDecision[]
-  feedback           ShopAiFeedback[]
-  reviewTasks        ShopKnowledgeReviewTask[]
+  id                   String                    @id @default(cuid())
+  requestId            String?                   @unique
+  conversationId       String?
+  evaluationRunId      String?
+  locale               String                    @default("ua")
+  currency             String                    @default("EUR")
+  scope                String?
+  redactedQuery        String                    @db.Text
+  normalizedQuery      String?                   @db.Text
+  pipeline             String?
+  retrievalPath        String?
+  providerModel        String?
+  plannerLatencyMs     Int?
+  degradedReason       String?
+  status               ShopAiRunStatus           @default(PROCESSING)
+  mode                 ShopAiResponseMode?
+  constraints          Json                      @default("{}")
+  response             Json?
+  exactCount           Int                       @default(0)
+  verificationCount    Int                       @default(0)
+  candidateCount       Int                       @default(0)
+  acceptedCount        Int                       @default(0)
+  generationCalls      Int                       @default(0)
+  embeddingCalls       Int                       @default(0)
+  retrievalLatencyMs   Int?
+  totalLatencyMs       Int?
+  activeCpuMs          Int?
+  degraded             Boolean                   @default(false)
+  traceSampled         Boolean                   @default(false)
+  errorCode            String?
+  errorMessage         String?                   @db.Text
+  startedAt            DateTime                  @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  conversation         ShopAiConversation?       @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  evaluationRun        ShopAiEvaluationRun?      @relation(fields: [evaluationRunId], references: [id], onDelete: SetNull)
+  candidateDecisions   ShopAiCandidateDecision[]
+  feedback             ShopAiFeedback[]
+  reviewTasks          ShopKnowledgeReviewTask[]
+  attributedCartItems  ShopCartItem[]            @relation("ShopCartItemOneAiRun")
+  attributedOrderItems ShopOrderItem[]           @relation("ShopOrderItemOneAiRun")
 
   @@index([conversationId, createdAt], map: "ShopAiRun_conversation_created_idx")
   @@index([status, createdAt], map: "ShopAiRun_status_created_idx")
   @@index([mode, createdAt], map: "ShopAiRun_mode_created_idx")
   @@index([evaluationRunId], map: "ShopAiRun_evaluation_idx")
   @@index([traceSampled, createdAt], map: "ShopAiRun_trace_created_idx")
+  @@index([pipeline, createdAt], map: "ShopAiRun_pipeline_created_idx")
+  @@index([degradedReason, createdAt], map: "ShopAiRun_degraded_reason_created_idx")
 }
 
 model ShopAiCandidateDecision {
@@ -766,6 +775,8 @@ model ShopAiCandidateDecision {
   createdAt            DateTime          @default(now())
   run                  ShopAiRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
   feedback             ShopAiFeedback[]
+  attributedCartItems  ShopCartItem[]    @relation("ShopCartItemOneAiCandidate")
+  attributedOrderItems ShopOrderItem[]   @relation("ShopOrderItemOneAiCandidate")
 
   @@index([runId, matchStatus], map: "ShopAiCandidateDecision_run_status_idx")
   @@index([runId, rank], map: "ShopAiCandidateDecision_run_rank_idx")
@@ -1280,21 +1291,27 @@ model ShopCart {
 }
 
 model ShopCartItem {
-  id          String              @id @default(cuid())
-  cartId      String
-  productId   String?
-  variantId   String?
-  productSlug String
-  quantity    Int                 @default(1)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  cart        ShopCart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product     ShopProduct?        @relation(fields: [productId], references: [id])
-  variant     ShopProductVariant? @relation(fields: [variantId], references: [id])
+  id                       String                   @id @default(cuid())
+  cartId                   String
+  productId                String?
+  variantId                String?
+  oneAiRunId               String?
+  oneAiCandidateDecisionId String?
+  productSlug              String
+  quantity                 Int                      @default(1)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  cart                     ShopCart                 @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product                  ShopProduct?             @relation(fields: [productId], references: [id])
+  variant                  ShopProductVariant?      @relation(fields: [variantId], references: [id])
+  oneAiRun                 ShopAiRun?               @relation("ShopCartItemOneAiRun", fields: [oneAiRunId], references: [id], onDelete: SetNull)
+  oneAiCandidateDecision   ShopAiCandidateDecision? @relation("ShopCartItemOneAiCandidate", fields: [oneAiCandidateDecisionId], references: [id], onDelete: SetNull)
 
   @@index([cartId])
   @@index([productId])
   @@index([variantId])
+  @@index([oneAiRunId])
+  @@index([oneAiCandidateDecisionId])
 }
 
 model ShopOrder {
@@ -1357,23 +1374,29 @@ model ShopOrder {
 }
 
 model ShopOrderItem {
-  id          String       @id @default(cuid())
-  orderId     String
-  productSlug String
-  productId   String?
-  title       String
-  quantity    Int          @default(1)
-  price       Decimal      @db.Decimal(12, 2)
-  total       Decimal      @db.Decimal(12, 2)
-  image       String?
-  createdAt   DateTime     @default(now())
-  variantId   String?
-  order       ShopOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product     ShopProduct? @relation(fields: [productId], references: [id])
+  id                       String                   @id @default(cuid())
+  orderId                  String
+  productSlug              String
+  productId                String?
+  title                    String
+  quantity                 Int                      @default(1)
+  price                    Decimal                  @db.Decimal(12, 2)
+  total                    Decimal                  @db.Decimal(12, 2)
+  image                    String?
+  createdAt                DateTime                 @default(now())
+  variantId                String?
+  oneAiRunId               String?
+  oneAiCandidateDecisionId String?
+  order                    ShopOrder                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product                  ShopProduct?             @relation(fields: [productId], references: [id])
+  oneAiRun                 ShopAiRun?               @relation("ShopOrderItemOneAiRun", fields: [oneAiRunId], references: [id], onDelete: SetNull)
+  oneAiCandidateDecision   ShopAiCandidateDecision? @relation("ShopOrderItemOneAiCandidate", fields: [oneAiCandidateDecisionId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([productId])
   @@index([variantId])
+  @@index([oneAiRunId])
+  @@index([oneAiCandidateDecisionId])
 }
 
 model ShopOrderStatusEvent {
@@ -1752,6 +1775,7 @@ enum ShopAiFeedbackSignal {
   THUMBS_DOWN
   CLICK
   ADD_TO_CART
+  MANAGER_HANDOFF
   ORDER_COMPLETED
   NO_RESULT
   MANAGER_CONFIRMED

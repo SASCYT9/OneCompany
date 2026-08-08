@@ -14,6 +14,7 @@ import {
   getMissingShopAiHardFacts,
   hasTrustedShopAiApplicationProvenance,
   isShopAiExactMatchEligible,
+  resolveShopAiStrictCandidateCount,
   resolveTrustedShopAiProductKind,
 } from "@/lib/shopAiStrictValidation";
 import {
@@ -92,51 +93,107 @@ function isMissingKnowledgeSchemaError(error: unknown) {
   );
 }
 
-export async function resolveCanonicalShopAiExactSku(message: string): Promise<{
+export type ShopAiExactSkuMatch = {
+  productId: string;
+  slug: string;
+  variantId: string | null;
+};
+
+export type ShopAiExactSkuResolution = {
   available: boolean;
+  requested: boolean;
   matched: boolean;
-}> {
+  matches: ShopAiExactSkuMatch[];
+};
+
+export async function resolveCanonicalShopAiExactSku(
+  message: string
+): Promise<ShopAiExactSkuResolution> {
   const exactSkuQuery = getShopAiExactSkuLookupToken(message);
-  if (!exactSkuQuery) return { available: true, matched: false };
+  if (!exactSkuQuery) {
+    return { available: true, requested: false, matched: false, matches: [] };
+  }
 
   try {
-    const rows = await prisma.$queryRaw<Array<{ matched: boolean }>>(Prisma.sql`
-      SELECT EXISTS (
-        SELECT 1
-        FROM "ShopProduct" p
-        JOIN "ShopProductKnowledge" k
-          ON k."productId" = p."id"
-        WHERE p."isPublished" = true
-          AND p."status"::text = 'ACTIVE'
-          AND k."status"::text IN ('READY', 'NEEDS_REVIEW')
-          AND k."schemaVersion" >= 2
-          AND k."activeRevision" > 0
-          AND NOT (
-            'v2_backfill_required' = ANY(COALESCE(k."qualityFlags", ARRAY[]::TEXT[]))
-          )
-          AND (
-            lower(regexp_replace(COALESCE(p."sku", ''), '[^a-zA-Z0-9]+', '', 'g')) =
-              ${exactSkuQuery}
-            OR EXISTS (
-              SELECT 1
-              FROM "ShopVariantKnowledge" variant
-              WHERE variant."knowledgeId" = k."id"
-                AND variant."isActive" = true
-                AND variant."revision" = k."activeRevision"
-                AND variant."schemaVersion" >= 2
-                AND variant."status"::text IN ('READY', 'NEEDS_REVIEW')
-                AND lower(
-                  regexp_replace(COALESCE(variant."sku", ''), '[^a-zA-Z0-9]+', '', 'g')
-                ) = ${exactSkuQuery}
-            )
-          )
-      ) AS "matched"
+    // Identity lookup deliberately depends only on the published catalog. It
+    // remains available for `other` and for products whose Knowledge V2
+    // revision is still under review; no fitment claim is derived here.
+    const matches = await prisma.$queryRaw<ShopAiExactSkuMatch[]>(Prisma.sql`
+      SELECT
+        product."id" AS "productId",
+        product."slug" AS "slug",
+        exact_variant."id" AS "variantId"
+      FROM "ShopProduct" product
+      LEFT JOIN LATERAL (
+        SELECT variant."id"
+        FROM "ShopProductVariant" variant
+        WHERE variant."productId" = product."id"
+          AND lower(
+            regexp_replace(COALESCE(variant."sku", ''), '[^a-zA-Z0-9]+', '', 'g')
+          ) = ${exactSkuQuery}
+        ORDER BY variant."isDefault" DESC, variant."position" ASC, variant."id" ASC
+        LIMIT 1
+      ) exact_variant ON true
+      WHERE product."isPublished" = true
+        AND product."status"::text = 'ACTIVE'
+        AND (
+          lower(
+            regexp_replace(COALESCE(product."sku", ''), '[^a-zA-Z0-9]+', '', 'g')
+          ) = ${exactSkuQuery}
+          OR exact_variant."id" IS NOT NULL
+        )
+      ORDER BY
+        (
+          lower(
+            regexp_replace(COALESCE(product."sku", ''), '[^a-zA-Z0-9]+', '', 'g')
+          ) = ${exactSkuQuery}
+        ) DESC,
+        product."id" ASC
+      LIMIT 6
     `);
-    return { available: true, matched: rows[0]?.matched === true };
+    return {
+      available: true,
+      requested: true,
+      matched: matches.length > 0,
+      matches,
+    };
   } catch (error) {
     if (!isMissingKnowledgeSchemaError(error)) throw error;
-    return { available: false, matched: false };
+    return { available: false, requested: true, matched: false, matches: [] };
   }
+}
+
+export async function hydrateCanonicalShopAiExactSkuMatches(input: {
+  matches: ShopAiExactSkuMatch[];
+  context: ShopAiContext;
+}): Promise<ShopAiStrictRetrievalResult> {
+  const startedAt = performance.now();
+  const products = await hydrateShopAiKnowledgeCandidates(
+    input.matches.map(
+      (match): ShopAiKnowledgeCandidate => ({
+        productId: match.productId,
+        slug: match.slug,
+        variantId: match.variantId,
+        matchStatus: "exact",
+        matchBasis: "identity",
+        matchReason: "exact-sku-identity",
+        missingFacts: ["verified_fitment"],
+        matchedApplicationId: null,
+        identityMatchOnly: true,
+        application: null,
+      })
+    ),
+    input.context
+  );
+  return {
+    available: true,
+    catalogFingerprint: null,
+    products,
+    exactCount: products.length,
+    requiresVerificationCount: 0,
+    candidateCount: input.matches.length,
+    retrievalLatencyMs: Math.round(performance.now() - startedAt),
+  };
 }
 
 function trustedApplication(row: StrictKnowledgeRow) {
@@ -144,7 +201,7 @@ function trustedApplication(row: StrictKnowledgeRow) {
 }
 
 function missingHardKnowledgeFacts(row: StrictKnowledgeRow, plan: ShopAiPlan) {
-  const missing = getMissingShopAiHardFacts(row.qualityFlags ?? []);
+  const missing = getMissingShopAiHardFacts(row.qualityFlags ?? [], plan.category);
   if (
     plan.productKind &&
     plan.productKind !== "any" &&
@@ -284,6 +341,7 @@ function toCandidate(
       trustedApplication: trustedApplication(row),
       applicationConfirmsRequestedFacts: applicationConfirmsRequestedFacts(row, plan),
       qualityFlags: row.qualityFlags ?? [],
+      categoryGroup: plan.category,
     });
   const missingFacts = exact ? [] : missingApplicationFacts(row, plan);
   const matchReason =
@@ -802,7 +860,11 @@ export async function retrieveShopAiCandidatesStrict(input: {
       requiresVerificationCount: products.filter(
         (product) => product.matchStatus === "requires_verification"
       ).length,
-      candidateCount: Number(rows[0]?.eligibleCount ?? 0),
+      candidateCount: resolveShopAiStrictCandidateCount({
+        eligibleCount: Number(rows[0]?.eligibleCount ?? 0),
+        postBudgetCount: products.length,
+        hasBudgetConstraint: input.plan.minPrice !== null || input.plan.maxPrice !== null,
+      }),
       retrievalLatencyMs: Math.round(performance.now() - startedAt),
     };
   } catch (error) {

@@ -69,6 +69,15 @@ export type ShopAiMatchStatus = "exact" | "requires_verification";
 export type ShopAiMatchBasis = "fitment" | "identity";
 export type ShopAiResponseMode = "results" | "clarification" | "no_match";
 export type ShopAiPipeline = "legacy" | "v2";
+export type ShopAiGoal =
+  | "power"
+  | "sound"
+  | "handling"
+  | "braking"
+  | "appearance"
+  | "cooling"
+  | "comfort"
+  | "gift";
 export type ShopAiDegradedReason =
   | "planner"
   | "vehicle_resolution"
@@ -78,6 +87,7 @@ export type ShopAiDegradedReason =
 
 export type ShopAiPlan = {
   intent: "recommend" | "compare" | "compatibility" | "question";
+  goal: ShopAiGoal | null;
   vehicle: ShopAiVehicle;
   vehicleResolution?: ShopAiVehicleResolution;
   category: ShopStockCategoryGroupId | null;
@@ -146,6 +156,8 @@ export type ShopAiProduct = {
 
 export type ShopAiManagerContext = {
   createdAt: number;
+  runId?: string | null;
+  conversationId?: string | null;
   vehicleType: "auto" | "moto";
   vehicle: string;
   vehicleDetails?: {
@@ -159,8 +171,24 @@ export type ShopAiManagerContext = {
     opfGpf: "with" | "without" | null;
   };
   request: string;
-  products: Array<{ brand: string; sku: string; name: string }>;
-  selectedProduct?: { brand: string; sku: string; name: string };
+  products: Array<{
+    productId: string;
+    variantId: string | null;
+    brand: string;
+    sku: string;
+    name: string;
+    matchStatus: ShopAiMatchStatus;
+    missingFacts: string[];
+  }>;
+  selectedProduct?: {
+    productId: string;
+    variantId: string | null;
+    brand: string;
+    sku: string;
+    name: string;
+    matchStatus: ShopAiMatchStatus;
+    missingFacts: string[];
+  };
 };
 
 export type ShopAiAssistantResponse = {
@@ -184,4 +212,13 @@ export type ShopAiAssistantResponse = {
   degraded?: boolean;
   pipeline?: ShopAiPipeline;
   degradedReason?: ShopAiDegradedReason;
+  /** Protected-eval diagnostics. Never populated for public assistant requests. */
+  evaluation?: {
+    candidates: Array<{
+      productId: string;
+      variantId: string | null;
+      matchStatus: ShopAiMatchStatus;
+      matchBasis: ShopAiMatchBasis;
+    }>;
+  };
 };

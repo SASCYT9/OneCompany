@@ -44,6 +44,7 @@ test("vehicle applications are atomic and preserve correlation", () => {
   assert.equal(result.data?.applications.length, 2);
   const normalized = supplierContractToNormalizedFitment(result.data!);
   assert.equal(normalized.source, "import");
+  assert.equal(normalized.status, "verified");
   assert.equal(normalized.applications[0].chassisCodes[0], "991.2");
   assert.equal(normalized.applications[0].transmission, "PDK");
   assert.equal(normalized.applications[0].opfGpf, "without");

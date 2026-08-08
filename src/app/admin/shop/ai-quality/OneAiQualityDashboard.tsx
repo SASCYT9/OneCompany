@@ -58,7 +58,8 @@ function isQualitySnapshot(value: unknown): value is OneAiQualitySnapshot {
     Array.isArray(candidate.reviewQueue) &&
     Array.isArray(candidate.feedback) &&
     Array.isArray(candidate.queryTraces) &&
-    Array.isArray(candidate.indexJobs)
+    Array.isArray(candidate.indexJobs) &&
+    Array.isArray(candidate.categoryMetrics)
   );
 }
 
@@ -427,7 +428,7 @@ function OverviewPanel({ data }: { data: OneAiQualitySnapshot }) {
         <AdminMetricCard
           label="Ready knowledge"
           value={overview.readyKnowledge.toLocaleString("uk-UA")}
-          meta={`${overview.needsReviewKnowledge.toLocaleString("uk-UA")} need review · ${overview.staleKnowledge.toLocaleString("uk-UA")} stale`}
+          meta={`${overview.needsReviewKnowledge.toLocaleString("uk-UA")} need review · ${overview.processingKnowledge.toLocaleString("uk-UA")} processing · ${overview.staleKnowledge.toLocaleString("uk-UA")} stale`}
           icon={<CheckCircle2 />}
         />
         <AdminMetricCard
@@ -450,6 +451,8 @@ function OverviewPanel({ data }: { data: OneAiQualitySnapshot }) {
         />
       </AdminMetricGrid>
 
+      <CategoryMetricsTable metrics={data.categoryMetrics} />
+
       <div className="grid gap-4 xl:grid-cols-3">
         <HealthCard
           icon={<Database />}
@@ -457,6 +460,8 @@ function OverviewPanel({ data }: { data: OneAiQualitySnapshot }) {
           rows={[
             ["Ready", overview.readyKnowledge, "READY"],
             ["Needs review", overview.needsReviewKnowledge, "NEEDS_REVIEW"],
+            ["Pending", overview.pendingKnowledge, "PENDING"],
+            ["Processing", overview.processingKnowledge, "PROCESSING"],
             ["Failed", overview.failedKnowledge, "FAILED"],
             ["Blocked", overview.blockedKnowledge, "BLOCKED"],
           ]}
@@ -512,6 +517,75 @@ function OverviewPanel({ data }: { data: OneAiQualitySnapshot }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function CategoryMetricsTable({ metrics }: { metrics: OneAiQualitySnapshot["categoryMetrics"] }) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="font-medium text-zinc-100">Category quality · 30 days</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Knowledge readiness, retrieval outcomes, latency and attributed storefront conversion.
+        </p>
+      </div>
+      <QualityTable
+        headings={[
+          "Category",
+          "Knowledge",
+          "Embedding backlog",
+          "Verified fitment",
+          "Retrieval",
+          "Latency",
+          "Engagement",
+          "Conversion",
+        ]}
+        rows={metrics.map((metric) => (
+          <tr key={metric.categoryGroup} className="border-t border-white/6 align-top">
+            <td className="px-4 py-4 font-mono text-xs text-zinc-200">
+              {metric.categoryGroup}
+              <div className="mt-1 font-sans text-[11px] text-zinc-600">
+                {metric.runs.toLocaleString("uk-UA")} turns
+              </div>
+            </td>
+            <td className="whitespace-nowrap px-4 py-4 text-sm text-zinc-300">
+              {metric.readyKnowledge.toLocaleString("uk-UA")} ready
+              <div className="mt-1 text-xs text-amber-300/80">
+                {metric.needsReviewKnowledge.toLocaleString("uk-UA")} review
+              </div>
+            </td>
+            <td className="px-4 py-4 tabular-nums text-zinc-300">
+              {metric.embeddingBacklog.toLocaleString("uk-UA")}
+            </td>
+            <td className="px-4 py-4 tabular-nums text-zinc-300">
+              {metric.verifiedApplications.toLocaleString("uk-UA")}
+            </td>
+            <td className="whitespace-nowrap px-4 py-4 text-xs text-zinc-400">
+              <div>Exact {formatPercent(metric.exactRate)}</div>
+              <div className="mt-1">Review {formatPercent(metric.reviewableRate)}</div>
+              <div className="mt-1">No-match {formatPercent(metric.noMatchRate)}</div>
+              <div className="mt-1">Degraded {formatPercent(metric.degradedRate)}</div>
+            </td>
+            <td className="whitespace-nowrap px-4 py-4 text-xs text-zinc-400">
+              <div>
+                P50 {metric.p50LatencyMs === null ? "—" : `${Math.round(metric.p50LatencyMs)} ms`}
+              </div>
+              <div className="mt-1">
+                P95 {metric.p95LatencyMs === null ? "—" : `${Math.round(metric.p95LatencyMs)} ms`}
+              </div>
+            </td>
+            <td className="whitespace-nowrap px-4 py-4 text-xs text-zinc-400">
+              <div>CTR {formatPercent(metric.ctr)}</div>
+              <div className="mt-1">Handoff {formatPercent(metric.handoffRate)}</div>
+            </td>
+            <td className="whitespace-nowrap px-4 py-4 text-xs text-zinc-400">
+              <div>Add to cart {formatPercent(metric.addToCartRate)}</div>
+              <div className="mt-1">Order {formatPercent(metric.orderConversionRate)}</div>
+            </td>
+          </tr>
+        ))}
+      />
     </div>
   );
 }
@@ -685,12 +759,17 @@ function QueryTracesPanel({ traces }: { traces: OneAiQueryTrace[] }) {
             <div className="mt-1 text-xs text-zinc-500">
               {trace.locale.toUpperCase()} · {trace.scope || "all"} · {trace.requestId || trace.id}
             </div>
+            <div className="mt-1 text-[11px] text-zinc-600">
+              {trace.pipeline || "unknown"} · {trace.retrievalPath || "not recorded"} ·{" "}
+              {trace.providerModel || "deterministic planner"}
+            </div>
           </td>
           <td className="px-4 py-4">
             <AdminStatusBadge tone={statusTone(trace.status)}>{trace.status}</AdminStatusBadge>
             <div className="mt-2 text-xs text-zinc-500">
               {trace.mode || "—"}
               {trace.degraded ? " · degraded" : ""}
+              {trace.degradedReason ? ` · ${trace.degradedReason}` : ""}
               {trace.errorCode ? ` · ${trace.errorCode}` : ""}
             </div>
           </td>
@@ -708,6 +787,9 @@ function QueryTracesPanel({ traces }: { traces: OneAiQueryTrace[] }) {
             </div>
             <div className="mt-1 text-xs text-zinc-500">
               active CPU {trace.activeCpuMs === null ? "—" : `${trace.activeCpuMs} ms`}
+            </div>
+            <div className="mt-1 text-xs text-zinc-500">
+              planner {trace.plannerLatencyMs === null ? "—" : `${trace.plannerLatencyMs} ms`}
             </div>
           </td>
           <td className="max-w-[380px] px-4 py-4">

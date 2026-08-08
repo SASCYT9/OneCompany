@@ -14,6 +14,19 @@ type FormState = "idle" | "loading" | "success" | "error";
 const MANAGER_HANDOFF_SESSION_KEY = "onecompany:one-ai-manager-handoff";
 const MANAGER_HANDOFF_MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
+type ManagerHandoffProduct = ShopAiManagerContext["products"][number];
+
+function formatManagerHandoffProduct(product: ManagerHandoffProduct, isUa: boolean) {
+  const title = [product.brand, product.sku, product.name].filter(Boolean).join(" ");
+  const details = [
+    `productId=${product.productId}`,
+    product.variantId ? `variantId=${product.variantId}` : "",
+    `${isUa ? "статус" : "status"}=${product.matchStatus}`,
+    product.missingFacts.length ? `missingFacts=${product.missingFacts.join(",")}` : "",
+  ].filter(Boolean);
+  return `${title}${details.length ? ` [${details.join("; ")}]` : ""}`;
+}
+
 function parseManagerHandoff(value: string | null): ShopAiManagerContext | null {
   if (!value) return null;
   try {
@@ -26,6 +39,14 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
     }
     return {
       createdAt: Number(parsed.createdAt),
+      runId:
+        typeof parsed.runId === "string" && parsed.runId.trim()
+          ? parsed.runId.trim().slice(0, 100)
+          : null,
+      conversationId:
+        typeof parsed.conversationId === "string" && parsed.conversationId.trim()
+          ? parsed.conversationId.trim().slice(0, 100)
+          : null,
       vehicleType: parsed.vehicleType === "moto" ? "moto" : "auto",
       vehicle: String(parsed.vehicle ?? "")
         .trim()
@@ -72,6 +93,13 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
         .slice(0, 800),
       products: Array.isArray(parsed.products)
         ? parsed.products.slice(0, 3).map((product) => ({
+            productId: String(product?.productId ?? "")
+              .trim()
+              .slice(0, 100),
+            variantId:
+              typeof product?.variantId === "string" && product.variantId.trim()
+                ? product.variantId.trim().slice(0, 100)
+                : null,
             brand: String(product?.brand ?? "")
               .trim()
               .slice(0, 100),
@@ -81,11 +109,27 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
             name: String(product?.name ?? "")
               .trim()
               .slice(0, 240),
+            matchStatus: product?.matchStatus === "exact" ? "exact" : "requires_verification",
+            missingFacts: Array.isArray(product?.missingFacts)
+              ? product.missingFacts
+                  .filter((fact): fact is string => typeof fact === "string")
+                  .map((fact) => fact.trim().slice(0, 120))
+                  .filter(Boolean)
+                  .slice(0, 20)
+              : [],
           }))
         : [],
       selectedProduct:
         parsed.selectedProduct && typeof parsed.selectedProduct === "object"
           ? {
+              productId: String(parsed.selectedProduct.productId ?? "")
+                .trim()
+                .slice(0, 100),
+              variantId:
+                typeof parsed.selectedProduct.variantId === "string" &&
+                parsed.selectedProduct.variantId.trim()
+                  ? parsed.selectedProduct.variantId.trim().slice(0, 100)
+                  : null,
               brand: String(parsed.selectedProduct.brand ?? "")
                 .trim()
                 .slice(0, 100),
@@ -95,6 +139,15 @@ function parseManagerHandoff(value: string | null): ShopAiManagerContext | null 
               name: String(parsed.selectedProduct.name ?? "")
                 .trim()
                 .slice(0, 240),
+              matchStatus:
+                parsed.selectedProduct.matchStatus === "exact" ? "exact" : "requires_verification",
+              missingFacts: Array.isArray(parsed.selectedProduct.missingFacts)
+                ? parsed.selectedProduct.missingFacts
+                    .filter((fact): fact is string => typeof fact === "string")
+                    .map((fact) => fact.trim().slice(0, 120))
+                    .filter(Boolean)
+                    .slice(0, 20)
+                : [],
             }
           : undefined,
     };
@@ -136,17 +189,28 @@ export default function ContactPageContent() {
 
   useEffect(() => {
     if (!aiSource) return;
-    const handoff = parseManagerHandoff(window.sessionStorage.getItem(MANAGER_HANDOFF_SESSION_KEY));
+    let storedHandoff: string | null = null;
+    try {
+      storedHandoff = window.sessionStorage.getItem(MANAGER_HANDOFF_SESSION_KEY);
+    } catch {
+      return;
+    }
+    const handoff = parseManagerHandoff(storedHandoff);
     if (!handoff) return;
     setType(handoff.vehicleType);
+    const isUa = locale === "ua";
     const productSummary = handoff.products
-      .map((product) => [product.brand, product.sku, product.name].filter(Boolean).join(" "))
+      .map((product) => formatManagerHandoffProduct(product, isUa))
       .join("; ");
     const selectedProduct = handoff.selectedProduct
-      ? [handoff.selectedProduct.brand, handoff.selectedProduct.sku, handoff.selectedProduct.name]
-          .filter(Boolean)
-          .join(" ")
+      ? formatManagerHandoffProduct(handoff.selectedProduct, isUa)
       : "";
+    const traceContext = [
+      handoff.runId ? `runId=${handoff.runId}` : "",
+      handoff.conversationId ? `conversationId=${handoff.conversationId}` : "",
+    ]
+      .filter(Boolean)
+      .join(", ");
     const vehicleDetails = handoff.vehicleDetails
       ? [
           handoff.vehicleDetails.year ? `рік ${handoff.vehicleDetails.year}` : "",
@@ -168,6 +232,7 @@ export default function ContactPageContent() {
             "Консультація після підбору One AI.",
             handoff.request ? `Запит: ${handoff.request}` : "",
             vehicleDetails ? `Дані авто: ${vehicleDetails}` : "",
+            traceContext ? `Контекст OneAI: ${traceContext}` : "",
             selectedProduct ? `Обраний товар: ${selectedProduct}` : "",
             productSummary ? `Запропоновані товари: ${productSummary}` : "",
             "Прошу менеджера перевірити точну сумісність, комплектацію та встановлення.",
@@ -178,6 +243,7 @@ export default function ContactPageContent() {
             "Consultation after a One AI selection.",
             handoff.request ? `Request: ${handoff.request}` : "",
             vehicleDetails ? `Vehicle details: ${vehicleDetails}` : "",
+            traceContext ? `OneAI context: ${traceContext}` : "",
             selectedProduct ? `Selected product: ${selectedProduct}` : "",
             productSummary ? `Suggested products: ${productSummary}` : "",
             "Please verify exact fitment, configuration and installation requirements.",

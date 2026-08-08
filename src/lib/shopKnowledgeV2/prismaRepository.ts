@@ -9,9 +9,16 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL } from "@/lib/shopKnowledgeV2/embeddings";
+import {
+  SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL,
+  resolveShopKnowledgeEmbeddingStorageModel,
+} from "@/lib/shopKnowledgeV2/embeddings";
 import { stableStringify, hashKnowledgeValue } from "@/lib/shopKnowledgeV2/hash";
 import { StaleKnowledgeCommitError } from "@/lib/shopKnowledgeV2/indexer";
+import {
+  isShopKnowledgeActionableReviewFlag,
+  shopKnowledgeReviewPriorityForFlags,
+} from "@/lib/shopKnowledgeV2/policy";
 import type {
   ClaimKnowledgeOutboxInput,
   ClaimKnowledgeOutboxJobByIdInput,
@@ -260,6 +267,7 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
   }
 
   const applicationIdByEvidenceKey = new Map<string, string>();
+  const applicationIdByApplicationKey = new Map<string, string>();
   for (const application of build.applications) {
     const persisted = await tx.shopVehicleApplication.upsert({
       where: {
@@ -352,6 +360,7 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
       select: { id: true },
     });
     applicationIdByEvidenceKey.set(application.evidenceKey, persisted.id);
+    applicationIdByApplicationKey.set(application.applicationKey, persisted.id);
   }
 
   for (const chunk of build.chunks) {
@@ -406,7 +415,9 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
         candidate.chunkKey === chunk.chunkKey &&
         candidate.contentHash === chunk.contentHash &&
         candidate.embeddingModel ===
-          (process.env.SHOP_AI_EMBEDDING_MODEL || SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL)
+          (process.env.SHOP_AI_EMBEDDING_MODEL
+            ? resolveShopKnowledgeEmbeddingStorageModel(process.env.SHOP_AI_EMBEDDING_MODEL)
+            : SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL)
     );
     if (previousChunk) {
       await tx.$executeRaw`
@@ -422,7 +433,9 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
           AND active."contentHash" = ${chunk.contentHash}
           AND active."isActive" = true
           AND active."embeddingModel" = ${
-            process.env.SHOP_AI_EMBEDDING_MODEL || SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL
+            process.env.SHOP_AI_EMBEDDING_MODEL
+              ? resolveShopKnowledgeEmbeddingStorageModel(process.env.SHOP_AI_EMBEDDING_MODEL)
+              : SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL
           }
           AND active."embedding" IS NOT NULL
       `;
@@ -542,7 +555,10 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
         variantKnowledgeId: evidence.variantId
           ? variantKnowledgeIdByVariantId.get(evidence.variantId)
           : null,
-        vehicleApplicationId: applicationIdByEvidenceKey.get(evidence.evidenceKey),
+        vehicleApplicationId:
+          (evidence.vehicleApplicationKey
+            ? applicationIdByApplicationKey.get(evidence.vehicleApplicationKey)
+            : null) ?? applicationIdByEvidenceKey.get(evidence.evidenceKey),
         attributeValueId: attributeValueIdByEvidenceKey.get(evidence.evidenceKey),
         fieldPath: evidence.fieldPath,
         source: sourceEnum(evidence.source),
@@ -563,7 +579,10 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
         variantKnowledgeId: evidence.variantId
           ? variantKnowledgeIdByVariantId.get(evidence.variantId)
           : null,
-        vehicleApplicationId: applicationIdByEvidenceKey.get(evidence.evidenceKey),
+        vehicleApplicationId:
+          (evidence.vehicleApplicationKey
+            ? applicationIdByApplicationKey.get(evidence.vehicleApplicationKey)
+            : null) ?? applicationIdByEvidenceKey.get(evidence.evidenceKey),
         attributeValueId: attributeValueIdByEvidenceKey.get(evidence.evidenceKey),
         fieldPath: evidence.fieldPath,
         source: sourceEnum(evidence.source),
@@ -719,6 +738,7 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
   });
 
   if (build.status === ShopKnowledgeStatus.NEEDS_REVIEW) {
+    const actionableReasonCodes = build.qualityFlags.filter(isShopKnowledgeActionableReviewFlag);
     const existingReview = await tx.shopKnowledgeReviewTask.findFirst({
       where: {
         knowledgeId: knowledge.id,
@@ -732,15 +752,13 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
       completenessScore: build.completenessScore,
       categoryGroup: build.categoryGroup,
     });
-    const priority = build.qualityFlags.some((flag) => flag === "missing_fitment")
-      ? "HIGH"
-      : "MEDIUM";
+    const priority = shopKnowledgeReviewPriorityForFlags(actionableReasonCodes);
     if (existingReview) {
       await tx.shopKnowledgeReviewTask.update({
         where: { id: existingReview.id },
         data: {
           details: reviewDetails,
-          reasonCodes: build.qualityFlags,
+          reasonCodes: actionableReasonCodes,
           priority,
         },
       });
@@ -752,7 +770,7 @@ async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: Knowle
           taskType: "INDEX_QUALITY",
           title: "Knowledge V2 requires review",
           details: reviewDetails,
-          reasonCodes: build.qualityFlags,
+          reasonCodes: actionableReasonCodes,
           priority,
         },
       });

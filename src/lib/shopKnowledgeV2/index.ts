@@ -14,8 +14,24 @@ export { createPrismaShopKnowledgeChunkEmbeddingRepository } from "@/lib/shopKno
 export {
   SHOP_KNOWLEDGE_CHUNK_EMBEDDING_DIMENSIONS,
   SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL,
+  SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL,
+  SHOP_KNOWLEDGE_EMBEDDING_PROFILE_VERSION,
+  SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE,
+  SHOP_KNOWLEDGE_EMBEDDING_TRANSACTION_TIMEOUT_MS,
+  buildShopKnowledgeDocumentEmbeddingText,
+  buildShopKnowledgeEmbeddingContents,
+  buildShopKnowledgeEmbeddingTaskConfig,
+  buildShopKnowledgeQueryEmbeddingText,
+  estimateShopKnowledgeEmbeddingDryRun,
+  isGeminiEmbedding2Model,
   runShopKnowledgeChunkEmbeddingBatch,
   runShopKnowledgeEmbeddingWorker,
+  resolveShopKnowledgeEmbeddingProviderModel,
+  resolveShopKnowledgeEmbeddingStorageModel,
+  resolveShopKnowledgeWorkerDatabaseUrl,
+  resolveShopKnowledgeEmbeddingRetryDelayMs,
+  isShopKnowledgeEmbeddingQuotaError,
+  isShopKnowledgeEmbeddingDailyQuotaError,
   type ShopKnowledgeChunkEmbeddingBacklog,
   type ShopKnowledgeChunkEmbeddingCandidate,
   type ShopKnowledgeChunkEmbeddingProvider,
@@ -24,6 +40,7 @@ export {
   type ShopKnowledgeChunkEmbeddingStoreResult,
   type ShopKnowledgeChunkEmbeddingWrite,
   type ShopKnowledgeEmbeddingWorkerResult,
+  type ShopKnowledgeEmbeddingCheckpoint,
 } from "@/lib/shopKnowledgeV2/embeddings";
 export { hashKnowledgeValue, stableStringify } from "@/lib/shopKnowledgeV2/hash";
 export {
@@ -36,6 +53,12 @@ export {
   type ShopKnowledgeV2Repository,
 } from "@/lib/shopKnowledgeV2/indexer";
 export { createPrismaShopKnowledgeV2Repository } from "@/lib/shopKnowledgeV2/prismaRepository";
+export {
+  getShopKnowledgeCategoryEvidencePolicy,
+  isShopKnowledgeActionableReviewFlag,
+  shopKnowledgeReviewPriorityForFlags,
+  SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY,
+} from "@/lib/shopKnowledgeV2/policy";
 export {
   getShopKnowledgeSourceProduct,
   listShopKnowledgeSourceProducts,

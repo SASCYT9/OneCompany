@@ -13,6 +13,7 @@ import {
   supplierContractToNormalizedFitment,
   SUPPLIER_FITMENT_KEY,
   SUPPLIER_FITMENT_NAMESPACE,
+  type SupplierFitmentContract,
 } from "@/lib/shopImportFitment";
 import { buildShopSearchText } from "@/lib/shopSearch";
 import {
@@ -20,6 +21,11 @@ import {
   extractCategoryAttributesFromText,
 } from "@/lib/shopKnowledgeV2/attributes";
 import { hashKnowledgeValue } from "@/lib/shopKnowledgeV2/hash";
+import {
+  isShopKnowledgeActionableReviewFlag,
+  SHOP_KNOWLEDGE_CLAIM_FLAG_PREFIX,
+  SHOP_KNOWLEDGE_FITMENT_FLAG_PREFIX,
+} from "@/lib/shopKnowledgeV2/policy";
 import {
   buildKnowledgeChunks,
   collectKnowledgeTextSources,
@@ -89,6 +95,17 @@ function toCatalogProduct(product: KnowledgeSourceProduct): ShopProduct {
   };
 }
 
+function supplierFitmentSource(product: KnowledgeSourceProduct): {
+  contract: SupplierFitmentContract;
+  rawValue: string;
+} | null {
+  const metafield = product.metafields.find(
+    (item) => item.namespace === SUPPLIER_FITMENT_NAMESPACE && item.key === SUPPLIER_FITMENT_KEY
+  );
+  const contract = parseSupplierFitmentContract(metafield?.value);
+  return metafield && contract ? { contract, rawValue: metafield.value } : null;
+}
+
 function resolveFitment(product: KnowledgeSourceProduct): NormalizedFitment {
   const catalogProduct = toCatalogProduct(product);
   const automatic = classifyProductFitment(catalogProduct, extractProductFitment(catalogProduct));
@@ -98,12 +115,8 @@ function resolveFitment(product: KnowledgeSourceProduct): NormalizedFitment {
       metafield.key === NORMALIZED_FITMENT_KEY
   );
   if (persisted) return mergePersistedFitment(automatic, persisted.value);
-  const supplierValue = product.metafields.find(
-    (metafield) =>
-      metafield.namespace === SUPPLIER_FITMENT_NAMESPACE && metafield.key === SUPPLIER_FITMENT_KEY
-  )?.value;
-  const supplierContract = parseSupplierFitmentContract(supplierValue);
-  return supplierContract ? supplierContractToNormalizedFitment(supplierContract) : automatic;
+  const supplier = supplierFitmentSource(product);
+  return supplier ? supplierContractToNormalizedFitment(supplier.contract) : automatic;
 }
 
 function sourceForFitment(fitment: NormalizedFitment): KnowledgeEvidenceSource {
@@ -288,8 +301,13 @@ function buildApplicationEvidence(
   >,
   fitment: NormalizedFitment,
   uncorrelatedSourceApplication?: VehicleApplication
-): ShopKnowledgeEvidenceDraft {
+): {
+  primary: ShopKnowledgeEvidenceDraft;
+  evidence: ShopKnowledgeEvidenceDraft[];
+} {
   const source = sourceForFitment(fitment);
+  const applicationKey = hashKnowledgeValue(applicationIdentity);
+  const supplier = source === "supplier" ? supplierFitmentSource(product) : null;
   const excerpt = JSON.stringify({
     make: applicationIdentity.make,
     model: applicationIdentity.model,
@@ -303,7 +321,7 @@ function buildApplicationEvidence(
   const evidenceIdentity = {
     productId: product.id,
     variantId: applicationIdentity.variantId,
-    fieldPath: `applications.${hashKnowledgeValue(applicationIdentity).slice(0, 24)}`,
+    fieldPath: `applications.${applicationKey.slice(0, 24)}`,
     source,
     sourceField:
       source === "manager" || source === "manual_fitment"
@@ -314,20 +332,75 @@ function buildApplicationEvidence(
     locale: "neutral" as const,
     excerpt,
   };
-  return {
+  const sourceHash = supplier ? hashKnowledgeValue(supplier.rawValue) : hashKnowledgeValue(excerpt);
+  const sourceRef = supplier?.contract.source.sourceRef ?? null;
+  const extractorVersion = supplier ? "supplier-fitment-v1" : undefined;
+  const primary: ShopKnowledgeEvidenceDraft = {
     evidenceKey: hashKnowledgeValue(evidenceIdentity),
     ...evidenceIdentity,
-    sourceHash: hashKnowledgeValue(excerpt),
+    sourceHash,
     confidence: confidenceForFitment(fitment),
     verifiedAt: fitment.verifiedAt ? new Date(fitment.verifiedAt) : null,
     verifiedBy: fitment.verifiedBy,
+    vehicleApplicationKey: applicationKey,
+    sourceRef,
+    extractorVersion,
     contentHash: hashKnowledgeValue({
       ...evidenceIdentity,
+      sourceHash,
+      sourceRef,
+      extractorVersion,
       confidence: confidenceForFitment(fitment),
       verifiedAt: fitment.verifiedAt,
       verifiedBy: fitment.verifiedBy,
     }),
   };
+
+  if (!supplier) return { primary, evidence: [primary] };
+
+  const fieldEvidence = Object.entries(applicationIdentity).flatMap(([field, value]) => {
+    if (
+      value === null ||
+      value === undefined ||
+      value === "" ||
+      value === "unknown" ||
+      field === "productId" ||
+      field === "variantId"
+    ) {
+      return [];
+    }
+    const fieldExcerpt = JSON.stringify(value);
+    const identity = {
+      productId: product.id,
+      variantId: applicationIdentity.variantId,
+      fieldPath: `applications.${applicationKey.slice(0, 24)}.${field}`,
+      source: "supplier" as const,
+      sourceField: `metafield:${SUPPLIER_FITMENT_NAMESPACE}.${SUPPLIER_FITMENT_KEY}`,
+      locale: "neutral" as const,
+      excerpt: fieldExcerpt,
+    };
+    return [
+      {
+        evidenceKey: hashKnowledgeValue(identity),
+        ...identity,
+        sourceHash,
+        confidence: confidenceForFitment(fitment),
+        verifiedAt: null,
+        verifiedBy: null,
+        vehicleApplicationKey: applicationKey,
+        sourceRef,
+        extractorVersion,
+        contentHash: hashKnowledgeValue({
+          ...identity,
+          sourceHash,
+          sourceRef,
+          extractorVersion,
+          value,
+        }),
+      } satisfies ShopKnowledgeEvidenceDraft,
+    ];
+  });
+  return { primary, evidence: [primary, ...fieldEvidence] };
 }
 
 function buildApplicationRecords(
@@ -395,7 +468,8 @@ function buildApplicationRecords(
       sourcePriority,
       confidence,
     };
-    const itemEvidence = buildApplicationEvidence(product, identity, fitment);
+    const evidenceBundle = buildApplicationEvidence(product, identity, fitment);
+    const itemEvidence = evidenceBundle.primary;
     const applicationKey = hashKnowledgeValue(identity);
     drafts.push({
       applicationKey,
@@ -403,7 +477,7 @@ function buildApplicationRecords(
       evidenceKey: itemEvidence.evidenceKey,
       contentHash: hashKnowledgeValue({ ...identity, evidenceKey: itemEvidence.evidenceKey }),
     });
-    evidence.push(itemEvidence);
+    evidence.push(...evidenceBundle.evidence);
     return { applications: drafts, evidence };
   }
 
@@ -437,12 +511,13 @@ function buildApplicationRecords(
         sourcePriority,
         confidence: expansion.needsCorrelationReview ? ("unknown" as const) : confidence,
       };
-      const itemEvidence = buildApplicationEvidence(
+      const evidenceBundle = buildApplicationEvidence(
         product,
         identity,
         fitment,
         expansion.needsCorrelationReview ? application : undefined
       );
+      const itemEvidence = evidenceBundle.primary;
       const applicationKey = hashKnowledgeValue(identity);
       drafts.push({
         applicationKey,
@@ -453,7 +528,7 @@ function buildApplicationRecords(
           evidenceKey: itemEvidence.evidenceKey,
         }),
       });
-      evidence.push(itemEvidence);
+      evidence.push(...evidenceBundle.evidence);
     }
   }
 
@@ -815,7 +890,8 @@ function buildQualityFlags(
   product: KnowledgeSourceProduct,
   fitment: NormalizedFitment,
   categoryGroup: ShopKnowledgeBuild["categoryGroup"],
-  missingHardKeys: string[],
+  missingFitmentKeys: string[],
+  missingClaimKeys: string[],
   applications: ShopVehicleApplicationDraft[],
   correlationNeedsReview: boolean
 ): string[] {
@@ -840,12 +916,15 @@ function buildQualityFlags(
   }
   if (product.managerStrictBlock) flags.push("blocked_strict:manager");
   if (categoryGroup === "other") flags.push("category_other");
-  flags.push(...missingHardKeys.map((key) => `missing_hard_attribute:${key}`));
+  flags.push(
+    ...missingFitmentKeys.map((key) => `${SHOP_KNOWLEDGE_FITMENT_FLAG_PREFIX}${key}`),
+    ...missingClaimKeys.map((key) => `${SHOP_KNOWLEDGE_CLAIM_FLAG_PREFIX}${key}`)
+  );
   return Array.from(new Set(flags)).sort();
 }
 
-function resolveMissingHardKeys(
-  missingHardKeys: string[],
+function resolveMissingKeys(
+  missingKeys: string[],
   attributes: ShopProductAttributeDraft[],
   variants: ShopVariantKnowledgeDraft[],
   applications: ShopVehicleApplicationDraft[]
@@ -888,7 +967,7 @@ function resolveMissingHardKeys(
           return false;
       }
     });
-  return missingHardKeys.filter((key) => {
+  return missingKeys.filter((key) => {
     if (attributes.some((attribute) => attribute.key === key)) return false;
     if (applicationHasValue(key)) return false;
     if (variantAttributeKeys.has(key)) return false;
@@ -935,12 +1014,18 @@ export function buildShopKnowledgeV2(product: KnowledgeSourceProduct): ShopKnowl
   const activeApplicationEvidenceKeys = new Set(
     applications.map((application) => application.evidenceKey)
   );
+  const survivingApplicationKeys = new Set(
+    applications.map((application) => application.applicationKey)
+  );
   const generatedApplicationEvidence = [
     ...baseApplicationBuild.evidence,
     ...variantApplicationBuilds.flatMap((item) => item.evidence),
-  ].filter((item) => activeApplicationEvidenceKeys.has(item.evidenceKey));
-  const survivingApplicationKeys = new Set(
-    applications.map((application) => application.applicationKey)
+  ].filter(
+    (item) =>
+      activeApplicationEvidenceKeys.has(item.evidenceKey) ||
+      Boolean(
+        item.vehicleApplicationKey && survivingApplicationKeys.has(item.vehicleApplicationKey)
+      )
   );
   const correlationNeedsReview =
     fitmentApplications(fitment).some(hasAmbiguousApplicationCorrelation) &&
@@ -950,8 +1035,14 @@ export function buildShopKnowledgeV2(product: KnowledgeSourceProduct): ShopKnowl
         application.fitmentStatus === "needs_review"
     );
   const chunks = buildKnowledgeChunks(product);
-  const missingHardKeys = resolveMissingHardKeys(
-    categoryExtraction.missingHardKeys,
+  const missingFitmentKeys = resolveMissingKeys(
+    categoryExtraction.missingFitmentKeys,
+    categoryExtraction.attributes,
+    variantBuild.variants,
+    applications
+  );
+  const missingClaimKeys = resolveMissingKeys(
+    categoryExtraction.missingClaimKeys,
     categoryExtraction.attributes,
     variantBuild.variants,
     applications
@@ -960,14 +1051,16 @@ export function buildShopKnowledgeV2(product: KnowledgeSourceProduct): ShopKnowl
     product,
     fitment,
     categoryExtraction.categoryGroup,
-    missingHardKeys,
+    missingFitmentKeys,
+    missingClaimKeys,
     applications,
     correlationNeedsReview
   );
+  const hasActionableReview = qualityFlags.some(isShopKnowledgeActionableReviewFlag);
   const status =
     product.managerStrictBlock || !product.isPublished || product.status !== "ACTIVE"
       ? ("BLOCKED" as const)
-      : qualityFlags.length > 0
+      : hasActionableReview
         ? ("NEEDS_REVIEW" as const)
         : ("READY" as const);
   const searchText = buildShopSearchText([

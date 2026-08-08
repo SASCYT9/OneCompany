@@ -2,11 +2,13 @@ import { Prisma, ShopKnowledgeStatus, type PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { bumpShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogState";
-import type {
-  ShopKnowledgeChunkEmbeddingBacklog,
-  ShopKnowledgeChunkEmbeddingRepository,
-  ShopKnowledgeChunkEmbeddingScope,
-  ShopKnowledgeChunkEmbeddingStoreResult,
+import {
+  SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE,
+  SHOP_KNOWLEDGE_EMBEDDING_TRANSACTION_TIMEOUT_MS,
+  type ShopKnowledgeChunkEmbeddingBacklog,
+  type ShopKnowledgeChunkEmbeddingRepository,
+  type ShopKnowledgeChunkEmbeddingScope,
+  type ShopKnowledgeChunkEmbeddingStoreResult,
 } from "@/lib/shopKnowledgeV2/embeddings";
 import { SHOP_KNOWLEDGE_V2_SCHEMA_VERSION } from "@/lib/shopKnowledgeV2/types";
 
@@ -46,11 +48,27 @@ type KnowledgeProjection = {
 
 function productScopeClause(scope?: ShopKnowledgeChunkEmbeddingScope) {
   const productIds = scope?.productIds;
-  if (productIds === undefined) return Prisma.empty;
-  const uniqueIds = Array.from(new Set(productIds.map((value) => value.trim()).filter(Boolean)));
-  return uniqueIds.length > 0
-    ? Prisma.sql`AND knowledge."productId" IN (${Prisma.join(uniqueIds)})`
-    : Prisma.sql`AND FALSE`;
+  const categoryGroups = scope?.categoryGroups;
+  const clauses: Prisma.Sql[] = [];
+  if (productIds !== undefined) {
+    const uniqueIds = Array.from(new Set(productIds.map((value) => value.trim()).filter(Boolean)));
+    clauses.push(
+      uniqueIds.length > 0
+        ? Prisma.sql`knowledge."productId" IN (${Prisma.join(uniqueIds)})`
+        : Prisma.sql`FALSE`
+    );
+  }
+  if (categoryGroups !== undefined) {
+    const uniqueCategories = Array.from(
+      new Set(categoryGroups.map((value) => value.trim()).filter(Boolean))
+    );
+    clauses.push(
+      uniqueCategories.length > 0
+        ? Prisma.sql`knowledge."categoryGroup" IN (${Prisma.join(uniqueCategories)})`
+        : Prisma.sql`FALSE`
+    );
+  }
+  return clauses.length > 0 ? Prisma.sql`AND (${Prisma.join(clauses, " AND ")})` : Prisma.empty;
 }
 
 function readKnowledgeProjection(snapshot: Prisma.JsonValue): KnowledgeProjection {
@@ -145,115 +163,153 @@ async function finalizeReadyKnowledgeInTransaction(
     FOR UPDATE OF knowledge, revision SKIP LOCKED
   `;
 
-  let finalized = 0;
-  for (const row of rows) {
-    const status = targetKnowledgeStatus(row.targetStatus);
-    const readyAt = status === ShopKnowledgeStatus.BLOCKED ? null : input.finalizedAt;
-    const projection = readKnowledgeProjection(row.snapshot);
-    await Promise.all([
-      tx.shopVehicleApplication.updateMany({
-        where: { knowledgeId: row.knowledgeId, isActive: true },
-        data: { isActive: false },
-      }),
-      tx.shopVariantKnowledge.updateMany({
-        where: { knowledgeId: row.knowledgeId, isActive: true },
-        data: { isActive: false },
-      }),
-      tx.shopKnowledgeChunk.updateMany({
-        where: { knowledgeId: row.knowledgeId, isActive: true },
-        data: { isActive: false },
-      }),
-      tx.shopProductAttributeValue.updateMany({
-        where: { knowledgeId: row.knowledgeId, isActive: true },
-        data: { isActive: false },
-      }),
-      tx.shopKnowledgeEvidence.updateMany({
-        where: { knowledgeId: row.knowledgeId, isActive: true },
-        data: { isActive: false },
-      }),
-    ]);
-    await Promise.all([
-      tx.shopVehicleApplication.updateMany({
-        where: { knowledgeId: row.knowledgeId, revision: row.revision },
-        data: { isActive: true },
-      }),
-      tx.shopVariantKnowledge.updateMany({
-        where: { knowledgeId: row.knowledgeId, revision: row.revision },
-        data: { isActive: true, status, readyAt },
-      }),
-      tx.shopKnowledgeChunk.updateMany({
-        where: { knowledgeId: row.knowledgeId, revision: row.revision },
-        data: { isActive: true },
-      }),
-      tx.shopProductAttributeValue.updateMany({
-        where: { knowledgeId: row.knowledgeId, revision: row.revision },
-        data: { isActive: true },
-      }),
-      tx.shopKnowledgeEvidence.updateMany({
-        where: { knowledgeId: row.knowledgeId, revision: row.revision },
-        data: { isActive: true },
-      }),
-    ]);
-    const updated = await tx.shopProductKnowledge.updateMany({
-      where: {
-        id: row.knowledgeId,
-        revision: row.revision,
-      },
-      data: {
-        activeRevision: row.revision,
-        status,
-        schemaVersion: projection.schemaVersion,
-        completenessScore: projection.completenessScore,
-        qualityFlags: projection.qualityFlags,
-        sourceUpdatedAt: new Date(projection.sourceUpdatedAt),
-        statusChangedAt: input.finalizedAt,
-        readyAt,
-        failedAt: null,
-        failureReason: null,
-        vehicleType: projection.vehicleType,
-        makes: projection.makes,
-        models: projection.models,
-        chassisCodes: projection.chassisCodes,
-        yearRanges: projection.yearRanges,
-        engines: projection.engines,
-        bodyStyles: projection.bodyStyles,
-        markets: projection.markets,
-        categoryGroup: projection.categoryGroup,
-        powerGainHp: projection.powerGainHp,
-        torqueGainNm: projection.torqueGainNm,
-        material: projection.material,
-        opfGpf: projection.opfGpf,
-        installationType: projection.installationType,
-        fitmentStatus: projection.fitmentStatus,
-        fitmentSource: projection.fitmentSource,
-        applications: projection.applications,
-        facts: projection.facts,
-        searchText: projection.searchText,
-        contentHash: projection.contentHash,
-        embeddingModel: input.model,
-      },
-    });
-    if (updated.count === 0) continue;
+  if (rows.length === 0) return 0;
 
-    await Promise.all([
-      tx.shopKnowledgeRevision.updateMany({
+  const preparedRows = rows.map((row) => {
+    const status = targetKnowledgeStatus(row.targetStatus);
+    return {
+      row,
+      status,
+      readyAt: status === ShopKnowledgeStatus.BLOCKED ? null : input.finalizedAt,
+      projection: readKnowledgeProjection(row.snapshot),
+    };
+  });
+  const knowledgeIds = preparedRows.map(({ row }) => row.knowledgeId);
+  const revisionWhere = preparedRows.map(({ row }) => ({
+    knowledgeId: row.knowledgeId,
+    revision: row.revision,
+  }));
+
+  await Promise.all([
+    tx.shopVehicleApplication.updateMany({
+      where: { knowledgeId: { in: knowledgeIds }, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopVariantKnowledge.updateMany({
+      where: { knowledgeId: { in: knowledgeIds }, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopKnowledgeChunk.updateMany({
+      where: { knowledgeId: { in: knowledgeIds }, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopProductAttributeValue.updateMany({
+      where: { knowledgeId: { in: knowledgeIds }, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopKnowledgeEvidence.updateMany({
+      where: { knowledgeId: { in: knowledgeIds }, isActive: true },
+      data: { isActive: false },
+    }),
+  ]);
+  await Promise.all([
+    tx.shopVehicleApplication.updateMany({
+      where: { OR: revisionWhere },
+      data: { isActive: true },
+    }),
+    tx.shopKnowledgeChunk.updateMany({
+      where: { OR: revisionWhere },
+      data: { isActive: true },
+    }),
+    tx.shopProductAttributeValue.updateMany({
+      where: { OR: revisionWhere },
+      data: { isActive: true },
+    }),
+    tx.shopKnowledgeEvidence.updateMany({
+      where: { OR: revisionWhere },
+      data: { isActive: true },
+    }),
+    ...Object.values(ShopKnowledgeStatus).map((status) => {
+      const statusRows = preparedRows.filter((candidate) => candidate.status === status);
+      if (statusRows.length === 0) return Promise.resolve({ count: 0 });
+      return tx.shopVariantKnowledge.updateMany({
         where: {
-          knowledgeId: row.knowledgeId,
+          OR: statusRows.map(({ row }) => ({
+            knowledgeId: row.knowledgeId,
+            revision: row.revision,
+          })),
+        },
+        data: {
+          isActive: true,
+          status,
+          readyAt: status === ShopKnowledgeStatus.BLOCKED ? null : input.finalizedAt,
+        },
+      });
+    }),
+  ]);
+
+  const knowledgeUpdates = await Promise.all(
+    preparedRows.map(({ row, status, readyAt, projection }) =>
+      tx.shopProductKnowledge.updateMany({
+        where: {
+          id: row.knowledgeId,
           revision: row.revision,
+        },
+        data: {
+          activeRevision: row.revision,
+          status,
+          schemaVersion: projection.schemaVersion,
+          completenessScore: projection.completenessScore,
+          qualityFlags: projection.qualityFlags,
+          sourceUpdatedAt: new Date(projection.sourceUpdatedAt),
+          statusChangedAt: input.finalizedAt,
+          readyAt,
+          failedAt: null,
+          failureReason: null,
+          vehicleType: projection.vehicleType,
+          makes: projection.makes,
+          models: projection.models,
+          chassisCodes: projection.chassisCodes,
+          yearRanges: projection.yearRanges,
+          engines: projection.engines,
+          bodyStyles: projection.bodyStyles,
+          markets: projection.markets,
+          categoryGroup: projection.categoryGroup,
+          powerGainHp: projection.powerGainHp,
+          torqueGainNm: projection.torqueGainNm,
+          material: projection.material,
+          opfGpf: projection.opfGpf,
+          installationType: projection.installationType,
+          fitmentStatus: projection.fitmentStatus,
+          fitmentSource: projection.fitmentSource,
+          applications: projection.applications,
+          facts: projection.facts,
+          searchText: projection.searchText,
+          contentHash: projection.contentHash,
+          embeddingModel: input.model,
+        },
+      })
+    )
+  );
+  if (knowledgeUpdates.reduce((sum, update) => sum + update.count, 0) !== preparedRows.length) {
+    throw new Error("Knowledge revision changed during finalization");
+  }
+
+  const revisionUpdates = await Promise.all(
+    Object.values(ShopKnowledgeStatus).map((status) => {
+      const statusRows = preparedRows.filter((candidate) => candidate.status === status);
+      if (statusRows.length === 0) return Promise.resolve({ count: 0 });
+      return tx.shopKnowledgeRevision.updateMany({
+        where: {
           status: ShopKnowledgeStatus.PROCESSING,
+          OR: statusRows.map(({ row }) => ({
+            knowledgeId: row.knowledgeId,
+            revision: row.revision,
+          })),
         },
         data: {
           status,
           activatedAt: input.finalizedAt,
         },
-      }),
-    ]);
-    finalized += 1;
+      });
+    })
+  );
+  if (revisionUpdates.reduce((sum, update) => sum + update.count, 0) !== preparedRows.length) {
+    throw new Error("Knowledge revision status changed during finalization");
   }
-  if (finalized > 0) {
-    await bumpShopKnowledgeCatalogState(tx, input.finalizedAt);
-  }
-  return finalized;
+
+  await bumpShopKnowledgeCatalogState(tx, input.finalizedAt);
+  return preparedRows.length;
 }
 
 class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkEmbeddingRepository {
@@ -264,12 +320,21 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
     scope?: ShopKnowledgeChunkEmbeddingScope
   ): Promise<ShopKnowledgeChunkEmbeddingBacklog> {
     const [row] = await this.client.$queryRaw<
-      Array<{ chunks: bigint; products: bigint; knowledgeRecords: bigint }>
+      Array<{
+        chunks: bigint;
+        products: bigint;
+        knowledgeRecords: bigint;
+        estimatedTokens: bigint;
+      }>
     >`
       SELECT
         COUNT(*)::bigint AS "chunks",
         COUNT(DISTINCT chunk."productId")::bigint AS "products",
-        COUNT(DISTINCT chunk."knowledgeId")::bigint AS "knowledgeRecords"
+        COUNT(DISTINCT chunk."knowledgeId")::bigint AS "knowledgeRecords",
+        COALESCE(
+          SUM(COALESCE(chunk."tokenCount", CEIL(length(chunk."content")::numeric / 4))),
+          0
+        )::bigint AS "estimatedTokens"
       FROM "ShopKnowledgeChunk" chunk
       JOIN "ShopProductKnowledge" knowledge
         ON knowledge."id" = chunk."knowledgeId"
@@ -288,6 +353,7 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
       chunks: Number(row?.chunks ?? 0),
       products: Number(row?.products ?? 0),
       knowledgeRecords: Number(row?.knowledgeRecords ?? 0),
+      estimatedTokens: Number(row?.estimatedTokens ?? 0),
     };
   }
 
@@ -297,31 +363,28 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
     scope?: ShopKnowledgeChunkEmbeddingScope
   ): Promise<number> {
     void now;
-    return this.client.$transaction(async (tx) => {
-      const prepared = await tx.$executeRaw`
-        UPDATE "ShopKnowledgeRevision" revision
-        SET
-          "status" = 'PROCESSING',
-          "activatedAt" = NULL
-        FROM "ShopProductKnowledge" knowledge
-        WHERE revision."knowledgeId" = knowledge."id"
-          AND revision."revision" = knowledge."revision"
-          AND knowledge."schemaVersion" = ${SHOP_KNOWLEDGE_V2_SCHEMA_VERSION}
-          AND revision."status" IN ('READY', 'NEEDS_REVIEW', 'BLOCKED')
-          AND EXISTS (
-            SELECT 1
-            FROM "ShopKnowledgeChunk" chunk
-            WHERE chunk."knowledgeId" = knowledge."id"
-              AND chunk."revision" = knowledge."revision"
-              AND (
-              chunk."embedding" IS NULL
-              OR chunk."embeddingModel" IS DISTINCT FROM ${model}
-          )
-          ${productScopeClause(scope)}
-          )
-      `;
-      return prepared;
-    });
+    return this.client.$executeRaw`
+      UPDATE "ShopKnowledgeRevision" revision
+      SET
+        "status" = 'PROCESSING',
+        "activatedAt" = NULL
+      FROM "ShopProductKnowledge" knowledge
+      WHERE revision."knowledgeId" = knowledge."id"
+        AND revision."revision" = knowledge."revision"
+        AND knowledge."schemaVersion" = ${SHOP_KNOWLEDGE_V2_SCHEMA_VERSION}
+        AND revision."status" IN ('READY', 'NEEDS_REVIEW', 'BLOCKED')
+        AND EXISTS (
+          SELECT 1
+          FROM "ShopKnowledgeChunk" chunk
+          WHERE chunk."knowledgeId" = knowledge."id"
+            AND chunk."revision" = knowledge."revision"
+            AND (
+            chunk."embedding" IS NULL
+            OR chunk."embeddingModel" IS DISTINCT FROM ${model}
+        )
+        ${productScopeClause(scope)}
+        )
+    `;
   }
 
   async listPendingChunkEmbeddings(
@@ -380,54 +443,56 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
       return { embedded: 0, skippedStale: 0, finalizedKnowledge: 0 };
     }
 
-    return this.client.$transaction(
-      async (tx) => {
-        let embedded = 0;
-        for (const write of input.writes) {
-          const vector = `[${write.values.join(",")}]`;
-          embedded += await tx.$executeRaw`
-            UPDATE "ShopKnowledgeChunk" chunk
-            SET
-              "embedding" = CAST(${vector} AS vector),
-              "embeddingModel" = ${input.model},
-              "embeddedAt" = ${input.embeddedAt},
-              "updatedAt" = CURRENT_TIMESTAMP
-            FROM "ShopProductKnowledge" knowledge
-            WHERE chunk."id" = ${write.chunkId}
-              AND chunk."knowledgeId" = ${write.knowledgeId}
-              AND chunk."revision" = ${write.revision}
-              AND chunk."contentHash" = ${write.contentHash}
-              AND knowledge."id" = chunk."knowledgeId"
-              AND knowledge."revision" = chunk."revision"
-              AND EXISTS (
-                SELECT 1 FROM "ShopKnowledgeRevision" revision
-                WHERE revision."knowledgeId" = knowledge."id"
-                  AND revision."revision" = chunk."revision"
-                  AND revision."status" = 'PROCESSING'
-              )
-              AND (
-                chunk."embedding" IS NULL
-                OR chunk."embeddingModel" IS DISTINCT FROM ${input.model}
-              )
-          `;
-        }
-        const finalizedKnowledge = await finalizeReadyKnowledgeInTransaction(tx, {
-          model: input.model,
-          finalizedAt: input.embeddedAt,
-          limit: Math.max(1, input.writes.length),
-          knowledgeIds: input.writes.map((write) => write.knowledgeId),
-        });
-        return {
-          embedded,
-          skippedStale: input.writes.length - embedded,
-          finalizedKnowledge,
-        };
-      },
-      {
-        maxWait: 10_000,
-        timeout: 60_000,
-      }
+    const values = Prisma.join(
+      input.writes.map((write) => {
+        const vector = `[${write.values.join(",")}]`;
+        return Prisma.sql`(
+          ${write.chunkId}::text,
+          ${write.knowledgeId}::text,
+          ${write.revision}::integer,
+          ${write.contentHash}::text,
+          CAST(${vector} AS vector)
+        )`;
+      })
     );
+    const embedded = await this.client.$executeRaw`
+      UPDATE "ShopKnowledgeChunk" chunk
+      SET
+        "embedding" = incoming."embedding",
+        "embeddingModel" = ${input.model},
+        "embeddedAt" = ${input.embeddedAt},
+        "updatedAt" = CURRENT_TIMESTAMP
+      FROM (
+        VALUES ${values}
+      ) AS incoming("chunkId", "knowledgeId", "revision", "contentHash", "embedding")
+      JOIN "ShopProductKnowledge" knowledge
+        ON knowledge."id" = incoming."knowledgeId"
+       AND knowledge."revision" = incoming."revision"
+      JOIN "ShopKnowledgeRevision" revision
+        ON revision."knowledgeId" = incoming."knowledgeId"
+       AND revision."revision" = incoming."revision"
+       AND revision."status" = 'PROCESSING'
+      WHERE chunk."id" = incoming."chunkId"
+        AND chunk."knowledgeId" = incoming."knowledgeId"
+        AND chunk."revision" = incoming."revision"
+        AND chunk."contentHash" = incoming."contentHash"
+        AND (
+          chunk."embedding" IS NULL
+          OR chunk."embeddingModel" IS DISTINCT FROM ${input.model}
+        )
+    `;
+    const knowledgeIds = Array.from(new Set(input.writes.map((write) => write.knowledgeId)));
+    const finalizedKnowledge = await this.finalizeReadyKnowledge({
+      model: input.model,
+      finalizedAt: input.embeddedAt,
+      limit: knowledgeIds.length,
+      knowledgeIds,
+    });
+    return {
+      embedded,
+      skippedStale: input.writes.length - embedded,
+      finalizedKnowledge,
+    };
   }
 
   async finalizeReadyKnowledge(input: {
@@ -437,20 +502,64 @@ class PrismaShopKnowledgeChunkEmbeddingRepository implements ShopKnowledgeChunkE
     knowledgeIds?: string[];
     scope?: ShopKnowledgeChunkEmbeddingScope;
   }): Promise<number> {
-    return this.client.$transaction(
-      (tx) =>
-        finalizeReadyKnowledgeInTransaction(tx, {
-          model: input.model,
-          finalizedAt: input.finalizedAt,
-          limit: Math.min(5_000, Math.max(1, input.limit ?? 1_000)),
-          knowledgeIds: input.knowledgeIds,
-          scope: input.scope,
-        }),
-      {
-        maxWait: 10_000,
-        timeout: 60_000,
+    const limit = Math.min(5_000, Math.max(1, input.limit ?? 1_000));
+    const knowledgeIds = input.knowledgeIds
+      ? Array.from(new Set(input.knowledgeIds.map((value) => value.trim()).filter(Boolean)))
+      : undefined;
+    let finalized = 0;
+
+    if (knowledgeIds) {
+      for (
+        let cursor = 0;
+        cursor < knowledgeIds.length && finalized < limit;
+        cursor += SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE
+      ) {
+        const batchKnowledgeIds = knowledgeIds.slice(
+          cursor,
+          cursor + SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE
+        );
+        const batchLimit = Math.min(batchKnowledgeIds.length, limit - finalized);
+        finalized += await this.client.$transaction(
+          (tx) =>
+            finalizeReadyKnowledgeInTransaction(tx, {
+              model: input.model,
+              finalizedAt: input.finalizedAt,
+              limit: batchLimit,
+              knowledgeIds: batchKnowledgeIds,
+              scope: input.scope,
+            }),
+          {
+            maxWait: 10_000,
+            timeout: SHOP_KNOWLEDGE_EMBEDDING_TRANSACTION_TIMEOUT_MS,
+          }
+        );
       }
-    );
+      return finalized;
+    }
+
+    while (finalized < limit) {
+      const batchLimit = Math.min(
+        SHOP_KNOWLEDGE_EMBEDDING_FINALIZATION_BATCH_SIZE,
+        limit - finalized
+      );
+      const batchFinalized = await this.client.$transaction(
+        (tx) =>
+          finalizeReadyKnowledgeInTransaction(tx, {
+            model: input.model,
+            finalizedAt: input.finalizedAt,
+            limit: batchLimit,
+            scope: input.scope,
+          }),
+        {
+          maxWait: 10_000,
+          timeout: SHOP_KNOWLEDGE_EMBEDDING_TRANSACTION_TIMEOUT_MS,
+        }
+      );
+      finalized += batchFinalized;
+      if (batchFinalized < batchLimit) break;
+    }
+
+    return finalized;
   }
 }
 

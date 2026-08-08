@@ -26,6 +26,8 @@ export type ShopCartItemInput = {
   slug: string;
   quantity: number;
   variantId?: string | null;
+  oneAiRunId?: string | null;
+  oneAiCandidateDecisionId?: string | null;
 };
 
 function normalizeLocale(locale?: string | null) {
@@ -63,9 +65,18 @@ function normalizeItems(items: ShopCartItemInput[]) {
     const existing = aggregate.get(key);
     if (existing) {
       existing.quantity = Math.min(SHOP_CART_MAX_QUANTITY, existing.quantity + quantity);
+      if (!existing.oneAiRunId && item.oneAiRunId && item.oneAiCandidateDecisionId) {
+        existing.oneAiRunId = item.oneAiRunId;
+        existing.oneAiCandidateDecisionId = item.oneAiCandidateDecisionId;
+      }
       continue;
     }
-    aggregate.set(key, { slug, quantity, variantId });
+    const normalizedItem: ShopCartItemInput = { slug, quantity, variantId };
+    if (item.oneAiRunId && item.oneAiCandidateDecisionId) {
+      normalizedItem.oneAiRunId = item.oneAiRunId;
+      normalizedItem.oneAiCandidateDecisionId = item.oneAiCandidateDecisionId;
+    }
+    aggregate.set(key, normalizedItem);
   }
 
   return Array.from(aggregate.values());
@@ -139,20 +150,44 @@ async function touchCart(
 
 async function replaceCartItems(prisma: PrismaClient, cartId: string, items: ShopCartItemInput[]) {
   const normalized = normalizeItems(items);
-  const products = normalized.length
-    ? await prisma.shopProduct.findMany({
-        where: {
-          slug: {
-            in: normalized.map((item) => item.slug),
+  const [products, existingAttributedItems] = normalized.length
+    ? await Promise.all([
+        prisma.shopProduct.findMany({
+          where: {
+            slug: {
+              in: normalized.map((item) => item.slug),
+            },
           },
-        },
-        select: {
-          id: true,
-          slug: true,
-        },
-      })
-    : [];
+          select: {
+            id: true,
+            slug: true,
+          },
+        }),
+        prisma.shopCartItem.findMany({
+          where: {
+            cartId,
+            oneAiRunId: { not: null },
+            oneAiCandidateDecisionId: { not: null },
+          },
+          select: {
+            productSlug: true,
+            variantId: true,
+            oneAiRunId: true,
+            oneAiCandidateDecisionId: true,
+          },
+        }),
+      ])
+    : [[], []];
   const productBySlug = new Map(products.map((product) => [product.slug, product]));
+  const existingAttributionByItem = new Map(
+    existingAttributedItems.map((item) => [
+      uniqueKey(item.productSlug, item.variantId),
+      {
+        oneAiRunId: item.oneAiRunId,
+        oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
+      },
+    ])
+  );
 
   await prisma.shopCartItem.deleteMany({
     where: { cartId },
@@ -166,10 +201,19 @@ async function replaceCartItems(prisma: PrismaClient, cartId: string, items: Sho
     data: normalized
       .map((item) => {
         const product = productBySlug.get(item.slug);
+        const existingAttribution = existingAttributionByItem.get(
+          uniqueKey(item.slug, item.variantId)
+        );
+        const oneAiRunId = item.oneAiRunId ?? existingAttribution?.oneAiRunId ?? null;
+        const oneAiCandidateDecisionId =
+          item.oneAiCandidateDecisionId ?? existingAttribution?.oneAiCandidateDecisionId ?? null;
         return {
           cartId,
           productId: product?.id ?? null,
           variantId: item.variantId ?? null,
+          oneAiRunId: oneAiRunId && oneAiCandidateDecisionId ? oneAiRunId : null,
+          oneAiCandidateDecisionId:
+            oneAiRunId && oneAiCandidateDecisionId ? oneAiCandidateDecisionId : null,
           productSlug: item.slug,
           quantity: item.quantity,
         };
@@ -189,11 +233,15 @@ async function mergeCartItems(
         slug: item.productSlug,
         quantity: item.quantity,
         variantId: item.variantId,
+        oneAiRunId: item.oneAiRunId,
+        oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
       })),
       sourceCart.items.map((item) => ({
         slug: item.productSlug,
         quantity: item.quantity,
         variantId: item.variantId,
+        oneAiRunId: item.oneAiRunId,
+        oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
       }))
     ),
   ];
@@ -299,6 +347,8 @@ export async function addItemToShopCart(
       slug: item.productSlug,
       quantity: item.quantity,
       variantId: item.variantId,
+      oneAiRunId: item.oneAiRunId,
+      oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
     })),
     input.item,
   ];
@@ -331,6 +381,8 @@ export async function updateShopCartItemQuantity(
     slug: item.productSlug,
     quantity: item.id === input.itemId ? input.quantity : item.quantity,
     variantId: item.variantId,
+    oneAiRunId: item.oneAiRunId,
+    oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
   }));
   await replaceCartItems(prisma, cart.id, nextItems);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({
@@ -357,6 +409,8 @@ export async function deleteShopCartItem(
       slug: item.productSlug,
       quantity: item.quantity,
       variantId: item.variantId,
+      oneAiRunId: item.oneAiRunId,
+      oneAiCandidateDecisionId: item.oneAiCandidateDecisionId,
     }));
   await replaceCartItems(prisma, cart.id, nextItems);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({

@@ -8,7 +8,15 @@ import {
   normalizeShopAiPlan,
 } from "@/lib/shopAiAssistantPlanner";
 import { buildShopAiPowerGoalAnswer } from "@/lib/shopAiAssistantPower";
+import { getShopAiExactSkuLookupToken } from "@/lib/shopAiExactSku";
 import { redactShopAiText } from "@/lib/shopAiPrivacy";
+import {
+  SHOP_AI_DEFAULT_MODEL,
+  SHOP_AI_PLANNER_TIMEOUT_MS,
+  classifyShopAiProviderError,
+  shouldOpenShopAiProviderCircuit,
+  type ShopAiProviderErrorKind,
+} from "@/lib/shopAiProviderPolicy";
 import type {
   ShopAiContext,
   ShopAiHistoryMessage,
@@ -17,18 +25,12 @@ import type {
 } from "@/lib/shopAiAssistantTypes";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 
-const MODEL = process.env.SHOP_AI_MODEL || "gemini-2.5-flash";
-const REQUEST_TIMEOUT_MS = 2_500;
-let providerUnavailable = false;
+const MODEL = process.env.SHOP_AI_MODEL?.trim() || SHOP_AI_DEFAULT_MODEL;
+let providerCircuitOpen = false;
 
 function getClient() {
   const apiKey = (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim();
-  return apiKey && !providerUnavailable ? new GoogleGenAI({ apiKey, apiVersion: "v1beta" }) : null;
-}
-
-function markProviderUnavailable(error: unknown) {
-  const status = Number((error as { status?: unknown })?.status);
-  if (status === 401 || status === 403) providerUnavailable = true;
+  return apiKey && !providerCircuitOpen ? new GoogleGenAI({ apiKey, apiVersion: "v1beta" }) : null;
 }
 
 function cleanHistory(history: ShopAiHistoryMessage[]) {
@@ -53,8 +55,23 @@ function parseJson(text: string | undefined) {
   }
 }
 
-function hasDeterministicShoppingIntent(plan: ShopAiPlan) {
-  return Boolean(plan.category || plan.powerGainHp || plan.brand || plan.stockOnly);
+function hasDeterministicShoppingIntent(message: string, plan: ShopAiPlan) {
+  return Boolean(
+    getShopAiExactSkuLookupToken(message) ||
+      plan.category ||
+      plan.goal ||
+      plan.powerGainHp ||
+      plan.brand ||
+      plan.stockOnly ||
+      plan.minPrice ||
+      plan.maxPrice ||
+      plan.opfGpf ||
+      plan.vehicle.make ||
+      plan.vehicle.model ||
+      plan.vehicle.chassis ||
+      plan.vehicle.year ||
+      plan.vehicle.engine
+  );
 }
 
 function reconcileShopAiPlans(
@@ -69,6 +86,7 @@ function reconcileShopAiPlans(
     {
       ...generated,
       intent: deterministic.intent === "recommend" ? generated.intent : deterministic.intent,
+      goal: deterministic.goal ?? generated.goal,
       vehicle: {
         type:
           deterministic.vehicle.type === "unknown"
@@ -110,15 +128,37 @@ export async function createShopAiPlan(input: {
   message: string;
   history: ShopAiHistoryMessage[];
   context: ShopAiContext;
-}): Promise<{ plan: ShopAiPlan; degraded: boolean; usedProvider: boolean }> {
+}): Promise<{
+  plan: ShopAiPlan;
+  degraded: boolean;
+  usedProvider: boolean;
+  providerModel: string | null;
+  plannerLatencyMs: number;
+  providerErrorKind: ShopAiProviderErrorKind | null;
+}> {
+  const startedAt = performance.now();
   const deterministicPlan = buildFallbackShopAiPlan(input.message, input.context);
-  if (hasDeterministicShoppingIntent(deterministicPlan)) {
-    return { plan: deterministicPlan, degraded: false, usedProvider: false };
+  if (hasDeterministicShoppingIntent(input.message, deterministicPlan)) {
+    return {
+      plan: deterministicPlan,
+      degraded: false,
+      usedProvider: false,
+      providerModel: null,
+      plannerLatencyMs: Math.round(performance.now() - startedAt),
+      providerErrorKind: null,
+    };
   }
 
   const client = getClient();
   if (!client) {
-    return { plan: deterministicPlan, degraded: true, usedProvider: false };
+    return {
+      plan: deterministicPlan,
+      degraded: true,
+      usedProvider: false,
+      providerModel: MODEL,
+      plannerLatencyMs: Math.round(performance.now() - startedAt),
+      providerErrorKind: "invalid_config",
+    };
   }
 
   const categoryIds = SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id).join(", ");
@@ -128,6 +168,7 @@ Extract a shopping plan only. Do not invent products, SKUs, prices or compatibil
 Use category only from: ${categoryIds}.
 Use the page context when the customer refers to "this vehicle" or omits already selected details.
 Ask one concise clarification when a tuning product requires vehicle make/model and they are unknown.
+Extract goal only as one of: power, sound, handling, braking, appearance, cooling, comfort, gift, or null.
 Write clarification in ${input.context.locale === "ua" ? "Ukrainian" : "English"}.
 Currency is ${input.context.currency}. Price limits must be in that currency.
 
@@ -145,15 +186,15 @@ ${JSON.stringify(input.message)}`;
       model: MODEL,
       contents: prompt,
       config: {
-        httpOptions: { timeout: REQUEST_TIMEOUT_MS },
-        temperature: 0.1,
+        httpOptions: { timeout: SHOP_AI_PLANNER_TIMEOUT_MS },
         maxOutputTokens: 700,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
-          required: ["intent", "vehicle", "searchQuery", "needsClarification"],
+          required: ["intent", "goal", "vehicle", "searchQuery", "needsClarification"],
           properties: {
             intent: { type: Type.STRING },
+            goal: { type: Type.STRING, nullable: true },
             vehicle: {
               type: Type.OBJECT,
               properties: {
@@ -186,23 +227,36 @@ ${JSON.stringify(input.message)}`;
         },
       },
     });
-    const generatedPlan = normalizeShopAiPlan(
-      parseJson(response.text),
-      input.message,
-      input.context
-    );
+    const parsed = parseJson(response.text);
+    if (!parsed) {
+      const error = new Error("Gemini planner returned an invalid structured response");
+      error.name = "ShopAiProviderSchemaError";
+      throw error;
+    }
+    const generatedPlan = normalizeShopAiPlan(parsed, input.message, input.context);
     return {
       plan: reconcileShopAiPlans(deterministicPlan, generatedPlan, input.context),
       degraded: false,
       usedProvider: true,
+      providerModel: MODEL,
+      plannerLatencyMs: Math.round(performance.now() - startedAt),
+      providerErrorKind: null,
     };
   } catch (error) {
-    markProviderUnavailable(error);
-    console.error("Shop AI planning failed", error);
+    const providerErrorKind = classifyShopAiProviderError(error);
+    if (shouldOpenShopAiProviderCircuit(providerErrorKind)) providerCircuitOpen = true;
+    console.error("Shop AI planning failed", {
+      kind: providerErrorKind,
+      model: MODEL,
+      message: error instanceof Error ? error.message : String(error),
+    });
     return {
       plan: buildFallbackShopAiPlan(input.message, input.context),
       degraded: true,
       usedProvider: true,
+      providerModel: MODEL,
+      plannerLatencyMs: Math.round(performance.now() - startedAt),
+      providerErrorKind,
     };
   }
 }

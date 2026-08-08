@@ -5,6 +5,7 @@ import {
   getShopAiV2CategoryRolloutPercent,
   isShopAiV2CategoryEnabled,
   isShopAiV2ExactSkuBaselineEnabled,
+  isShopAiV2OneShotProductionConfig,
   isShopAiV2RolloutCategory,
   isShopAiV2ShadowEnabled,
   SHOP_AI_V2_ROLLOUT_CATEGORIES,
@@ -91,6 +92,75 @@ test("runtime feature flags fail closed in production without a commit-bound rel
       assert.equal(isShopAiV2ExactSkuBaselineEnabled(), false);
       assert.equal(isShopAiV2ShadowEnabled(), false);
     }
+  );
+});
+
+test("production serving config is one-shot across all canonical categories and exact SKU", () => {
+  const allCategories = SHOP_AI_V2_ROLLOUT_CATEGORIES.join(",");
+  const allPercentages = SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => `${category}:100`).join(
+    ","
+  );
+
+  assert.equal(
+    isShopAiV2OneShotProductionConfig({
+      VERCEL_ENV: "production",
+      SHOP_AI_V2_CATEGORIES: "exhaust,brakes",
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: "exhaust:100,brakes:100",
+      SHOP_AI_V2_EXACT_SKU_ENABLED: "1",
+    }),
+    false
+  );
+  assert.equal(
+    isShopAiV2OneShotProductionConfig({
+      VERCEL_ENV: "production",
+      SHOP_AI_V2_CATEGORIES: allCategories,
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: allPercentages,
+      SHOP_AI_V2_EXACT_SKU_ENABLED: "1",
+    }),
+    true
+  );
+  assert.equal(
+    isShopAiV2OneShotProductionConfig({
+      VERCEL_ENV: "production",
+      SHOP_AI_MODEL: "gemini-2.5-flash",
+      SHOP_AI_V2_CATEGORIES: allCategories,
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: allPercentages,
+      SHOP_AI_V2_EXACT_SKU_ENABLED: "1",
+    }),
+    false
+  );
+  assert.equal(
+    isShopAiV2OneShotProductionConfig({
+      VERCEL_ENV: "production",
+      SHOP_AI_V2_CATEGORIES: allCategories,
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: allPercentages,
+      SHOP_AI_V2_EXACT_SKU_ENABLED: "0",
+    }),
+    false
+  );
+});
+
+test("production detection ignores empty higher-priority environment variables", () => {
+  const allCategories = SHOP_AI_V2_ROLLOUT_CATEGORIES.join(",");
+  const allPercentages = SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => `${category}:100`).join(
+    ","
+  );
+  const environment: Partial<NodeJS.ProcessEnv> = {
+    VERCEL_ENV: "",
+    VERCEL_TARGET_ENV: "  ",
+    NODE_ENV: "production",
+    SHOP_AI_V2_CATEGORIES: allCategories,
+    SHOP_AI_V2_CATEGORY_PERCENTAGES: allPercentages,
+    SHOP_AI_V2_EXACT_SKU_ENABLED: "1",
+  };
+
+  assert.equal(isShopAiV2OneShotProductionConfig(environment), true);
+  assert.equal(
+    isShopAiV2OneShotProductionConfig({
+      ...environment,
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: "exhaust:100",
+    }),
+    false
   );
 });
 

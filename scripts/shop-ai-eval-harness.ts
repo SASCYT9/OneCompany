@@ -1,8 +1,11 @@
 import type { ShopAiAssistantResponse, ShopAiResponseMode } from "../src/lib/shopAiAssistantTypes";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../src/lib/shopAiV2FeatureFlags";
+import { validateGroundedShopAiOutput } from "../src/lib/shopAiOutputValidator";
 
 export const SHOP_AI_RELEASE_GATE_MIN_CASES = 500;
 export const SHOP_AI_RELEASE_GATE_MIN_CASES_PER_CATEGORY = 30;
+export const SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES = 100;
+export const SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES = 1;
 
 export const SHOP_AI_EVAL_LANGUAGES = ["ua", "en", "ru", "mixed", "translit"] as const;
 export const SHOP_AI_EVAL_RESPONSE_MODES = ["results", "clarification", "no_match"] as const;
@@ -75,6 +78,8 @@ export type ShopAiReleaseGateReport = {
   countsByCategory: Record<string, number>;
   countsByLanguage: Record<string, number>;
   hardNegativeCases: number;
+  exactSkuCases: number;
+  missingLanguages: ShopAiEvalLanguage[];
   unlabeledLanguageCases: number;
   unreviewedCases: number;
   invalidExpectationContractCases: number;
@@ -346,6 +351,7 @@ export function evaluateShopAiReleaseGate(
   );
   const countsByLanguage: Record<string, number> = {};
   let hardNegativeCases = 0;
+  let exactSkuCases = 0;
   let unlabeledLanguageCases = 0;
   const unreviewedCaseIssues: string[] = [];
   const expectationContractIssues: string[] = [];
@@ -356,6 +362,7 @@ export function evaluateShopAiReleaseGate(
     countsByLanguage[language] = (countsByLanguage[language] ?? 0) + 1;
     if (!testCase.metadata?.language) unlabeledLanguageCases += 1;
     if (testCase.metadata?.hardNegative) hardNegativeCases += 1;
+    if (testCase.metadata?.tags?.includes("exact-sku")) exactSkuCases += 1;
 
     const reviewErrors: string[] = [];
     validateReviewMetadata(
@@ -433,6 +440,20 @@ export function evaluateShopAiReleaseGate(
   if (unlabeledLanguageCases) {
     errors.push(`${unlabeledLanguageCases} release cases are missing metadata.language`);
   }
+  const missingLanguages = SHOP_AI_EVAL_LANGUAGES.filter((language) => !countsByLanguage[language]);
+  if (missingLanguages.length) {
+    errors.push(
+      `release corpus must cover UA, EN, RU, mixed and translit; missing: ${missingLanguages.join(", ")}`
+    );
+  }
+  if (hardNegativeCases < SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES) {
+    errors.push(
+      `release corpus has ${hardNegativeCases} hard-negative cases; at least ${SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES} are required`
+    );
+  }
+  if (exactSkuCases < SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES) {
+    errors.push("release corpus must include at least one reviewed exact-SKU identity case");
+  }
   if (unreviewedCaseIssues.length) {
     errors.push(
       `${unreviewedCaseIssues.length} release cases are missing valid human-review metadata (metadata.reviewer, metadata.reviewedAt, metadata.reviewEvidenceId); examples: ${unreviewedCaseIssues
@@ -463,6 +484,8 @@ export function evaluateShopAiReleaseGate(
     countsByCategory,
     countsByLanguage,
     hardNegativeCases,
+    exactSkuCases,
+    missingLanguages,
     unlabeledLanguageCases,
     unreviewedCases: unreviewedCaseIssues.length,
     invalidExpectationContractCases: expectationContractIssues.length,
@@ -499,6 +522,65 @@ function assertForbiddenIds(
 export function evaluateShopAiResponse(testCase: ShopAiEvalCase, result: ShopAiAssistantResponse) {
   const errors: string[] = [];
   const expected = testCase.expect;
+  if (result.products.length > 6) {
+    errors.push(`response returned ${result.products.length} cards; maximum is 6`);
+  }
+  if (result.totalItems < result.products.length) {
+    errors.push(
+      `totalItems=${result.totalItems} is smaller than the ${result.products.length} shown cards`
+    );
+  }
+  if (
+    !validateGroundedShopAiOutput(result.message, result.products, {
+      currency: "EUR",
+    })
+  ) {
+    errors.push("assistant message contains an ungrounded product or compatibility claim");
+  }
+
+  let encounteredReviewable = false;
+  for (const product of result.products) {
+    if (product.matchStatus === "requires_verification") encounteredReviewable = true;
+    if (product.matchStatus === "exact" && encounteredReviewable) {
+      errors.push("exact cards must be ordered before requires_verification cards");
+      break;
+    }
+  }
+  for (const product of result.products) {
+    if (product.matchStatus === "exact" && (product.missingFacts?.length ?? 0) > 0) {
+      errors.push(`exact product ${product.id} contains missing fitment facts`);
+    }
+    if (product.matchStatus === "requires_verification" && product.compatibility === "confirmed") {
+      errors.push(`reviewable product ${product.id} claims confirmed compatibility`);
+    }
+    if (product.matchBasis === "identity" && product.compatibility === "confirmed") {
+      errors.push(`identity-only product ${product.id} claims confirmed fitment`);
+    }
+  }
+  if (result.counts) {
+    const shownExact = result.products.filter((product) => product.matchStatus === "exact").length;
+    const shownReviewable = result.products.filter(
+      (product) => product.matchStatus === "requires_verification"
+    ).length;
+    if (result.counts.exact !== shownExact) {
+      errors.push(`counts.exact=${result.counts.exact}, but ${shownExact} exact cards are shown`);
+    }
+    if (result.counts.requiresVerification !== shownReviewable) {
+      errors.push(
+        `counts.requiresVerification=${result.counts.requiresVerification}, but ${shownReviewable} reviewable cards are shown`
+      );
+    }
+  }
+  if (testCase.metadata?.tags?.includes("exact-sku")) {
+    const identityMatches = result.products.filter(
+      (product) => product.matchStatus === "exact" && product.matchBasis === "identity"
+    );
+    if (identityMatches.length !== 1) {
+      errors.push(
+        `exact-SKU case must return exactly one exact identity match; received ${identityMatches.length}`
+      );
+    }
+  }
   if (expected.mode !== undefined) {
     assertEqual(errors, "mode", result.mode, expected.mode);
     if (expected.mode !== "results" && result.products.length !== 0) {

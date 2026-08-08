@@ -11,6 +11,7 @@ import type { ShopAiPlan, ShopAiProduct } from "../../../src/lib/shopAiAssistant
 
 const previousPlan: ShopAiPlan = {
   intent: "recommend",
+  goal: "power",
   vehicle: { type: "car", make: "BMW", model: "M5", chassis: "G90", year: null, engine: null },
   category: "chipTuning",
   searchQuery: "BMW M5 G90 chipTuning",

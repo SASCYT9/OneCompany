@@ -1,10 +1,12 @@
 import type {
   ShopAiContext,
+  ShopAiGoal,
   ShopAiPlan,
   ShopAiRequiredDetail,
   ShopAiVehicle,
 } from "@/lib/shopAiAssistantTypes";
 import { BRAND_LOGO_MAP } from "@/lib/brandLogos";
+import { getShopAiExactSkuLookupToken } from "@/lib/shopAiExactSku";
 import { cleanShopAiProductKind, inferShopAiProductKind } from "@/lib/shopAiProductKind";
 import { SHOP_STOCK_CATEGORY_GROUPS, type ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
 import { expandVehicleAliases } from "@/lib/shopVehicleSearch";
@@ -27,6 +29,12 @@ const CATEGORY_SIGNALS: Array<{ id: ShopStockCategoryGroupId; pattern: RegExp }>
   { id: "wheels", pattern: /\b(wheel|rim|spacer|диск|колес|проставк)\b/i },
   { id: "interior", pattern: /\b(interior|steering|seat|салон|кермо|сидін)\b/i },
   { id: "lighting", pattern: /\b(light|lamp|headlight|світло|фара|ламп)\b/i },
+  {
+    id: "motoCarbon",
+    pattern: /\b(moto\s*carbon|motorcycle\s*carbon|мотокарбон|карбон\s+для\s+мото)\b/i,
+  },
+  { id: "accessories", pattern: /\b(accessor(?:y|ies)|аксесуар)\b/i },
+  { id: "merch", pattern: /\b(merch|merchandise|gift|подар(?:унок|ок)|мерч)\b/i },
 ];
 
 const CATEGORY_SUBSTRINGS: Array<{ id: ShopStockCategoryGroupId; values: string[] }> = [
@@ -40,7 +48,78 @@ const CATEGORY_SUBSTRINGS: Array<{ id: ShopStockCategoryGroupId; values: string[
   { id: "wheels", values: ["wheel", "spacer", "колес", "проставк"] },
   { id: "interior", values: ["interior", "steering", "салон", "кермо"] },
   { id: "lighting", values: ["headlight", "lamp", "світло", "фара"] },
+  { id: "motoCarbon", values: ["moto carbon", "motorcycle carbon", "мотокарбон"] },
+  { id: "accessories", values: ["accessory", "accessories", "аксесуар"] },
+  { id: "merch", values: ["merch", "merchandise", "gift", "подарунок", "подарок", "мерч"] },
 ];
+
+const GOALS = new Set<ShopAiGoal>([
+  "power",
+  "sound",
+  "handling",
+  "braking",
+  "appearance",
+  "cooling",
+  "comfort",
+  "gift",
+]);
+
+const GOAL_SIGNALS: Array<{ goal: ShopAiGoal; pattern: RegExp }> = [
+  {
+    goal: "power",
+    pattern:
+      /(?:\b(?:power|horsepower|faster|performance|moshchnost|moshnost)\b|потужн|потужност|мощн|сил\s+більш|більше\s+сил)/iu,
+  },
+  {
+    goal: "sound",
+    pattern: /(?:\b(?:sound|louder|tone|zvuk)\b|звук|гучн|громч|вихлоп\s+щоб\s+чути)/iu,
+  },
+  {
+    goal: "handling",
+    pattern:
+      /(?:\b(?:handling|cornering|stability|upravlyaemost)\b|керован|стійк|управляєм|управляем)/iu,
+  },
+  { goal: "braking", pattern: /(?:\b(?:braking|stopping)\b|гальм|тормоз)/iu },
+  {
+    goal: "appearance",
+    pattern: /(?:\b(?:appearance|looks?|styling|design|vneshnost)\b|вигляд|зовнішн|внешн|красив)/iu,
+  },
+  {
+    goal: "cooling",
+    pattern: /(?:\b(?:cooling|temperature|overheat|ohlazhdenie)\b|охолод|перегрів|охлажд)/iu,
+  },
+  {
+    goal: "comfort",
+    pattern: /(?:\b(?:comfort|daily|quieter|komfort)\b|комфорт|зручн|тихіш|тише)/iu,
+  },
+  { goal: "gift", pattern: /(?:\b(?:gift|present|podarok)\b|подар(?:унок|ок)|сувенір)/iu },
+];
+
+const CATEGORY_GOALS: Partial<Record<ShopStockCategoryGroupId, ShopAiGoal>> = {
+  chipTuning: "power",
+  performance: "power",
+  exhaust: "sound",
+  suspension: "handling",
+  brakes: "braking",
+  carbonAero: "appearance",
+  motoCarbon: "appearance",
+  wheels: "appearance",
+  lighting: "appearance",
+  cooling: "cooling",
+  interior: "comfort",
+  merch: "gift",
+};
+
+const GOAL_CATEGORIES: Record<ShopAiGoal, ShopStockCategoryGroupId> = {
+  power: "chipTuning",
+  sound: "exhaust",
+  handling: "suspension",
+  braking: "brakes",
+  appearance: "carbonAero",
+  cooling: "cooling",
+  comfort: "interior",
+  gift: "merch",
+};
 
 function cleanText(value: unknown, maxLength = 120) {
   return (
@@ -84,6 +163,23 @@ function inferOpfGpf(message: string) {
   return null;
 }
 
+function cleanGoal(value: unknown): ShopAiGoal | null {
+  const normalized = String(value ?? "").trim() as ShopAiGoal;
+  return GOALS.has(normalized) ? normalized : null;
+}
+
+export function inferShopAiGoal(
+  message: string,
+  category: ShopStockCategoryGroupId | null,
+  generatedGoal?: unknown
+): ShopAiGoal | null {
+  return (
+    GOAL_SIGNALS.find((candidate) => candidate.pattern.test(message))?.goal ??
+    CATEGORY_GOALS[category ?? "other"] ??
+    cleanGoal(generatedGoal)
+  );
+}
+
 function buildRequiredDetails(
   category: ShopStockCategoryGroupId | null,
   vehicle: ShopAiVehicle,
@@ -111,15 +207,15 @@ function buildClarification(
   missingCategory: boolean
 ) {
   const isUa = context.locale === "ua";
-  if (missingVehicle) {
-    return isUa
-      ? "Вкажіть марку, модель і рік авто або мото та що саме хочете змінити, щоб я перевірив сумісність."
-      : "Tell me the vehicle make, model, year and what you want to change so I can verify compatibility.";
-  }
   if (missingCategory) {
     return isUa
       ? "Напишіть, що саме хочете змінити в автомобілі або мотоциклі — наприклад вихлоп, впуск, гальма чи підвіску."
       : "Tell me what you want to change on the vehicle — for example exhaust, intake, brakes or suspension.";
+  }
+  if (missingVehicle) {
+    return isUa
+      ? "Вкажіть марку, модель і рік авто або мото, щоб я перевірив сумісність."
+      : "Tell me the vehicle make, model and year so I can verify compatibility.";
   }
 
   const vehicleIdentity = [vehicle.make, vehicle.model, vehicle.chassis].filter(Boolean).join(" ");
@@ -326,13 +422,16 @@ export function normalizeShopAiPlan(
   const rawCategory = String(source.category ?? "").trim() as ShopStockCategoryGroupId;
   const contextCategory = String(context.category ?? "").trim() as ShopStockCategoryGroupId;
   const inferredCategory = inferCategory(message);
+  const requestedGoal = inferShopAiGoal(message, null, source.goal);
   const category = inferredCategory
     ? inferredCategory
     : CATEGORY_IDS.has(rawCategory)
       ? rawCategory
       : CATEGORY_IDS.has(contextCategory)
         ? contextCategory
-        : null;
+        : requestedGoal
+          ? GOAL_CATEGORIES[requestedGoal]
+          : null;
   const requestedIntent = String(source.intent ?? "recommend");
   const intent = inferIntent(message, requestedIntent);
   const opfGpf = inferOpfGpf(message) ?? cleanOpfGpf(source.opfGpf) ?? cleanOpfGpf(context.opfGpf);
@@ -342,9 +441,11 @@ export function normalizeShopAiPlan(
       ? (cleanShopAiProductKind(source.productKind) ?? "any")
       : inferredProductKind;
   const brand = inferBrand(message) ?? cleanText(source.brand, 100);
+  const goal = inferShopAiGoal(message, category, source.goal);
   return finalizeShopAiPlan(
     {
       intent,
+      goal,
       vehicle,
       category,
       searchQuery:
@@ -368,6 +469,48 @@ export function normalizeShopAiPlan(
 }
 
 export function buildFallbackShopAiPlan(message: string, context: ShopAiContext) {
+  const exactSkuQuery = getShopAiExactSkuLookupToken(message);
+  if (exactSkuQuery) {
+    return {
+      intent: "recommend" as const,
+      goal: null,
+      vehicle: {
+        type:
+          context.scope === "moto"
+            ? ("motorcycle" as const)
+            : context.scope === "auto"
+              ? ("car" as const)
+              : ("unknown" as const),
+        // A structured SKU can contain tokens such as H00, F80 or G05. Only
+        // retain vehicle facts that came from page/session context; never
+        // reinterpret the SKU itself as fitment input.
+        make: cleanText(context.make),
+        model: cleanText(context.model),
+        chassis: cleanChassis(context.chassis),
+        year: cleanYear(context.year),
+        engine: cleanText(context.engine, 100),
+        fuel: cleanText(context.fuel, 40),
+        bodyStyle: cleanText(context.bodyStyle, 40),
+        drivetrain: null,
+        transmission: null,
+        market: null,
+      },
+      category: null,
+      searchQuery: exactSkuQuery,
+      minPrice: null,
+      maxPrice: null,
+      brand: null,
+      brandOnly: false,
+      stockOnly: false,
+      powerGainHp: null,
+      opfGpf: null,
+      requiredDetails: [],
+      productKind: "any" as const,
+      needsClarification: false,
+      clarification: null,
+    };
+  }
+
   const expanded = expandVehicleAliases([context.query, message].filter(Boolean).join(" "));
   const hardVehicleFacts = inferVehicleHardFacts(message);
   const maxPriceMatch = message.match(

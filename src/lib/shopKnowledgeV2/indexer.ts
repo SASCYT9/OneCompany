@@ -78,6 +78,9 @@ export function previewShopKnowledgeProduct(
   product: KnowledgeSourceProduct
 ): KnowledgeIndexOutcome {
   const build = buildShopKnowledgeV2(product);
+  if (build.categoryGroup === "other") {
+    return outcomeFor(build, "dry-run", "excluded", 0);
+  }
   return outcomeFor(build, "dry-run", build.status === "BLOCKED" ? "blocked" : "created", 1);
 }
 
@@ -88,6 +91,13 @@ export async function indexShopKnowledgeProduct(
 ): Promise<KnowledgeIndexOutcome> {
   const build = buildShopKnowledgeV2(product);
   const current = await repository.getCurrentKnowledge(product.id);
+  // `other` is intentionally outside the 13-category V2 rollout. Exact-SKU
+  // identity lookup reads the published catalog directly, so an outbox event
+  // must be completed without recreating Knowledge V2 for an excluded item.
+  if (build.categoryGroup === "other") {
+    await repository.touchKnowledgeSource?.(product.id, product.updatedAt, now);
+    return outcomeFor(build, "commit", "excluded", current?.revision ?? 0);
+  }
   const isActiveRevision =
     current?.status === build.status && current.activeRevision === current.revision;
   const isPendingEmbeddingRevision = current?.status === "PROCESSING";
@@ -128,6 +138,7 @@ export type KnowledgeOutboxWorkerResult = {
   claimed: number;
   completed: number;
   unchanged: number;
+  excluded: number;
   retried: number;
   deadLettered: number;
   missingProducts: number;
@@ -172,6 +183,7 @@ export async function runShopKnowledgeOutboxWorker(
     claimed: jobs.length,
     completed: 0,
     unchanged: 0,
+    excluded: 0,
     retried: 0,
     deadLettered: 0,
     missingProducts: 0,
@@ -188,6 +200,7 @@ export async function runShopKnowledgeOutboxWorker(
       }
       const outcome = await indexShopKnowledgeProduct(repository, product, now);
       if (outcome.result === "unchanged") result.unchanged += 1;
+      if (outcome.result === "excluded") result.excluded += 1;
       await repository.completeOutboxJob(job.id, now, options.workerId);
       result.completed += 1;
     } catch (error) {
@@ -248,6 +261,7 @@ export async function runShopKnowledgeOutboxJobById(
     claimed: job ? 1 : 0,
     completed: 0,
     unchanged: 0,
+    excluded: 0,
     retried: 0,
     deadLettered: 0,
     missingProducts: 0,
@@ -264,6 +278,7 @@ export async function runShopKnowledgeOutboxJobById(
     }
     const outcome = await indexShopKnowledgeProduct(repository, product, now);
     if (outcome.result === "unchanged") result.unchanged = 1;
+    if (outcome.result === "excluded") result.excluded = 1;
     await repository.completeOutboxJob(job.id, now, options.workerId);
     result.completed = 1;
   } catch (error) {

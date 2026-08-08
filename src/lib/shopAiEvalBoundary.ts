@@ -13,7 +13,12 @@ export const SHOP_AI_EVAL_GENERATION_CALLS_HEADER = "x-one-ai-eval-generation-ca
 export const SHOP_AI_EVAL_EMBEDDING_CALLS_HEADER = "x-one-ai-eval-embedding-calls";
 
 export type ShopAiPipelineMarker = "legacy" | "v2";
-export type ShopAiRetrievalMarker = "legacy" | "not-run" | "strict" | "strict-unavailable";
+export type ShopAiRetrievalMarker =
+  | "legacy"
+  | "not-run"
+  | "identity"
+  | "strict"
+  | "strict-unavailable";
 
 export type ShopAiEvalAccess = {
   attempted: boolean;

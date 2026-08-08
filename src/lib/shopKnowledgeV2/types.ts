@@ -1,7 +1,7 @@
 import type { ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
 
 export const SHOP_KNOWLEDGE_V2_SCHEMA_VERSION = 2;
-export const SHOP_KNOWLEDGE_V2_EXTRACTOR_VERSION = "2.0.0";
+export const SHOP_KNOWLEDGE_V2_EXTRACTOR_VERSION = "2.1.0";
 
 export type KnowledgeLocale = "ua" | "en" | "neutral";
 export type KnowledgeStatus =
@@ -171,6 +171,7 @@ export type ShopKnowledgeEvidenceDraft = {
   confidence: KnowledgeConfidence;
   verifiedAt: Date | null;
   verifiedBy: string | null;
+  vehicleApplicationKey?: string | null;
   sourceRef?: string | null;
   extractorVersion?: string | null;
   isManagerVerified?: boolean;
@@ -280,7 +281,7 @@ export type KnowledgeIndexCommit = {
 export type KnowledgeIndexOutcome = {
   productId: string;
   mode: "dry-run" | "commit";
-  result: "created" | "updated" | "unchanged" | "blocked";
+  result: "created" | "updated" | "unchanged" | "blocked" | "excluded";
   revision: number;
   contentHash: string;
   status: ShopKnowledgeBuild["status"];

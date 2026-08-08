@@ -24,6 +24,26 @@ test("planner refuses an open-ended recommendation without a category", () => {
   assert.match(plan.clarification ?? "", /що саме хочете змінити/i);
 });
 
+test("planner maps a natural sales goal deterministically", () => {
+  const sound = buildFallbackShopAiPlan("Хочу кращий звук на BMW M3 F80", context);
+  const handling = buildFallbackShopAiPlan("Improve handling for BMW M3 F80", {
+    locale: "en",
+    currency: "EUR",
+  });
+
+  assert.equal(sound.goal, "sound");
+  assert.equal(sound.category, "exhaust");
+  assert.equal(handling.goal, "handling");
+  assert.equal(handling.category, "suspension");
+});
+
+test("planner asks for the goal before the vehicle on an open request", () => {
+  const plan = buildFallbackShopAiPlan("Порадь щось для тюнінгу", context);
+
+  assert.equal(plan.category, null);
+  assert.match(plan.clarification ?? "", /що саме хочете змінити/i);
+});
+
 test("planner inherits vehicle selected on the Stock page", () => {
   const plan = normalizeShopAiPlan(
     { category: "brakes", needsClarification: false, vehicle: {} },
@@ -50,6 +70,29 @@ test("fallback planner keeps Moto scope even before a make is selected", () => {
   const plan = buildFallbackShopAiPlan("Підбери вихлоп", { ...context, scope: "moto" });
 
   assert.equal(plan.vehicle.type, "motorcycle");
+});
+
+test("explicit SKU intent cannot be reinterpreted as a vehicle chassis", () => {
+  const identity = buildFallbackShopAiPlan("SKU URB-HOO-25358201-V1", {
+    locale: "en",
+    currency: "EUR",
+    scope: "auto",
+  });
+  const withVehicleContext = buildFallbackShopAiPlan("SKU URB-HOO-25358201-V1", {
+    locale: "en",
+    currency: "EUR",
+    scope: "auto",
+    make: "BMW",
+    model: "M3",
+    chassis: "F80",
+  });
+
+  assert.equal(identity.searchQuery, "urbhoo25358201v1");
+  assert.equal(identity.vehicle.chassis, null);
+  assert.equal(identity.category, null);
+  assert.equal(identity.needsClarification, false);
+  assert.equal(withVehicleContext.vehicle.chassis, "F80");
+  assert.equal(withVehicleContext.needsClarification, false);
 });
 
 test("planner rejects unsupported categories and invalid price values", () => {

@@ -3,11 +3,112 @@ import test, { type TestContext } from "node:test";
 
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
 
-const baseUrl = process.env.SHOP_E2E_BASE_URL || "http://localhost:3001";
+const baseUrl = process.env.SHOP_E2E_BASE_URL || "http://localhost:3000";
 
 const strictQuery =
   "scope=auto&category=exhaust&make=BMW&model=M3&chassis=F80&year=2018" +
   "&engine=S55&opfGpf=without&productKind=system&strict=1";
+
+function mockedAssistantProduct(input: {
+  id: string;
+  brand: string;
+  status: "exact" | "requires_verification";
+  missingFacts?: string[];
+}) {
+  return {
+    id: input.id,
+    name: `${input.brand} ${input.id}`,
+    brand: input.brand,
+    partNumber: `SKU-${input.id}`,
+    description: "Reviewed fixture",
+    category: "Exhaust",
+    thumbnail: null,
+    inStock: true,
+    price: 1_000,
+    priceSet: { eur: 1_000, usd: 1_100, uah: 45_000 },
+    originalPrice: null,
+    originalPriceSet: null,
+    slug: input.id,
+    href: `/en/shop/product/${input.id}`,
+    variantId: null,
+    turn14Id: "",
+    matchStatus: input.status,
+    matchBasis: "fitment",
+    compatibility: input.status === "exact" ? "confirmed" : "needs_review",
+    missingFacts: input.missingFacts ?? [],
+    facts: {
+      material: "titanium",
+      materialVerified: input.status === "exact",
+      productKind: "system",
+      productKindVerified: input.status === "exact",
+    },
+  };
+}
+
+function mockedTieredAssistantResponse() {
+  const products = [
+    mockedAssistantProduct({ id: "exact-one", brand: "Akrapovic", status: "exact" }),
+    mockedAssistantProduct({ id: "exact-two", brand: "Milltek", status: "exact" }),
+    mockedAssistantProduct({
+      id: "review-one",
+      brand: "Remus",
+      status: "requires_verification",
+      missingFacts: ["engine"],
+    }),
+  ];
+  return {
+    conversationId: "conversation-e2e",
+    runId: "run-e2e",
+    mode: "results",
+    answer: "Each card shows its own fitment status.",
+    message: "Each card shows its own fitment status.",
+    counts: { exact: 2, requiresVerification: 1 },
+    products,
+    totalItems: 3,
+    plan: {
+      intent: "recommend",
+      goal: "sound",
+      vehicle: {
+        type: "car",
+        make: "BMW",
+        model: "M3",
+        chassis: "F80",
+        year: 2018,
+        engine: "S55",
+      },
+      category: "exhaust",
+      searchQuery: "BMW M3 F80 exhaust",
+      minPrice: null,
+      maxPrice: null,
+      stockOnly: false,
+      needsClarification: false,
+      clarification: null,
+    },
+    followUps: [],
+    searchHref: "/en/shop/catalog?category=exhaust&make=BMW&model=M3&chassis=F80",
+    catalogHref: "/en/shop/catalog?category=exhaust&make=BMW&model=M3&chassis=F80",
+    managerHref: "/en/contact?source=one-ai",
+    managerContext: {
+      createdAt: Date.now(),
+      runId: "run-e2e",
+      conversationId: "conversation-e2e",
+      vehicleType: "auto",
+      vehicle: "BMW M3 F80",
+      request: "Find exhaust for BMW M3 F80",
+      products: products.map((product) => ({
+        productId: product.id,
+        variantId: product.variantId,
+        brand: product.brand,
+        sku: product.partNumber,
+        name: product.name,
+        matchStatus: product.matchStatus,
+        missingFacts: product.missingFacts,
+      })),
+    },
+    degraded: false,
+    pipeline: "v2",
+  };
+}
 
 async function openBrowser(t: TestContext) {
   if (process.env.SHOP_BROWSER_E2E !== "1") {
@@ -36,6 +137,120 @@ async function withPage(
   const context = await browser.newContext(options);
   return { context, page: await context.newPage() };
 }
+
+test("One AI V2 groups exact and reviewable products and hands reviewable context to a manager", async (t) => {
+  const browser = await openBrowser(t);
+  if (!browser) return;
+  t.after(() => browser.close());
+
+  const { context, page } = await withPage(browser, { viewport: { width: 1440, height: 900 } });
+  t.after(() => context.close());
+  const events: Array<Record<string, unknown>> = [];
+  await page.route("**/api/shop/stock/assistant", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(mockedTieredAssistantResponse()),
+    });
+  });
+  await page.route("**/api/shop/stock/assistant/events", async (route) => {
+    events.push(route.request().postDataJSON() as Record<string, unknown>);
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: '{"accepted":true}',
+    });
+  });
+
+  await page.goto(`${baseUrl}/en/shop/catalog`, { waitUntil: "domcontentloaded" });
+  await page.getByTestId("stock-ai-launcher").click();
+  const panel = page.getByTestId("stock-ai-panel");
+  const textbox = panel.getByRole("textbox", { name: "Message for One AI", exact: true });
+  await textbox.fill("Find exhaust for BMW M3 F80");
+  await textbox.press("Enter");
+
+  const exactGroup = panel.getByRole("region", { name: "Confirmed for your vehicle" });
+  const reviewGroup = panel.getByRole("region", { name: "Requires verification" });
+  await assert.doesNotReject(() => exactGroup.waitFor());
+  await assert.doesNotReject(() => reviewGroup.waitFor());
+  assert.equal(await exactGroup.getByText("Exact fitment", { exact: true }).count(), 2);
+  assert.equal(
+    await reviewGroup.getByText("Fitment requires verification", { exact: true }).count(),
+    1
+  );
+  await assert.doesNotReject(() =>
+    panel.getByRole("region", { name: "Comparison" }).getByText("Titanium").first().waitFor()
+  );
+  await assert.doesNotReject(() =>
+    reviewGroup.getByRole("link", { name: "Details", exact: true }).waitFor()
+  );
+
+  await reviewGroup.getByRole("link", { name: "Verify with a manager", exact: true }).click();
+  await page.waitForURL(/\/en\/contact\?source=one-ai/);
+  await page.waitForTimeout(50);
+  assert.equal(
+    events.some((event) => event.event === "manager_handoff"),
+    true
+  );
+  const handoff = await page.evaluate(() =>
+    JSON.parse(sessionStorage.getItem("onecompany:one-ai-manager-handoff") || "null")
+  );
+  assert.equal(handoff?.selectedProduct?.productId, "review-one");
+  assert.equal(handoff?.selectedProduct?.matchStatus, "requires_verification");
+  assert.deepEqual(handoff?.selectedProduct?.missingFacts, ["engine"]);
+  const managerRequest = await page.locator('textarea[name="wishes"]').inputValue();
+  assert.match(managerRequest, /runId=run-e2e/);
+  assert.match(managerRequest, /conversationId=conversation-e2e/);
+  assert.match(managerRequest, /productId=review-one/);
+  assert.match(managerRequest, /status=requires_verification/);
+  assert.match(managerRequest, /missingFacts=engine/);
+});
+
+test("One AI V2 distinguishes technical degradation and exposes retry", async (t) => {
+  const browser = await openBrowser(t);
+  if (!browser) return;
+  t.after(() => browser.close());
+
+  const { context, page } = await withPage(browser, { viewport: { width: 390, height: 844 } });
+  t.after(() => context.close());
+  let requestCount = 0;
+  await page.route("**/api/shop/stock/assistant", async (route) => {
+    requestCount += 1;
+    const response = mockedTieredAssistantResponse();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...response,
+        mode: "no_match",
+        answer: "Selection is temporarily limited.",
+        message: "Selection is temporarily limited.",
+        counts: { exact: 0, requiresVerification: 0 },
+        products: [],
+        totalItems: 0,
+        searchHref: null,
+        catalogHref: null,
+        degraded: true,
+        degradedReason: "retrieval",
+      }),
+    });
+  });
+
+  await page.goto(`${baseUrl}/en/shop/catalog`, { waitUntil: "domcontentloaded" });
+  await page.getByTestId("stock-ai-launcher").click();
+  const panel = page.getByTestId("stock-ai-panel");
+  const textbox = panel.getByRole("textbox", { name: "Message for One AI", exact: true });
+  await textbox.fill("Find exhaust for BMW M3 F80");
+  await textbox.press("Enter");
+
+  await panel.getByText("Technical limitation", { exact: true }).waitFor();
+  const retryRequest = page.waitForRequest(
+    (request) => request.method() === "POST" && request.url().endsWith("/api/shop/stock/assistant")
+  );
+  await panel.getByRole("button", { name: "Try again", exact: true }).click();
+  await retryRequest;
+  assert.equal(requestCount, 2);
+});
 
 test("One AI V2 keeps strict UA context editable and restores focus", async (t) => {
   const browser = await openBrowser(t);

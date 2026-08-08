@@ -11,6 +11,7 @@ import type { ShopAiPlan, ShopAiProduct } from "../../../src/lib/shopAiAssistant
 
 const plan: ShopAiPlan = {
   intent: "recommend",
+  goal: null,
   vehicle: {
     type: "car",
     make: "BMW",

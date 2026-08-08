@@ -217,7 +217,14 @@ test("missing telemetry tables never block the assistant", async () => {
   assert.deepEqual(result, { persisted: false, value: null });
 });
 
-test("no-result telemetry creates a manager review task without changing catalog facts", async () => {
+test("no-result review work starts only when the query becomes popular", async () => {
+  const { isPopularShopAiNoResult, SHOP_AI_POPULAR_NO_RESULT_THRESHOLD } = await telemetryModule;
+
+  assert.equal(isPopularShopAiNoResult(SHOP_AI_POPULAR_NO_RESULT_THRESHOLD - 2), false);
+  assert.equal(isPopularShopAiNoResult(SHOP_AI_POPULAR_NO_RESULT_THRESHOLD - 1), true);
+});
+
+test("no-result telemetry submits a popularity-gated review signal without changing facts", async () => {
   const { createShopAiTelemetry } = await telemetryModule;
   const captured: FeedbackInput[] = [];
   const telemetry = createShopAiTelemetry(

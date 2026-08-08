@@ -66,6 +66,83 @@ test("builds correlated verified normalized fitment as a manual override", () =>
   assert.equal(sourceEvidence?.verifiedBy, "manager-1");
 });
 
+test("claim-only gaps do not become fitment gaps", () => {
+  const build = buildShopKnowledgeV2(
+    knowledgeSourceProduct({ metafields: [verifiedF80FitmentMetafield()] })
+  );
+
+  assert.equal(
+    build.qualityFlags.some((flag) => flag.startsWith("missing_fitment_attribute:")),
+    false
+  );
+  assert.equal(build.qualityFlags.includes("missing_claim_attribute:homologation"), true);
+  assert.equal(build.status, "NEEDS_REVIEW");
+});
+
+test("validated supplier applications retain sourceRef, source hash and field-level provenance", () => {
+  const supplierMetafield = {
+    id: "supplier-fitment-metafield",
+    namespace: "onecompany",
+    key: "supplier_fitment",
+    value: JSON.stringify({
+      version: 1,
+      mode: "vehicle_specific",
+      scope: "auto",
+      applications: [
+        {
+          vehicleType: "car",
+          make: "BMW",
+          model: "M3",
+          chassisCode: "F80",
+          yearFrom: 2014,
+          yearTo: 2020,
+          engine: "S55",
+          market: "EU",
+          opfGpf: "without",
+        },
+      ],
+      parentSku: null,
+      source: {
+        supplier: "Akrapovic",
+        sourceRef: "catalog:akrapovic:2026-08",
+        sourceUpdatedAt: "2026-08-01T00:00:00.000Z",
+      },
+      note: null,
+    }),
+    valueType: "json",
+    updatedAt: new Date("2026-08-01T00:00:00.000Z"),
+  };
+  const build = buildShopKnowledgeV2(knowledgeSourceProduct({ metafields: [supplierMetafield] }));
+  const application = build.applications.find((candidate) => candidate.variantId === null);
+
+  assert.ok(application);
+  assert.equal(application.source, "supplier");
+  assert.equal(application.fitmentStatus, "verified");
+  const supplierEvidence = build.evidence.filter(
+    (evidence) => evidence.source === "supplier" && evidence.vehicleApplicationKey
+  );
+  const applicationKeys = new Set(build.applications.map((candidate) => candidate.applicationKey));
+  assert.equal(supplierEvidence.length > 2, true);
+  assert.equal(
+    supplierEvidence.every(
+      (evidence) =>
+        applicationKeys.has(evidence.vehicleApplicationKey ?? "") &&
+        evidence.sourceRef === "catalog:akrapovic:2026-08" &&
+        evidence.sourceHash.length === 64 &&
+        evidence.extractorVersion === "supplier-fitment-v1"
+    ),
+    true
+  );
+  assert.equal(
+    supplierEvidence.some(
+      (evidence) =>
+        evidence.vehicleApplicationKey === application.applicationKey &&
+        evidence.fieldPath.endsWith(".chassisCode")
+    ),
+    true
+  );
+});
+
 test("keeps unverified variant attributes out of a verified fitment application", () => {
   const build = buildShopKnowledgeV2(
     knowledgeSourceProduct({ metafields: [verifiedF80FitmentMetafield()] })

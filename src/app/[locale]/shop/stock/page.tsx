@@ -43,6 +43,7 @@ import {
   formatShopAiProductKind,
   type ShopAiProductKind,
 } from "@/lib/shopAiProductKind";
+import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 
 type StockItem = {
   id: string;
@@ -794,6 +795,13 @@ function StockPageContent() {
   const mobileFiltersCloseButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    const handleOpenCatalogFilters = () => setMobileFiltersOpen(true);
+    window.addEventListener(SHOP_CATALOG_OPEN_FILTERS_EVENT, handleOpenCatalogFilters);
+    return () =>
+      window.removeEventListener(SHOP_CATALOG_OPEN_FILTERS_EVENT, handleOpenCatalogFilters);
+  }, []);
+
+  useEffect(() => {
     if (!mobileFiltersOpen) return;
 
     const desktopMedia = window.matchMedia("(min-width: 1024px)");
@@ -848,7 +856,13 @@ function StockPageContent() {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
       desktopMedia.removeEventListener("change", handleDesktopChange);
-      previouslyFocused?.focus();
+      if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus();
+      } else {
+        window.requestAnimationFrame(() =>
+          document.querySelector<HTMLElement>("[data-catalog-filter-trigger]")?.focus()
+        );
+      }
     };
   }, [mobileFiltersOpen]);
 
@@ -2300,7 +2314,7 @@ function StockPageContent() {
   );
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-foreground/20">
+    <div className="relative min-h-screen overflow-x-clip bg-background text-foreground selection:bg-foreground/20">
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/[0.02] to-foreground/[0.045] dark:via-black/45 dark:to-black/75" />
       <div className="pt-16 sm:pt-20 lg:pt-16" />
 
@@ -2320,6 +2334,7 @@ function StockPageContent() {
               />
               <motion.aside
                 ref={mobileFiltersDialogRef}
+                id="catalog-mobile-filters"
                 role="dialog"
                 aria-modal="true"
                 aria-label={isUa ? "Фільтри каталогу" : "Catalog filters"}
@@ -2697,6 +2712,8 @@ function StockPageContent() {
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
                 data-catalog-filter-trigger
+                aria-controls="catalog-mobile-filters"
+                aria-expanded={mobileFiltersOpen}
                 className="flex h-11 w-full min-w-0 items-center gap-3 border border-foreground/15 bg-card/90 px-3 text-left shadow-[0_12px_35px_rgba(0,0,0,0.08)] backdrop-blur-xl transition hover:border-foreground/35 hover:bg-card dark:border-white/18 dark:bg-black/55 dark:shadow-none dark:hover:border-white/35 dark:hover:bg-black/70"
               >
                 <SlidersHorizontal className="h-4 w-4 shrink-0 text-foreground/65" />
@@ -2838,6 +2855,8 @@ function StockPageContent() {
                     type="button"
                     onClick={() => setMobileFiltersOpen(true)}
                     data-catalog-filter-trigger
+                    aria-controls="catalog-mobile-filters"
+                    aria-expanded={mobileFiltersOpen}
                     className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-foreground/15 bg-foreground/[0.04] px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-foreground/35 sm:h-10 lg:hidden"
                   >
                     <SlidersHorizontal className="h-4 w-4" />

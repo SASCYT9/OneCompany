@@ -1,4 +1,8 @@
 import { hashKnowledgeValue } from "@/lib/shopKnowledgeV2/hash";
+import {
+  getShopKnowledgeCategoryEvidencePolicy,
+  SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES,
+} from "@/lib/shopKnowledgeV2/policy";
 import { collectKnowledgeTextSources, htmlToKnowledgeText } from "@/lib/shopKnowledgeV2/text";
 import type {
   KnowledgeAttributeValue,
@@ -22,73 +26,16 @@ export type CategoryAttributeExtraction = {
   categoryGroup: ShopStockCategoryGroupId;
   attributes: ShopProductAttributeDraft[];
   evidence: ShopKnowledgeEvidenceDraft[];
+  fitmentCriticalKeys: string[];
+  claimCriticalKeys: string[];
+  optionalMerchandisingKeys: string[];
   requiredHardKeys: string[];
+  missingFitmentKeys: string[];
+  missingClaimKeys: string[];
   missingHardKeys: string[];
 };
 
-export const SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES: Record<
-  ShopStockCategoryGroupId,
-  readonly string[]
-> = {
-  chipTuning: [
-    "productKind",
-    "engine",
-    "fuel",
-    "stockPowerHp",
-    "stockTorqueNm",
-    "powerGainHp",
-    "torqueGainNm",
-    "tuningFamily",
-  ],
-  exhaust: ["productKind", "engine", "market", "opfGpf", "material", "valves", "homologation"],
-  brakes: ["productKind", "axle", "brakeSystem", "diameterMm", "setPosition"],
-  suspension: ["productKind", "axle", "edcCompatibility", "loweringMinMm", "loweringMaxMm"],
-  cooling: ["productKind", "engine", "transmission", "circuit", "dimensionsMm"],
-  performance: ["productKind", "engine", "transmission", "dimensionsMm"],
-  motoCarbon: [
-    "productKind",
-    "make",
-    "model",
-    "generation",
-    "yearFrom",
-    "position",
-    "finish",
-    "roadUse",
-  ],
-  carbonAero: [
-    "productKind",
-    "chassisCode",
-    "facelift",
-    "bodyStyle",
-    "position",
-    "finish",
-    "packageDependency",
-  ],
-  wheels: [
-    "productKind",
-    "pcd",
-    "centerBoreMm",
-    "diameterIn",
-    "widthIn",
-    "offsetEt",
-    "loadKg",
-    "axle",
-    "setPosition",
-  ],
-  lighting: ["productKind", "position"],
-  interior: [
-    "productKind",
-    "chassisCode",
-    "facelift",
-    "bodyStyle",
-    "position",
-    "finish",
-    "packageDependency",
-  ],
-  accessories: ["productKind", "parentProduct"],
-  merch: ["productKind"],
-  other: [],
-};
+export { SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES } from "@/lib/shopKnowledgeV2/policy";
 
 function sourceProductForTaxonomy(product: KnowledgeSourceProduct) {
   return {
@@ -653,6 +600,10 @@ export function extractCategoryAttributesFromText(
   variantId: string | null = null
 ): Omit<CategoryAttributeExtraction, "categoryGroup"> {
   const text = htmlToKnowledgeText(textValue);
+  const policy = getShopKnowledgeCategoryEvidencePolicy(categoryGroup);
+  const fitmentCriticalKeys = [...policy.fitmentCritical];
+  const claimCriticalKeys = [...policy.claimCritical];
+  const optionalMerchandisingKeys = [...policy.optionalMerchandising];
   const requiredHardKeys = [...SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES[categoryGroup]];
   const uniqueMatches = new Map<string, AttributeMatch>();
   for (const match of extractMatches(text, categoryGroup)) {
@@ -689,7 +640,7 @@ export function extractCategoryAttributesFromText(
       key: match.key,
       value: match.value,
       valueType: valueType(match.value),
-      isHard: requiredHardKeys.includes(match.key),
+      isHard: fitmentCriticalKeys.includes(match.key),
       source: "category_adapter",
       confidence: match.confidence ?? "high",
       evidenceKey,
@@ -707,7 +658,12 @@ export function extractCategoryAttributesFromText(
   return {
     attributes,
     evidence,
+    fitmentCriticalKeys,
+    claimCriticalKeys,
+    optionalMerchandisingKeys,
     requiredHardKeys,
+    missingFitmentKeys: fitmentCriticalKeys.filter((key) => !presentKeys.has(key)),
+    missingClaimKeys: claimCriticalKeys.filter((key) => !presentKeys.has(key)),
     missingHardKeys: requiredHardKeys.filter((key) => !presentKeys.has(key)),
   };
 }

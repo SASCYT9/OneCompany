@@ -16,6 +16,7 @@ const context: ShopAiContext = {
 
 const plan: ShopAiPlan = {
   intent: "recommend",
+  goal: null,
   vehicle: {
     type: "car",
     make: "BMW",

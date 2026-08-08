@@ -28,6 +28,7 @@ import { validateGroundedShopAiOutput } from "@/lib/shopAiOutputValidator";
 import { validateShopAiJsonRequest } from "@/lib/shopAiRequestBoundary";
 import { rerankShopAiProductsSemantically } from "@/lib/shopAiSemanticRanking";
 import {
+  hydrateCanonicalShopAiExactSkuMatches,
   resolveCanonicalShopAiExactSku,
   retrieveShopAiCandidatesStrict,
 } from "@/lib/shopAiStrictRepository";
@@ -65,12 +66,13 @@ import {
 } from "@/lib/shopStockVehicleScope";
 import { prisma } from "@/lib/prisma";
 import { readShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogState";
+import { SHOP_AI_SERVER_TURN_DEADLINE_MS } from "@/lib/shopAiProviderPolicy";
 import { getShopProductsWithFitments } from "../search/route";
 
 const MAX_MESSAGE_LENGTH = 800;
 const MAX_REQUEST_BODY_BYTES = 16 * 1024;
 const MAX_RESPONSE_BYTES = 100 * 1024;
-const TURN_DEADLINE_MS = 6_000;
+const TURN_DEADLINE_MS = SHOP_AI_SERVER_TURN_DEADLINE_MS;
 
 async function withinShopAiDeadline<T>(
   promise: Promise<T>,
@@ -238,11 +240,21 @@ function buildManagerContext(
     },
     request: message.slice(0, 800),
     products: products.slice(0, 6).map((product) => ({
+      productId: product.id,
+      variantId: product.variantId,
       brand: product.brand,
       sku: product.partNumber,
       name: product.name,
+      matchStatus: product.matchStatus ?? "requires_verification",
+      missingFacts: product.missingFacts ?? [],
     })),
   };
+}
+
+function buildTechnicalDegradedMessage(locale: ShopAiContext["locale"]) {
+  return locale === "ua"
+    ? "Підбір тимчасово працює в обмеженому режимі. Спробуйте ще раз або передайте запит менеджеру — це не означає, що товарів немає."
+    : "Selection is temporarily limited. Try again or send the request to a manager — this does not mean the products are unavailable.";
 }
 
 function buildRequiredDetailFollowUps(locale: "ua" | "en", plan: ShopAiAssistantResponse["plan"]) {
@@ -277,15 +289,24 @@ function resolveShopAiDegradedReason(input: {
   return undefined;
 }
 
+function resolveShopAiTelemetryDegradedReason(
+  publicReason: ShopAiDegradedReason | undefined,
+  providerErrorKind: string | null | undefined
+) {
+  return publicReason === "planner" && providerErrorKind
+    ? `planner:${providerErrorKind}`
+    : (publicReason ?? null);
+}
+
 function failClosedShopAiResponseOnTimeout(
   response: ShopAiAssistantResponse,
   locale: ShopAiContext["locale"]
 ) {
   response.degraded = true;
   response.degradedReason = "timeout";
-  if (response.mode !== "results") return;
+  if (response.products.length > 0 || response.mode === "clarification") return;
 
-  const message = buildShopAiNoExactMatchMessage(locale, response.plan);
+  const message = buildTechnicalDegradedMessage(locale);
   response.mode = "no_match";
   response.answer = message;
   response.message = message;
@@ -294,7 +315,6 @@ function failClosedShopAiResponseOnTimeout(
   response.counts = { exact: 0, requiresVerification: 0 };
   response.searchHref = null;
   response.catalogHref = null;
-  response.managerContext = { ...response.managerContext, products: [] };
 }
 
 export async function POST(request: NextRequest) {
@@ -393,11 +413,18 @@ export async function POST(request: NextRequest) {
         context: planningContext,
       }),
       turnDeadlineAt,
-      { plan: fallbackPlan, degraded: true, usedProvider: false },
+      {
+        plan: fallbackPlan,
+        degraded: true,
+        usedProvider: false,
+        providerModel: null,
+        plannerLatencyMs: Math.round(performance.now() - turnStartedAt),
+        providerErrorKind: "timeout" as const,
+      },
       markTurnTimedOut
     );
     let resolvedPlan = initialPlan.plan;
-    const hasVehicleInput = Boolean(
+    const plannedVehicleInput = Boolean(
       resolvedPlan.vehicle.make ||
         resolvedPlan.vehicle.model ||
         resolvedPlan.vehicle.chassis ||
@@ -411,17 +438,16 @@ export async function POST(request: NextRequest) {
     );
     const categoryCanUseV2 = isShopAiV2RolloutCategory(resolvedPlan.category);
     const shouldResolveExactSkuBaseline =
-      !hasVehicleInput &&
-      (isShopAiV2ExactSkuBaselineEnabled() || (evalAccess.requireV2 && !categoryCanUseV2));
+      isShopAiV2ExactSkuBaselineEnabled() || (evalAccess.requireV2 && !categoryCanUseV2);
     const exactSkuResolution = shouldResolveExactSkuBaseline
       ? await withinShopAiDeadline(
           resolveCanonicalShopAiExactSku(message),
           turnDeadlineAt,
-          { available: false, matched: false },
+          { available: false, requested: true, matched: false, matches: [] },
           markTurnTimedOut
         )
-      : { available: true, matched: false };
-    const exactSkuBaseline = exactSkuResolution.available && exactSkuResolution.matched;
+      : { available: true, requested: false, matched: false, matches: [] };
+    const exactSkuBaseline = exactSkuResolution.available && exactSkuResolution.requested;
     if (exactSkuBaseline) {
       resolvedPlan = {
         ...resolvedPlan,
@@ -430,11 +456,15 @@ export async function POST(request: NextRequest) {
         requiredDetails: [],
       };
     }
+    // Exact SKU is an identity lookup. Vehicle-looking fragments inside the
+    // part number and any inherited vehicle context must never turn it into a
+    // fitment claim.
+    const hasVehicleInput = plannedVehicleInput && !exactSkuBaseline;
     const pipelineDecision = decideShopAiV2Pipeline({
       evalRequiresV2: evalAccess.requireV2,
       categorySupported: categoryCanUseV2,
       categoryRolloutEnabled: isShopAiV2CategoryEnabled(resolvedPlan.category, ownerKey),
-      exactSkuMatched: exactSkuBaseline,
+      exactSkuRequested: exactSkuBaseline,
     });
     if (pipelineDecision.evalRejected) {
       return NextResponse.json(
@@ -507,6 +537,13 @@ export async function POST(request: NextRequest) {
         normalizedQuery: buildShopAiCatalogQuery(planned.plan),
         constraints: planned.plan,
         traceSampled: shadowModeForTurn ? true : undefined,
+        pipeline,
+        retrievalPath: "not-run",
+        providerModel: planned.providerModel,
+        plannerLatencyMs: planned.plannerLatencyMs,
+        degradedReason: planned.degraded
+          ? resolveShopAiTelemetryDegradedReason("planner", planned.providerErrorKind)
+          : null,
       }),
       turnDeadlineAt,
       {
@@ -572,6 +609,11 @@ export async function POST(request: NextRequest) {
         markTurnTimedOut
       );
       response.conversationId = conversation.id;
+      response.managerContext = {
+        ...response.managerContext,
+        runId: telemetryRunId,
+        conversationId: conversation.id,
+      };
       if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
       response.runId = telemetryRunId ?? undefined;
       if (telemetryRunId) {
@@ -594,6 +636,14 @@ export async function POST(request: NextRequest) {
             totalLatencyMs: Math.round(performance.now() - turnStartedAt),
             activeCpuMs: activeCpuMs(),
             degraded: Boolean(response.degraded),
+            pipeline,
+            retrievalPath: "not-run",
+            providerModel: planned.providerModel,
+            plannerLatencyMs: planned.plannerLatencyMs,
+            degradedReason: resolveShopAiTelemetryDegradedReason(
+              response.degradedReason,
+              planned.providerErrorKind
+            ),
           }),
           turnDeadlineAt,
           { persisted: false, value: null },
@@ -624,15 +674,43 @@ export async function POST(request: NextRequest) {
     let retrievalDegraded = false;
     let retrievalMarker: ShopAiRetrievalMarker = "not-run";
     let shadowResult: Awaited<ReturnType<typeof retrieveShopAiCandidatesStrict>> | null = null;
-    const strictEnabled = serveV2;
-    if (strictEnabled) {
+    const strictEnabled = serveV2 && !exactSkuBaseline;
+    if (exactSkuBaseline) {
+      const identity = await withinShopAiDeadline(
+        hydrateCanonicalShopAiExactSkuMatches({
+          matches: exactSkuResolution.matches,
+          context: planningContext,
+        }),
+        turnDeadlineAt,
+        {
+          available: false,
+          catalogFingerprint: null,
+          products: [],
+          exactCount: 0,
+          requiresVerificationCount: 0,
+          candidateCount: 0,
+          retrievalLatencyMs: 0,
+        },
+        markTurnTimedOut
+      );
+      if (identity.available) {
+        retrievalMarker = "identity";
+        candidateProducts = identity.products;
+        candidateCount = identity.candidateCount;
+      } else {
+        retrievalMarker = "strict-unavailable";
+        candidateProducts = [];
+        candidateCount = 0;
+        retrievalDegraded = true;
+      }
+    } else if (strictEnabled) {
       const strict = await withinShopAiDeadline(
         retrieveShopAiCandidatesStrict({
           plan: planned.plan,
           message,
           context: planningContext,
           excludedProductIds,
-          exactSkuOnly: exactSkuBaseline,
+          exactSkuOnly: false,
         }),
         turnDeadlineAt,
         {
@@ -734,16 +812,18 @@ export async function POST(request: NextRequest) {
       (product) => product.matchStatus === "requires_verification"
     ).length;
 
-    const semanticResult = await withinShopAiDeadline(
-      rerankShopAiProductsSemantically({
-        products: candidateProducts,
-        message,
-        plan: planned.plan,
-      }),
-      turnDeadlineAt,
-      { products: candidateProducts, usedEmbedding: false },
-      markTurnTimedOut
-    );
+    const semanticResult = exactSkuBaseline
+      ? { products: candidateProducts, usedEmbedding: false }
+      : await withinShopAiDeadline(
+          rerankShopAiProductsSemantically({
+            products: candidateProducts,
+            message,
+            plan: planned.plan,
+          }),
+          turnDeadlineAt,
+          { products: candidateProducts, usedEmbedding: false },
+          markTurnTimedOut
+        );
     const diversifiedProducts = diversifyShopAiProducts(
       semanticResult.products,
       message,
@@ -753,18 +833,15 @@ export async function POST(request: NextRequest) {
       ...diversifiedProducts.filter((product) => product.matchStatus === "exact"),
       ...diversifiedProducts.filter((product) => product.matchStatus !== "exact"),
     ];
-    const candidateExactProducts = rankedProducts
-      .filter(
-        (product) =>
-          product.matchStatus === "exact" && (product.matchBasis !== "identity" || exactSkuBaseline)
-      )
+    const products = rankedProducts
+      .filter((product) => product.matchBasis !== "identity" || exactSkuBaseline)
       .slice(0, 6);
     const answer = await createGroundedShopAiAnswer({
       message,
       history,
       context: planningContext,
       plan: planned.plan,
-      products: candidateExactProducts,
+      products,
       totalItems: candidateCount,
     });
     const responseDegraded =
@@ -773,9 +850,10 @@ export async function POST(request: NextRequest) {
       vehicleResolutionDegraded ||
       retrievalDegraded ||
       turnTimedOut;
-    const products = responseDegraded ? [] : candidateExactProducts;
-    const exactCount = products.length;
-    const requiresVerificationCount = 0;
+    const exactCount = products.filter((product) => product.matchStatus === "exact").length;
+    const requiresVerificationCount = products.filter(
+      (product) => product.matchStatus === "requires_verification"
+    ).length;
     const totalItems = products.length ? Math.max(candidateCount, products.length) : 0;
     const noMoreOptionsMessage = responseDegraded
       ? null
@@ -790,18 +868,19 @@ export async function POST(request: NextRequest) {
       noMoreOptionsMessage ??
       (products.length
         ? answer.message
-        : buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan));
+        : responseDegraded
+          ? buildTechnicalDegradedMessage(planningContext.locale)
+          : buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan));
     const responseMessage =
       products.length === 0
-        ? (noMoreOptionsMessage ??
-          buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan))
+        ? proposedResponseMessage
         : validateGroundedShopAiOutput(proposedResponseMessage, products, {
               currency: planningContext.currency,
             })
           ? proposedResponseMessage
           : planningContext.locale === "ua"
-            ? "Знайшов підтверджені товари за вашим запитом. Перевірте деталі кожної картки перед оформленням."
-            : "I found confirmed products for your request. Review each card before checkout.";
+            ? "Знайшов релевантні товари. Статус сумісності та відсутні підтвердження вказані в кожній картці."
+            : "I found relevant products. Each card shows its fitment status and any missing verification.";
     const catalogHref =
       totalItems > 0 ? buildStorefrontSearchHref(planningContext, planned.plan) : null;
 
@@ -832,6 +911,16 @@ export async function POST(request: NextRequest) {
         retrievalDegraded,
         timedOut: turnTimedOut,
       }),
+      evaluation: evalAccess.authorized
+        ? {
+            candidates: rankedProducts.slice(0, 20).map((product) => ({
+              productId: product.id,
+              variantId: product.variantId,
+              matchStatus: product.matchStatus ?? "requires_verification",
+              matchBasis: product.matchBasis ?? "fitment",
+            })),
+          }
+        : undefined,
     };
     const nextConversationId = conversationIdForSave ?? crypto.randomUUID();
     const conversation = await withinShopAiDeadline(
@@ -853,13 +942,22 @@ export async function POST(request: NextRequest) {
       markTurnTimedOut
     );
     response.conversationId = conversation.id;
+    response.managerContext = {
+      ...response.managerContext,
+      runId: telemetryRunId,
+      conversationId: conversation.id,
+    };
     if (turnTimedOut) failClosedShopAiResponseOnTimeout(response, context.locale);
     response.runId = telemetryRunId ?? undefined;
     if (telemetryRunId) {
-      if (telemetryTraceSampled) {
+      {
+        const shownIds = new Set(
+          products.map((product) => `${product.id}:${product.variantId ?? ""}`)
+        );
+        const servedForTelemetry = telemetryTraceSampled ? rankedProducts : products;
         await withinShopAiDeadline(
           recordShopAiCandidateDecisions(telemetryRunId, [
-            ...rankedProducts.map((product, index) => ({
+            ...servedForTelemetry.map((product, index) => ({
               productId: product.id,
               variantId: product.variantId,
               vehicleApplicationId: product.matchedApplicationId,
@@ -874,25 +972,27 @@ export async function POST(request: NextRequest) {
               rank: index + 1,
               reasonCodes: product.matchReason ? [product.matchReason] : [],
               missingFacts: product.missingFacts,
-              shown: index < products.length,
+              shown: shownIds.has(`${product.id}:${product.variantId ?? ""}`),
             })),
-            ...(shadowResult?.products ?? []).map((product, index) => ({
-              productId: product.id,
-              variantId: product.variantId,
-              vehicleApplicationId: product.matchedApplicationId,
-              productSnapshot: {
-                brand: product.brand,
-                sku: product.partNumber,
-                name: product.name,
-                matchReason: product.matchReason,
-                source: "shadow_v2",
-              },
-              matchStatus: product.matchStatus ?? "requires_verification",
-              rank: index + 1,
-              reasonCodes: ["shadow_v2", ...(product.matchReason ? [product.matchReason] : [])],
-              missingFacts: product.missingFacts,
-              shown: false,
-            })),
+            ...(telemetryTraceSampled ? (shadowResult?.products ?? []) : []).map(
+              (product, index) => ({
+                productId: product.id,
+                variantId: product.variantId,
+                vehicleApplicationId: product.matchedApplicationId,
+                productSnapshot: {
+                  brand: product.brand,
+                  sku: product.partNumber,
+                  name: product.name,
+                  matchReason: product.matchReason,
+                  source: "shadow_v2",
+                },
+                matchStatus: product.matchStatus ?? "requires_verification",
+                rank: index + 1,
+                reasonCodes: ["shadow_v2", ...(product.matchReason ? [product.matchReason] : [])],
+                missingFacts: product.missingFacts,
+                shown: false,
+              })
+            ),
           ]),
           turnDeadlineAt,
           { persisted: false, value: null },
@@ -936,12 +1036,20 @@ export async function POST(request: NextRequest) {
           totalLatencyMs: Math.round(performance.now() - turnStartedAt),
           activeCpuMs: activeCpuMs(),
           degraded: Boolean(response.degraded),
+          pipeline,
+          retrievalPath: retrievalMarker,
+          providerModel: planned.providerModel,
+          plannerLatencyMs: planned.plannerLatencyMs,
+          degradedReason: resolveShopAiTelemetryDegradedReason(
+            response.degradedReason,
+            planned.providerErrorKind
+          ),
         }),
         turnDeadlineAt,
         { persisted: false, value: null },
         markTurnTimedOut
       );
-      if (!products.length) {
+      if (!products.length && !responseDegraded) {
         await withinShopAiDeadline(
           recordShopAiNoResult({
             runId: telemetryRunId,

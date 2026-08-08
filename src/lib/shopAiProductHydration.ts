@@ -99,8 +99,11 @@ export async function hydrateShopAiKnowledgeCandidates(
         : context.currency === "UAH"
           ? compareAt?.uah
           : compareAt?.usd;
+    const selectedVariant = candidate.variantId
+      ? product.variants?.find((variant) => variant.id === candidate.variantId)
+      : undefined;
     const defaultVariant =
-      product.variants?.find((variant) => variant.id === candidate.variantId) ??
+      selectedVariant ??
       product.variants?.find((variant) => variant.isDefault) ??
       product.variants?.[0];
     const application = candidate.application;
@@ -113,7 +116,7 @@ export async function hydrateShopAiKnowledgeCandidates(
             ? product.title.en || product.title.ua
             : product.title.ua || product.title.en,
         brand: product.brand || product.vendor || "",
-        partNumber: product.sku || "",
+        partNumber: selectedVariant?.sku || product.sku || defaultVariant?.sku || "",
         description:
           context.locale === "en"
             ? product.shortDescription?.en || product.shortDescription?.ua || ""

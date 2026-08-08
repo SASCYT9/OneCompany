@@ -3,6 +3,8 @@ export type OneAiQualityOverview = {
   knowledgeRecords: number;
   readyKnowledge: number;
   needsReviewKnowledge: number;
+  pendingKnowledge: number;
+  processingKnowledge: number;
   failedKnowledge: number;
   blockedKnowledge: number;
   coveragePercent: number;
@@ -67,11 +69,35 @@ export type OneAiQueryTrace = {
   candidateCount: number;
   acceptedCount: number;
   degraded: boolean;
+  pipeline: string | null;
+  retrievalPath: string | null;
+  providerModel: string | null;
+  plannerLatencyMs: number | null;
+  degradedReason: string | null;
   retrievalLatencyMs: number | null;
   totalLatencyMs: number | null;
   activeCpuMs: number | null;
   errorCode: string | null;
   createdAt: string;
+};
+
+export type OneAiCategoryMetric = {
+  categoryGroup: string;
+  readyKnowledge: number;
+  needsReviewKnowledge: number;
+  embeddingBacklog: number;
+  verifiedApplications: number;
+  runs: number;
+  exactRate: number | null;
+  reviewableRate: number | null;
+  noMatchRate: number | null;
+  degradedRate: number | null;
+  p50LatencyMs: number | null;
+  p95LatencyMs: number | null;
+  ctr: number | null;
+  handoffRate: number | null;
+  addToCartRate: number | null;
+  orderConversionRate: number | null;
 };
 
 export type OneAiIndexJob = {
@@ -98,6 +124,7 @@ export type OneAiQualitySnapshot = {
   feedback: OneAiFeedbackItem[];
   queryTraces: OneAiQueryTrace[];
   indexJobs: OneAiIndexJob[];
+  categoryMetrics: OneAiCategoryMetric[];
 };
 
 export type OneAiQualityProductVariant = {

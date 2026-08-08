@@ -9,9 +9,10 @@ export function decideShopAiV2Pipeline(input: {
   evalRequiresV2: boolean;
   categorySupported: boolean;
   categoryRolloutEnabled: boolean;
-  exactSkuMatched: boolean;
+  exactSkuRequested: boolean;
 }): ShopAiV2PipelineDecision {
-  const forcedForEval = input.evalRequiresV2 && (input.categorySupported || input.exactSkuMatched);
+  const forcedForEval =
+    input.evalRequiresV2 && (input.categorySupported || input.exactSkuRequested);
   const evalRejected = input.evalRequiresV2 && !forcedForEval;
   if (evalRejected) {
     return {
@@ -21,7 +22,7 @@ export function decideShopAiV2Pipeline(input: {
       source: "legacy",
     };
   }
-  if (input.exactSkuMatched) {
+  if (input.exactSkuRequested) {
     return {
       evalRejected: false,
       forcedForEval,

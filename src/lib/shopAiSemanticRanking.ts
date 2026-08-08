@@ -6,14 +6,24 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { shouldUseShopAiSemanticReranking } from "@/lib/shopAiSemanticIntent";
 import type { ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
+import { SHOP_AI_QUERY_EMBEDDING_TIMEOUT_MS } from "@/lib/shopAiProviderPolicy";
+import {
+  SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL,
+  buildShopKnowledgeEmbeddingTaskConfig,
+  buildShopKnowledgeQueryEmbeddingText,
+  resolveShopKnowledgeEmbeddingStorageModel,
+} from "@/lib/shopKnowledgeV2/embeddings";
 
-const EMBEDDING_MODEL = process.env.SHOP_AI_EMBEDDING_MODEL || "gemini-embedding-2";
+const EMBEDDING_PROVIDER_MODEL =
+  process.env.SHOP_AI_EMBEDDING_MODEL || SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL;
+const EMBEDDING_STORAGE_MODEL = resolveShopKnowledgeEmbeddingStorageModel(EMBEDDING_PROVIDER_MODEL);
 const EMBEDDING_DIMENSIONS = 768;
 
 function buildSemanticQuery(message: string, plan: ShopAiPlan) {
   return [
     message,
     plan.intent,
+    plan.goal,
     plan.category,
     plan.vehicle.type,
     plan.vehicle.make,
@@ -38,12 +48,12 @@ async function embedQuery(text: string) {
   if (!apiKey) return null;
   const client = new GoogleGenAI({ apiKey, apiVersion: "v1beta" });
   const response = await client.models.embedContent({
-    model: EMBEDDING_MODEL,
-    contents: text,
+    model: EMBEDDING_PROVIDER_MODEL,
+    contents: buildShopKnowledgeQueryEmbeddingText(text, EMBEDDING_PROVIDER_MODEL),
     config: {
-      taskType: "RETRIEVAL_QUERY",
+      ...buildShopKnowledgeEmbeddingTaskConfig(EMBEDDING_PROVIDER_MODEL, "query"),
       outputDimensionality: EMBEDDING_DIMENSIONS,
-      httpOptions: { timeout: 1_500 },
+      httpOptions: { timeout: SHOP_AI_QUERY_EMBEDDING_TIMEOUT_MS },
     },
   });
   const values = response.embeddings?.[0]?.values;
@@ -87,7 +97,7 @@ export async function rerankShopAiProductsSemantically(input: {
           AND chunk."isActive" = true
           AND chunk."revision" = knowledge."activeRevision"
           AND chunk."embedding" IS NOT NULL
-          AND chunk."embeddingModel" = ${EMBEDDING_MODEL}
+          AND chunk."embeddingModel" = ${EMBEDDING_STORAGE_MODEL}
           AND knowledge."schemaVersion" >= 2
           AND knowledge."status" IN ('READY', 'NEEDS_REVIEW')
         GROUP BY chunk."productId"

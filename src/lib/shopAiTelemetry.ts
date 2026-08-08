@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,8 @@ export const SHOP_AI_TELEMETRY_MAX_MESSAGE_LENGTH = 800;
 export const SHOP_AI_TELEMETRY_MAX_COMMENT_LENGTH = 500;
 export const SHOP_AI_TELEMETRY_MAX_ERROR_LENGTH = 500;
 export const SHOP_AI_TELEMETRY_MAX_CANDIDATES = 200;
+export const SHOP_AI_POPULAR_NO_RESULT_THRESHOLD = 3;
+export const SHOP_AI_POPULAR_NO_RESULT_WINDOW_MS = 30 * 24 * 60 * 60 * 1_000;
 
 const TELEMETRY_OWNER_KEY = "__ownerKeyHash";
 const MAX_JSON_DEPTH = 5;
@@ -60,6 +63,11 @@ export type CreateShopAiRunInput = {
   normalizedQuery?: string | null;
   constraints?: unknown;
   traceSampled?: boolean;
+  pipeline?: "legacy" | "v2" | null;
+  retrievalPath?: string | null;
+  providerModel?: string | null;
+  plannerLatencyMs?: number | null;
+  degradedReason?: string | null;
 };
 
 export type CompleteShopAiRunInput = {
@@ -76,6 +84,11 @@ export type CompleteShopAiRunInput = {
   totalLatencyMs?: number | null;
   activeCpuMs?: number | null;
   degraded: boolean;
+  pipeline?: "legacy" | "v2" | null;
+  retrievalPath?: string | null;
+  providerModel?: string | null;
+  plannerLatencyMs?: number | null;
+  degradedReason?: string | null;
 };
 
 export type FailShopAiRunInput = {
@@ -130,6 +143,11 @@ type PersistedRunCreate = {
   normalizedQuery: string | null;
   constraints: ShopAiTelemetryJson;
   traceSampled: boolean;
+  pipeline: "legacy" | "v2" | null;
+  retrievalPath: string | null;
+  providerModel: string | null;
+  plannerLatencyMs: number | null;
+  degradedReason: string | null;
 };
 
 type PersistedRunComplete = {
@@ -147,6 +165,11 @@ type PersistedRunComplete = {
   activeCpuMs: number | null;
   degraded: boolean;
   traceSampled: boolean | null;
+  pipeline: "legacy" | "v2" | null;
+  retrievalPath: string | null;
+  providerModel: string | null;
+  plannerLatencyMs: number | null;
+  degradedReason: string | null;
 };
 
 type PersistedRunFailure = {
@@ -217,6 +240,11 @@ function cleanOptionalInteger(value: number | null | undefined, maximum = 1_000_
 function cleanOptionalScore(value: number | null | undefined) {
   if (value == null || !Number.isFinite(value)) return null;
   return Math.max(-1_000_000, Math.min(1_000_000, value));
+}
+
+function cleanOptionalLabel(value: string | null | undefined, maximum = 120) {
+  if (!value) return null;
+  return redactShopAiText(value, maximum).text || null;
 }
 
 function cleanStringList(values: string[] | undefined, maximum = 30) {
@@ -332,12 +360,16 @@ export function shouldCreateShopAiFeedbackReviewTask(input: {
   if (input.signal === "NO_RESULT") {
     return input.reason === "MISSING_PRODUCT";
   }
-  return (
-    input.signal === "THUMBS_DOWN" &&
-    (input.reason === "WRONG_FITMENT" ||
-      input.reason === "WRONG_CATEGORY" ||
-      input.reason === "MISSING_PRODUCT")
-  );
+  return input.signal === "THUMBS_DOWN";
+}
+
+export function isPopularShopAiNoResult(previousOccurrences: number) {
+  return previousOccurrences + 1 >= SHOP_AI_POPULAR_NO_RESULT_THRESHOLD;
+}
+
+function popularNoResultReasonCode(normalizedQuery: string) {
+  const digest = createHash("sha256").update(normalizedQuery).digest("hex").slice(0, 24);
+  return `popular_no_result:${digest}`;
 }
 
 export function parseShopAiFeedbackPayload(value: unknown): ParseShopAiFeedbackPayloadResult {
@@ -474,6 +506,11 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
           normalizedQuery: input.normalizedQuery,
           constraints: toPrismaJson(input.constraints),
           traceSampled: input.traceSampled,
+          pipeline: input.pipeline,
+          retrievalPath: input.retrievalPath,
+          providerModel: input.providerModel,
+          plannerLatencyMs: input.plannerLatencyMs,
+          degradedReason: input.degradedReason,
         },
         select: { id: true },
       });
@@ -507,6 +544,11 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
         totalLatencyMs: input.totalLatencyMs,
         activeCpuMs: input.activeCpuMs,
         degraded: input.degraded,
+        pipeline: input.pipeline,
+        retrievalPath: input.retrievalPath,
+        providerModel: input.providerModel,
+        plannerLatencyMs: input.plannerLatencyMs,
+        degradedReason: input.degradedReason,
         ...(input.traceSampled == null ? {} : { traceSampled: input.traceSampled }),
         completedAt: new Date(),
       },
@@ -549,6 +591,7 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
           select: {
             id: true,
             conversationId: true,
+            normalizedQuery: true,
             constraints: true,
             response: true,
             traceSampled: true,
@@ -613,6 +656,18 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
         });
         candidateDecisionId = recoveredDecision.id;
       }
+      const previousNoResultOccurrences =
+        input.signal === "NO_RESULT" && run?.normalizedQuery
+          ? await transaction.shopAiFeedback.count({
+              where: {
+                signal: "NO_RESULT",
+                createdAt: {
+                  gte: new Date(Date.now() - SHOP_AI_POPULAR_NO_RESULT_WINDOW_MS),
+                },
+                run: { normalizedQuery: run.normalizedQuery },
+              },
+            })
+          : 0;
       const feedback = await transaction.shopAiFeedback.create({
         data: {
           runId: run?.id ?? null,
@@ -632,6 +687,10 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
       });
 
       let reviewTaskId: string | null = null;
+      const isPopularNoResult =
+        input.signal === "NO_RESULT" &&
+        Boolean(run?.normalizedQuery) &&
+        isPopularShopAiNoResult(previousNoResultOccurrences);
       const shouldCreateReviewTask =
         Boolean(run) &&
         input.createReviewTask &&
@@ -639,8 +698,30 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
           signal: input.signal,
           reason: input.reason,
           linkedCandidateCount: candidate ? 1 : 0,
-        });
+        }) &&
+        (input.signal !== "NO_RESULT" || isPopularNoResult);
       if (shouldCreateReviewTask) {
+        const noResultReasonCode =
+          input.signal === "NO_RESULT" && run?.normalizedQuery
+            ? popularNoResultReasonCode(run.normalizedQuery)
+            : null;
+        const existingNoResultTask = noResultReasonCode
+          ? await transaction.shopKnowledgeReviewTask.findFirst({
+              where: {
+                taskType: "AI_NO_RESULT_POPULAR",
+                status: { in: ["OPEN", "IN_REVIEW"] },
+                reasonCodes: { has: noResultReasonCode },
+              },
+              select: { id: true },
+            })
+          : null;
+        if (existingNoResultTask) {
+          return {
+            feedbackId: feedback.id,
+            reviewTaskId: existingNoResultTask.id,
+            linkedToRun: Boolean(run),
+          };
+        }
         const knowledge = candidate
           ? await transaction.shopProductKnowledge.findUnique({
               where: { productId: candidate.productId },
@@ -667,15 +748,24 @@ const prismaTelemetryRepository: ShopAiTelemetryRepository = {
             vehicleApplicationId: application?.id ?? null,
             aiRunId: run?.id ?? null,
             feedbackId: feedback.id,
-            taskType: `AI_FEEDBACK_${input.reason ?? "OTHER"}`,
-            priority: input.reason === "WRONG_FITMENT" ? "HIGH" : "MEDIUM",
+            taskType:
+              input.signal === "NO_RESULT"
+                ? "AI_NO_RESULT_POPULAR"
+                : `AI_FEEDBACK_${input.reason ?? "OTHER"}`,
+            priority: "HIGH",
             title: buildReviewTitle(input.reason),
             details: {
               source: input.signal === "NO_RESULT" ? "one_ai_no_result" : "one_ai_feedback",
               locale: input.locale,
               linkedCandidate: Boolean(candidate),
+              ...(input.signal === "NO_RESULT"
+                ? { occurrences: previousNoResultOccurrences + 1 }
+                : {}),
             },
-            reasonCodes: input.reason ? [input.reason] : [],
+            reasonCodes: [
+              ...(input.reason ? [input.reason] : []),
+              ...(noResultReasonCode ? [noResultReasonCode] : []),
+            ],
           },
           select: { id: true },
         });
@@ -732,6 +822,11 @@ export function createShopAiTelemetry(repository: ShopAiTelemetryRepository) {
         normalizedQuery,
         constraints: withTelemetryOwner(input.constraints, ownerKeyHash),
         traceSampled,
+        pipeline: input.pipeline === "v2" ? "v2" : input.pipeline === "legacy" ? "legacy" : null,
+        retrievalPath: cleanOptionalLabel(input.retrievalPath, 64),
+        providerModel: cleanOptionalLabel(input.providerModel, 120),
+        plannerLatencyMs: cleanOptionalInteger(input.plannerLatencyMs, 60_000),
+        degradedReason: cleanOptionalLabel(input.degradedReason, 64),
       });
       return { persisted: true, value: { runId, traceSampled } };
     } catch (error) {
@@ -761,6 +856,11 @@ export function createShopAiTelemetry(repository: ShopAiTelemetryRepository) {
         activeCpuMs: cleanOptionalInteger(input.activeCpuMs, 120_000),
         degraded: Boolean(input.degraded),
         traceSampled: input.mode === "no_match" ? true : null,
+        pipeline: input.pipeline === "v2" ? "v2" : input.pipeline === "legacy" ? "legacy" : null,
+        retrievalPath: cleanOptionalLabel(input.retrievalPath, 64),
+        providerModel: cleanOptionalLabel(input.providerModel, 120),
+        plannerLatencyMs: cleanOptionalInteger(input.plannerLatencyMs, 60_000),
+        degradedReason: cleanOptionalLabel(input.degradedReason, 64),
       });
       return updated ? { persisted: true, value: { runId } } : { persisted: false, value: null };
     } catch (error) {
@@ -850,11 +950,7 @@ export function createShopAiTelemetry(repository: ShopAiTelemetryRepository) {
           ? redactShopAiText(input.comment, SHOP_AI_TELEMETRY_MAX_COMMENT_LENGTH).text || null
           : null,
         locale: input.locale,
-        createReviewTask:
-          signal === "THUMBS_DOWN" &&
-          (reason === "WRONG_FITMENT" ||
-            reason === "WRONG_CATEGORY" ||
-            reason === "MISSING_PRODUCT"),
+        createReviewTask: signal === "THUMBS_DOWN",
       });
       return { persisted: true, value: result };
     } catch (error) {

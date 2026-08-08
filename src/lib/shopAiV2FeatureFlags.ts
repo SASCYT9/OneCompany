@@ -1,47 +1,31 @@
 import type { ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
+import { SHOP_AI_DEFAULT_MODEL } from "@/lib/shopAiProviderPolicy";
 import {
   evaluateShopAiV2ReleaseActivationGuard,
   readShopAiV2ReleaseActivationGuardInput,
 } from "@/lib/shopAiV2ReleaseActivationGuard";
+import {
+  isShopAiV2RolloutCategory,
+  SHOP_AI_V2_ROLLOUT_CATEGORIES,
+  type ShopAiV2RolloutCategory,
+} from "@/lib/shopAiV2RolloutContract";
 
-export const SHOP_AI_V2_ROLLOUT_CATEGORIES = [
-  "merch",
-  "exhaust",
-  "carbonAero",
-  "brakes",
-  "suspension",
-  "performance",
-  "chipTuning",
-  "motoCarbon",
-  "cooling",
-  "wheels",
-  "lighting",
-  "interior",
-  "accessories",
-] as const satisfies readonly ShopStockCategoryGroupId[];
-
-export type ShopAiV2RolloutCategory = (typeof SHOP_AI_V2_ROLLOUT_CATEGORIES)[number];
+export {
+  isShopAiV2RolloutCategory,
+  SHOP_AI_V2_ROLLOUT_CATEGORIES,
+  type ShopAiV2RolloutCategory,
+} from "@/lib/shopAiV2RolloutContract";
 
 export const SHOP_AI_V2_ROLLOUT_PERCENTAGES = [0, 10, 50, 100] as const;
 
-const SHOP_AI_V2_ROLLOUT_CATEGORY_SET = new Set<ShopStockCategoryGroupId>(
-  SHOP_AI_V2_ROLLOUT_CATEGORIES
-);
 const SHOP_AI_V2_ROLLOUT_PERCENTAGE_SET = new Set<number>(SHOP_AI_V2_ROLLOUT_PERCENTAGES);
-
-export function isShopAiV2RolloutCategory(category: unknown): category is ShopAiV2RolloutCategory {
-  return (
-    typeof category === "string" &&
-    SHOP_AI_V2_ROLLOUT_CATEGORY_SET.has(category as ShopStockCategoryGroupId)
-  );
-}
 
 function parseBoolean(value: string | undefined) {
   return value === "1" || value?.trim().toLowerCase() === "true";
 }
 
-function configuredCategories() {
-  const raw = process.env.SHOP_AI_V2_CATEGORIES?.trim();
+function configuredCategories(environment: Partial<NodeJS.ProcessEnv> = process.env) {
+  const raw = environment.SHOP_AI_V2_CATEGORIES?.trim();
   if (!raw) return new Set<ShopAiV2RolloutCategory>();
   return new Set(
     raw
@@ -51,9 +35,9 @@ function configuredCategories() {
   );
 }
 
-function configuredCategoryPercentages() {
+function configuredCategoryPercentages(environment: Partial<NodeJS.ProcessEnv> = process.env) {
   const result = new Map<ShopAiV2RolloutCategory, number>();
-  for (const entry of process.env.SHOP_AI_V2_CATEGORY_PERCENTAGES?.split(",") ?? []) {
+  for (const entry of environment.SHOP_AI_V2_CATEGORY_PERCENTAGES?.split(",") ?? []) {
     const [rawCategory, rawPercent] = entry.split(":");
     const category = rawCategory?.trim();
     const percent = Number(rawPercent);
@@ -69,6 +53,36 @@ function configuredCategoryPercentages() {
   return result;
 }
 
+function isProductionEnvironment(environment: Partial<NodeJS.ProcessEnv>) {
+  const value = [
+    environment.VERCEL_ENV,
+    environment.VERCEL_TARGET_ENV,
+    environment.SHOP_AI_DEPLOYMENT_ENV,
+    environment.NODE_ENV,
+  ]
+    .find((candidate) => Boolean(candidate?.trim()))
+    ?.trim()
+    .toLowerCase();
+  return value === "production" || value === "prod";
+}
+
+export function isShopAiV2OneShotProductionConfig(
+  environment: Partial<NodeJS.ProcessEnv> = process.env
+) {
+  if (!isProductionEnvironment(environment)) return true;
+  const categories = configuredCategories(environment);
+  const percentages = configuredCategoryPercentages(environment);
+  const plannerModel = environment.SHOP_AI_MODEL?.trim() || SHOP_AI_DEFAULT_MODEL;
+  return (
+    plannerModel === SHOP_AI_DEFAULT_MODEL &&
+    parseBoolean(environment.SHOP_AI_V2_EXACT_SKU_ENABLED) &&
+    categories.size === SHOP_AI_V2_ROLLOUT_CATEGORIES.length &&
+    SHOP_AI_V2_ROLLOUT_CATEGORIES.every(
+      (category) => categories.has(category) && percentages.get(category) === 100
+    )
+  );
+}
+
 function stableRolloutBucket(value: string) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -81,7 +95,9 @@ function stableRolloutBucket(value: string) {
 export function isShopAiV2Enabled() {
   return (
     parseBoolean(process.env.SHOP_AI_V2_ENABLED) &&
-    evaluateShopAiV2ReleaseActivationGuard(readShopAiV2ReleaseActivationGuardInput(process.env)).ok
+    evaluateShopAiV2ReleaseActivationGuard(readShopAiV2ReleaseActivationGuardInput(process.env))
+      .ok &&
+    isShopAiV2OneShotProductionConfig(process.env)
   );
 }
 

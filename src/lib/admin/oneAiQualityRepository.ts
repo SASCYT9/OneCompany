@@ -5,11 +5,13 @@ import type { PrismaClient } from "@prisma/client";
 import type {
   OneAiFeedbackItem,
   OneAiIndexJob,
+  OneAiCategoryMetric,
   OneAiQualityOverview,
   OneAiQualitySnapshot,
   OneAiQueryTrace,
   OneAiReviewTask,
 } from "@/lib/admin/oneAiQualityTypes";
+import { SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL } from "@/lib/shopKnowledgeV2/embeddings";
 
 const REQUIRED_TABLES = [
   "ShopProductKnowledge",
@@ -42,6 +44,8 @@ type OverviewRow = {
   knowledgeRecords: number;
   readyKnowledge: number;
   needsReviewKnowledge: number;
+  pendingKnowledge: number;
+  processingKnowledge: number;
   failedKnowledge: number;
   blockedKnowledge: number;
   staleKnowledge: number;
@@ -106,12 +110,19 @@ type QueryTraceRow = {
   candidateCount: number;
   acceptedCount: number;
   degraded: boolean;
+  pipeline: string | null;
+  retrievalPath: string | null;
+  providerModel: string | null;
+  plannerLatencyMs: number | null;
+  degradedReason: string | null;
   retrievalLatencyMs: number | null;
   totalLatencyMs: number | null;
   activeCpuMs: number | null;
   errorCode: string | null;
   createdAt: Date;
 };
+
+type CategoryMetricRow = OneAiCategoryMetric;
 
 type IndexJobRow = {
   id: string;
@@ -134,6 +145,8 @@ function emptyOverview(activePublishedProducts: number): OneAiQualityOverview {
     knowledgeRecords: 0,
     readyKnowledge: 0,
     needsReviewKnowledge: 0,
+    pendingKnowledge: 0,
+    processingKnowledge: 0,
     failedKnowledge: 0,
     blockedKnowledge: 0,
     coveragePercent: 0,
@@ -210,63 +223,36 @@ async function findMissingTables(client: PrismaClient) {
 async function loadOverview(client: PrismaClient, activePublishedProducts: number) {
   const [overviewRows, evaluationRows] = await Promise.all([
     client.$queryRaw<OverviewRow[]>`
+      WITH current_knowledge AS (
+        SELECT
+          knowledge."sourceUpdatedAt",
+          product."updatedAt" AS "productUpdatedAt",
+          revision."status"::text AS "currentStatus"
+        FROM "ShopProductKnowledge" knowledge
+        INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
+        INNER JOIN "ShopKnowledgeRevision" revision
+          ON revision."knowledgeId" = knowledge."id"
+         AND revision."revision" = knowledge."revision"
+        WHERE product."isPublished" = true
+          AND product."status" = 'ACTIVE'
+          AND knowledge."schemaVersion" >= 2
+      ),
+      knowledge_overview AS (
+        SELECT
+          COUNT(*)::int AS "knowledgeRecords",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'READY')::int AS "readyKnowledge",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'NEEDS_REVIEW')::int AS "needsReviewKnowledge",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'PENDING')::int AS "pendingKnowledge",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'PROCESSING')::int AS "processingKnowledge",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'FAILED')::int AS "failedKnowledge",
+          COUNT(*) FILTER (WHERE "currentStatus" = 'BLOCKED')::int AS "blockedKnowledge",
+          COUNT(*) FILTER (
+            WHERE "sourceUpdatedAt" IS NULL OR "sourceUpdatedAt" < "productUpdatedAt"
+          )::int AS "staleKnowledge"
+        FROM current_knowledge
+      )
       SELECT
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-        ) AS "knowledgeRecords",
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-            AND knowledge."status" = 'READY'
-        ) AS "readyKnowledge",
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-            AND knowledge."status" = 'NEEDS_REVIEW'
-        ) AS "needsReviewKnowledge",
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-            AND knowledge."status" = 'FAILED'
-        ) AS "failedKnowledge",
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-            AND knowledge."status" = 'BLOCKED'
-        ) AS "blockedKnowledge",
-        (
-          SELECT COUNT(*)::int
-          FROM "ShopProductKnowledge" knowledge
-          INNER JOIN "ShopProduct" product ON product."id" = knowledge."productId"
-          WHERE product."isPublished" = true
-            AND product."status" = 'ACTIVE'
-            AND knowledge."schemaVersion" >= 2
-            AND (
-              knowledge."sourceUpdatedAt" IS NULL
-              OR knowledge."sourceUpdatedAt" < product."updatedAt"
-            )
-        ) AS "staleKnowledge",
+        knowledge_overview.*,
         (
           SELECT COUNT(*)::int
           FROM "ShopKnowledgeReviewTask"
@@ -287,6 +273,7 @@ async function loadOverview(client: PrismaClient, activePublishedProducts: numbe
         (SELECT COUNT(*)::int FROM "ShopKnowledgeOutbox" WHERE "status" = 'PENDING') AS "pendingJobs",
         (SELECT COUNT(*)::int FROM "ShopKnowledgeOutbox" WHERE "status" = 'RETRY') AS "retryJobs",
         (SELECT COUNT(*)::int FROM "ShopKnowledgeOutbox" WHERE "status" = 'DEAD_LETTER') AS "deadLetterJobs"
+      FROM knowledge_overview
     `,
     client.$queryRaw<EvaluationRow[]>`
       SELECT
@@ -410,6 +397,11 @@ async function loadQueryTraces(client: PrismaClient): Promise<OneAiQueryTrace[]>
       "candidateCount",
       "acceptedCount",
       "degraded",
+      "pipeline",
+      "retrievalPath",
+      "providerModel",
+      "plannerLatencyMs",
+      "degradedReason",
       "retrievalLatencyMs",
       "totalLatencyMs",
       "activeCpuMs",
@@ -424,6 +416,202 @@ async function loadQueryTraces(client: PrismaClient): Promise<OneAiQueryTrace[]>
     ...row,
     createdAt: row.createdAt.toISOString(),
   }));
+}
+
+async function loadCategoryMetrics(client: PrismaClient): Promise<OneAiCategoryMetric[]> {
+  return client.$queryRaw<CategoryMetricRow[]>`
+    WITH categories("categoryGroup") AS (
+      VALUES
+        ('chipTuning'), ('exhaust'), ('brakes'), ('suspension'),
+        ('cooling'), ('performance'), ('motoCarbon'), ('carbonAero'),
+        ('wheels'), ('lighting'), ('interior'), ('accessories'), ('merch')
+    ),
+    current_knowledge AS (
+      SELECT
+        knowledge."id",
+        knowledge."revision",
+        COALESCE(
+          NULLIF(revision."snapshot"->>'categoryGroup', ''),
+          knowledge."categoryGroup",
+          'other'
+        ) AS "categoryGroup",
+        revision."status"::text AS "status"
+      FROM "ShopProductKnowledge" knowledge
+      JOIN "ShopKnowledgeRevision" revision
+        ON revision."knowledgeId" = knowledge."id"
+       AND revision."revision" = knowledge."revision"
+      JOIN "ShopProduct" product ON product."id" = knowledge."productId"
+      WHERE product."isPublished" = true
+        AND product."status"::text = 'ACTIVE'
+        AND knowledge."schemaVersion" >= 2
+    ),
+    knowledge_metrics AS (
+      SELECT
+        knowledge."categoryGroup",
+        COUNT(*) FILTER (WHERE knowledge."status"::text = 'READY')::int AS "readyKnowledge",
+        COUNT(*) FILTER (WHERE knowledge."status"::text = 'NEEDS_REVIEW')::int AS "needsReviewKnowledge"
+      FROM current_knowledge knowledge
+      WHERE knowledge."categoryGroup" <> 'other'
+      GROUP BY knowledge."categoryGroup"
+    ),
+    embedding_metrics AS (
+      SELECT
+        knowledge."categoryGroup",
+        COUNT(*)::int AS "embeddingBacklog"
+      FROM "ShopKnowledgeChunk" chunk
+      JOIN current_knowledge knowledge
+        ON knowledge."id" = chunk."knowledgeId"
+       AND knowledge."revision" = chunk."revision"
+      WHERE knowledge."categoryGroup" <> 'other'
+        AND (
+          chunk."embedding" IS NULL
+          OR chunk."embeddingModel" IS DISTINCT FROM ${SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL}
+        )
+      GROUP BY knowledge."categoryGroup"
+    ),
+    application_metrics AS (
+      SELECT
+        knowledge."categoryGroup",
+        COUNT(*)::int AS "verifiedApplications"
+      FROM "ShopVehicleApplication" application
+      JOIN "ShopProductKnowledge" knowledge ON knowledge."id" = application."knowledgeId"
+      WHERE application."revision" = knowledge."activeRevision"
+        AND application."isActive" = true
+        AND application."verificationStatus"::text = 'VERIFIED'
+        AND application."source"::text IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
+        AND EXISTS (
+          SELECT 1
+          FROM "ShopKnowledgeEvidence" evidence
+          WHERE evidence."vehicleApplicationId" = application."id"
+            AND evidence."knowledgeId" = knowledge."id"
+            AND evidence."revision" = knowledge."activeRevision"
+            AND evidence."isActive" = true
+            AND (
+              (
+                application."source"::text = 'MANAGER'
+                AND evidence."source"::text = 'MANAGER'
+                AND evidence."isManagerVerified" = true
+                AND evidence."verifiedById" IS NOT NULL
+                AND evidence."verifiedAt" IS NOT NULL
+                AND evidence."fieldPath" LIKE 'vehicleApplications.%'
+                AND evidence."extractorVersion" LIKE 'admin-%'
+              )
+              OR (
+                application."source"::text = 'MANUAL_OVERRIDE'
+                AND evidence."source"::text = 'MANUAL_OVERRIDE'
+                AND evidence."verifiedById" IS NOT NULL
+                AND evidence."verifiedAt" IS NOT NULL
+              )
+              OR (
+                application."source"::text = 'SUPPLIER'
+                AND evidence."source"::text = 'SUPPLIER'
+              )
+            )
+        )
+        AND knowledge."categoryGroup" <> 'other'
+      GROUP BY knowledge."categoryGroup"
+    ),
+    run_base AS (
+      SELECT
+        run."id",
+        run."constraints"->>'category' AS "categoryGroup",
+        run."mode"::text AS "mode",
+        run."exactCount",
+        run."verificationCount",
+        run."degraded",
+        run."totalLatencyMs"
+      FROM "ShopAiRun" run
+      WHERE run."createdAt" >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+        AND run."status"::text IN ('COMPLETED', 'FAILED')
+    ),
+    run_events AS (
+      SELECT
+        feedback."runId",
+        BOOL_OR(feedback."signal"::text = 'CLICK') AS "clicked",
+        BOOL_OR(feedback."signal"::text = 'MANAGER_HANDOFF') AS "handedOff",
+        BOOL_OR(feedback."signal"::text = 'ADD_TO_CART') AS "addedToCart",
+        BOOL_OR(feedback."signal"::text = 'ORDER_COMPLETED') AS "ordered"
+      FROM "ShopAiFeedback" feedback
+      WHERE feedback."runId" IS NOT NULL
+        AND feedback."createdAt" >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+      GROUP BY feedback."runId"
+    ),
+    run_metrics AS (
+      SELECT
+        run."categoryGroup",
+        COUNT(*)::int AS "runs",
+        (
+          COUNT(*) FILTER (WHERE run."exactCount" > 0)::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "exactRate",
+        (
+          COUNT(*) FILTER (WHERE run."verificationCount" > 0)::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "reviewableRate",
+        (
+          COUNT(*) FILTER (WHERE run."mode" = 'NO_MATCH')::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "noMatchRate",
+        (
+          COUNT(*) FILTER (WHERE run."degraded")::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "degradedRate",
+        (
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY run."totalLatencyMs")
+            FILTER (WHERE run."totalLatencyMs" IS NOT NULL)
+        )::double precision AS "p50LatencyMs",
+        (
+          percentile_cont(0.95) WITHIN GROUP (ORDER BY run."totalLatencyMs")
+            FILTER (WHERE run."totalLatencyMs" IS NOT NULL)
+        )::double precision AS "p95LatencyMs",
+        (
+          COUNT(*) FILTER (WHERE COALESCE(events."clicked", false))::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "ctr",
+        (
+          COUNT(*) FILTER (WHERE COALESCE(events."handedOff", false))::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "handoffRate",
+        (
+          COUNT(*) FILTER (WHERE COALESCE(events."addedToCart", false))::double precision
+          / NULLIF(COUNT(*), 0)
+        ) AS "addToCartRate",
+        (
+          COUNT(*) FILTER (WHERE COALESCE(events."ordered", false))::double precision
+          / NULLIF(COUNT(*) FILTER (WHERE COALESCE(events."addedToCart", false)), 0)
+        ) AS "orderConversionRate"
+      FROM run_base run
+      LEFT JOIN run_events events ON events."runId" = run."id"
+      GROUP BY run."categoryGroup"
+    )
+    SELECT
+      categories."categoryGroup",
+      COALESCE(knowledge."readyKnowledge", 0)::int AS "readyKnowledge",
+      COALESCE(knowledge."needsReviewKnowledge", 0)::int AS "needsReviewKnowledge",
+      COALESCE(embedding."embeddingBacklog", 0)::int AS "embeddingBacklog",
+      COALESCE(applications."verifiedApplications", 0)::int AS "verifiedApplications",
+      COALESCE(runs."runs", 0)::int AS "runs",
+      runs."exactRate",
+      runs."reviewableRate",
+      runs."noMatchRate",
+      runs."degradedRate",
+      runs."p50LatencyMs",
+      runs."p95LatencyMs",
+      runs."ctr",
+      runs."handoffRate",
+      runs."addToCartRate",
+      runs."orderConversionRate"
+    FROM categories
+    LEFT JOIN knowledge_metrics knowledge
+      ON knowledge."categoryGroup" = categories."categoryGroup"
+    LEFT JOIN embedding_metrics embedding
+      ON embedding."categoryGroup" = categories."categoryGroup"
+    LEFT JOIN application_metrics applications
+      ON applications."categoryGroup" = categories."categoryGroup"
+    LEFT JOIN run_metrics runs
+      ON runs."categoryGroup" = categories."categoryGroup"
+    ORDER BY categories."categoryGroup"
+  `;
 }
 
 async function loadIndexJobs(client: PrismaClient): Promise<OneAiIndexJob[]> {
@@ -479,17 +667,20 @@ export async function getOneAiQualitySnapshot(client: PrismaClient): Promise<One
       feedback: [],
       queryTraces: [],
       indexJobs: [],
+      categoryMetrics: [],
     };
   }
 
   try {
-    const [overview, reviewQueue, feedback, queryTraces, indexJobs] = await Promise.all([
-      loadOverview(client, activePublishedProducts),
-      loadReviewQueue(client),
-      loadFeedback(client),
-      loadQueryTraces(client),
-      loadIndexJobs(client),
-    ]);
+    const [overview, reviewQueue, feedback, queryTraces, indexJobs, categoryMetrics] =
+      await Promise.all([
+        loadOverview(client, activePublishedProducts),
+        loadReviewQueue(client),
+        loadFeedback(client),
+        loadQueryTraces(client),
+        loadIndexJobs(client),
+        loadCategoryMetrics(client),
+      ]);
 
     return {
       ready: true,
@@ -500,6 +691,7 @@ export async function getOneAiQualitySnapshot(client: PrismaClient): Promise<One
       feedback,
       queryTraces,
       indexJobs,
+      categoryMetrics,
     };
   } catch (error) {
     if (!isSchemaNotReadyError(error)) throw error;
@@ -513,6 +705,7 @@ export async function getOneAiQualitySnapshot(client: PrismaClient): Promise<One
       feedback: [],
       queryTraces: [],
       indexJobs: [],
+      categoryMetrics: [],
     };
   }
 }

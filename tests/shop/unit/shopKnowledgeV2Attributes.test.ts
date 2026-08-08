@@ -6,6 +6,7 @@ import {
   extractCategoryAttributes,
   extractCategoryAttributesFromText,
 } from "../../../src/lib/shopKnowledgeV2/attributes";
+import { SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY } from "../../../src/lib/shopKnowledgeV2/policy";
 import { knowledgeSourceProduct } from "./shopKnowledgeV2TestFixture";
 
 function values(attributes: ReturnType<typeof extractCategoryAttributesFromText>["attributes"]) {
@@ -46,16 +47,23 @@ test("extracts RaceChip family, fuel, engine and explicit gains", () => {
   assert.equal(result.torqueGainNm, 150);
 });
 
-test("hard-attribute contracts include every compatibility-critical category fact", () => {
-  assert.deepEqual(SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES.exhaust, [
-    "productKind",
+test("category policy separates fitment, claim and optional merchandising facts", () => {
+  assert.deepEqual(SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY.exhaust.fitmentCritical, [
     "engine",
     "market",
     "opfGpf",
+  ]);
+  assert.deepEqual(SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY.exhaust.claimCritical, [
+    "productKind",
     "material",
     "valves",
     "homologation",
   ]);
+  assert.equal(
+    SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY.exhaust.optionalMerchandising.includes("weightKg"),
+    true
+  );
+  assert.equal(SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES.exhaust.includes("material"), true);
   assert.ok(SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES.chipTuning.includes("stockPowerHp"));
   assert.ok(SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES.chipTuning.includes("stockTorqueNm"));
   assert.ok(SHOP_KNOWLEDGE_REQUIRED_HARD_ATTRIBUTES.brakes.includes("diameterMm"));

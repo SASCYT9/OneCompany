@@ -22,6 +22,7 @@ type BackfillStats = {
   updated: number;
   unchanged: number;
   blocked: number;
+  excluded: number;
   ready: number;
   needsReview: number;
   chunks: number;
@@ -115,6 +116,7 @@ async function main() {
     updated: 0,
     unchanged: 0,
     blocked: 0,
+    excluded: 0,
     ready: 0,
     needsReview: 0,
     chunks: 0,

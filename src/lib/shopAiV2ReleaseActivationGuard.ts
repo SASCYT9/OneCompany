@@ -1,5 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+// This module is imported by next.config.ts before Next's @/* alias resolver is
+// active, so config-time dependencies must stay relative.
+import { validateShopAiV2DataReadinessSnapshot } from "./shopAiV2DataReadinessContract";
+import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "./shopAiV2RolloutContract";
+
 export const SHOP_AI_V2_RELEASE_GATE_ID = "one-ai-v2-live-release-eval";
 export const SHOP_AI_V2_RELEASE_GATE_MARKER_PREFIX = "one-ai-v2-release-gate.v2";
 export const SHOP_AI_V2_RELEASE_GATE_SCHEMA_VERSION = 2 as const;
@@ -9,6 +14,20 @@ export const SHOP_AI_V2_RELEASE_MAX_RESPONSE_BYTES = 100 * 1024;
 export const SHOP_AI_V2_RELEASE_MAX_FULL_TURN_MS = 6_000;
 export const SHOP_AI_V2_RELEASE_MAX_P95_FULL_TURN_MS = 3_000;
 export const SHOP_AI_V2_RELEASE_MIN_CASES = 500;
+export const SHOP_AI_V2_RELEASE_MIN_CASES_PER_CATEGORY = 30;
+export const SHOP_AI_V2_RELEASE_MIN_HARD_NEGATIVE_CASES = 100;
+export const SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20 = 0.9;
+export const SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20 = 0.85;
+export const SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY = 0.95;
+export const SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY = 1;
+export const SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE = 0.01;
+export const SHOP_AI_V2_RELEASE_REQUIRED_LANGUAGES = [
+  "ua",
+  "en",
+  "ru",
+  "mixed",
+  "translit",
+] as const;
 
 const COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -229,9 +248,40 @@ export function validateShopAiV2ReleaseEvalReport(
     errors.push("eval report is missing a valid Knowledge V2 catalog fingerprint");
   }
 
+  const readinessValidation = validateShopAiV2DataReadinessSnapshot(
+    value.dataReadiness,
+    catalogFingerprint
+  );
+  for (const error of readinessValidation.errors) {
+    errors.push(`eval report ${error}`);
+  }
+
   const releaseGate = isRecord(value.releaseGate) ? value.releaseGate : null;
   if (releaseGate?.passed !== true) {
     errors.push("eval report release corpus gate did not pass");
+  }
+  const rawEnabledCategories = Array.isArray(releaseGate?.enabledCategories)
+    ? releaseGate.enabledCategories
+    : [];
+  const enabledCategories = rawEnabledCategories.filter(
+    (category): category is string => typeof category === "string" && Boolean(category.trim())
+  );
+  const enabledCategorySet = new Set(enabledCategories);
+  const missingRolloutCategories = SHOP_AI_V2_ROLLOUT_CATEGORIES.filter(
+    (category) => !enabledCategorySet.has(category)
+  );
+  const unexpectedRolloutCategories = enabledCategories.filter(
+    (category) => !(SHOP_AI_V2_ROLLOUT_CATEGORIES as readonly string[]).includes(category)
+  );
+  if (
+    enabledCategories.length !== rawEnabledCategories.length ||
+    enabledCategorySet.size !== enabledCategories.length ||
+    missingRolloutCategories.length > 0 ||
+    unexpectedRolloutCategories.length > 0
+  ) {
+    errors.push(
+      `eval report release corpus must enable exactly all ${SHOP_AI_V2_ROLLOUT_CATEGORIES.length} canonical categories`
+    );
   }
 
   const limits = isRecord(value.limits) ? value.limits : null;
@@ -293,6 +343,171 @@ export function validateShopAiV2ReleaseEvalReport(
     errors.push("eval report contains performance errors");
   }
 
+  const releaseGateTotalCases = finiteNumber(releaseGate?.totalCases);
+  const hardNegativeCases = finiteNumber(releaseGate?.hardNegativeCases);
+  const releaseExactSkuCases = finiteNumber(releaseGate?.exactSkuCases);
+  const countsByCategory = isRecord(releaseGate?.countsByCategory)
+    ? releaseGate.countsByCategory
+    : null;
+  const countsByLanguage = isRecord(releaseGate?.countsByLanguage)
+    ? releaseGate.countsByLanguage
+    : null;
+  const releaseGateErrors = Array.isArray(releaseGate?.errors) ? releaseGate.errors : null;
+  if (
+    releaseGateTotalCases === null ||
+    !Number.isSafeInteger(releaseGateTotalCases) ||
+    releaseGateTotalCases < SHOP_AI_V2_RELEASE_MIN_CASES ||
+    releaseGateTotalCases !== totalCases
+  ) {
+    errors.push(
+      `eval report release corpus must contain at least ${SHOP_AI_V2_RELEASE_MIN_CASES} cases and match summary.totalCases`
+    );
+  }
+  if (
+    hardNegativeCases === null ||
+    !Number.isSafeInteger(hardNegativeCases) ||
+    hardNegativeCases < SHOP_AI_V2_RELEASE_MIN_HARD_NEGATIVE_CASES
+  ) {
+    errors.push(
+      `eval report release corpus must contain at least ${SHOP_AI_V2_RELEASE_MIN_HARD_NEGATIVE_CASES} hard-negative cases`
+    );
+  }
+  if (
+    releaseExactSkuCases === null ||
+    !Number.isSafeInteger(releaseExactSkuCases) ||
+    releaseExactSkuCases < 1
+  ) {
+    errors.push("eval report release corpus must contain at least one exact-SKU identity case");
+  }
+  if (!releaseGateErrors || releaseGateErrors.length > 0) {
+    errors.push("eval report release corpus contains gate errors");
+  }
+
+  if (!countsByCategory) {
+    errors.push("eval report release corpus is missing per-category case counts");
+  } else {
+    let countedCases = 0;
+    let categoryCountsValid = true;
+    for (const category of SHOP_AI_V2_ROLLOUT_CATEGORIES) {
+      const count = finiteNumber(countsByCategory[category]);
+      if (
+        count === null ||
+        !Number.isSafeInteger(count) ||
+        count < SHOP_AI_V2_RELEASE_MIN_CASES_PER_CATEGORY
+      ) {
+        categoryCountsValid = false;
+        errors.push(
+          `eval report category ${category} must contain at least ${SHOP_AI_V2_RELEASE_MIN_CASES_PER_CATEGORY} reviewed cases`
+        );
+      } else {
+        countedCases += count;
+      }
+    }
+    if (categoryCountsValid && countedCases !== totalCases) {
+      errors.push("eval report per-category case counts do not match summary.totalCases");
+    }
+  }
+
+  if (!countsByLanguage) {
+    errors.push("eval report release corpus is missing language case counts");
+  } else {
+    let countedCases = 0;
+    let languageCountsValid = true;
+    for (const language of SHOP_AI_V2_RELEASE_REQUIRED_LANGUAGES) {
+      const count = finiteNumber(countsByLanguage[language]);
+      if (count === null || !Number.isSafeInteger(count) || count < 1) {
+        languageCountsValid = false;
+        errors.push(`eval report release corpus is missing ${language} language coverage`);
+      } else {
+        countedCases += count;
+      }
+    }
+    if (languageCountsValid && countedCases !== totalCases) {
+      errors.push("eval report language case counts do not match summary.totalCases");
+    }
+  }
+
+  for (const [field, label] of [
+    ["unlabeledLanguageCases", "unlabeled language"],
+    ["unreviewedCases", "unreviewed"],
+    ["invalidExpectationContractCases", "invalid expectation-contract"],
+    ["duplicateQueryCases", "duplicate-query"],
+  ] as const) {
+    if (finiteNumber(releaseGate?.[field]) !== 0) {
+      errors.push(`eval report release corpus contains ${label} cases`);
+    }
+  }
+  if (!Array.isArray(releaseGate?.missingLanguages) || releaseGate.missingLanguages.length > 0) {
+    errors.push("eval report release corpus has missing languages");
+  }
+
+  const quality = isRecord(summary?.quality) ? summary.quality : null;
+  const recallAt20 = finiteNumber(quality?.recallAt20);
+  const noMatchAccuracy = finiteNumber(quality?.noMatchAccuracy);
+  const exactSkuAccuracy = finiteNumber(quality?.exactSkuAccuracy);
+  const degradedRate = finiteNumber(quality?.degradedRate);
+  const wrongExactCount = finiteNumber(quality?.wrongExactCount);
+  const hallucinatedClaimCases = finiteNumber(quality?.hallucinatedClaimCases);
+  const noMatchCases = finiteNumber(quality?.noMatchCases);
+  const exactSkuCases = finiteNumber(quality?.exactSkuCases);
+  if (recallAt20 === null || recallAt20 < SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20) {
+    errors.push(`eval report Recall@20 must be at least ${SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20}`);
+  }
+  if (
+    noMatchCases === null ||
+    !Number.isSafeInteger(noMatchCases) ||
+    noMatchCases < 1 ||
+    noMatchAccuracy === null ||
+    noMatchAccuracy < SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY
+  ) {
+    errors.push(
+      `eval report no-match accuracy must be at least ${SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY} over reviewed no-match cases`
+    );
+  }
+  if (
+    exactSkuCases === null ||
+    !Number.isSafeInteger(exactSkuCases) ||
+    exactSkuCases < 1 ||
+    exactSkuAccuracy === null ||
+    exactSkuAccuracy < SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY
+  ) {
+    errors.push(
+      `eval report exact-SKU accuracy must be ${SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY} over reviewed exact-SKU cases`
+    );
+  }
+  if (wrongExactCount !== 0) {
+    errors.push("eval report must contain zero wrong exact candidates");
+  }
+  if (hallucinatedClaimCases !== 0) {
+    errors.push("eval report must contain zero hallucinated or ungrounded claim cases");
+  }
+  if (
+    degradedRate === null ||
+    degradedRate < 0 ||
+    degradedRate >= SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE
+  ) {
+    errors.push(`eval report degraded rate must be below ${SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE}`);
+  }
+
+  const recallAt20ByCategory = isRecord(quality?.recallAt20ByCategory)
+    ? quality.recallAt20ByCategory
+    : null;
+  if (!recallAt20ByCategory || enabledCategories.length === 0) {
+    errors.push("eval report is missing category-level Recall@20 metrics");
+  } else {
+    for (const category of enabledCategories) {
+      const categoryRecall = finiteNumber(recallAt20ByCategory[category]);
+      if (
+        categoryRecall === null ||
+        categoryRecall < SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20
+      ) {
+        errors.push(
+          `eval report category ${category} Recall@20 must be at least ${SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20}`
+        );
+      }
+    }
+  }
+
   const results = Array.isArray(value.results) ? value.results : null;
   if (!results || results.length !== totalCases) {
     errors.push("eval report result count does not match summary.totalCases");
@@ -304,6 +519,12 @@ export function validateShopAiV2ReleaseEvalReport(
       }
       if (result.passed !== true) {
         errors.push(`eval report result ${index} did not pass`);
+      }
+      if (result.wrongExactCount !== 0) {
+        errors.push(`eval report result ${index} contains a wrong exact candidate`);
+      }
+      if (result.grounded !== true) {
+        errors.push(`eval report result ${index} contains an ungrounded claim`);
       }
       if (result.pipeline !== "v2") {
         errors.push(`eval report result ${index} did not use the V2 pipeline`);
@@ -425,7 +646,9 @@ export function evaluateShopAiV2ReleaseActivationGuard(
   const servedTrafficRequested = isBooleanFlagEnabled(input.v2Enabled);
   const shadowTrafficRequested = isBooleanFlagEnabled(input.v2ShadowEnabled);
   const activationRequested = servedTrafficRequested || shadowTrafficRequested;
-  const guardRequired = production && activationRequested;
+  // Shadow retrieval is an internal pre-release stage and never serves V2
+  // cards. The commit-bound marker gates public served traffic only.
+  const guardRequired = production && servedTrafficRequested;
   const deployedCommitSha = normalizeShopAiCommitSha(input.deployedCommitSha);
   const currentCatalogFingerprint = normalizeShopAiCatalogFingerprint(input.catalogFingerprint);
   const failures: ShopAiV2ReleaseActivationGuardFailure[] = [];

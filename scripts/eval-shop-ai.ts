@@ -2,6 +2,15 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import type { ShopAiAssistantResponse } from "../src/lib/shopAiAssistantTypes";
+import { validateGroundedShopAiOutput } from "../src/lib/shopAiOutputValidator";
+import {
+  SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE,
+  SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20,
+  SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY,
+  SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY,
+  SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20,
+} from "../src/lib/shopAiV2ReleaseActivationGuard";
+import { validateShopAiV2DataReadinessSnapshot } from "../src/lib/shopAiV2DataReadinessContract";
 import {
   SHOP_AI_CATALOG_FINGERPRINT_HEADER,
   SHOP_AI_COMMIT_HEADER,
@@ -114,7 +123,7 @@ function assertSafeEvalTarget(value: string) {
   }
 }
 
-async function runCase(testCase: ShopAiEvalCase) {
+async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: boolean) {
   const startedAt = performance.now();
   const response = await fetch(`${baseUrl}/api/shop/stock/assistant`, {
     method: "POST",
@@ -154,6 +163,52 @@ async function runCase(testCase: ShopAiEvalCase) {
   }
   const result = JSON.parse(responseBody) as ShopAiAssistantResponse;
   const errors = evaluateShopAiResponse(testCase, result);
+  const evaluationCandidates =
+    result.evaluation?.candidates ??
+    result.products.map((product) => ({
+      productId: product.id,
+      variantId: product.variantId,
+      matchStatus: product.matchStatus ?? "requires_verification",
+      matchBasis: product.matchBasis ?? "fitment",
+    }));
+  if (requireReleaseDiagnostics && testCase.expect.mode === "results" && !result.evaluation) {
+    errors.unshift("protected release response did not include top-20 candidate diagnostics");
+  }
+  const expectedProductIds = new Set(testCase.expect.expectedProductIds ?? []);
+  const expectedVariantIds = new Set(testCase.expect.expectedVariantIds ?? []);
+  const retrievedProductIds = new Set(evaluationCandidates.map((candidate) => candidate.productId));
+  const retrievedVariantIds = new Set(
+    evaluationCandidates.flatMap((candidate) => (candidate.variantId ? [candidate.variantId] : []))
+  );
+  const expectedRetrievalCount = expectedProductIds.size + expectedVariantIds.size;
+  const retrievedExpectedCount =
+    [...expectedProductIds].filter((id) => retrievedProductIds.has(id)).length +
+    [...expectedVariantIds].filter((id) => retrievedVariantIds.has(id)).length;
+  const wrongExactCount = evaluationCandidates.filter((candidate) => {
+    if (candidate.matchStatus !== "exact") return false;
+    const hasExpectedIdentity = expectedProductIds.size > 0 || expectedVariantIds.size > 0;
+    const productAllowed =
+      expectedProductIds.size === 0 || expectedProductIds.has(candidate.productId);
+    const variantAllowed =
+      expectedVariantIds.size === 0 ||
+      Boolean(candidate.variantId && expectedVariantIds.has(candidate.variantId));
+    return !hasExpectedIdentity || !productAllowed || !variantAllowed;
+  }).length;
+  if (wrongExactCount > 0) {
+    errors.unshift(
+      `${wrongExactCount} exact top-20 candidate(s) are outside the reviewed expected-ID allowlist`
+    );
+  }
+  const grounded = validateGroundedShopAiOutput(result.message, result.products, {
+    currency: "EUR",
+  });
+  const exactSkuCase = Boolean(testCase.metadata?.tags?.includes("exact-sku"));
+  const exactSkuCorrect =
+    !exactSkuCase ||
+    (evaluationCandidates.some(
+      (candidate) => candidate.matchStatus === "exact" && candidate.matchBasis === "identity"
+    ) &&
+      retrievedExpectedCount === expectedRetrievalCount);
   if (evalAuthenticated !== "1") {
     errors.unshift("server did not authenticate the protected evaluation request");
   }
@@ -186,7 +241,20 @@ async function runCase(testCase: ShopAiEvalCase) {
     errors,
     productCount: result.products.length,
     language: testCase.metadata?.language ?? testCase.locale,
+    category: testCase.expect.category ?? null,
     hardNegative: Boolean(testCase.metadata?.hardNegative),
+    exactSkuCase,
+    exactSkuCorrect,
+    noMatchCase: testCase.expect.mode === "no_match",
+    noMatchCorrect:
+      testCase.expect.mode !== "no_match" ||
+      (result.mode === "no_match" && result.products.length === 0 && result.totalItems === 0),
+    expectedRetrievalCount,
+    retrievedExpectedCount,
+    top20CandidateCount: evaluationCandidates.length,
+    wrongExactCount,
+    grounded,
+    degraded: Boolean(result.degraded),
     pipeline,
     retrieval,
     responseCommit,
@@ -198,6 +266,39 @@ async function runCase(testCase: ShopAiEvalCase) {
     generationCalls,
     embeddingCalls,
   };
+}
+
+async function readReleaseDataReadiness() {
+  const response = await fetch(`${baseUrl}/api/shop/stock/assistant/readiness`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Origin: new URL(baseUrl).origin,
+      [SHOP_AI_EVAL_TOKEN_HEADER]: evalToken,
+      [SHOP_AI_EVAL_REQUEST_PIPELINE_HEADER]: "v2",
+    },
+    body: "{}",
+    signal: AbortSignal.timeout(30_000),
+    redirect: "error",
+  });
+  const responseBody = await response.text();
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${responseBody}`);
+  }
+  if (response.headers.get(SHOP_AI_EVAL_AUTHENTICATED_HEADER) !== "1") {
+    throw new Error("readiness endpoint did not authenticate the protected evaluation request");
+  }
+  if (response.headers.get(SHOP_AI_PIPELINE_HEADER) !== "v2") {
+    throw new Error("readiness endpoint did not report the V2 pipeline");
+  }
+  if (expectedCommit && response.headers.get(SHOP_AI_COMMIT_HEADER) !== expectedCommit) {
+    throw new Error("readiness endpoint was served by the wrong deployment commit");
+  }
+  try {
+    return JSON.parse(responseBody) as unknown;
+  } catch {
+    throw new Error("readiness endpoint did not return valid JSON");
+  }
 }
 
 function percentile95(values: number[]) {
@@ -213,7 +314,7 @@ async function main() {
 
 Options:
   --fixture=<path>         Eval fixture (default: tests/shop/evals/stock-ai-cases.json)
-  --release-gate           Require 500+ reviewed cases and 30+ per enabled category
+  --release-gate           Enforce the full reviewed-corpus and production quality gate
   --release-config=<path>  Enabled-category manifest for the release gate
 Environment:
   SHOP_AI_EVAL_BASE_URL        Target preview/staging URL
@@ -267,7 +368,7 @@ Environment:
   assertSafeEvalTarget(baseUrl);
 
   const results = [];
-  for (const testCase of cases) results.push(await runCase(testCase));
+  for (const testCase of cases) results.push(await runCase(testCase, options.releaseGate));
   for (const result of results) {
     console.log(
       `${result.passed ? "PASS" : "FAIL"} ${result.id} [${result.language}${result.hardNegative ? ", hard-negative" : ""}] (${result.productCount} products, ${result.pipeline ?? "unmarked"}/${result.retrieval ?? "unmarked"})`
@@ -282,6 +383,80 @@ Environment:
     );
   }
   const failed = results.filter((result) => !result.passed);
+  const expectedRetrievalCount = results.reduce(
+    (total, result) => total + result.expectedRetrievalCount,
+    0
+  );
+  const retrievedExpectedCount = results.reduce(
+    (total, result) => total + result.retrievedExpectedCount,
+    0
+  );
+  const recallAt20 = expectedRetrievalCount ? retrievedExpectedCount / expectedRetrievalCount : 0;
+  const recallAt20ByCategory = Object.fromEntries(
+    (releaseGateReport?.enabledCategories ?? []).map((category) => {
+      const categoryResults = results.filter((result) => result.category === category);
+      const expected = categoryResults.reduce(
+        (total, result) => total + result.expectedRetrievalCount,
+        0
+      );
+      const retrieved = categoryResults.reduce(
+        (total, result) => total + result.retrievedExpectedCount,
+        0
+      );
+      return [category, expected ? retrieved / expected : null];
+    })
+  );
+  const noMatchCases = results.filter((result) => result.noMatchCase);
+  const correctNoMatchCases = noMatchCases.filter((result) => result.noMatchCorrect).length;
+  const noMatchAccuracy = noMatchCases.length ? correctNoMatchCases / noMatchCases.length : 0;
+  const exactSkuCases = results.filter((result) => result.exactSkuCase);
+  const correctExactSkuCases = exactSkuCases.filter((result) => result.exactSkuCorrect).length;
+  const exactSkuAccuracy = exactSkuCases.length ? correctExactSkuCases / exactSkuCases.length : 0;
+  const wrongExactCount = results.reduce((total, result) => total + result.wrongExactCount, 0);
+  const hallucinatedClaimCases = results.filter((result) => !result.grounded).length;
+  const degradedCases = results.filter((result) => result.degraded).length;
+  const degradedRate = results.length ? degradedCases / results.length : 1;
+  if (options.releaseGate) {
+    if (wrongExactCount > 0) {
+      releasePerformanceErrors.push(`wrong exact candidates: ${wrongExactCount}; required: 0`);
+    }
+    if (hallucinatedClaimCases > 0) {
+      releasePerformanceErrors.push(
+        `responses with hallucinated or ungrounded claims: ${hallucinatedClaimCases}; required: 0`
+      );
+    }
+    if (recallAt20 < SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20) {
+      releasePerformanceErrors.push(
+        `Recall@20 was ${recallAt20.toFixed(4)}; minimum is ${SHOP_AI_V2_RELEASE_MIN_RECALL_AT_20}`
+      );
+    }
+    for (const [category, recall] of Object.entries(recallAt20ByCategory)) {
+      if (recall === null) {
+        releasePerformanceErrors.push(
+          `category ${category} has no reviewed expected IDs, so Recall@20 cannot be measured`
+        );
+      } else if (recall < SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20) {
+        releasePerformanceErrors.push(
+          `category ${category} Recall@20 was ${recall.toFixed(4)}; minimum is ${SHOP_AI_V2_RELEASE_MIN_CATEGORY_RECALL_AT_20}`
+        );
+      }
+    }
+    if (noMatchAccuracy < SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY) {
+      releasePerformanceErrors.push(
+        `no-match accuracy was ${noMatchAccuracy.toFixed(4)}; minimum is ${SHOP_AI_V2_RELEASE_MIN_NO_MATCH_ACCURACY}`
+      );
+    }
+    if (exactSkuAccuracy < SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY) {
+      releasePerformanceErrors.push(
+        `exact-SKU accuracy was ${exactSkuAccuracy.toFixed(4)}; required is ${SHOP_AI_V2_RELEASE_MIN_EXACT_SKU_ACCURACY}`
+      );
+    }
+    if (degradedRate >= SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE) {
+      releasePerformanceErrors.push(
+        `degraded rate was ${degradedRate.toFixed(4)}; it must be below ${SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE}`
+      );
+    }
+  }
   const catalogFingerprints = new Set(
     results
       .map((result) => result.catalogFingerprint?.trim().toLowerCase())
@@ -293,6 +468,23 @@ Environment:
     releasePerformanceErrors.push(
       "Release evaluation responses did not use one stable Knowledge V2 catalog fingerprint"
     );
+  }
+  let dataReadiness: unknown = null;
+  if (options.releaseGate) {
+    try {
+      dataReadiness = await readReleaseDataReadiness();
+      const readinessValidation = validateShopAiV2DataReadinessSnapshot(
+        dataReadiness,
+        evaluatedCatalogFingerprint
+      );
+      for (const error of readinessValidation.errors) {
+        releasePerformanceErrors.push(`data readiness: ${error}`);
+      }
+    } catch (error) {
+      releasePerformanceErrors.push(
+        `data readiness endpoint failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
   console.log(`\n${results.length - failed.length}/${results.length} evals passed`);
   console.log(`P95 full turn: ${p95FullTurnMs}ms`);
@@ -309,6 +501,7 @@ Environment:
           generatedAt: new Date().toISOString(),
           expectedCommit: expectedCommit || null,
           catalogFingerprint: evaluatedCatalogFingerprint,
+          dataReadiness,
           releaseGate: releaseGateReport,
           limits: {
             maxResponseBytes: MAX_RESPONSE_BYTES,
@@ -321,6 +514,22 @@ Environment:
             failedCases: failed.length,
             p95FullTurnMs,
             performanceErrors: releasePerformanceErrors,
+            quality: {
+              expectedRetrievalCount,
+              retrievedExpectedCount,
+              recallAt20,
+              recallAt20ByCategory,
+              noMatchCases: noMatchCases.length,
+              correctNoMatchCases,
+              noMatchAccuracy,
+              exactSkuCases: exactSkuCases.length,
+              correctExactSkuCases,
+              exactSkuAccuracy,
+              wrongExactCount,
+              hallucinatedClaimCases,
+              degradedCases,
+              degradedRate,
+            },
             telemetryMetrics:
               "reported per case; active CPU, retrieval and provider-call release thresholds require approved staging baselines",
           },

@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -10,6 +12,16 @@ import {
   validateShopAiV2ReleaseEvalReport,
   verifyShopAiV2ReleaseGateMarker,
 } from "../../../src/lib/shopAiV2ReleaseActivationGuard";
+import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../../../src/lib/shopAiV2RolloutContract";
+
+test("release guard keeps config-time imports resolvable without Next aliases", () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src", "lib", "shopAiV2ReleaseActivationGuard.ts"),
+    "utf8"
+  );
+  assert.match(source, /from "\.\/shopAiV2RolloutContract"/);
+  assert.doesNotMatch(source, /from "@\/lib\/shopAiV2RolloutContract"/);
+});
 
 const COMMIT_SHA = "a".repeat(40);
 const OTHER_COMMIT_SHA = "b".repeat(40);
@@ -50,12 +62,67 @@ test("a valid signed marker is normalized, verified, and bound to its commit", (
 });
 
 function passingEvalReport() {
+  const countsByCategory = Object.fromEntries(
+    SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category, index) => [category, index === 0 ? 140 : 30])
+  );
+  const recallAt20ByCategory = Object.fromEntries(
+    SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => [category, 0.9])
+  );
   return {
     schemaVersion: 2,
     generatedAt: "2026-07-17T12:00:00.000Z",
     expectedCommit: COMMIT_SHA,
     catalogFingerprint: CATALOG_FINGERPRINT,
-    releaseGate: { passed: true },
+    dataReadiness: {
+      schemaVersion: 1,
+      checkedAt: "2026-07-17T11:59:00.000Z",
+      catalogStable: true,
+      catalogFingerprint: CATALOG_FINGERPRINT,
+      catalogRevision: "42",
+      embeddingModel: "gemini-embedding-2:search-v1",
+      knowledge: {
+        total: SHOP_AI_V2_RELEASE_MIN_CASES,
+        ready: 300,
+        needsReview: 200,
+        pending: 0,
+        processing: 0,
+        failed: 0,
+        blocked: 0,
+        nonCanonical: 0,
+      },
+      embeddings: {
+        totalChunks: 2_000,
+        currentChunks: 2_000,
+        pendingChunks: 0,
+      },
+      outbox: {
+        pending: 0,
+        processing: 0,
+        retry: 0,
+        completed: 500,
+        deadLetter: 0,
+        backlog: 0,
+      },
+      staleProcessingRuns: 0,
+      countsByCategory: { ...countsByCategory },
+      passed: true,
+      errors: [],
+    },
+    releaseGate: {
+      passed: true,
+      errors: [],
+      totalCases: SHOP_AI_V2_RELEASE_MIN_CASES,
+      enabledCategories: [...SHOP_AI_V2_ROLLOUT_CATEGORIES],
+      countsByCategory,
+      countsByLanguage: { ua: 100, en: 100, ru: 100, mixed: 100, translit: 100 },
+      hardNegativeCases: 100,
+      exactSkuCases: 25,
+      missingLanguages: [],
+      unlabeledLanguageCases: 0,
+      unreviewedCases: 0,
+      invalidExpectationContractCases: 0,
+      duplicateQueryCases: 0,
+    },
     limits: {
       maxResponseBytes: 100 * 1024,
       maxFullTurnMs: 6_000,
@@ -67,6 +134,17 @@ function passingEvalReport() {
       failedCases: 0,
       p95FullTurnMs: 2_500,
       performanceErrors: [],
+      quality: {
+        recallAt20: 0.95,
+        recallAt20ByCategory,
+        noMatchCases: 100,
+        noMatchAccuracy: 0.96,
+        exactSkuCases: 25,
+        exactSkuAccuracy: 1,
+        wrongExactCount: 0,
+        hallucinatedClaimCases: 0,
+        degradedRate: 0.005,
+      },
     },
     results: Array.from({ length: SHOP_AI_V2_RELEASE_MIN_CASES }, (_, index) => ({
       id: `case-${index}`,
@@ -77,6 +155,8 @@ function passingEvalReport() {
       catalogFingerprint: CATALOG_FINGERPRINT,
       responseBytes: 20_000,
       latencyMs: 2_000,
+      wrongExactCount: 0,
+      grounded: true,
     })),
   };
 }
@@ -86,6 +166,27 @@ test("release report validation enforces commit, V2 markers, and performance gat
     ok: true,
     errors: [],
   });
+});
+
+test("release report validation independently enforces catalog data readiness", () => {
+  const report = passingEvalReport();
+  report.dataReadiness.passed = true;
+  report.dataReadiness.knowledge.processing = 1;
+  report.dataReadiness.knowledge.ready = 299;
+  report.dataReadiness.embeddings.pendingChunks = 1;
+  report.dataReadiness.embeddings.currentChunks = 1_999;
+  report.dataReadiness.outbox.retry = 1;
+  report.dataReadiness.outbox.backlog = 1;
+  report.dataReadiness.staleProcessingRuns = 1;
+
+  const validation = validateShopAiV2ReleaseEvalReport(report, COMMIT_SHA);
+
+  assert.equal(validation.ok, false);
+  const errors = validation.errors.join("\n");
+  assert.match(errors, /PROCESSING count must be zero/);
+  assert.match(errors, /embedding backlog must be zero/);
+  assert.match(errors, /outbox backlog must be zero/);
+  assert.match(errors, /stale OneAI PROCESSING runs/);
 });
 
 test("release report validation rejects legacy, mismatched, slow, or oversized results", () => {
@@ -126,6 +227,52 @@ test("release report validation rejects legacy, mismatched, slow, or oversized r
     validation.errors.some((error) => error.includes("full-turn")),
     true
   );
+});
+
+test("release report validation rejects quality regressions", () => {
+  const report = passingEvalReport();
+  report.summary.quality.recallAt20 = 0.89;
+  report.summary.quality.recallAt20ByCategory.exhaust = 0.84;
+  report.summary.quality.noMatchAccuracy = 0.94;
+  report.summary.quality.exactSkuAccuracy = 0.99;
+  report.summary.quality.wrongExactCount = 1;
+  report.summary.quality.hallucinatedClaimCases = 1;
+  report.summary.quality.degradedRate = 0.01;
+  report.results[0] = {
+    ...report.results[0],
+    wrongExactCount: 1,
+    grounded: false,
+  };
+
+  const validation = validateShopAiV2ReleaseEvalReport(report, COMMIT_SHA);
+  assert.equal(validation.ok, false);
+  const errors = validation.errors.join("\n");
+  assert.match(errors, /Recall@20/);
+  assert.match(errors, /no-match accuracy/);
+  assert.match(errors, /exact-SKU accuracy/);
+  assert.match(errors, /wrong exact/);
+  assert.match(errors, /ungrounded/);
+  assert.match(errors, /degraded rate/);
+});
+
+test("release report validation independently rejects an incomplete or padded corpus", () => {
+  const report = passingEvalReport();
+  report.releaseGate.enabledCategories = ["exhaust"];
+  report.releaseGate.countsByCategory.exhaust = SHOP_AI_V2_RELEASE_MIN_CASES;
+  report.releaseGate.countsByCategory.brakes = 29;
+  report.releaseGate.hardNegativeCases = 99;
+  report.releaseGate.countsByLanguage.translit = 0;
+  report.releaseGate.unreviewedCases = 1;
+
+  const validation = validateShopAiV2ReleaseEvalReport(report, COMMIT_SHA);
+
+  assert.equal(validation.ok, false);
+  const errors = validation.errors.join("\n");
+  assert.match(errors, /all 13 canonical categories/);
+  assert.match(errors, /100 hard-negative/);
+  assert.match(errors, /translit language coverage/);
+  assert.match(errors, /unreviewed cases/);
+  assert.match(errors, /category brakes/);
 });
 
 test("marker verification rejects tampered payloads and signatures", () => {
@@ -170,26 +317,29 @@ test("non-production and inactive production deployments do not require a marker
   assert.equal(inactiveProduction.guardRequired, false);
 });
 
-test("production serving and shadow activation both fail closed without a marker", () => {
-  for (const flags of [
-    { v2Enabled: "true", v2ShadowEnabled: "0" },
-    { v2Enabled: "0", v2ShadowEnabled: "1" },
-  ]) {
-    const result = evaluateShopAiV2ReleaseActivationGuard({
-      deploymentEnvironment: "production",
-      deployedCommitSha: COMMIT_SHA,
-      releaseGateSigningSecret: SIGNING_SECRET,
-      catalogFingerprint: CATALOG_FINGERPRINT,
-      ...flags,
-    });
+test("production serving fails closed without a marker while internal shadow remains available", () => {
+  const served = evaluateShopAiV2ReleaseActivationGuard({
+    deploymentEnvironment: "production",
+    deployedCommitSha: COMMIT_SHA,
+    releaseGateSigningSecret: SIGNING_SECRET,
+    catalogFingerprint: CATALOG_FINGERPRINT,
+    v2Enabled: "true",
+  });
+  const shadow = evaluateShopAiV2ReleaseActivationGuard({
+    deploymentEnvironment: "production",
+    v2Enabled: "0",
+    v2ShadowEnabled: "1",
+  });
 
-    assert.equal(result.ok, false);
-    assert.equal(result.guardRequired, true);
-    assert.equal(
-      result.failures.some((failure) => failure.code === "release-gate-marker-missing"),
-      true
-    );
-  }
+  assert.equal(served.ok, false);
+  assert.equal(served.guardRequired, true);
+  assert.equal(
+    served.failures.some((failure) => failure.code === "release-gate-marker-missing"),
+    true
+  );
+  assert.equal(shadow.ok, true);
+  assert.equal(shadow.activationRequested, true);
+  assert.equal(shadow.guardRequired, false);
 });
 
 test("production activation passes only for a valid marker on the deployed commit", () => {
@@ -235,7 +385,7 @@ test("production activation rejects invalid commit identity and weak signing mat
     releaseGateMarker: markerForCommit(),
     releaseGateSigningSecret: "too-short",
     catalogFingerprint: CATALOG_FINGERPRINT,
-    v2ShadowEnabled: "true",
+    v2Enabled: "true",
   });
   const codes = result.failures.map((failure) => failure.code);
 

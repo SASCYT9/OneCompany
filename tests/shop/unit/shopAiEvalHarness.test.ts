@@ -10,6 +10,8 @@ import {
   evaluateShopAiResponse,
   SHOP_AI_RELEASE_GATE_MIN_CASES,
   SHOP_AI_RELEASE_GATE_MIN_CASES_PER_CATEGORY,
+  SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES,
+  SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES,
   type ShopAiEvalCase,
   validateShopAiEvalCases,
   validateShopAiReleaseGateConfig,
@@ -42,6 +44,7 @@ function reviewedReleaseCase(
       reviewer: "one-ai-catalog-reviewer",
       reviewedAt: "2026-07-17T08:00:00Z",
       reviewEvidenceId: `ONEAI-EVAL:${id}`,
+      hardNegative: { dimensions: ["semantic"] },
     },
     expect: {
       ...testCase.expect,
@@ -212,15 +215,76 @@ test("response identity assertions pass for a reviewed exact result set", () => 
   assert.deepEqual(errors, []);
 });
 
+test("response evaluation rejects unsafe tiering and ungrounded product claims", () => {
+  const testCase: ShopAiEvalCase = {
+    ...evalCase("unsafe-response"),
+    expect: { category: "exhaust", mode: "results", needsClarification: false },
+  };
+  const response = responseWithProducts(testCase, [
+    { id: "reviewable-product", variantId: null },
+    { id: "exact-product", variantId: null },
+  ]);
+  response.message = "The recommended SKU is INVENTED-SKU-999.";
+  response.counts = { exact: 2, requiresVerification: 0 };
+  response.products[0] = {
+    ...response.products[0],
+    matchStatus: "requires_verification",
+    compatibility: "confirmed",
+    missingFacts: ["engine"],
+  };
+  response.products[1] = {
+    ...response.products[1],
+    matchStatus: "exact",
+    matchBasis: "fitment",
+    compatibility: "confirmed",
+    missingFacts: ["year"],
+  };
+
+  const errors = evaluateShopAiResponse(testCase, response);
+  assert.match(errors.join("\n"), /ungrounded/);
+  assert.match(errors.join("\n"), /ordered before/);
+  assert.match(errors.join("\n"), /missing fitment facts/);
+  assert.match(errors.join("\n"), /claims confirmed compatibility/);
+  assert.match(errors.join("\n"), /counts\.exact/);
+});
+
+test("exact-SKU eval requires one identity match without a fitment claim", () => {
+  const testCase: ShopAiEvalCase = {
+    ...evalCase("exact-sku-response"),
+    metadata: { language: "en", tags: ["exact-sku"] },
+    expect: {
+      category: "exhaust",
+      mode: "results",
+      needsClarification: false,
+      expectedProductIds: ["sku-product"],
+    },
+  };
+  const response = responseWithProducts(testCase, [{ id: "sku-product", variantId: null }]);
+  response.message = "Exact SKU sku-product identified; vehicle fitment has not been evaluated.";
+  response.products[0] = {
+    ...response.products[0],
+    matchStatus: "exact",
+    matchBasis: "identity",
+    compatibility: undefined,
+    missingFacts: [],
+  };
+
+  assert.deepEqual(evaluateShopAiResponse(testCase, response), []);
+});
+
 test("release gate passes only when the real corpus meets total and per-category floors", () => {
   const categories = ["exhaust", "brakes"];
   const cases = Array.from({ length: SHOP_AI_RELEASE_GATE_MIN_CASES }, (_, index) =>
     reviewedReleaseCase(
       `case-${index}`,
       categories[index % categories.length],
-      index % 2 ? "en" : "ua"
+      (["ua", "en", "ru", "mixed", "translit"] as const)[index % 5]
     )
   );
+  cases[0] = {
+    ...cases[0],
+    metadata: { ...cases[0].metadata!, tags: ["exact-sku"] },
+  };
   const report = evaluateShopAiReleaseGate(cases, { enabledCategories: categories });
   assert.equal(report.passed, true);
   assert.equal(report.totalCases, SHOP_AI_RELEASE_GATE_MIN_CASES);
@@ -229,7 +293,15 @@ test("release gate passes only when the real corpus meets total and per-category
     true
   );
   assert.equal(report.countsByCategory.brakes >= SHOP_AI_RELEASE_GATE_MIN_CASES_PER_CATEGORY, true);
-  assert.deepEqual(report.countsByLanguage, { ua: 250, en: 250 });
+  assert.deepEqual(report.countsByLanguage, {
+    ua: 100,
+    en: 100,
+    ru: 100,
+    mixed: 100,
+    translit: 100,
+  });
+  assert.equal(report.hardNegativeCases >= SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES, true);
+  assert.equal(report.exactSkuCases >= SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES, true);
 });
 
 test("release gate reports corpus, category and language-metadata deficits without padding", () => {
@@ -252,8 +324,16 @@ test("release gate reports corpus, category and language-metadata deficits witho
 
 test("release gate requires human review and explicit answer contracts", () => {
   const cases = Array.from({ length: SHOP_AI_RELEASE_GATE_MIN_CASES }, (_, index) =>
-    reviewedReleaseCase(`case-${index}`)
+    reviewedReleaseCase(
+      `case-${index}`,
+      "exhaust",
+      (["ua", "en", "ru", "mixed", "translit"] as const)[index % 5]
+    )
   );
+  cases[2] = {
+    ...cases[2],
+    metadata: { ...cases[2].metadata!, tags: ["exact-sku"] },
+  };
   cases[0] = {
     ...cases[0],
     metadata: {
@@ -290,7 +370,11 @@ test("release gate requires human review and explicit answer contracts", () => {
 
 test("release gate accepts explicit no-match and clarification contracts", () => {
   const cases = Array.from({ length: SHOP_AI_RELEASE_GATE_MIN_CASES }, (_, index) =>
-    reviewedReleaseCase(`case-${index}`)
+    reviewedReleaseCase(
+      `case-${index}`,
+      "exhaust",
+      (["ua", "en", "ru", "mixed", "translit"] as const)[index % 5]
+    )
   );
   cases[0] = {
     ...cases[0],
@@ -307,6 +391,10 @@ test("release gate accepts explicit no-match and clarification contracts", () =>
       mode: "clarification",
       needsClarification: true,
     },
+  };
+  cases[2] = {
+    ...cases[2],
+    metadata: { ...cases[2].metadata!, tags: ["exact-sku"] },
   };
 
   const report = evaluateShopAiReleaseGate(cases, { enabledCategories: ["exhaust"] });

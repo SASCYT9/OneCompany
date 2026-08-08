@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   getShopAiRetentionCutoffs,
+  SHOP_AI_ABANDONED_RUN_AFTER_MINUTES,
   SHOP_AI_AGGREGATE_RETENTION_MONTHS,
   SHOP_AI_DETAILED_TRACE_RETENTION_DAYS,
 } from "../../../src/lib/shopAiRetention";
@@ -13,7 +14,9 @@ test("One AI retention keeps detailed traces for 30 days and aggregates for 12 m
 
   assert.equal(SHOP_AI_DETAILED_TRACE_RETENTION_DAYS, 30);
   assert.equal(SHOP_AI_AGGREGATE_RETENTION_MONTHS, 12);
+  assert.equal(SHOP_AI_ABANDONED_RUN_AFTER_MINUTES, 5);
   assert.equal(cutoffs.detailedTraceBefore.toISOString(), "2026-06-17T12:00:00.000Z");
   assert.equal(cutoffs.aggregateBefore.toISOString(), "2025-07-17T12:00:00.000Z");
   assert.equal(cutoffs.expiredConversationBefore.toISOString(), now.toISOString());
+  assert.equal(cutoffs.abandonedRunBefore.toISOString(), "2026-07-17T11:55:00.000Z");
 });

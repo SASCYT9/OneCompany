@@ -7,13 +7,13 @@ import {
   decideShopAiV2Pipeline,
 } from "../../../src/lib/shopAiV2PipelineDecision";
 
-test("unknown category stays legacy unless a canonical exact SKU matched", () => {
+test("unknown category stays legacy unless a safe exact SKU lookup was requested", () => {
   assert.deepEqual(
     decideShopAiV2Pipeline({
       evalRequiresV2: false,
       categorySupported: false,
       categoryRolloutEnabled: false,
-      exactSkuMatched: false,
+      exactSkuRequested: false,
     }),
     {
       evalRejected: false,
@@ -28,7 +28,7 @@ test("unknown category stays legacy unless a canonical exact SKU matched", () =>
       evalRequiresV2: false,
       categorySupported: false,
       categoryRolloutEnabled: false,
-      exactSkuMatched: true,
+      exactSkuRequested: true,
     }).source,
     "exact-sku-baseline"
   );
@@ -39,7 +39,7 @@ test("protected eval rejects a request that cannot prove a V2 path", () => {
     evalRequiresV2: true,
     categorySupported: false,
     categoryRolloutEnabled: false,
-    exactSkuMatched: false,
+    exactSkuRequested: false,
   });
   assert.equal(rejected.evalRejected, true);
   assert.equal(rejected.serveV2, false);
@@ -50,7 +50,7 @@ test("protected eval forces supported category V2 without changing public rollou
     evalRequiresV2: true,
     categorySupported: true,
     categoryRolloutEnabled: false,
-    exactSkuMatched: false,
+    exactSkuRequested: false,
   });
   assert.equal(decision.forcedForEval, true);
   assert.equal(decision.serveV2, true);

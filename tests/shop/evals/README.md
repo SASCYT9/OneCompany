@@ -38,8 +38,11 @@ The release gate validates the corpus before sending requests. It requires:
 
 - at least 500 committed cases;
 - at least 30 cases for every category listed in `stock-ai-release-gate.json`;
+- all five query forms: UA, EN, RU, mixed-language, and transliterated;
+- at least 100 explicitly reviewed hard-negative cases;
+- at least one exact-SKU identity case tagged with `"exact-sku"`;
 - no duplicate normalized locale/query pairs used as corpus padding;
-- explicit `metadata.language` on every case.
+- explicit `metadata.language` on every case;
 - explicit human-review metadata on every case: `metadata.reviewer`, a UTC ISO-8601
   `metadata.reviewedAt`, and `metadata.reviewEvidenceId` pointing to the audit record, ticket,
   or other durable review source;
@@ -52,6 +55,35 @@ The release gate validates the corpus before sending requests. It requires:
 Until the real reviewed corpus reaches those thresholds, the release command is expected to
 fail. The eight development cases therefore pass fixture validation but honestly fail the
 release gate. Do not copy or synthesize cases to make the count pass.
+
+Audit database readiness independently at any time:
+
+```bash
+npm run shop:ai:readiness
+npm run shop:ai:readiness -- --require-ready
+```
+
+The strict form exits non-zero until every current Knowledge V2 revision is `READY` or
+`NEEDS_REVIEW`, all current chunks use `gemini-embedding-2:search-v1`, embedding and outbox
+backlogs plus `DEAD_LETTER` are zero, all records belong to the 13 canonical categories, and
+abandoned `PROCESSING` OneAI runs are finalized.
+
+Generate a 500-item, category/language-balanced review queue from real catalog IDs:
+
+```bash
+npm run shop:ai:eval:review-queue
+```
+
+The generated file is written under ignored `artifacts/one-ai/` and every item remains
+`pending`; suggestions are not golden expectations. A reviewer must inspect the query, edit the
+expected and forbidden IDs, set `status` to `approved`, and provide `reviewer`, `reviewedAt`, and
+`reviewEvidenceId`. The compiler is dry-run by default and refuses to write the golden fixture
+unless all 500 approved cases pass the unchanged corpus gate:
+
+```bash
+npm run shop:ai:eval:compile
+npm run shop:ai:eval:compile -- --commit
+```
 
 An alternate corpus or category manifest can be selected explicitly:
 
@@ -87,6 +119,11 @@ a `forbidden*` field must be absent.
 These assertions complement the existing vehicle, category, product-kind, OPF/GPF and
 forbidden-chassis checks. Do not put placeholder IDs in golden fixtures.
 
+For release cases, `expectedProductIds` and `expectedVariantIds` are also the exhaustive
+allowlist for `exact` candidates in the protected top-20 retrieval diagnostics. Additional
+`requires_verification` candidates may be returned, but an exact candidate outside that reviewed
+allowlist fails the run as a wrong exact.
+
 ## Language and hard-negative metadata
 
 `metadata.language` describes the language form of the actual query, independently of the
@@ -111,6 +148,12 @@ Supported dimensions are `brand`, `category`, `vehicle`, `model`, `chassis`, `ye
 `engine`, `market`, `opfGpf`, `productKind`, `product`, `variant`, and `semantic`.
 The metadata is reported by the release gate and stays reviewable in Git.
 
+The live release report enforces zero wrong exact candidates, zero ungrounded customer-facing
+claims, Recall@20 of at least 0.90 overall and 0.85 per category, no-match accuracy of at least
+0.95, exact-SKU accuracy of 1.00, degraded rate below 0.01, P95 at most three seconds, every turn
+at most six seconds, and every response at most 100 KB. Top-20 candidate identities are returned
+only on authenticated protected-eval requests and are never exposed to public assistant traffic.
+
 ## Protected release workflow
 
 `.github/workflows/shop-ai-v2-release-eval.yml` is manual-only and must use the protected
@@ -118,12 +161,20 @@ The metadata is reported by the release gate and stays reviewable in Git.
 staging commit, writes the JSON eval report, and creates an HMAC-signed marker bound to the
 commit, corpus/config hash, and report hash. It does not deploy or promote anything.
 
-Production `SHOP_AI_V2_ENABLED` or `SHOP_AI_V2_SHADOW` activation fails closed unless
-`SHOP_AI_V2_RELEASE_GATE_MARKER` verifies with
-`SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET` and matches `VERCEL_GIT_COMMIT_SHA`.
+The release eval calls the token-protected staging readiness endpoint after all corpus cases.
+The readiness snapshot must have the same catalog fingerprint as every evaluated turn. Marker
+creation independently recomputes the readiness contract from the persisted report, so a stale,
+partial, or merely self-declared `passed` snapshot cannot authorize production traffic.
 
-Public rollout stages are restricted to `0`, `10`, `50`, and `100` percent. Shadow and the
-protected eval are the internal-canary stages. The separate exact-SKU baseline requires
+Production shadow is the pre-marker internal stage and never serves V2 cards. Public
+`SHOP_AI_V2_ENABLED` activation fails closed unless `SHOP_AI_V2_RELEASE_GATE_MARKER` verifies
+with `SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET` and matches `VERCEL_GIT_COMMIT_SHA`.
+
+Non-production environments may use `0`, `10`, `50`, and `100` percent for internal validation.
+Production serving is one-shot: `SHOP_AI_MODEL=gemini-3.5-flash-lite`, all 13 canonical
+categories must be configured at `100`, and exact-SKU must be enabled in the same release.
+Shadow and the protected eval are the
+internal-canary stages. The exact-SKU baseline requires
 `SHOP_AI_V2_EXACT_SKU_ENABLED=1`, a canonical SKU match, and no vehicle constraints; it never
 turns a null category into `merch` and does not claim vehicle compatibility.
 
