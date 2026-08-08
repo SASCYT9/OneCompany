@@ -72,7 +72,8 @@ const GOAL_SIGNALS: Array<{ goal: ShopAiGoal; pattern: RegExp }> = [
   },
   {
     goal: "sound",
-    pattern: /(?:\b(?:sound|louder|tone|zvuk)\b|звук|гучн|громч|вихлоп\s+щоб\s+чути)/iu,
+    pattern:
+      /(?:\b(?:sound|louder|tone|zvuk|zvuch\w*)\b|звук|звуч|саунд|гучн|громч|вихлоп\s+щоб\s+чути)/iu,
   },
   {
     goal: "handling",
@@ -422,16 +423,19 @@ export function normalizeShopAiPlan(
   const rawCategory = String(source.category ?? "").trim() as ShopStockCategoryGroupId;
   const contextCategory = String(context.category ?? "").trim() as ShopStockCategoryGroupId;
   const inferredCategory = inferCategory(message);
-  const requestedGoal = inferShopAiGoal(message, null, source.goal);
+  const messageGoal = inferShopAiGoal(message, null);
+  const requestedGoal = messageGoal ?? cleanGoal(source.goal);
   const category = inferredCategory
     ? inferredCategory
-    : CATEGORY_IDS.has(rawCategory)
-      ? rawCategory
-      : CATEGORY_IDS.has(contextCategory)
-        ? contextCategory
-        : requestedGoal
-          ? GOAL_CATEGORIES[requestedGoal]
-          : null;
+    : messageGoal
+      ? GOAL_CATEGORIES[messageGoal]
+      : CATEGORY_IDS.has(rawCategory)
+        ? rawCategory
+        : CATEGORY_IDS.has(contextCategory)
+          ? contextCategory
+          : requestedGoal
+            ? GOAL_CATEGORIES[requestedGoal]
+            : null;
   const requestedIntent = String(source.intent ?? "recommend");
   const intent = inferIntent(message, requestedIntent);
   const opfGpf = inferOpfGpf(message) ?? cleanOpfGpf(source.opfGpf) ?? cleanOpfGpf(context.opfGpf);

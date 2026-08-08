@@ -37,6 +37,30 @@ test("planner maps a natural sales goal deterministically", () => {
   assert.equal(handling.category, "suspension");
 });
 
+test("an explicit sound goal overrides a stale appearance category", () => {
+  const queries = [
+    "Що краще змінити для більш спортивного звуку?",
+    "Что изменить для более спортивного звучания?",
+  ];
+
+  for (const message of queries) {
+    const fallback = buildFallbackShopAiPlan(message, {
+      ...context,
+      category: "carbonAero",
+    });
+    const providerPlan = normalizeShopAiPlan(
+      { goal: "appearance", category: "carbonAero", vehicle: {} },
+      message,
+      { ...context, category: "carbonAero" }
+    );
+
+    assert.equal(fallback.goal, "sound");
+    assert.equal(fallback.category, "exhaust");
+    assert.equal(providerPlan.goal, "sound");
+    assert.equal(providerPlan.category, "exhaust");
+  }
+});
+
 test("planner asks for the goal before the vehicle on an open request", () => {
   const plan = buildFallbackShopAiPlan("Порадь щось для тюнінгу", context);
 
