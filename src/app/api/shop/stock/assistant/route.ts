@@ -871,16 +871,17 @@ export async function POST(request: NextRequest) {
         : responseDegraded
           ? buildTechnicalDegradedMessage(planningContext.locale)
           : buildShopAiNoExactMatchMessage(planningContext.locale, planned.plan));
-    const responseMessage =
-      products.length === 0
-        ? proposedResponseMessage
-        : validateGroundedShopAiOutput(proposedResponseMessage, products, {
-              currency: planningContext.currency,
-            })
-          ? proposedResponseMessage
-          : planningContext.locale === "ua"
-            ? "Знайшов релевантні товари. Статус сумісності та відсутні підтвердження вказані в кожній картці."
-            : "I found relevant products. Each card shows its fitment status and any missing verification.";
+    const responseMessage = validateGroundedShopAiOutput(proposedResponseMessage, products, {
+      currency: planningContext.currency,
+    })
+      ? proposedResponseMessage
+      : products.length === 0
+        ? planningContext.locale === "ua"
+          ? "У каталозі немає товару, який безпечно відповідає всім умовам запиту. Менеджер може перевірити запит вручну."
+          : "No catalog product safely matches all requested conditions. A manager can review the request manually."
+        : planningContext.locale === "ua"
+          ? "Знайшов релевантні товари. Статус сумісності та відсутні підтвердження вказані в кожній картці."
+          : "I found relevant products. Each card shows its fitment status and any missing verification.";
     const catalogHref =
       totalItems > 0 ? buildStorefrontSearchHref(planningContext, planned.plan) : null;
 

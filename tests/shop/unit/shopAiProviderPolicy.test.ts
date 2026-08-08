@@ -10,6 +10,7 @@ import {
   SHOP_AI_QUERY_EMBEDDING_TIMEOUT_MS,
   SHOP_AI_SERVER_TURN_DEADLINE_MS,
   classifyShopAiProviderError,
+  resolveShopAiProviderApiKey,
   shouldOpenShopAiProviderCircuit,
 } from "../../../src/lib/shopAiProviderPolicy";
 
@@ -33,6 +34,26 @@ test("Gemini planner is schema-bound and does not send deprecated sampling param
   assert.match(source, /httpOptions:\s*\{\s*timeout:\s*SHOP_AI_PLANNER_TIMEOUT_MS\s*\}/);
   assert.doesNotMatch(source, /\btemperature\s*:/);
   assert.doesNotMatch(source, /\btop[PK]\s*:/);
+});
+
+test("provider keys prefer dedicated planner and embedding credentials over legacy Gemini", () => {
+  assert.equal(
+    resolveShopAiProviderApiKey({
+      SHOP_AI_API_KEY: " planner-key ",
+      SHOP_AI_EMBEDDING_API_KEY: "embedding-key",
+      GEMINI_API_KEY: "legacy-key",
+    }),
+    "planner-key"
+  );
+  assert.equal(
+    resolveShopAiProviderApiKey({
+      SHOP_AI_EMBEDDING_API_KEY: " embedding-key ",
+      GEMINI_API_KEY: "leaked-legacy-key",
+    }),
+    "embedding-key"
+  );
+  assert.equal(resolveShopAiProviderApiKey({ GEMINI_API_KEY: " legacy-key " }), "legacy-key");
+  assert.equal(resolveShopAiProviderApiKey({}), null);
 });
 
 test("provider failures map to stable internal classes", () => {

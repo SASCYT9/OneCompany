@@ -278,6 +278,15 @@ export type KnowledgeIndexCommit = {
   indexedAt: Date;
 };
 
+export type KnowledgeIndexExclusionReason = "category_other" | "catalog_ineligible";
+
+export type KnowledgeIndexExclusion = {
+  build: ShopKnowledgeBuild;
+  previous: KnowledgeCurrentRecord | null;
+  indexedAt: Date;
+  reason: KnowledgeIndexExclusionReason;
+};
+
 export type KnowledgeIndexOutcome = {
   productId: string;
   mode: "dry-run" | "commit";

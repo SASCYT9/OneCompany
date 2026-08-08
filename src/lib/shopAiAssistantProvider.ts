@@ -14,6 +14,7 @@ import {
   SHOP_AI_DEFAULT_MODEL,
   SHOP_AI_PLANNER_TIMEOUT_MS,
   classifyShopAiProviderError,
+  resolveShopAiProviderApiKey,
   shouldOpenShopAiProviderCircuit,
   type ShopAiProviderErrorKind,
 } from "@/lib/shopAiProviderPolicy";
@@ -29,7 +30,7 @@ const MODEL = process.env.SHOP_AI_MODEL?.trim() || SHOP_AI_DEFAULT_MODEL;
 let providerCircuitOpen = false;
 
 function getClient() {
-  const apiKey = (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  const apiKey = resolveShopAiProviderApiKey();
   return apiKey && !providerCircuitOpen ? new GoogleGenAI({ apiKey, apiVersion: "v1beta" }) : null;
 }
 

@@ -6,7 +6,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { shouldUseShopAiSemanticReranking } from "@/lib/shopAiSemanticIntent";
 import type { ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
-import { SHOP_AI_QUERY_EMBEDDING_TIMEOUT_MS } from "@/lib/shopAiProviderPolicy";
+import {
+  SHOP_AI_QUERY_EMBEDDING_TIMEOUT_MS,
+  resolveShopAiProviderApiKey,
+} from "@/lib/shopAiProviderPolicy";
 import {
   SHOP_KNOWLEDGE_CHUNK_EMBEDDING_PROVIDER_MODEL,
   buildShopKnowledgeEmbeddingTaskConfig,
@@ -44,7 +47,7 @@ function buildSemanticQuery(message: string, plan: ShopAiPlan) {
 }
 
 async function embedQuery(text: string) {
-  const apiKey = (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  const apiKey = resolveShopAiProviderApiKey();
   if (!apiKey) return null;
   const client = new GoogleGenAI({ apiKey, apiVersion: "v1beta" });
   const response = await client.models.embedContent({
@@ -76,9 +79,7 @@ export async function rerankShopAiProductsSemantically(input: {
   ) {
     return { products: input.products, usedEmbedding: false };
   }
-  const hasProviderKey = Boolean(
-    (process.env.SHOP_AI_API_KEY || process.env.GEMINI_API_KEY)?.trim()
-  );
+  const hasProviderKey = Boolean(resolveShopAiProviderApiKey());
   if (!hasProviderKey) return { products: input.products, usedEmbedding: false };
   try {
     const embedding = await embedQuery(buildSemanticQuery(input.message, input.plan));

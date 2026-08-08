@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { bumpShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogState";
 import {
   SHOP_KNOWLEDGE_CHUNK_EMBEDDING_MODEL,
   resolveShopKnowledgeEmbeddingStorageModel,
@@ -26,6 +27,11 @@ import type {
   ShopKnowledgeV2Repository,
 } from "@/lib/shopKnowledgeV2/indexer";
 import {
+  SHOP_KNOWLEDGE_V2_CATALOG_INELIGIBLE_QUARANTINE_REASON,
+  SHOP_KNOWLEDGE_V2_OTHER_QUARANTINE_REASON,
+  SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION,
+} from "@/lib/shopKnowledgeV2/quarantineContract";
+import {
   mapShopKnowledgeSourceProduct,
   shopKnowledgeSourceSelect,
 } from "@/lib/shopKnowledgeV2/source";
@@ -35,6 +41,7 @@ import {
   type KnowledgeConfidence,
   type KnowledgeEvidenceSource,
   type KnowledgeIndexCommit,
+  type KnowledgeIndexExclusion,
   type ShopProductAttributeDraft,
 } from "@/lib/shopKnowledgeV2/types";
 
@@ -127,6 +134,209 @@ function numericAttribute(attributes: ShopProductAttributeDraft[], key: string):
 function stringAttribute(attributes: ShopProductAttributeDraft[], key: string): string | null {
   const value = attributes.find((attribute) => attribute.key === key)?.value;
   return typeof value === "string" ? value : null;
+}
+
+async function excludeKnowledgeBuild(tx: Prisma.TransactionClient, input: KnowledgeIndexExclusion) {
+  const { build, previous, indexedAt, reason } = input;
+  const [sourceClock] = await tx.$queryRaw<Array<{ sourceUpdatedAt: Date }>>`
+    SELECT GREATEST(
+      product."updatedAt",
+      COALESCE((SELECT MAX(variant."updatedAt") FROM "ShopProductVariant" variant WHERE variant."productId" = product."id"), product."updatedAt"),
+      COALESCE((SELECT MAX(option."updatedAt") FROM "ShopProductOption" option WHERE option."productId" = product."id"), product."updatedAt"),
+      COALESCE((SELECT MAX(metafield."updatedAt") FROM "ShopProductMetafield" metafield WHERE metafield."productId" = product."id"), product."updatedAt"),
+      COALESCE((
+        SELECT MAX(application."updatedAt")
+        FROM "ShopVehicleApplication" application
+        WHERE application."productId" = product."id"
+          AND application."isActive" = true
+          AND application."source" = 'MANAGER'
+      ), product."updatedAt"),
+      COALESCE((
+        SELECT MAX(evidence."updatedAt")
+        FROM "ShopKnowledgeEvidence" evidence
+        WHERE evidence."productId" = product."id"
+          AND evidence."isActive" = true
+          AND evidence."source" = 'MANAGER'
+      ), product."updatedAt")
+    ) AS "sourceUpdatedAt"
+    FROM "ShopProduct" product
+    WHERE product."id" = ${build.productId}
+    FOR UPDATE OF product
+  `;
+  if (!sourceClock || sourceClock.sourceUpdatedAt.getTime() !== build.sourceUpdatedAt.getTime()) {
+    throw new StaleKnowledgeCommitError(build.productId);
+  }
+
+  const knowledge = await tx.shopProductKnowledge.findUnique({
+    where: { productId: build.productId },
+    select: {
+      id: true,
+      revision: true,
+      activeRevision: true,
+      schemaVersion: true,
+      qualityFlags: true,
+    },
+  });
+  if (
+    (previous === null && knowledge !== null) ||
+    (previous !== null && knowledge?.revision !== previous.revision)
+  ) {
+    throw new StaleKnowledgeCommitError(build.productId);
+  }
+  if (!knowledge) return;
+
+  if (
+    knowledge.schemaVersion === SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION &&
+    knowledge.activeRevision === 0
+  ) {
+    await tx.shopProductKnowledge.update({
+      where: { id: knowledge.id },
+      data: { sourceUpdatedAt: build.sourceUpdatedAt, indexedAt },
+    });
+    return;
+  }
+
+  await Promise.all([
+    tx.shopKnowledgeChunk.updateMany({
+      where: { knowledgeId: knowledge.id, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopVehicleApplication.updateMany({
+      where: {
+        knowledgeId: knowledge.id,
+        isActive: true,
+        ...(reason === "catalog_ineligible"
+          ? { source: { not: ShopKnowledgeSource.MANAGER } }
+          : {}),
+      },
+      data: { isActive: false },
+    }),
+    tx.shopVariantKnowledge.updateMany({
+      where: { knowledgeId: knowledge.id, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopProductAttributeValue.updateMany({
+      where: { knowledgeId: knowledge.id, isActive: true },
+      data: { isActive: false },
+    }),
+    tx.shopKnowledgeEvidence.updateMany({
+      where: {
+        knowledgeId: knowledge.id,
+        isActive: true,
+        ...(reason === "catalog_ineligible"
+          ? { source: { not: ShopKnowledgeSource.MANAGER } }
+          : {}),
+      },
+      data: { isActive: false },
+    }),
+  ]);
+
+  const quarantineReason =
+    reason === "category_other"
+      ? SHOP_KNOWLEDGE_V2_OTHER_QUARANTINE_REASON
+      : SHOP_KNOWLEDGE_V2_CATALOG_INELIGIBLE_QUARANTINE_REASON;
+  const quarantineFlags =
+    reason === "category_other"
+      ? ["category_other", "excluded_from_v2:category_other"]
+      : ["excluded_from_v2:catalog_ineligible"];
+
+  await tx.shopKnowledgeRevision.update({
+    where: {
+      knowledgeId_revision: {
+        knowledgeId: knowledge.id,
+        revision: knowledge.revision,
+      },
+    },
+    data: {
+      schemaVersion: SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION,
+      status: ShopKnowledgeStatus.BLOCKED,
+      reason: quarantineReason,
+      activatedAt: null,
+    },
+  });
+  await Promise.all([
+    tx.shopVariantKnowledge.updateMany({
+      where: { knowledgeId: knowledge.id, revision: knowledge.revision },
+      data: {
+        schemaVersion: SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION,
+        status: ShopKnowledgeStatus.BLOCKED,
+        isActive: false,
+        readyAt: null,
+      },
+    }),
+    tx.shopVehicleApplication.updateMany({
+      where: {
+        knowledgeId: knowledge.id,
+        revision: knowledge.revision,
+        ...(reason === "catalog_ineligible"
+          ? { source: { not: ShopKnowledgeSource.MANAGER } }
+          : {}),
+      },
+      data: {
+        verificationStatus: ShopKnowledgeVerificationStatus.BLOCKED,
+        isActive: false,
+      },
+    }),
+    tx.shopProductAttributeValue.updateMany({
+      where: { knowledgeId: knowledge.id, revision: knowledge.revision },
+      data: {
+        verificationStatus: ShopKnowledgeVerificationStatus.BLOCKED,
+        isActive: false,
+      },
+    }),
+    tx.shopKnowledgeReviewTask.updateMany({
+      where: {
+        knowledgeId: knowledge.id,
+        taskType: "INDEX_QUALITY",
+        status: { in: ["OPEN", "IN_REVIEW"] },
+      },
+      data: {
+        status: "RESOLVED",
+        resolvedAt: indexedAt,
+        resolution: jsonValue({ type: "excluded_from_v2", reason }),
+      },
+    }),
+  ]);
+  await tx.shopProductKnowledge.update({
+    where: { id: knowledge.id },
+    data: {
+      schemaVersion: SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION,
+      activeRevision: 0,
+      status: ShopKnowledgeStatus.BLOCKED,
+      completenessScore: 0,
+      qualityFlags: Array.from(new Set([...knowledge.qualityFlags, ...quarantineFlags])).sort(),
+      sourceUpdatedAt: build.sourceUpdatedAt,
+      statusChangedAt: indexedAt,
+      readyAt: null,
+      failedAt: null,
+      failureReason: quarantineReason,
+      vehicleType: "unknown",
+      makes: [],
+      models: [],
+      chassisCodes: [],
+      yearRanges: jsonValue([]),
+      engines: [],
+      bodyStyles: [],
+      markets: [],
+      powerGainHp: null,
+      torqueGainNm: null,
+      material: null,
+      opfGpf: null,
+      installationType: null,
+      fitmentStatus: "needs_review",
+      fitmentSource: "automatic",
+      applications: jsonValue([]),
+      facts: jsonValue({}),
+      embeddingModel: null,
+      indexedAt,
+    },
+  });
+  await tx.$executeRaw`
+    UPDATE "ShopProductKnowledge"
+    SET "embedding" = NULL
+    WHERE "id" = ${knowledge.id}
+  `;
+  await bumpShopKnowledgeCatalogState(tx, indexedAt);
 }
 
 async function persistKnowledgeBuild(tx: Prisma.TransactionClient, input: KnowledgeIndexCommit) {
@@ -849,6 +1059,14 @@ class PrismaShopKnowledgeV2Repository implements ShopKnowledgeV2Repository {
         sourceUpdatedAt,
         indexedAt: checkedAt,
       },
+    });
+  }
+
+  async excludeKnowledgeIndex(input: KnowledgeIndexExclusion) {
+    await this.client.$transaction((tx) => excludeKnowledgeBuild(tx, input), {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10_000,
+      timeout: 60_000,
     });
   }
 

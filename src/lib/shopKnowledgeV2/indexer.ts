@@ -1,6 +1,7 @@
 import { buildShopKnowledgeV2 } from "@/lib/shopKnowledgeV2/builders";
 import type {
   KnowledgeCurrentRecord,
+  KnowledgeIndexExclusion,
   KnowledgeIndexCommit,
   KnowledgeIndexOutcome,
   KnowledgeOutboxJob,
@@ -34,6 +35,7 @@ export interface ShopKnowledgeV2Repository {
   loadSourceProduct(productId: string): Promise<KnowledgeSourceProduct | null>;
   getCurrentKnowledge(productId: string): Promise<KnowledgeCurrentRecord | null>;
   touchKnowledgeSource?(productId: string, sourceUpdatedAt: Date, checkedAt: Date): Promise<void>;
+  excludeKnowledgeIndex(input: KnowledgeIndexExclusion): Promise<void>;
   commitKnowledgeIndex(input: KnowledgeIndexCommit): Promise<void>;
   claimOutboxJobs(input: ClaimKnowledgeOutboxInput): Promise<KnowledgeOutboxJob[]>;
   claimOutboxJobById?(input: ClaimKnowledgeOutboxJobByIdInput): Promise<KnowledgeOutboxJob | null>;
@@ -78,7 +80,7 @@ export function previewShopKnowledgeProduct(
   product: KnowledgeSourceProduct
 ): KnowledgeIndexOutcome {
   const build = buildShopKnowledgeV2(product);
-  if (build.categoryGroup === "other") {
+  if (!product.isPublished || product.status !== "ACTIVE" || build.categoryGroup === "other") {
     return outcomeFor(build, "dry-run", "excluded", 0);
   }
   return outcomeFor(build, "dry-run", build.status === "BLOCKED" ? "blocked" : "created", 1);
@@ -91,11 +93,23 @@ export async function indexShopKnowledgeProduct(
 ): Promise<KnowledgeIndexOutcome> {
   const build = buildShopKnowledgeV2(product);
   const current = await repository.getCurrentKnowledge(product.id);
+  const exclusionReason =
+    !product.isPublished || product.status !== "ACTIVE"
+      ? ("catalog_ineligible" as const)
+      : build.categoryGroup === "other"
+        ? ("category_other" as const)
+        : null;
   // `other` is intentionally outside the 13-category V2 rollout. Exact-SKU
-  // identity lookup reads the published catalog directly, so an outbox event
-  // must be completed without recreating Knowledge V2 for an excluded item.
-  if (build.categoryGroup === "other") {
-    await repository.touchKnowledgeSource?.(product.id, product.updatedAt, now);
+  // identity lookup reads the published catalog directly. Unpublished and
+  // inactive products are also outside the live V2 candidate set. In either
+  // case an outbox event must complete without recreating active V2 records.
+  if (exclusionReason) {
+    await repository.excludeKnowledgeIndex({
+      build,
+      previous: current,
+      indexedAt: now,
+      reason: exclusionReason,
+    });
     return outcomeFor(build, "commit", "excluded", current?.revision ?? 0);
   }
   const isActiveRevision =

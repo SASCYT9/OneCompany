@@ -65,6 +65,7 @@
     "shop:knowledge:v2:dry": "tsx --env-file=.env.local scripts/backfill-shop-knowledge-v2.ts",
     "shop:knowledge:v2:backfill": "tsx --env-file=.env.local scripts/backfill-shop-knowledge-v2.ts --commit",
     "shop:knowledge:v2:quarantine-other": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/quarantine-shop-knowledge-v2-other.ts",
+    "shop:knowledge:v2:quarantine-ineligible": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/quarantine-shop-knowledge-v2-ineligible.ts",
     "shop:knowledge:v2:embed:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts",
     "shop:knowledge:v2:embed": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts --commit",
     "shop:knowledge:v2:embed:recover": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/embed-shop-knowledge-chunks.ts --commit",

@@ -21,6 +21,7 @@ class FakeKnowledgeRepository implements ShopKnowledgeV2Repository {
   product: KnowledgeSourceProduct | null = knowledgeSourceProduct();
   current: KnowledgeCurrentRecord | null = null;
   commits: KnowledgeIndexCommit[] = [];
+  exclusions: Array<{ reason: string; productId: string }> = [];
   jobs: KnowledgeOutboxJob[] = [];
   completed: string[] = [];
   retries: Array<{ jobId: string; attempts: number; availableAt: Date }> = [];
@@ -46,6 +47,15 @@ class FakeKnowledgeRepository implements ShopKnowledgeV2Repository {
       contentHash: input.build.contentHash,
       status: input.build.status,
     };
+  }
+
+  async excludeKnowledgeIndex(
+    input: Parameters<ShopKnowledgeV2Repository["excludeKnowledgeIndex"]>[0]
+  ) {
+    this.exclusions.push({ reason: input.reason, productId: input.build.productId });
+    if (this.current) {
+      this.current = { ...this.current, activeRevision: 0, status: "BLOCKED" };
+    }
   }
 
   async claimOutboxJobs() {
@@ -175,6 +185,35 @@ test("category other is never committed to Knowledge V2", async () => {
   assert.equal(outcome.result, "excluded");
   assert.equal(outcome.revision, 0);
   assert.equal(repository.commits.length, 0);
+  assert.deepEqual(repository.exclusions, [
+    { reason: "category_other", productId: "product-knowledge-v2" },
+  ]);
+});
+
+test("unpublished products are excluded instead of creating BLOCKED V2 revisions", async () => {
+  const repository = new FakeKnowledgeRepository();
+  repository.current = {
+    knowledgeId: "knowledge-1",
+    productId: "product-knowledge-v2",
+    revision: 4,
+    activeRevision: 4,
+    contentHash: "previous-content",
+    status: "NEEDS_REVIEW",
+  };
+
+  const outcome = await indexShopKnowledgeProduct(
+    repository,
+    knowledgeSourceProduct({ isPublished: false, status: "DRAFT" })
+  );
+
+  assert.equal(outcome.result, "excluded");
+  assert.equal(outcome.revision, 4);
+  assert.equal(repository.commits.length, 0);
+  assert.deepEqual(repository.exclusions, [
+    { reason: "catalog_ineligible", productId: "product-knowledge-v2" },
+  ]);
+  assert.equal(repository.current.activeRevision, 0);
+  assert.equal(repository.current.status, "BLOCKED");
 });
 
 test("outbox completes an excluded category without retrying", async () => {

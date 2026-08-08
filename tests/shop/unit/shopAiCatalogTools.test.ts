@@ -8,6 +8,7 @@ import {
   runShopAiCandidatePipeline,
 } from "../../../src/lib/shopAiCatalogTools";
 import type { ShopAiPlan, ShopAiProduct } from "../../../src/lib/shopAiAssistantTypes";
+import { validateGroundedShopAiOutput } from "../../../src/lib/shopAiOutputValidator";
 
 const plan: ShopAiPlan = {
   intent: "recommend",
@@ -251,7 +252,7 @@ test("product kind uses title and category instead of incidental description cop
   assert.equal(detectShopAiProductKind(downpipe), "downpipe");
 });
 
-test("no-match copy names hard constraints and refuses an incompatible substitute", () => {
+test("no-match copy keeps unverified technical constraints out of product claims", () => {
   const message = buildShopAiNoExactMatchMessage("ua", {
     ...plan,
     category: "exhaust",
@@ -260,7 +261,21 @@ test("no-match copy names hard constraints and refuses an incompatible substitut
     powerGainHp: null,
   });
   assert.match(message, /BMW M5 G90 2025/);
-  assert.match(message, /OPF\/GPF/);
   assert.match(message, /повна вихлопна система/);
   assert.match(message, /іншого кузова/);
+  assert.doesNotMatch(message, /OPF|GPF/);
+  assert.equal(validateGroundedShopAiOutput(message, []), true);
+});
+
+test("English no-match copy stays grounded for NON-OPF and power requests", () => {
+  const message = buildShopAiNoExactMatchMessage("en", {
+    ...plan,
+    category: "exhaust",
+    productKind: "system",
+    opfGpf: "without",
+    powerGainHp: 120,
+  });
+
+  assert.doesNotMatch(message, /NON-OPF|120 hp/);
+  assert.equal(validateGroundedShopAiOutput(message, []), true);
 });

@@ -1,5 +1,7 @@
 export const SHOP_KNOWLEDGE_V2_OTHER_QUARANTINE_REASON =
   "Excluded from Knowledge V2 because categoryGroup=other; exact-SKU identity lookup remains available from the published catalog.";
+export const SHOP_KNOWLEDGE_V2_CATALOG_INELIGIBLE_QUARANTINE_REASON =
+  "Excluded from Knowledge V2 because the catalog product is unpublished or inactive.";
 export const SHOP_KNOWLEDGE_V2_QUARANTINED_SCHEMA_VERSION = 1;
 
 export function assertShopKnowledgeV2OtherQuarantineCommitSafe(input: {

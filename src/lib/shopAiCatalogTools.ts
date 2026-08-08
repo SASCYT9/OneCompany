@@ -269,9 +269,7 @@ export function buildShopAiNoExactMatchMessage(locale: "ua" | "en", plan: ShopAi
     .join(" ");
   const constraints = [
     plan.vehicle.engine ? `${locale === "ua" ? "двигун" : "engine"} ${plan.vehicle.engine}` : null,
-    plan.opfGpf === "with" ? "OPF/GPF" : plan.opfGpf === "without" ? "NON-OPF" : null,
     formatShopAiProductKind(plan.productKind, locale),
-    plan.powerGainHp ? `+${plan.powerGainHp} ${locale === "ua" ? "к.с." : "hp"}` : null,
   ].filter(Boolean);
   const subject = [vehicle, constraints.length ? `(${constraints.join(", ")})` : null]
     .filter(Boolean)

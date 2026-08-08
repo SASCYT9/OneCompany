@@ -12,6 +12,21 @@ export type ShopAiProviderErrorKind =
   | "network"
   | "schema";
 
+export type ShopAiProviderKeyEnvironment = Partial<
+  Record<"SHOP_AI_API_KEY" | "SHOP_AI_EMBEDDING_API_KEY" | "GEMINI_API_KEY", string>
+>;
+
+export function resolveShopAiProviderApiKey(
+  environment: ShopAiProviderKeyEnvironment = process.env as ShopAiProviderKeyEnvironment
+) {
+  return (
+    environment.SHOP_AI_API_KEY?.trim() ||
+    environment.SHOP_AI_EMBEDDING_API_KEY?.trim() ||
+    environment.GEMINI_API_KEY?.trim() ||
+    null
+  );
+}
+
 function errorStatus(error: unknown) {
   if (!error || typeof error !== "object") return null;
   const source = error as Record<string, unknown>;
