@@ -211,7 +211,7 @@ async function main() {
         total: queue.items.length,
         deterministicCases: deterministicCases.length,
         reviewableCases: reviewableCases.length,
-        status: "pending_human_review",
+        status: "review_queue_generated",
         hardNegativeCandidates: queue.items.filter((item) => item.draftCase.metadata?.hardNegative)
           .length,
         exactSkuCandidates: queue.items.filter((item) =>

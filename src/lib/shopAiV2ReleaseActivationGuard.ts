@@ -28,6 +28,7 @@ export const SHOP_AI_V2_RELEASE_REQUIRED_LANGUAGES = [
   "mixed",
   "translit",
 ] as const;
+export const SHOP_AI_V2_RELEASE_REVIEW_POLICIES = ["human", "catalog_grounded_machine"] as const;
 
 const COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -259,6 +260,14 @@ export function validateShopAiV2ReleaseEvalReport(
   const releaseGate = isRecord(value.releaseGate) ? value.releaseGate : null;
   if (releaseGate?.passed !== true) {
     errors.push("eval report release corpus gate did not pass");
+  }
+  if (
+    typeof releaseGate?.reviewPolicy !== "string" ||
+    !(SHOP_AI_V2_RELEASE_REVIEW_POLICIES as readonly string[]).includes(releaseGate.reviewPolicy)
+  ) {
+    errors.push(
+      `eval report release corpus reviewPolicy must be one of: ${SHOP_AI_V2_RELEASE_REVIEW_POLICIES.join(", ")}`
+    );
   }
   const rawEnabledCategories = Array.isArray(releaseGate?.enabledCategories)
     ? releaseGate.enabledCategories

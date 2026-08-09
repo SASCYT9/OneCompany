@@ -111,6 +111,7 @@ function passingEvalReport() {
     releaseGate: {
       passed: true,
       errors: [],
+      reviewPolicy: "catalog_grounded_machine",
       totalCases: SHOP_AI_V2_RELEASE_MIN_CASES,
       enabledCategories: [...SHOP_AI_V2_ROLLOUT_CATEGORIES],
       countsByCategory,
@@ -273,6 +274,16 @@ test("release report validation independently rejects an incomplete or padded co
   assert.match(errors, /translit language coverage/);
   assert.match(errors, /unreviewed cases/);
   assert.match(errors, /category brakes/);
+});
+
+test("release report validation rejects an unknown corpus review policy", () => {
+  const report = passingEvalReport();
+  report.releaseGate.reviewPolicy = "pretend_human";
+
+  const validation = validateShopAiV2ReleaseEvalReport(report, COMMIT_SHA);
+
+  assert.equal(validation.ok, false);
+  assert.match(validation.errors.join("\n"), /reviewPolicy must be one of/);
 });
 
 test("marker verification rejects tampered payloads and signatures", () => {

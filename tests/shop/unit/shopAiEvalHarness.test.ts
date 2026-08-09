@@ -56,6 +56,30 @@ function reviewedReleaseCase(
   };
 }
 
+function machineReviewedReleaseCase(
+  id: string,
+  category = "exhaust",
+  language: "ua" | "en" | "ru" | "mixed" | "translit" = "ua"
+): ShopAiEvalCase {
+  const testCase = reviewedReleaseCase(id, category, language);
+  const sourceProductId = testCase.expect.expectedProductIds![0];
+  return {
+    ...testCase,
+    metadata: {
+      ...testCase.metadata!,
+      tags: ["catalog-relevance"],
+      reviewer: "one-ai-catalog-grounded-machine-v1",
+      reviewMethod: "catalog_grounded_machine",
+      reviewAutomationEligibility: "source_grounded_reviewable",
+      reviewOracle: "catalog_relevance",
+      reviewSourceEvidenceId: `ShopProductKnowledge:${sourceProductId}:revision:1`,
+      reviewSourceCategory: category,
+      reviewSourceProductId: sourceProductId,
+      fitmentClaimAllowed: false,
+    },
+  };
+}
+
 function responseWithProducts(
   testCase: ShopAiEvalCase,
   products: Array<{ id: string; variantId: string | null }>
@@ -93,27 +117,40 @@ function responseWithProducts(
   } as unknown as ShopAiAssistantResponse;
 }
 
-test("default golden fixture remains valid and explicitly labels language metadata", () => {
+test("default release fixture is a valid catalog-grounded machine-reviewed corpus", () => {
   const fixturePath = path.join(process.cwd(), "tests", "shop", "evals", "stock-ai-cases.json");
   const validated = validateShopAiEvalCases(
     JSON.parse(fs.readFileSync(fixturePath, "utf8")) as unknown
   );
   assert.equal(validated.ok, true);
   if (!validated.ok) return;
-  assert.equal(validated.value.length, 8);
+  assert.equal(validated.value.length, SHOP_AI_RELEASE_GATE_MIN_CASES);
   assert.equal(
-    validated.value.every((item) => Boolean(item.metadata?.language)),
+    validated.value.every(
+      (item) =>
+        Boolean(item.metadata?.language) &&
+        item.metadata?.reviewMethod === "catalog_grounded_machine" &&
+        item.metadata.fitmentClaimAllowed === false
+    ),
     true
   );
 
-  const releaseReport = evaluateShopAiReleaseGate(validated.value, {
-    enabledCategories: ["exhaust"],
-  });
-  assert.equal(releaseReport.passed, false);
-  assert.equal(releaseReport.unreviewedCases, 8);
-  assert.equal(releaseReport.invalidExpectationContractCases, 8);
-  assert.match(releaseReport.errors.join("\n"), /human-review metadata/);
-  assert.match(releaseReport.errors.join("\n"), /expected-result contracts/);
+  const configPath = path.join(
+    process.cwd(),
+    "tests",
+    "shop",
+    "evals",
+    "stock-ai-release-gate.json"
+  );
+  const config = validateShopAiReleaseGateConfig(
+    JSON.parse(fs.readFileSync(configPath, "utf8")) as unknown
+  );
+  assert.equal(config.ok, true);
+  if (!config.ok) return;
+  const releaseReport = evaluateShopAiReleaseGate(validated.value, config.value);
+  assert.equal(releaseReport.passed, true, releaseReport.errors.join("\n"));
+  assert.equal(releaseReport.unreviewedCases, 0);
+  assert.equal(releaseReport.invalidExpectationContractCases, 0);
 });
 
 test("fixture validation supports reviewed product, variant and hard-negative metadata", () => {
@@ -318,6 +355,70 @@ test("release gate passes only when the real corpus meets total and per-category
   assert.equal(report.exactSkuCases >= SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES, true);
 });
 
+test("release gate accepts catalog-grounded machine review without claiming human review", () => {
+  const categories = ["exhaust", "brakes"];
+  const cases = Array.from({ length: SHOP_AI_RELEASE_GATE_MIN_CASES }, (_, index) =>
+    machineReviewedReleaseCase(
+      `machine-${index}`,
+      categories[index % categories.length],
+      (["ua", "en", "ru", "mixed", "translit"] as const)[index % 5]
+    )
+  );
+  cases[0] = {
+    ...cases[0],
+    metadata: {
+      ...cases[0].metadata!,
+      tags: ["exact-sku"],
+      reviewAutomationEligibility: "deterministic",
+      reviewOracle: "exact_sku",
+    },
+  };
+
+  const report = evaluateShopAiReleaseGate(cases, {
+    enabledCategories: categories,
+    reviewPolicy: "catalog_grounded_machine",
+  });
+  assert.equal(report.passed, true, report.errors.join("\n"));
+  assert.equal(report.reviewPolicy, "catalog_grounded_machine");
+  assert.equal(report.unreviewedCases, 0);
+});
+
+test("machine review policy rejects fitment assertions and source identity drift", () => {
+  const cases = Array.from({ length: SHOP_AI_RELEASE_GATE_MIN_CASES }, (_, index) =>
+    machineReviewedReleaseCase(
+      `unsafe-${index}`,
+      "exhaust",
+      (["ua", "en", "ru", "mixed", "translit"] as const)[index % 5]
+    )
+  );
+  cases[0] = {
+    ...cases[0],
+    metadata: {
+      ...cases[0].metadata!,
+      tags: ["exact-sku"],
+      reviewAutomationEligibility: "deterministic",
+      reviewOracle: "exact_sku",
+    },
+  };
+  cases[1] = {
+    ...cases[1],
+    expect: { ...cases[1].expect, make: "BMW" },
+  };
+  cases[2] = {
+    ...cases[2],
+    metadata: { ...cases[2].metadata!, reviewSourceProductId: "different-product" },
+  };
+
+  const report = evaluateShopAiReleaseGate(cases, {
+    enabledCategories: ["exhaust"],
+    reviewPolicy: "catalog_grounded_machine",
+  });
+  assert.equal(report.passed, false);
+  assert.equal(report.unreviewedCases, 2);
+  assert.match(report.errors.join("\n"), /cannot assert fitment fields: make/);
+  assert.match(report.errors.join("\n"), /must equal the source product identity/);
+});
+
 test("release gate reports corpus, category and language-metadata deficits without padding", () => {
   const cases = [
     ...Array.from({ length: 470 }, (_, index) => reviewedReleaseCase(`exhaust-${index}`)),
@@ -446,8 +547,10 @@ test("release category manifest matches the V2 rollout categories and excludes o
     "stock-ai-release-gate.json"
   );
   const manifest = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as {
+    reviewPolicy: string;
     enabledCategories: string[];
   };
+  assert.equal(manifest.reviewPolicy, "catalog_grounded_machine");
   assert.equal(manifest.enabledCategories.includes("other"), false);
   assert.deepEqual(manifest.enabledCategories, [...SHOP_AI_V2_ROLLOUT_CATEGORIES]);
 });
@@ -459,6 +562,16 @@ test("release config rejects Other and unknown categories instead of widening ru
   assert.equal(validated.ok, false);
   if (validated.ok) return;
   assert.match(validated.errors.join("\n"), /outside the V2 rollout contract: other, unknown/);
+});
+
+test("release config rejects unknown review policies", () => {
+  const validated = validateShopAiReleaseGateConfig({
+    enabledCategories: ["exhaust"],
+    reviewPolicy: "pretend_human",
+  });
+  assert.equal(validated.ok, false);
+  if (validated.ok) return;
+  assert.match(validated.errors.join("\n"), /reviewPolicy must be one of/);
 });
 
 test("release gate rejects duplicate normalized queries instead of counting padded copies", () => {

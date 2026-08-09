@@ -548,27 +548,61 @@ export function compileApprovedShopAiEvalReviewQueue(
   config: ShopAiReleaseGateConfig
 ) {
   const errors: string[] = [];
+  const reviewPolicy = config.reviewPolicy ?? "human";
   if (queue.schemaVersion !== SHOP_AI_EVAL_REVIEW_QUEUE_SCHEMA_VERSION) {
     errors.push(`unsupported review queue schema ${queue.schemaVersion}`);
   }
-  const approved = queue.items.filter((item) => item.status === "approved");
-  const cases = approved.map((item) => {
-    if (!item.reviewer?.trim()) errors.push(`${item.id}: reviewer is required`);
-    if (!item.reviewedAt?.trim()) errors.push(`${item.id}: reviewedAt is required`);
-    if (!item.reviewEvidenceId?.trim()) errors.push(`${item.id}: reviewEvidenceId is required`);
+  const selected =
+    reviewPolicy === "catalog_grounded_machine"
+      ? queue.items.filter((item) => item.status !== "rejected")
+      : queue.items.filter((item) => item.status === "approved");
+  const cases = selected.map((item) => {
+    const machineReviewed = reviewPolicy === "catalog_grounded_machine";
+    if (!machineReviewed && !item.reviewer?.trim()) {
+      errors.push(`${item.id}: reviewer is required`);
+    }
+    if (!machineReviewed && !item.reviewedAt?.trim()) {
+      errors.push(`${item.id}: reviewedAt is required`);
+    }
+    if (!machineReviewed && !item.reviewEvidenceId?.trim()) {
+      errors.push(`${item.id}: reviewEvidenceId is required`);
+    }
+    if (machineReviewed && item.oracle.fitmentClaimAllowed !== false) {
+      errors.push(`${item.id}: machine review cannot allow a fitment claim`);
+    }
     return {
       ...item.draftCase,
       metadata: {
         ...item.draftCase.metadata,
         language: item.language,
-        reviewer: item.reviewer?.trim() ?? "",
-        reviewedAt: item.reviewedAt?.trim() ?? "",
-        reviewEvidenceId: item.reviewEvidenceId?.trim() ?? "",
+        reviewer: machineReviewed
+          ? "one-ai-catalog-grounded-machine-v1"
+          : (item.reviewer?.trim() ?? ""),
+        reviewedAt: machineReviewed ? queue.generatedAt : (item.reviewedAt?.trim() ?? ""),
+        reviewEvidenceId: machineReviewed
+          ? `ONEAI-MACHINE:${item.source.evidenceId}:${item.id}`
+          : (item.reviewEvidenceId?.trim() ?? ""),
+        ...(machineReviewed
+          ? {
+              reviewMethod: "catalog_grounded_machine" as const,
+              reviewAutomationEligibility: item.oracle.automationEligibility,
+              reviewOracle: item.oracle.kind,
+              reviewSourceEvidenceId: item.source.evidenceId,
+              reviewSourceCategory: item.category,
+              reviewSourceProductId: item.source.productId,
+              ...(item.source.variantId ? { reviewSourceVariantId: item.source.variantId } : {}),
+              fitmentClaimAllowed: false as const,
+            }
+          : {}),
       },
     } satisfies ShopAiEvalCase;
   });
-  if (approved.length !== queue.targetCases) {
-    errors.push(`approved ${approved.length}/${queue.targetCases} review cases`);
+  if (selected.length !== queue.targetCases) {
+    errors.push(
+      reviewPolicy === "catalog_grounded_machine"
+        ? `machine-review eligible ${selected.length}/${queue.targetCases} review cases`
+        : `approved ${selected.length}/${queue.targetCases} review cases`
+    );
   }
   const validated = validateShopAiEvalCases(cases);
   if (!validated.ok) errors.push(...validated.errors);

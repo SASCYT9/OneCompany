@@ -121,6 +121,24 @@ test("review compiler refuses pending cases and only passes a fully evidenced co
   assert.equal(pending.ok, false);
   assert.match(pending.errors.join("\n"), /approved 0\/500/);
 
+  const machineReviewed = compileApprovedShopAiEvalReviewQueue(queue, {
+    enabledCategories: [...SHOP_AI_V2_ROLLOUT_CATEGORIES],
+    reviewPolicy: "catalog_grounded_machine",
+  });
+  assert.equal(machineReviewed.ok, true, machineReviewed.errors.join("\n"));
+  assert.equal(machineReviewed.cases.length, 500);
+  assert.equal(machineReviewed.gate?.passed, true);
+  assert.equal(
+    machineReviewed.cases.every(
+      (item) =>
+        item.metadata?.reviewMethod === "catalog_grounded_machine" &&
+        item.metadata.fitmentClaimAllowed === false &&
+        Boolean(item.metadata.reviewSourceEvidenceId) &&
+        Boolean(item.metadata.reviewSourceProductId)
+    ),
+    true
+  );
+
   for (const item of queue.items) {
     item.status = "approved";
     item.reviewer = "catalog-reviewer";

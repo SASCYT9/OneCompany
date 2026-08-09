@@ -8,6 +8,18 @@ export const SHOP_AI_RELEASE_GATE_MIN_CASES_PER_CATEGORY = 30;
 export const SHOP_AI_RELEASE_GATE_MIN_HARD_NEGATIVE_CASES = 100;
 export const SHOP_AI_RELEASE_GATE_MIN_EXACT_SKU_CASES = 1;
 
+export const SHOP_AI_RELEASE_REVIEW_POLICIES = ["human", "catalog_grounded_machine"] as const;
+export const SHOP_AI_MACHINE_REVIEW_ELIGIBILITY = [
+  "deterministic",
+  "source_grounded_reviewable",
+] as const;
+export const SHOP_AI_MACHINE_REVIEW_ORACLES = [
+  "catalog_relevance",
+  "clarification",
+  "exact_sku",
+  "mutated_sku_no_match",
+] as const;
+
 export const SHOP_AI_EVAL_LANGUAGES = ["ua", "en", "ru", "mixed", "translit"] as const;
 export const SHOP_AI_EVAL_RESPONSE_MODES = ["results", "clarification", "no_match"] as const;
 export const SHOP_AI_HARD_NEGATIVE_DIMENSIONS = [
@@ -28,12 +40,23 @@ export const SHOP_AI_HARD_NEGATIVE_DIMENSIONS = [
 
 export type ShopAiEvalLanguage = (typeof SHOP_AI_EVAL_LANGUAGES)[number];
 export type ShopAiHardNegativeDimension = (typeof SHOP_AI_HARD_NEGATIVE_DIMENSIONS)[number];
+export type ShopAiReleaseReviewPolicy = (typeof SHOP_AI_RELEASE_REVIEW_POLICIES)[number];
+export type ShopAiMachineReviewEligibility = (typeof SHOP_AI_MACHINE_REVIEW_ELIGIBILITY)[number];
+export type ShopAiMachineReviewOracle = (typeof SHOP_AI_MACHINE_REVIEW_ORACLES)[number];
 
 export type ShopAiEvalMetadata = {
   language: ShopAiEvalLanguage;
   reviewer?: string;
   reviewedAt?: string;
   reviewEvidenceId?: string;
+  reviewMethod?: ShopAiReleaseReviewPolicy;
+  reviewAutomationEligibility?: ShopAiMachineReviewEligibility;
+  reviewOracle?: ShopAiMachineReviewOracle;
+  reviewSourceEvidenceId?: string;
+  reviewSourceCategory?: string;
+  reviewSourceProductId?: string;
+  reviewSourceVariantId?: string;
+  fitmentClaimAllowed?: false;
   tags?: string[];
   hardNegative?: {
     dimensions: ShopAiHardNegativeDimension[];
@@ -69,11 +92,13 @@ export type ShopAiEvalCase = {
 
 export type ShopAiReleaseGateConfig = {
   enabledCategories: string[];
+  reviewPolicy?: ShopAiReleaseReviewPolicy;
 };
 
 export type ShopAiReleaseGateReport = {
   passed: boolean;
   errors: string[];
+  reviewPolicy: ShopAiReleaseReviewPolicy;
   totalCases: number;
   enabledCategories: string[];
   countsByCategory: Record<string, number>;
@@ -149,13 +174,31 @@ function validateReviewMetadata(
   value: Record<string, unknown>,
   path: string,
   errors: string[],
-  required: boolean
+  required: boolean,
+  reviewPolicy: ShopAiReleaseReviewPolicy | null = null
 ) {
-  const fields = ["reviewer", "reviewedAt", "reviewEvidenceId"] as const;
-  const hasAnyReviewField = fields.some((field) => value[field] !== undefined);
+  const commonFields = ["reviewer", "reviewedAt", "reviewEvidenceId"] as const;
+  const machineFields = [
+    "reviewMethod",
+    "reviewAutomationEligibility",
+    "reviewOracle",
+    "reviewSourceEvidenceId",
+    "reviewSourceCategory",
+    "reviewSourceProductId",
+    "fitmentClaimAllowed",
+  ] as const;
+  const hasAnyReviewField = [...commonFields, ...machineFields].some(
+    (field) => value[field] !== undefined
+  );
   if (!required && !hasAnyReviewField) return;
 
-  for (const field of fields) {
+  const requiredStringFields = [
+    ...commonFields,
+    ...(reviewPolicy === "catalog_grounded_machine"
+      ? machineFields.filter((field) => field !== "fitmentClaimAllowed")
+      : []),
+  ];
+  for (const field of requiredStringFields) {
     if (typeof value[field] !== "string" || !value[field].trim()) {
       errors.push(`${path}.${field} must be a non-empty string`);
     }
@@ -166,6 +209,23 @@ function validateReviewMetadata(
     !isValidReviewTimestamp(value.reviewedAt.trim())
   ) {
     errors.push(`${path}.reviewedAt must be a valid UTC ISO-8601 timestamp`);
+  }
+  if (
+    reviewPolicy === "human" &&
+    value.reviewMethod !== undefined &&
+    value.reviewMethod !== "human"
+  ) {
+    errors.push(`${path}.reviewMethod must be human for the human review policy`);
+  }
+  if (reviewPolicy === "catalog_grounded_machine") {
+    if (value.reviewMethod !== "catalog_grounded_machine") {
+      errors.push(
+        `${path}.reviewMethod must be catalog_grounded_machine for the machine review policy`
+      );
+    }
+    if (value.fitmentClaimAllowed !== false) {
+      errors.push(`${path}.fitmentClaimAllowed must be false for machine-reviewed cases`);
+    }
   }
 }
 
@@ -182,6 +242,45 @@ function validateMetadata(value: unknown, path: string, errors: string[]) {
     errors.push(`${path}.language must be one of: ${SHOP_AI_EVAL_LANGUAGES.join(", ")}`);
   }
   validateReviewMetadata(value, path, errors, false);
+  if (
+    value.reviewMethod !== undefined &&
+    !SHOP_AI_RELEASE_REVIEW_POLICIES.includes(value.reviewMethod as ShopAiReleaseReviewPolicy)
+  ) {
+    errors.push(
+      `${path}.reviewMethod must be one of: ${SHOP_AI_RELEASE_REVIEW_POLICIES.join(", ")}`
+    );
+  }
+  if (
+    value.reviewAutomationEligibility !== undefined &&
+    !SHOP_AI_MACHINE_REVIEW_ELIGIBILITY.includes(
+      value.reviewAutomationEligibility as ShopAiMachineReviewEligibility
+    )
+  ) {
+    errors.push(
+      `${path}.reviewAutomationEligibility must be one of: ${SHOP_AI_MACHINE_REVIEW_ELIGIBILITY.join(", ")}`
+    );
+  }
+  if (
+    value.reviewOracle !== undefined &&
+    !SHOP_AI_MACHINE_REVIEW_ORACLES.includes(value.reviewOracle as ShopAiMachineReviewOracle)
+  ) {
+    errors.push(
+      `${path}.reviewOracle must be one of: ${SHOP_AI_MACHINE_REVIEW_ORACLES.join(", ")}`
+    );
+  }
+  for (const field of [
+    "reviewSourceEvidenceId",
+    "reviewSourceCategory",
+    "reviewSourceProductId",
+    "reviewSourceVariantId",
+  ] as const) {
+    if (value[field] !== undefined && (typeof value[field] !== "string" || !value[field].trim())) {
+      errors.push(`${path}.${field} must be a non-empty string when provided`);
+    }
+  }
+  if (value.fitmentClaimAllowed !== undefined && value.fitmentClaimAllowed !== false) {
+    errors.push(`${path}.fitmentClaimAllowed may only be false`);
+  }
   if (value.tags !== undefined) {
     validateNonEmptyStringArray(value.tags, `${path}.tags`, errors);
   }
@@ -335,19 +434,130 @@ export function validateShopAiReleaseGateConfig(
       `enabledCategories contains categories outside the V2 rollout contract: ${unsupportedCategories.join(", ")}`
     );
   }
+  const reviewPolicy = value.reviewPolicy ?? "human";
+  if (
+    typeof reviewPolicy !== "string" ||
+    !SHOP_AI_RELEASE_REVIEW_POLICIES.includes(reviewPolicy as ShopAiReleaseReviewPolicy)
+  ) {
+    errors.push(`reviewPolicy must be one of: ${SHOP_AI_RELEASE_REVIEW_POLICIES.join(", ")}`);
+  }
   return errors.length || !enabledCategories
     ? { ok: false, errors }
-    : { ok: true, value: { enabledCategories } };
+    : {
+        ok: true,
+        value: {
+          enabledCategories,
+          reviewPolicy: reviewPolicy as ShopAiReleaseReviewPolicy,
+        },
+      };
+}
+
+function validateMachineReviewContract(
+  testCase: ShopAiEvalCase,
+  enabledCategories: ReadonlySet<string>
+) {
+  const errors: string[] = [];
+  const metadata = testCase.metadata;
+  if (!metadata) return ["metadata is required for machine review"];
+  const eligibility = metadata.reviewAutomationEligibility;
+  const oracle = metadata.reviewOracle;
+  const sourceProductId = metadata.reviewSourceProductId;
+  const sourceVariantId = metadata.reviewSourceVariantId;
+  const sourceCategory = metadata.reviewSourceCategory;
+
+  if (!sourceCategory || !enabledCategories.has(sourceCategory)) {
+    errors.push("reviewSourceCategory must be one of the enabled release categories");
+  }
+  const fitmentExpectationFields = [
+    "make",
+    "model",
+    "chassis",
+    "year",
+    "opfGpf",
+    "forbidChassis",
+  ] as const;
+  const assertedFitmentFields = fitmentExpectationFields.filter(
+    (field) => testCase.expect[field] !== undefined
+  );
+  if (assertedFitmentFields.length) {
+    errors.push(`machine review cannot assert fitment fields: ${assertedFitmentFields.join(", ")}`);
+  }
+
+  if (oracle === "catalog_relevance") {
+    if (eligibility !== "source_grounded_reviewable") {
+      errors.push("catalog_relevance requires source_grounded_reviewable eligibility");
+    }
+    if (testCase.expect.mode !== "results") {
+      errors.push("catalog_relevance requires results mode");
+    }
+    if (
+      !sourceProductId ||
+      testCase.expect.expectedProductIds?.length !== 1 ||
+      testCase.expect.expectedProductIds[0] !== sourceProductId
+    ) {
+      errors.push("catalog_relevance expectedProductIds must equal the source product identity");
+    }
+    if (!testCase.metadata?.tags?.includes("catalog-relevance")) {
+      errors.push("catalog_relevance requires the catalog-relevance tag");
+    }
+  } else if (oracle === "clarification") {
+    if (eligibility !== "deterministic") {
+      errors.push("clarification requires deterministic eligibility");
+    }
+    if (testCase.expect.mode !== "clarification" || testCase.expect.needsClarification !== true) {
+      errors.push("clarification oracle requires an explicit clarification contract");
+    }
+  } else if (oracle === "exact_sku") {
+    if (eligibility !== "deterministic") {
+      errors.push("exact_sku requires deterministic eligibility");
+    }
+    if (
+      testCase.expect.mode !== "results" ||
+      !testCase.metadata?.tags?.includes("exact-sku") ||
+      !sourceProductId ||
+      !testCase.expect.expectedProductIds?.includes(sourceProductId)
+    ) {
+      errors.push("exact_sku must resolve the source product as an identity result");
+    }
+    if (sourceVariantId && !testCase.expect.expectedVariantIds?.includes(sourceVariantId)) {
+      errors.push("exact_sku must resolve the source variant when one is present");
+    }
+  } else if (oracle === "mutated_sku_no_match") {
+    if (eligibility !== "deterministic") {
+      errors.push("mutated_sku_no_match requires deterministic eligibility");
+    }
+    if (
+      testCase.expect.mode !== "no_match" ||
+      !metadata.hardNegative ||
+      !sourceProductId ||
+      !testCase.expect.forbiddenProductIds?.includes(sourceProductId)
+    ) {
+      errors.push("mutated_sku_no_match must forbid its source product as a hard negative");
+    }
+    if (sourceVariantId && !testCase.expect.forbiddenVariantIds?.includes(sourceVariantId)) {
+      errors.push("mutated_sku_no_match must forbid its source variant when one is present");
+    }
+  } else {
+    errors.push("reviewOracle is required for machine review");
+  }
+
+  return errors;
 }
 
 export function evaluateShopAiReleaseGate(
   cases: ShopAiEvalCase[],
   config: ShopAiReleaseGateConfig
 ): ShopAiReleaseGateReport {
+  const reviewPolicy = config.reviewPolicy ?? "human";
+  const enabledCategorySet = new Set(config.enabledCategories);
   const countsByCategory = Object.fromEntries(
     config.enabledCategories.map((category) => [
       category,
-      cases.filter((testCase) => testCase.expect.category === category).length,
+      cases.filter((testCase) =>
+        reviewPolicy === "catalog_grounded_machine"
+          ? testCase.metadata?.reviewSourceCategory === category
+          : testCase.expect.category === category
+      ).length,
     ])
   );
   const countsByLanguage: Record<string, number> = {};
@@ -370,8 +580,12 @@ export function evaluateShopAiReleaseGate(
       (testCase.metadata ?? {}) as Record<string, unknown>,
       "metadata",
       reviewErrors,
-      true
+      true,
+      reviewPolicy
     );
+    if (reviewPolicy === "catalog_grounded_machine") {
+      reviewErrors.push(...validateMachineReviewContract(testCase, enabledCategorySet));
+    }
     if (reviewErrors.length) {
       unreviewedCaseIssues.push(`${testCase.id}: ${reviewErrors.join("; ")}`);
     }
@@ -426,8 +640,10 @@ export function evaluateShopAiReleaseGate(
 
   const errors: string[] = [];
   if (cases.length < SHOP_AI_RELEASE_GATE_MIN_CASES) {
+    const reviewLabel =
+      reviewPolicy === "human" ? "human-reviewed" : "catalog-grounded machine-reviewed";
     errors.push(
-      `release corpus has ${cases.length} cases; at least ${SHOP_AI_RELEASE_GATE_MIN_CASES} committed, human-reviewed cases are required`
+      `release corpus has ${cases.length} cases; at least ${SHOP_AI_RELEASE_GATE_MIN_CASES} committed, ${reviewLabel} cases are required`
     );
   }
   for (const category of config.enabledCategories) {
@@ -456,10 +672,11 @@ export function evaluateShopAiReleaseGate(
     errors.push("release corpus must include at least one reviewed exact-SKU identity case");
   }
   if (unreviewedCaseIssues.length) {
+    const examples = unreviewedCaseIssues.slice(0, 3).join(" | ");
     errors.push(
-      `${unreviewedCaseIssues.length} release cases are missing valid human-review metadata (metadata.reviewer, metadata.reviewedAt, metadata.reviewEvidenceId); examples: ${unreviewedCaseIssues
-        .slice(0, 3)
-        .join(" | ")}`
+      reviewPolicy === "human"
+        ? `${unreviewedCaseIssues.length} release cases are missing valid human-review metadata (metadata.reviewer, metadata.reviewedAt, metadata.reviewEvidenceId); examples: ${examples}`
+        : `${unreviewedCaseIssues.length} release cases do not satisfy the catalog-grounded machine review policy; examples: ${examples}`
     );
   }
   if (expectationContractIssues.length) {
@@ -480,6 +697,7 @@ export function evaluateShopAiReleaseGate(
   return {
     passed: errors.length === 0,
     errors,
+    reviewPolicy,
     totalCases: cases.length,
     enabledCategories: [...config.enabledCategories],
     countsByCategory,
