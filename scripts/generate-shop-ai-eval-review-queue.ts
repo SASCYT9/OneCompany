@@ -3,6 +3,7 @@ import path from "node:path";
 import { PrismaClient, ShopCatalogStatus } from "@prisma/client";
 
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../src/lib/shopAiV2RolloutContract";
+import { compactShopCode } from "../src/lib/shopVehicleSearch";
 import { buildShopAiEvalReviewQueue, type ShopAiEvalReviewSeed } from "./shop-ai-eval-review-queue";
 
 const prisma = new PrismaClient();
@@ -26,8 +27,20 @@ async function main() {
   const output = path.resolve(
     valueArgument("--output") ?? "artifacts/one-ai/stock-ai-eval-review-queue.json"
   );
-  const rows = (
-    await Promise.all(
+  const fixtureOutput = path.resolve(
+    valueArgument("--fixture-output") ??
+      path.join(path.dirname(output), "stock-ai-machine-cases.json")
+  );
+  const deterministicFixtureOutput = path.resolve(
+    valueArgument("--deterministic-fixture-output") ??
+      path.join(path.dirname(output), "stock-ai-deterministic-cases.json")
+  );
+  const reviewableFixtureOutput = path.resolve(
+    valueArgument("--reviewable-fixture-output") ??
+      path.join(path.dirname(output), "stock-ai-reviewable-cases.json")
+  );
+  const [knowledgeRowsByCategory, catalogSkuRows] = await Promise.all([
+    Promise.all(
       SHOP_AI_V2_ROLLOUT_CATEGORIES.map((categoryGroup) =>
         prisma.shopProductKnowledge.findMany({
           where: {
@@ -72,8 +85,25 @@ async function main() {
           },
         })
       )
-    )
-  ).flat();
+    ),
+    prisma.shopProduct.findMany({
+      where: { isPublished: true, status: ShopCatalogStatus.ACTIVE },
+      select: {
+        sku: true,
+        variants: {
+          where: { sku: { not: null } },
+          select: { sku: true },
+        },
+      },
+    }),
+  ]);
+  const rows = knowledgeRowsByCategory.flat();
+  const knownSkuTokens = catalogSkuRows
+    .flatMap((row) => [
+      compactShopCode(row.sku),
+      ...row.variants.map((variant) => compactShopCode(variant.sku)),
+    ])
+    .filter(Boolean);
 
   const seeds: ShopAiEvalReviewSeed[] = rows.flatMap((row) => {
     if (!row.categoryGroup) return [];
@@ -90,10 +120,13 @@ async function main() {
         titleUa: row.product.titleUa,
         titleEn: row.product.titleEn,
         brand: row.product.brand,
-        make: application?.make,
-        model: application?.model,
-        chassis: application?.chassisCode,
-        year: application?.yearFrom ?? application?.yearTo,
+        // Catalog titles and unreviewed applications may help draft the query,
+        // but they cannot become asserted fitment expectations. Review cases
+        // here validate product discovery only.
+        make: null,
+        model: null,
+        chassis: null,
+        year: null,
         opfGpf:
           application?.opfGpf === "with" || application?.opfGpf === "without"
             ? application.opfGpf
@@ -106,13 +139,48 @@ async function main() {
     seeds,
     categories: SHOP_AI_V2_ROLLOUT_CATEGORIES,
     targetCases,
+    knownSkuTokens,
   });
-  await mkdir(path.dirname(output), { recursive: true });
-  await writeFile(output, `${JSON.stringify(queue, null, 2)}\n`, "utf8");
-  const countsByCategory = Object.fromEntries(
+  const deterministicCases = queue.items
+    .filter((item) => item.oracle.automationEligibility === "deterministic")
+    .map((item) => item.draftCase);
+  const reviewableCases = queue.items
+    .filter((item) => item.oracle.automationEligibility === "source_grounded_reviewable")
+    .map((item) => item.draftCase);
+  await Promise.all([
+    mkdir(path.dirname(output), { recursive: true }),
+    mkdir(path.dirname(fixtureOutput), { recursive: true }),
+    mkdir(path.dirname(deterministicFixtureOutput), { recursive: true }),
+    mkdir(path.dirname(reviewableFixtureOutput), { recursive: true }),
+  ]);
+  await Promise.all([
+    writeFile(output, `${JSON.stringify(queue, null, 2)}\n`, "utf8"),
+    writeFile(
+      fixtureOutput,
+      `${JSON.stringify(
+        queue.items.map((item) => item.draftCase),
+        null,
+        2
+      )}\n`,
+      "utf8"
+    ),
+    writeFile(
+      deterministicFixtureOutput,
+      `${JSON.stringify(deterministicCases, null, 2)}\n`,
+      "utf8"
+    ),
+    writeFile(reviewableFixtureOutput, `${JSON.stringify(reviewableCases, null, 2)}\n`, "utf8"),
+  ]);
+  const countsBySourceCategory = Object.fromEntries(
     SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => [
       category,
       queue.items.filter((item) => item.category === category).length,
+    ])
+  );
+  const countsByExpectedCategory = Object.fromEntries(
+    SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => [
+      category,
+      queue.items.filter((item) => item.draftCase.expect.category === category).length,
     ])
   );
   const countsByLanguage = Object.fromEntries(
@@ -121,19 +189,39 @@ async function main() {
       queue.items.filter((item) => item.language === language).length,
     ])
   );
+  const countsByMode = Object.fromEntries(
+    ["results", "clarification", "no_match"].map((mode) => [
+      mode,
+      queue.items.filter((item) => item.draftCase.expect.mode === mode).length,
+    ])
+  );
+  const countsByOracle = Object.fromEntries(
+    ["catalog_relevance", "clarification", "exact_sku", "mutated_sku_no_match"].map((kind) => [
+      kind,
+      queue.items.filter((item) => item.oracle.kind === kind).length,
+    ])
+  );
   console.log(
     JSON.stringify(
       {
         output,
+        fixtureOutput,
+        deterministicFixtureOutput,
+        reviewableFixtureOutput,
         total: queue.items.length,
+        deterministicCases: deterministicCases.length,
+        reviewableCases: reviewableCases.length,
         status: "pending_human_review",
         hardNegativeCandidates: queue.items.filter((item) => item.draftCase.metadata?.hardNegative)
           .length,
         exactSkuCandidates: queue.items.filter((item) =>
           item.draftCase.metadata?.tags?.includes("exact-sku")
         ).length,
-        countsByCategory,
+        countsBySourceCategory,
+        countsByExpectedCategory,
         countsByLanguage,
+        countsByMode,
+        countsByOracle,
       },
       null,
       2

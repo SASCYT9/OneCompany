@@ -1,6 +1,7 @@
 import type { ShopAiAssistantResponse, ShopAiResponseMode } from "../src/lib/shopAiAssistantTypes";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../src/lib/shopAiV2FeatureFlags";
 import { validateGroundedShopAiOutput } from "../src/lib/shopAiOutputValidator";
+import { redactShopAiText } from "../src/lib/shopAiPrivacy";
 
 export const SHOP_AI_RELEASE_GATE_MIN_CASES = 500;
 export const SHOP_AI_RELEASE_GATE_MIN_CASES_PER_CATEGORY = 30;
@@ -547,7 +548,11 @@ export function evaluateShopAiResponse(testCase: ShopAiEvalCase, result: ShopAiA
     }
   }
   for (const product of result.products) {
-    if (product.matchStatus === "exact" && (product.missingFacts?.length ?? 0) > 0) {
+    if (
+      product.matchStatus === "exact" &&
+      product.matchBasis !== "identity" &&
+      (product.missingFacts?.length ?? 0) > 0
+    ) {
       errors.push(`exact product ${product.id} contains missing fitment facts`);
     }
     if (product.matchStatus === "requires_verification" && product.compatibility === "confirmed") {
@@ -633,7 +638,8 @@ export function evaluateShopAiResponse(testCase: ShopAiEvalCase, result: ShopAiA
   if (result.managerHref !== `/${testCase.locale}/contact?source=one-ai`) {
     errors.push("managerHref is missing or not localized");
   }
-  if (!result.managerContext || result.managerContext.request !== testCase.message) {
+  const expectedManagerRequest = redactShopAiText(testCase.message, 800).text;
+  if (!result.managerContext || result.managerContext.request !== expectedManagerRequest) {
     errors.push("managerContext is missing the private request handoff");
   }
   if (expected.opfGpf) {

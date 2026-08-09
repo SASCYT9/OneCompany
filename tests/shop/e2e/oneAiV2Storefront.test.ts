@@ -60,8 +60,8 @@ function mockedTieredAssistantResponse() {
     conversationId: "conversation-e2e",
     runId: "run-e2e",
     mode: "results",
-    answer: "Each card shows its own fitment status.",
-    message: "Each card shows its own fitment status.",
+    answer: "These are the strongest product matches for your request.",
+    message: "These are the strongest product matches for your request.",
     counts: { exact: 2, requiresVerification: 1 },
     products,
     totalItems: 3,
@@ -138,7 +138,7 @@ async function withPage(
   return { context, page: await context.newPage() };
 }
 
-test("One AI V2 groups exact and reviewable products and hands reviewable context to a manager", async (t) => {
+test("One AI V2 presents one product list and keeps internal manager context", async (t) => {
   const browser = await openBrowser(t);
   if (!browser) return;
   t.after(() => browser.close());
@@ -169,23 +169,24 @@ test("One AI V2 groups exact and reviewable products and hands reviewable contex
   await textbox.fill("Find exhaust for BMW M3 F80");
   await textbox.press("Enter");
 
-  const exactGroup = panel.getByRole("region", { name: "Confirmed for your vehicle" });
-  const reviewGroup = panel.getByRole("region", { name: "Requires verification" });
-  await assert.doesNotReject(() => exactGroup.waitFor());
-  await assert.doesNotReject(() => reviewGroup.waitFor());
-  assert.equal(await exactGroup.getByText("Exact fitment", { exact: true }).count(), 2);
-  assert.equal(
-    await reviewGroup.getByText("Fitment requires verification", { exact: true }).count(),
-    1
-  );
+  const productList = panel.getByRole("region", { name: "Products found" });
+  await assert.doesNotReject(() => productList.waitFor());
+  assert.equal(await productList.getByTestId("one-ai-product-card").count(), 3);
+  assert.equal(await panel.getByText("Exact fitment", { exact: true }).count(), 0);
+  assert.equal(await panel.getByText("Fitment requires verification", { exact: true }).count(), 0);
+  assert.equal(await panel.getByText("Requires verification", { exact: true }).count(), 0);
   await assert.doesNotReject(() =>
     panel.getByRole("region", { name: "Comparison" }).getByText("Titanium").first().waitFor()
   );
+  const reviewCard = productList.locator('[data-product-id="review-one"]');
+  assert.equal(await reviewCard.count(), 1);
   await assert.doesNotReject(() =>
-    reviewGroup.getByRole("link", { name: "Details", exact: true }).waitFor()
+    reviewCard.getByRole("link", { name: "Open product", exact: true }).waitFor()
   );
 
-  await reviewGroup.getByRole("link", { name: "Verify with a manager", exact: true }).click();
+  await reviewCard
+    .getByRole("link", { name: "Ask a manager about this product", exact: true })
+    .click();
   await page.waitForURL(/\/en\/contact\?source=one-ai/);
   await page.waitForTimeout(50);
   assert.equal(
@@ -350,6 +351,14 @@ test("One AI V2 renders localized EN controls and follows the active theme", asy
     color: getComputedStyle(document.body).color,
   }));
   await page.getByRole("button", { name: "Toggle theme", exact: true }).click();
+  await page.waitForFunction(
+    (initial) => {
+      const current = getComputedStyle(document.body);
+      return current.backgroundColor !== initial.background || current.color !== initial.color;
+    },
+    initialTheme,
+    { timeout: 5_000 }
+  );
   const changedTheme = await page.evaluate(() => ({
     background: getComputedStyle(document.body).backgroundColor,
     color: getComputedStyle(document.body).color,
@@ -367,7 +376,7 @@ test("One AI V2 renders localized EN controls and follows the active theme", asy
   );
 });
 
-test("One AI API is fail-closed and preserves the full vehicle context across turns", async (t) => {
+test("One AI API preserves vehicle context and keeps unverified products reviewable", async (t) => {
   const browser = await openBrowser(t);
   if (!browser) return;
   t.after(() => browser.close());
@@ -432,7 +441,16 @@ test("One AI API is fail-closed and preserves the full vehicle context across tu
   assert.equal(vehiclePlan?.vehicle?.engine, "B57");
   assert.equal(vehiclePlan?.vehicle?.fuel, "hybrid");
   assert.equal(vehiclePlan?.opfGpf, null);
-  assert.deepEqual(result.vehicle.data.products ?? [], []);
+  const vehicleProducts = result.vehicle.data.products ?? [];
+  assert.ok(vehicleProducts.length > 0);
+  assert.ok(
+    vehicleProducts.every(
+      (product: { matchStatus?: string; matchBasis?: string }) =>
+        product.matchStatus === "requires_verification" && product.matchBasis === "fitment"
+    )
+  );
+  assert.equal(result.vehicle.data.counts?.exact ?? 0, 0);
+  assert.equal(result.vehicle.data.counts?.requiresVerification ?? 0, vehicleProducts.length);
   assert.deepEqual(result.vehicle.data.managerContext?.vehicleDetails, {
     make: "BMW",
     model: "X6",
@@ -451,16 +469,26 @@ test("One AI API is fail-closed and preserves the full vehicle context across tu
   assert.equal(continuationPlan?.vehicle?.chassis, "G06");
   assert.equal(continuationPlan?.vehicle?.engine, "B57");
   assert.equal(continuationPlan?.opfGpf, "without");
+  const continuationProducts = result.continuation.data.products ?? [];
   assert.ok(
-    (result.continuation.data.products ?? []).every(
+    continuationProducts.every(
       (product: { matchStatus?: string; matchBasis?: string }) =>
-        product.matchStatus === "exact" && product.matchBasis !== "identity"
+        (product.matchStatus === "exact" || product.matchStatus === "requires_verification") &&
+        product.matchBasis === "fitment"
     )
   );
-  if (result.continuation.data.degraded) {
-    assert.deepEqual(result.continuation.data.products ?? [], []);
-  }
-  assert.equal(result.continuation.data.counts?.requiresVerification ?? 0, 0);
+  assert.equal(
+    result.continuation.data.counts?.exact ?? 0,
+    continuationProducts.filter(
+      (product: { matchStatus?: string }) => product.matchStatus === "exact"
+    ).length
+  );
+  assert.equal(
+    result.continuation.data.counts?.requiresVerification ?? 0,
+    continuationProducts.filter(
+      (product: { matchStatus?: string }) => product.matchStatus === "requires_verification"
+    ).length
+  );
 });
 
 test("One AI restores its session conversation after reload and clears it explicitly", async (t) => {

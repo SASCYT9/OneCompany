@@ -7,6 +7,7 @@ import {
   isShopAiExactMatchEligible,
   resolveTrustedShopAiProductKind,
   resolveShopAiStrictCandidateCount,
+  selectShopAiLexicallyRelevantCandidates,
 } from "../../../src/lib/shopAiStrictValidation";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../../../src/lib/shopAiV2FeatureFlags";
 import { SHOP_KNOWLEDGE_CATEGORY_EVIDENCE_POLICY } from "../../../src/lib/shopKnowledgeV2/policy";
@@ -54,6 +55,18 @@ test("verified complete applications and non-fitment SKU baselines can be exact"
       qualityFlags: ["missing_hard_attribute:productKind"],
     }),
     true
+  );
+  assert.equal(
+    isShopAiExactMatchEligible({
+      exactSkuWithoutVehicle: false,
+      merchWithoutVehicle: true,
+      hasApplication: false,
+      trustedApplication: false,
+      applicationConfirmsRequestedFacts: false,
+      qualityFlags: [],
+      categoryGroup: "merch",
+    }),
+    false
   );
 });
 
@@ -137,6 +150,21 @@ test("budgeted strict retrieval never reports candidates removed after price hyd
     }),
     80
   );
+});
+
+test("strict retrieval removes zero-score catalog noise once a lexical query is available", () => {
+  const relevant = selectShopAiLexicallyRelevantCandidates([
+    { id: "eventuri", lexicalScore: 0.96 },
+    { id: "related", lexicalScore: 0.24 },
+    { id: "generic-category-hit", lexicalScore: 0.12 },
+    { id: "unrelated", lexicalScore: 0 },
+    { id: "invalid", lexicalScore: Number.NaN },
+  ]);
+
+  assert.deepEqual(relevant, [
+    { id: "eventuri", lexicalScore: 0.96 },
+    { id: "related", lexicalScore: 0.24 },
+  ]);
 });
 
 test("legacy MANAGER rows without linked admin evidence fail closed", () => {

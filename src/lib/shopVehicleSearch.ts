@@ -133,6 +133,26 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     engines: ["EA825"],
   },
   {
+    id: "audi-rs4-rs5-b8",
+    aliases: ["rs4 b8", "rs5 b8", "b8 rs4", "b8 rs5"],
+    makes: ["Audi"],
+    models: ["RS4", "RS5"],
+    chassis: ["B8"],
+  },
+  {
+    id: "audi-rs4-rs5-b9",
+    aliases: ["rs4 b9", "rs5 b9", "b9 rs4", "b9 rs5"],
+    makes: ["Audi"],
+    models: ["RS4", "RS5"],
+    chassis: ["B9"],
+  },
+  {
+    id: "audi-rs4-rs5",
+    aliases: ["audi rs4", "audi rs5", "rs4", "rs5"],
+    makes: ["Audi"],
+    models: ["RS4", "RS5"],
+  },
+  {
     id: "audi-rs3",
     aliases: ["rs3 8y", "rs3 8v", "8y rs3", "8v rs3", "rs3"],
     makes: ["Audi"],

@@ -791,13 +791,27 @@ async function resolveStrictCatalogMatches(
         matched."isUniversal" AS "applicationUniversal",
         matched."verificationStatus"::text AS "applicationVerificationStatus",
         matched."source"::text AS "applicationSource",
+        (
+          matched."verificationStatus"::text = 'VERIFIED'
+          AND matched."source"::text IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
+        ) AS "applicationTrusted",
         EXISTS (
           SELECT 1
           FROM "ShopVehicleApplication" known_application
           WHERE known_application."knowledgeId" = knowledge."id"
             AND known_application."isActive" = true
             AND known_application."revision" = knowledge."activeRevision"
-        ) AS "hasApplications"
+        ) AS "hasApplications",
+        EXISTS (
+          SELECT 1
+          FROM "ShopVehicleApplication" trusted_application
+          WHERE trusted_application."knowledgeId" = knowledge."id"
+            AND trusted_application."isActive" = true
+            AND trusted_application."revision" = knowledge."activeRevision"
+            AND trusted_application."verificationStatus"::text = 'VERIFIED'
+            AND trusted_application."source"::text IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
+        ) AS "hasTrustedApplications",
+        false AS "trustedKnowledgeVehicleEvidence"
       FROM "ShopProduct" product
       JOIN "ShopProductKnowledge" knowledge
         ON knowledge."productId" = product."id"

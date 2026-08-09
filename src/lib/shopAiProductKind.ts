@@ -1,4 +1,5 @@
 import type { ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
+import { normalizeShopSearchText } from "@/lib/shopSearch";
 
 export const SHOP_AI_PRODUCT_KINDS = [
   "system",
@@ -53,6 +54,81 @@ export const SHOP_AI_PRODUCT_KINDS = [
 export type ShopAiProductKind = (typeof SHOP_AI_PRODUCT_KINDS)[number];
 
 const PRODUCT_KIND_SET = new Set<string>(SHOP_AI_PRODUCT_KINDS);
+
+type LocalizedProductKindTerms = ReadonlyArray<readonly [ShopAiProductKind, ReadonlyArray<string>]>;
+
+const LOCALIZED_PRODUCT_KIND_TERMS: Partial<
+  Record<ShopStockCategoryGroupId, LocalizedProductKindTerms>
+> = {
+  exhaust: [
+    ["tips", ["насадк", "наконечник"]],
+    ["downpipe", ["даунпайп"]],
+    ["link_pipe", ["лінк пайп", "линк пайп", "з'єднувальн труб"]],
+    ["system", ["вихлопн систем", "выхлопн систем", "глушник"]],
+  ],
+  brakes: [
+    ["pad", ["гальмівн колодк", "тормозн колодк", "колодк"]],
+    ["rotor", ["гальмівн диск", "тормозн диск"]],
+    ["caliper", ["супорт"]],
+    ["kit", ["гальмівн комплект", "тормозн комплект"]],
+  ],
+  suspension: [
+    ["coilover_kit", ["койловер", "коиловер"]],
+    ["damper", ["амортизатор"]],
+    ["spring", ["пружин"]],
+  ],
+  cooling: [
+    ["intercooler", ["інтеркулер", "интеркулер"]],
+    ["oil_cooler", ["маслян радіатор", "маслян радиатор"]],
+    ["heat_exchanger", ["теплообмінник", "теплообменник"]],
+    ["radiator", ["радіатор", "радиатор"]],
+  ],
+  performance: [
+    ["turbo_inlet", ["турбо впуск", "турбо інлет", "турбо инлет"]],
+    ["charge_pipe", ["патрубок наддув", "пайп наддув"]],
+    ["intake", ["впуск", "впускн систем"]],
+    ["turbo", ["турбін", "турбин"]],
+  ],
+  carbonAero: [
+    ["diffuser", ["дифузор", "диффузор"]],
+    ["splitter", ["спліттер", "сплиттер"]],
+    ["spoiler", ["спойлер"]],
+    ["side_skirt", ["порог"]],
+    ["hood", ["капот"]],
+    ["fender", ["крило", "крыло"]],
+    ["body_kit", ["обвіс", "обвес"]],
+  ],
+  wheels: [
+    ["wheel_set", ["комплект дисків", "комплект дисков"]],
+    ["wheel", ["диск", "колес"]],
+  ],
+  lighting: [
+    ["headlight", ["фара"]],
+    ["tail_light", ["ліхтар", "фонар"]],
+    ["bulb", ["ламп"]],
+  ],
+  interior: [["interior_part", ["кермо", "руль", "сидін", "сиден", "педал"]]],
+};
+
+function inferLocalizedProductKind(
+  text: string,
+  categories: ReadonlyArray<ShopStockCategoryGroupId>
+) {
+  const normalized = normalizeShopSearchText(text);
+  for (const category of categories) {
+    for (const [kind, terms] of LOCALIZED_PRODUCT_KIND_TERMS[category] ?? []) {
+      if (
+        terms.some((term) => {
+          const normalizedTerm = normalizeShopSearchText(term);
+          return normalizedTerm.length > 0 && normalized.includes(normalizedTerm);
+        })
+      ) {
+        return kind;
+      }
+    }
+  }
+  return null;
+}
 
 export function cleanShopAiProductKind(value: unknown): ShopAiProductKind | null {
   const candidate = String(value ?? "").trim();
@@ -155,11 +231,18 @@ export function inferShopAiProductKind(
   };
 
   if (category) {
+    const localizedMatch = inferLocalizedProductKind(text, [category]);
+    if (localizedMatch) return localizedMatch;
     const match = firstMatch(text, groups[category] ?? []);
     if (match) return match;
     return category === "exhaust" ? "system" : "any";
   }
 
+  const localizedMatch = inferLocalizedProductKind(
+    text,
+    Object.keys(LOCALIZED_PRODUCT_KIND_TERMS) as ShopStockCategoryGroupId[]
+  );
+  if (localizedMatch) return localizedMatch;
   for (const candidates of Object.values(groups)) {
     const match = firstMatch(text, candidates ?? []);
     if (match) return match;

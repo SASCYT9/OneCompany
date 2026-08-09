@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 import type { ShopAiAssistantResponse } from "../../../src/lib/shopAiAssistantTypes";
+import { redactShopAiText } from "../../../src/lib/shopAiPrivacy";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../../../src/lib/shopAiV2FeatureFlags";
 import {
   evaluateShopAiReleaseGate,
@@ -213,6 +214,19 @@ test("response identity assertions pass for a reviewed exact result set", () => 
     responseWithProducts(testCase, [{ id: "product-required", variantId: "variant-required" }])
   );
   assert.deepEqual(errors, []);
+});
+
+test("response evaluation accepts the privacy-redacted manager handoff request", () => {
+  const testCase: ShopAiEvalCase = {
+    ...evalCase("redacted-manager-context"),
+    message: "OHLINS kit for 2001-2007, phone +380501234567",
+  };
+  const response = responseWithProducts(testCase, []);
+  response.managerContext = {
+    request: redactShopAiText(testCase.message, 800).text,
+  } as ShopAiAssistantResponse["managerContext"];
+
+  assert.deepEqual(evaluateShopAiResponse(testCase, response), []);
 });
 
 test("response evaluation rejects unsafe tiering and ungrounded product claims", () => {

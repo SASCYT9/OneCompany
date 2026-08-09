@@ -2,7 +2,11 @@ import { createHash, createHmac } from "node:crypto";
 
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/giu;
 const PHONE_PATTERN = /(?<!\w)(?:\+?\d[\s().-]*){9,15}(?!\w)/g;
-const VIN_PATTERN = /(?<![A-Z0-9])(?:[A-HJ-NPR-Z0-9][ -]*){16}[A-HJ-NPR-Z0-9](?![A-Z0-9])/giu;
+const CONTIGUOUS_VIN_PATTERN = /(?<![A-Z0-9])[A-HJ-NPR-Z0-9]{17}(?![A-Z0-9])/giu;
+const SPACED_VIN_PATTERN =
+  /(?<![A-Z0-9])(?:[A-HJ-NPR-Z0-9][ \t]){16}[A-HJ-NPR-Z0-9](?![A-Z0-9])/giu;
+const HYPHENATED_VIN_CANDIDATE_PATTERN =
+  /(?<![A-Z0-9])[A-HJ-NPR-Z0-9]{2,16}(?:-[A-HJ-NPR-Z0-9]{1,16})+(?![A-Z0-9])/giu;
 const MIN_OWNER_HMAC_SECRET_BYTES = 32;
 const DEVELOPMENT_OWNER_HMAC_SECRET = "development-one-ai-owner-hmac-secret-32-bytes";
 
@@ -18,17 +22,28 @@ export type ShopAiRedactionResult = {
   redacted: Array<"email" | "phone" | "vin">;
 };
 
+function redactVins(value: string, onRedacted: () => void) {
+  const replaceVin = () => {
+    onRedacted();
+    return "[vin]";
+  };
+  return value
+    .replace(CONTIGUOUS_VIN_PATTERN, replaceVin)
+    .replace(SPACED_VIN_PATTERN, replaceVin)
+    .replace(HYPHENATED_VIN_CANDIDATE_PATTERN, (candidate) => {
+      const compact = candidate.replace(/-/g, "");
+      return compact.length === 17 ? replaceVin() : candidate;
+    });
+}
+
 export function redactShopAiText(value: string, maxLength = 800): ShopAiRedactionResult {
   const redacted = new Set<ShopAiRedactionResult["redacted"][number]>();
-  const text = String(value ?? "")
-    .replace(EMAIL_PATTERN, () => {
-      redacted.add("email");
-      return "[email]";
-    })
-    .replace(VIN_PATTERN, () => {
-      redacted.add("vin");
-      return "[vin]";
-    })
+  const withoutEmail = String(value ?? "").replace(EMAIL_PATTERN, () => {
+    redacted.add("email");
+    return "[email]";
+  });
+  const withoutVin = redactVins(withoutEmail, () => redacted.add("vin"));
+  const text = withoutVin
     .replace(PHONE_PATTERN, () => {
       redacted.add("phone");
       return "[phone]";

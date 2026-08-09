@@ -3,9 +3,13 @@ import assert from "node:assert/strict";
 
 import {
   buildShopAiCatalogQuery,
+  buildShopAiLexicalWebsearchQuery,
   diversifyShopAiProducts,
   evaluateShopAiProductVehicleFitment,
+  filterShopAiProductsForStock,
   filterShopAiProductsForVehicle,
+  hasDirectShopAiCatalogTitleMatch,
+  selectShopAiDirectCatalogTitleMatches,
 } from "../../../src/lib/shopAiAssistantRanking";
 import type { ShopAiProduct } from "../../../src/lib/shopAiAssistantTypes";
 
@@ -86,7 +90,123 @@ test("assistant catalog query excludes conversational filler", () => {
       needsClarification: false,
       clarification: null,
     }),
-    "BMW M5 G90 exhaust"
+    "BMW M5 G90"
+  );
+});
+
+test("assistant catalog query keeps product intent without over-constraining inferred engine", () => {
+  assert.equal(
+    buildShopAiCatalogQuery({
+      intent: "recommend",
+      vehicle: {
+        type: "car",
+        make: "Audi",
+        model: "RS6",
+        chassis: "C8",
+        year: null,
+        engine: "EA825",
+      },
+      goal: "power",
+      category: "performance",
+      searchQuery: "Audi RS6 C8",
+      minPrice: null,
+      maxPrice: null,
+      productKind: "turbo_inlet",
+      needsClarification: false,
+      clarification: null,
+    }),
+    "Audi RS6 C8 Turbo inlet"
+  );
+});
+
+test("assistant lexical query keeps distinctive product-title terms and drops wrappers", () => {
+  const plan = {
+    intent: "recommend" as const,
+    vehicle: {
+      type: "unknown" as const,
+      make: null,
+      model: null,
+      chassis: null,
+      year: null,
+      engine: null,
+    },
+    goal: "cooling" as const,
+    category: "cooling" as const,
+    searchQuery: 'Find DO88 Blue Silicone Hose 4 - 4.25" in cooling upgrade',
+    minPrice: null,
+    maxPrice: null,
+    brand: "DO88",
+    needsClarification: true,
+    clarification: "Tell me the vehicle",
+  };
+
+  const query = buildShopAiLexicalWebsearchQuery(plan, plan.searchQuery);
+
+  assert.match(query, /do88 OR blue OR silicone OR hose/);
+  assert.doesNotMatch(query, /(?:^| OR )(?:find|product|show)(?: OR |$)/);
+});
+
+test("assistant recognizes a direct localized catalog-title lookup", () => {
+  assert.equal(
+    hasDirectShopAiCatalogTitleMatch(
+      "Покажи: Накладка капота Urban Visual Carbon Fibre для Range Rover Sport L494",
+      [
+        {
+          name: "Накладка капота Urban Visual Carbon Fibre для Range Rover Sport L494",
+        },
+      ]
+    ),
+    true
+  );
+  assert.equal(
+    hasDirectShopAiCatalogTitleMatch("Покажи карбон для Range Rover", [
+      {
+        name: "Накладка капота Urban Visual Carbon Fibre для Range Rover Sport L494",
+      },
+    ]),
+    false
+  );
+});
+
+test("an availability question returns an explicitly named out-of-stock product", () => {
+  const named = {
+    ...product("named", "OHLINS"),
+    name: "OHLINS BMV MU31 Advanced Trackday Shock Absorber Kit",
+    inStock: false,
+  };
+  const other = { ...product("other", "OHLINS"), inStock: true };
+
+  assert.deepEqual(
+    filterShopAiProductsForStock(
+      [named, other],
+      "Is OHLINS BMV MU31 Advanced Trackday Shock Absorber Kit in stock?",
+      true
+    ).map((item) => item.id),
+    ["named"]
+  );
+  assert.deepEqual(
+    filterShopAiProductsForStock([named, other], "Show only in-stock OHLINS kits", true).map(
+      (item) => item.id
+    ),
+    ["other"]
+  );
+});
+
+test("direct-title matching drops a shorter title nested inside the intended product name", () => {
+  const products = [
+    { name: "Lower front bumper apron for Lamborghini Urus" },
+    { name: "Two-piece lower front bumper apron for Lamborghini Urus S with OEM splitter" },
+    { name: "Rear diffuser for Lamborghini Urus S" },
+  ];
+  const message =
+    "Compare Two-piece lower front bumper apron for Lamborghini Urus S with OEM splitter and Rear diffuser for Lamborghini Urus S";
+
+  assert.deepEqual(
+    selectShopAiDirectCatalogTitleMatches(message, products).map((item) => item.name),
+    [
+      "Two-piece lower front bumper apron for Lamborghini Urus S with OEM splitter",
+      "Rear diffuser for Lamborghini Urus S",
+    ]
   );
 });
 

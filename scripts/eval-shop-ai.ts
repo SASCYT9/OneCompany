@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import type { ShopAiAssistantResponse } from "../src/lib/shopAiAssistantTypes";
+import { getShopAiExactSkuLookupToken } from "../src/lib/shopAiExactSku";
 import { validateGroundedShopAiOutput } from "../src/lib/shopAiOutputValidator";
 import {
   SHOP_AI_V2_RELEASE_MAX_DEGRADED_RATE,
@@ -123,6 +124,57 @@ function assertSafeEvalTarget(value: string) {
   }
 }
 
+function buildFailedCaseResult(
+  testCase: ShopAiEvalCase,
+  error: unknown,
+  diagnostics: {
+    latencyMs?: number;
+    responseBytes?: number;
+    pipeline?: string | null;
+    retrieval?: string | null;
+    responseCommit?: string | null;
+    catalogFingerprint?: string | null;
+    activeCpuMs?: number | null;
+    retrievalLatencyMs?: number | null;
+    generationCalls?: number | null;
+    embeddingCalls?: number | null;
+  } = {}
+) {
+  const exactSkuCase = Boolean(testCase.metadata?.tags?.includes("exact-sku"));
+  const expectedRetrievalCount =
+    new Set(testCase.expect.expectedProductIds ?? []).size +
+    new Set(testCase.expect.expectedVariantIds ?? []).size;
+  return {
+    id: testCase.id,
+    passed: false,
+    errors: [error instanceof Error ? error.message : String(error)],
+    productCount: 0,
+    language: testCase.metadata?.language ?? testCase.locale,
+    category: testCase.expect.category ?? null,
+    hardNegative: Boolean(testCase.metadata?.hardNegative),
+    exactSkuCase,
+    exactSkuCorrect: !exactSkuCase,
+    noMatchCase: testCase.expect.mode === "no_match",
+    noMatchCorrect: false,
+    expectedRetrievalCount,
+    retrievedExpectedCount: 0,
+    top20CandidateCount: 0,
+    wrongExactCount: 0,
+    grounded: true,
+    degraded: false,
+    pipeline: diagnostics.pipeline ?? null,
+    retrieval: diagnostics.retrieval ?? null,
+    responseCommit: diagnostics.responseCommit ?? null,
+    catalogFingerprint: diagnostics.catalogFingerprint ?? null,
+    latencyMs: diagnostics.latencyMs ?? 0,
+    responseBytes: diagnostics.responseBytes ?? 0,
+    activeCpuMs: diagnostics.activeCpuMs ?? null,
+    retrievalLatencyMs: diagnostics.retrievalLatencyMs ?? null,
+    generationCalls: diagnostics.generationCalls ?? null,
+    embeddingCalls: diagnostics.embeddingCalls ?? null,
+  };
+}
+
 async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: boolean) {
   const startedAt = performance.now();
   const response = await fetch(`${baseUrl}/api/shop/stock/assistant`, {
@@ -157,11 +209,42 @@ async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: bool
   const responseBody = await response.text();
   const responseBytes = new TextEncoder().encode(responseBody).byteLength;
   if (!response.ok) {
-    throw new Error(
-      `HTTP ${response.status} (${pipeline ?? "unmarked"}/${retrieval ?? "unmarked"}): ${responseBody}`
+    return buildFailedCaseResult(
+      testCase,
+      new Error(
+        `HTTP ${response.status} (${pipeline ?? "unmarked"}/${retrieval ?? "unmarked"}): ${responseBody}`
+      ),
+      {
+        latencyMs,
+        responseBytes,
+        pipeline,
+        retrieval,
+        responseCommit,
+        catalogFingerprint,
+        activeCpuMs,
+        retrievalLatencyMs,
+        generationCalls,
+        embeddingCalls,
+      }
     );
   }
-  const result = JSON.parse(responseBody) as ShopAiAssistantResponse;
+  let result: ShopAiAssistantResponse;
+  try {
+    result = JSON.parse(responseBody) as ShopAiAssistantResponse;
+  } catch {
+    return buildFailedCaseResult(testCase, new Error("Response body was not valid JSON"), {
+      latencyMs,
+      responseBytes,
+      pipeline,
+      retrieval,
+      responseCommit,
+      catalogFingerprint,
+      activeCpuMs,
+      retrievalLatencyMs,
+      generationCalls,
+      embeddingCalls,
+    });
+  }
   const errors = evaluateShopAiResponse(testCase, result);
   const evaluationCandidates =
     result.evaluation?.candidates ??
@@ -202,6 +285,7 @@ async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: bool
   const grounded = validateGroundedShopAiOutput(result.message, result.products, {
     currency: "EUR",
   });
+  const identityLookupCase = Boolean(getShopAiExactSkuLookupToken(testCase.message));
   const exactSkuCase = Boolean(testCase.metadata?.tags?.includes("exact-sku"));
   const exactSkuCorrect =
     !exactSkuCase ||
@@ -215,8 +299,13 @@ async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: bool
   if (pipeline !== "v2") {
     errors.unshift(`expected V2 pipeline marker, received ${pipeline ?? "no marker"}`);
   }
-  if (retrieval !== "strict" && retrieval !== "not-run") {
-    errors.unshift(`expected strict V2 retrieval, received ${retrieval ?? "no retrieval marker"}`);
+  const retrievalMarkerAllowed = identityLookupCase
+    ? retrieval === "identity"
+    : retrieval === "strict" || retrieval === "not-run";
+  if (!retrievalMarkerAllowed) {
+    errors.unshift(
+      `expected ${identityLookupCase ? "identity" : "strict V2"} retrieval, received ${retrieval ?? "no retrieval marker"}`
+    );
   }
   if (expectedCommit && responseCommit !== expectedCommit) {
     errors.unshift(
@@ -368,7 +457,13 @@ Environment:
   assertSafeEvalTarget(baseUrl);
 
   const results = [];
-  for (const testCase of cases) results.push(await runCase(testCase, options.releaseGate));
+  for (const testCase of cases) {
+    try {
+      results.push(await runCase(testCase, options.releaseGate));
+    } catch (error) {
+      results.push(buildFailedCaseResult(testCase, error));
+    }
+  }
   for (const result of results) {
     console.log(
       `${result.passed ? "PASS" : "FAIL"} ${result.id} [${result.language}${result.hardNegative ? ", hard-negative" : ""}] (${result.productCount} products, ${result.pipeline ?? "unmarked"}/${result.retrieval ?? "unmarked"})`
