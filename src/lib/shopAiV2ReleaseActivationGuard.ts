@@ -538,7 +538,11 @@ export function validateShopAiV2ReleaseEvalReport(
       if (result.pipeline !== "v2") {
         errors.push(`eval report result ${index} did not use the V2 pipeline`);
       }
-      if (result.retrieval !== "strict" && result.retrieval !== "not-run") {
+      const validRetrievalPath =
+        result.retrieval === "strict" ||
+        result.retrieval === "not-run" ||
+        (result.retrieval === "identity" && result.identityLookupCase === true);
+      if (!validRetrievalPath) {
         errors.push(`eval report result ${index} did not use strict V2 retrieval`);
       }
       if (

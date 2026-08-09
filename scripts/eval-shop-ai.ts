@@ -140,6 +140,7 @@ function buildFailedCaseResult(
     embeddingCalls?: number | null;
   } = {}
 ) {
+  const identityLookupCase = Boolean(getShopAiExactSkuLookupToken(testCase.message));
   const exactSkuCase = Boolean(testCase.metadata?.tags?.includes("exact-sku"));
   const expectedRetrievalCount =
     new Set(testCase.expect.expectedProductIds ?? []).size +
@@ -152,6 +153,7 @@ function buildFailedCaseResult(
     language: testCase.metadata?.language ?? testCase.locale,
     category: testCase.expect.category ?? null,
     hardNegative: Boolean(testCase.metadata?.hardNegative),
+    identityLookupCase,
     exactSkuCase,
     exactSkuCorrect: !exactSkuCase,
     noMatchCase: testCase.expect.mode === "no_match",
@@ -332,6 +334,7 @@ async function runCase(testCase: ShopAiEvalCase, requireReleaseDiagnostics: bool
     language: testCase.metadata?.language ?? testCase.locale,
     category: testCase.expect.category ?? null,
     hardNegative: Boolean(testCase.metadata?.hardNegative),
+    identityLookupCase,
     exactSkuCase,
     exactSkuCorrect,
     noMatchCase: testCase.expect.mode === "no_match",

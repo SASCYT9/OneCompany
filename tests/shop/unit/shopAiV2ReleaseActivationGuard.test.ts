@@ -152,6 +152,7 @@ function passingEvalReport() {
       passed: true,
       pipeline: "v2",
       retrieval: index % 10 === 0 ? "not-run" : "strict",
+      identityLookupCase: false,
       responseCommit: COMMIT_SHA,
       catalogFingerprint: CATALOG_FINGERPRINT,
       responseBytes: 20_000,
@@ -167,6 +168,29 @@ test("release report validation enforces commit, V2 markers, and performance gat
     ok: true,
     errors: [],
   });
+});
+
+test("release report validation accepts identity retrieval only for identity lookup cases", () => {
+  const validReport = passingEvalReport();
+  validReport.results[1] = {
+    ...validReport.results[1],
+    retrieval: "identity",
+    identityLookupCase: true,
+  };
+  assert.deepEqual(validateShopAiV2ReleaseEvalReport(validReport, COMMIT_SHA), {
+    ok: true,
+    errors: [],
+  });
+
+  const invalidReport = passingEvalReport();
+  invalidReport.results[1] = {
+    ...invalidReport.results[1],
+    retrieval: "identity",
+    identityLookupCase: false,
+  };
+  const validation = validateShopAiV2ReleaseEvalReport(invalidReport, COMMIT_SHA);
+  assert.equal(validation.ok, false);
+  assert.match(validation.errors.join("\n"), /did not use strict V2 retrieval/);
 });
 
 test("release report validation independently enforces catalog data readiness", () => {
