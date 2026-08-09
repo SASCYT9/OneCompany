@@ -4,13 +4,36 @@ import test from "node:test";
 import {
   getShopAiV2CategoryRolloutPercent,
   isShopAiV2CategoryEnabled,
+  isShopAiV2Enabled,
   isShopAiV2ExactSkuBaselineEnabled,
   isShopAiV2OneShotProductionConfig,
   isShopAiV2RolloutCategory,
   isShopAiV2ShadowEnabled,
   SHOP_AI_V2_ROLLOUT_CATEGORIES,
 } from "../../../src/lib/shopAiV2FeatureFlags";
+import { createShopAiV2ReleaseGateMarker } from "../../../src/lib/shopAiV2ReleaseActivationGuard";
 import type { ShopStockCategoryGroupId } from "../../../src/lib/shopStockTaxonomy";
+
+const RELEASE_COMMIT_SHA = "a".repeat(40);
+const RELEASE_CATALOG_FINGERPRINT = "e".repeat(64);
+const RELEASE_SIGNING_SECRET = "release-gate-secret-with-at-least-32-bytes";
+
+function expiredReleaseMarker() {
+  return createShopAiV2ReleaseGateMarker(
+    {
+      commitSha: RELEASE_COMMIT_SHA,
+      corpusSha256: "c".repeat(64),
+      evalReportSha256: "d".repeat(64),
+      catalogFingerprint: RELEASE_CATALOG_FINGERPRINT,
+      evaluatedAt: "2026-07-17T12:00:00.000Z",
+      expiresAt: "2026-07-18T12:00:00.000Z",
+      repository: "one-company/storefront",
+      workflowRunId: "123456789",
+      workflowRunAttempt: 1,
+    },
+    RELEASE_SIGNING_SECRET
+  );
+}
 
 function withFeatureFlagEnvironment(
   values: Record<string, string | undefined>,
@@ -91,6 +114,32 @@ test("runtime feature flags fail closed in production without a commit-bound rel
       assert.equal(isShopAiV2CategoryEnabled("exhaust", "visitor"), false);
       assert.equal(isShopAiV2ExactSkuBaselineEnabled(), false);
       assert.equal(isShopAiV2ShadowEnabled(), false);
+    }
+  );
+});
+
+test("runtime keeps an immutable production deployment enabled after marker TTL", () => {
+  const allCategories = SHOP_AI_V2_ROLLOUT_CATEGORIES.join(",");
+  const allPercentages = SHOP_AI_V2_ROLLOUT_CATEGORIES.map((category) => `${category}:100`).join(
+    ","
+  );
+
+  withFeatureFlagEnvironment(
+    {
+      VERCEL_ENV: "production",
+      VERCEL_GIT_COMMIT_SHA: RELEASE_COMMIT_SHA,
+      SHOP_AI_V2_ENABLED: "1",
+      SHOP_AI_V2_EXACT_SKU_ENABLED: "1",
+      SHOP_AI_V2_CATEGORIES: allCategories,
+      SHOP_AI_V2_CATEGORY_PERCENTAGES: allPercentages,
+      SHOP_AI_V2_CATALOG_FINGERPRINT: RELEASE_CATALOG_FINGERPRINT,
+      SHOP_AI_V2_RELEASE_GATE_MARKER: expiredReleaseMarker(),
+      SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET: RELEASE_SIGNING_SECRET,
+    },
+    () => {
+      assert.equal(isShopAiV2Enabled(), true);
+      assert.equal(isShopAiV2CategoryEnabled("exhaust", "visitor"), true);
+      assert.equal(isShopAiV2ExactSkuBaselineEnabled(), true);
     }
   );
 });

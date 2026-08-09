@@ -91,6 +91,15 @@ export type ShopAiV2ReleaseActivationGuardInput = {
   v2ShadowEnabled?: boolean | string | null;
 };
 
+export type ShopAiV2ReleaseActivationGuardOptions = {
+  /**
+   * Keep enabled for release checks and production builds. An immutable
+   * deployment may disable this at request time after the marker was already
+   * verified during its build, while all identity and integrity checks remain.
+   */
+  enforceMarkerExpiry?: boolean;
+};
+
 export type ShopAiV2ReleaseActivationGuardResult = {
   ok: boolean;
   production: boolean;
@@ -653,8 +662,10 @@ export function verifyShopAiV2ReleaseGateMarker(
 }
 
 export function evaluateShopAiV2ReleaseActivationGuard(
-  input: ShopAiV2ReleaseActivationGuardInput
+  input: ShopAiV2ReleaseActivationGuardInput,
+  options: ShopAiV2ReleaseActivationGuardOptions = {}
 ): ShopAiV2ReleaseActivationGuardResult {
+  const enforceMarkerExpiry = options.enforceMarkerExpiry ?? true;
   const production = isProductionDeployment(input.deploymentEnvironment);
   const servedTrafficRequested = isBooleanFlagEnabled(input.v2Enabled);
   const shadowTrafficRequested = isBooleanFlagEnabled(input.v2ShadowEnabled);
@@ -733,7 +744,10 @@ export function evaluateShopAiV2ReleaseActivationGuard(
             : typeof input.now === "string"
               ? Date.parse(input.now)
               : Date.now();
-      if (!Number.isFinite(now) || now >= Date.parse(markerPayload.expiresAt)) {
+      if (
+        enforceMarkerExpiry &&
+        (!Number.isFinite(now) || now >= Date.parse(markerPayload.expiresAt))
+      ) {
         failures.push({
           code: "release-gate-marker-expired",
           message: `Shop AI V2 release gate expired at ${markerPayload.expiresAt}.`,

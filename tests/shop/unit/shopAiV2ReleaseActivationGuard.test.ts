@@ -480,6 +480,26 @@ test("production activation fails closed for stale or mismatched catalog evidenc
   );
 });
 
+test("runtime may retain an already build-verified marker after its TTL", () => {
+  const result = evaluateShopAiV2ReleaseActivationGuard(
+    {
+      deploymentEnvironment: "production",
+      deployedCommitSha: COMMIT_SHA,
+      releaseGateMarker: markerForCommit(),
+      releaseGateSigningSecret: SIGNING_SECRET,
+      catalogFingerprint: CATALOG_FINGERPRINT,
+      now: "2026-07-18T12:00:00.000Z",
+      v2Enabled: "1",
+    },
+    { enforceMarkerExpiry: false }
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.markerCommitSha, COMMIT_SHA);
+  assert.equal(result.markerCatalogFingerprint, CATALOG_FINGERPRINT);
+});
+
 test("commit normalization only accepts full Git SHA-1 values", () => {
   assert.equal(normalizeShopAiCommitSha(` ${COMMIT_SHA.toUpperCase()} `), COMMIT_SHA);
   assert.equal(normalizeShopAiCommitSha("abc123"), null);
