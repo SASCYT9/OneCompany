@@ -299,22 +299,6 @@ export async function createGroundedShopAiAnswer(input: {
     input.products.every(
       (product) => product.matchStatus === "exact" && product.matchBasis === "identity"
     );
-  const hasVehicleConstraint = Boolean(
-    input.plan.vehicle.make ||
-      input.plan.vehicle.model ||
-      input.plan.vehicle.chassis ||
-      input.plan.vehicle.year ||
-      input.plan.vehicle.engine ||
-      input.plan.opfGpf
-  );
-  const hasUnverified = input.products.some(
-    (product) => product.matchStatus === "requires_verification"
-  );
-  const hasConfirmedFitment =
-    hasVehicleConstraint &&
-    input.products.some(
-      (product) => product.matchStatus === "exact" && product.matchBasis !== "identity"
-    );
   const comparisonFallback =
     distinctBrands.length > 1
       ? distinctBrands
@@ -335,27 +319,23 @@ export async function createGroundedShopAiAnswer(input: {
       : "";
   const fallback = identityOnly
     ? isUa
-      ? "Знайшов точний товар за артикулом. Це підтверджує лише ідентичність товару/SKU; сумісність з авто або мото ще не перевірялася."
-      : "I found the exact product by SKU. This confirms product/SKU identity only; vehicle fitment has not been evaluated."
+      ? "Знайшов товар за артикулом. Відкрийте картку, щоб переглянути характеристики."
+      : "I found the product by SKU. Open the card to review its specifications."
     : comparisonFallback
       ? isUa
         ? `Для ${vehicleLabel || fallbackVehicle} є кілька сильних варіантів: ${comparisonFallback}. Деталі та комплектація — у картках.`
         : `Strong options for ${vehicleLabel || fallbackVehicle}: ${comparisonFallback}. Open the cards for specifications and configuration.`
       : input.products.length
         ? isUa
-          ? hasConfirmedFitment && !hasUnverified
-            ? `Для ${vehicleLabel || "вашого запиту"} підібрав варіанти з підтвердженою сумісністю. Відкрийте товар, щоб переглянути характеристики.`
-            : `Для ${vehicleLabel || "вашого запиту"} підібрав найрелевантніші варіанти. Статус сумісності вказано окремо в кожній картці.`
-          : hasConfirmedFitment && !hasUnverified
-            ? `These matches have confirmed fitment for ${vehicleLabel || "your request"}. Open a product to review its specifications.`
-            : `These are the strongest matches for ${vehicleLabel || "your request"}. Each card shows its own fitment status.`
+          ? `Для ${vehicleLabel || "вашого запиту"} підібрав найрелевантніші товари. Відкрийте картку, щоб переглянути характеристики.`
+          : `These are the strongest product matches for ${vehicleLabel || "your request"}. Open a card to review its specifications.`
         : isUa
           ? input.context.scope === "moto"
-            ? "За цими параметрами точних товарів не знайшов. Уточніть мотоцикл, рік або бажану категорію."
-            : "За цими параметрами точних товарів не знайшов. Уточніть авто, рік або бажану категорію."
+            ? "За цими параметрами товарів не знайшов. Уточніть мотоцикл, рік або бажану категорію."
+            : "За цими параметрами товарів не знайшов. Уточніть авто, рік або бажану категорію."
           : input.context.scope === "moto"
-            ? "I could not find an exact product for these parameters. Please clarify the motorcycle, year or category."
-            : "I could not find an exact product for these parameters. Please clarify the vehicle, year or category.";
+            ? "I could not find a product for these parameters. Please clarify the motorcycle, year or category."
+            : "I could not find a product for these parameters. Please clarify the vehicle, year or category.";
   const powerGoalAnswer = buildShopAiPowerGoalAnswer({
     locale: input.context.locale,
     plan: input.plan,

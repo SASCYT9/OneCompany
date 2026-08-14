@@ -30,6 +30,18 @@ test("BMW X6 G06 aliases resolve the regular X6 without broadening to X6 M", () 
   assert.equal(expanded.models.includes("X6 M"), false);
 });
 
+test("Audi RS4 and RS5 aliases preserve the explicitly requested B8 or B9 chassis", () => {
+  const b8 = expandVehicleAliases("Audi B8 RS5");
+  const b9 = expandVehicleAliases("Audi RS4 B9");
+
+  assert.deepEqual(b8.makes, ["Audi"]);
+  assert.deepEqual(b8.models, ["RS5"]);
+  assert.deepEqual(b8.chassis, ["B8"]);
+  assert.deepEqual(b9.makes, ["Audi"]);
+  assert.deepEqual(b9.models, ["RS4"]);
+  assert.deepEqual(b9.chassis, ["B9"]);
+});
+
 test("Mercedes G-Wagon aliases map to G-Class and W463/W465 platforms", () => {
   for (const query of ["g wagon", "g-class", "g63"]) {
     const expanded = expandVehicleAliases(query);

@@ -12,6 +12,11 @@ test("exact SKU baseline normalizes only structured part-code queries", () => {
   assert.equal(getShopAiExactSkuLookupToken("Знайди товар за артикулом S-PO/TI/5H"), "spoti5h");
   assert.equal(getShopAiExactSkuLookupToken("SKU: ABC-123"), "abc123");
   assert.equal(getShopAiExactSkuLookupToken("SKU URB-HOO-25358201-V1"), "urbhoo25358201v1");
+  assert.equal(getShopAiExactSkuLookupToken("SKU 801607"), "801607");
+  assert.equal(getShopAiExactSkuLookupToken("SKU Hoodie-Grey"), "hoodiegrey");
+  assert.equal(getShopAiExactSkuLookupToken("801607"), "801607");
+  assert.equal(getShopAiExactSkuLookupToken("2018"), null);
+  assert.equal(getShopAiExactSkuLookupToken("SKU exhaust"), null);
   assert.equal(getShopAiExactSkuLookupToken("SKU ABC-123 XYZ-987"), null);
   assert.equal(getShopAiExactSkuLookupToken("SKU WBA8D9G50JNU12345"), null);
 });

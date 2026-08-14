@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { getShopAiExactSkuLookupToken } from "../../../src/lib/shopAiExactSku";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../../../src/lib/shopAiV2RolloutContract";
 import {
   buildShopAiEvalReviewQueue,
@@ -37,12 +38,74 @@ test("review queue creates 500 balanced pending cases without pretending they we
     true
   );
   assert.equal(queue.items.filter((item) => item.draftCase.metadata?.hardNegative).length, 100);
+  assert.equal(
+    queue.items.filter((item) => item.oracle.automationEligibility === "deterministic").length,
+    230
+  );
+  assert.equal(
+    queue.items.filter((item) => item.oracle.automationEligibility === "source_grounded_reviewable")
+      .length,
+    270
+  );
+  const hardNegatives = queue.items.filter((item) => item.oracle.kind === "mutated_sku_no_match");
+  assert.equal(hardNegatives.length, 100);
+  assert.equal(
+    hardNegatives.every(
+      (item) =>
+        item.draftCase.expect.mode === "no_match" &&
+        item.draftCase.expect.forbiddenProductIds?.includes(item.source.productId) &&
+        !item.draftCase.metadata?.tags?.includes("exact-sku") &&
+        Boolean(getShopAiExactSkuLookupToken(item.draftCase.message))
+    ),
+    true
+  );
+  assert.equal(
+    hardNegatives.every(
+      (item) =>
+        !item.source.variantId ||
+        item.draftCase.expect.forbiddenVariantIds?.includes(item.source.variantId)
+    ),
+    true
+  );
+
+  const exactSkuCases = queue.items.filter((item) => item.oracle.kind === "exact_sku");
+  assert.equal(exactSkuCases.length, 10);
+  assert.equal(
+    exactSkuCases.every(
+      (item) =>
+        item.draftCase.expect.mode === "results" &&
+        item.draftCase.expect.category === undefined &&
+        Boolean(getShopAiExactSkuLookupToken(item.draftCase.message))
+    ),
+    true
+  );
+
+  assert.equal(
+    queue.items
+      .filter(
+        (item) => item.oracle.kind === "catalog_relevance" || item.oracle.kind === "clarification"
+      )
+      .every((item) => getShopAiExactSkuLookupToken(item.draftCase.message) === null),
+    true
+  );
   for (const category of SHOP_AI_V2_ROLLOUT_CATEGORIES) {
-    assert.ok(queue.items.filter((item) => item.category === category).length >= 30);
+    assert.equal(
+      queue.items.filter((item) => item.draftCase.expect.category === category).length,
+      30
+    );
   }
   for (const language of ["ua", "en", "ru", "mixed", "translit"]) {
     assert.equal(queue.items.filter((item) => item.language === language).length, 100);
   }
+  assert.deepEqual(
+    Object.fromEntries(
+      ["results", "clarification", "no_match"].map((mode) => [
+        mode,
+        queue.items.filter((item) => item.draftCase.expect.mode === mode).length,
+      ])
+    ),
+    { results: 280, clarification: 120, no_match: 100 }
+  );
   assert.equal(new Set(queue.items.map((item) => item.draftCase.message)).size, 500);
 });
 
@@ -57,6 +120,24 @@ test("review compiler refuses pending cases and only passes a fully evidenced co
   });
   assert.equal(pending.ok, false);
   assert.match(pending.errors.join("\n"), /approved 0\/500/);
+
+  const machineReviewed = compileApprovedShopAiEvalReviewQueue(queue, {
+    enabledCategories: [...SHOP_AI_V2_ROLLOUT_CATEGORIES],
+    reviewPolicy: "catalog_grounded_machine",
+  });
+  assert.equal(machineReviewed.ok, true, machineReviewed.errors.join("\n"));
+  assert.equal(machineReviewed.cases.length, 500);
+  assert.equal(machineReviewed.gate?.passed, true);
+  assert.equal(
+    machineReviewed.cases.every(
+      (item) =>
+        item.metadata?.reviewMethod === "catalog_grounded_machine" &&
+        item.metadata.fitmentClaimAllowed === false &&
+        Boolean(item.metadata.reviewSourceEvidenceId) &&
+        Boolean(item.metadata.reviewSourceProductId)
+    ),
+    true
+  );
 
   for (const item of queue.items) {
     item.status = "approved";

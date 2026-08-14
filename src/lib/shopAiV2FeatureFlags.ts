@@ -18,6 +18,12 @@ export {
 
 export const SHOP_AI_V2_ROLLOUT_PERCENTAGES = [0, 10, 50, 100] as const;
 
+// A production build is created only after next.config.ts verifies a fresh
+// release marker. Request-time checks keep validating its signature, commit,
+// catalog fingerprint and rollout contract, but must not disable that immutable
+// deployment merely because the build-time marker later reaches its TTL.
+const SHOP_AI_V2_RUNTIME_GUARD_OPTIONS = { enforceMarkerExpiry: false } as const;
+
 const SHOP_AI_V2_ROLLOUT_PERCENTAGE_SET = new Set<number>(SHOP_AI_V2_ROLLOUT_PERCENTAGES);
 
 function parseBoolean(value: string | undefined) {
@@ -95,8 +101,10 @@ function stableRolloutBucket(value: string) {
 export function isShopAiV2Enabled() {
   return (
     parseBoolean(process.env.SHOP_AI_V2_ENABLED) &&
-    evaluateShopAiV2ReleaseActivationGuard(readShopAiV2ReleaseActivationGuardInput(process.env))
-      .ok &&
+    evaluateShopAiV2ReleaseActivationGuard(
+      readShopAiV2ReleaseActivationGuardInput(process.env),
+      SHOP_AI_V2_RUNTIME_GUARD_OPTIONS
+    ).ok &&
     isShopAiV2OneShotProductionConfig(process.env)
   );
 }
@@ -104,7 +112,10 @@ export function isShopAiV2Enabled() {
 export function isShopAiV2ShadowEnabled() {
   return (
     parseBoolean(process.env.SHOP_AI_V2_SHADOW) &&
-    evaluateShopAiV2ReleaseActivationGuard(readShopAiV2ReleaseActivationGuardInput(process.env)).ok
+    evaluateShopAiV2ReleaseActivationGuard(
+      readShopAiV2ReleaseActivationGuardInput(process.env),
+      SHOP_AI_V2_RUNTIME_GUARD_OPTIONS
+    ).ok
   );
 }
 

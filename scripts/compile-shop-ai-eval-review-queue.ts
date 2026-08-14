@@ -36,9 +36,10 @@ async function main() {
     JSON.stringify(
       {
         mode: commit ? "commit" : "dry-run",
+        reviewPolicy: config.value.reviewPolicy,
         queuePath,
         outputPath,
-        approvedCases: result.cases.length,
+        compiledCases: result.cases.length,
         gatePassed: result.gate?.passed ?? false,
         errors: result.errors,
       },

@@ -13,7 +13,6 @@ import {
   MessageCircleMore,
   RotateCcw,
   Send,
-  ShieldCheck,
   Sparkles,
   ThumbsDown,
   ThumbsUp,
@@ -50,7 +49,6 @@ type ShopAiV2Counts = {
 
 type AssistantProduct = ShopAiProduct & {
   matchStatus?: ShopAiV2MatchStatus;
-  matchReason?: string;
   missingFacts: string[];
   productHref?: string;
   managerHref?: string;
@@ -238,7 +236,6 @@ function normalizeAssistantProduct(product: ShopAiProduct): AssistantProduct {
   return {
     ...product,
     matchStatus: readV2MatchStatus(product),
-    matchReason: readOptionalString(product, "matchReason"),
     missingFacts: readOptionalStringArray(product, "missingFacts"),
     productHref: readOptionalString(product, "productHref"),
     managerHref: readOptionalString(product, "managerHref"),
@@ -263,25 +260,6 @@ function localizedCategoryLabel(category: string | null | undefined, locale: "ua
   if (!normalized) return "";
   const canonical = SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === normalized);
   return canonical ? (locale === "en" ? canonical.en : canonical.ua) : normalized;
-}
-
-function missingFactLabel(fact: string, isUa: boolean) {
-  const normalized = fact.trim().toLocaleLowerCase("en-US");
-  const labels: Record<string, [string, string]> = {
-    body: ["кузов", "body style"],
-    chassis: ["кузов", "chassis"],
-    drivetrain: ["привід", "drivetrain"],
-    engine: ["двигун", "engine"],
-    make: ["марку", "make"],
-    market: ["ринок авто", "vehicle market"],
-    model: ["модель", "model"],
-    opfgpf: ["наявність OPF / GPF", "OPF / GPF"],
-    transmission: ["коробку передач", "transmission"],
-    variant: ["комплектацію товару", "product variant"],
-    year: ["рік випуску", "model year"],
-  };
-  const label = labels[normalized.replace(/[^a-z]/g, "")];
-  return label ? label[isUa ? 0 : 1] : fact;
 }
 
 function createGreeting(
@@ -1303,112 +1281,74 @@ export function StockAiAssistant(props: Props) {
                                 void postShopAiClientAttributionEvent("product_click", attribution);
                               }}
                             />
-                            {[
-                              {
-                                status: "exact" as const,
-                                label: (() => {
-                                  const exactProducts = message.products!.filter(
-                                    (product) => resolvedMatchStatus(product) === "exact"
-                                  );
-                                  const identityMatches = exactProducts.filter(
-                                    (product) => product.matchBasis === "identity"
-                                  ).length;
-                                  if (identityMatches === exactProducts.length) {
-                                    return isUa ? "Точний збіг артикулу" : "Exact SKU match";
+                            <section
+                              aria-label={isUa ? "Знайдені товари" : "Products found"}
+                              className="space-y-2"
+                            >
+                              <div className="flex items-center justify-between px-0.5 text-[9px] font-semibold uppercase tracking-[0.13em] text-foreground/42">
+                                <span>{isUa ? "Знайдені товари" : "Products found"}</span>
+                                <span className="font-mono text-foreground/28">
+                                  {Math.min(message.products.length, 6)}
+                                </span>
+                              </div>
+                              {message.products.slice(0, 6).map((product) => (
+                                <AssistantProductCard
+                                  key={`${message.id}-${product.id}-${product.variantId ?? "base"}`}
+                                  product={product}
+                                  context={assistantContext}
+                                  managerHref={
+                                    product.managerHref || message.managerHref || managerHref
                                   }
-                                  if (identityMatches > 0) {
-                                    return isUa
-                                      ? "Підтверджено або знайдено за артикулом"
-                                      : "Confirmed or matched by SKU";
-                                  }
-                                  return isUa
-                                    ? "Підтверджено для вашого авто"
-                                    : "Confirmed for your vehicle";
-                                })(),
-                              },
-                              {
-                                status: "requires_verification" as const,
-                                label: isUa ? "Потребує перевірки" : "Requires verification",
-                              },
-                            ].map((group) => {
-                              const groupedProducts = message
-                                .products!.filter(
-                                  (product) => resolvedMatchStatus(product) === group.status
-                                )
-                                .slice(0, 6);
-                              if (groupedProducts.length === 0) return null;
-                              return (
-                                <section
-                                  key={`${message.id}-${group.status}`}
-                                  aria-label={group.label}
-                                  className="space-y-2"
-                                >
-                                  <div className="flex items-center justify-between px-0.5 text-[9px] font-semibold uppercase tracking-[0.13em] text-foreground/42">
-                                    <span>{group.label}</span>
-                                    <span className="font-mono text-foreground/28">
-                                      {groupedProducts.length}
-                                    </span>
-                                  </div>
-                                  {groupedProducts.map((product) => (
-                                    <AssistantProductCard
-                                      key={`${message.id}-${product.id}-${product.variantId ?? "base"}`}
-                                      product={product}
-                                      context={assistantContext}
-                                      managerHref={
-                                        product.managerHref || message.managerHref || managerHref
-                                      }
-                                      onProductClick={(selectedProduct) => {
-                                        const attribution = buildProductAttribution(
-                                          message,
-                                          selectedProduct,
-                                          assistantContext
-                                        );
-                                        if (!attribution) return;
-                                        storeShopAiClientAttribution(attribution);
-                                        void postShopAiClientAttributionEvent(
-                                          "product_click",
-                                          attribution
-                                        );
-                                      }}
-                                      onManagerClick={(selectedProduct) => {
-                                        const baseContext =
-                                          message.managerContext ||
-                                          buildDefaultManagerContext(assistantContext);
-                                        storeManagerHandoff({
-                                          ...baseContext,
-                                          runId: message.runId ?? baseContext.runId ?? null,
-                                          conversationId:
-                                            message.conversationId ??
-                                            baseContext.conversationId ??
-                                            null,
-                                          selectedProduct: {
-                                            productId: selectedProduct.id,
-                                            variantId: selectedProduct.variantId,
-                                            brand: selectedProduct.brand,
-                                            sku: selectedProduct.partNumber,
-                                            name: selectedProduct.name,
-                                            matchStatus: resolvedMatchStatus(selectedProduct),
-                                            missingFacts: selectedProduct.missingFacts,
-                                          },
-                                        });
-                                        const attribution = buildProductAttribution(
-                                          message,
-                                          selectedProduct,
-                                          assistantContext
-                                        );
-                                        if (attribution) {
-                                          void postShopAiClientAttributionEvent(
-                                            "manager_handoff",
-                                            attribution
-                                          );
-                                        }
-                                        setOpen(false);
-                                      }}
-                                    />
-                                  ))}
-                                </section>
-                              );
-                            })}
+                                  onProductClick={(selectedProduct) => {
+                                    const attribution = buildProductAttribution(
+                                      message,
+                                      selectedProduct,
+                                      assistantContext
+                                    );
+                                    if (!attribution) return;
+                                    storeShopAiClientAttribution(attribution);
+                                    void postShopAiClientAttributionEvent(
+                                      "product_click",
+                                      attribution
+                                    );
+                                  }}
+                                  onManagerClick={(selectedProduct) => {
+                                    const baseContext =
+                                      message.managerContext ||
+                                      buildDefaultManagerContext(assistantContext);
+                                    storeManagerHandoff({
+                                      ...baseContext,
+                                      runId: message.runId ?? baseContext.runId ?? null,
+                                      conversationId:
+                                        message.conversationId ??
+                                        baseContext.conversationId ??
+                                        null,
+                                      selectedProduct: {
+                                        productId: selectedProduct.id,
+                                        variantId: selectedProduct.variantId,
+                                        brand: selectedProduct.brand,
+                                        sku: selectedProduct.partNumber,
+                                        name: selectedProduct.name,
+                                        matchStatus: resolvedMatchStatus(selectedProduct),
+                                        missingFacts: selectedProduct.missingFacts,
+                                      },
+                                    });
+                                    const attribution = buildProductAttribution(
+                                      message,
+                                      selectedProduct,
+                                      assistantContext
+                                    );
+                                    if (attribution) {
+                                      void postShopAiClientAttributionEvent(
+                                        "manager_handoff",
+                                        attribution
+                                      );
+                                    }
+                                    setOpen(false);
+                                  }}
+                                />
+                              ))}
+                            </section>
                             {message.searchHref ? (
                               <motion.div whileHover={reducedMotion ? undefined : { x: 2 }}>
                                 <Link
@@ -1579,8 +1519,8 @@ export function StockAiAssistant(props: Props) {
                   </div>
                   <p className="mt-2 px-1 text-[9px] leading-4 text-foreground/35">
                     {isUa
-                      ? "Сумісність перевіримо перед оформленням."
-                      : "Fitment will be checked before checkout."}
+                      ? "Відкрийте товар, щоб переглянути характеристики."
+                      : "Open a product to review its specifications."}
                   </p>
                 </footer>
               </motion.aside>
@@ -1624,29 +1564,22 @@ function AssistantResultStatus({
     return (
       <div className="mt-2.5 inline-flex items-center gap-2 border border-foreground/10 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.11em] text-foreground/50">
         <CircleHelp className="h-3 w-3" />
-        {isUa ? "Точного збігу немає" : "No exact match"}
+        {isUa ? "Товарів не знайдено" : "No products found"}
       </div>
     );
   }
 
   if (!counts) return null;
+  const total = counts.exact + counts.requiresVerification;
+  if (total === 0) return null;
 
   return (
     <div
-      className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 border border-foreground/10 px-3 py-2 text-[9px] uppercase tracking-[0.1em]"
-      aria-label={isUa ? "Якість підбору" : "Match quality"}
+      className="mt-2.5 inline-flex items-center gap-2 border border-foreground/10 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.11em] text-foreground/50"
+      aria-label={isUa ? "Результати пошуку" : "Search results"}
     >
-      <span className="inline-flex items-center gap-1.5 text-foreground/66">
-        <ShieldCheck className="h-3 w-3" />
-        {isUa ? "Точні" : "Exact"} <span className="font-mono text-foreground">{counts.exact}</span>
-      </span>
-      {counts.requiresVerification > 0 ? (
-        <span className="inline-flex items-center gap-1.5 text-foreground/42">
-          <CircleHelp className="h-3 w-3" />
-          {isUa ? "Потребують перевірки" : "Need verification"}{" "}
-          <span className="font-mono text-foreground/68">{counts.requiresVerification}</span>
-        </span>
-      ) : null}
+      <Sparkles className="h-3 w-3" />
+      {isUa ? "Знайдено" : "Found"} <span className="font-mono text-foreground">{total}</span>
     </div>
   );
 }
@@ -1766,18 +1699,14 @@ function AssistantComparison({
   const selected: AssistantProduct[] = [];
   const seenBrands = new Set<string>();
 
-  for (const product of products.filter(
-    (candidate) => resolvedMatchStatus(candidate) === "exact"
-  )) {
+  for (const product of products) {
     const brand = product.brand.trim().toLocaleLowerCase("en-US");
     if (seenBrands.has(brand)) continue;
     selected.push(product);
     seenBrands.add(brand);
     if (selected.length === 3) break;
   }
-  for (const product of products.filter(
-    (candidate) => resolvedMatchStatus(candidate) === "exact"
-  )) {
+  for (const product of products) {
     if (selected.length === 3) break;
     if (!selected.some((item) => item.id === product.id)) selected.push(product);
   }
@@ -1822,9 +1751,11 @@ function AssistantComparison({
                   <span className="mt-0.5 block truncate text-[10px] text-foreground/42">
                     {product.name}
                   </span>
-                  <span className="mt-0.5 block truncate text-[9px] text-foreground/30">
-                    {factLabel || (isUa ? "Не підтверджено" : "Not confirmed")}
-                  </span>
+                  {factLabel ? (
+                    <span className="mt-0.5 block truncate text-[9px] text-foreground/30">
+                      {factLabel}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="whitespace-nowrap text-right text-xs font-semibold tabular-nums">
                   {price > 0 ? formatShopMoney(context.locale, price, context.currency) : "—"}
@@ -1855,11 +1786,8 @@ function AssistantProductCard({
   const isUa = context.locale === "ua";
   const reducedMotion = useReducedMotion();
   const price = productPrice(product, context);
-  const matchStatus = resolvedMatchStatus(product);
-  const isExact = matchStatus === "exact";
-  const isIdentityMatch = isExact && product.matchBasis === "identity";
   const href = resolveProductHref(product, context);
-  const matchReason = product.matchReason || product.compatibilityReason;
+  const factLabel = productFactLabel(product, isUa);
   const image = product.thumbnail ? (
     <Image
       src={product.thumbnail}
@@ -1877,136 +1805,62 @@ function AssistantProductCard({
       whileHover={reducedMotion ? undefined : { y: -2 }}
       transition={{ duration: 0.22 }}
       className="relative overflow-hidden border border-foreground/12 bg-foreground/[0.012] p-2.5 transition-colors hover:border-foreground/28 hover:bg-foreground/[0.022]"
+      data-testid="one-ai-product-card"
+      data-product-id={product.id}
     >
-      <span
-        className={`absolute inset-y-0 left-0 w-px ${
-          isExact ? "bg-foreground/30" : "bg-foreground/12"
-        }`}
-        aria-hidden="true"
-      />
+      <span className="absolute inset-y-0 left-0 w-px bg-foreground/20" aria-hidden="true" />
       <div className="flex gap-3">
-        {isExact ? (
-          <Link
-            href={href}
-            prefetch={false}
-            onClick={() => onProductClick(product)}
-            aria-label={isUa ? `Відкрити товар ${product.name}` : `Open product ${product.name}`}
-            className="group relative h-20 w-24 shrink-0 overflow-hidden bg-foreground/[0.035]"
-          >
-            {image}
-          </Link>
-        ) : (
-          <div className="group relative h-20 w-24 shrink-0 overflow-hidden bg-foreground/[0.025]">
-            {image}
-          </div>
-        )}
+        <Link
+          href={href}
+          prefetch={false}
+          onClick={() => onProductClick(product)}
+          aria-label={isUa ? `Відкрити товар ${product.name}` : `Open product ${product.name}`}
+          className="group relative h-20 w-24 shrink-0 overflow-hidden bg-foreground/[0.035]"
+        >
+          {image}
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.12em] text-foreground/40">
             <span className="truncate">{product.brand}</span>
             <span className="truncate font-mono">{product.partNumber}</span>
           </div>
-          {isExact ? (
-            <Link
-              href={href}
-              prefetch={false}
-              onClick={() => onProductClick(product)}
-              className="mt-1.5 line-clamp-2 text-xs font-medium leading-4 text-foreground transition hover:opacity-65"
-            >
-              {product.name}
-            </Link>
-          ) : (
-            <div className="mt-1.5 line-clamp-2 text-xs font-medium leading-4 text-foreground">
-              {product.name}
-            </div>
-          )}
-          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5 text-[9px]">
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 border px-1.5 py-1 font-semibold uppercase tracking-[0.07em] ${
-                isExact
-                  ? "border-foreground/18 text-foreground/58"
-                  : "border-foreground/12 bg-foreground/[0.025] text-foreground/46"
-              }`}
-            >
-              {isExact ? <ShieldCheck className="h-3 w-3" /> : <CircleHelp className="h-3 w-3" />}
-              {isExact
-                ? isIdentityMatch
-                  ? isUa
-                    ? "Точний артикул"
-                    : "Exact SKU"
-                  : isUa
-                    ? "Точна сумісність"
-                    : "Exact fitment"
-                : isUa
-                  ? "Сумісність потребує перевірки"
-                  : "Fitment requires verification"}
-            </span>
-            {productFactLabel(product, isUa) ? (
-              <span className="min-w-0 truncate text-foreground/32">
-                {productFactLabel(product, isUa)}
-              </span>
-            ) : null}
-          </div>
-          {matchReason ? (
-            <p className="mt-1.5 line-clamp-2 text-[9px] leading-3.5 text-foreground/42">
-              {matchReason}
-            </p>
-          ) : null}
-          {!isExact && product.missingFacts.length ? (
-            <p className="mt-1 text-[9px] leading-3.5 text-foreground/34">
-              {isUa ? "Потрібно уточнити: " : "Confirm: "}
-              {product.missingFacts
-                .slice(0, 3)
-                .map((fact) => missingFactLabel(fact, isUa))
-                .join(", ")}
-            </p>
+          <Link
+            href={href}
+            prefetch={false}
+            onClick={() => onProductClick(product)}
+            className="mt-1.5 line-clamp-2 text-xs font-medium leading-4 text-foreground transition hover:opacity-65"
+          >
+            {product.name}
+          </Link>
+          {factLabel ? (
+            <div className="mt-1.5 truncate text-[9px] text-foreground/36">{factLabel}</div>
           ) : null}
           <div className="mt-2 flex items-end justify-between gap-2">
             <div className="text-sm font-semibold tabular-nums text-foreground">
               {price > 0 ? formatShopMoney(context.locale, price, context.currency) : "—"}
             </div>
-            {isExact ? (
-              <div className="flex items-center gap-1.5">
-                <Link
-                  href={href}
-                  prefetch={false}
-                  onClick={() => onProductClick(product)}
-                  className="inline-flex h-9 items-center gap-2 border border-foreground bg-foreground px-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-background transition hover:opacity-80"
-                  aria-label={isUa ? "Відкрити товар" : "Open product"}
-                >
-                  {isUa ? "Відкрити товар" : "Open product"}
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-                <Link
-                  href={managerHref}
-                  onClick={() => onManagerClick(product)}
-                  className="inline-flex h-9 items-center justify-center border border-foreground/15 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/62 transition hover:border-foreground/38 hover:text-foreground"
-                  aria-label={
-                    isUa ? "Запитати менеджера про товар" : "Ask a manager about this product"
-                  }
-                >
-                  <MessageCircleMore className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <Link
-                  href={href}
-                  prefetch={false}
-                  onClick={() => onProductClick(product)}
-                  className="inline-flex min-h-9 items-center border border-foreground/10 px-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/48 transition hover:border-foreground/30 hover:text-foreground"
-                >
-                  {isUa ? "Деталі" : "Details"}
-                </Link>
-                <Link
-                  href={managerHref}
-                  onClick={() => onManagerClick(product)}
-                  className="inline-flex min-h-9 items-center gap-2 border border-foreground bg-foreground px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-background transition hover:opacity-80"
-                >
-                  {isUa ? "Перевірити з менеджером" : "Verify with a manager"}
-                  <MessageCircleMore className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5">
+              <Link
+                href={href}
+                prefetch={false}
+                onClick={() => onProductClick(product)}
+                className="inline-flex h-9 items-center gap-2 border border-foreground bg-foreground px-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-background transition hover:opacity-80"
+                aria-label={isUa ? "Відкрити товар" : "Open product"}
+              >
+                {isUa ? "Відкрити товар" : "Open product"}
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+              <Link
+                href={managerHref}
+                onClick={() => onManagerClick(product)}
+                className="inline-flex h-9 items-center justify-center border border-foreground/15 px-2.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground/62 transition hover:border-foreground/38 hover:text-foreground"
+                aria-label={
+                  isUa ? "Запитати менеджера про товар" : "Ask a manager about this product"
+                }
+              >
+                <MessageCircleMore className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

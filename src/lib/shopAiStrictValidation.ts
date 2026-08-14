@@ -85,7 +85,9 @@ export function isShopAiExactMatchEligible(input: {
   qualityFlags: string[];
   categoryGroup?: string | null;
 }) {
-  if (input.exactSkuWithoutVehicle || input.merchWithoutVehicle) return true;
+  // Natural-language merchandise relevance is not an identity assertion.
+  // Only an exact SKU may be exact without a trusted application.
+  if (input.exactSkuWithoutVehicle) return true;
   return (
     input.hasApplication &&
     input.trustedApplication &&
@@ -100,4 +102,20 @@ export function resolveShopAiStrictCandidateCount(input: {
   hasBudgetConstraint: boolean;
 }) {
   return input.hasBudgetConstraint ? input.postBudgetCount : input.eligibleCount;
+}
+
+export function selectShopAiLexicallyRelevantCandidates<
+  T extends { lexicalScore: number | null | undefined },
+>(candidates: T[]) {
+  const scored = candidates
+    .map((candidate) => ({ candidate, score: Number(candidate.lexicalScore) }))
+    .filter(({ score }) => Number.isFinite(score) && score > 0);
+  const bestScore = Math.max(0, ...scored.map(({ score }) => score));
+  // OR-based full-text ranking intentionally tolerates natural-language
+  // wrappers. Keep candidates that share a meaningful portion of the best
+  // match and remove rows that only matched a generic category word.
+  const minimumRelevantScore = bestScore * 0.2;
+  return scored
+    .filter(({ score }) => score >= minimumRelevantScore)
+    .map(({ candidate }) => candidate);
 }

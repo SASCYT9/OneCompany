@@ -28,6 +28,7 @@ export const SHOP_AI_V2_RELEASE_REQUIRED_LANGUAGES = [
   "mixed",
   "translit",
 ] as const;
+export const SHOP_AI_V2_RELEASE_REVIEW_POLICIES = ["human", "catalog_grounded_machine"] as const;
 
 const COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -88,6 +89,15 @@ export type ShopAiV2ReleaseActivationGuardInput = {
   now?: string | number | Date;
   v2Enabled?: boolean | string | null;
   v2ShadowEnabled?: boolean | string | null;
+};
+
+export type ShopAiV2ReleaseActivationGuardOptions = {
+  /**
+   * Keep enabled for release checks and production builds. An immutable
+   * deployment may disable this at request time after the marker was already
+   * verified during its build, while all identity and integrity checks remain.
+   */
+  enforceMarkerExpiry?: boolean;
 };
 
 export type ShopAiV2ReleaseActivationGuardResult = {
@@ -259,6 +269,14 @@ export function validateShopAiV2ReleaseEvalReport(
   const releaseGate = isRecord(value.releaseGate) ? value.releaseGate : null;
   if (releaseGate?.passed !== true) {
     errors.push("eval report release corpus gate did not pass");
+  }
+  if (
+    typeof releaseGate?.reviewPolicy !== "string" ||
+    !(SHOP_AI_V2_RELEASE_REVIEW_POLICIES as readonly string[]).includes(releaseGate.reviewPolicy)
+  ) {
+    errors.push(
+      `eval report release corpus reviewPolicy must be one of: ${SHOP_AI_V2_RELEASE_REVIEW_POLICIES.join(", ")}`
+    );
   }
   const rawEnabledCategories = Array.isArray(releaseGate?.enabledCategories)
     ? releaseGate.enabledCategories
@@ -529,7 +547,11 @@ export function validateShopAiV2ReleaseEvalReport(
       if (result.pipeline !== "v2") {
         errors.push(`eval report result ${index} did not use the V2 pipeline`);
       }
-      if (result.retrieval !== "strict" && result.retrieval !== "not-run") {
+      const validRetrievalPath =
+        result.retrieval === "strict" ||
+        result.retrieval === "not-run" ||
+        (result.retrieval === "identity" && result.identityLookupCase === true);
+      if (!validRetrievalPath) {
         errors.push(`eval report result ${index} did not use strict V2 retrieval`);
       }
       if (
@@ -640,8 +662,10 @@ export function verifyShopAiV2ReleaseGateMarker(
 }
 
 export function evaluateShopAiV2ReleaseActivationGuard(
-  input: ShopAiV2ReleaseActivationGuardInput
+  input: ShopAiV2ReleaseActivationGuardInput,
+  options: ShopAiV2ReleaseActivationGuardOptions = {}
 ): ShopAiV2ReleaseActivationGuardResult {
+  const enforceMarkerExpiry = options.enforceMarkerExpiry ?? true;
   const production = isProductionDeployment(input.deploymentEnvironment);
   const servedTrafficRequested = isBooleanFlagEnabled(input.v2Enabled);
   const shadowTrafficRequested = isBooleanFlagEnabled(input.v2ShadowEnabled);
@@ -720,7 +744,10 @@ export function evaluateShopAiV2ReleaseActivationGuard(
             : typeof input.now === "string"
               ? Date.parse(input.now)
               : Date.now();
-      if (!Number.isFinite(now) || now >= Date.parse(markerPayload.expiresAt)) {
+      if (
+        enforceMarkerExpiry &&
+        (!Number.isFinite(now) || now >= Date.parse(markerPayload.expiresAt))
+      ) {
         failures.push({
           code: "release-gate-marker-expired",
           message: `Shop AI V2 release gate expired at ${markerPayload.expiresAt}.`,

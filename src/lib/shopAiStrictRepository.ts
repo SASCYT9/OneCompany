@@ -2,7 +2,11 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 
-import { buildShopAiCatalogQuery } from "@/lib/shopAiAssistantRanking";
+import {
+  buildShopAiCatalogQuery,
+  buildShopAiLexicalWebsearchQuery,
+  selectShopAiDirectCatalogTitleMatches,
+} from "@/lib/shopAiAssistantRanking";
 import { getShopAiExactSkuLookupToken } from "@/lib/shopAiExactSku";
 import type { ShopAiContext, ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
 import {
@@ -16,6 +20,7 @@ import {
   isShopAiExactMatchEligible,
   resolveShopAiStrictCandidateCount,
   resolveTrustedShopAiProductKind,
+  selectShopAiLexicallyRelevantCandidates,
 } from "@/lib/shopAiStrictValidation";
 import {
   classifyShopAiStrictCanonicalRow,
@@ -55,6 +60,11 @@ type StrictKnowledgeRow = ShopAiStrictCanonicalRow & {
   isExactSku: boolean;
   lexicalScore: number;
   eligibleCount: bigint | number;
+};
+
+type DirectCatalogTitleRow = {
+  productId: string;
+  name: string;
 };
 
 export type ShopAiStrictRetrievalResult = {
@@ -437,9 +447,10 @@ export async function retrieveShopAiCandidatesStrict(input: {
   const chassis = normalizeOptional(input.plan.vehicle.chassis);
   const engine = normalizeOptional(input.plan.vehicle.engine);
   const opfGpf = normalizeOptional(input.plan.opfGpf);
-  const productKind =
+  const requestedProductKind =
     input.plan.productKind && input.plan.productKind !== "any" ? input.plan.productKind : null;
   const query = normalizeShopSearchText(buildShopAiCatalogQuery(input.plan));
+  const lexicalQuery = buildShopAiLexicalWebsearchQuery(input.plan, input.message);
   const exactSkuQuery = getShopAiExactSkuLookupToken(input.message) ?? "";
   const applicationClauses = [
     equalsNormalized(Prisma.sql`a."make"`, make),
@@ -493,7 +504,6 @@ export async function retrieveShopAiCandidatesStrict(input: {
         `
       : Prisma.empty,
   ].filter((clause) => clause !== Prisma.empty);
-  const hasVehicle = hasVehicleConstraints(input.plan);
   const excluded = (input.excludedProductIds ?? []).filter(Boolean).slice(0, 100);
   const catalogState = await readShopKnowledgeCatalogState(prisma);
   if (
@@ -515,6 +525,60 @@ export async function retrieveShopAiCandidatesStrict(input: {
   }
 
   try {
+    const directTitleRows = exactSkuQuery
+      ? []
+      : await prisma.$queryRaw<DirectCatalogTitleRow[]>(Prisma.sql`
+          SELECT
+            product."id" AS "productId",
+            CASE
+              WHEN length(trim(COALESCE(product."titleUa", ''))) >= 16
+                AND position(lower(trim(product."titleUa")) in lower(${input.message})) > 0
+              THEN trim(product."titleUa")
+              ELSE trim(product."titleEn")
+            END AS "name"
+          FROM "ShopProduct" product
+          JOIN "ShopProductKnowledge" knowledge
+            ON knowledge."productId" = product."id"
+          WHERE product."isPublished" = true
+            AND product."status"::text = 'ACTIVE'
+            AND knowledge."schemaVersion" >= 2
+            AND knowledge."activeRevision" > 0
+            AND knowledge."status"::text IN ('READY', 'NEEDS_REVIEW')
+            ${
+              input.plan.category
+                ? Prisma.sql`AND knowledge."categoryGroup" = ${input.plan.category}`
+                : Prisma.empty
+            }
+            ${
+              input.context.scope
+                ? Prisma.sql`AND product."scope" = ${input.context.scope}`
+                : Prisma.empty
+            }
+            AND (
+              (
+                length(trim(COALESCE(product."titleUa", ''))) >= 16
+                AND position(lower(trim(product."titleUa")) in lower(${input.message})) > 0
+              )
+              OR (
+                length(trim(COALESCE(product."titleEn", ''))) >= 16
+                AND position(lower(trim(product."titleEn")) in lower(${input.message})) > 0
+              )
+            )
+          ORDER BY greatest(
+            length(trim(COALESCE(product."titleUa", ''))),
+            length(trim(COALESCE(product."titleEn", '')))
+          ) DESC,
+          product."id" ASC
+          LIMIT 20
+        `);
+    const directTitleProductIds = selectShopAiDirectCatalogTitleMatches(
+      input.message,
+      directTitleRows
+    ).map((row) => row.productId);
+    const productKind = directTitleProductIds.length ? null : requestedProductKind;
+    const strictPlan = directTitleProductIds.length
+      ? { ...input.plan, productKind: "any" as const }
+      : input.plan;
     const rows = await prisma.$queryRaw<StrictKnowledgeRow[]>(Prisma.sql`
       WITH eligible AS (
         SELECT
@@ -552,6 +616,7 @@ export async function retrieveShopAiCandidatesStrict(input: {
           matched."opfGpf" AS "applicationOpfGpf",
           matched."verificationStatus"::text AS "applicationVerificationStatus",
           matched."source"::text AS "applicationSource",
+          COALESCE(matched."hasTrustedProvenance", false) AS "applicationTrusted",
           matched."confidence" AS "applicationConfidence",
           matched."isUniversal" AS "applicationUniversal",
           matched."variantId" AS "applicationVariantId",
@@ -583,6 +648,16 @@ export async function retrieveShopAiCandidatesStrict(input: {
               AND any_application."isActive" = true
               AND any_application."revision" = k."activeRevision"
           ) AS "hasApplications",
+          EXISTS (
+            SELECT 1
+            FROM "ShopVehicleApplication" trusted_application
+            WHERE trusted_application."knowledgeId" = k."id"
+              AND trusted_application."isActive" = true
+              AND trusted_application."revision" = k."activeRevision"
+              AND trusted_application."verificationStatus"::text = 'VERIFIED'
+              AND trusted_application."source"::text IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
+          ) AS "hasTrustedApplications",
+          false AS "trustedKnowledgeVehicleEvidence",
           (
             CASE
               WHEN lower(regexp_replace(COALESCE(p."sku", ''), '\\s+', '', 'g')) =
@@ -590,10 +665,30 @@ export async function retrieveShopAiCandidatesStrict(input: {
               ELSE 0
             END
             + CASE
-                WHEN ${query} <> ''
+                WHEN length(trim(COALESCE(p."titleUa", ''))) >= 8
+                  AND position(lower(trim(p."titleUa")) in lower(${input.message})) > 0
+                THEN 5000 + least(length(trim(p."titleUa")), 400) * 100
+                WHEN length(trim(COALESCE(p."titleEn", ''))) >= 8
+                  AND position(lower(trim(p."titleEn")) in lower(${input.message})) > 0
+                THEN 5000 + least(length(trim(p."titleEn")), 400) * 100
+                ELSE 0
+              END
+            + CASE
+                WHEN ${lexicalQuery} <> ''
+                THEN ts_rank_cd(
+                  to_tsvector(
+                    'simple',
+                    COALESCE(p."titleUa", '') || ' ' || COALESCE(p."titleEn", '')
+                  ),
+                  websearch_to_tsquery('simple', ${lexicalQuery})
+                ) * 500
+                ELSE 0
+              END
+            + CASE
+                WHEN ${lexicalQuery} <> ''
                 THEN ts_rank_cd(
                   to_tsvector('simple', COALESCE(k."searchText", '')),
-                  plainto_tsquery('simple', ${query})
+                  websearch_to_tsquery('simple', ${lexicalQuery})
                 ) * 100
                 ELSE 0
               END
@@ -606,7 +701,7 @@ export async function retrieveShopAiCandidatesStrict(input: {
                 SELECT MAX(
                   ts_rank_cd(
                     to_tsvector('simple', chunk."content"),
-                    plainto_tsquery('simple', ${query})
+                    websearch_to_tsquery('simple', ${lexicalQuery})
                   )
                 ) * 20
                 FROM "ShopKnowledgeChunk" chunk
@@ -614,7 +709,7 @@ export async function retrieveShopAiCandidatesStrict(input: {
                   AND chunk."isActive" = true
                   AND chunk."revision" = k."activeRevision"
                   AND chunk."locale" IN (${input.context.locale}, 'en')
-                  AND ${query} <> ''
+                  AND ${lexicalQuery} <> ''
               ), 0)
           )::double precision AS "lexicalScore"
         FROM "ShopProduct" p
@@ -775,11 +870,20 @@ export async function retrieveShopAiCandidatesStrict(input: {
           }
           ${input.context.scope ? Prisma.sql`AND p."scope" = ${input.context.scope}` : Prisma.empty}
           ${
+            directTitleProductIds.length
+              ? Prisma.sql`AND p."id" IN (${Prisma.join(directTitleProductIds)})`
+              : Prisma.empty
+          }
+          ${
             input.plan.brandOnly && input.plan.brand
               ? Prisma.sql`AND lower(trim(COALESCE(p."brand", ''))) = lower(trim(${input.plan.brand}))`
               : Prisma.empty
           }
-          ${input.plan.stockOnly ? Prisma.sql`AND p."stock" = 'inStock'` : Prisma.empty}
+          ${
+            input.plan.stockOnly && !directTitleProductIds.length
+              ? Prisma.sql`AND p."stock" = 'inStock'`
+              : Prisma.empty
+          }
           ${
             input.plan.category
               ? Prisma.sql`AND k."categoryGroup" = ${input.plan.category}`
@@ -788,14 +892,15 @@ export async function retrieveShopAiCandidatesStrict(input: {
           ${
             productKind
               ? Prisma.sql`
-                  AND (
+                  AND NOT (
                     (
                       COALESCE(matched."hasTrustedProvenance", false)
-                      AND matched."productKind" = ${productKind}
+                      AND matched."productKind" IS NOT NULL
+                      AND matched."productKind" <> ${productKind}
                     )
                     OR (
                       COALESCE(trusted_evidence."productKind", false)
-                      AND k."facts"->>'productKind' = ${productKind}
+                      AND COALESCE(k."facts"->>'productKind', '') <> ${productKind}
                     )
                   )
                 `
@@ -806,22 +911,6 @@ export async function retrieveShopAiCandidatesStrict(input: {
               ? Prisma.sql`AND p."id" NOT IN (${Prisma.join(excluded)})`
               : Prisma.empty
           }
-          ${
-            hasVehicle
-              ? Prisma.sql`
-                  AND (
-                    matched."id" IS NOT NULL
-                    OR NOT EXISTS (
-                      SELECT 1
-                      FROM "ShopVehicleApplication" known_application
-                      WHERE known_application."knowledgeId" = k."id"
-                        AND known_application."isActive" = true
-                        AND known_application."revision" = k."activeRevision"
-                    )
-                  )
-                `
-              : Prisma.empty
-          }
       ),
       ranked AS (
         SELECT
@@ -830,23 +919,24 @@ export async function retrieveShopAiCandidatesStrict(input: {
         FROM eligible
         ORDER BY
           "isExactSku" DESC,
+          "lexicalScore" DESC,
           (
             "trustedApplicationEvidence" = true
             AND "applicationVerificationStatus" = 'VERIFIED'
             AND "applicationSource" IN ('MANAGER', 'MANUAL_OVERRIDE', 'SUPPLIER')
           ) DESC,
-          "lexicalScore" DESC,
           "productId" ASC
         LIMIT ${MAX_RETRIEVED_CANDIDATES}
       )
       SELECT * FROM ranked
     `);
 
-    const validatedRows = rows
-      .filter((row) => classifyShopAiStrictCanonicalRow(row, input.plan, input.context) !== null)
+    const relevantRows = query ? selectShopAiLexicallyRelevantCandidates(rows) : rows;
+    const validatedRows = relevantRows
+      .filter((row) => classifyShopAiStrictCanonicalRow(row, strictPlan, input.context) !== null)
       .slice(0, MAX_VALIDATED_CANDIDATES);
     const candidates = validatedRows.map((row) =>
-      toCandidate(row, input.plan, input.context, Boolean(input.exactSkuOnly))
+      toCandidate(row, strictPlan, input.context, Boolean(input.exactSkuOnly))
     );
     const hydrated = await hydrateShopAiKnowledgeCandidates(candidates, input.context);
     const products = hydrated.filter((product) =>
@@ -861,7 +951,7 @@ export async function retrieveShopAiCandidatesStrict(input: {
         (product) => product.matchStatus === "requires_verification"
       ).length,
       candidateCount: resolveShopAiStrictCandidateCount({
-        eligibleCount: Number(rows[0]?.eligibleCount ?? 0),
+        eligibleCount: relevantRows.length,
         postBudgetCount: products.length,
         hasBudgetConstraint: input.plan.minPrice !== null || input.plan.maxPrice !== null,
       }),

@@ -50,6 +50,9 @@ export type StrictCatalogKnowledgeRow = {
   applicationVerificationStatus: string | null;
   applicationSource: string | null;
   hasApplications: boolean;
+  applicationTrusted?: boolean;
+  hasTrustedApplications?: boolean;
+  trustedKnowledgeVehicleEvidence?: boolean;
 };
 
 export type StrictCatalogMatch = {
@@ -232,38 +235,60 @@ export function classifyStrictCatalogKnowledgeRow(
   ) {
     return null;
   }
+  const knownProductKind = cleanShopAiProductKind(row.productKind);
   if (
     constraints.productKind &&
     constraints.productKind !== "any" &&
-    cleanShopAiProductKind(row.productKind) !== constraints.productKind
+    knownProductKind &&
+    knownProductKind !== constraints.productKind
   ) {
     return null;
   }
 
   const vehicleConstrained = hasRequestedVehicleConstraints(constraints);
-  if (vehicleConstrained && row.hasApplications && !row.applicationId) {
+  const trustedApplication =
+    row.applicationTrusted ??
+    (Boolean(row.applicationId) &&
+      row.applicationVerificationStatus === "VERIFIED" &&
+      Boolean(row.applicationSource && STRICT_CATALOG_TRUSTED_SOURCES.has(row.applicationSource)));
+  const hasTrustedApplications = row.hasTrustedApplications ?? row.hasApplications;
+  if (vehicleConstrained && hasTrustedApplications && !trustedApplication) {
     return null;
   }
-  if (!strictValuesEqual(constraints.make, row.applicationMake)) return null;
-  if (!strictValuesEqual(constraints.model, row.applicationModel)) return null;
-  if (!strictValuesEqual(constraints.chassis, row.applicationChassis)) return null;
-  if (!strictValuesEqual(constraints.engine, row.applicationEngine)) return null;
-  if (!strictValuesEqual(constraints.opfGpf, row.applicationOpfGpf)) return null;
+  if (trustedApplication && !strictValuesEqual(constraints.make, row.applicationMake)) return null;
+  if (trustedApplication && !strictValuesEqual(constraints.model, row.applicationModel))
+    return null;
+  if (trustedApplication && !strictValuesEqual(constraints.chassis, row.applicationChassis)) {
+    return null;
+  }
+  if (trustedApplication && !strictValuesEqual(constraints.engine, row.applicationEngine)) {
+    return null;
+  }
+  if (trustedApplication && !strictValuesEqual(constraints.opfGpf, row.applicationOpfGpf)) {
+    return null;
+  }
   if (
+    trustedApplication &&
     constraints.year &&
     ((row.applicationYearFrom !== null && row.applicationYearFrom > constraints.year) ||
       (row.applicationYearTo !== null && row.applicationYearTo < constraints.year))
   ) {
     return null;
   }
-  if (
-    knownArrayContradicts(constraints.make, row.applicationMake, row.knowledgeMakes) ||
-    knownArrayContradicts(constraints.model, row.applicationModel, row.knowledgeModels) ||
-    knownArrayContradicts(constraints.chassis, row.applicationChassis, row.knowledgeChassisCodes) ||
-    knownArrayContradicts(constraints.engine, row.applicationEngine, row.knowledgeEngines) ||
-    knowledgeYearContradicts(constraints.year, row)
-  ) {
-    return null;
+  if (row.trustedKnowledgeVehicleEvidence !== false) {
+    if (
+      knownArrayContradicts(constraints.make, row.applicationMake, row.knowledgeMakes) ||
+      knownArrayContradicts(constraints.model, row.applicationModel, row.knowledgeModels) ||
+      knownArrayContradicts(
+        constraints.chassis,
+        row.applicationChassis,
+        row.knowledgeChassisCodes
+      ) ||
+      knownArrayContradicts(constraints.engine, row.applicationEngine, row.knowledgeEngines) ||
+      knowledgeYearContradicts(constraints.year, row)
+    ) {
+      return null;
+    }
   }
   const knownOpfGpf =
     row.knowledgeOpfGpf === "with" || row.knowledgeOpfGpf === "without"
@@ -282,11 +307,11 @@ export function classifyStrictCatalogKnowledgeRow(
   const missingFacts = new Set(
     getMissingShopAiHardFacts(qualityFlags, row.categoryGroup ?? constraints.category)
   );
+  if (constraints.productKind && constraints.productKind !== "any" && !knownProductKind) {
+    missingFacts.add("productKindEvidence");
+  }
   if (vehicleConstrained && !row.applicationId) missingFacts.add("fitment");
   addMissingStrictApplicationFacts(missingFacts, row, constraints);
-  const trustedApplication =
-    row.applicationVerificationStatus === "VERIFIED" &&
-    Boolean(row.applicationSource && STRICT_CATALOG_TRUSTED_SOURCES.has(row.applicationSource));
   if (row.applicationId && !trustedApplication) {
     missingFacts.add("verified_fitment");
   }

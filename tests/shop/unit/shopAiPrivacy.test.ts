@@ -33,6 +33,15 @@ test("redacts VINs formatted with spaces or hyphens before any One AI sink", () 
   assert.deepEqual(result.redacted, ["vin"]);
 });
 
+test("does not redact product dimensions and ordinary words as a spaced VIN", () => {
+  const value =
+    "Khochu porivniaty AKRAPOVIC 801607 USB-накопичувач 16 GB 45x48 sered merch dlia avto";
+  const result = redactShopAiText(value);
+
+  assert.equal(result.text, value);
+  assert.deepEqual(result.redacted, []);
+});
+
 test("query signature is stable after whitespace normalization", () => {
   assert.equal(
     buildShopAiQuerySignature("BMW   M3 2018 вихлоп"),

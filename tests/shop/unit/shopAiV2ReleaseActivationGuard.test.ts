@@ -111,6 +111,7 @@ function passingEvalReport() {
     releaseGate: {
       passed: true,
       errors: [],
+      reviewPolicy: "catalog_grounded_machine",
       totalCases: SHOP_AI_V2_RELEASE_MIN_CASES,
       enabledCategories: [...SHOP_AI_V2_ROLLOUT_CATEGORIES],
       countsByCategory,
@@ -151,6 +152,7 @@ function passingEvalReport() {
       passed: true,
       pipeline: "v2",
       retrieval: index % 10 === 0 ? "not-run" : "strict",
+      identityLookupCase: false,
       responseCommit: COMMIT_SHA,
       catalogFingerprint: CATALOG_FINGERPRINT,
       responseBytes: 20_000,
@@ -166,6 +168,29 @@ test("release report validation enforces commit, V2 markers, and performance gat
     ok: true,
     errors: [],
   });
+});
+
+test("release report validation accepts identity retrieval only for identity lookup cases", () => {
+  const validReport = passingEvalReport();
+  validReport.results[1] = {
+    ...validReport.results[1],
+    retrieval: "identity",
+    identityLookupCase: true,
+  };
+  assert.deepEqual(validateShopAiV2ReleaseEvalReport(validReport, COMMIT_SHA), {
+    ok: true,
+    errors: [],
+  });
+
+  const invalidReport = passingEvalReport();
+  invalidReport.results[1] = {
+    ...invalidReport.results[1],
+    retrieval: "identity",
+    identityLookupCase: false,
+  };
+  const validation = validateShopAiV2ReleaseEvalReport(invalidReport, COMMIT_SHA);
+  assert.equal(validation.ok, false);
+  assert.match(validation.errors.join("\n"), /did not use strict V2 retrieval/);
 });
 
 test("release report validation independently enforces catalog data readiness", () => {
@@ -273,6 +298,16 @@ test("release report validation independently rejects an incomplete or padded co
   assert.match(errors, /translit language coverage/);
   assert.match(errors, /unreviewed cases/);
   assert.match(errors, /category brakes/);
+});
+
+test("release report validation rejects an unknown corpus review policy", () => {
+  const report = passingEvalReport();
+  report.releaseGate.reviewPolicy = "pretend_human";
+
+  const validation = validateShopAiV2ReleaseEvalReport(report, COMMIT_SHA);
+
+  assert.equal(validation.ok, false);
+  assert.match(validation.errors.join("\n"), /reviewPolicy must be one of/);
 });
 
 test("marker verification rejects tampered payloads and signatures", () => {
@@ -443,6 +478,26 @@ test("production activation fails closed for stale or mismatched catalog evidenc
     ),
     true
   );
+});
+
+test("runtime may retain an already build-verified marker after its TTL", () => {
+  const result = evaluateShopAiV2ReleaseActivationGuard(
+    {
+      deploymentEnvironment: "production",
+      deployedCommitSha: COMMIT_SHA,
+      releaseGateMarker: markerForCommit(),
+      releaseGateSigningSecret: SIGNING_SECRET,
+      catalogFingerprint: CATALOG_FINGERPRINT,
+      now: "2026-07-18T12:00:00.000Z",
+      v2Enabled: "1",
+    },
+    { enforceMarkerExpiry: false }
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.markerCommitSha, COMMIT_SHA);
+  assert.equal(result.markerCatalogFingerprint, CATALOG_FINGERPRINT);
 });
 
 test("commit normalization only accepts full Git SHA-1 values", () => {

@@ -1,6 +1,11 @@
 import type { ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
 import { areChassisCompatible } from "@/lib/crossShopFitment";
 import { shopAiProductKindQueryTerm } from "@/lib/shopAiProductKind";
+import {
+  isShopSearchCodeToken,
+  normalizeShopSearchText,
+  tokenizeShopSearchQuery,
+} from "@/lib/shopSearch";
 import { diversifyShopStockItems } from "@/lib/shopStockRanking";
 
 const normalizeBrand = (value: string) => value.trim().toLocaleLowerCase("en-US");
@@ -18,22 +23,221 @@ export function buildShopAiCatalogQuery(plan: ShopAiPlan) {
     plan.vehicle.make,
     plan.vehicle.model,
     plan.vehicle.chassis,
-    plan.vehicle.year,
-    plan.vehicle.engine,
-    plan.vehicle.fuel,
-    plan.vehicle.bodyStyle,
-    plan.vehicle.drivetrain,
-    plan.vehicle.transmission,
-    plan.vehicle.market,
-    plan.category,
     plan.brand,
-    plan.opfGpf === "with" ? "OPF GPF" : plan.opfGpf === "without" ? "NON OPF" : null,
     shopAiProductKindQueryTerm(plan.productKind),
   ]
     .filter(Boolean)
     .join(" ")
     .trim();
   return structuredQuery || plan.searchQuery;
+}
+
+const SHOP_AI_LEXICAL_STOP_WORDS = new Set([
+  "about",
+  "accessories",
+  "accessory",
+  "aero",
+  "available",
+  "body",
+  "brakes",
+  "carbon",
+  "category",
+  "check",
+  "chip",
+  "choose",
+  "compare",
+  "complete",
+  "confirmed",
+  "cooling",
+  "exact",
+  "exhaust",
+  "find",
+  "from",
+  "help",
+  "interior",
+  "item",
+  "kit",
+  "lighting",
+  "merch",
+  "moto",
+  "motorcycle",
+  "need",
+  "open",
+  "other",
+  "parts",
+  "performance",
+  "product",
+  "products",
+  "set",
+  "show",
+  "suspension",
+  "system",
+  "this",
+  "tuning",
+  "upgrade",
+  "want",
+  "what",
+  "wheel",
+  "wheels",
+  "with",
+  "you",
+  "aksesuary",
+  "choho",
+  "chyp",
+  "detali",
+  "dopomozhy",
+  "dvyhuna",
+  "dysky",
+  "halma",
+  "karbon",
+  "karbonovyi",
+  "khochu",
+  "mototsykla",
+  "obvis",
+  "okholodzhennia",
+  "osvitlennia",
+  "pidibraty",
+  "pidviska",
+  "pochaty",
+  "salonu",
+  "tiuninh",
+  "vstanovyty",
+  "vykhlop",
+  "аерообвіс",
+  "встановити",
+  "двигателя",
+  "двигуна",
+  "допоможи",
+  "карбоновии",
+  "карбоновыи",
+  "мотоцикла",
+  "начать",
+  "подобрать",
+  "помоги",
+  "почати",
+  "підібрати",
+  "треба",
+  "установить",
+  "уточнити",
+  "хочу",
+  "чего",
+  "чип",
+  "чого",
+  "авто",
+  "аксесуари",
+  "аксессуары",
+  "вихлоп",
+  "выхлоп",
+  "гальма",
+  "деталі",
+  "детали",
+  "диски",
+  "для",
+  "карбон",
+  "мерч",
+  "мені",
+  "мне",
+  "обвіс",
+  "обвес",
+  "освітлення",
+  "освещение",
+  "охолодження",
+  "охлаждение",
+  "підвіска",
+  "подвеска",
+  "салону",
+  "салона",
+  "тормоза",
+  "тюнінг",
+  "тюнинг",
+  "товар",
+  "товари",
+  "товаров",
+  "категорія",
+  "категории",
+  "покажи",
+  "покажите",
+  "знайди",
+  "найди",
+  "підбери",
+  "подбери",
+  "порівняти",
+  "сравни",
+  "перевір",
+  "проверь",
+  "відкрий",
+  "открой",
+  "dlia",
+  "dla",
+  "avto",
+  "tovar",
+  "pokazhy",
+  "pidbery",
+  "znaidy",
+  "perevir",
+]);
+
+/**
+ * Builds a bounded OR query for catalog full-text ranking. Product-name
+ * requests often contain conversational wrappers; requiring every word would
+ * turn a precise title lookup into a false no-match.
+ */
+export function buildShopAiLexicalWebsearchQuery(plan: ShopAiPlan, message: string) {
+  const candidates = tokenizeShopSearchQuery(
+    [buildShopAiCatalogQuery(plan), plan.searchQuery, message].filter(Boolean).join(" ")
+  );
+  const unique: string[] = [];
+  const seen = new Set<string>();
+  for (const token of candidates) {
+    if (SHOP_AI_LEXICAL_STOP_WORDS.has(token)) continue;
+    if (token.length < 3 && !isShopSearchCodeToken(token)) continue;
+    if (seen.has(token)) continue;
+    seen.add(token);
+    unique.push(token);
+    if (unique.length >= 32) break;
+  }
+  return unique.join(" OR ");
+}
+
+export function selectShopAiDirectCatalogTitleMatches<T extends Pick<ShopAiProduct, "name">>(
+  message: string,
+  products: readonly T[]
+) {
+  const normalizedMessage = normalizeShopSearchText(message);
+  const matches = products.flatMap((product) => {
+    const title = normalizeShopSearchText(product.name);
+    return title.length >= 8 && normalizedMessage.includes(title) ? [{ product, title }] : [];
+  });
+  return matches
+    .filter(
+      (match) =>
+        !matches.some(
+          (other) => other.title.length > match.title.length && other.title.includes(match.title)
+        )
+    )
+    .map((match) => match.product);
+}
+
+export function hasDirectShopAiCatalogTitleMatch(
+  message: string,
+  products: readonly Pick<ShopAiProduct, "name">[]
+) {
+  return selectShopAiDirectCatalogTitleMatches(message, products).length > 0;
+}
+
+/**
+ * An availability question about one explicitly named catalog item must still
+ * return that item so the storefront can show its real stock state. For broad
+ * requests ("only in stock"), stock remains a hard constraint.
+ */
+export function filterShopAiProductsForStock(
+  products: readonly ShopAiProduct[],
+  message: string,
+  stockOnly: boolean
+) {
+  if (!stockOnly) return [...products];
+  const directMatches = selectShopAiDirectCatalogTitleMatches(message, products);
+  return directMatches.length ? directMatches : products.filter((product) => product.inStock);
 }
 
 export function evaluateShopAiProductVehicleFitment(

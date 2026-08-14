@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildFallbackShopAiPlan,
   normalizeShopAiPlan,
+  shouldAskShopAiClarificationBeforeRetrieval,
 } from "../../../src/lib/shopAiAssistantPlanner";
 
 const context = { locale: "ua" as const, currency: "EUR" as const };
@@ -14,6 +15,65 @@ test("planner infers a tuning category and asks for missing vehicle", () => {
   assert.equal(plan.category, "exhaust");
   assert.equal(plan.needsClarification, true);
   assert.deepEqual(plan.requiredDetails, []);
+});
+
+test("specific brand or vehicle requests can retrieve reviewable products before clarification", () => {
+  const branded = buildFallbackShopAiPlan(
+    'Find DO88 Blue Silicone Hose 4 - 4.25" in cooling upgrade',
+    { locale: "en", currency: "EUR" }
+  );
+  const vehicle = buildFallbackShopAiPlan("Покажи вихлоп для Audi RS6 C8", context);
+  const broad = buildFallbackShopAiPlan("Покажи вихлоп", context);
+
+  assert.equal(branded.needsClarification, true);
+  assert.equal(branded.brand, "do88");
+  assert.equal(shouldAskShopAiClarificationBeforeRetrieval(branded, branded.searchQuery), false);
+  assert.equal(vehicle.needsClarification, true);
+  assert.equal(
+    shouldAskShopAiClarificationBeforeRetrieval(vehicle, "Покажи вихлоп для Audi RS6 C8"),
+    false
+  );
+  assert.equal(shouldAskShopAiClarificationBeforeRetrieval(broad, "Покажи вихлоп"), true);
+
+  const titled = normalizeShopAiPlan(
+    { category: "cooling", vehicle: {} },
+    "Find Blue Silicone Hose 102 108 millimetres",
+    { locale: "en", currency: "EUR" }
+  );
+  assert.equal(
+    shouldAskShopAiClarificationBeforeRetrieval(
+      titled,
+      "Find Blue Silicone Hose 102 108 millimetres"
+    ),
+    false
+  );
+});
+
+test("broad category requests ask for a vehicle across supported language styles", () => {
+  const messages = [
+    "I want an exhaust upgrade. What do you need from me?",
+    "Хочу exhaust для авто upgrade, що треба уточнити?",
+    "Dopomozhy pidibraty vykhlop dlia avto",
+    "Хочу встановити карбоновий аерообвіс, з чого почати?",
+    "Хочу установить подвеску, с чего начать?",
+    "Dopomozhy pidibraty chyp tiuninh",
+    "Help me choose motorcycle carbon",
+    "Dopomozhy pidibraty detali salonu",
+  ];
+
+  for (const message of messages) {
+    const plan = buildFallbackShopAiPlan(message, context);
+    assert.equal(plan.needsClarification, true, message);
+    assert.equal(shouldAskShopAiClarificationBeforeRetrieval(plan, message), true, message);
+  }
+});
+
+test("planner can search merch without asking for vehicle fitment", () => {
+  const plan = buildFallbackShopAiPlan("Покажи мерч Akrapovic", context);
+
+  assert.equal(plan.category, "merch");
+  assert.equal(plan.needsClarification, false);
+  assert.equal(plan.clarification, null);
 });
 
 test("planner refuses an open-ended recommendation without a category", () => {
@@ -35,6 +95,72 @@ test("planner maps a natural sales goal deterministically", () => {
   assert.equal(sound.category, "exhaust");
   assert.equal(handling.goal, "handling");
   assert.equal(handling.category, "suspension");
+});
+
+test("planner preserves explicit performance and motorcycle-carbon categories", () => {
+  const performance = buildFallbackShopAiPlan("Допоможи підібрати тюнінг двигуна", context);
+  const motoCarbon = buildFallbackShopAiPlan("Help me choose motorcycle carbon", {
+    locale: "en",
+    currency: "EUR",
+  });
+
+  assert.equal(performance.category, "performance");
+  assert.equal(motoCarbon.category, "motoCarbon");
+});
+
+test("explicit category phrases override incidental product-title words", () => {
+  const carbon = buildFallbackShopAiPlan("Find Urban carbon engine cover in carbon aero", {
+    locale: "en",
+    currency: "EUR",
+  });
+  const interior = buildFallbackShopAiPlan("Find carbon fibre seat backs in interior parts", {
+    locale: "en",
+    currency: "EUR",
+  });
+
+  assert.equal(carbon.category, "carbonAero");
+  assert.equal(interior.category, "interior");
+});
+
+test("planner resolves Ukrainian turbo-inlet intent and Audi B8 RS5 aliases", () => {
+  const turboInlet = buildFallbackShopAiPlan(
+    "Покажи гібридні турбо-впуски для Audi C8 RS6",
+    context
+  );
+  const b8Intake = buildFallbackShopAiPlan(
+    "Знайди карбоновий впуск Eventuri для Audi B8 RS5",
+    context
+  );
+
+  assert.equal(turboInlet.category, "performance");
+  assert.equal(turboInlet.productKind, "turbo_inlet");
+  assert.equal(turboInlet.vehicle.make, "Audi");
+  assert.equal(turboInlet.vehicle.model, "RS6");
+  assert.equal(turboInlet.vehicle.chassis, "C8");
+  assert.equal(b8Intake.category, "performance");
+  assert.equal(b8Intake.productKind, "intake");
+  assert.equal(b8Intake.vehicle.make, "Audi");
+  assert.equal(b8Intake.vehicle.model, "RS5");
+  assert.equal(b8Intake.vehicle.chassis, "B8");
+});
+
+test("planner resolves supported RU and transliterated category terms without a provider", () => {
+  const cases = [
+    ["Помоги подобрать выхлоп", "exhaust"],
+    ["Dopomozhy pidibraty halma dlia avto", "brakes"],
+    ["Хочу установить подвеску", "suspension"],
+    ["Dopomozhy pidibraty chyp tiuninh", "chipTuning"],
+    ["Dopomozhy pidibraty okholodzhennia dlia avto", "cooling"],
+    ["Помоги подобрать диски", "wheels"],
+    ["Help me choose lighting", "lighting"],
+    ["Dopomozhy pidibraty detali salonu", "interior"],
+    ["Помоги подобрать аксессуары", "accessories"],
+    ["Dopomozhy pidibraty karbonovyi obvis", "carbonAero"],
+  ] as const;
+
+  for (const [message, expectedCategory] of cases) {
+    assert.equal(buildFallbackShopAiPlan(message, context).category, expectedCategory, message);
+  }
 });
 
 test("an explicit sound goal overrides a stale appearance category", () => {
@@ -66,6 +192,29 @@ test("planner asks for the goal before the vehicle on an open request", () => {
 
   assert.equal(plan.category, null);
   assert.match(plan.clarification ?? "", /що саме хочете змінити/i);
+});
+
+test("provider cannot invent a category or goal for an open request", () => {
+  const plan = normalizeShopAiPlan(
+    { category: "exhaust", goal: "sound", vehicle: {} },
+    "What should I change first?",
+    { locale: "en", currency: "EUR" }
+  );
+
+  assert.equal(plan.category, null);
+  assert.equal(plan.goal, null);
+  assert.equal(plan.needsClarification, true);
+});
+
+test("active catalog context remains authoritative over an invented provider category", () => {
+  const plan = normalizeShopAiPlan(
+    { category: "brakes", goal: "braking", vehicle: {} },
+    "Show me options",
+    { locale: "en", currency: "EUR", category: "suspension" }
+  );
+
+  assert.equal(plan.category, "suspension");
+  assert.equal(plan.goal, "handling");
 });
 
 test("planner inherits vehicle selected on the Stock page", () => {

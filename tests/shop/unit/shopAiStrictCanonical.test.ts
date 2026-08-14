@@ -104,6 +104,41 @@ test("assistant strict canonical gate keeps unknown fitment reviewable without a
   assert.ok(result?.missingFacts.includes("fitment"));
 });
 
+test("assistant strict canonical gate does not let extracted applications create hard conflicts", () => {
+  const result = classifyShopAiStrictCanonicalRow(
+    row({
+      applicationId: "extracted-application",
+      applicationMake: "Range Rover",
+      applicationModel: "23 Uc9",
+      applicationChassis: "L461",
+      applicationVerificationStatus: "EXTRACTED",
+      applicationSource: "DESCRIPTION_EXTRACTION",
+      applicationTrusted: false,
+      hasApplications: true,
+      hasTrustedApplications: false,
+      trustedKnowledgeVehicleEvidence: false,
+    }),
+    plan,
+    context
+  );
+
+  assert.equal(result?.matchStatus, "requires_verification");
+  assert.ok(result?.missingFacts.includes("verified_fitment"));
+});
+
+test("assistant strict canonical gate keeps a missing product kind reviewable", () => {
+  const result = classifyShopAiStrictCanonicalRow(row({ productKind: null }), plan, context);
+
+  assert.equal(result?.matchStatus, "requires_verification");
+  assert.ok(result?.missingFacts.includes("productKindEvidence"));
+});
+
+test("assistant strict canonical gate rejects a known product-kind conflict", () => {
+  const result = classifyShopAiStrictCanonicalRow(row({ productKind: "downpipe" }), plan, context);
+
+  assert.equal(result, null);
+});
+
 test("assistant strict canonical gate rejects a known engine conflict before hydration", () => {
   const result = classifyShopAiStrictCanonicalRow(
     row({

@@ -8,8 +8,17 @@ import {
   buildShopAiNoMoreOptionsMessage,
   inheritShopAiConversationContext,
 } from "@/lib/shopAiAssistantConversation";
-import { buildFallbackShopAiPlan, normalizeShopAiPlan } from "@/lib/shopAiAssistantPlanner";
-import { buildShopAiCatalogQuery, diversifyShopAiProducts } from "@/lib/shopAiAssistantRanking";
+import {
+  buildFallbackShopAiPlan,
+  normalizeShopAiPlan,
+  shouldAskShopAiClarificationBeforeRetrieval,
+} from "@/lib/shopAiAssistantPlanner";
+import {
+  buildShopAiCatalogQuery,
+  diversifyShopAiProducts,
+  filterShopAiProductsForStock,
+  hasDirectShopAiCatalogTitleMatch,
+} from "@/lib/shopAiAssistantRanking";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { retrieveShopAiCandidatesFromLegacyCatalog } from "@/lib/shopAiLegacyDirectRepository";
 import {
@@ -399,7 +408,13 @@ export async function POST(request: NextRequest) {
     const conversationIdForSave = storedConversation ? requestedConversationId : null;
     const history = storedConversation?.history ?? [];
     const previousPlan = storedConversation?.previousPlan
-      ? normalizeShopAiPlan(storedConversation.previousPlan, "", context)
+      ? normalizeShopAiPlan(storedConversation.previousPlan, "", {
+          ...context,
+          // The previous plan has already passed planner normalization before
+          // being stored. Preserve that server-trusted route when sanitizing a
+          // continuation; generated routing remains blocked for new open turns.
+          category: context.category || storedConversation.previousPlan.category || undefined,
+        })
       : null;
     const planningContext = cleanContext(
       inheritShopAiConversationContext(context, previousPlan, message)
@@ -555,7 +570,7 @@ export async function POST(request: NextRequest) {
     telemetryRunId = runResult.value?.runId ?? null;
     const telemetryTraceSampled = runResult.value?.traceSampled ?? false;
 
-    if (planned.plan.needsClarification) {
+    if (shouldAskShopAiClarificationBeforeRetrieval(planned.plan, message)) {
       const vinVerificationRequested = requestsVinVerification(rawMessage);
       const clarificationMessage =
         (vinVerificationRequested && planned.plan.requiredDetails?.includes("opfGpf")
@@ -666,6 +681,17 @@ export async function POST(request: NextRequest) {
           },
         }),
       });
+    }
+
+    // The query had enough catalog identity to search safely. Keep the
+    // fitment-critical fields in requiredDetails/follow-ups, but do not label a
+    // result response itself as a clarification turn.
+    if (planned.plan.needsClarification) {
+      planned.plan = {
+        ...planned.plan,
+        needsClarification: false,
+        clarification: null,
+      };
     }
 
     const retrievalStartedAt = performance.now();
@@ -803,7 +829,7 @@ export async function POST(request: NextRequest) {
       );
     }
     if (planned.plan.stockOnly) {
-      candidateProducts = candidateProducts.filter((product) => product.inStock);
+      candidateProducts = filterShopAiProductsForStock(candidateProducts, message, true);
     }
     const candidateExactCount = candidateProducts.filter(
       (product) => product.matchStatus === "exact"
@@ -812,18 +838,20 @@ export async function POST(request: NextRequest) {
       (product) => product.matchStatus === "requires_verification"
     ).length;
 
-    const semanticResult = exactSkuBaseline
-      ? { products: candidateProducts, usedEmbedding: false }
-      : await withinShopAiDeadline(
-          rerankShopAiProductsSemantically({
-            products: candidateProducts,
-            message,
-            plan: planned.plan,
-          }),
-          turnDeadlineAt,
-          { products: candidateProducts, usedEmbedding: false },
-          markTurnTimedOut
-        );
+    const directCatalogTitleMatch = hasDirectShopAiCatalogTitleMatch(message, candidateProducts);
+    const semanticResult =
+      exactSkuBaseline || directCatalogTitleMatch
+        ? { products: candidateProducts, usedEmbedding: false }
+        : await withinShopAiDeadline(
+            rerankShopAiProductsSemantically({
+              products: candidateProducts,
+              message,
+              plan: planned.plan,
+            }),
+            turnDeadlineAt,
+            { products: candidateProducts, usedEmbedding: false },
+            markTurnTimedOut
+          );
     const diversifiedProducts = diversifyShopAiProducts(
       semanticResult.products,
       message,

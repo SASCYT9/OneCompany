@@ -6,8 +6,9 @@ import {
   type ShopAiEvalLanguage,
   type ShopAiReleaseGateConfig,
 } from "./shop-ai-eval-harness";
+import { compactShopCode } from "../src/lib/shopVehicleSearch";
 
-export const SHOP_AI_EVAL_REVIEW_QUEUE_SCHEMA_VERSION = 1;
+export const SHOP_AI_EVAL_REVIEW_QUEUE_SCHEMA_VERSION = 2;
 
 export type ShopAiEvalReviewSeed = {
   category: string;
@@ -36,6 +37,12 @@ export type ShopAiEvalReviewQueueItem = {
     productId: string;
     variantId: string | null;
     sku: string | null;
+  };
+  oracle: {
+    kind: "catalog_relevance" | "clarification" | "exact_sku" | "mutated_sku_no_match";
+    automationEligibility: "deterministic" | "source_grounded_reviewable";
+    fitmentClaimAllowed: false;
+    rationale: string;
   };
   draftCase: ShopAiEvalCase;
   reviewer: string | null;
@@ -145,6 +152,10 @@ const CATEGORY_QUERY_TERMS: Record<string, Record<ShopAiEvalLanguage, string>> =
   },
 };
 
+const VEHICLE_OPTIONAL_CATEGORIES = new Set(["merch"]);
+const HARD_NEGATIVE_SHARE = 0.2;
+const DEFAULT_EXACT_SKU_CASES = 10;
+
 const QUERY_TEMPLATES: Record<
   ShopAiEvalLanguage,
   Array<(term: string, label: string) => string>
@@ -201,6 +212,23 @@ const QUERY_TEMPLATES: Record<
   ],
 };
 
+const CLARIFICATION_TEMPLATES: Record<ShopAiEvalLanguage, Array<(term: string) => string>> = {
+  ua: [(term) => `Допоможи підібрати ${term}`, (term) => `Хочу встановити ${term}, з чого почати?`],
+  en: [
+    (term) => `Help me choose ${term}`,
+    (term) => `I want a ${term} upgrade. What do you need from me?`,
+  ],
+  ru: [(term) => `Помоги подобрать ${term}`, (term) => `Хочу установить ${term}, с чего начать?`],
+  mixed: [
+    (term) => `Допоможи choose ${term}`,
+    (term) => `Хочу ${term} upgrade, що треба уточнити?`,
+  ],
+  translit: [
+    (term) => `Dopomozhy pidibraty ${term}`,
+    (term) => `Khochu vstanovyty ${term}, z choho pochaty?`,
+  ],
+};
+
 function cleanLabel(value: string) {
   return value.replace(/\s+/g, " ").trim().slice(0, 180);
 }
@@ -222,21 +250,14 @@ function buildDraftMessage(input: {
   seed: ShopAiEvalReviewSeed;
   language: ShopAiEvalLanguage;
   ordinal: number;
-  exactSku: boolean;
 }) {
-  if (input.exactSku && input.seed.sku) {
-    if (input.language === "en") return `Find exact SKU ${input.seed.sku}`;
-    if (input.language === "ru") return `Найди точный SKU ${input.seed.sku}`;
-    if (input.language === "translit") return `Znaidy tochnyi SKU ${input.seed.sku}`;
-    if (input.language === "mixed") return `Знайди exact SKU ${input.seed.sku}`;
-    return `Знайди точний артикул ${input.seed.sku}`;
-  }
   const title = input.language === "en" ? input.seed.titleEn : input.seed.titleUa;
-  const label = cleanLabel(
-    [input.seed.brand, title, input.seed.sku ? `SKU ${input.seed.sku}` : null]
+  const vehicle = cleanLabel(
+    [input.seed.make, input.seed.model, input.seed.chassis, input.seed.year]
       .filter(Boolean)
       .join(" ")
   );
+  const label = cleanLabel([input.seed.brand, title, vehicle].filter(Boolean).join(" "));
   const templates = QUERY_TEMPLATES[input.language];
   return templates[input.ordinal % templates.length](
     queryTerm(input.seed.category, input.language),
@@ -244,11 +265,76 @@ function buildDraftMessage(input: {
   );
 }
 
+function buildClarificationMessage(
+  category: string,
+  language: ShopAiEvalLanguage,
+  ordinal: number
+) {
+  const templates = CLARIFICATION_TEMPLATES[language];
+  return templates[ordinal % templates.length](queryTerm(category, language));
+}
+
+function buildExactSkuMessage(sku: string, language: ShopAiEvalLanguage) {
+  if (language === "en") return `Find exact SKU ${sku}`;
+  if (language === "ru") return `Найди точный SKU ${sku}`;
+  if (language === "translit") return `Znaidy tochnyi SKU ${sku}`;
+  if (language === "mixed") return `Знайди exact SKU ${sku}`;
+  return `Знайди точний артикул ${sku}`;
+}
+
+function buildUnknownSku(seed: ShopAiEvalReviewSeed, ordinal: number, knownSkuTokens: Set<string>) {
+  const base = String(seed.sku ?? `ONEAI-${seed.productId}`)
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9._/+()-]+/g, "-")
+    .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "")
+    .slice(0, 48);
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const suffix = `-ONEAI-NOMATCH-${String(ordinal + attempt + 1).padStart(4, "0")}`;
+    const candidate = `${base || "SKU"}${suffix}`.slice(0, 79);
+    const token = compactShopCode(candidate);
+    if (!knownSkuTokens.has(token)) {
+      knownSkuTokens.add(token);
+      return candidate;
+    }
+  }
+  throw new Error(`Could not build a unique no-match SKU for ${seed.productId}`);
+}
+
+function createQueueItem(input: {
+  id: string;
+  category: string;
+  language: ShopAiEvalLanguage;
+  seed: ShopAiEvalReviewSeed;
+  draftCase: ShopAiEvalCase;
+  oracle: ShopAiEvalReviewQueueItem["oracle"];
+}): ShopAiEvalReviewQueueItem {
+  return {
+    id: input.id,
+    status: "pending",
+    category: input.category,
+    language: input.language,
+    source: {
+      kind: "catalog_seed",
+      evidenceId: input.seed.sourceEvidenceId,
+      productId: input.seed.productId,
+      variantId: input.seed.variantId ?? null,
+      sku: input.seed.sku ?? null,
+    },
+    oracle: input.oracle,
+    draftCase: input.draftCase,
+    reviewer: null,
+    reviewedAt: null,
+    reviewEvidenceId: null,
+    reviewerNotes: null,
+  };
+}
+
 export function buildShopAiEvalReviewQueue(input: {
   seeds: ShopAiEvalReviewSeed[];
   categories: readonly string[];
   targetCases?: number;
   generatedAt?: Date;
+  knownSkuTokens?: Iterable<string>;
 }): ShopAiEvalReviewQueue {
   const targetCases = input.targetCases ?? 500;
   if (!Number.isInteger(targetCases) || targetCases < input.categories.length) {
@@ -260,6 +346,7 @@ export function buildShopAiEvalReviewQueue(input: {
       .filter((seed) => seed.category === category)
       .sort(
         (left, right) =>
+          Number(Boolean(right.make && right.model)) - Number(Boolean(left.make && left.model)) ||
           Number(Boolean(right.sku)) - Number(Boolean(left.sku)) ||
           left.productId.localeCompare(right.productId)
       );
@@ -268,80 +355,185 @@ export function buildShopAiEvalReviewQueue(input: {
     seedByCategory.set(category, seeds);
   }
 
-  const basePerCategory = Math.floor(targetCases / input.categories.length);
-  const remainder = targetCases % input.categories.length;
+  const skuSeeds = input.seeds
+    .filter((seed) => Boolean(seed.sku))
+    .filter(
+      (seed, index, seeds) =>
+        seeds.findIndex(
+          (candidate) => compactShopCode(candidate.sku ?? "") === compactShopCode(seed.sku ?? "")
+        ) === index
+    );
+  const hardNegativeTarget = Math.floor(targetCases * HARD_NEGATIVE_SHARE);
+  if (hardNegativeTarget > 0 && skuSeeds.length === 0) {
+    throw new Error("Review queue needs at least one real SKU seed for hard-negative coverage");
+  }
+  const exactSkuTarget = Math.min(DEFAULT_EXACT_SKU_CASES, skuSeeds.length);
+  const categoryCaseTarget = targetCases - hardNegativeTarget - exactSkuTarget;
+  if (categoryCaseTarget < input.categories.length) {
+    throw new Error(
+      "Review queue target is too small for category, exact-SKU and hard-negative coverage"
+    );
+  }
+  const basePerCategory = Math.floor(categoryCaseTarget / input.categories.length);
+  const remainder = categoryCaseTarget % input.categories.length;
   const items: ShopAiEvalReviewQueueItem[] = [];
+  const knownSkuTokens = new Set(
+    [
+      ...(input.knownSkuTokens ?? []),
+      ...skuSeeds.map((seed) => compactShopCode(seed.sku ?? "")),
+    ].filter(Boolean)
+  );
   let globalIndex = 0;
 
   input.categories.forEach((category, categoryIndex) => {
     const categoryTarget = basePerCategory + (categoryIndex < remainder ? 1 : 0);
     const seeds = seedByCategory.get(category) as ShopAiEvalReviewSeed[];
+    const clarificationTarget = VEHICLE_OPTIONAL_CATEGORIES.has(category)
+      ? 0
+      : Math.floor(categoryTarget / 3);
+    const resultTarget = categoryTarget - clarificationTarget;
     for (let index = 0; index < categoryTarget; index += 1) {
       const seed = seeds[index % seeds.length];
       const language = SHOP_AI_EVAL_LANGUAGES[globalIndex % SHOP_AI_EVAL_LANGUAGES.length];
-      const exactSku = index === 0 && Boolean(seed.sku);
-      const hardNegativeCandidate = globalIndex % 5 === 0;
-      const message = buildDraftMessage({
-        seed,
-        language,
-        ordinal: Math.floor(index / seeds.length),
-        exactSku,
-      });
-      const id = `review-${slugPart(category)}-${String(index + 1).padStart(3, "0")}-${slugPart(seed.productId)}`;
-      const tags = ["review-draft", exactSku ? "exact-sku" : "catalog-seed"];
-      const hardDimensions = seed.chassis
-        ? (["chassis", "semantic"] as const)
-        : (["category", "semantic"] as const);
+      const clarification = index >= resultTarget;
+      const message = clarification
+        ? buildClarificationMessage(category, language, index - resultTarget)
+        : buildDraftMessage({ seed, language, ordinal: index });
+      const id = `review-${slugPart(category)}-${clarification ? "clarify" : "catalog"}-${String(index + 1).padStart(3, "0")}-${slugPart(seed.productId)}`;
       const draftCase: ShopAiEvalCase = {
         id,
         locale: language === "en" ? "en" : "ua",
         message,
         metadata: {
           language,
-          tags,
-          ...(hardNegativeCandidate
-            ? {
-                hardNegative: {
-                  dimensions: [...hardDimensions],
-                  note: "Reviewer must confirm that semantically similar products cannot become a wrong exact match.",
-                },
-              }
-            : {}),
+          tags: ["review-draft", clarification ? "clarification" : "catalog-relevance"],
         },
-        expect: {
-          mode: "results",
-          category,
-          needsClarification: false,
-          expectedProductIds: [seed.productId],
-          ...(seed.variantId ? { expectedVariantIds: [seed.variantId] } : {}),
-          ...(seed.make ? { make: seed.make } : {}),
-          ...(seed.model ? { model: seed.model } : {}),
-          ...(seed.chassis ? { chassis: seed.chassis } : {}),
-          ...(seed.year ? { year: seed.year } : {}),
-          ...(seed.opfGpf ? { opfGpf: seed.opfGpf } : {}),
-        },
+        expect: clarification
+          ? { mode: "clarification", category, needsClarification: true }
+          : {
+              mode: "results",
+              category,
+              needsClarification: false,
+              expectedProductIds: [seed.productId],
+              ...(seed.make ? { make: seed.make } : {}),
+              ...(seed.model ? { model: seed.model } : {}),
+              ...(seed.chassis ? { chassis: seed.chassis } : {}),
+              ...(seed.year ? { year: seed.year } : {}),
+            },
       };
-      items.push({
-        id,
-        status: "pending",
-        category,
-        language,
-        source: {
-          kind: "catalog_seed",
-          evidenceId: seed.sourceEvidenceId,
-          productId: seed.productId,
-          variantId: seed.variantId ?? null,
-          sku: seed.sku ?? null,
-        },
-        draftCase,
-        reviewer: null,
-        reviewedAt: null,
-        reviewEvidenceId: null,
-        reviewerNotes: null,
-      });
+      items.push(
+        createQueueItem({
+          id,
+          category,
+          language,
+          seed,
+          draftCase,
+          oracle: clarification
+            ? {
+                kind: "clarification",
+                automationEligibility: "deterministic",
+                fitmentClaimAllowed: false,
+                rationale: "The query names a category but omits the vehicle required for fitment.",
+              }
+            : {
+                kind: "catalog_relevance",
+                automationEligibility: "source_grounded_reviewable",
+                fitmentClaimAllowed: false,
+                rationale:
+                  "The expected product identity is grounded in the active catalog; fitment remains reviewable unless separate trusted evidence exists.",
+              },
+        })
+      );
       globalIndex += 1;
     }
   });
+
+  for (let index = 0; index < exactSkuTarget; index += 1) {
+    const seed = skuSeeds.at(index);
+    if (!seed?.sku) throw new Error(`Missing exact-SKU seed at index ${index}`);
+    const language = SHOP_AI_EVAL_LANGUAGES[globalIndex % SHOP_AI_EVAL_LANGUAGES.length];
+    const sku = seed.sku;
+    const id = `review-exact-sku-${String(index + 1).padStart(3, "0")}-${slugPart(seed.productId)}`;
+    const draftCase: ShopAiEvalCase = {
+      id,
+      locale: language === "en" ? "en" : "ua",
+      message: buildExactSkuMessage(sku, language),
+      metadata: { language, tags: ["review-draft", "exact-sku", "machine-checkable"] },
+      expect: {
+        mode: "results",
+        needsClarification: false,
+        expectedProductIds: [seed.productId],
+        ...(seed.variantId ? { expectedVariantIds: [seed.variantId] } : {}),
+      },
+    };
+    items.push(
+      createQueueItem({
+        id,
+        category: seed.category,
+        language,
+        seed,
+        draftCase,
+        oracle: {
+          kind: "exact_sku",
+          automationEligibility: "deterministic",
+          fitmentClaimAllowed: false,
+          rationale: "Exact SKU is a catalog identity assertion, not a vehicle-fitment assertion.",
+        },
+      })
+    );
+    globalIndex += 1;
+  }
+
+  for (let index = 0; index < hardNegativeTarget; index += 1) {
+    const seed = skuSeeds.at(index % skuSeeds.length);
+    if (!seed) throw new Error(`Missing hard-negative SKU seed at index ${index}`);
+    const language = SHOP_AI_EVAL_LANGUAGES[globalIndex % SHOP_AI_EVAL_LANGUAGES.length];
+    const unknownSku = buildUnknownSku(seed, index, knownSkuTokens);
+    const id = `review-sku-no-match-${String(index + 1).padStart(3, "0")}-${slugPart(seed.productId)}`;
+    const draftCase: ShopAiEvalCase = {
+      id,
+      locale: language === "en" ? "en" : "ua",
+      message: buildExactSkuMessage(unknownSku, language),
+      metadata: {
+        language,
+        tags: ["review-draft", "sku-hard-negative", "machine-checkable"],
+        hardNegative: {
+          dimensions: seed.variantId ? ["product", "variant", "semantic"] : ["product", "semantic"],
+          note: "A one-off synthetic SKU is absent from the active catalog; the source product and variant are explicit forbidden near matches.",
+        },
+      },
+      expect: {
+        mode: "no_match",
+        needsClarification: false,
+        forbiddenProductIds: [seed.productId],
+        ...(seed.variantId ? { forbiddenVariantIds: [seed.variantId] } : {}),
+      },
+    };
+    items.push(
+      createQueueItem({
+        id,
+        category: seed.category,
+        language,
+        seed,
+        draftCase,
+        oracle: {
+          kind: "mutated_sku_no_match",
+          automationEligibility: "deterministic",
+          fitmentClaimAllowed: false,
+          rationale:
+            "The generated SKU token is checked against the known catalog token set and must not resolve to a product.",
+        },
+      })
+    );
+    globalIndex += 1;
+  }
+
+  if (items.length !== targetCases) {
+    throw new Error(`Review queue produced ${items.length}/${targetCases} cases`);
+  }
+  if (new Set(items.map((item) => item.draftCase.message)).size !== items.length) {
+    throw new Error("Review queue produced duplicate messages");
+  }
 
   return {
     schemaVersion: SHOP_AI_EVAL_REVIEW_QUEUE_SCHEMA_VERSION,
@@ -356,27 +548,61 @@ export function compileApprovedShopAiEvalReviewQueue(
   config: ShopAiReleaseGateConfig
 ) {
   const errors: string[] = [];
+  const reviewPolicy = config.reviewPolicy ?? "human";
   if (queue.schemaVersion !== SHOP_AI_EVAL_REVIEW_QUEUE_SCHEMA_VERSION) {
     errors.push(`unsupported review queue schema ${queue.schemaVersion}`);
   }
-  const approved = queue.items.filter((item) => item.status === "approved");
-  const cases = approved.map((item) => {
-    if (!item.reviewer?.trim()) errors.push(`${item.id}: reviewer is required`);
-    if (!item.reviewedAt?.trim()) errors.push(`${item.id}: reviewedAt is required`);
-    if (!item.reviewEvidenceId?.trim()) errors.push(`${item.id}: reviewEvidenceId is required`);
+  const selected =
+    reviewPolicy === "catalog_grounded_machine"
+      ? queue.items.filter((item) => item.status !== "rejected")
+      : queue.items.filter((item) => item.status === "approved");
+  const cases = selected.map((item) => {
+    const machineReviewed = reviewPolicy === "catalog_grounded_machine";
+    if (!machineReviewed && !item.reviewer?.trim()) {
+      errors.push(`${item.id}: reviewer is required`);
+    }
+    if (!machineReviewed && !item.reviewedAt?.trim()) {
+      errors.push(`${item.id}: reviewedAt is required`);
+    }
+    if (!machineReviewed && !item.reviewEvidenceId?.trim()) {
+      errors.push(`${item.id}: reviewEvidenceId is required`);
+    }
+    if (machineReviewed && item.oracle.fitmentClaimAllowed !== false) {
+      errors.push(`${item.id}: machine review cannot allow a fitment claim`);
+    }
     return {
       ...item.draftCase,
       metadata: {
         ...item.draftCase.metadata,
         language: item.language,
-        reviewer: item.reviewer?.trim() ?? "",
-        reviewedAt: item.reviewedAt?.trim() ?? "",
-        reviewEvidenceId: item.reviewEvidenceId?.trim() ?? "",
+        reviewer: machineReviewed
+          ? "one-ai-catalog-grounded-machine-v1"
+          : (item.reviewer?.trim() ?? ""),
+        reviewedAt: machineReviewed ? queue.generatedAt : (item.reviewedAt?.trim() ?? ""),
+        reviewEvidenceId: machineReviewed
+          ? `ONEAI-MACHINE:${item.source.evidenceId}:${item.id}`
+          : (item.reviewEvidenceId?.trim() ?? ""),
+        ...(machineReviewed
+          ? {
+              reviewMethod: "catalog_grounded_machine" as const,
+              reviewAutomationEligibility: item.oracle.automationEligibility,
+              reviewOracle: item.oracle.kind,
+              reviewSourceEvidenceId: item.source.evidenceId,
+              reviewSourceCategory: item.category,
+              reviewSourceProductId: item.source.productId,
+              ...(item.source.variantId ? { reviewSourceVariantId: item.source.variantId } : {}),
+              fitmentClaimAllowed: false as const,
+            }
+          : {}),
       },
     } satisfies ShopAiEvalCase;
   });
-  if (approved.length !== queue.targetCases) {
-    errors.push(`approved ${approved.length}/${queue.targetCases} review cases`);
+  if (selected.length !== queue.targetCases) {
+    errors.push(
+      reviewPolicy === "catalog_grounded_machine"
+        ? `machine-review eligible ${selected.length}/${queue.targetCases} review cases`
+        : `approved ${selected.length}/${queue.targetCases} review cases`
+    );
   }
   const validated = validateShopAiEvalCases(cases);
   if (!validated.ok) errors.push(...validated.errors);

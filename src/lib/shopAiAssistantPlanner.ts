@@ -6,6 +6,7 @@ import type {
   ShopAiVehicle,
 } from "@/lib/shopAiAssistantTypes";
 import { BRAND_LOGO_MAP } from "@/lib/brandLogos";
+import { buildShopAiLexicalWebsearchQuery } from "@/lib/shopAiAssistantRanking";
 import { getShopAiExactSkuLookupToken } from "@/lib/shopAiExactSku";
 import { cleanShopAiProductKind, inferShopAiProductKind } from "@/lib/shopAiProductKind";
 import { SHOP_STOCK_CATEGORY_GROUPS, type ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
@@ -23,34 +24,136 @@ const CATEGORY_SIGNALS: Array<{ id: ShopStockCategoryGroupId; pattern: RegExp }>
   { id: "performance", pattern: /\b(intake|turbo|engine|впуск|турбо|двигун)\b/i },
   { id: "chipTuning", pattern: /\b(chip|ecu|jb4|racechip|чіп|прошивк)\b/i },
   {
+    id: "motoCarbon",
+    pattern: /\b(moto\s*carbon|motorcycle\s*carbon|мотокарбон|карбон\s+для\s+мото)\b/i,
+  },
+  {
     id: "carbonAero",
     pattern: /\b(body kit|diffuser|spoiler|carbon|обвіс|дифузор|спойлер|карбон)\b/i,
   },
   { id: "wheels", pattern: /\b(wheel|rim|spacer|диск|колес|проставк)\b/i },
   { id: "interior", pattern: /\b(interior|steering|seat|салон|кермо|сидін)\b/i },
   { id: "lighting", pattern: /\b(light|lamp|headlight|світло|фара|ламп)\b/i },
-  {
-    id: "motoCarbon",
-    pattern: /\b(moto\s*carbon|motorcycle\s*carbon|мотокарбон|карбон\s+для\s+мото)\b/i,
-  },
   { id: "accessories", pattern: /\b(accessor(?:y|ies)|аксесуар)\b/i },
   { id: "merch", pattern: /\b(merch|merchandise|gift|подар(?:унок|ок)|мерч)\b/i },
 ];
 
 const CATEGORY_SUBSTRINGS: Array<{ id: ShopStockCategoryGroupId; values: string[] }> = [
-  { id: "exhaust", values: ["exhaust", "downpipe", "вихлоп", "глушник", "даунпайп"] },
-  { id: "brakes", values: ["brake", "rotor", "гальм", "колодк"] },
-  { id: "suspension", values: ["suspension", "coilover", "підвіск", "амортиз"] },
-  { id: "cooling", values: ["intercooler", "radiator", "інтеркулер", "радіатор"] },
-  { id: "performance", values: ["intake", "turbo", "впуск", "турбо"] },
-  { id: "chipTuning", values: ["racechip", "jb4", "чіп", "прошивк"] },
-  { id: "carbonAero", values: ["body kit", "diffuser", "carbon", "обвіс", "карбон"] },
-  { id: "wheels", values: ["wheel", "spacer", "колес", "проставк"] },
-  { id: "interior", values: ["interior", "steering", "салон", "кермо"] },
-  { id: "lighting", values: ["headlight", "lamp", "світло", "фара"] },
-  { id: "motoCarbon", values: ["moto carbon", "motorcycle carbon", "мотокарбон"] },
-  { id: "accessories", values: ["accessory", "accessories", "аксесуар"] },
+  {
+    id: "exhaust",
+    values: ["exhaust", "downpipe", "вихлоп", "выхлоп", "vykhlop", "глушник", "даунпайп"],
+  },
+  { id: "brakes", values: ["brake", "rotor", "гальм", "тормоз", "halma", "колодк"] },
+  {
+    id: "suspension",
+    values: ["suspension", "coilover", "підвіск", "подвес", "pidvisk", "амортиз"],
+  },
+  {
+    id: "cooling",
+    values: [
+      "cooling",
+      "intercooler",
+      "radiator",
+      "охолод",
+      "охлажд",
+      "okholodzh",
+      "інтеркулер",
+      "радіатор",
+    ],
+  },
+  {
+    id: "performance",
+    values: [
+      "performance",
+      "engine tuning",
+      "intake",
+      "turbo",
+      "впуск",
+      "турбо",
+      "тюнінг двигун",
+      "тюнинг двигател",
+      "tiuninh dvyhun",
+    ],
+  },
+  {
+    id: "chipTuning",
+    values: ["chip tuning", "racechip", "jb4", "чіп", "чип", "chyp tiuninh", "прошивк"],
+  },
+  {
+    id: "motoCarbon",
+    values: [
+      "moto carbon",
+      "motorcycle carbon",
+      "мотокарбон",
+      "карбон для мото",
+      "karbon dlia moto",
+    ],
+  },
+  {
+    id: "carbonAero",
+    values: ["body kit", "diffuser", "carbon", "karbonovyi obvis", "обвіс", "карбон"],
+  },
+  {
+    id: "wheels",
+    values: ["wheel", "spacer", "диски", "dysky", "колес", "проставк"],
+  },
+  {
+    id: "interior",
+    values: ["interior", "steering", "detali salonu", "салон", "кермо"],
+  },
+  {
+    id: "lighting",
+    values: ["lighting", "headlight", "lamp", "освітл", "освещ", "osvitl", "світло", "фара"],
+  },
+  {
+    id: "accessories",
+    values: ["accessory", "accessories", "аксесуар", "аксессуар", "aksesuar"],
+  },
   { id: "merch", values: ["merch", "merchandise", "gift", "подарунок", "подарок", "мерч"] },
+];
+
+const EXPLICIT_CATEGORY_SUBSTRINGS: Array<{
+  id: ShopStockCategoryGroupId;
+  values: string[];
+}> = [
+  {
+    id: "carbonAero",
+    values: [
+      "carbon aero",
+      "carbon body kit",
+      "карбоновий аерообвіс",
+      "карбоновый обвес",
+      "karbonovyi obvis",
+    ],
+  },
+  {
+    id: "interior",
+    values: ["interior parts", "деталі салону", "детали салона", "detali salonu"],
+  },
+  {
+    id: "motoCarbon",
+    values: [
+      "motorcycle carbon",
+      "moto carbon",
+      "карбон для мотоцикла",
+      "карбон для мото",
+      "karbon dlia mototsykla",
+    ],
+  },
+  {
+    id: "performance",
+    values: [
+      "performance upgrade",
+      "engine tuning",
+      "тюнінг двигуна",
+      "тюнинг двигателя",
+      "tiuninh dvyhuna",
+    ],
+  },
+  {
+    id: "chipTuning",
+    values: ["chip tuning", "чип-тюнінг", "чіп-тюнінг", "chyp tiuninh"],
+  },
 ];
 
 const GOALS = new Set<ShopAiGoal>([
@@ -169,6 +272,119 @@ function cleanGoal(value: unknown): ShopAiGoal | null {
   return GOALS.has(normalized) ? normalized : null;
 }
 
+const GENERATED_ROUTING_GENERIC_WORDS = new Set([
+  "a",
+  "about",
+  "advice",
+  "advise",
+  "an",
+  "and",
+  "anything",
+  "can",
+  "change",
+  "choose",
+  "could",
+  "do",
+  "first",
+  "for",
+  "from",
+  "help",
+  "how",
+  "i",
+  "improve",
+  "in",
+  "me",
+  "my",
+  "need",
+  "next",
+  "of",
+  "on",
+  "option",
+  "options",
+  "or",
+  "please",
+  "recommend",
+  "should",
+  "show",
+  "something",
+  "suggest",
+  "tell",
+  "the",
+  "to",
+  "upgrade",
+  "want",
+  "what",
+  "which",
+  "would",
+  "you",
+  "your",
+  "будь",
+  "варіанти",
+  "варто",
+  "ви",
+  "далі",
+  "допоможи",
+  "змінити",
+  "ласка",
+  "мені",
+  "можна",
+  "покажи",
+  "покращити",
+  "порадь",
+  "рекомендуй",
+  "спочатку",
+  "треба",
+  "хочу",
+  "щось",
+  "що",
+  "варианты",
+  "дальше",
+  "изменить",
+  "мне",
+  "можно",
+  "первым",
+  "покажи",
+  "посоветуй",
+  "рекомендуй",
+  "сначала",
+  "улучшить",
+  "хочу",
+  "что",
+  "что-то",
+]);
+
+function hasGeneratedRoutingEvidence(message: string) {
+  if (getShopAiExactSkuLookupToken(message) || inferBrand(message)) return true;
+
+  const aliases = expandVehicleAliases(message);
+  if (
+    aliases.makes.length > 0 ||
+    aliases.models.length > 0 ||
+    aliases.chassis.length > 0 ||
+    aliases.years.length > 0 ||
+    aliases.engines.length > 0 ||
+    inferChassisFromMessage(message) ||
+    inferEngineFromMessage(message)
+  ) {
+    return true;
+  }
+
+  const tokens =
+    message
+      .normalize("NFKD")
+      .toLocaleLowerCase("en-US")
+      .match(/[\p{L}\p{N}]+/gu) ?? [];
+  const specificTokens = new Set(
+    tokens.filter(
+      (token) =>
+        token.length >= 3 && !GENERATED_ROUTING_GENERIC_WORDS.has(token) && !/^\d{4}$/.test(token)
+    )
+  );
+
+  if (specificTokens.size >= 2) return true;
+  return specificTokens.size === 1 && /\b(?:find|search|show|need|want|looking)\b/iu.test(message);
+}
+
 export function inferShopAiGoal(
   message: string,
   category: ShopStockCategoryGroupId | null,
@@ -240,7 +456,7 @@ function buildClarification(
 }
 
 export function finalizeShopAiPlan(plan: ShopAiPlan, context: ShopAiContext): ShopAiPlan {
-  const missingVehicle = !plan.vehicle.make || !plan.vehicle.model;
+  const missingVehicle = plan.category !== "merch" && (!plan.vehicle.make || !plan.vehicle.model);
   const missingCategory = !plan.category;
   const requiredDetails = missingVehicle
     ? []
@@ -260,6 +476,30 @@ export function finalizeShopAiPlan(plan: ShopAiPlan, context: ShopAiContext): Sh
       ? buildClarification(context, plan.vehicle, requiredDetails, missingVehicle, missingCategory)
       : null,
   };
+}
+
+/**
+ * A specific catalog request may return reviewable products before all
+ * fitment-critical facts are known. Broad requests still ask one clarification
+ * first, while a brand or a concrete vehicle gives retrieval a safe anchor.
+ */
+export function shouldAskShopAiClarificationBeforeRetrieval(
+  plan: ShopAiPlan,
+  message = plan.searchQuery
+) {
+  if (!plan.needsClarification) return false;
+  if (!plan.category) return true;
+  if (plan.brand) return false;
+  if (
+    plan.vehicle.make &&
+    (plan.vehicle.model || plan.vehicle.chassis || plan.vehicle.year || plan.vehicle.engine)
+  ) {
+    return false;
+  }
+  const lexicalTerms = buildShopAiLexicalWebsearchQuery(plan, message)
+    .split(" OR ")
+    .filter(Boolean);
+  return lexicalTerms.length < 3;
 }
 
 function cleanChassis(value: unknown) {
@@ -381,6 +621,9 @@ function inferCategory(message: string): ShopStockCategoryGroupId | null {
   if (inferPowerGain(message)) return "chipTuning";
   const normalized = message.toLowerCase();
   return (
+    EXPLICIT_CATEGORY_SUBSTRINGS.find((entry) =>
+      entry.values.some((value) => normalized.includes(value))
+    )?.id ??
     CATEGORY_SUBSTRINGS.find((entry) => entry.values.some((value) => normalized.includes(value)))
       ?.id ??
     CATEGORY_SIGNALS.find((entry) => entry.pattern.test(message))?.id ??
@@ -424,17 +667,18 @@ export function normalizeShopAiPlan(
   const contextCategory = String(context.category ?? "").trim() as ShopStockCategoryGroupId;
   const inferredCategory = inferCategory(message);
   const messageGoal = inferShopAiGoal(message, null);
-  const requestedGoal = messageGoal ?? cleanGoal(source.goal);
+  const allowGeneratedRouting = hasGeneratedRoutingEvidence(message);
+  const generatedGoal = allowGeneratedRouting ? cleanGoal(source.goal) : null;
   const category = inferredCategory
     ? inferredCategory
     : messageGoal
       ? GOAL_CATEGORIES[messageGoal]
-      : CATEGORY_IDS.has(rawCategory)
-        ? rawCategory
-        : CATEGORY_IDS.has(contextCategory)
-          ? contextCategory
-          : requestedGoal
-            ? GOAL_CATEGORIES[requestedGoal]
+      : CATEGORY_IDS.has(contextCategory)
+        ? contextCategory
+        : allowGeneratedRouting && CATEGORY_IDS.has(rawCategory)
+          ? rawCategory
+          : generatedGoal
+            ? GOAL_CATEGORIES[generatedGoal]
             : null;
   const requestedIntent = String(source.intent ?? "recommend");
   const intent = inferIntent(message, requestedIntent);
@@ -445,7 +689,10 @@ export function normalizeShopAiPlan(
       ? (cleanShopAiProductKind(source.productKind) ?? "any")
       : inferredProductKind;
   const brand = inferBrand(message) ?? cleanText(source.brand, 100);
-  const goal = inferShopAiGoal(message, category, source.goal);
+  // Category and goal are routing decisions. Provider output is accepted only
+  // when the message contains a concrete product or vehicle signal; an open
+  // question cannot become a fabricated shopping intent.
+  const goal = inferShopAiGoal(message, category, generatedGoal);
   return finalizeShopAiPlan(
     {
       intent,
