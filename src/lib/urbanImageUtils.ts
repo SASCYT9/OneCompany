@@ -630,6 +630,13 @@ export function resolveUrbanProductGallery(
 
   // Real (non-generic) product photos take priority — they're the actual item.
   if (realOwnImages.length > 0) {
+    // This bonnet has a manually curated W465 gallery: one close-up followed
+    // by three verified Aerokit context shots. Keep those context shots here;
+    // the normal Urban resolver intentionally suppresses generic carousel
+    // images whenever a product-specific photo exists.
+    if (product.slug.trim().toLowerCase() === "urb-hoo-25358201-v1") {
+      return [...realOwnImages, ...genericOwnCarousel];
+    }
     return realOwnImages;
   }
 

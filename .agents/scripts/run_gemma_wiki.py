@@ -1,10 +1,14 @@
 import os
 import requests
 import json
+from pathlib import Path
+
+# Legacy manual draft generator. It can overwrite wiki files; see README.md.
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "gemma4:26b"
-WIKI_DIR = r"d:\OneCompany\wiki"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+WIKI_DIR = REPOSITORY_ROOT / "wiki"
 
 def query_gemma(system_context, task_instruction):
     print(f"Querying Gemma 4: {task_instruction[:50]}...")
@@ -59,8 +63,12 @@ def save_file(filename, content):
 
 context = """
 One Company is a premium auto-tuning portal (B2B/B2C).
-Stack: Next.js 14, Prisma, PostgreSQL, Vercel, Tailwind CSS.
+Stack: Next.js 16, React 19, Tailwind CSS 4, Prisma 6 with PostgreSQL, Vercel,
+and Vercel Blob for configured runtime media.
+Authentication: customer NextAuth and a separate signed admin session with
+database-backed roles and permissions.
 Design: "Stealth Wealth" (black, bronze #c29d59, glassmorphism).
+Production provider/account details and live brand status must not be inferred.
 """
 
 tasks = {
@@ -76,7 +84,9 @@ Tags: [shopify, storefront, brand].
 """,
     
     "Deployment & Infrastructure.md": """Document server infrastructure.
-Includes Vercel (hosting/CDN), Supabase (PostgreSQL/Auth/Storage), GitHub (code), Shopify (storefronts), Cloudflare (DNS), Ollama + LiteLLM (local AI).
+Describe only source-verified boundaries: Vercel hosting, PostgreSQL through Prisma,
+Vercel Blob where configured, GitHub, external Shopify integrations, and optional
+local Ollama/LiteLLM experiments. Mark provider-dashboard facts as unverified.
 Include a Mermaid flowchart connecting them.
 Tags: [infrastructure, devops, architecture].
 """,

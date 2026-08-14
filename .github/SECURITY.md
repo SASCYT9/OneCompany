@@ -31,12 +31,12 @@ Include the following in your report:
 
 ## Response Timeline
 
-| Phase             | Target                                                |
-| ----------------- | ----------------------------------------------------- |
-| Acknowledgement   | Within **3 business days** of receipt                 |
-| Initial triage    | Within **7 business days**                            |
-| Status updates    | Every **7 days** until resolution                     |
-| Fix & disclosure  | Coordinated with reporter; typically **30–90 days**   |
+| Phase            | Target                                              |
+| ---------------- | --------------------------------------------------- |
+| Acknowledgement  | Within **3 business days** of receipt               |
+| Initial triage   | Within **7 business days**                          |
+| Status updates   | Every **7 days** until resolution                   |
+| Fix & disclosure | Coordinated with reporter; typically **30–90 days** |
 
 ## Scope
 
@@ -52,7 +52,9 @@ Include the following in your report:
 - Third-party dependencies (please report upstream; we will update once a fix is released)
 - Social engineering, physical attacks, or phishing
 - Denial-of-service attacks
-- Issues in vendor infrastructure (Vercel, Prisma Cloud, Resend, etc.) — report directly to the vendor
+- Issues in third-party infrastructure (for example Vercel, the active PostgreSQL
+  provider, or Resend) — report directly to that vendor and privately notify us if
+  OneCompany configuration or customer data may also be affected
 
 ## Disclosure Policy
 

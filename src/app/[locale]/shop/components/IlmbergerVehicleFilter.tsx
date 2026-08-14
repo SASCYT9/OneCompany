@@ -6,6 +6,7 @@ import { ChevronDown, Info, Search } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { ILMBERGER_MOCK_PRODUCTS, ilmbergerMatchesCategory } from "../data/ilmbergerHomeData";
 import IlmbergerSpotlightCard from "./IlmbergerSpotlightCard";
 
@@ -325,9 +326,11 @@ export default function IlmbergerVehicleFilter({
               >
                 <Link href={href} className="il-card">
                   <div className="il-card__media">
-                    <span className="il-card__badge">
-                      {isMock ? L(isUa, "Soon", "Скоро") : L(isUa, "In Stock", "В наявності")}
-                    </span>
+                    {SHOW_STOCK_BADGE ? (
+                      <span className="il-card__badge">
+                        {isMock ? L(isUa, "Soon", "Скоро") : L(isUa, "In Stock", "В наявності")}
+                      </span>
+                    ) : null}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image}

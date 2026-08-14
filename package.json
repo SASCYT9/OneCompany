@@ -24,6 +24,7 @@
     "ops:lab:seed": "tsx --env-file=.env.ops-lab.local scripts/operations/seed-local-lab.ts",
     "ops:lab:dev": "node scripts/operations/start-local-lab.mjs",
     "ops:lab:webhook-gateway": "node --env-file=.env.ops-lab.local scripts/operations/start-local-webhook-gateway.mjs",
+    "catalog:fallback:local": "node scripts/fetch-local-catalog-fallback.mjs",
     "ops:lab:resume-inbox": "tsx --env-file=.env.ops-lab.local scripts/operations/resume-local-lab-inbox.ts",
     "ops:blob:verify": "tsx --env-file=.env.ops-lab.local scripts/operations/verify-ops-blob.ts",
     "ops:state:verify": "tsx --env-file=.env.ops-lab.local scripts/operations/verify-local-ops-state.ts",

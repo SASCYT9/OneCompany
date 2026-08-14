@@ -11,6 +11,7 @@ body:
         Thanks for reporting a bug. Please fill in as much detail as you can.
 
         **Security issues should be reported privately** — see [SECURITY.md](https://github.com/SASCYT9/OneCompany/security/policy).
+        Remove secrets, session cookies, customer/order data, and private provider responses from screenshots and logs.
   - type: input
     id: summary
     attributes:
@@ -44,6 +45,8 @@ body:
         - Email / Resend
         - 3D / Three.js scenes
         - Auth / sessions
+        - Operations
+        - One AI / knowledge
         - SEO / metadata
         - i18n (UA / EN)
         - Build / deploy

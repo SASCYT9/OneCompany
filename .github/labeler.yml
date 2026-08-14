@@ -35,7 +35,7 @@
 "area: i18n":
   - changed-files:
       - any-glob-to-any-file:
-          - "src/messages/**"
+          - "src/lib/messages/**"
           - "src/i18n/**"
 
 "area: bot":

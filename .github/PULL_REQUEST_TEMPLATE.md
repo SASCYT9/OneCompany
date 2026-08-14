@@ -32,15 +32,22 @@ See .github/CONTRIBUTING.md for details.
 
 ## Production safety checklist
 
-- [ ] **No master DB migrations** in this PR (read [no-prod-changes policy](../.github/CONTRIBUTING.md))
-- [ ] **No mass updates** to product titles / descriptions / images via Turn14 sync
-- [ ] **No new secrets** committed; all sensitive values are in env vars
-- [ ] **`.env.example`** updated if new env vars were added
-- [ ] **Vercel preview** deploys cleanly (check the bot comment below)
+- [ ] Target environment/database and external side effects are identified
+- [ ] No Production data, migration, import, webhook, payment, message, or deploy was
+      changed merely for testing
+- [ ] Prisma changes use reviewed forward migrations and include backup/rollout notes
+- [ ] Product/price changes preserve UA/EN, variant inheritance, B2C/B2B/Europe, and
+      storefront revalidation where applicable
+- [ ] No secrets, customer/order data, environment files, backups, or local media are
+      committed
+- [ ] `.env.example` and maintained docs are updated for configuration changes
+- [ ] Manual Vercel Preview for the exact commit is linked below, or marked N/A
+      (`vercel.json` skips automatic non-`master` builds)
 
 ## Test plan
 
-<!-- How did you verify this works? -->
+<!-- List exact commands, browser routes, environment type, warning counts, and
+anything intentionally skipped. Do not use Production checkout/imports as tests. -->
 
 - [ ]
 - [ ]
@@ -58,6 +65,7 @@ None.
 ## Deployment notes
 
 <!-- Anything reviewers / deployers need to know? Feature flags, env-var changes,
-     manual steps, ordering with other PRs. Otherwise: "None." -->
+     migrations, cache/revalidation, manual Preview, external side effects, ordering,
+     and rollback. Otherwise: "None." -->
 
 None.

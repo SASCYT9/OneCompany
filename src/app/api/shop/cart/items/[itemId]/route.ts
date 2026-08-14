@@ -9,6 +9,12 @@ import {
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { prisma } from "@/lib/prisma";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import {
+  deleteLocalShopCartItem,
+  serializeLocalShopCart,
+  updateLocalShopCartItem,
+} from "@/lib/shopLocalCart";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -60,6 +66,19 @@ export async function PATCH(
 
   try {
     const { session, settings, context } = await loadPricingContext();
+    if (isLocalStorefrontMode()) {
+      const { cart, token } = updateLocalShopCartItem({
+        token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+        currency: body.currency ?? settings.defaultCurrency,
+        locale: body.locale ?? session?.preferredLocale ?? "en",
+        itemId,
+        quantity,
+      });
+      const payload = await serializeLocalShopCart(cart, context);
+      const response = NextResponse.json(payload);
+      setCartCookie(response, token);
+      return response;
+    }
     const { cart, token } = await updateShopCartItemQuantity(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
@@ -88,6 +107,18 @@ export async function DELETE(
   const { itemId } = await params;
   try {
     const { session, settings, context } = await loadPricingContext();
+    if (isLocalStorefrontMode()) {
+      const { cart, token } = deleteLocalShopCartItem({
+        token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+        currency: settings.defaultCurrency,
+        locale: session?.preferredLocale ?? "en",
+        itemId,
+      });
+      const payload = await serializeLocalShopCart(cart, context);
+      const response = NextResponse.json(payload);
+      setCartCookie(response, token);
+      return response;
+    }
     const { cart, token } = await deleteShopCartItem(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,

@@ -1,57 +1,107 @@
 # One Company Operations — production rollout
 
-This runbook prepares and releases Operations without replacing or weakening the
-existing shop, pricing, checkout, orders, or legacy notification flows. A merge,
-database migration, Telegram webhook switch, and Vercel production promotion are
-separate explicit gates.
+Last repository review: 2026-08-14.
 
-## Non-negotiable release rules
+This is the maintained code-side release procedure. Provider-dashboard state,
+database identity, backup availability, and Vercel alias behavior must still be
+verified at release time. Passing a check is evidence, not permission to merge,
+migrate, change a webhook, or deploy.
 
-- Release only from a clean, reviewed commit on `master`.
-- Never deploy the current dirty working tree directly to production.
-- Never reuse `TELEGRAM_BOT_TOKEN`; Operations uses only `OPS_TELEGRAM_*`.
-- Never use Preview credentials or the Preview database in production.
-- Database migrations are forward-only. Behavioral rollback uses feature flags
-  and Vercel rollback/promotion, never destructive SQL.
-- Keep purchases, payments, checkout completion, arbitrary SQL/shell, and
-  unapproved external messaging absent from the automation registry.
+## Non-negotiable rules
 
-## Release artifact strategy
+- Release only an exact clean, reviewed commit.
+- Treat merge/push, database backup, migration, environment changes, webhook switch,
+  deployment, promotion, and rollback as separate owner approvals.
+- Keep customer/shop and Operations Telegram credentials separate.
+- Never use Preview credentials/database in Production or Production data as a
+  routine test target.
+- Use forward migrations. Roll back behavior with flags/deployment rollback; repair
+  schema/data with reviewed forward changes, never destructive reverse SQL.
+- Keep payments, checkout completion, arbitrary SQL/shell, and unapproved external
+  messaging outside the Operations automation registry.
 
-1. Finish and review the current feature branch.
-2. Commit only intended source, migrations, tests, and documentation. Exclude
-   local env files, backups, generated reports, Playwright snapshots, and media.
-3. Merge only after the owner explicitly authorizes it.
-4. Let Vercel build the `master` commit once as a deployment candidate.
-5. Verify that exact deployment end to end.
-6. Promote that exact verified deployment to the production alias. Do not
-   rebuild between acceptance and promotion.
+## Gate 0 — resolve exact targets
 
-## Gate 1 — local release candidate
+Before commands that read remote state, record without exposing secrets:
 
-Required commands:
+- intended Git commit and branch;
+- Vercel team/project and environment;
+- whether pushes to `master` automatically receive the Production alias;
+- runtime `DATABASE_URL` identity and direct `DIRECT_URL` identity;
+- active PostgreSQL provider/project and its backup/PITR policy;
+- dedicated Operations bot and private media store.
 
-```powershell
+`vercel.json` skips automatic builds for non-`master` branches. Do not assume a PR
+has a Preview. Conversely, do not push an unverified commit to `master` as a
+“candidate” until the Vercel dashboard confirms that doing so will not immediately
+replace the Production alias.
+
+## Gate 1 — local release evidence
+
+Safe source checks:
+
+```bash
+git status --short
 npm run ops:prod:check
 npm run typecheck
+npm run lint
+npm run test:seo:contracts
 npm run test:ops
-npm run test:shop
-npm run ops:test:persistence
-npm run build
+npm run test:shop:unit
 ```
+
+Lint warnings must be reported; zero errors is the blocking condition.
+
+The following require explicit isolated infrastructure:
+
+- `npm run test:shop`: disposable PostgreSQL, non-production
+  `SHOP_E2E_BASE_URL`, sandbox/mocked notifications and payments;
+- `npm run ops:test:persistence` and `npm run ops:migrations:replay`: disposable
+  replay/integration database;
+- `npm run build`: an appropriate non-production release catalog database and all
+  build-time guards/configuration.
+
+Do not run those broad checks against Production. Read the E2E test and cleanup paths
+before execution because API flows can create orders and trigger notifications.
+
+`npm run predeploy-check` is an additional clean-branch/configuration guard and
+currently invokes `next build` directly. It does not run the repository's catalog
+snapshot wrapper and therefore does not replace a successful `npm run build`/Vercel
+build for the exact candidate.
 
 Required evidence:
 
-- clean Git status at the final commit;
-- all migration SQL tracked with LF line endings;
-- fresh migration replay equals `prisma/schema.prisma`;
-- all Ops/RBAC/shop tests green;
-- production build green on Node 20–22;
-- no secrets or local media in the deployment manifest.
+- clean final diff and Git status;
+- reviewed migration SQL with LF line endings;
+- migration replay equals `prisma/schema.prisma`;
+- relevant test results with exact target environment;
+- successful release build for the exact commit;
+- no environment files, backups, generated local reports, or private media in the
+  deployment manifest.
 
-## Gate 2 — production infrastructure while Ops is disabled
+## Gate 2 — backup and database migration
 
-Before migrating or exposing UI, configure production-scoped values in Vercel:
+Follow [the backup guide](../../.github/DATABASE-BACKUPS.md). In order:
+
+1. Record commit SHA and migration file hashes.
+2. Confirm provider-managed backup/PITR status.
+3. Create an independent custom-format dump through a direct PostgreSQL connection.
+4. Verify its listing and restore it into a disposable PostgreSQL 17 target.
+5. Run the Phase 0 audit tooling only as a fresh audit; do not trust its historical
+   assumptions.
+6. Review `prisma migrate status` and every pending SQL file.
+7. Obtain separate migration approval.
+8. Run `prisma migrate deploy` against the exact approved target.
+9. Re-run status and smoke-read catalog, pricing, customers/orders, admin RBAC,
+   Operations, and One AI records.
+
+Stop if the plan includes an unapproved drop, rewrite, long lock, or incompatible
+commerce change. Never manually edit `_prisma_migrations` to make status green.
+
+## Gate 3 — Production configuration, behavior disabled
+
+Configure Production-scoped secrets without printing or pulling them into a tracked
+file. Initial behavior flags:
 
 ```text
 OPS_UI_ENABLED=0
@@ -63,88 +113,82 @@ OPS_JOBS_ENABLED=0
 OPS_AUTOMATIONS_ENABLED=0
 ```
 
-Configure but do not print:
+Required sensitive configuration includes distinct 32+ character secrets, the
+dedicated `OPS_TELEGRAM_*` bot identity, `OPS_GEMINI_*`, `CRON_SECRET`,
+`DATABASE_URL`/`DIRECT_URL`, `OPS_ADMIN_BASE_URL=https://onecompany.global`, and a
+dedicated private Operations Blob store.
 
-- dedicated `OPS_TELEGRAM_BOT_TOKEN`, bot id and username;
-- distinct 32+ character webhook and callback secrets;
-- `OPS_GEMINI_API_KEY` and the approved model names;
-- `OPS_ADMIN_BASE_URL=https://onecompany.global`;
-- `CRON_SECRET`;
-- production PostgreSQL `DATABASE_URL` and direct `DIRECT_URL`;
-- dedicated private `OPS_BLOB_STORE_ID` (or a server-only fallback token).
-
-Forbidden production variables:
+Forbidden in Production:
 
 ```text
 OPS_LOCAL_MEDIA_DIR
 ALLOW_DEV_ADMIN_PASSWORD_FALLBACK=1
 ENABLE_DEV_AUTH_BYPASS=1
 ADMIN_BOOTSTRAP_ENABLED=1
+SHOP_LOCAL_CATALOG_SNAPSHOT=1
 ```
 
-Pull the production environment only to an ignored local file and run:
+Run `npm run ops:prod:check` for repository/config shape. The `canary` readiness mode
+is not a disabled-state check: it intentionally expects the owner UI enabled and is
+used in Gate 5.
 
-```powershell
-node --env-file=.vercel/.env.production.local scripts/operations/check-production-readiness.mjs --mode=canary
-```
+## Gate 4 — exact deployment candidate
 
-The command reports variable names and policy failures only; it never prints
-secret values.
+Create a manual Vercel Preview/Staging deployment for the exact reviewed commit if
+the project permits it. Bind only non-production credentials and keep every
+Operations action flag disabled.
 
-## Gate 3 — database backup and migration
+Verify the exact deployment SHA, build logs, generated catalog snapshot, One AI
+release guard, route health, storefront/admin regressions, and absence of secret
+values in logs. Do not rebuild between acceptance and promotion; if code or
+environment changes, restart the gate.
 
-1. Record intended commit SHA and migration hashes.
-2. Create a custom-format PostgreSQL backup.
-3. Verify `pg_restore --list` and restore into a disposable database.
-4. Run the Phase 0 schema/history audit.
-5. Confirm the production `_prisma_migrations` state.
-6. Run `prisma migrate status` using `DIRECT_URL`.
-7. Apply only the reviewed pending migrations with `prisma migrate deploy`.
-8. Re-run status and smoke-read existing shop orders, products, pricing rules,
-   and Ops tables.
+If the project cannot produce a safe candidate without pushing `master`, stop and
+change/confirm the Vercel deployment process with the owner first.
 
-Stop immediately if the migration plan contains a drop or incompatible change
-to an existing commerce object.
+## Gate 5 — owner UI canary
 
-## Gate 4 — owner UI canary
-
-Set only:
+After database and candidate acceptance, set only:
 
 ```text
 OPS_UI_ENABLED=1
+OPS_JOBS_ENABLED=0
+OPS_TELEGRAM_MANAGER_ENABLED=0
+OPS_TELEGRAM_NOTIFICATIONS_ENABLED=0
+OPS_TELEGRAM_AUTO_CREATE_ENABLED=0
+OPS_AUTOMATIONS_ENABLED=0
 ```
 
-Keep bot, notifications, jobs, auto-create, and automations disabled. Deploy the
-candidate and verify:
+With an explicitly approved ignored Production env file, the readiness shape is:
 
-- owner login and current DB-backed permissions;
-- task list, board, task detail editing, projects, Inbox, БАЗА, team and system;
-- task-only and catalog+task direct URL/API restrictions;
-- mobile flows at 360, 390, and 768 px;
-- legacy products, pricing, order intake, checkout, shipments, and emails;
-- private Blob upload/read/access denial/delete from the deployed runtime.
+```bash
+node --env-file=<ignored-production-env> \
+  scripts/operations/check-production-readiness.mjs --mode=canary
+```
 
-## Gate 5 — Telegram intake canary
+Verify owner login/current DB permissions, tasks/board/detail/projects/Inbox/БАЗА/
+team/system routes, direct URL/API restrictions, 360/390/768 px layouts, private
+attachment upload/read/denial/delete, and unchanged catalog/pricing/cart/checkout/
+orders/notifications.
+
+## Gate 6 — jobs and Telegram canary
 
 After UI acceptance:
 
-1. Set `OPS_JOBS_ENABLED=1` and verify the cron route manually.
-2. Set `OPS_TELEGRAM_MANAGER_ENABLED=1`.
-3. Register the Operations webhook with the production URL and webhook secret.
-4. Keep notifications, auto-create, and automations disabled for the first
-   intake test.
-5. Send one text, one reply, one forwarded batch, two voice notes, one image,
-   and one PDF from allowlisted users.
-6. Verify acknowledgment, dedupe, Inbox persistence, transcription, attachment
-   access, restart recovery, and dead-letter visibility.
+1. Enable `OPS_JOBS_ENABLED=1` and invoke the cron only with explicit approval.
+2. Enable `OPS_TELEGRAM_MANAGER_ENABLED=1`.
+3. Register the dedicated Operations webhook with its secret.
+4. Keep notifications, auto-create, and automations disabled.
+5. Send a bounded allowlisted test set: text, reply, forwarded batch, voice, image,
+   and PDF.
+6. Verify acknowledgment, dedupe, Inbox persistence, transcription, private media
+   access, restart recovery, queue drain, and dead-letter visibility.
+7. Only then enable `OPS_TELEGRAM_NOTIFICATIONS_ENABLED=1` and verify one-shot
+   reminder behavior.
 
-Only then set `OPS_TELEGRAM_NOTIFICATIONS_ENABLED=1`. Daily reminders must be
-one-shot per task/assignee; a task without an explicit deadline receives 24
-hours automatically.
+Auto-create and automations remain separate later releases.
 
-## Gate 6 — initial live state
-
-Initial live flags:
+## Gate 7 — initial live state
 
 ```text
 OPS_UI_ENABLED=1
@@ -155,50 +199,37 @@ OPS_TELEGRAM_AUTO_CREATE_ENABLED=0
 OPS_AUTOMATIONS_ENABLED=0
 ```
 
-Validate with:
+Validate the exact environment with `check-production-readiness.mjs --mode=live`,
+then obtain the separate approval for Production promotion/alias assignment.
 
-```powershell
-node --env-file=.vercel/.env.production.local scripts/operations/check-production-readiness.mjs --mode=live
-```
+## Post-release monitoring
 
-Auto-create and automations remain separate later releases after real canary
-metrics meet the acceptance targets.
-
-## Post-promotion checks
-
-For the first hour:
-
-- inspect Vercel function errors and latency;
-- verify webhook `getWebhookInfo` has no last error;
-- verify the 15-minute Operations cron executes successfully;
-- confirm job queue depth drains and dead letters remain zero;
-- verify no duplicate Telegram updates/tasks;
-- confirm Blob storage and Gemini usage stay within configured caps;
-- smoke-test existing checkout, pricing, and order intake again.
+For the first hour, inspect Vercel errors/latency, webhook status, 15-minute job
+execution, queue depth/dead letters, duplicate updates/tasks, private Blob access, AI
+usage limits, and existing checkout/pricing/order intake. Record the exact deployment
+and database migration state.
 
 ## Rollback
 
-Behavioral kill switch, in order:
+Behavioral kill switches, in order:
 
 1. `OPS_TELEGRAM_NOTIFICATIONS_ENABLED=0`
 2. `OPS_TELEGRAM_MANAGER_ENABLED=0`
 3. `OPS_JOBS_ENABLED=0`
 4. `OPS_UI_ENABLED=0`
 
-Delete or redirect the Operations webhook after disabling intake. Existing data
-stays in PostgreSQL. If the deployment itself regresses the shop, point the
-production alias back to the last known-good Vercel deployment. Do not reverse
-the Ops migrations with destructive SQL; ship a reviewed forward-only repair.
+Disable or redirect the webhook after intake is disabled. If application code
+regresses the shop, restore the last known-good exact Vercel deployment/alias.
+Preserve PostgreSQL data and ship a reviewed forward repair for schema/data issues.
 
-## Go/no-go authority
+## Approval record
 
 The owner must separately approve:
 
-1. merge to `master`;
-2. production database migration;
-3. production environment activation;
-4. Telegram production webhook switch;
-5. Vercel production promotion.
-
-Passing this runbook means the system is ready to release; it is not permission
-to perform any of those external mutations automatically.
+1. merge/push to `master`;
+2. production backup access;
+3. production database migration;
+4. production environment changes;
+5. Operations webhook switch;
+6. deployment or alias promotion;
+7. rollback that changes external state.

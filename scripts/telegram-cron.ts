@@ -4,7 +4,8 @@
  * Runs sendAdminReminders + sendDailyDigest in parallel, posts to the
  * configured Telegram bot. Migrated off Vercel Cron to save spend.
  *
- * Run via .github/workflows/telegram-cron.yml (daily at 09:00 UTC).
+ * Run via .github/workflows/telegram-cron.yml (currently Mondays at 09:00 UTC) or a
+ * separately authorized manual dispatch.
  */
 
 import dotenv from "dotenv";

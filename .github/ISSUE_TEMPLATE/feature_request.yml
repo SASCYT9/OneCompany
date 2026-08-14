@@ -40,6 +40,9 @@ body:
         - Telegram bot
         - Email / Resend
         - 3D / Three.js scenes
+        - Auth / sessions
+        - Operations
+        - One AI / knowledge
         - SEO / metadata
         - i18n (UA / EN)
         - Build / deploy

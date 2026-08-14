@@ -11,6 +11,13 @@ import {
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { prisma } from "@/lib/prisma";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import {
+  mergeLocalShopCartItems,
+  replaceLocalShopCart,
+  resolveLocalShopCart,
+  serializeLocalShopCart,
+} from "@/lib/shopLocalCart";
 
 import { importTurn14ItemToDb } from "@/lib/turn14Sync";
 
@@ -46,6 +53,13 @@ export async function POST(request: NextRequest) {
   let finalSlug = String(body.slug ?? "").trim();
 
   try {
+    if (isLocalStorefrontMode() && finalSlug.startsWith("turn14-")) {
+      return NextResponse.json(
+        { error: "Turn14 live items are unavailable in the local catalog snapshot" },
+        { status: 503 }
+      );
+    }
+
     // === LAZY HYDRATION for Turn14 Live Catalog Items ===
     if (finalSlug.startsWith("turn14-")) {
       const parts = finalSlug.split("-");
@@ -94,29 +108,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [session, settingsRecord] = await Promise.all([
-      getCurrentShopCustomerSession(),
-      getOrCreateShopSettings(prisma),
-    ]);
-    const settings = getShopSettingsRuntime(settingsRecord);
-    const country =
-      String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
-    const context = buildShopViewerPricingContext(
-      settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
-
-    const { cart, token } = await resolveShopCart(prisma, {
-      cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
-      customerId: session?.customerId ?? null,
-      currency: body.currency ?? settings.defaultCurrency,
-      locale: body.locale ?? session?.preferredLocale ?? "en",
-    });
-
     const itemsToAdd =
       isBulk && body.items
         ? body.items
@@ -133,6 +124,54 @@ export async function POST(request: NextRequest) {
               variantId: body.variantId ? String(body.variantId) : null,
             },
           ].filter((item) => item.slug);
+
+    const [session, settingsRecord] = await Promise.all([
+      getCurrentShopCustomerSession(),
+      getOrCreateShopSettings(prisma),
+    ]);
+    const settings = getShopSettingsRuntime(settingsRecord);
+    const country =
+      String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
+    const context = buildShopViewerPricingContext(
+      settings,
+      session?.group ?? null,
+      Boolean(session),
+      session?.b2bDiscountPercent ?? null,
+      undefined,
+      { priceCountry: country }
+    );
+
+    if (isLocalStorefrontMode()) {
+      const { cart } = resolveLocalShopCart({
+        token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+        currency: body.currency ?? settings.defaultCurrency,
+        locale: body.locale ?? session?.preferredLocale ?? "en",
+      });
+      const existingInputs = cart.items.map((item) => ({
+        slug: item.slug,
+        quantity: item.quantity,
+        variantId: item.variantId,
+      }));
+      const { cart: refreshed, token } = replaceLocalShopCart(
+        {
+          token: cart.token,
+          currency: body.currency ?? settings.defaultCurrency,
+          locale: body.locale ?? session?.preferredLocale ?? "en",
+        },
+        mergeLocalShopCartItems(existingInputs, itemsToAdd)
+      );
+      const payload = await serializeLocalShopCart(refreshed, context);
+      const response = NextResponse.json(payload);
+      setCartCookie(response, token);
+      return response;
+    }
+
+    const { cart, token } = await resolveShopCart(prisma, {
+      cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
+      customerId: session?.customerId ?? null,
+      currency: body.currency ?? settings.defaultCurrency,
+      locale: body.locale ?? session?.preferredLocale ?? "en",
+    });
 
     const existingInputs = cart.items.map((item) => ({
       slug: item.productSlug,

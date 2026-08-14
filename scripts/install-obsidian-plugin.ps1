@@ -4,7 +4,8 @@ param(
     [string]$PluginId
 )
 
-$targetDir = "d:\OneCompany\wiki\.obsidian\plugins\$PluginId"
+$repositoryRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$targetDir = Join-Path $repositoryRoot "wiki/.obsidian/plugins/$PluginId"
 if (!(Test-Path $targetDir)) {
     New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 }

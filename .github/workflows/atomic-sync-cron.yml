@@ -1,10 +1,17 @@
-name: Hourly Atomic Feed Sync
+name: Monthly Atomic Feed Sync
 
 on:
   schedule:
     # Monthly on the 1st at 04:00 UTC
     - cron: "0 4 1 * *"
   workflow_dispatch: # manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly-atomic-feed-sync
+  cancel-in-progress: false
 
 jobs:
   sync:

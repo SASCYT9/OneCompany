@@ -26,10 +26,10 @@ type SeedArticle = {
   source: string;
 };
 
-const oldWorkspaceRoot =
-  process.env.ONECOMPANY_LEGACY_KNOWLEDGE_ROOT?.trim() || "D:\\OneCompanyMaxton";
+const oldWorkspaceRoot = process.env.ONECOMPANY_LEGACY_KNOWLEDGE_ROOT?.trim();
 
 function optionalLegacyMarkdown(relativePath: string) {
+  if (!oldWorkspaceRoot) return "";
   try {
     return readFileSync(path.join(oldWorkspaceRoot, relativePath), "utf8").trim();
   } catch {
@@ -37,7 +37,9 @@ function optionalLegacyMarkdown(relativePath: string) {
   }
 }
 
-const verifiedPricingRules = optionalLegacyMarkdown("data\\source_docs\\verified-pricing-rules.md");
+const verifiedPricingRules = optionalLegacyMarkdown(
+  path.join("data", "source_docs", "verified-pricing-rules.md")
+);
 const completeOperationsUserGuide = readFileSync(
   path.resolve("docs/operations/telegram-manager-user-guide-ru.md"),
   "utf8"

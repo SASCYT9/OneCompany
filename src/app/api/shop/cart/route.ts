@@ -9,6 +9,12 @@ import {
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { prisma } from "@/lib/prisma";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import {
+  replaceLocalShopCart,
+  resolveLocalShopCart,
+  serializeLocalShopCart,
+} from "@/lib/shopLocalCart";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -38,6 +44,17 @@ export async function GET(request: NextRequest) {
       undefined,
       { priceCountry: country }
     );
+    if (isLocalStorefrontMode()) {
+      const { cart, token } = resolveLocalShopCart({
+        token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+        currency: settings.defaultCurrency,
+        locale: session?.preferredLocale ?? "en",
+      });
+      const payload = await serializeLocalShopCart(cart, context);
+      const response = NextResponse.json(payload);
+      setCartCookie(response, token);
+      return response;
+    }
     const { cart, token } = await resolveShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
@@ -87,6 +104,26 @@ export async function POST(request: NextRequest) {
       undefined,
       { priceCountry: country }
     );
+    if (isLocalStorefrontMode()) {
+      const { cart, token } = replaceLocalShopCart(
+        {
+          token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+          currency: body.currency ?? settings.defaultCurrency,
+          locale: body.locale ?? session?.preferredLocale ?? "en",
+        },
+        Array.isArray(body.items)
+          ? body.items.map((item) => ({
+              slug: String(item.slug ?? "").trim(),
+              quantity: Number(item.quantity ?? 1),
+              variantId: item.variantId ? String(item.variantId) : null,
+            }))
+          : []
+      );
+      const payload = await serializeLocalShopCart(cart, context);
+      const response = NextResponse.json(payload);
+      setCartCookie(response, token);
+      return response;
+    }
     const { cart, token } = await replaceEntireShopCart(prisma, {
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,

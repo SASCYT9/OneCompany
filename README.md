@@ -2,178 +2,182 @@
 
 # OneCompany
 
-**Premium auto & moto performance hub.**
-Auto-tuning e-commerce platform powered by Next.js, with multi-locale (UA/EN), Telegram integrations, and 240+ premium brands.
+**UA/EN automotive and motorcycle commerce platform.**
 
 [![Production](https://img.shields.io/badge/prod-onecompany.global-0ea5e9?style=flat-square&logo=vercel&logoColor=white)](https://onecompany.global)
 [![CI](https://img.shields.io/github/actions/workflow/status/SASCYT9/OneCompany/ci.yml?branch=master&label=CI&style=flat-square&logo=github)](https://github.com/SASCYT9/OneCompany/actions/workflows/ci.yml)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/SASCYT9/OneCompany/codeql.yml?branch=master&label=CodeQL&style=flat-square&logo=github)](https://github.com/SASCYT9/OneCompany/actions/workflows/codeql.yml)
-[![Last commit](https://img.shields.io/github/last-commit/SASCYT9/OneCompany/master?style=flat-square&logo=git&logoColor=white)](https://github.com/SASCYT9/OneCompany/commits/master)
 [![License: Proprietary](https://img.shields.io/badge/license-Proprietary-red?style=flat-square)](./LICENSE)
-
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6-2d3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Three.js](https://img.shields.io/badge/Three.js-r181-000000?style=flat-square&logo=threedotjs&logoColor=white)](https://threejs.org/)
 
 </div>
 
----
+OneCompany combines localized brand storefronts, a product/catalog admin, customer
+accounts, B2C/B2B and regional pricing, checkout/orders, supplier and messaging
+integrations, One AI catalog assistance, and an internal Operations area.
 
-## Table of contents
-
-- [Stack](#stack)
-- [Quick start](#quick-start)
-- [Environment variables](#environment-variables)
-- [Project structure](#project-structure)
-- [Key features](#key-features)
-- [Scripts](#scripts)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [Security](#security)
-- [License](#license)
+Repository architecture and operating assumptions were revalidated on 2026-08-14.
+Start with [`AGENTS.md`](AGENTS.md) for repository safety rules and
+[`.agents/PROJECT_CONTEXT.md`](.agents/PROJECT_CONTEXT.md) for the maintained
+architecture map.
 
 ## Stack
 
-| Layer            | Technology                                                       |
-| ---------------- | ---------------------------------------------------------------- |
-| **Framework**    | [Next.js 16](https://nextjs.org/) (App Router) on Node 20+       |
-| **UI**           | React 19 · Tailwind CSS 3.4 · Radix UI · Lucide                  |
-| **3D / motion**  | Three.js · @react-three/fiber · GSAP · Framer Motion · Lenis     |
-| **State**        | Zustand · Valtio · Immer                                         |
-| **Data**         | Prisma 6 · PostgreSQL (Prisma Cloud)                             |
-| **Auth**         | NextAuth                                                         |
-| **i18n**         | `next-intl` — Ukrainian (default) and English                    |
-| **Email**        | React Email · Resend                                             |
-| **Bot**          | Grammy (Telegram)                                                |
-| **Hosting**      | Vercel (production) · Vercel Blob (media)                        |
-| **Analytics**    | Vercel Analytics · Plausible (optional) · Meta Pixel             |
+| Area           | Current implementation                                               |
+| -------------- | -------------------------------------------------------------------- |
+| Runtime        | Node `>=20 <23`, npm                                                 |
+| Web            | Next.js `16.2.x` App Router, React `19.2.x`, TypeScript `5.9` strict |
+| UI             | Tailwind CSS `4.3.x`, Radix UI, Framer Motion, GSAP, Three.js        |
+| Localization   | `next-intl 4`; route locales `ua` and `en`                           |
+| Data           | Prisma `6.19.x`, PostgreSQL, optional Prisma Accelerate connection   |
+| Authentication | NextAuth v4 for customers; separate signed admin session + DB RBAC   |
+| Media          | Git-tracked `public/` assets and Vercel Blob for runtime uploads     |
+| Hosting        | Vercel in `fra1`; scheduled Vercel cron routes                       |
+
+Production database vendor/account details cannot be proven from source code alone.
+Verify the intended project and environment in Vercel and the database provider
+dashboard before operational work.
 
 ## Quick start
 
+### Safe storefront-only local mode
+
+This mode needs no database credentials. It downloads the public catalog fallback
+from `onecompany.global` into ignored `public/catalog-fallback/`, then uses an
+in-memory guest cart.
+
 ```bash
-# 1. Clone
 git clone https://github.com/SASCYT9/OneCompany.git
 cd OneCompany
-
-# 2. Install — Node 20+ required
-npm install
-
-# 3. Configure env
+npm install --legacy-peer-deps
 cp .env.example .env.local
-# fill in your values
-
-# 4. Generate Prisma client (also runs as postinstall)
-npm run prisma:generate
-
-# 5. Run dev server
+# Set SHOP_LOCAL_CATALOG_SNAPSHOT=1 and leave DATABASE_URL/DIRECT_URL empty.
+npm run catalog:fallback:local
 npm run dev
 ```
 
-The app starts on <http://localhost:3000>.
+Open <http://localhost:3000/ua>. This mode is for storefront inspection only:
+admin editing, customer accounts, persistent checkout/orders, imports, and external
+integrations are not production-equivalent. The local cart is lost when the process
+restarts.
 
-## Environment variables
+### Full-stack local development
 
-Create `.env.local` (never committed) with at minimum:
+Use a dedicated development/test PostgreSQL database—never the Production database.
+Copy `.env.example` to `.env.local`, configure `DATABASE_URL`, `DIRECT_URL`,
+`NEXTAUTH_SECRET`, `ADMIN_SESSION_SECRET`, and only the integration credentials
+needed by the task. Then:
 
-| Variable                       | Purpose                                                           |
-| ------------------------------ | ----------------------------------------------------------------- |
-| `DATABASE_URL`                 | PostgreSQL connection string (Prisma Cloud)                       |
-| `TELEGRAM_BOT_TOKEN`           | Bot token from [@BotFather](https://t.me/BotFather)               |
-| `TELEGRAM_AUTO_CHAT_ID`        | Chat ID for auto team inquiries                                   |
-| `TELEGRAM_MOTO_CHAT_ID`        | Chat ID for moto team inquiries                                   |
-| `RESEND_API_KEY`               | Email API key — see [docs/google-workspace-setup.md](docs/google-workspace-setup.md) |
-| `EMAIL_FROM`                   | Sender address (e.g., `info@onecompany.global`)                   |
-| `EMAIL_AUTO`                   | Recipient for auto inquiries                                      |
-| `EMAIL_MOTO`                   | Recipient for moto inquiries                                      |
-| `ADMIN_SECRET`                 | Shared secret for `/admin` media UI                               |
-| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | (Optional) Plausible analytics domain                             |
-| `BLOB_READ_WRITE_TOKEN`        | Vercel Blob token for media migration scripts                     |
-
-Setup guides live in [`docs/`](docs/):
-
-- [`docs/godaddy-domain-setup.md`](docs/godaddy-domain-setup.md) — DNS / domain
-- [`docs/google-workspace-setup.md`](docs/google-workspace-setup.md) — email
-- [`docs/telegram-bot-setup.md`](docs/telegram-bot-setup.md) — bot
-
-> **Never commit `.env.local`.** On Vercel and other hosts, configure secrets
-> via the platform's environment variable UI.
-
-## Project structure
-
-```
-OneCompany/
-├── src/                       # Next.js App Router source
-│   ├── app/                   #   route segments, API routes
-│   ├── components/            #   shared React components
-│   ├── lib/                   #   utilities, brand data, db client
-│   └── messages/              #   i18n catalogs (UA / EN)
-├── prisma/
-│   └── schema.prisma          # database schema
-├── public/                    # static assets, logos, media
-├── scripts/                   # build / sync / data scripts
-├── tests/shop/                # unit, integration, e2e
-├── docs/                      # setup & operational guides
-├── .github/                   # CI, templates, policies
-└── archive/                   # historical artifacts (excluded from build)
+```bash
+npm install --legacy-peer-deps
+npm run prisma:generate
+npm run db:migrate
+npm run dev
 ```
 
-## Key features
+The DB-backed admin also needs an active `AdminUser` with appropriate roles and
+permissions. Development bypass/bootstrap flags must remain disabled in Production.
 
-- **Multi-brand catalog** — 240+ premium auto & moto brands, see [`OneCompany_Brand_Portfolio_2026_EN.pdf`](OneCompany_Brand_Portfolio_2026_EN.pdf)
-- **Auto-tuning shop** — per-brand shipping calculators (kg-only, tiered, percent, manual quote)
-- **Multi-locale** — Ukrainian (default) and English, fully localized SEO
-- **Telegram inquiry bot** — header contact modal forwards to per-team Telegram chats
-- **Media admin** — `/admin` UI gated by `ADMIN_SECRET`; uploads to Vercel Blob
-- **3D scenes** — interactive product showcases via `@react-three/fiber`
-- **SEO-first** — sitemap, structured data, per-locale metadata, OG images
-- **Turn14 sync** — read-only inventory sync (weights/dimensions only — never titles, descriptions, or images)
+See [`.env.example`](.env.example) for the environment inventory. Never commit an
+environment file or paste secrets into logs, issues, commits, or chat.
 
-## Scripts
+## Architecture at a glance
 
-Common tasks; see [`package.json`](package.json) for the full list.
+```text
+src/
+├── app/
+│   ├── [locale]/                 # localized public pages and most shop routes
+│   ├── (strict-http)/[locale]/   # canonical PDP and paginated route contracts
+│   ├── admin/                    # unlocalized internal admin/Operations UI
+│   └── api/                      # admin, shop, cron, webhook, integration APIs
+├── components/                   # shared public/admin/shop UI
+├── i18n/                         # next-intl routing and request configuration
+├── lib/                          # catalog, pricing, auth, admin, Ops, AI, integrations
+└── proxy.ts                      # locale, normalization, country and admin pre-check
 
-| Command                          | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `npm run dev`                    | Start dev server                              |
-| `npm run build`                  | Production build (runs prebuild snapshot)     |
-| `npm run lint`                   | ESLint                                        |
-| `npm run prisma:generate`        | Generate Prisma client                        |
-| `npm run db:migrate`             | `prisma migrate deploy` (CI / staging only)   |
-| `npm run test:shop`              | Unit + integration + e2e shop tests           |
-| `npm run predeploy-check`        | Pre-deploy guardrails                         |
-| `npm run deploy:prod`            | Deploy to Vercel production                   |
-| `npm run bot`                    | Run Telegram bot in long-poll mode            |
-| `npm run download-logos-free`    | Free brand-logo downloader                    |
-| `npm run media:migrate:dry`      | Dry-run media migration to Vercel Blob        |
+prisma/                           # schema and forward migrations
+scripts/                          # build, import, audit, migration and worker tools
+tests/shop/                       # unit, integration, E2E and AI eval suites
+public/                           # tracked static assets + generated ignored artifacts
+docs/operations/                  # current Operations production runbook
+wiki/                             # historical/supporting project notes
+```
 
-## Deployment
+Shared UI translations live in `src/lib/messages/{ua,en}.json`. Product-localized
+copy may also live in paired database fields.
 
-- **Production**: Vercel, deploys on push to `master` → <https://onecompany.global>
-- **Previews**: Every PR gets a Vercel preview URL automatically
-- **Database**: Single shared Prisma Cloud Postgres — destructive migrations require manual review
-- **CI**: `.github/workflows/ci.yml` runs lint, typecheck, and Prisma validate on every PR
+## Persistence and catalog behavior
 
-## Contributing
+| Data                                                                  | Production source                                     |
+| --------------------------------------------------------------------- | ----------------------------------------------------- |
+| Products, variants, prices, customers, orders, RBAC, Ops and AI state | PostgreSQL                                            |
+| Runtime product/media uploads                                         | Vercel Blob when configured; references in PostgreSQL |
+| Static assets                                                         | Git-tracked `public/`                                 |
+| Catalog indexes/fallback shards                                       | Generated build/local artifacts; never hand-edit      |
+| Legacy site content/media/video config                                | JSON files; runtime writes are not durable on Vercel  |
 
-We accept bug reports and feature requests from the public. Pull requests
-require an invited collaborator.
+`src/lib/shopCatalogServer.ts` maps the editable PostgreSQL catalog to storefront
+data and owns transient fallback/caching behavior. A narrow
+`SHOP_PRODUCT_IMAGE_OVERRIDES` map is applied after DB mapping, so an entry there
+wins over an admin image edit.
 
-- Read [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) before opening a PR
-- Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) — enforced by `commitlint` in CI
-- Releases and `CHANGELOG.md` are managed by [release-please](https://github.com/googleapis/release-please)
+Product and variant prices can differ by currency, audience, and region. A null
+variant price may intentionally inherit its product price; it must not be treated as
+zero or “price on request” without tracing the pricing resolver.
 
-## Security
+## Authentication and admin
 
-Found a vulnerability? **Do not open a public issue.** See
-[`.github/SECURITY.md`](.github/SECURITY.md) for the private reporting
-channels and response timeline.
+There are two independent systems:
 
-## License
+- customer accounts: NextAuth Credentials with JWT sessions;
+- admin: `onecompany-admin-session`, signed by `ADMIN_SESSION_SECRET`, then resolved
+  against current `AdminUser` roles/permissions in PostgreSQL on protected requests.
 
-Proprietary — All Rights Reserved. See [`LICENSE`](./LICENSE) for the full
-terms. Public visibility on GitHub does not grant any usage rights.
+Admin product reads and writes use `shop.products.read` and
+`shop.products.write`. `ADMIN_SECRET` and `ADMIN_API_SECRET` protect specific legacy
+or service endpoints; they do not replace admin login or RBAC.
 
-For licensing inquiries: `info@onecompany.global`.
+## Useful commands
+
+| Command                          | Purpose and safety                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| `npm run dev`                    | Start the local development server                                                      |
+| `npm run catalog:fallback:local` | Download public catalog shards for DB-less local mode                                   |
+| `npm run typecheck`              | Type-check application source                                                           |
+| `npm run lint`                   | ESLint; warning backlog exists, zero errors is the gate                                 |
+| `npm run test:seo:contracts`     | Safe routing/SEO/catalog-outage contract tests                                          |
+| `npm run test:shop:unit`         | Shop unit suite                                                                         |
+| `npm run test:ops`               | Operations/RBAC unit subset                                                             |
+| `npm run test:shop`              | Unit + integration + E2E; use only with disposable DB and non-production URL            |
+| `npm run build`                  | Generate catalog artifacts and run the production build; requires a suitable catalog DB |
+| `npm run predeploy-check`        | Release guard; expects a clean production candidate                                     |
+| `npm run deploy:prod`            | Production deployment; run only with explicit authorization                             |
+
+Many import, knowledge, media, Airtable, Shopify, payment, Telegram, email, and CRM
+commands can mutate local or external state. Read each implementation and confirm
+the target before running it; `--commit` and `publish-approved` are explicit writes.
+
+## CI and deployment
+
+- `master` is the production branch.
+- Vercel runs `npm run build`, installs with `--legacy-peer-deps`, and deploys in
+  `fra1`.
+- `vercel.json` currently skips automatic builds for non-`master` branches. Preview
+  deployments therefore require a manual action unless that setting changes.
+- Normal CI runs ESLint, TypeScript, SEO contracts, and Prisma schema validation.
+  Commitlint and CodeQL run separately. Full shop integration/E2E and production
+  build are not all part of the normal CI workflow.
+- Commit, push, merge, migration, workflow dispatch, Vercel promotion, and deployment
+  are separate approvals.
+
+For Operations release steps, use
+[`docs/operations/production-rollout-runbook.md`](docs/operations/production-rollout-runbook.md).
+The Phase 0 migration document is retained as historical incident context.
+
+## Contributing, security, and license
+
+- Contributor workflow: [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md)
+- Private vulnerability reporting: [`.github/SECURITY.md`](.github/SECURITY.md)
+- Database recovery guidance: [`.github/DATABASE-BACKUPS.md`](.github/DATABASE-BACKUPS.md)
+
+This repository is proprietary. See [`LICENSE`](LICENSE). Public GitHub visibility
+does not grant usage rights.

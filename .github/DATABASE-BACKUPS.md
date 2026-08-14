@@ -1,63 +1,101 @@
-# Database backups
+# Database backup and recovery
 
-The OneCompany production database lives on **Prisma Postgres** (`db.prisma.io`).
-We rely on **Prisma's built-in snapshot system** as the primary backup. We do
-**not** maintain a custom `pg_dump`-based backup workflow in GitHub Actions —
-it duplicates Prisma's snapshots, ages out as `pg_dump` versions drift, and
-puts the production `DATABASE_URL` into a second secret store (extra attack
-surface for no benefit).
+Reviewed against the repository on 2026-08-14.
 
-## Where to find snapshots
+OneCompany uses PostgreSQL through Prisma, but the active Production database
+provider, plan, retention window, and point-in-time-recovery capability are external
+account settings and cannot be established from this repository. Verify them in the
+intended provider dashboard before relying on any recovery claim.
 
-1. Open the [Prisma Cloud console](https://console.prisma.io/).
-2. Select the OneCompany project → **Postgres** → the production database.
-3. **Backups / Snapshots** tab — daily snapshots are listed by date.
-4. Restore via the UI (creates a new database from the chosen snapshot, which
-   you can then promote, or compare against the live DB).
+## Required operating model
 
-Reference: [Backups in Prisma Postgres](https://www.prisma.io/docs/postgres/database/backups).
+- Treat the provider's managed backups/PITR as the primary continuous recovery
+  mechanism only after confirming they are enabled and testing access.
+- Before a production migration or high-risk bulk data change, take an independent
+  custom-format PostgreSQL dump and restore it into a disposable database.
+- Record the source environment, exact Git SHA, migration hashes, archive checksum,
+  schema/table counts, operator, and verification time without recording credentials.
+- Store backups outside the repository in approved encrypted storage with restricted
+  access, retention, and deletion controls.
+- Define and review business RPO/RTO separately. The repository does not currently
+  prove an approved RPO, RTO, retention policy, or disaster-recovery owner.
 
-## Snapshot policy (Prisma-side)
+A backup is not verified merely because a file exists. `pg_restore --list` and a
+successful isolated restore are minimum evidence.
 
-- Snapshots are created **daily**, only on days with database activity.
-- The number of retained snapshots depends on the active plan (Pro / Business).
-- **Point-in-time recovery is NOT currently available** — recovery point is
-  the last snapshot, so changes between the latest snapshot and an incident
-  may be lost.
+## Repository tooling
 
-## When to consider an independent backup
+The Operations Phase 0 tooling implements a guarded PostgreSQL 17 dump and restore
+check. Despite the historical command names, it is the current in-repository
+independent-backup implementation:
 
-Add a vendor-independent backup if any of these become true:
+- `npm run ops:phase0:audit` reads the configured database, hashes migrations/schema,
+  and writes a sanitized manifest;
+- `npm run ops:phase0:backup` runs `pg_dump` in `postgres:17`, creates a compressed
+  custom archive, verifies its listing, and writes a SHA-256 manifest;
+- `npm run ops:phase0:verify-restore` restores the archive to a disposable
+  `postgres:17` container and records table/migration counts.
 
-- Regulatory or contractual requirement to keep data outside Prisma.
-- RPO requirement tighter than ~24 hours (current Prisma snapshots cap RPO at
-  one day).
-- Business continuity plan requires the ability to restore without Prisma's
-  console (e.g., for migration to another provider).
+These commands are not permission to connect to Production. They require Docker and
+an explicitly selected ignored environment file. `DIRECT_URL` is preferred, with
+`DATABASE_URL` as fallback. Never put a pooled/Accelerate URL into `pg_dump` if the
+provider requires a direct PostgreSQL endpoint.
 
-In that case, do **not** put it in GitHub Actions. Better options:
-
-1. A scheduled job on a small VM or Fly.io machine running `pg_dump` and
-   uploading to Cloudflare R2 / Backblaze B2 / S3 with bucket-level
-   versioning + lifecycle expiry.
-2. A managed backup service: [SimpleBackups](https://simplebackups.com/),
-   [SnapShooter](https://snapshooter.com/), or similar — they handle
-   `pg_dump` version drift, encryption-at-rest, and retention policies.
-
-## Manual on-demand dump (rare cases)
-
-If you need a one-off local snapshot for testing or analysis, run from a
-trusted workstation with `DATABASE_URL` in your environment:
+Example shape after the owner has separately approved the exact source database:
 
 ```bash
-# Custom format, max compression — restore with pg_restore -j 4
-pg_dump "$DATABASE_URL" \
-  --no-owner --no-acl \
-  --format=custom \
-  --compress=9 \
-  --file="onecompany-$(date -u +%Y%m%d-%H%M%S).dump"
+npm run ops:phase0:audit -- \
+  --env=.env.production.local \
+  --label=production-pre-migration
+
+npm run ops:phase0:backup -- \
+  --env=.env.production.local
+
+npm run ops:phase0:verify-restore -- \
+  --archive=backups/ops-preflight/<timestamp>/onecompany-pre-operations.dump \
+  --expected-tables=<audited-table-count> \
+  --expected-migrations=<audited-migration-count>
 ```
 
-**Never** commit dumps to git or share them in chat — they contain customer
-data subject to GDPR. Treat dumps as production secrets: encrypt in transit,
-delete promptly when done.
+The scripts deliberately restrict output to ignored `backups/ops-preflight/`. Copy
+the resulting archive and manifests to approved encrypted storage, verify the copied
+checksum, then remove local copies according to the approved retention procedure.
+Do not commit, upload to a PR artifact, paste into chat, or place a production dump
+in ordinary cloud-drive sharing.
+
+## Production migration gate
+
+Before applying migrations:
+
+1. Confirm the target hostname/database from a redacted read-only inspection.
+2. Confirm the exact clean, reviewed commit and pending migration SQL.
+3. Verify provider-managed backup/PITR status in the provider dashboard.
+4. Create the independent dump and complete a disposable restore.
+5. Review the migration plan for drops, rewrites, long locks, and commerce impact.
+6. Obtain separate owner approval for the production migration.
+7. Apply only tracked forward migrations through `prisma migrate deploy`.
+8. Re-check migration status and smoke-read catalog, pricing, customers/orders,
+   admin RBAC, Operations, and One AI state.
+
+Never use `prisma db push`, manually edit `_prisma_migrations`, or run destructive
+repair SQL on a shared environment to bypass a failed gate.
+
+## Recovery procedure
+
+During an incident:
+
+1. Stop or disable the writer that is worsening data loss.
+2. Preserve logs, deployment SHA, migration state, and timestamps.
+3. Choose the recovery point using the confirmed provider backup/PITR inventory and
+   independent archives.
+4. Restore to an isolated target first; never overwrite the only live copy as the
+   first recovery step.
+5. Validate schema history, record counts, critical relational integrity, and sampled
+   catalog/order/admin flows.
+6. Decide whether to promote the restored database or apply a reviewed forward data
+   repair.
+7. Rotate any credentials exposed during the incident and record the final recovery
+   evidence outside Git.
+
+Customer and order data in a dump is sensitive personal/commercial data. Apply least
+privilege, encryption in transit and at rest, audit logging, and secure deletion.

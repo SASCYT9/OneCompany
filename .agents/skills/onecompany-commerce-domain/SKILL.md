@@ -7,33 +7,56 @@ description: Бізнес-орієнтована навігація рішень
 
 Use this whenever product, pricing, order, account, payment, catalog-sync, or fulfillment logic is touched.
 
-## 1. Core Business Boundaries
-- Respect explicit B2B/B2C separation in pricing, approvals, permissions, and account behavior.
-- Never mix B2B and B2C data paths without intentional migration notes and migration-safe guards.
-- Preserve `WhitePay` as the active payment direction. Do not reintroduce removed payment providers unless explicitly requested and architecture supports it.
-- Never assume external API is source-of-truth for operational state; rely on local DB patterns already used in the project.
+## 1. Sources of truth
 
-## 2. Source-of-Truth Discipline
-- `prisma/schema.prisma` is the canonical data contract for model changes.
-- For storefront building blocks, follow existing patterns in `src/app/[locale]/shop/components`.
-- For pricing/amount formatting and tax/VAT wording, use current shop currency helpers and existing helper utilities.
+- PostgreSQL/Prisma owns catalog, customers, carts, orders, inventory, pricing rules,
+  RBAC, and Operations state.
+- `src/lib/shopPricingAudience.ts` owns audience-aware B2C/B2B/Europe price
+  resolution. Use the existing money, conversion, VAT, and discount helpers around
+  it.
+- Product/variant prices exist per currency and may include Europe, B2B, and
+  compare-at values. A variant `null` can intentionally inherit from the product;
+  never collapse `null` and zero.
+- The immutable order pricing snapshot is the commercial record. Do not recalculate
+  historical order amounts from current catalog prices.
 
-## 3. Product and Order Thinking
-- Track catalog lifecycle as: supplier update → local normalization → storefront surface.
-- Preserve supplier and inventory constraints; validate stock/availability before allowing checkout progression.
-- Keep order state transitions explicit and auditable; avoid implicit status guessing in UI components.
-- Never bypass existing domain service layers for business-critical actions.
+## 2. End-to-end change discipline
 
-## 4. Integration Safety
-- Turn14 sync changes must be reviewed end-to-end: connector input → persistence model → storefront/CRM usage.
-- When changing any integration boundary, document assumptions and fallback behavior for third-party failures.
-- Keep webhook, cron, and external caller paths idempotent where possible.
+For a price or checkout change, trace:
+
+1. product/variant database fields and inheritance;
+2. B2C/B2B/Europe audience and VAT resolution;
+3. list/PDP display;
+4. cart calculation and persisted cart line;
+5. checkout validation and order snapshot;
+6. WhitePay request, emails/Telegram, and admin order display.
+
+Keep customer and admin authentication separate. Preserve current RBAC and audit
+boundaries for internal changes.
+
+## 3. Orders and availability
+
+- Preserve stock, supplier, fitment, shipping, and quote constraints before checkout.
+- Keep state transitions explicit, validated, and auditable; UI labels do not define
+  order state.
+- Reuse the domain service and transaction patterns already used by the owning API.
+- Keep UA/EN customer copy and currency semantics aligned.
+
+## 4. Integration safety
+
+- WhitePay, Shopify, supplier syncs, Airtable exports, CRM webhooks, Resend,
+  Telegram, and Blob operations can mutate external systems.
+- Read the exact command/route. Names such as `sync`, `dry`, and `preview` are not a
+  safety guarantee unless implementation confirms them.
+- Preserve authentication, signature verification, idempotency, retry behavior, and
+  observable failure states.
+- Never run checkout or order E2E against Production. Use a disposable database and
+  sandboxed/non-production integrations.
 
 ## 5. Delivery Checklist
-- Any commerce change should confirm:
-  - B2B/B2C behavior not merged
-  - pricing/tax copy still sourced through helpers
-  - localization key exists for new UI copy
-  - payment path stays in WhitePay flow
-  - error states have concrete user recovery action
 
+- B2C, B2B, Europe, VAT, and quote behavior remain explicit.
+- Product fallback and variant inheritance were tested.
+- Display, cart, checkout, order snapshot, notifications, and admin stay consistent.
+- External failure and user recovery states are concrete.
+- No production-capable mutation was used merely for verification.

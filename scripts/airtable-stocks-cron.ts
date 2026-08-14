@@ -5,7 +5,8 @@
  * on matching ShopProductVariant rows by SKU. Migrated off Vercel Cron
  * to save function-compute spend.
  *
- * Run via .github/workflows/airtable-stocks-cron.yml (hourly).
+ * Run via .github/workflows/airtable-stocks-cron.yml (currently monthly) or a
+ * separately authorized manual dispatch.
  */
 
 import { PrismaClient } from "@prisma/client";

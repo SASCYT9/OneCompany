@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
 
 export const SHOP_CURRENCIES = ["EUR", "USD", "UAH"] as const;
 export type ShopCurrencyCode = (typeof SHOP_CURRENCIES)[number];
@@ -641,6 +642,47 @@ let cachedShopSettingsPromise: Promise<ShopSettingsRecord> | null = null;
 
 let cachedShopSettingsSnapshot: ShopSettingsRecord | null | undefined = undefined;
 
+function createLocalShopSettingsRecord(): ShopSettingsRecord {
+  const now = new Date();
+  return {
+    key: "shop",
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { ...DEFAULT_CURRENCY_RATES } as unknown as Prisma.JsonValue,
+    shippingZones: DEFAULT_SHIPPING_ZONES as unknown as Prisma.JsonValue,
+    brandShippingRules: DEFAULT_BRAND_SHIPPING_RULES as unknown as Prisma.JsonValue,
+    taxRegions: DEFAULT_TAX_REGIONS as unknown as Prisma.JsonValue,
+    regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES as unknown as Prisma.JsonValue,
+    orderNotificationEmail: null,
+    b2bNotes: null,
+    showTaxesIncludedNotice: false,
+    fopCompanyName: null,
+    fopIban: null,
+    fopBankName: null,
+    fopEdrpou: null,
+    fopDetails: null,
+    whiteBitEnabled: false,
+    appAccentColor: "#6366f1",
+    appAddress: "Україна",
+    appCompanyName: "OneCompany",
+    appContactEmail: "info@onecompany.com.ua",
+    appContactPhone: null,
+    appDarkMode: true,
+    appDefaultLanguage: "ua",
+    appDefaultMarkup: 25,
+    appLogoUrl: "/branding/one-company-logo.png",
+    appMetaDescription: null,
+    appMetaTitle: "OneCompany — Premium Tuning & Performance Parts",
+    appOgImage: "/branding/one-company-logo.png",
+    appShowPricesWithVat: false,
+    appSoundEnabled: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 async function loadShopSettingsSnapshot(): Promise<ShopSettingsRecord | null> {
   if (cachedShopSettingsSnapshot !== undefined) return cachedShopSettingsSnapshot;
   try {
@@ -668,6 +710,14 @@ async function loadShopSettingsSnapshot(): Promise<ShopSettingsRecord | null> {
 }
 
 export async function getOrCreateShopSettings(prisma: PrismaClient) {
+  if (isLocalStorefrontMode()) {
+    if (!cachedShopSettingsRecord) {
+      cachedShopSettingsRecord = createLocalShopSettingsRecord();
+      cachedShopSettingsFetchedAt = Date.now();
+    }
+    return cachedShopSettingsRecord;
+  }
+
   // Build phase: prefer pre-fetched snapshot to avoid DB connection storm
   // during static prerender of dozens of shop pages × locales. The snapshot
   // is produced by `scripts/prebuild-shop-snapshot.ts` before `next build`.

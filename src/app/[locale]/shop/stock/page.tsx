@@ -44,6 +44,7 @@ import {
   type ShopAiProductKind,
 } from "@/lib/shopAiProductKind";
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
 type StockItem = {
   id: string;
@@ -780,7 +781,9 @@ function StockPageContent() {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [stockFilter, setStockFilter] = useState<StockFilter>(
-    initialStock === "inStock" || initialStock === "preOrder" ? initialStock : "all"
+    SHOW_STOCK_BADGE && (initialStock === "inStock" || initialStock === "preOrder")
+      ? initialStock
+      : "all"
   );
   const [sortOrder, setSortOrder] = useState<StockSort>(
     initialSort === "price_asc" || initialSort === "price_desc" || initialSort === "name_asc"
@@ -1127,7 +1130,7 @@ function StockPageContent() {
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
       if (vehicleMode === "moto") params.set("scope", "moto");
-      if (stockFilter !== "all") params.set("stock", stockFilter);
+      if (SHOW_STOCK_BADGE && stockFilter !== "all") params.set("stock", stockFilter);
       const minPriceParam = normalizeStockPriceParam(minPriceFilter);
       const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
       if (minPriceParam) params.set("minPrice", minPriceParam);
@@ -1342,7 +1345,7 @@ function StockPageContent() {
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
       params.set("scope", vehicleMode);
-      if (stockFilter !== "all") params.set("stock", stockFilter);
+      if (SHOW_STOCK_BADGE && stockFilter !== "all") params.set("stock", stockFilter);
       const minPriceParam = normalizeStockPriceParam(minPriceFilter);
       const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
       if (minPriceParam) params.set("minPrice", minPriceParam);
@@ -1681,7 +1684,7 @@ function StockPageContent() {
     Boolean(opfGpfFilter) ||
     Boolean(productKindFilter) ||
     vehicleMode === "moto" ||
-    stockFilter !== "all" ||
+    (SHOW_STOCK_BADGE && stockFilter !== "all") ||
     hasPriceFilter;
 
   const activeFilterCount =
@@ -1697,7 +1700,7 @@ function StockPageContent() {
     (opfGpfFilter ? 1 : 0) +
     (productKindFilter ? 1 : 0) +
     (vehicleMode === "moto" ? 1 : 0) +
-    (stockFilter !== "all" ? 1 : 0) +
+    (SHOW_STOCK_BADGE && stockFilter !== "all" ? 1 : 0) +
     (hasPriceFilter ? 1 : 0);
 
   const totalCatalogCount = filterStats?.stock.all ?? totalItems;
@@ -1996,45 +1999,47 @@ function StockPageContent() {
           </section>
         ) : null}
 
-        <section className="order-1 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
-              {isUa ? "Наявність" : "Availability"}
-            </h3>
-          </div>
-          <div className="grid gap-1">
-            {(Object.keys(STOCK_LABELS) as StockFilter[]).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStockFilter(value)}
-                className={`flex min-h-8 items-center gap-2 border px-2.5 text-left text-[11px] font-light transition ${
-                  stockFilter === value
-                    ? "border-foreground/25 bg-foreground/[0.055] text-foreground"
-                    : "border-transparent bg-transparent text-foreground/60 hover:border-foreground/12 hover:bg-foreground/[0.035] hover:text-foreground"
-                }`}
-              >
-                <span
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border ${
+        {SHOW_STOCK_BADGE ? (
+          <section className="order-1 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
+                {isUa ? "Наявність" : "Availability"}
+              </h3>
+            </div>
+            <div className="grid gap-1">
+              {(Object.keys(STOCK_LABELS) as StockFilter[]).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStockFilter(value)}
+                  className={`flex min-h-8 items-center gap-2 border px-2.5 text-left text-[11px] font-light transition ${
                     stockFilter === value
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-foreground/18"
+                      ? "border-foreground/25 bg-foreground/[0.055] text-foreground"
+                      : "border-transparent bg-transparent text-foreground/60 hover:border-foreground/12 hover:bg-foreground/[0.035] hover:text-foreground"
                   }`}
                 >
-                  {stockFilter === value ? <Check className="h-3 w-3" /> : null}
-                </span>
-                <span className="min-w-0 flex-1 truncate">
-                  {isUa ? STOCK_LABELS[value].ua : STOCK_LABELS[value].en}
-                </span>
-                <span className="shrink-0 font-mono text-[10px] opacity-55">
-                  {isInitialCatalogLoading
-                    ? "—"
-                    : (stockCount(value) ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border ${
+                      stockFilter === value
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-foreground/18"
+                    }`}
+                  >
+                    {stockFilter === value ? <Check className="h-3 w-3" /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {isUa ? STOCK_LABELS[value].ua : STOCK_LABELS[value].en}
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] opacity-55">
+                    {isInitialCatalogLoading
+                      ? "—"
+                      : (stockCount(value) ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="order-4 space-y-2.5 border-t border-foreground/10 pt-4">
           <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-foreground/70">
@@ -2506,7 +2511,7 @@ function StockPageContent() {
                       : "Loading catalog…"
                     : `${totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")} ${isUa ? getUkrainianPlural(totalCatalogCount, "товар", "товари", "товарів") : "products"}`}
                 </span>
-                {!isInitialCatalogLoading ? (
+                {SHOW_STOCK_BADGE && !isInitialCatalogLoading ? (
                   <span className="border-l border-foreground/18 pl-3 dark:border-white/22">
                     {(filterStats?.stock.inStock ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
                     {isUa ? "в наявності" : "in stock"}
@@ -3059,7 +3064,7 @@ function StockPageContent() {
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}
-                  {stockFilter !== "all" ? (
+                  {SHOW_STOCK_BADGE && stockFilter !== "all" ? (
                     <button
                       type="button"
                       onClick={() => setStockFilter("all")}
@@ -3397,7 +3402,15 @@ function StockPageContent() {
                         <div>{isUa ? "Фото" : "Image"}</div>
                         <div>{isUa ? "Бренд / Артикул" : "Brand / SKU"}</div>
                         <div>{isUa ? "Назва деталі" : "Product Name"}</div>
-                        <div className="text-center">{isUa ? "Наявність" : "Availability"}</div>
+                        <div className="text-center">
+                          {SHOW_STOCK_BADGE
+                            ? isUa
+                              ? "Наявність"
+                              : "Availability"
+                            : isUa
+                              ? "Сумісність"
+                              : "Fitment"}
+                        </div>
                         <div className="text-right">
                           {isB2B ? (isUa ? "РРЦ / Ціна" : "MSRP / Price") : isUa ? "Ціна" : "Price"}
                         </div>
@@ -3461,15 +3474,17 @@ function StockPageContent() {
 
                               {/* Stock Status & Fitment */}
                               <div className="flex flex-col items-center justify-center gap-1.5">
-                                <span className="text-center text-[9px] font-light uppercase tracking-widest text-foreground/45">
-                                  {item.inStock
-                                    ? isUa
-                                      ? "В наявності"
-                                      : "In stock"
-                                    : isUa
-                                      ? "Під замовлення"
-                                      : "Pre-order"}
-                                </span>
+                                {SHOW_STOCK_BADGE ? (
+                                  <span className="text-center text-[9px] font-light uppercase tracking-widest text-foreground/45">
+                                    {item.inStock
+                                      ? isUa
+                                        ? "В наявності"
+                                        : "In stock"
+                                      : isUa
+                                        ? "Під замовлення"
+                                        : "Pre-order"}
+                                  </span>
+                                ) : null}
                                 {item.matchStatus && (
                                   <span
                                     className={`inline-flex items-center gap-1 border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-widest ${

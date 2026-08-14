@@ -1,10 +1,17 @@
-name: Daily Telegram Reminders + Digest
+name: Weekly Telegram Reminders + Digest
 
 on:
   schedule:
     # 09:00 UTC every Monday
     - cron: "0 9 * * 1"
   workflow_dispatch: # manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-telegram-reminders
+  cancel-in-progress: false
 
 jobs:
   notify:
@@ -27,7 +34,7 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run Telegram daily tasks
+      - name: Run Telegram reminder tasks
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}

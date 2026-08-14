@@ -173,10 +173,13 @@ export function ShopProductVariantPurchaseSection({
     if (!currentVariant) return product;
     return {
       ...product,
-      price: currentVariant.price,
-      compareAt: currentVariant.compareAt,
-      b2bPrice: currentVariant.b2bPrice,
-      b2bCompareAt: currentVariant.b2bCompareAt,
+      // Some catalog imports include the default variant shell without
+      // duplicating product-level pricing. Preserve the product price until a
+      // variant actually provides an override.
+      price: currentVariant.price ?? product.price,
+      compareAt: currentVariant.compareAt ?? product.compareAt,
+      b2bPrice: currentVariant.b2bPrice ?? product.b2bPrice,
+      b2bCompareAt: currentVariant.b2bCompareAt ?? product.b2bCompareAt,
       europePrice: currentVariant.europePrice ?? product.europePrice,
     };
   }, [currentVariant, product]);

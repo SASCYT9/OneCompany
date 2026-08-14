@@ -1,9 +1,15 @@
-# One Company Operations — Phase 0 migration gate
+# One Company Operations — historical Phase 0 migration record
 
-This runbook is intentionally fail-closed. It does not authorize a production
-deployment, a Telegram webhook registration, or a production bot restart.
-Run it against staging first, using a direct PostgreSQL connection supplied
-through the environment. Never paste connection strings or tokens into logs.
+> **Historical snapshot (July 2026). Do not execute this file as a current
+> production checklist.** Its branch name, migration-history assumptions, pending
+> migration list, and environment state must be re-audited against the current
+> database and Git commit. Use `production-rollout-runbook.md` for the maintained
+> release gates.
+
+At the time of the Phase 0 incident, this procedure was designed to fail closed. It
+did not authorize a production deployment, Telegram webhook registration, database
+history repair, or bot restart. The commands below are retained as incident context
+only and require fresh staging evidence plus separate owner approval before reuse.
 
 ## Why normal `prisma migrate deploy` is currently blocked
 
@@ -132,10 +138,11 @@ Production remains blocked until staging evidence is accepted. Feature flags
 are the rollback mechanism for application behavior; the database migrations
 are forward-only and must not be rolled back with destructive SQL.
 
-## Gate G — release candidate without merge
+## Historical Gate G — release candidate without merge
 
-Keep the work on `concept/unified-site-performance`. Do not merge it and do not
-run `vercel --prod` while storefront changes are still in progress.
+The work originally lived on `concept/unified-site-performance`. That branch name is
+not a current release instruction. Any future release candidate must be derived from
+the current reviewed branch/commit and current Vercel project settings.
 
 Before calling the branch a release candidate:
 

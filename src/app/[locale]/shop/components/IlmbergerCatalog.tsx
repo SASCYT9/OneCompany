@@ -13,6 +13,7 @@ import IlmbergerBikePicker from "./IlmbergerBikePicker";
 import IlmbergerSpotlightCard from "./IlmbergerSpotlightCard";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
 type Props = {
   locale: SupportedLocale;
@@ -764,11 +765,13 @@ export default function IlmbergerCatalog({
                       >
                         {/* Media Display Container */}
                         <div className="relative aspect-[4/3] bg-gradient-to-b from-[var(--il-bg-soft)] to-[var(--il-bg)] overflow-hidden">
-                          <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.25em] px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--il-bg)]/85 border border-[var(--il-faint)] text-[var(--il-white)] rounded">
-                            {isMock
-                              ? L(isUa, "Prepreg", "Препрег")
-                              : L(isUa, "In Stock", "В наявності")}
-                          </div>
+                          {isMock || SHOW_STOCK_BADGE ? (
+                            <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.25em] px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-[var(--il-bg)]/85 border border-[var(--il-faint)] text-[var(--il-white)] rounded">
+                              {isMock
+                                ? L(isUa, "Prepreg", "Препрег")
+                                : L(isUa, "In Stock", "В наявності")}
+                            </div>
+                          ) : null}
 
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img

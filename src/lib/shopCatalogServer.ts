@@ -38,6 +38,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
 
 let prismaCached: ReturnType<typeof createPrismaCachedClient> | null = null;
 
@@ -54,6 +55,7 @@ function getPrismaCachedClient() {
 
 const CATALOG_FALLBACK_DIR = path.join(process.cwd(), "public", "catalog-fallback");
 const CATALOG_FALLBACK_VERSION = 2;
+const LOCAL_CATALOG_SNAPSHOT_ENABLED = isLocalStorefrontMode();
 
 type CatalogFallbackManifest = {
   version: number;
@@ -131,6 +133,20 @@ async function getAllCatalogFallbackProducts(): Promise<ShopProduct[]> {
     Object.keys(manifest.stores).map((store) => getCatalogFallbackStore(store))
   );
   return shards.flat();
+}
+
+async function getLocalCatalogSnapshotProducts(): Promise<ShopProduct[]> {
+  if (!LOCAL_CATALOG_SNAPSHOT_ENABLED) return [];
+
+  try {
+    return normalizeCatalogProducts(await getAllCatalogFallbackProducts());
+  } catch (error) {
+    console.warn(
+      "[shopCatalogServer] local catalog snapshot unavailable:",
+      error instanceof Error ? error.message : String(error)
+    );
+    return [];
+  }
 }
 
 async function getCatalogFallbackProductBySlug(slug: string): Promise<ShopProduct | undefined> {
@@ -1032,9 +1048,6 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
     image: "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Bullnose_Bonnet.webp",
     gallery: [
       "/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Bullnose_Bonnet.webp",
-      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_01.jpg",
-      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_02.jpg",
-      "/images/shop/urban/products/urus-se/gwagon-official/urb-hoo-25358201-v1_bonnet_03.jpg",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-6-2560.webp",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp",
       "/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp",
@@ -2035,6 +2048,10 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       if (process.env.NODE_ENV === "production") {
         throw err;
       }
+      const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
+      if (localSnapshotProducts.length > 0) {
+        return localSnapshotProducts.map(applyShopProductImageOverrides);
+      }
       // No DB or not migrated — use only static in dev
       return normalizeCatalogProducts(STATIC_CATALOG_FALLBACK_PRODUCTS);
     }
@@ -2050,7 +2067,8 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
         )
         .filter((value) => FEED_MANAGED_BRANDS.has(value))
     );
-    STATIC_CATALOG_FALLBACK_PRODUCTS.forEach((p) => {
+    const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
+    [...STATIC_CATALOG_FALLBACK_PRODUCTS, ...localSnapshotProducts].forEach((p) => {
       if (hiddenDbSlugs.has(p.slug)) {
         return; // Skip static copy if it's explicitly hidden or unpublished/archived in the database
       }
@@ -2167,131 +2185,133 @@ export async function getShopProductsByBrandServer(
 
   const promise = (async () => {
     let dbRows: AdminShopProductRecord[] = [];
-    try {
-      // Lighter include than adminProductInclude — drops options/metafields/
-      // bundle (PDP-only fields), keeping category/media/variants/collections
-      // that the grid + collection-matcher code paths actually read.
-      // `mapDbToCatalog` is defensive against the dropped fields.
-      const queryParams: any = {
-        where: { isPublished: true, ...where },
-        orderBy: { updatedAt: "desc" },
-        select: {
-          id: true,
-          slug: true,
-          sku: true,
-          scope: true,
-          brand: true,
-          vendor: true,
-          productType: true,
-          tags: true,
-          titleUa: true,
-          titleEn: true,
-          categoryUa: true,
-          categoryEn: true,
-          collectionUa: true,
-          collectionEn: true,
-          stock: true,
-          priceEur: true,
-          priceEurEurope: true,
-          priceUsd: true,
-          priceUah: true,
-          priceEurB2b: true,
-          priceUsdB2b: true,
-          priceUahB2b: true,
-          compareAtEur: true,
-          compareAtUsd: true,
-          compareAtUah: true,
-          compareAtEurB2b: true,
-          compareAtUsdB2b: true,
-          compareAtUahB2b: true,
-          image: true,
-          gallery: true,
-          highlights: true,
-          isPublished: true,
-          updatedAt: true,
-          category: {
-            select: {
-              id: true,
-              slug: true,
-              titleUa: true,
-              titleEn: true,
+    if (!isLocalStorefrontMode()) {
+      try {
+        // Lighter include than adminProductInclude — drops options/metafields/
+        // bundle (PDP-only fields), keeping category/media/variants/collections
+        // that the grid + collection-matcher code paths actually read.
+        // `mapDbToCatalog` is defensive against the dropped fields.
+        const queryParams: any = {
+          where: { isPublished: true, ...where },
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            slug: true,
+            sku: true,
+            scope: true,
+            brand: true,
+            vendor: true,
+            productType: true,
+            tags: true,
+            titleUa: true,
+            titleEn: true,
+            categoryUa: true,
+            categoryEn: true,
+            collectionUa: true,
+            collectionEn: true,
+            stock: true,
+            priceEur: true,
+            priceEurEurope: true,
+            priceUsd: true,
+            priceUah: true,
+            priceEurB2b: true,
+            priceUsdB2b: true,
+            priceUahB2b: true,
+            compareAtEur: true,
+            compareAtUsd: true,
+            compareAtUah: true,
+            compareAtEurB2b: true,
+            compareAtUsdB2b: true,
+            compareAtUahB2b: true,
+            image: true,
+            gallery: true,
+            highlights: true,
+            isPublished: true,
+            updatedAt: true,
+            category: {
+              select: {
+                id: true,
+                slug: true,
+                titleUa: true,
+                titleEn: true,
+              },
             },
-          },
-          media: {
-            orderBy: { position: "asc" },
-            select: {
-              id: true,
-              productId: true,
-              mediaType: true,
-              src: true,
-              altText: true,
-              position: true,
+            media: {
+              orderBy: { position: "asc" },
+              select: {
+                id: true,
+                productId: true,
+                mediaType: true,
+                src: true,
+                altText: true,
+                position: true,
+              },
             },
-          },
-          variants: {
-            orderBy: { position: "asc" },
-            select: {
-              id: true,
-              productId: true,
-              title: true,
-              sku: true,
-              position: true,
-              option1Value: true,
-              option2Value: true,
-              option3Value: true,
-              inventoryQty: true,
-              priceEur: true,
-              priceEurEurope: true,
-              priceUsd: true,
-              priceUah: true,
-              priceEurB2b: true,
-              priceUsdB2b: true,
-              priceUahB2b: true,
-              compareAtEur: true,
-              compareAtUsd: true,
-              compareAtUah: true,
-              compareAtEurB2b: true,
-              compareAtUsdB2b: true,
-              compareAtUahB2b: true,
-              image: true,
-              isDefault: true,
+            variants: {
+              orderBy: { position: "asc" },
+              select: {
+                id: true,
+                productId: true,
+                title: true,
+                sku: true,
+                position: true,
+                option1Value: true,
+                option2Value: true,
+                option3Value: true,
+                inventoryQty: true,
+                priceEur: true,
+                priceEurEurope: true,
+                priceUsd: true,
+                priceUah: true,
+                priceEurB2b: true,
+                priceUsdB2b: true,
+                priceUahB2b: true,
+                compareAtEur: true,
+                compareAtUsd: true,
+                compareAtUah: true,
+                compareAtEurB2b: true,
+                compareAtUsdB2b: true,
+                compareAtUahB2b: true,
+                image: true,
+                isDefault: true,
+              },
             },
-          },
-          collections: {
-            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-            select: {
-              productId: true,
-              collectionId: true,
-              sortOrder: true,
-              collection: {
-                select: {
-                  id: true,
-                  handle: true,
-                  titleUa: true,
-                  titleEn: true,
-                  brand: true,
-                  isUrban: true,
+            collections: {
+              orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+              select: {
+                productId: true,
+                collectionId: true,
+                sortOrder: true,
+                collection: {
+                  select: {
+                    id: true,
+                    handle: true,
+                    titleUa: true,
+                    titleEn: true,
+                    brand: true,
+                    isUrban: true,
+                  },
                 },
               },
             },
           },
-        },
-      };
-      if (isAccelerateEnabled) {
-        queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+        };
+        if (isAccelerateEnabled) {
+          queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+        }
+        dbRows = (await getPrismaCachedClient().shopProduct.findMany(
+          queryParams
+        )) as unknown as AdminShopProductRecord[];
+      } catch (err) {
+        console.error(
+          `[shopCatalogServer] getShopProductsByBrandServer DB query failed for ${cacheKey}:`,
+          err
+        );
+        if (process.env.NODE_ENV === "production") {
+          throw err;
+        }
+        // DB unavailable — fall through to static/snapshot path below in dev.
       }
-      dbRows = (await getPrismaCachedClient().shopProduct.findMany(
-        queryParams
-      )) as unknown as AdminShopProductRecord[];
-    } catch (err) {
-      console.error(
-        `[shopCatalogServer] getShopProductsByBrandServer DB query failed for ${cacheKey}:`,
-        err
-      );
-      if (process.env.NODE_ENV === "production") {
-        throw err;
-      }
-      // DB unavailable — fall through to static-only path below in dev.
     }
 
     const mapped = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
@@ -2300,7 +2320,8 @@ export async function getShopProductsByBrandServer(
     const bySlug = new Map<string, ShopProduct>();
     dbProducts.forEach((product) => bySlug.set(product.slug, product));
 
-    STATIC_CATALOG_FALLBACK_PRODUCTS.forEach((p) => {
+    const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
+    [...STATIC_CATALOG_FALLBACK_PRODUCTS, ...localSnapshotProducts].forEach((p) => {
       if (!shouldExposeCatalogProduct(p)) return;
       if (predicate ? !predicate(p) : !defaultBrandMatch(p, cacheKey)) return;
       if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
@@ -3180,24 +3201,29 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
   slug: string
 ): Promise<ShopProductLookupResult> {
   try {
-    const allowDraftPreview =
-      process.env.NODE_ENV !== "production" && process.env.SHOP_PREVIEW_DRAFTS === "1";
-    const queryParams: any = {
-      where: allowDraftPreview ? { slug } : { slug, isPublished: true, status: "ACTIVE" },
-      include: storefrontProductInclude,
-    };
-    if (isAccelerateEnabled && !allowDraftPreview) {
-      queryParams.cacheStrategy = { ttl: 300, swr: 60 };
-    }
-    const row = allowDraftPreview
-      ? await prisma.shopProduct.findFirst(queryParams)
-      : await getPrismaCachedClient().shopProduct.findFirst(queryParams);
-    if (row) {
-      const product = applyShopProductImageOverrides(
-        mapDbToCatalog(row as unknown as AdminShopProductRecord)
-      );
-      if (shouldExposeCatalogProduct(product)) {
-        return { kind: "found", product, source: "database" };
+    if (isLocalStorefrontMode()) {
+      // The local storefront is intentionally DB-less; use the verified
+      // catalog shard below instead of initializing Prisma at all.
+    } else {
+      const allowDraftPreview =
+        process.env.NODE_ENV !== "production" && process.env.SHOP_PREVIEW_DRAFTS === "1";
+      const queryParams: any = {
+        where: allowDraftPreview ? { slug } : { slug, isPublished: true, status: "ACTIVE" },
+        include: storefrontProductInclude,
+      };
+      if (isAccelerateEnabled && !allowDraftPreview) {
+        queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+      }
+      const row = allowDraftPreview
+        ? await prisma.shopProduct.findFirst(queryParams)
+        : await getPrismaCachedClient().shopProduct.findFirst(queryParams);
+      if (row) {
+        const product = applyShopProductImageOverrides(
+          mapDbToCatalog(row as unknown as AdminShopProductRecord)
+        );
+        if (shouldExposeCatalogProduct(product)) {
+          return { kind: "found", product, source: "database" };
+        }
       }
     }
   } catch (error) {
@@ -3226,7 +3252,26 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
           fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
       });
     }
-    return { kind: "unavailable", code, cause: error };
+    // A DB-less local storefront may still use the checked-in/static catalog
+    // fallback. Keep production outage semantics unchanged.
+    if (process.env.NODE_ENV !== "development" || process.env.DATABASE_URL) {
+      return { kind: "unavailable", code, cause: error };
+    }
+  }
+
+  if (LOCAL_CATALOG_SNAPSHOT_ENABLED) {
+    try {
+      const snapshotProduct = await getCatalogFallbackProductBySlug(slug);
+      if (snapshotProduct && shouldExposeCatalogProduct(snapshotProduct)) {
+        return {
+          kind: "found",
+          product: applyShopProductImageOverrides(snapshotProduct),
+          source: "snapshot",
+        };
+      }
+    } catch {
+      // Continue to the smaller static/dev cache fallbacks below.
+    }
   }
 
   if (process.env.NODE_ENV === "development") {
@@ -3279,7 +3324,7 @@ export async function getTopProductSlugsByBrand(brand: string, limit = 25): Prom
   // Product pages are discovered through the sitemap and rendered with
   // 24-hour ISR on first request. Avoid prebuilding hundreds of PDPs (and the
   // corresponding database reads) in Vercel's build environment.
-  if (process.env.NEXT_PHASE === "phase-production-build") return [];
+  if (process.env.NEXT_PHASE === "phase-production-build" || isLocalStorefrontMode()) return [];
 
   try {
     const rows = await prisma.shopProduct.findMany({

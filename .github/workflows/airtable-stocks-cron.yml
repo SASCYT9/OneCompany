@@ -1,10 +1,17 @@
-name: Hourly Airtable Stock Sync
+name: Monthly Airtable Stock Sync
 
 on:
   schedule:
     # Monthly on the 1st at 05:00 UTC
     - cron: "0 5 1 * *"
   workflow_dispatch: # manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly-airtable-stock-sync
+  cancel-in-progress: false
 
 jobs:
   sync:

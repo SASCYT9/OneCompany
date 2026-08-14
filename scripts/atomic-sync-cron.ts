@@ -1,11 +1,12 @@
 /**
  * Atomic Feed → DB sync (formerly /api/admin/cron/atomic-sync).
  *
- * Pulls https://feed.atomic-shop.ua/feed_tts.csv hourly, updates inventory
+ * Pulls https://feed.atomic-shop.ua/feed_tts.csv on each invocation, updates inventory
  * + price on existing variants, creates new ShopProduct records for
  * unknown SKUs. Migrated off Vercel Cron to save function-compute spend.
  *
- * Run via .github/workflows/atomic-sync-cron.yml (hourly).
+ * Run via .github/workflows/atomic-sync-cron.yml (currently monthly) or a
+ * separately authorized manual dispatch.
  */
 
 import { PrismaClient } from "@prisma/client";
