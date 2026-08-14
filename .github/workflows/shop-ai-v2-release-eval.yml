@@ -4,17 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       expected_commit:
-        description: "Full 40-character commit SHA to evaluate and deploy to isolated Preview"
+        description: "Full 40-character commit SHA deployed to the protected staging URL"
         required: true
         type: string
       confirmation:
         description: 'Type "RUN LIVE V2 EVAL" to request the protected evaluation'
         required: true
-        type: string
-      production_confirmation:
-        description: 'Optional: type "DEPLOY EVALUATED COMMIT TO PRODUCTION" to deploy after a passing evaluation'
-        required: false
-        default: ""
         type: string
 
 permissions:
@@ -31,7 +26,6 @@ jobs:
     timeout-minutes: 2
     outputs:
       expected_commit: ${{ steps.input.outputs.expected_commit }}
-      release_to_production: ${{ steps.input.outputs.release_to_production }}
     steps:
       - name: Validate confirmation and commit SHA
         id: input
@@ -39,7 +33,6 @@ jobs:
         env:
           RAW_EXPECTED_COMMIT: ${{ inputs.expected_commit }}
           CONFIRMATION: ${{ inputs.confirmation }}
-          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
         run: |
           set -euo pipefail
           if [[ "$CONFIRMATION" != "RUN LIVE V2 EVAL" ]]; then
@@ -51,16 +44,7 @@ jobs:
             echo "::error::expected_commit must be a full 40-character Git SHA"
             exit 1
           fi
-          release_to_production=false
-          if [[ -n "$PRODUCTION_CONFIRMATION" ]]; then
-            if [[ "$PRODUCTION_CONFIRMATION" != "DEPLOY EVALUATED COMMIT TO PRODUCTION" ]]; then
-              echo "::error::Production confirmation must exactly match DEPLOY EVALUATED COMMIT TO PRODUCTION"
-              exit 1
-            fi
-            release_to_production=true
-          fi
           echo "expected_commit=$expected_commit" >> "$GITHUB_OUTPUT"
-          echo "release_to_production=$release_to_production" >> "$GITHUB_OUTPUT"
 
   release-eval:
     name: Protected live V2 evaluation
@@ -69,6 +53,7 @@ jobs:
     timeout-minutes: 180
     environment:
       name: one-ai-v2-release-eval
+      url: ${{ vars.SHOP_AI_V2_STAGING_URL }}
 
     steps:
       - name: Checkout the exact evaluated commit
@@ -102,52 +87,11 @@ jobs:
       - name: Install evaluation dependencies
         run: npm ci --no-audit --no-fund --ignore-scripts
 
-      - name: Deploy exact commit to isolated Vercel Preview
-        id: preview
-        shell: bash
-        env:
-          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [[ -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" || -z "$VERCEL_TOKEN" ]]; then
-            echo "::error::VERCEL_ORG_ID, VERCEL_PROJECT_ID, and VERCEL_TOKEN are required"
-            exit 1
-          fi
-          preview_output="$RUNNER_TEMP/vercel-preview-url.txt"
-          npx --yes vercel@58.1.0 deploy . \
-            --yes \
-            --force \
-            --archive=tgz \
-            --project "$VERCEL_PROJECT_ID" \
-            --token "$VERCEL_TOKEN" \
-            --build-env SHOP_AI_DEPLOYED_COMMIT_SHA="$COMMIT_SHA" \
-            --env SHOP_AI_DEPLOYED_COMMIT_SHA="$COMMIT_SHA" \
-            > "$preview_output"
-          preview_url="$(tail -n 1 "$preview_output" | tr -d '\r')"
-          node - "$preview_url" <<'NODE'
-          const rawUrl = process.argv[2]?.trim() ?? "";
-          const url = new URL(rawUrl);
-          if (
-            url.protocol !== "https:" ||
-            !url.hostname.endsWith(".vercel.app") ||
-            url.username ||
-            url.password ||
-            url.search ||
-            url.hash
-          ) {
-            throw new Error("Vercel CLI did not return a valid isolated Preview URL");
-          }
-          NODE
-          echo "base_url=$preview_url" >> "$GITHUB_OUTPUT"
-
-      - name: Validate protected Preview configuration
+      - name: Validate protected staging configuration
         id: target
         shell: bash
         env:
-          RAW_STAGING_URL: ${{ steps.preview.outputs.base_url }}
+          RAW_STAGING_URL: ${{ vars.SHOP_AI_V2_STAGING_URL }}
           SHOP_AI_EVAL_TOKEN: ${{ secrets.SHOP_AI_EVAL_TOKEN }}
           RELEASE_GATE_SIGNING_SECRET: ${{ secrets.SHOP_AI_V2_RELEASE_GATE_SIGNING_SECRET }}
         run: |
@@ -230,164 +174,16 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Prepare verified Production release values
-        if: needs.validate-request.outputs.release_to_production == 'true'
-        shell: bash
-        env:
-          ARTIFACT_PATH: ${{ runner.temp }}/one-ai-v2-release-gate.json
-          MARKER_PATH: ${{ runner.temp }}/one-ai-v2-release-gate-marker.txt
-          FINGERPRINT_PATH: ${{ runner.temp }}/one-ai-v2-catalog-fingerprint.txt
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const fs = require("node:fs");
-
-          const artifact = JSON.parse(fs.readFileSync(process.env.ARTIFACT_PATH, "utf8"));
-          const marker = typeof artifact.marker === "string" ? artifact.marker.trim() : "";
-          const fingerprint =
-            typeof artifact.payload?.catalogFingerprint === "string"
-              ? artifact.payload.catalogFingerprint.trim().toLowerCase()
-              : "";
-          if (!marker.startsWith("one-ai-v2-release-gate.v2.")) {
-            throw new Error("Release artifact has no valid marker");
-          }
-          if (!/^[0-9a-f]{64}$/.test(fingerprint)) {
-            throw new Error("Release artifact has no valid catalog fingerprint");
-          }
-          fs.writeFileSync(process.env.MARKER_PATH, marker, { mode: 0o600 });
-          fs.writeFileSync(process.env.FINGERPRINT_PATH, fingerprint, { mode: 0o600 });
-          console.log(`::add-mask::${marker}`);
-          NODE
-
-      - name: Update commit-bound Production release gate
-        if: needs.validate-request.outputs.release_to_production == 'true'
-        shell: bash
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          npx --yes vercel@58.1.0 env update \
-            SHOP_AI_V2_RELEASE_GATE_MARKER production \
-            --yes \
-            --sensitive \
-            --project "$VERCEL_PROJECT_ID" \
-            --token "$VERCEL_TOKEN" \
-            < "$RUNNER_TEMP/one-ai-v2-release-gate-marker.txt"
-          npx --yes vercel@58.1.0 env update \
-            SHOP_AI_V2_CATALOG_FINGERPRINT production \
-            --yes \
-            --project "$VERCEL_PROJECT_ID" \
-            --token "$VERCEL_TOKEN" \
-            < "$RUNNER_TEMP/one-ai-v2-catalog-fingerprint.txt"
-
-      - name: Deploy the evaluated commit to Production
-        if: needs.validate-request.outputs.release_to_production == 'true'
-        id: production
-        shell: bash
-        env:
-          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          production_output="$RUNNER_TEMP/vercel-production-url.txt"
-          npx --yes vercel@58.1.0 deploy . \
-            --prod \
-            --yes \
-            --force \
-            --archive=tgz \
-            --project "$VERCEL_PROJECT_ID" \
-            --token "$VERCEL_TOKEN" \
-            --build-env SHOP_AI_DEPLOYED_COMMIT_SHA="$COMMIT_SHA" \
-            --env SHOP_AI_DEPLOYED_COMMIT_SHA="$COMMIT_SHA" \
-            > "$production_output"
-          production_url="$(tail -n 1 "$production_output" | tr -d '\r')"
-          node - "$production_url" <<'NODE'
-          const rawUrl = process.argv[2]?.trim() ?? "";
-          const url = new URL(rawUrl);
-          if (
-            url.protocol !== "https:" ||
-            !url.hostname.endsWith(".vercel.app") ||
-            url.username ||
-            url.password ||
-            url.search ||
-            url.hash
-          ) {
-            throw new Error("Vercel CLI did not return a valid Production deployment URL");
-          }
-          NODE
-          echo "url=$production_url" >> "$GITHUB_OUTPUT"
-
-      - name: Verify Production product gallery
-        if: needs.validate-request.outputs.release_to_production == 'true'
-        shell: bash
-        env:
-          DEPLOYMENT_URL: ${{ steps.production.outputs.url }}
-        run: |
-          set -euo pipefail
-          product_path="/ua/shop/urban/products/urb-hoo-25358201-v1"
-          expected_images=(
-            "urban-automotive-g-wagon-g63-w465-aerokit-6-2560.webp"
-            "urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp"
-            "urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp"
-          )
-          forbidden_images=(
-            "urb-hoo-25358201-v1_bonnet_01.jpg"
-            "urb-hoo-25358201-v1_bonnet_02.jpg"
-            "urb-hoo-25358201-v1_bonnet_03.jpg"
-          )
-          for origin in "$DEPLOYMENT_URL" "https://onecompany.global"; do
-            page="$RUNNER_TEMP/product-$(echo "$origin" | tr -cd '[:alnum:]').html"
-            verified=false
-            for attempt in {1..12}; do
-              if curl --fail --silent --show-error --location \
-                --max-time 30 "$origin$product_path" > "$page"; then
-                missing=false
-                for image in "${expected_images[@]}"; do
-                  if ! grep -Fq "$image" "$page"; then
-                    missing=true
-                  fi
-                done
-                stale=false
-                for image in "${forbidden_images[@]}"; do
-                  if grep -Fq "$image" "$page"; then
-                    stale=true
-                  fi
-                done
-                if [[ "$missing" == false && "$stale" == false ]]; then
-                  verified=true
-                  break
-                fi
-              fi
-              sleep 5
-            done
-            if [[ "$verified" != true ]]; then
-              echo "::error::Product gallery verification failed for $origin"
-              exit 1
-            fi
-          done
-
       - name: Record release-eval summary
         shell: bash
         env:
           COMMIT_SHA: ${{ steps.commit.outputs.sha }}
-          PREVIEW_URL: ${{ steps.preview.outputs.base_url }}
-          PRODUCTION_URL: ${{ steps.production.outputs.url }}
-          RELEASE_TO_PRODUCTION: ${{ needs.validate-request.outputs.release_to_production }}
         run: |
           {
             echo "### One AI V2 release evaluation passed"
             echo
             echo "- Commit: \`$COMMIT_SHA\`"
-            echo "- Evaluated Preview: $PREVIEW_URL"
+            echo "- Target: protected staging environment"
             echo "- Result: signed gate artifact uploaded"
-            if [[ "$RELEASE_TO_PRODUCTION" == "true" ]]; then
-              echo "- Production deployment: $PRODUCTION_URL"
-              echo "- Production product gallery: verified"
-            else
-              echo "- Production deployment: not requested"
-            fi
+            echo "- Deployment/promotion: not performed by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"

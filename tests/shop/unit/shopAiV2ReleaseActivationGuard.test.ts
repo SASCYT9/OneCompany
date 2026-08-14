@@ -14,13 +14,20 @@ import {
 } from "../../../src/lib/shopAiV2ReleaseActivationGuard";
 import { SHOP_AI_V2_ROLLOUT_CATEGORIES } from "../../../src/lib/shopAiV2RolloutContract";
 
-test("release guard keeps config-time imports resolvable without Next aliases", () => {
+test("release guard keeps standalone CLI imports resolvable without Next aliases", () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src", "lib", "shopAiV2ReleaseActivationGuard.ts"),
     "utf8"
   );
   assert.match(source, /from "\.\/shopAiV2RolloutContract"/);
   assert.doesNotMatch(source, /from "@\/lib\/shopAiV2RolloutContract"/);
+});
+
+test("One AI release evidence never blocks the global Next.js storefront build", () => {
+  const source = fs.readFileSync(path.join(process.cwd(), "next.config.ts"), "utf8");
+
+  assert.doesNotMatch(source, /evaluateShopAiV2ReleaseActivationGuard/);
+  assert.doesNotMatch(source, /One AI V2 production activation is blocked/);
 });
 
 const COMMIT_SHA = "a".repeat(40);

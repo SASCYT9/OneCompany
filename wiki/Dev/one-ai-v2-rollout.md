@@ -138,20 +138,11 @@ GitHub workflow `One AI V2 Release Evaluation`:
 
 1. запускається вручну через protected GitHub Environment;
 2. приймає exact 40-character commit;
-3. створює окремий Vercel Preview саме з цього checkout і не використовує
-   застарілий статичний staging URL;
+3. звертається лише до захищеного staging origin;
 4. вимагає V2/strict response markers;
 5. перевіряє quality, response size, latency і commit identity;
 6. створює підписаний marker;
-7. без окремої точної фрази підтвердження не змінює Production;
-8. після `DEPLOY EVALUATED COMMIT TO PRODUCTION` оновлює commit-bound marker і
-   catalog fingerprint у Production, розгортає той самий checkout та виконує
-   smoke-перевірку production-галереї.
-
-Production deploy дозволений лише в тому самому protected workflow run, де
-release evaluation успішно завершився. Marker не виводиться в лог і передається
-до Vercel як sensitive environment value. Будь-яка зміна commit або catalog
-fingerprint вимагає нового workflow run.
+7. не виконує deploy або promotion.
 
 Eval-відповіді читають catalog fingerprint безпосередньо з
 `ShopKnowledgeCatalogState`, а не з environment fallback. Marker підписує commit,

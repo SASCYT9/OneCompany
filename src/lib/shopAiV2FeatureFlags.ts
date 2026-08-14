@@ -18,10 +18,10 @@ export {
 
 export const SHOP_AI_V2_ROLLOUT_PERCENTAGES = [0, 10, 50, 100] as const;
 
-// A production build is created only after next.config.ts verifies a fresh
-// release marker. Request-time checks keep validating its signature, commit,
-// catalog fingerprint and rollout contract, but must not disable that immutable
-// deployment merely because the build-time marker later reaches its TTL.
+// One AI must fail closed without taking the storefront down. Request-time
+// checks validate the marker signature, deployed commit, catalog fingerprint,
+// and rollout contract. Marker expiry is intentionally ignored only after a
+// commit-bound deployment exists; a marker for another commit still disables V2.
 const SHOP_AI_V2_RUNTIME_GUARD_OPTIONS = { enforceMarkerExpiry: false } as const;
 
 const SHOP_AI_V2_ROLLOUT_PERCENTAGE_SET = new Set<number>(SHOP_AI_V2_ROLLOUT_PERCENTAGES);

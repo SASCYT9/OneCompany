@@ -134,19 +134,14 @@ used in Gate 5.
 
 ## Gate 4 — exact deployment candidate
 
-For a One AI V2-enabled release, run the protected GitHub workflow
-`One AI V2 Release Evaluation` with the exact full commit SHA. The workflow creates
-an isolated Vercel Preview from that checkout, evaluates that URL, and produces a
-commit- and catalog-bound signed marker. Bind only non-production credentials to
-the Preview and keep every Operations action flag disabled.
+Create a manual Vercel Preview/Staging deployment for the exact reviewed commit if
+the project permits it. Bind only non-production credentials and keep every
+Operations action flag disabled.
 
 Verify the exact deployment SHA, build logs, generated catalog snapshot, One AI
 release guard, route health, storefront/admin regressions, and absence of secret
-values in logs. A Production deployment from this workflow additionally requires
-the exact `DEPLOY EVALUATED COMMIT TO PRODUCTION` confirmation. It updates only the
-verified marker/fingerprint, deploys the same checkout, and smoke-checks the
-canonical product gallery. If code, catalog fingerprint, or relevant environment
-changes, restart the gate.
+values in logs. Do not rebuild between acceptance and promotion; if code or
+environment changes, restart the gate.
 
 If the project cannot produce a safe candidate without pushing `master`, stop and
 change/confirm the Vercel deployment process with the owner first.
