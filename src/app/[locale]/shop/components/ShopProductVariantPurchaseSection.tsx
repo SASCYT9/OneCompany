@@ -7,6 +7,7 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
+import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import type {
@@ -20,6 +21,7 @@ import {
 } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import { shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
 import type { SupportedLocale } from "@/lib/seo";
 
 type Props = {
@@ -153,7 +155,7 @@ export function ShopProductVariantPurchaseSection({
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const { rates } = useShopCurrency();
-  const variants = product.variants ?? [];
+  const variants = useMemo(() => product.variants ?? [], [product.variants]);
   const optionAxes = useMemo(
     () => buildOptionAxes(product.options, variants),
     [product.options, variants]
@@ -205,12 +207,20 @@ export function ShopProductVariantPurchaseSection({
   const compareAt = pricing.effectiveCompareAt
     ? computeCrossPrices(pricing.effectiveCompareAt, rates)
     : null;
+  const showEventuriAvailability = shouldShowEventuriStockBadge(product.brand, product.stock);
 
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-foreground/12 bg-card p-5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:bg-black/40 dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col">
-          <ShopPrimaryPriceBox locale={locale} isUa={isUa} price={pricing.effectivePrice} />
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+            <div className="min-w-0">
+              <ShopPrimaryPriceBox locale={locale} isUa={isUa} price={pricing.effectivePrice} />
+            </div>
+            {showEventuriAvailability ? (
+              <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} />
+            ) : null}
+          </div>
           {compareAt ? (
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40">

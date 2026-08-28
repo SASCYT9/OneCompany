@@ -44,7 +44,8 @@ import {
   type ShopAiProductKind,
 } from "@/lib/shopAiProductKind";
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
-import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
+import { SHOW_STOCK_BADGE, shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
 
 type StockItem = {
   id: string;
@@ -3218,6 +3219,10 @@ function StockPageContent() {
                       const logoPath = getBrandLogoPath(item.brand);
                       const compareAtLabel = formatItemCompareAt(item);
                       const priceLabel = formatItemPrice(item);
+                      const showEventuriAvailability = shouldShowEventuriStockBadge(
+                        item.brand,
+                        item.inStock ? "inStock" : "preOrder"
+                      );
                       const vehicleLabel =
                         [make, model, chassis].filter(Boolean).join(" ") ||
                         (isUa
@@ -3299,7 +3304,7 @@ function StockPageContent() {
 
                           <div className="mt-3 space-y-2.5 border-t border-foreground/[0.07] pt-3 md:mt-auto">
                             {isB2B ? (
-                              <div className="flex min-w-0 items-end justify-between gap-3">
+                              <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
                                 {compareAtLabel ? (
                                   <div className="min-w-0 pb-0.5">
                                     <div className="mb-0.5 text-[8px] font-light uppercase tracking-[0.18em] text-foreground/35">
@@ -3327,9 +3332,12 @@ function StockPageContent() {
                                     {isUa ? "за одиницю" : "per unit"}
                                   </div>
                                 </div>
+                                {showEventuriAvailability ? (
+                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                                ) : null}
                               </div>
                             ) : (
-                              <div className="flex min-w-0 items-end justify-between gap-3">
+                              <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
                                 <div className="min-w-0">
                                   <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
                                     {isUa ? "Ціна" : "Price"}
@@ -3341,6 +3349,9 @@ function StockPageContent() {
                                     {priceLabel}
                                   </div>
                                 </div>
+                                {showEventuriAvailability ? (
+                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                                ) : null}
                               </div>
                             )}
 

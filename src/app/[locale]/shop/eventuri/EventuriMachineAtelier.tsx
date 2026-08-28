@@ -16,7 +16,10 @@ import {
 } from "react";
 
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
+import type { ShopStock } from "@/lib/shopCatalog";
 import type { SupportedLocale } from "@/lib/seo";
+import { shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
 
 const EventuriAirflowScene = dynamic(() => import("./EventuriAirflowScene"), {
   ssr: false,
@@ -35,6 +38,7 @@ export type EventuriLandingProduct = {
   title: string;
   type: string;
   price: EventuriMoney;
+  stock: ShopStock;
 };
 
 export type EventuriLandingHero = {
@@ -1010,17 +1014,24 @@ export default function EventuriMachineAtelier({
                         <p className="min-w-0 leading-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-black/45 dark:text-white/48">
                           {product.type}
                         </p>
-                        <span className="h-fit shrink-0 whitespace-nowrap border border-[#e31b2d]/45 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ff6571]">
-                          {isUa ? "Під замовлення" : "Made to order"}
-                        </span>
+                        {shouldShowEventuriStockBadge("Eventuri", product.stock) ? null : (
+                          <span className="h-fit shrink-0 whitespace-nowrap border border-[#e31b2d]/45 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ff6571]">
+                            {isUa ? "Під замовлення" : "Made to order"}
+                          </span>
+                        )}
                       </div>
                       <h3 className="mt-4 min-h-[5.15rem] line-clamp-4 break-words font-display text-lg leading-[1.08] tracking-[-0.03em] text-[#171717] dark:text-white">
                         {product.title}
                       </h3>
                       <div className="mt-auto flex items-end justify-between gap-3 border-t border-black/10 pt-4 dark:border-white/10">
-                        <p className="text-base font-medium tracking-[-0.02em] text-[#171717] dark:text-white">
-                          <EventuriProductPrice locale={locale} price={product.price} />
-                        </p>
+                        <div className="flex min-w-0 flex-wrap items-center gap-3">
+                          <p className="text-base font-medium tracking-[-0.02em] text-[#171717] dark:text-white">
+                            <EventuriProductPrice locale={locale} price={product.price} />
+                          </p>
+                          {shouldShowEventuriStockBadge("Eventuri", product.stock) ? (
+                            <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                          ) : null}
+                        </div>
                         <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center border border-black/18 text-black transition group-hover:border-[#e31b2d] group-hover:bg-[#d9192b] group-hover:text-white dark:border-white/18 dark:text-white">
                           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                         </span>

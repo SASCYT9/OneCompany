@@ -173,6 +173,7 @@ function createFeaturedProducts(
     title: localizeShopProductTitle(locale, product),
     type: localizedFeaturedProductType(locale, product),
     price: product.price,
+    stock: product.stock,
   }));
 }
 
