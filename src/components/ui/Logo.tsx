@@ -22,6 +22,9 @@ const LOGO_DIMENSIONS: Record<LogoSize, { width: number; height: number }> = {
 const ALT =
   "OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory";
 
+const LOGO_IMAGE_CLASS =
+  "pointer-events-none block h-auto w-full select-none [-webkit-user-drag:none] [-webkit-user-select:none]";
+
 export function Logo({
   className = "",
   asLink = false,
@@ -42,7 +45,8 @@ export function Logo({
           width={width}
           height={height}
           loading={priority ? "eager" : "lazy"}
-          className="h-auto w-full block dark:hidden"
+          draggable={false}
+          className={clsx(LOGO_IMAGE_CLASS, "dark:hidden")}
         />
         <img
           src={LOGO_LIGHT}
@@ -51,7 +55,8 @@ export function Logo({
           width={width}
           height={height}
           loading={priority ? "eager" : "lazy"}
-          className="h-auto w-full hidden dark:block"
+          draggable={false}
+          className={clsx(LOGO_IMAGE_CLASS, "hidden dark:block")}
         />
       </>
     );
@@ -64,18 +69,28 @@ export function Logo({
         width={width}
         height={height}
         loading={priority ? "eager" : "lazy"}
-        className="h-auto w-full"
+        draggable={false}
+        className={LOGO_IMAGE_CLASS}
       />
     );
   }
 
-  const image = <span className={clsx("inline-flex items-center", className)}>{inner}</span>;
+  const image = (
+    <span
+      className={clsx(
+        "pointer-events-none inline-flex select-none items-center [-webkit-user-select:none]",
+        className
+      )}
+    >
+      {inner}
+    </span>
+  );
 
   if (asLink) {
     return (
       <Link
         href="/"
-        className="inline-flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
+        className="inline-flex shrink-0 touch-manipulation select-none items-center [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
         aria-label="ONE COMPANY home"
       >
         {image}

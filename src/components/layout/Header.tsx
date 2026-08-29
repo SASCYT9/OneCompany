@@ -184,11 +184,11 @@ export function Header() {
           <Link
             href={logoHref}
             suppressHydrationWarning
-            className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-foreground/40"
+            className="absolute left-1/2 z-10 inline-flex -translate-x-1/2 shrink-0 touch-manipulation select-none items-center [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] md:relative md:left-auto md:translate-x-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-foreground/40"
             aria-label="ONE COMPANY home"
           >
             <Logo className="w-20 sm:w-28 md:w-32" priority tone="auto" size="compact" />
-            <span className="absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-foreground to-transparent sm:-bottom-2 sm:w-10" />
+            <span className="pointer-events-none absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-foreground to-transparent sm:-bottom-2 sm:w-10" />
           </Link>
           <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
             {globalNavItems.map((item) => {

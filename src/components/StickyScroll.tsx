@@ -93,7 +93,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                   "min-h-[50vh] mb-8 sm:mb-16 p-6 sm:p-8 relative overflow-hidden",
                   "rounded-2xl border border-foreground/10 bg-card/55 dark:bg-black/45 backdrop-blur-md",
                   // Desktop: stacked clean style with cross-fade based on scroll
-                  "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
+                  "lg:min-h-[52vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
                   // Opacity dim only on desktop where items stack; mobile keeps full readability
                   "transition-opacity duration-300 ease-out",
                   isActive ? "opacity-100" : "opacity-100 lg:opacity-20"
