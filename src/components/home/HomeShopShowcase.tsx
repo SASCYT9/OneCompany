@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import responsiveStyles from "./HomeResponsive.module.css";
 
 type HomeShopShowcaseProps = {
   locale: string;
@@ -34,7 +35,9 @@ export function HomeShopShowcase({
       transition={{ duration: reduceMotion ? 0 : 0.78, ease: revealEase }}
       className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-4 sm:px-6 md:px-8"
     >
-      <div className="group relative isolate min-h-[258px] overflow-hidden rounded-[24px] border border-[#746b61]/25 bg-[#cec5ba] text-foreground shadow-[0_18px_48px_rgba(58,49,39,0.13)] transition-[border-color,box-shadow] duration-700 hover:border-[#746b61]/38 hover:shadow-[0_22px_56px_rgba(58,49,39,0.17)] sm:min-h-[224px] sm:rounded-[28px] dark:border-white/12 dark:bg-background/72 dark:shadow-[0_22px_58px_rgba(0,0,0,0.24)] dark:hover:border-white/18 dark:hover:shadow-[0_26px_68px_rgba(0,0,0,0.30)] lg:min-h-[210px]">
+      <div
+        className={`${responsiveStyles.shopPanel} group relative isolate min-h-[258px] overflow-hidden rounded-[24px] border border-[#746b61]/25 bg-[#cec5ba] text-foreground shadow-[0_18px_48px_rgba(58,49,39,0.13)] transition-[border-color,box-shadow] duration-700 hover:border-[#746b61]/38 hover:shadow-[0_22px_56px_rgba(58,49,39,0.17)] sm:min-h-[224px] sm:rounded-[28px] dark:border-white/12 dark:bg-background/72 dark:shadow-[0_22px_58px_rgba(0,0,0,0.24)] dark:hover:border-white/18 dark:hover:shadow-[0_26px_68px_rgba(0,0,0,0.30)] lg:min-h-[210px]`}
+      >
         <motion.div
           aria-hidden="true"
           initial={reduceMotion ? false : { opacity: 0, x: 34, scale: 1.035 }}
@@ -74,7 +77,7 @@ export function HomeShopShowcase({
             delay: reduceMotion ? 0 : 0.18,
             ease: revealEase,
           }}
-          className="relative z-10 flex min-h-[258px] w-full flex-col justify-center px-5 py-7 sm:min-h-[224px] sm:w-[56%] sm:px-8 sm:py-8 lg:min-h-[210px] lg:px-10 xl:px-12"
+          className={`${responsiveStyles.shopContent} relative z-10 flex min-h-[258px] w-full flex-col justify-center px-5 py-7 sm:min-h-[224px] sm:w-[56%] sm:px-8 sm:py-8 lg:min-h-[210px] lg:px-10 xl:px-12`}
         >
           <p className="font-display text-[10px] font-medium uppercase tracking-[0.28em] text-[#d5001c] sm:text-[11px] sm:tracking-[0.32em]">
             {eyebrow}

@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
 import { HomeShopShowcase } from "@/components/home/HomeShopShowcase";
+import responsiveStyles from "@/components/home/HomeResponsive.module.css";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
 export { generateMetadata } from "./metadata";
@@ -155,9 +156,18 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
         {/* Hero — photo cards swap dark/light variants per theme. Each variant
             has matching gradient overlay so the label pill + stats read
             correctly. Text uses semantic tokens so it inverts with theme. */}
-        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8 text-foreground">
+        <section
+          className={clsx(
+            responsiveStyles.heroSection,
+            "relative flex min-h-[70vh] flex-col justify-center pt-8 text-foreground"
+          )}
+        >
           <div
-            className={`px-4 pt-10 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 sm:pt-24 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}
+            className={clsx(
+              responsiveStyles.heroBadge,
+              "px-4 pt-10 text-center uppercase tracking-[0.4em] text-foreground/55 sm:px-6 sm:pt-24 md:pt-36 sm:tracking-[0.5em]",
+              typography.heroBadge
+            )}
           >
             <p className="inline-flex items-center gap-3">
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -189,6 +199,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   href={experience.href}
                   prefetch={false}
                   className={clsx(
+                    responsiveStyles.experienceCard,
                     "group relative flex flex-1 min-h-[360px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-foreground sm:min-h-[360px] sm:gap-6 sm:p-5 md:min-h-[420px] xl:min-h-[480px] 2xl:min-h-[540px]",
                     "border border-foreground/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-foreground/30 hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
                     "rounded-2xl",
@@ -205,12 +216,22 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
                   <div
                     aria-hidden="true"
                     style={{ backgroundImage: `url(${experience.bgImageDark})` }}
-                    className={`absolute inset-0 hidden bg-cover bg-no-repeat transition-transform duration-700 -translate-y-[30%] group-hover:scale-105 sm:translate-y-0 dark:block ${index === 0 ? "bg-[position:center_83%]" : "bg-[position:center_87%]"} md:bg-center`}
+                    className={clsx(
+                      responsiveStyles.experiencePhoto,
+                      "absolute inset-0 hidden bg-cover bg-no-repeat transition-transform duration-700 -translate-y-[30%] group-hover:scale-105 sm:translate-y-0 dark:block md:bg-center",
+                      index === 0 ? "bg-[position:center_83%]" : "bg-[position:center_87%]"
+                    )}
                   />
                   <div
                     aria-hidden="true"
                     style={{ backgroundImage: `url(${experience.bgImageLight})` }}
-                    className={`absolute inset-0 bg-cover bg-no-repeat ${index === 0 ? "bg-[position:center_98%] sm:bg-[position:center_83%] md:bg-[position:center_70%]" : "bg-[position:center_100%] sm:bg-[position:center_87%] md:bg-[position:center_75%]"} transition-transform duration-700 group-hover:scale-105 dark:hidden`}
+                    className={clsx(
+                      responsiveStyles.experiencePhoto,
+                      "absolute inset-0 bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-105 dark:hidden",
+                      index === 0
+                        ? "bg-[position:center_98%] sm:bg-[position:center_83%] md:bg-[position:center_70%]"
+                        : "bg-[position:center_100%] sm:bg-[position:center_87%] md:bg-[position:center_75%]"
+                    )}
                   />
                   {/* Veil — light covers the entire photo with a uniform dark
                       overlay so white text reads anywhere on the card. Dark
