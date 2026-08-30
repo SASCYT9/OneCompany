@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" alt="S3 Power Sports" title="S3 Power Sports" viewBox="0 0 365 143">
+                <title>S3 Power Sports Logo</title>
+                <defs>
+                    <linearGradient id="gradient_Logo-mobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ffffff" />
+                        <stop offset="80%" stop-color="#99ff00" />
+                    </linearGradient>
+                </defs>
+                <path class="svg_S3" fill="url(#gradient_Logo-mobile)" d="M223.11 0 99.69 0 72.03 39 131.56 97.65 31.53 97.65 0 142.75 154.28 142.75 187.17 70.19 132.58 35.26 207.17 35.26 223.11 0zM228.95 0 364.16 0 305.16 65.88 328.89 109.46 305.16 142.75 154.28 142.75 224.13 87.16 267.19 109.81 250.57 65.54 290.95 35.29 243.33 35.29 228.95 0"/>
+            </svg>

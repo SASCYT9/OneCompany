@@ -7,6 +7,7 @@ import {
   type SupportedLocale,
 } from "@/lib/seo";
 import type { CategorySlug, Localized } from "./categoryMeta";
+import { isPublicBrand } from "./brandVisibility";
 
 export interface CategoryData {
   slug: CategorySlug;
@@ -17,7 +18,7 @@ export interface CategoryData {
   brands: string[];
 }
 
-export const categoryData: CategoryData[] = [
+const unfilteredCategoryData: CategoryData[] = [
   // -----------------------
   // AUTO CATEGORIES
   // -----------------------
@@ -116,6 +117,9 @@ export const categoryData: CategoryData[] = [
       "Verus Engineering",
       "WALD",
       "Zacoe",
+      "Assault Industries",
+      "S3 Power Sports",
+      "SuperATV",
     ],
   },
   {
@@ -151,6 +155,8 @@ export const categoryData: CategoryData[] = [
       "QuickSilver Exhausts",
       "Red Star Exhaust",
       "RES Exhaust",
+      "EVP",
+      "RPM SXS",
       "Supersprint",
       "Tubi Style",
     ],
@@ -183,6 +189,8 @@ export const categoryData: CategoryData[] = [
       "K&N",
       "Mountune",
       "Renntech",
+      "EVP",
+      "RPM SXS",
       "Verus Engineering",
       "Weistec Engineering",
     ],
@@ -254,6 +262,8 @@ export const categoryData: CategoryData[] = [
       "Vargas Turbo",
       "VP Racing Fuel",
       "XDI fuel systems",
+      "EVP",
+      "RPM SXS",
     ],
   },
   {
@@ -288,6 +298,9 @@ export const categoryData: CategoryData[] = [
       "Stoptech",
       "MTS Technik",
       "MCA Suspension",
+      "Assault Industries",
+      "S3 Power Sports",
+      "SuperATV",
     ],
   },
   {
@@ -321,6 +334,7 @@ export const categoryData: CategoryData[] = [
       "Sachs Performance",
       "Moser Engineering",
       "Paramount transmissions",
+      "SuperATV",
     ],
   },
   {
@@ -381,6 +395,7 @@ export const categoryData: CategoryData[] = [
       "Turner Motorsport",
       "Vargas Turbo",
       "YPG",
+      "EVP",
     ],
   },
   {
@@ -449,6 +464,9 @@ export const categoryData: CategoryData[] = [
       "Extreme Performance Tyres",
       "Lithiumax",
       "Xshift",
+      "Assault Industries",
+      "S3 Power Sports",
+      "SuperATV",
     ],
   },
 
@@ -629,6 +647,11 @@ export const categoryData: CategoryData[] = [
     ],
   },
 ];
+
+export const categoryData: CategoryData[] = unfilteredCategoryData.map((category) => ({
+  ...category,
+  brands: category.brands.filter(isPublicBrand),
+}));
 
 export function getCategoryMetadata(slug: string, locale: string): Metadata {
   const category = categoryData.find((c) => c.slug === slug);

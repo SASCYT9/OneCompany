@@ -1,5 +1,7 @@
 // src/lib/brands.ts
 
+import { isPublicBrand } from "./brandVisibility";
+
 export type BrandCategory = "usa" | "europe" | "oem" | "racing" | "moto" | "auto";
 
 export type CountryOfOrigin =
@@ -149,7 +151,7 @@ export function getBrandWithCategory(
   }
 
   // Check moto
-  const motoBrand = brandsMoto.find((b) => getBrandSlug(b) === slug);
+  const motoBrand = allMotoBrands.find((b) => getBrandSlug(b) === slug);
   if (motoBrand) {
     return { ...motoBrand, category: "moto" };
   }
@@ -840,6 +842,46 @@ export const brandsUsa: LocalBrand[] = [
     descriptionUA:
       "Авторитет у продуктивності Mercedes-AMG, комплексні компресорні та турбо-пакети, що переосмислюють межі потужності.",
     website: "https://www.weistec.com",
+  },
+  {
+    name: "EVP",
+    description:
+      "Evolution Powersports develops high-performance ECU calibrations, turbo systems, exhausts, clutching and engine components for modern UTV, SXS and powersports platforms, with a focus on repeatable power and race-proven reliability.",
+    descriptionUA:
+      "Evolution Powersports розробляє високопродуктивні калібрування ECU, турбосистеми, вихлопи, компоненти зчеплення та двигуна для сучасних UTV, SXS і powersports-платформ, з акцентом на стабільну потужність і перевірену в гонках надійність.",
+    website: "https://evopowersports.com",
+  },
+  {
+    name: "RPM SXS",
+    description:
+      "American SXS performance specialist offering exhaust systems, intake and charge piping, blow-off valve kits, fuel solutions and purpose-built upgrades for Can-Am, Polaris, Kawasaki and other off-road platforms.",
+    descriptionUA:
+      "Американський спеціаліст із продуктивності SXS, що пропонує вихлопні системи, впускні та наддувні патрубки, комплекти blow-off, паливні рішення й спеціалізовані апгрейди для Can-Am, Polaris, Kawasaki та інших off-road платформ.",
+    website: "https://rpmsxs.com",
+  },
+  {
+    name: "S3 Power Sports",
+    description:
+      "Louisiana-based off-road engineering company producing heavy-duty suspension, chassis and protection components for UTV and SXS applications, designed for demanding trail, mud and competition use.",
+    descriptionUA:
+      "Off-road інженерна компанія зі штату Луїзіана, що виробляє посилені компоненти підвіски, шасі та захисту для UTV і SXS, розраховані на складні маршрути, багно та змагання.",
+    website: "https://s3powersports.com",
+  },
+  {
+    name: "SuperATV",
+    description:
+      "Comprehensive American manufacturer of aftermarket UTV and ATV parts, including suspension systems, axles, portal gear lifts, doors, roofs, windshields, protection and drivetrain upgrades for serious off-road builds.",
+    descriptionUA:
+      "Провідний американський виробник aftermarket-компонентів для UTV та ATV: підвісок, приводів, портальних редукторів, дверей, дахів, вітрових стекол, захисту й апгрейдів трансмісії для серйозних off-road проєктів.",
+    website: "https://www.superatv.com",
+  },
+  {
+    name: "Assault Industries",
+    description:
+      "California-born performance off-road brand creating precision-engineered UTV and SXS suspension, steering, protection and cockpit accessories with aggressive design and extensive in-house manufacturing expertise.",
+    descriptionUA:
+      "Каліфорнійський performance-бренд для бездоріжжя, що створює високоточні компоненти підвіски, кермового управління, захисту та оснащення кокпіта для UTV і SXS, поєднуючи агресивний дизайн із багаторічною виробничою експертизою.",
+    website: "https://assaultind.com",
   },
   {
     name: "Whipple Superchargers",
@@ -2331,24 +2373,26 @@ export const allAutomotiveBrands: LocalBrand[] = [
   ...brandsEurope,
   ...brandsOem,
   ...brandsRacing,
-].sort((a, b) => a.name.localeCompare(b.name));
+]
+  .filter((brand) => isPublicBrand(brand.name))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
-export const allMotoBrands: LocalBrand[] = [...brandsMoto].sort((a, b) =>
-  a.name.localeCompare(b.name)
-);
+export const allMotoBrands: LocalBrand[] = [...brandsMoto]
+  .filter((brand) => isPublicBrand(brand.name))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 export function getBrandsByCategory(category: BrandCategory): LocalBrand[] {
   switch (category) {
     case "usa":
-      return brandsUsa;
+      return brandsUsa.filter((brand) => isPublicBrand(brand.name));
     case "europe":
-      return brandsEurope;
+      return brandsEurope.filter((brand) => isPublicBrand(brand.name));
     case "oem":
-      return brandsOem;
+      return brandsOem.filter((brand) => isPublicBrand(brand.name));
     case "racing":
-      return brandsRacing;
+      return brandsRacing.filter((brand) => isPublicBrand(brand.name));
     case "moto":
-      return brandsMoto;
+      return allMotoBrands;
     case "auto":
       return allAutomotiveBrands;
   }
@@ -2468,6 +2512,11 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   Vorsteiner: { country: "USA", subcategory: "Exterior" },
   Wavetrac: { country: "USA", subcategory: "Drivetrain" },
   "Weistec Engineering": { country: "USA", subcategory: "Engine" },
+  EVP: { country: "USA", subcategory: "Engine" },
+  "RPM SXS": { country: "USA", subcategory: "Engine" },
+  "S3 Power Sports": { country: "USA", subcategory: "Suspension" },
+  SuperATV: { country: "USA", subcategory: "Suspension" },
+  "Assault Industries": { country: "USA", subcategory: "Suspension" },
   "Whipple Superchargers": { country: "USA", subcategory: "Engine" },
   "XDI fuel systems": { country: "USA", subcategory: "Fuel Systems" },
 

@@ -49,6 +49,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     "Vargas Turbo",
     "Verus Engineering",
     "XDI fuel systems",
+    "SuperATV",
     // Added 2026-05-07 (post-merge fix): SooQoo source PNG is black-ink
     // on an opaque white background — chroma-keyed the white to
     // transparent so the modal's auto-invert produces a clean white
