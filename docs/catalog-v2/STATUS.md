@@ -15,6 +15,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Done        | Mixed universal/exact/review policies, CLI, PostgreSQL proof            |
 | C2-P6-006 | Remaining-source lossless inventory/backfills  | In progress | 9,596 records reconciled; PRODUCT binding support green; per-source work remains |
 | C2-P6-007 | Brabus normalization/backfill                  | Done        | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof |
+| C2-P6-008 | Urban normalization/backfill                   | Done        | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -67,6 +68,12 @@ evidence produces 978 correlated applications; 729 products verify while 168 con
 make tags and 125 engine-relevant products without engine identity remain review-only. Brabus and
 Eventuri now share one vehicle-policy persistence engine. PostgreSQL proves exact X167/GLS and
 missing-engine PowerXtra behavior. See [BRABUS_AUDIT_2026-08-31.md](./BRABUS_AUDIT_2026-08-31.md).
+Urban normalization accounts for 259/259 records and 15,252/15,252 raw leaves. It produces 321
+correlated applications and verifies 244 products. Legacy wheel-design `fits-model` values stay in
+the ledger without polluting vehicle taxonomy; five engine-relevant exhaust products without engine
+identity and 12 unresolved applications remain review-only. PostgreSQL proves correlated L405/L494
+wheel clauses and unknown-engine exhaust behavior, with Brabus and Eventuri regression coverage. See
+[URBAN_AUDIT_2026-08-31.md](./URBAN_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
