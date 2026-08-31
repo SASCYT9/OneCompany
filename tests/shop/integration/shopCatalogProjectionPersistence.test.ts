@@ -29,6 +29,7 @@ const sourceModule = import("../../../src/lib/shopCatalogProjectionSource.server
 const mutationModule = import("../../../src/lib/shopCatalogMutationCoordinator.server");
 const outboxModule = import("../../../src/lib/shopCatalogOutboxWorker.server");
 const checkpointModule = import("../../../src/lib/shopCatalogRebuildCheckpoint.server");
+const suggestionModule = import("../../../src/lib/shopCatalogSuggestion.server");
 
 function source(productId: string, version: string, titleSuffix = ""): ShopCatalogProjectionSource {
   return {
@@ -78,6 +79,7 @@ test(
     const { persistShopCatalogProjectionBuild } = await persistenceModule;
     const { queryShopCatalogProjection } = await queryModule;
     const { queryShopCatalogProjectionFacets } = await queryModule;
+    const { queryShopCatalogSuggestions } = await suggestionModule;
     const { RevisionBackedShopCatalogProjectionSource } = await sourceModule;
     const { coordinateShopCatalogProductCreation, coordinateShopCatalogProductMutation } =
       await mutationModule;
@@ -278,6 +280,12 @@ test(
           (item) => item.yearFrom === 2016 && item.yearTo === 2020 && item.count >= 1
         )
       );
+
+      const suggestions = await queryShopCatalogSuggestions({ locale: "ua", query: "BMW" });
+      assert.ok(
+        suggestions.some((item) => item.type === "vehicle" && item.make.toLowerCase() === "bmw")
+      );
+      assert.ok(suggestions.some((item) => item.type === "product" && item.id === productId));
 
       async function enqueueDrillJob(label: string, maxAttempts: number) {
         const id = `${productId}-${label}`;

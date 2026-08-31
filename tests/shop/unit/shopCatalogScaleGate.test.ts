@@ -67,6 +67,7 @@ test("scale runner is disposable-only and covers the required 100k/500k plans", 
   assert.match(source, /EXPLAIN \(ANALYZE, BUFFERS, FORMAT JSON\)/);
   assert.match(source, /listing_deep_keyset/);
   assert.match(source, /correlated_fitment/);
+  assert.match(source, /autocomplete_products/);
   assert.match(source, /brand_facet/);
   assert.match(source, /progressive_make_facet/);
   assert.doesNotMatch(source, /DELETE FROM|TRUNCATE|DROP TABLE "Shop/);

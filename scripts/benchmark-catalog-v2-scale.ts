@@ -63,6 +63,8 @@ async function createFixture(tx: any, size: number) {
       scope_key text NOT NULL,
       stable_rank numeric(20,8) NOT NULL,
       brand_key text NOT NULL,
+      title text NOT NULL,
+      normalized_sku text,
       search_text text NOT NULL,
       PRIMARY KEY (product_id, locale)
     ) ON COMMIT DROP`,
@@ -102,11 +104,13 @@ async function createFixture(tx: any, size: number) {
 
   await tx.$executeRawUnsafe(
     `INSERT INTO scale_projection
-      (product_id, locale, is_published, status_key, scope_key, stable_rank, brand_key, search_text)
+      (product_id, locale, is_published, status_key, scope_key, stable_rank, brand_key,
+       title, normalized_sku, search_text)
      SELECT
        'scale-' || lpad(value::text, 7, '0'), locale, true, 'ACTIVE',
        CASE WHEN value % 10 = 0 THEN 'moto' ELSE 'auto' END,
-       value::numeric, 'brand-' || (value % 20),
+       value::numeric, 'brand-' || (value % 20), 'Catalog product ' || value,
+       'SKU' || value,
        CASE WHEN value % 100 = 0 THEN 'eventuri bmw m2 f87 n55 intake scale ' || value
             ELSE 'catalog product brand ' || (value % 20) || ' scale ' || value END
      FROM generate_series(1, $1) value
@@ -221,6 +225,20 @@ function scenarios(size: number) {
           WHERE locale = 'ua' AND is_published = true AND status_key = 'ACTIVE'
             AND search_text ILIKE '%eventuri bmw m2%'
           ORDER BY stable_rank, product_id LIMIT 25`,
+    },
+    {
+      name: "autocomplete_products",
+      sql: `SELECT product_id FROM scale_projection
+          WHERE locale = 'ua' AND is_published = true AND status_key = 'ACTIVE'
+            AND search_text ILIKE '%eventuri bmw%'
+          ORDER BY CASE
+            WHEN lower(coalesce(normalized_sku, '')) = 'eventuribmw' THEN 0
+            WHEN lower(title) = 'eventuri bmw' THEN 1
+            WHEN title ILIKE 'eventuri bmw%' THEN 2
+            WHEN brand_key ILIKE 'eventuri bmw%' THEN 3
+            ELSE 4 END,
+            stable_rank, product_id
+          LIMIT 6`,
     },
     {
       name: "brand_facet",

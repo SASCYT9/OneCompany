@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
+const isCatalogV2ReaderEnabled = process.env.SHOP_CATALOG_V2_READER_MODE === "ssr";
 
 const STATIC_REMOTE_IMAGE_HOSTS = [
   "cdn.shopify.com",
@@ -505,20 +506,32 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return {
-      beforeFiles: PAGED_LISTING_PATHS.map((listingPath) => {
-        const [, , store, surface] = listingPath.split("/");
-        return {
-          source: `/:locale(ua|en)${listingPath}`,
-          destination: `/api/internal/seo-pagination/:locale/${store}/${surface}/:pageNumber`,
-          has: [
-            {
-              type: "query" as const,
-              key: "page",
-              value: "(?<pageNumber>[1-9][0-9]*)",
-            },
-          ],
-        };
-      }),
+      beforeFiles: [
+        ...(!isCatalogV2ReaderEnabled
+          ? [
+              {
+                // Preserve the public catalog URL while the V2 reader is off,
+                // without importing the large legacy client tree into V2.
+                source: "/:locale(ua|en)/shop/catalog",
+                destination: "/:locale/shop/stock",
+              },
+            ]
+          : []),
+        ...PAGED_LISTING_PATHS.map((listingPath) => {
+          const [, , store, surface] = listingPath.split("/");
+          return {
+            source: `/:locale(ua|en)${listingPath}`,
+            destination: `/api/internal/seo-pagination/:locale/${store}/${surface}/:pageNumber`,
+            has: [
+              {
+                type: "query" as const,
+                key: "page",
+                value: "(?<pageNumber>[1-9][0-9]*)",
+              },
+            ],
+          };
+        }),
+      ],
       afterFiles: [],
       fallback: [],
     };

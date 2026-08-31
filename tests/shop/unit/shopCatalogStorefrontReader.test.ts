@@ -85,7 +85,9 @@ test("storefront query ignores malformed optional filters instead of broadening 
 
 test("catalog page performs direct server query only behind the reader flag", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(source, /if \(!reader\.enabled\) return <StockCatalogPage \/>/);
+  assert.match(source, /if \(!reader\.enabled\)/);
+  assert.match(source, /redirect\(`/);
+  assert.doesNotMatch(source, /stock\/page/);
   assert.match(source, /await connection\(\)/);
   assert.match(source, /queryShopCatalogProjection\(/);
   assert.match(source, /queryShopCatalogProjectionFacets\(query\)/);
@@ -93,14 +95,40 @@ test("catalog page performs direct server query only behind the reader flag", ()
   assert.doesNotMatch(source, /fetch\(/);
 });
 
+test("flag-off catalog is internally rewritten without coupling legacy client code to V2", () => {
+  const config = readFileSync("next.config.ts", "utf8");
+  assert.match(config, /SHOP_CATALOG_V2_READER_MODE === "ssr"/);
+  assert.match(config, /source: "\/:locale\(ua\|en\)\/shop\/catalog"/);
+  assert.match(config, /destination: "\/:locale\/shop\/stock"/);
+});
+
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
-  const source = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
-  assert.match(source, /method="get"/);
+  const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
+  const client = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Filters.tsx", "utf8");
+  assert.match(server, /<CatalogV2Filters/);
+  assert.match(client, /method="get"/);
   for (const field of ["q", "brand", "make", "model", "generation", "year", "engine", "fuel"]) {
-    assert.match(source, new RegExp(`name=[{\"]+${field}`));
+    assert.match(client, new RegExp(`name=[{\"]+${field}`));
   }
-  assert.match(source, /afterRank/);
-  assert.match(source, /afterProduct/);
-  assert.match(source, /rel="next"/);
-  assert.doesNotMatch(source, /useEffect|fetch\(/);
+  assert.match(server, /afterRank/);
+  assert.match(server, /afterProduct/);
+  assert.match(server, /rel="next"/);
+  assert.doesNotMatch(server, /useEffect|fetch\(/);
+  assert.match(client, /useTransition/);
+  assert.match(client, /AbortController/);
+  assert.match(client, /180/);
+  assert.match(client, /applyShopCatalogFilterChange/);
+  assert.match(client, /\/api\/shop\/catalog\/suggest/);
+});
+
+test("catalog route has accessible loading, empty, and recoverable error states", () => {
+  const loading = readFileSync("src/app/[locale]/shop/catalog/loading.tsx", "utf8");
+  const error = readFileSync("src/app/[locale]/shop/catalog/error.tsx", "utf8");
+  const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
+  assert.match(loading, /aria-busy="true"/);
+  assert.match(loading, /aspect-square/);
+  assert.match(error, /"use client"/);
+  assert.match(error, /onClick=\{reset\}/);
+  assert.match(error, /filters remain in the URL/);
+  assert.match(server, /result\.items\.length === 0/);
 });

@@ -7,6 +7,7 @@ import type {
   ShopCatalogProjectionQueryResult,
 } from "@/lib/shopCatalogProjectionQuery.server";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
+import CatalogV2Filters from "./CatalogV2Filters";
 
 type Props = {
   locale: "ua" | "en";
@@ -14,41 +15,6 @@ type Props = {
   facets: ShopCatalogProjectionFacetResult["facets"];
   query: ShopCatalogProjectionQueryInput;
 };
-
-type FacetName = "brand" | "make" | "model" | "generation" | "engine" | "fuel";
-
-function CatalogSelect({
-  name,
-  label,
-  value,
-  options,
-}: {
-  name: FacetName;
-  label: string;
-  value: string | null | undefined;
-  options: ShopCatalogProjectionFacetResult["facets"][FacetName];
-}) {
-  const selectedMissing = value && !options.some((option) => option.key === value.toLowerCase());
-  return (
-    <label className="grid gap-2 text-xs uppercase tracking-[0.16em] text-zinc-500">
-      {label}
-      <select
-        name={name}
-        defaultValue={value?.toLowerCase() ?? ""}
-        disabled={options.length === 0 && !value}
-        className="h-11 border border-zinc-200 bg-white px-3 text-sm normal-case tracking-normal text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-zinc-950 dark:text-white"
-      >
-        <option value="">—</option>
-        {selectedMissing ? <option value={value.toLowerCase()}>{value}</option> : null}
-        {options.map((option) => (
-          <option key={option.key} value={option.key}>
-            {option.label} ({option.count})
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
 
 function nextPageHref(locale: Props["locale"], query: Props["query"], result: Props["result"]) {
   if (!result.nextCursor) return null;
@@ -126,73 +92,7 @@ export default function CatalogV2Server({ locale, result, facets, query }: Props
         <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">{copy.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">{copy.title}</h1>
 
-        <form
-          action={`/${locale}/shop/catalog`}
-          method="get"
-          className="mt-10 grid gap-4 border-y border-zinc-200 py-6 md:grid-cols-2 xl:grid-cols-4 dark:border-white/10"
-        >
-          <label className="grid gap-2 text-xs uppercase tracking-[0.16em] text-zinc-500 md:col-span-2">
-            {copy.search}
-            <input
-              type="search"
-              name="q"
-              defaultValue={query.text ?? ""}
-              maxLength={256}
-              className="h-11 border border-zinc-200 bg-white px-3 text-sm normal-case tracking-normal text-zinc-950 dark:border-white/10 dark:bg-zinc-950 dark:text-white"
-            />
-          </label>
-          <CatalogSelect
-            name="brand"
-            label={copy.brand}
-            value={query.brand}
-            options={facets.brand}
-          />
-          <CatalogSelect name="make" label={copy.make} value={query.make} options={facets.make} />
-          <CatalogSelect
-            name="model"
-            label={copy.model}
-            value={query.model}
-            options={facets.model}
-          />
-          <CatalogSelect
-            name="generation"
-            label={copy.generation}
-            value={query.generation}
-            options={facets.generation}
-          />
-          <label className="grid gap-2 text-xs uppercase tracking-[0.16em] text-zinc-500">
-            {copy.year}
-            <input
-              type="number"
-              name="year"
-              min={1886}
-              max={2200}
-              defaultValue={query.year ?? ""}
-              className="h-11 border border-zinc-200 bg-white px-3 text-sm normal-case tracking-normal text-zinc-950 dark:border-white/10 dark:bg-zinc-950 dark:text-white"
-            />
-          </label>
-          <CatalogSelect
-            name="engine"
-            label={copy.engine}
-            value={query.engine}
-            options={facets.engine}
-          />
-          <CatalogSelect name="fuel" label={copy.fuel} value={query.fuel} options={facets.fuel} />
-          <div className="flex items-end gap-3 xl:col-span-4">
-            <button
-              type="submit"
-              className="h-11 bg-zinc-950 px-6 text-sm text-white dark:bg-white dark:text-zinc-950"
-            >
-              {copy.apply}
-            </button>
-            <Link
-              href={`/${locale}/shop/catalog`}
-              className="grid h-11 place-items-center border border-zinc-200 px-6 text-sm dark:border-white/10"
-            >
-              {copy.reset}
-            </Link>
-          </div>
-        </form>
+        <CatalogV2Filters locale={locale} facets={facets} query={query} copy={copy} />
 
         {result.items.length === 0 ? (
           <p className="mt-12 text-zinc-500">{copy.empty}</p>

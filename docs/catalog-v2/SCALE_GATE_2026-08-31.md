@@ -28,6 +28,7 @@ five times warm with `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)`.
 |  500,000 |       1,000,000 | listing deep keyset |  89.643 |      90.017 | none                  |
 |  500,000 |       1,000,000 | brand page          |   0.048 |       0.024 | none                  |
 |  500,000 |       1,000,000 | trigram text search |  23.093 |      23.396 | none                  |
+|  500,000 |       1,000,000 | product autocomplete |  23.573 |      24.134 | none                  |
 |  500,000 |       1,000,000 | brand facet        |   0.040 |       0.020 | none                  |
 |  500,000 |       1,000,000 | make facet         |   0.020 |       0.020 | none                  |
 |  500,000 |       1,000,000 | make-only fitment   |   4.759 |       6.112 | none                  |

@@ -9,9 +9,9 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | ID        | Work item                                      | Status      | Verification / remaining work                                                       |
 | --------- | ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
 | C2-P3-001 | Bounded indexed listing and fitment query      | Done        | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass         |
-| C2-P3-002 | Progressive facet and suggestion query service | In progress | Facets pass 500k gate; bounded suggestion service remains                           |
+| C2-P3-002 | Progressive facet and suggestion query service | Done        | Correlated facets plus bounded product/brand/vehicle suggestions pass the 500k gate |
 | C2-P4-001 | Flag-off direct Server Component first page    | Done        | Explicit `ssr` only; default legacy branch makes no V2 read; first 24 cards are SSR |
-| C2-P4-002 | Interactive progressive filters and pagination | In progress | SSR GET filters/keyset work; client transitions and parent-reset UX remain          |
+| C2-P4-002 | Interactive progressive filters and pagination | Done        | GET fallback, client transitions, parent resets, abortable autocomplete, keyset next |
 
 The V2 storefront reader has its own fail-closed `SHOP_CATALOG_V2_READER_MODE` contract and is
 not coupled to shadow comparison. Missing, `off`, and invalid values keep the existing stock
@@ -38,7 +38,7 @@ the concrete rebuild source. The leased outbox worker uses `SKIP LOCKED`, reject
 advances each target receipt monotonically. The PostgreSQL integration gate verifies the complete
 mutation → revision → outbox → projection → query path.
 No production or local storefront traffic has been switched to this adapter.
-Latest scale verification: 100k/500k disposable PostgreSQL 17 gates pass all eight query
+Latest scale verification: 100k/500k disposable PostgreSQL 17 gates pass all nine query
 scenarios with no large sequential scan; 41 migrations replay cleanly to 136 public tables.
 Focused contracts and full TypeScript pass.
 
@@ -166,6 +166,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The live stock-search endpoint now invokes the indexed Catalog V2 query only under the fail-closed `compare` flag and never serves its result. Supported first-page/default-order requests emit bounded structured identity/order/continuation parity telemetry; unsupported legacy-only filters are skipped instead of generating misleading comparisons, and projection failures cannot fail the customer response.
 - Monthly Turn14 GitHub Actions no longer receives database or supplier API credentials and cannot execute the legacy direct Prisma writer. It invokes a bearer-authenticated, allowlisted one-brand-per-request endpoint; the endpoint reuses the versioned Turn14 import service and runs bounded outbox publication, while the old CLI fails closed before Prisma initialization.
 - The reproducible 100k/500k PostgreSQL scale gate checks first-page listing, 90%-deep keyset pagination, brand, trigram text, make-only fitment, and fully correlated make/model/engine/year fitment. An initially linear candidate-first plan failed the SLO and was replaced by a product-first planner-fenced query plus a case-insensitive expression index; the final 500k warm p95 is 90.02 ms at worst (deep keyset), with correlated fitment at 24.08 ms and no large sequential scans. See [SCALE_GATE_2026-08-31.md](./SCALE_GATE_2026-08-31.md).
+- The V2 storefront now keeps result rendering on the server while a small client controller provides progressive URL transitions, complete descendant resets, HTML GET fallback, and debounced abortable suggestions. Suggestions are capped before vehicle lookups and preserve make/model clause correlation. A route-level flag-off rewrite keeps the old stock catalog available at the public URL without importing its client tree into V2; production-build entry JS fell from 191,298 to 148,294 gzip bytes. See [STOREFRONT_GATE_2026-08-31.md](./STOREFRONT_GATE_2026-08-31.md).
 - PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.

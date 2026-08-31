@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { redirect } from "next/navigation";
 
 import {
   queryShopCatalogProjection,
@@ -13,7 +14,6 @@ import {
   type CatalogSearchParams,
 } from "@/lib/shopCatalogStorefrontQuery";
 import { resolveLocale } from "@/lib/seo";
-import StockCatalogPage from "../stock/page";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -27,7 +27,11 @@ type Props = {
 
 export default async function CatalogPage({ params, searchParams }: Props) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
-  if (!reader.enabled) return <StockCatalogPage />;
+  if (!reader.enabled) {
+    // Normal requests are internally rewritten by next.config. This is a
+    // fail-closed fallback for direct route-module invocation only.
+    redirect(`/${(await params).locale}/shop/stock`);
+  }
 
   // Opt into request-time rendering only for the explicit V2 reader. The
   // flag-off legacy branch remains eligible for its existing static caching.
