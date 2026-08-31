@@ -1,6 +1,4 @@
-import "server-only";
-
-import { Prisma } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { canonicalizeCatalogBaselineValue, hashCatalogBaselineValue } from "./shopCatalogBaseline";
 import {
@@ -204,7 +202,15 @@ export async function coordinateShopCatalogProductMutationInTransaction(
 export async function coordinateShopCatalogProductMutation(
   input: ShopCatalogCoordinatedMutationInput
 ): Promise<ShopCatalogCoordinatedMutationResult> {
-  return prisma.$transaction(
+  return coordinateShopCatalogProductMutationWithClient(prisma, input);
+}
+
+/** Node-server adapter for CLIs/workers that own their PrismaClient lifecycle. */
+export async function coordinateShopCatalogProductMutationWithClient(
+  client: PrismaClient,
+  input: ShopCatalogCoordinatedMutationInput
+): Promise<ShopCatalogCoordinatedMutationResult> {
+  return client.$transaction(
     (tx) => coordinateShopCatalogProductMutationInTransaction(tx, input),
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -217,8 +223,16 @@ export async function coordinateShopCatalogProductMutation(
 export async function coordinateShopCatalogProductCreation(
   input: ShopCatalogCoordinatedCreationInput
 ): Promise<ShopCatalogCoordinatedMutationResult> {
+  return coordinateShopCatalogProductCreationWithClient(prisma, input);
+}
+
+/** Node-server adapter for CLIs/workers that own their PrismaClient lifecycle. */
+export async function coordinateShopCatalogProductCreationWithClient(
+  client: PrismaClient,
+  input: ShopCatalogCoordinatedCreationInput
+): Promise<ShopCatalogCoordinatedMutationResult> {
   const initialVersion = BigInt(1);
-  return prisma.$transaction(
+  return client.$transaction(
     async (tx) => {
       const productId = (await input.create(tx, initialVersion.toString())).trim();
       if (!productId) throw new Error("Catalog creation callback returned no product ID");

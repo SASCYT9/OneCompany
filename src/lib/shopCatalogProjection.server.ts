@@ -1,5 +1,3 @@
-import "server-only";
-
 /**
  * Deterministic Catalog V2 read-model builder. It owns no Prisma client,
  * clock, environment lookup, or persistence side effect; adapters supply one
