@@ -6,11 +6,11 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
 ## Current sprint: P2 persisted projection and shadow reads
 
-| ID        | Work item                                         | Status      | Verification / remaining work                                |
-| --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------ |
-| C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green     |
+| ID        | Work item                                         | Status      | Verification / remaining work                                                         |
+| --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green                              |
 | C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Core admin/imports plus Atomic feed cron green; remaining supplier/brand sync pending |
-| C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off |
+| C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off                          |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
 serializes writers per product, and rejects same-version conflicts. Immutable revisions provide
@@ -86,26 +86,26 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 
 ## Next execution queue
 
-| ID        | Work item                                                                              | Status      | Depends on            | Exit evidence                                                       |
-| --------- | -------------------------------------------------------------------------------------- | ----------- | --------------------- | ------------------------------------------------------------------- |
-| C2-P0-006 | Immutable baseline fingerprint/loss-ledger dry-run tool                                | Done        | P0 complete           | Counts and hashes cover canonical fields and dependency graph       |
-| C2-P0-007 | Migrate or quarantine legacy Brabus/Burger/old DO88/Akrapovič destructive import paths | Done        | Import merge helper   | Scoped active importers have no nested `deleteMany + create`        |
-| C2-P0-008 | Make partial Eventuri media migration fail closed per product                          | Done        | Snapshot merge helper | Primary/gallery/variant upload failure prevents product persistence |
-| C2-P1-001 | Review additive Catalog V2 schema ADR and forward migration                            | Done        | Baseline contract     | 39 migrations replay; schema diff empty; baseline unchanged         |
-| C2-P1-002 | Implement deterministic `ShopCatalogProjection` builder in shadow mode                 | Done        | P1 schema             | Rebuild idempotency, bounded pages, and per-product parity          |
-| C2-P1-003 | Define explicit source ownership and retire/tombstone workflow                         | Done        | P1 schema ADR         | Immutable lineage, head advancement, and no-delete guards           |
-| C2-P1-004 | Audit remaining Ducati/IPE repair, rebuild, seed, and cleanup scripts                  | Pending     | Import safety         | Every live path is ID-preserving or explicitly quarantined          |
-| C2-P1-005 | Add orphan-asset cleanup for failed multi-file Blob uploads                            | Pending     | Media ownership ADR   | Failed product import leaves no unreferenced uploaded files         |
-| C2-P2-001 | Persist projection batches and add a resumable rebuild worker                          | Done        | P1 complete           | Cursor, counts, restart replay, and completion are durable          |
+| ID        | Work item                                                                              | Status      | Depends on            | Exit evidence                                                                                                                                                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------- | ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| C2-P0-006 | Immutable baseline fingerprint/loss-ledger dry-run tool                                | Done        | P0 complete           | Counts and hashes cover canonical fields and dependency graph                                                                                                                                                                                          |
+| C2-P0-007 | Migrate or quarantine legacy Brabus/Burger/old DO88/Akrapovič destructive import paths | Done        | Import merge helper   | Scoped active importers have no nested `deleteMany + create`                                                                                                                                                                                           |
+| C2-P0-008 | Make partial Eventuri media migration fail closed per product                          | Done        | Snapshot merge helper | Primary/gallery/variant upload failure prevents product persistence                                                                                                                                                                                    |
+| C2-P1-001 | Review additive Catalog V2 schema ADR and forward migration                            | Done        | Baseline contract     | 39 migrations replay; schema diff empty; baseline unchanged                                                                                                                                                                                            |
+| C2-P1-002 | Implement deterministic `ShopCatalogProjection` builder in shadow mode                 | Done        | P1 schema             | Rebuild idempotency, bounded pages, and per-product parity                                                                                                                                                                                             |
+| C2-P1-003 | Define explicit source ownership and retire/tombstone workflow                         | Done        | P1 schema ADR         | Immutable lineage, head advancement, and no-delete guards                                                                                                                                                                                              |
+| C2-P1-004 | Audit remaining Ducati/IPE repair, rebuild, seed, and cleanup scripts                  | Done        | Import safety         | Every live path is ID-preserving or explicitly quarantined                                                                                                                                                                                             |
+| C2-P1-005 | Add orphan-asset cleanup for failed multi-file Blob uploads                            | Pending     | Media ownership ADR   | Failed product import leaves no unreferenced uploaded files                                                                                                                                                                                            |
+| C2-P2-001 | Persist projection batches and add a resumable rebuild worker                          | Done        | P1 complete           | Cursor, counts, restart replay, and completion are durable                                                                                                                                                                                             |
 | C2-P2-002 | Add mutation coordinator and transactional outbox publisher                            | In progress | P1 complete           | Editor, archive, bulk visibility, inventory, and pricing commit audit + lossless immutable revision + outbox atomically per product, use optimistic version checks, and trigger immediate bounded publication; import writers and failure drill remain |
-| C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | In progress | P2 projection writer  | Correlated indexed query exists; endpoint comparison remains        |
+| C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | In progress | P2 projection writer  | Correlated indexed query exists; endpoint comparison remains                                                                                                                                                                                           |
 
 ## Residual risks after P0
 
 - Safe merge deliberately preserves omitted relations. Explicit deletion requires a versioned retire/tombstone contract.
 - Import batches are not yet atomic across all products; a later product failure does not roll back earlier successful products.
 - A failed Eventuri product cannot mutate catalog data, but files uploaded before another file fails may remain orphaned in Blob.
-- `scripts/seed-new-ducati-akrapovic.ts` and excluded IPE repair/rebuild/cleanup utilities still require the P1 safety audit.
+- Historical destructive repair/rebuild/seed/cleanup utilities are retained for forensic context but fail closed before database access and are not exposed as package commands.
 - The current local fallback still pays a multi-second cold snapshot parse/index cost; the shadow read projection is the next performance phase.
 
 ## Residual risks after P1
@@ -140,6 +140,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Eventuri `repair-fitment`, `commit-draft`, and `publish-approved` modes now publish through Catalog V2. Fitment+tags, lossless draft update/create, and visibility/inventory activation each use the appropriate product domains and optimistic version; fail-closed all-media migration remains intact and every report records catalog outbox IDs.
 - Brabus images-to-Blob commit mode now resolves successful URL mappings into product-owned groups and atomically rewrites primary, media, and variant image references under one `MEDIA` revision. Ownership is revalidated in the transaction, upload concurrency/dry-run behavior is retained, and outbox counts are reported; unreferenced-upload cleanup remains pending.
 - Active Atomic English translation package commands now run through the TSX server runner. Commit mode dynamically loads the explicit-client coordinator, applies each translated content/SEO field set under its planned catalog version, and reports catalog outbox IDs; plain-JS syntax and package JSON are validated.
+- Seventeen unreferenced destructive Brabus, Burger, Ducati/Akrapovič, IPE, dedupe, and media-trimming utilities now fail closed before Prisma client creation or product deletion. A source contract keeps them quarantined and prevents package-command exposure while preserving their historical transformation logic for later versioned rewrites.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.

@@ -1,36 +1,42 @@
-import 'dotenv/config';
-import { prisma } from '../src/lib/prisma';
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
+import "dotenv/config";
+import { prisma } from "../src/lib/prisma";
 // Run with: npx tsx scripts/cleanup-burger.ts
 
 async function main() {
-  console.log('🧹 Starting Burger Motorsports Cleanup...');
+  console.log("🧹 Starting Burger Motorsports Cleanup...");
 
   const productsToDelete = await prisma.shopProduct.findMany({
     where: {
-      brand: 'Burger Motorsports',
+      brand: "Burger Motorsports",
       OR: [
-        { priceUsd: null },         // Without price
-        { priceUsd: { lt: 200 } }   // Cheaper than $200
-      ]
+        { priceUsd: null }, // Without price
+        { priceUsd: { lt: 200 } }, // Cheaper than $200
+      ],
     },
-    select: { id: true, titleEn: true, priceUsd: true }
+    select: { id: true, titleEn: true, priceUsd: true },
   });
 
-  console.log(`🚨 Found ${productsToDelete.length} products fitting the removal criteria (Null price or < $200).`);
+  console.log(
+    `🚨 Found ${productsToDelete.length} products fitting the removal criteria (Null price or < $200).`
+  );
 
   if (productsToDelete.length === 0) {
-    console.log('✅ Nothing to delete!');
+    console.log("✅ Nothing to delete!");
     return;
   }
 
   // Extract IDs
-  const idsToDelete = productsToDelete.map(p => p.id);
+  const idsToDelete = productsToDelete.map((p) => p.id);
 
   // Perform bulk delete
   const deleteResult = await prisma.shopProduct.deleteMany({
     where: {
-      id: { in: idsToDelete }
-    }
+      id: { in: idsToDelete },
+    },
   });
 
   console.log(`🗑️ Successfully deleted ${deleteResult.count} products from the database.`);

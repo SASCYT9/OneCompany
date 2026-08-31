@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 /**
  * Excel-driven rebuild of iPE products whose variant structure didn't come
  * from the iPE Shopify snapshot. Covers two scopes:

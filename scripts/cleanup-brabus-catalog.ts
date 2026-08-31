@@ -1,4 +1,8 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
+import { Prisma, PrismaClient } from "@prisma/client";
 import {
   buildBrabusProductSlug,
   buildBrabusSeoDescription,
@@ -12,11 +16,11 @@ import {
   isLikelyBrabusOverviewProductLike,
   scoreBrabusProductCandidateLike,
   stripHtmlTags,
-} from '../src/lib/brabusCatalogCleanup';
+} from "../src/lib/brabusCatalogCleanup";
 
 const prisma = new PrismaClient();
-const applyChanges = process.argv.includes('--apply');
-const deleteOverview = process.argv.includes('--delete-overview');
+const applyChanges = process.argv.includes("--apply");
+const deleteOverview = process.argv.includes("--delete-overview");
 
 type BrabusRow = Prisma.ShopProductGetPayload<{
   include: {
@@ -56,66 +60,76 @@ type OverviewPlan = {
 
 function extractGallery(value: Prisma.JsonValue | null | undefined) {
   if (!Array.isArray(value)) return [] as string[];
-  return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+  return value.filter(
+    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
+  );
 }
 
 function dedupeStrings(values: Array<string | null | undefined>) {
   const unique = new Set<string>();
   for (const value of values) {
-    const normalized = String(value ?? '').trim();
+    const normalized = String(value ?? "").trim();
     if (normalized) unique.add(normalized);
   }
   return [...unique];
 }
 
 function normalizeSkuKey(value: string | null | undefined) {
-  return String(value ?? '').trim().toLowerCase();
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
 }
 
 function normalizeProduct(row: BrabusRow) {
-  const cleanTitleUa = cleanBrabusTitle('ua', row.titleUa) || row.titleUa;
-  const cleanTitleEn = cleanBrabusTitle('en', row.titleEn) || row.titleEn;
+  const cleanTitleUa = cleanBrabusTitle("ua", row.titleUa) || row.titleUa;
+  const cleanTitleEn = cleanBrabusTitle("en", row.titleEn) || row.titleEn;
   const shouldFixTitleUa = Boolean(row.titleUa) && row.titleUa !== cleanTitleUa;
   const shouldFixTitleEn = Boolean(row.titleEn) && row.titleEn !== cleanTitleEn;
   const titleUa = shouldFixTitleUa ? cleanTitleUa : row.titleUa;
   const titleEn = shouldFixTitleEn ? cleanTitleEn : row.titleEn;
 
-  const cleanShortDescUa = cleanBrabusPlainText('ua', row.shortDescUa);
-  const cleanShortDescEn = cleanBrabusPlainText('en', row.shortDescEn);
+  const cleanShortDescUa = cleanBrabusPlainText("ua", row.shortDescUa);
+  const cleanShortDescEn = cleanBrabusPlainText("en", row.shortDescEn);
   const shouldFixShortDescUa = Boolean(row.shortDescUa) && row.shortDescUa !== cleanShortDescUa;
   const shouldFixShortDescEn = Boolean(row.shortDescEn) && row.shortDescEn !== cleanShortDescEn;
-  const shortDescUa = shouldFixShortDescUa ? (cleanShortDescUa || null) : row.shortDescUa;
-  const shortDescEn = shouldFixShortDescEn ? (cleanShortDescEn || null) : row.shortDescEn;
+  const shortDescUa = shouldFixShortDescUa ? cleanShortDescUa || null : row.shortDescUa;
+  const shortDescEn = shouldFixShortDescEn ? cleanShortDescEn || null : row.shortDescEn;
 
-  const cleanedBodyHtmlUa = cleanBrabusHtmlDescription('ua', row.bodyHtmlUa);
-  const cleanedBodyHtmlEn = cleanBrabusHtmlDescription('en', row.bodyHtmlEn);
-  const cleanedLongDescUa = cleanBrabusHtmlDescription('ua', row.longDescUa);
-  const cleanedLongDescEn = cleanBrabusHtmlDescription('en', row.longDescEn);
+  const cleanedBodyHtmlUa = cleanBrabusHtmlDescription("ua", row.bodyHtmlUa);
+  const cleanedBodyHtmlEn = cleanBrabusHtmlDescription("en", row.bodyHtmlEn);
+  const cleanedLongDescUa = cleanBrabusHtmlDescription("ua", row.longDescUa);
+  const cleanedLongDescEn = cleanBrabusHtmlDescription("en", row.longDescEn);
   const shouldFixBodyUa = Boolean(row.bodyHtmlUa) && row.bodyHtmlUa !== cleanedBodyHtmlUa;
   const shouldFixBodyEn = Boolean(row.bodyHtmlEn) && row.bodyHtmlEn !== cleanedBodyHtmlEn;
   const shouldFixLongUa = Boolean(row.longDescUa) && row.longDescUa !== cleanedLongDescUa;
   const shouldFixLongEn = Boolean(row.longDescEn) && row.longDescEn !== cleanedLongDescEn;
-  const bodyHtmlUa = shouldFixBodyUa ? (cleanedBodyHtmlUa || null) : row.bodyHtmlUa;
-  const bodyHtmlEn = shouldFixBodyEn ? (cleanedBodyHtmlEn || null) : row.bodyHtmlEn;
-  const longDescUa = shouldFixLongUa ? (cleanedLongDescUa || null) : row.longDescUa;
-  const longDescEn = shouldFixLongEn ? (cleanedLongDescEn || null) : row.longDescEn;
+  const bodyHtmlUa = shouldFixBodyUa ? cleanedBodyHtmlUa || null : row.bodyHtmlUa;
+  const bodyHtmlEn = shouldFixBodyEn ? cleanedBodyHtmlEn || null : row.bodyHtmlEn;
+  const longDescUa = shouldFixLongUa ? cleanedLongDescUa || null : row.longDescUa;
+  const longDescEn = shouldFixLongEn ? cleanedLongDescEn || null : row.longDescEn;
 
-  const desiredSeoDescriptionUa = buildBrabusSeoDescription('ua', {
+  const desiredSeoDescriptionUa = buildBrabusSeoDescription("ua", {
     longHtml: longDescUa || bodyHtmlUa,
     shortText: shortDescUa,
     title: titleUa,
   });
-  const desiredSeoDescriptionEn = buildBrabusSeoDescription('en', {
+  const desiredSeoDescriptionEn = buildBrabusSeoDescription("en", {
     longHtml: longDescEn || bodyHtmlEn,
     shortText: shortDescEn,
     title: titleEn,
   });
   const seoDescriptionUa =
-    !row.seoDescriptionUa || hasBrabusHtmlEntities(row.seoDescriptionUa) || hasBrabusDescriptionArtifacts(row.seoDescriptionUa) || hasBrabusGermanResidualInDescription(row.seoDescriptionUa)
+    !row.seoDescriptionUa ||
+    hasBrabusHtmlEntities(row.seoDescriptionUa) ||
+    hasBrabusDescriptionArtifacts(row.seoDescriptionUa) ||
+    hasBrabusGermanResidualInDescription(row.seoDescriptionUa)
       ? desiredSeoDescriptionUa || row.seoDescriptionUa
       : row.seoDescriptionUa;
   const seoDescriptionEn =
-    !row.seoDescriptionEn || hasBrabusHtmlEntities(row.seoDescriptionEn) || hasBrabusDescriptionArtifacts(row.seoDescriptionEn) || hasBrabusGermanResidualInDescription(row.seoDescriptionEn)
+    !row.seoDescriptionEn ||
+    hasBrabusHtmlEntities(row.seoDescriptionEn) ||
+    hasBrabusDescriptionArtifacts(row.seoDescriptionEn) ||
+    hasBrabusGermanResidualInDescription(row.seoDescriptionEn)
       ? desiredSeoDescriptionEn || row.seoDescriptionEn
       : row.seoDescriptionEn;
 
@@ -138,18 +152,18 @@ function normalizeProduct(row: BrabusRow) {
   };
 }
 
-function scoreTitleCandidate(locale: 'ua' | 'en', value: string | null | undefined) {
+function scoreTitleCandidate(locale: "ua" | "en", value: string | null | undefined) {
   const cleaned = cleanBrabusTitle(locale, value);
-  if (!cleaned) return { cleaned: '', score: Number.NEGATIVE_INFINITY };
+  if (!cleaned) return { cleaned: "", score: Number.NEGATIVE_INFINITY };
   let score = cleaned.length;
   if (hasBrabusHtmlEntities(value)) score -= 20;
   if (hasBrabusGermanResidualInTitle(cleaned)) score -= 50;
   return { cleaned, score };
 }
 
-function scorePlainCandidate(locale: 'ua' | 'en', value: string | null | undefined) {
+function scorePlainCandidate(locale: "ua" | "en", value: string | null | undefined) {
   const cleaned = cleanBrabusPlainText(locale, value);
-  if (!cleaned) return { cleaned: '', score: Number.NEGATIVE_INFINITY };
+  if (!cleaned) return { cleaned: "", score: Number.NEGATIVE_INFINITY };
   let score = cleaned.length;
   if (hasBrabusHtmlEntities(value)) score -= 20;
   if (hasBrabusDescriptionArtifacts(value)) score -= 100;
@@ -157,19 +171,23 @@ function scorePlainCandidate(locale: 'ua' | 'en', value: string | null | undefin
   return { cleaned, score };
 }
 
-function scoreHtmlCandidate(locale: 'ua' | 'en', value: string | null | undefined) {
+function scoreHtmlCandidate(locale: "ua" | "en", value: string | null | undefined) {
   const cleaned = cleanBrabusHtmlDescription(locale, value);
   const plain = stripHtmlTags(cleaned);
-  if (!plain) return { cleaned: '', score: Number.NEGATIVE_INFINITY };
+  if (!plain) return { cleaned: "", score: Number.NEGATIVE_INFINITY };
   let score = plain.length;
-  if (cleaned.includes('<p>')) score += 15;
+  if (cleaned.includes("<p>")) score += 15;
   if (hasBrabusHtmlEntities(value)) score -= 20;
   if (hasBrabusDescriptionArtifacts(value)) score -= 100;
   if (hasBrabusGermanResidualInDescription(plain)) score -= 40;
   return { cleaned, score };
 }
 
-function pickBestTitle(locale: 'ua' | 'en', values: Array<string | null | undefined>, fallback: string) {
+function pickBestTitle(
+  locale: "ua" | "en",
+  values: Array<string | null | undefined>,
+  fallback: string
+) {
   let best = { cleaned: fallback, score: Number.NEGATIVE_INFINITY };
   for (const value of values) {
     const candidate = scoreTitleCandidate(locale, value);
@@ -178,8 +196,8 @@ function pickBestTitle(locale: 'ua' | 'en', values: Array<string | null | undefi
   return best.cleaned || fallback;
 }
 
-function pickBestPlain(locale: 'ua' | 'en', values: Array<string | null | undefined>) {
-  let best = { cleaned: '', score: Number.NEGATIVE_INFINITY };
+function pickBestPlain(locale: "ua" | "en", values: Array<string | null | undefined>) {
+  let best = { cleaned: "", score: Number.NEGATIVE_INFINITY };
   for (const value of values) {
     const candidate = scorePlainCandidate(locale, value);
     if (candidate.score > best.score) best = candidate;
@@ -187,8 +205,8 @@ function pickBestPlain(locale: 'ua' | 'en', values: Array<string | null | undefi
   return best.cleaned || null;
 }
 
-function pickBestHtml(locale: 'ua' | 'en', values: Array<string | null | undefined>) {
-  let best = { cleaned: '', score: Number.NEGATIVE_INFINITY };
+function pickBestHtml(locale: "ua" | "en", values: Array<string | null | undefined>) {
+  let best = { cleaned: "", score: Number.NEGATIVE_INFINITY };
   for (const value of values) {
     const candidate = scoreHtmlCandidate(locale, value);
     if (candidate.score > best.score) best = candidate;
@@ -197,25 +215,25 @@ function pickBestHtml(locale: 'ua' | 'en', values: Array<string | null | undefin
 }
 
 function scoreImage(url: string | null | undefined) {
-  const normalized = String(url ?? '').trim();
+  const normalized = String(url ?? "").trim();
   if (!normalized) return Number.NEGATIVE_INFINITY;
   let score = 0;
-  if (normalized.startsWith('http')) score += 100;
-  else if (normalized.startsWith('/brabus-images/')) score += 40;
-  else if (normalized.startsWith('/')) score += 20;
+  if (normalized.startsWith("http")) score += 100;
+  else if (normalized.startsWith("/brabus-images/")) score += 40;
+  else if (normalized.startsWith("/")) score += 20;
   if (!/420x|540x/i.test(normalized)) score += 15;
   return score;
 }
 
 function pickPrimaryImage(group: BrabusRow[]) {
-  let best = { url: '', score: Number.NEGATIVE_INFINITY };
+  let best = { url: "", score: Number.NEGATIVE_INFINITY };
   for (const product of group) {
     const score = scoreImage(product.image);
     if (score > best.score) {
-      best = { url: String(product.image ?? '').trim(), score };
+      best = { url: String(product.image ?? "").trim(), score };
     }
   }
-  return best.url || String(group[0]?.image ?? '').trim() || null;
+  return best.url || String(group[0]?.image ?? "").trim() || null;
 }
 
 function buildMergedGallery(primaryImage: string | null, group: BrabusRow[]) {
@@ -224,47 +242,74 @@ function buildMergedGallery(primaryImage: string | null, group: BrabusRow[]) {
   return gallery.length > 1 ? gallery : null;
 }
 
-function diffProduct(row: BrabusRow, next: ReturnType<typeof normalizeProduct> & {
-  image?: string | null;
-  gallery?: string[] | null;
-}) {
+function diffProduct(
+  row: BrabusRow,
+  next: ReturnType<typeof normalizeProduct> & {
+    image?: string | null;
+    gallery?: string[] | null;
+  }
+) {
   const data: Prisma.ShopProductUpdateInput = {};
 
-  const assign = <K extends keyof typeof next>(key: K, current: unknown, desired: (typeof next)[K]) => {
+  const assign = <K extends keyof typeof next>(
+    key: K,
+    current: unknown,
+    desired: (typeof next)[K]
+  ) => {
     const currentValue = current == null ? null : current;
-    const desiredValue = desired == null || desired === '' ? null : desired;
+    const desiredValue = desired == null || desired === "" ? null : desired;
     if (JSON.stringify(currentValue) !== JSON.stringify(desiredValue)) {
       (data as Record<string, unknown>)[key] = desiredValue;
     }
   };
 
-  assign('slug', row.slug, next.slug);
-  assign('titleUa', row.titleUa, next.titleUa);
-  assign('titleEn', row.titleEn, next.titleEn);
-  assign('shortDescUa', row.shortDescUa, next.shortDescUa);
-  assign('shortDescEn', row.shortDescEn, next.shortDescEn);
-  assign('bodyHtmlUa', row.bodyHtmlUa, next.bodyHtmlUa);
-  assign('bodyHtmlEn', row.bodyHtmlEn, next.bodyHtmlEn);
-  assign('longDescUa', row.longDescUa, next.longDescUa);
-  assign('longDescEn', row.longDescEn, next.longDescEn);
-  assign('seoTitleUa', row.seoTitleUa, next.seoTitleUa);
-  assign('seoTitleEn', row.seoTitleEn, next.seoTitleEn);
-  assign('seoDescriptionUa', row.seoDescriptionUa, next.seoDescriptionUa);
-  assign('seoDescriptionEn', row.seoDescriptionEn, next.seoDescriptionEn);
-  assign('image', row.image, next.image ?? null);
-  assign('gallery', extractGallery(row.gallery), next.gallery ?? null);
+  assign("slug", row.slug, next.slug);
+  assign("titleUa", row.titleUa, next.titleUa);
+  assign("titleEn", row.titleEn, next.titleEn);
+  assign("shortDescUa", row.shortDescUa, next.shortDescUa);
+  assign("shortDescEn", row.shortDescEn, next.shortDescEn);
+  assign("bodyHtmlUa", row.bodyHtmlUa, next.bodyHtmlUa);
+  assign("bodyHtmlEn", row.bodyHtmlEn, next.bodyHtmlEn);
+  assign("longDescUa", row.longDescUa, next.longDescUa);
+  assign("longDescEn", row.longDescEn, next.longDescEn);
+  assign("seoTitleUa", row.seoTitleUa, next.seoTitleUa);
+  assign("seoTitleEn", row.seoTitleEn, next.seoTitleEn);
+  assign("seoDescriptionUa", row.seoDescriptionUa, next.seoDescriptionUa);
+  assign("seoDescriptionEn", row.seoDescriptionEn, next.seoDescriptionEn);
+  assign("image", row.image, next.image ?? null);
+  assign("gallery", extractGallery(row.gallery), next.gallery ?? null);
 
   return data;
 }
 
 function buildMergedCanonical(group: BrabusRow[], canonical: BrabusRow) {
   const canonicalSlug = buildBrabusProductSlug(canonical.sku);
-  const mergedTitleUa = pickBestTitle('ua', group.map((product) => product.titleUa), canonical.titleUa);
-  const mergedTitleEn = pickBestTitle('en', group.map((product) => product.titleEn), canonical.titleEn);
-  const mergedShortUa = pickBestPlain('ua', group.map((product) => product.shortDescUa));
-  const mergedShortEn = pickBestPlain('en', group.map((product) => product.shortDescEn));
-  const mergedLongUa = pickBestHtml('ua', group.flatMap((product) => [product.longDescUa, product.bodyHtmlUa]));
-  const mergedLongEn = pickBestHtml('en', group.flatMap((product) => [product.longDescEn, product.bodyHtmlEn]));
+  const mergedTitleUa = pickBestTitle(
+    "ua",
+    group.map((product) => product.titleUa),
+    canonical.titleUa
+  );
+  const mergedTitleEn = pickBestTitle(
+    "en",
+    group.map((product) => product.titleEn),
+    canonical.titleEn
+  );
+  const mergedShortUa = pickBestPlain(
+    "ua",
+    group.map((product) => product.shortDescUa)
+  );
+  const mergedShortEn = pickBestPlain(
+    "en",
+    group.map((product) => product.shortDescEn)
+  );
+  const mergedLongUa = pickBestHtml(
+    "ua",
+    group.flatMap((product) => [product.longDescUa, product.bodyHtmlUa])
+  );
+  const mergedLongEn = pickBestHtml(
+    "en",
+    group.flatMap((product) => [product.longDescEn, product.bodyHtmlEn])
+  );
   const mergedImage = pickPrimaryImage(group);
   const mergedGallery = buildMergedGallery(mergedImage, group);
 
@@ -280,38 +325,42 @@ function buildMergedCanonical(group: BrabusRow[], canonical: BrabusRow) {
     longDescEn: mergedLongEn,
     seoTitleUa: mergedTitleUa,
     seoTitleEn: mergedTitleEn,
-    seoDescriptionUa: buildBrabusSeoDescription('ua', {
-      longHtml: mergedLongUa,
-      shortText: mergedShortUa,
-      title: mergedTitleUa,
-    }) || null,
-    seoDescriptionEn: buildBrabusSeoDescription('en', {
-      longHtml: mergedLongEn,
-      shortText: mergedShortEn,
-      title: mergedTitleEn,
-    }) || null,
+    seoDescriptionUa:
+      buildBrabusSeoDescription("ua", {
+        longHtml: mergedLongUa,
+        shortText: mergedShortUa,
+        title: mergedTitleUa,
+      }) || null,
+    seoDescriptionEn:
+      buildBrabusSeoDescription("en", {
+        longHtml: mergedLongEn,
+        shortText: mergedShortEn,
+        title: mergedTitleEn,
+      }) || null,
     image: mergedImage,
     gallery: mergedGallery,
   };
 }
 
-function auditProducts(products: Array<{
-  sku?: string | null;
-  slug: string;
-  titleUa: string;
-  titleEn: string;
-  shortDescUa?: string | null;
-  shortDescEn?: string | null;
-  longDescUa?: string | null;
-  longDescEn?: string | null;
-  bodyHtmlUa?: string | null;
-  bodyHtmlEn?: string | null;
-  seoDescriptionUa?: string | null;
-  seoDescriptionEn?: string | null;
-  priceEur?: number | string | null;
-  priceUsd?: number | string | null;
-  priceUah?: number | string | null;
-}>) {
+function auditProducts(
+  products: Array<{
+    sku?: string | null;
+    slug: string;
+    titleUa: string;
+    titleEn: string;
+    shortDescUa?: string | null;
+    shortDescEn?: string | null;
+    longDescUa?: string | null;
+    longDescEn?: string | null;
+    bodyHtmlUa?: string | null;
+    bodyHtmlEn?: string | null;
+    seoDescriptionUa?: string | null;
+    seoDescriptionEn?: string | null;
+    priceEur?: number | string | null;
+    priceUsd?: number | string | null;
+    priceUah?: number | string | null;
+  }>
+) {
   const bySku = new Map<string, typeof products>();
   for (const product of products) {
     const key = normalizeSkuKey(product.sku);
@@ -324,15 +373,35 @@ function auditProducts(products: Array<{
   return {
     total: products.length,
     duplicateSkuGroups: [...bySku.values()].filter((list) => list.length > 1).length,
-    titleEntityCount: products.filter((product) => hasBrabusHtmlEntities(product.titleUa) || hasBrabusHtmlEntities(product.titleEn)).length,
-    titleGermanCount: products.filter((product) => hasBrabusGermanResidualInTitle(product.titleUa) || hasBrabusGermanResidualInTitle(product.titleEn)).length,
+    titleEntityCount: products.filter(
+      (product) => hasBrabusHtmlEntities(product.titleUa) || hasBrabusHtmlEntities(product.titleEn)
+    ).length,
+    titleGermanCount: products.filter(
+      (product) =>
+        hasBrabusGermanResidualInTitle(product.titleUa) ||
+        hasBrabusGermanResidualInTitle(product.titleEn)
+    ).length,
     descArtifactsCount: products.filter((product) =>
-      [product.shortDescUa, product.shortDescEn, product.longDescUa, product.longDescEn, product.bodyHtmlUa, product.bodyHtmlEn, product.seoDescriptionUa, product.seoDescriptionEn]
-        .some((value) => hasBrabusDescriptionArtifacts(value))
+      [
+        product.shortDescUa,
+        product.shortDescEn,
+        product.longDescUa,
+        product.longDescEn,
+        product.bodyHtmlUa,
+        product.bodyHtmlEn,
+        product.seoDescriptionUa,
+        product.seoDescriptionEn,
+      ].some((value) => hasBrabusDescriptionArtifacts(value))
     ).length,
     descGermanCount: products.filter((product) =>
-      [product.shortDescUa, product.shortDescEn, product.longDescUa, product.longDescEn, product.bodyHtmlUa, product.bodyHtmlEn]
-        .some((value) => hasBrabusGermanResidualInDescription(stripHtmlTags(value)))
+      [
+        product.shortDescUa,
+        product.shortDescEn,
+        product.longDescUa,
+        product.longDescEn,
+        product.bodyHtmlUa,
+        product.bodyHtmlEn,
+      ].some((value) => hasBrabusGermanResidualInDescription(stripHtmlTags(value)))
     ).length,
     overviewishCount: products.filter((product) =>
       isLikelyBrabusOverviewProductLike({
@@ -354,7 +423,7 @@ function logJson(label: string, value: unknown) {
 async function main() {
   const rows = await prisma.shopProduct.findMany({
     where: {
-      OR: [{ brand: 'Brabus' }, { vendor: 'Brabus' }],
+      OR: [{ brand: "Brabus" }, { vendor: "Brabus" }],
       isPublished: true,
     },
     include: {
@@ -367,17 +436,20 @@ async function main() {
         },
       },
     },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updatedAt: "desc" },
   });
 
   const baseUpdates = new Map<string, PlannedUpdate>();
-  const normalizedById = new Map<string, ReturnType<typeof normalizeProduct> & {
-    id: string;
-    sku: string | null;
-    priceEur: Prisma.Decimal | null;
-    priceUsd: Prisma.Decimal | null;
-    priceUah: Prisma.Decimal | null;
-  }>();
+  const normalizedById = new Map<
+    string,
+    ReturnType<typeof normalizeProduct> & {
+      id: string;
+      sku: string | null;
+      priceEur: Prisma.Decimal | null;
+      priceUsd: Prisma.Decimal | null;
+      priceUah: Prisma.Decimal | null;
+    }
+  >();
 
   for (const row of rows) {
     const normalized = normalizeProduct(row);
@@ -490,23 +562,25 @@ async function main() {
     }));
   const overviewDeleteIds = new Set(overviewPlans.map((plan) => plan.id));
 
-  const beforeAudit = auditProducts(rows.map((row) => ({
-    sku: row.sku,
-    slug: row.slug,
-    titleUa: row.titleUa,
-    titleEn: row.titleEn,
-    shortDescUa: row.shortDescUa,
-    shortDescEn: row.shortDescEn,
-    longDescUa: row.longDescUa,
-    longDescEn: row.longDescEn,
-    bodyHtmlUa: row.bodyHtmlUa,
-    bodyHtmlEn: row.bodyHtmlEn,
-    seoDescriptionUa: row.seoDescriptionUa,
-    seoDescriptionEn: row.seoDescriptionEn,
-    priceEur: row.priceEur?.toNumber?.() ?? row.priceEur,
-    priceUsd: row.priceUsd?.toNumber?.() ?? row.priceUsd,
-    priceUah: row.priceUah?.toNumber?.() ?? row.priceUah,
-  })));
+  const beforeAudit = auditProducts(
+    rows.map((row) => ({
+      sku: row.sku,
+      slug: row.slug,
+      titleUa: row.titleUa,
+      titleEn: row.titleEn,
+      shortDescUa: row.shortDescUa,
+      shortDescEn: row.shortDescEn,
+      longDescUa: row.longDescUa,
+      longDescEn: row.longDescEn,
+      bodyHtmlUa: row.bodyHtmlUa,
+      bodyHtmlEn: row.bodyHtmlEn,
+      seoDescriptionUa: row.seoDescriptionUa,
+      seoDescriptionEn: row.seoDescriptionEn,
+      priceEur: row.priceEur?.toNumber?.() ?? row.priceEur,
+      priceUsd: row.priceUsd?.toNumber?.() ?? row.priceUsd,
+      priceUah: row.priceUah?.toNumber?.() ?? row.priceUah,
+    }))
+  );
 
   const afterRows = rows
     .filter((row) => !donorIds.has(row.id))
@@ -519,14 +593,46 @@ async function main() {
         slug: override ? override.slug : normalized ? normalized.slug : row.slug,
         titleUa: override ? override.titleUa : normalized ? normalized.titleUa : row.titleUa,
         titleEn: override ? override.titleEn : normalized ? normalized.titleEn : row.titleEn,
-        shortDescUa: override ? override.shortDescUa : normalized ? normalized.shortDescUa : row.shortDescUa,
-        shortDescEn: override ? override.shortDescEn : normalized ? normalized.shortDescEn : row.shortDescEn,
-        longDescUa: override ? override.longDescUa : normalized ? normalized.longDescUa : row.longDescUa,
-        longDescEn: override ? override.longDescEn : normalized ? normalized.longDescEn : row.longDescEn,
-        bodyHtmlUa: override ? override.bodyHtmlUa : normalized ? normalized.bodyHtmlUa : row.bodyHtmlUa,
-        bodyHtmlEn: override ? override.bodyHtmlEn : normalized ? normalized.bodyHtmlEn : row.bodyHtmlEn,
-        seoDescriptionUa: override ? override.seoDescriptionUa : normalized ? normalized.seoDescriptionUa : row.seoDescriptionUa,
-        seoDescriptionEn: override ? override.seoDescriptionEn : normalized ? normalized.seoDescriptionEn : row.seoDescriptionEn,
+        shortDescUa: override
+          ? override.shortDescUa
+          : normalized
+            ? normalized.shortDescUa
+            : row.shortDescUa,
+        shortDescEn: override
+          ? override.shortDescEn
+          : normalized
+            ? normalized.shortDescEn
+            : row.shortDescEn,
+        longDescUa: override
+          ? override.longDescUa
+          : normalized
+            ? normalized.longDescUa
+            : row.longDescUa,
+        longDescEn: override
+          ? override.longDescEn
+          : normalized
+            ? normalized.longDescEn
+            : row.longDescEn,
+        bodyHtmlUa: override
+          ? override.bodyHtmlUa
+          : normalized
+            ? normalized.bodyHtmlUa
+            : row.bodyHtmlUa,
+        bodyHtmlEn: override
+          ? override.bodyHtmlEn
+          : normalized
+            ? normalized.bodyHtmlEn
+            : row.bodyHtmlEn,
+        seoDescriptionUa: override
+          ? override.seoDescriptionUa
+          : normalized
+            ? normalized.seoDescriptionUa
+            : row.seoDescriptionUa,
+        seoDescriptionEn: override
+          ? override.seoDescriptionEn
+          : normalized
+            ? normalized.seoDescriptionEn
+            : row.seoDescriptionEn,
         priceEur: row.priceEur?.toNumber?.() ?? row.priceEur,
         priceUsd: row.priceUsd?.toNumber?.() ?? row.priceUsd,
         priceUah: row.priceUah?.toNumber?.() ?? row.priceUah,
@@ -535,15 +641,29 @@ async function main() {
   const afterAudit = auditProducts(afterRows);
   const remainingArtifactSamples = afterRows
     .filter((product) =>
-      [product.shortDescUa, product.shortDescEn, product.longDescUa, product.longDescEn, product.bodyHtmlUa, product.bodyHtmlEn, product.seoDescriptionUa, product.seoDescriptionEn]
-        .some((value) => hasBrabusDescriptionArtifacts(value))
+      [
+        product.shortDescUa,
+        product.shortDescEn,
+        product.longDescUa,
+        product.longDescEn,
+        product.bodyHtmlUa,
+        product.bodyHtmlEn,
+        product.seoDescriptionUa,
+        product.seoDescriptionEn,
+      ].some((value) => hasBrabusDescriptionArtifacts(value))
     )
     .slice(0, 12)
     .map((product) => ({ sku: product.sku, slug: product.slug }));
   const remainingGermanSamples = afterRows
     .filter((product) =>
-      [product.shortDescUa, product.shortDescEn, product.longDescUa, product.longDescEn, product.bodyHtmlUa, product.bodyHtmlEn]
-        .some((value) => hasBrabusGermanResidualInDescription(stripHtmlTags(value)))
+      [
+        product.shortDescUa,
+        product.shortDescEn,
+        product.longDescUa,
+        product.longDescEn,
+        product.bodyHtmlUa,
+        product.bodyHtmlEn,
+      ].some((value) => hasBrabusGermanResidualInDescription(stripHtmlTags(value)))
     )
     .slice(0, 12)
     .map((product) => ({ sku: product.sku, slug: product.slug }));
@@ -566,11 +686,11 @@ async function main() {
     }
   }
 
-  console.log('Brabus cleanup mode:', applyChanges ? 'APPLY' : 'DRY RUN');
-  console.log('Delete overview pages:', deleteOverview ? 'YES' : 'NO');
-  logJson('Before audit', beforeAudit);
-  logJson('After audit (simulated)', afterAudit);
-  logJson('Planned product updates', {
+  console.log("Brabus cleanup mode:", applyChanges ? "APPLY" : "DRY RUN");
+  console.log("Delete overview pages:", deleteOverview ? "YES" : "NO");
+  logJson("Before audit", beforeAudit);
+  logJson("After audit (simulated)", afterAudit);
+  logJson("Planned product updates", {
     updateCount: baseUpdates.size,
     updateFieldFrequency,
     duplicateGroups: duplicatePlans.length,
@@ -599,10 +719,7 @@ async function main() {
 
     await prisma.shopCartItem.updateMany({
       where: {
-        OR: [
-          { productId: { in: plan.donorIds } },
-          { variantId: { in: plan.donorVariantIds } },
-        ],
+        OR: [{ productId: { in: plan.donorIds } }, { variantId: { in: plan.donorVariantIds } }],
       },
       data: {
         productId: plan.canonicalId,
@@ -613,10 +730,7 @@ async function main() {
 
     await prisma.shopOrderItem.updateMany({
       where: {
-        OR: [
-          { productId: { in: plan.donorIds } },
-          { variantId: { in: plan.donorVariantIds } },
-        ],
+        OR: [{ productId: { in: plan.donorIds } }, { variantId: { in: plan.donorVariantIds } }],
       },
       data: {
         productId: plan.canonicalId,
@@ -634,7 +748,9 @@ async function main() {
       },
       data: {
         componentProductId: plan.canonicalId,
-        ...(plan.canonicalDefaultVariantId ? { componentVariantId: plan.canonicalDefaultVariantId } : {}),
+        ...(plan.canonicalDefaultVariantId
+          ? { componentVariantId: plan.canonicalDefaultVariantId }
+          : {}),
       },
     });
   }
@@ -658,7 +774,9 @@ async function main() {
     });
 
     if (bundleRefs > 0) {
-      throw new Error(`Refusing to delete overview products because ${bundleRefs} bundle references still exist.`);
+      throw new Error(
+        `Refusing to delete overview products because ${bundleRefs} bundle references still exist.`
+      );
     }
 
     await prisma.shopCartItem.updateMany({
@@ -692,7 +810,7 @@ async function main() {
     });
   }
 
-  console.log('\nCleanup applied successfully.');
+  console.log("\nCleanup applied successfully.");
   await prisma.$disconnect();
 }
 

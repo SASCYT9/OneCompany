@@ -12,6 +12,26 @@ const TARGETS = [
   "scripts/import-akrapovic-moto.ts",
 ] as const;
 
+const QUARANTINED_DESTRUCTIVE_SCRIPTS = [
+  "scripts/cleanup-brabus-catalog.ts",
+  "scripts/cleanup-brabus-gallery-mismatches.ts",
+  "scripts/cleanup-burger.ts",
+  "scripts/dedupe-brabus-skus.ts",
+  "scripts/dedupe-shop-variants.ts",
+  "scripts/delete-brabus-commission.ts",
+  "scripts/delete-brabus-phantoms.ts",
+  "scripts/merge-ipe-ss-ti-pairs.ts",
+  "scripts/rebuild-ipe-from-excel.ts",
+  "scripts/rebuild-ipe-multi-axis-variants.ts",
+  "scripts/rebuild-ipe-native-variants.ts",
+  "scripts/repair-ipe-gt3-rs-991-prototype.ts",
+  "scripts/repair-ipe-orphan-synthetic-products.ts",
+  "scripts/replace-ipe-mismatched-variants.ts",
+  "scripts/seed-akrapovic-moto.ts",
+  "scripts/seed-new-ducati-akrapovic.ts",
+  "scripts/trim-product-media.mjs",
+] as const;
+
 function readWorkspaceFile(relativePath: string) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
@@ -349,4 +369,39 @@ test("obsolete live CLIs fail closed and Brabus dry-run remains read-only", () =
   assert.doesNotMatch(brabus, /new PrismaClient|@prisma\/client/);
   assert.doesNotMatch(burger, /prisma|@prisma\/client/i);
   assert.doesNotMatch(do88, /prisma|@prisma\/client/i);
+});
+
+test("unreferenced destructive catalog scripts remain quarantined before database access", () => {
+  const manifest = JSON.parse(readWorkspaceFile("package.json")) as {
+    scripts?: Record<string, string>;
+  };
+  const packageCommands = Object.values(manifest.scripts ?? {}).join("\n");
+
+  for (const relativePath of QUARANTINED_DESTRUCTIVE_SCRIPTS) {
+    const source = readWorkspaceFile(relativePath);
+    const guard = source.indexOf("throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED)");
+    const prismaClient = source.indexOf("new PrismaClient");
+    const destructiveWrite = source.search(
+      /shopProduct(?:Variant|Media|Metafield)?\.(?:delete|deleteMany)\b/
+    );
+
+    assert.match(
+      source,
+      /LEGACY_CATALOG_DIRECT_WRITE_DISABLED/,
+      `${relativePath} needs a fail-close marker`
+    );
+    assert.ok(guard >= 0, `${relativePath} needs an unconditional fail-close guard`);
+    assert.ok(
+      prismaClient < 0 || guard < prismaClient,
+      `${relativePath} must fail before creating a Prisma client`
+    );
+    assert.ok(
+      destructiveWrite < 0 || guard < destructiveWrite,
+      `${relativePath} must fail before destructive product writes`
+    );
+    assert.ok(
+      !packageCommands.includes(relativePath.replace("scripts/", "")),
+      `${relativePath} must not be exposed as a package command`
+    );
+  }
 });

@@ -1,3 +1,7 @@
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 /**
  * One-shot cleanup: collapse duplicate ShopProductVariant rows that share
  * (productId, sku). Caused by an old iPE import bug where the same SKU could
@@ -7,12 +11,12 @@
  * dry-run.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const apply = process.argv.includes('--apply');
+  const apply = process.argv.includes("--apply");
   const dupGroups = await prisma.$queryRaw<
     Array<{ productId: string; sku: string; ids: string[] }>
   >`
@@ -62,11 +66,11 @@ async function main() {
     `FK refs to to-delete rows: orders=${orderRefs} carts=${cartRefs} bundles=${bundleRefs} inventory=${invRefs}`
   );
   if (orderRefs + cartRefs + bundleRefs + invRefs > 0) {
-    throw new Error('FK references found — refusing to delete.');
+    throw new Error("FK references found — refusing to delete.");
   }
 
   if (!apply) {
-    console.log('\nDry-run. Re-run with --apply to delete.');
+    console.log("\nDry-run. Re-run with --apply to delete.");
     return;
   }
 

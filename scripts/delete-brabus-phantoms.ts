@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 /*
  * Delete Brabus phantom products.
  *
@@ -12,57 +16,66 @@
  *   tsx scripts/delete-brabus-phantoms.ts --commit
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const COMMIT = process.argv.includes('--commit');
+const COMMIT = process.argv.includes("--commit");
 
 /* Detect a phantom: €0 price + title shape that matches a category-index page,
    not a real product. */
-const PLACEHOLDER_TITLE = /(tuning based on|tuning for|brabus based on porsche|^[a-z]?[a-z]?-?\d?\s*$|^masterpiece interior$|^sport valve exhaust system$|^starry sky)/i;
+const PLACEHOLDER_TITLE =
+  /(tuning based on|tuning for|brabus based on porsche|^[a-z]?[a-z]?-?\d?\s*$|^masterpiece interior$|^sport valve exhaust system$|^starry sky)/i;
 const GENERIC_NO_VEHICLE = /^(porsche taycan|porsche 911 turbo|brabus starry sky)$/i;
 
 async function main() {
-  console.log('=== Delete Brabus phantoms ===');
-  console.log('Mode:', COMMIT ? 'COMMIT (writes)' : 'DRY RUN');
+  console.log("=== Delete Brabus phantoms ===");
+  console.log("Mode:", COMMIT ? "COMMIT (writes)" : "DRY RUN");
 
   const all = await prisma.shopProduct.findMany({
-    where: { brand: { equals: 'brabus', mode: 'insensitive' } },
+    where: { brand: { equals: "brabus", mode: "insensitive" } },
     select: {
-      id: true, sku: true, slug: true, titleEn: true, titleUa: true,
-      priceEur: true, image: true, productCategory: true,
+      id: true,
+      sku: true,
+      slug: true,
+      titleEn: true,
+      titleUa: true,
+      priceEur: true,
+      image: true,
+      productCategory: true,
     },
   });
 
   const phantoms = all.filter((p) => {
     const eur = Number(p.priceEur || 0);
     if (eur > 0) return false;
-    const t = (p.titleEn || p.titleUa || '').trim();
+    const t = (p.titleEn || p.titleUa || "").trim();
     return PLACEHOLDER_TITLE.test(t) || GENERIC_NO_VEHICLE.test(t);
   });
 
   console.log(`Total brabus products: ${all.length}`);
   console.log(`Phantoms identified: ${phantoms.length}`);
-  console.log('\nList:');
+  console.log("\nList:");
   phantoms.forEach((p) => {
-    console.log(`  ${(p.sku || '').padEnd(22)} €${p.priceEur || 0}  | ${(p.titleEn || p.titleUa || '').slice(0, 70)}`);
+    console.log(
+      `  ${(p.sku || "").padEnd(22)} €${p.priceEur || 0}  | ${(p.titleEn || p.titleUa || "").slice(0, 70)}`
+    );
   });
 
   /* Backup */
-  const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupDir = path.resolve(process.cwd(), 'backups');
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupDir = path.resolve(process.cwd(), "backups");
   await fs.mkdir(backupDir, { recursive: true });
   const backupPath = path.join(backupDir, `brabus-phantoms-${ts}.json`);
   const fullRows = await prisma.shopProduct.findMany({
     where: { id: { in: phantoms.map((p) => p.id) } },
   });
-  await fs.writeFile(backupPath, JSON.stringify(fullRows, null, 2), 'utf-8');
+  await fs.writeFile(backupPath, JSON.stringify(fullRows, null, 2), "utf-8");
   console.log(`\nBackup written: ${backupPath} (${fullRows.length} rows)`);
 
   if (!COMMIT) {
-    console.log('\n(dry-run) — pass --commit to delete.');
+    console.log("\n(dry-run) — pass --commit to delete.");
     return;
   }
 
@@ -83,7 +96,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('FATAL', e);
+    console.error("FATAL", e);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

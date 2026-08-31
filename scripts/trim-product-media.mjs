@@ -1,3 +1,7 @@
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 // Trim ShopProductMedia entries down to a max position per SKU.
 // Per explicit user request: 465-234-00 → keep first 2, 464-234-35 → keep first 4.
 import { PrismaClient } from "@prisma/client";

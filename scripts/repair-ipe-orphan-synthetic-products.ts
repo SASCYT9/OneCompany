@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 /**
  * Targeted rebuild for the 8 iPE products that ended Phase 3 with synthetic
  * IPE-* SKUs because the iPE Shopify manifest didn't map them to Excel rows.

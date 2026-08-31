@@ -1,3 +1,7 @@
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 import { PrismaClient } from "@prisma/client";

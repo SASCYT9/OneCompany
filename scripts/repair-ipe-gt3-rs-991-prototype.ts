@@ -1,3 +1,7 @@
+const LEGACY_CATALOG_DIRECT_WRITE_DISABLED =
+  "Legacy destructive catalog script is quarantined; use a versioned Catalog V2 admin workflow.";
+throw new Error(LEGACY_CATALOG_DIRECT_WRITE_DISABLED);
+
 /**
  * PROTOTYPE: rebuild variants for `ipe-porsche-911-gt3-rs-991-991-2-exhaust`
  * from scratch using Excel pricelist (V2.0 April 2026) + iPE official bodyHtml.
@@ -13,11 +17,11 @@
  * Pass --apply to write changes; default is dry-run.
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
-import { createHash } from 'crypto';
+import { PrismaClient, Prisma } from "@prisma/client";
+import { createHash } from "crypto";
 
 const prisma = new PrismaClient();
-const SLUG = 'ipe-porsche-911-gt3-rs-991-991-2-exhaust';
+const SLUG = "ipe-porsche-911-gt3-rs-991-991-2-exhaust";
 
 // MSRP markup: shop USD = pricelist MSRP + ~$1500-1600 shipping/customs.
 // Use $1500 for items < $4000 wholesale, $1600 above.
@@ -29,11 +33,11 @@ const TI_CATBACK_MSRP = 4800;
 const SS_RETAIL = markup(SS_CATBACK_MSRP); // 5200
 const TI_RETAIL = markup(TI_CATBACK_MSRP); // 6400
 
-const SLUG_FOR_SKU = 'porsche-911-gt3-rs-991-991-2';
+const SLUG_FOR_SKU = "porsche-911-gt3-rs-991-991-2";
 function syntheticSku(suffix: string) {
-  const digest = createHash('sha1')
+  const digest = createHash("sha1")
     .update(`${SLUG_FOR_SKU}::${suffix}`)
-    .digest('hex')
+    .digest("hex")
     .slice(0, 8)
     .toUpperCase();
   return `IPE-911-GT3RS-991-${digest}`;
@@ -41,17 +45,17 @@ function syntheticSku(suffix: string) {
 
 const newVariants = [
   {
-    title: 'Cat-back System · Stainless Steel',
-    sku: syntheticSku('catback-ss'),
-    option1Value: 'Cat-back System · Stainless Steel',
+    title: "Cat-back System · Stainless Steel",
+    sku: syntheticSku("catback-ss"),
+    option1Value: "Cat-back System · Stainless Steel",
     priceUsd: new Prisma.Decimal(SS_RETAIL),
     isDefault: true,
     position: 1,
   },
   {
-    title: 'Cat-back System · Titanium',
-    sku: syntheticSku('catback-ti'),
-    option1Value: 'Cat-back System · Titanium',
+    title: "Cat-back System · Titanium",
+    sku: syntheticSku("catback-ti"),
+    option1Value: "Cat-back System · Titanium",
     priceUsd: new Prisma.Decimal(TI_RETAIL),
     isDefault: false,
     position: 2,
@@ -76,7 +80,7 @@ const UPGRADE_NOTE_UA = `
 `.trim();
 
 async function main() {
-  const apply = process.argv.includes('--apply');
+  const apply = process.argv.includes("--apply");
 
   const product = await prisma.shopProduct.findFirst({
     where: { slug: SLUG },
@@ -92,12 +96,12 @@ async function main() {
   console.log(`Top-level price USD: ${product.priceUsd}`);
   console.log(`Existing variants (${product.variants.length}):`);
   for (const v of product.variants) {
-    console.log(`  - ${v.sku} | ${v.title} | $${v.priceUsd}${v.isDefault ? ' [DEFAULT]' : ''}`);
+    console.log(`  - ${v.sku} | ${v.title} | $${v.priceUsd}${v.isDefault ? " [DEFAULT]" : ""}`);
   }
 
   console.log(`\n=== New variants (${newVariants.length}) ===`);
   for (const v of newVariants) {
-    console.log(`  - ${v.sku} | ${v.title} | $${v.priceUsd}${v.isDefault ? ' [DEFAULT]' : ''}`);
+    console.log(`  - ${v.sku} | ${v.title} | $${v.priceUsd}${v.isDefault ? " [DEFAULT]" : ""}`);
   }
 
   // Cross-check FK refs before deleting (orders, carts, bundles, inventory)
@@ -113,12 +117,12 @@ async function main() {
       `\nFK refs to existing variants: orders=${orderRefs} carts=${cartRefs} bundles=${bundleRefs} inventory=${invRefs}`
     );
     if (orderRefs + cartRefs + bundleRefs + invRefs > 0) {
-      throw new Error('FK references exist — refusing to delete.');
+      throw new Error("FK references exist — refusing to delete.");
     }
   }
 
   if (!apply) {
-    console.log('\nDry-run. Re-run with --apply to write.');
+    console.log("\nDry-run. Re-run with --apply to write.");
     return;
   }
 
@@ -131,7 +135,7 @@ async function main() {
     await tx.shopProductOption.create({
       data: {
         productId: product.id,
-        name: 'Система',
+        name: "Система",
         position: 1,
         values: newVariants.map((v) => v.option1Value),
       },
@@ -147,7 +151,7 @@ async function main() {
           position: v.position,
           option1Value: v.option1Value,
           inventoryQty: 0,
-          inventoryPolicy: 'CONTINUE',
+          inventoryPolicy: "CONTINUE",
           priceUsd: v.priceUsd,
           requiresShipping: true,
           taxable: true,
@@ -158,8 +162,8 @@ async function main() {
 
     // Update product top-level pricing + sku to match the default variant
     const defaultVariant = newVariants.find((v) => v.isDefault) ?? newVariants[0];
-    const existingLong = product.longDescUa ?? '';
-    const longDescUa = existingLong.includes('ДОСТУПНІ АПГРЕЙДИ')
+    const existingLong = product.longDescUa ?? "";
+    const longDescUa = existingLong.includes("ДОСТУПНІ АПГРЕЙДИ")
       ? existingLong
       : `${existingLong}${UPGRADE_NOTE_UA}`;
 
@@ -173,7 +177,7 @@ async function main() {
     });
   });
 
-  console.log('\nDone. Variants rebuilt.');
+  console.log("\nDone. Variants rebuilt.");
 }
 
 main()
