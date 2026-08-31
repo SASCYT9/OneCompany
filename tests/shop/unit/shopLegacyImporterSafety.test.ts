@@ -105,6 +105,22 @@ test("Atomic scheduler invokes the versioned endpoint instead of a direct databa
   assert.doesNotMatch(workflow, /DATABASE_URL|DIRECT_URL|scripts\/atomic-sync-cron/);
 });
 
+test("Turn14 scheduler invokes the authenticated Catalog V2 endpoint", () => {
+  const legacyCli = readWorkspaceFile("scripts/turn14-cron.ts");
+  const workflow = readWorkspaceFile(".github/workflows/turn14-cron.yml");
+  const endpoint = readWorkspaceFile("src/app/api/admin/cron/turn14-sync/route.ts");
+
+  assert.match(legacyCli, /LEGACY_TURN14_DIRECT_WRITE_DISABLED/);
+  assert.match(legacyCli, /throw new Error\(LEGACY_TURN14_DIRECT_WRITE_DISABLED\)/);
+  assert.match(workflow, /api\/admin\/cron\/turn14-sync\?brand=/);
+  assert.match(workflow, /Authorization: Bearer \$\{CRON_SECRET\}/);
+  assert.doesNotMatch(workflow, /DATABASE_URL|DIRECT_URL|TURN14_CLIENT_(?:ID|SECRET)/);
+  assert.match(endpoint, /matchesBearerSecret/);
+  assert.match(endpoint, /syncBrandFromTurn14/);
+  assert.match(endpoint, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(endpoint, /prisma\.shopProduct(?:Variant)?\.(?:create|update)/);
+});
+
 test("Turn14 live hydration and sync publish through the central catalog writer", () => {
   const sharedSync = readWorkspaceFile("src/lib/turn14Sync.ts");
   assert.match(sharedSync, /publishShopCatalogImportUpdate/);

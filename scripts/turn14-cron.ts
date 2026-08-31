@@ -1,3 +1,7 @@
+const LEGACY_TURN14_DIRECT_WRITE_DISABLED =
+  "Legacy Turn14 direct database sync is disabled; invoke /api/admin/cron/turn14-sync.";
+throw new Error(LEGACY_TURN14_DIRECT_WRITE_DISABLED);
+
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import dotenv from 'dotenv';

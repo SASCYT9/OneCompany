@@ -6,11 +6,11 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
 ## Current sprint: P2 persisted projection and shadow reads
 
-| ID        | Work item                                         | Status      | Verification / remaining work                                                         |
-| --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green                              |
-| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Core admin/imports plus Atomic feed cron green; remaining supplier/brand sync pending |
-| C2-P2-003 | Flag-off indexed query and live shadow comparison | Done        | Compare-only stock endpoint telemetry; legacy response remains authoritative          |
+| ID        | Work item                                         | Status      | Verification / remaining work                                                |
+| --------- | ------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
+| C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green                     |
+| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Active admin/import/package/workflow writers green; outage drill remains     |
+| C2-P2-003 | Flag-off indexed query and live shadow comparison | Done        | Compare-only stock endpoint telemetry; legacy response remains authoritative |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
 serializes writers per product, and rejects same-version conflicts. Immutable revisions provide
@@ -143,6 +143,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Seventeen unreferenced destructive Brabus, Burger, Ducati/Akrapovič, IPE, dedupe, and media-trimming utilities now fail closed before Prisma client creation or product deletion. A source contract keeps them quarantined and prevents package-command exposure while preserving their historical transformation logic for later versioned rewrites.
 - Eventuri media migration now checks deterministic Blob path ownership before upload, refuses overwrites, and tracks every URL created in the current run. Successful product commits retain their referenced assets; skipped products and database failures remove unretained uploads in `finally`, while pre-existing/shared blobs are never cleanup candidates.
 - The live stock-search endpoint now invokes the indexed Catalog V2 query only under the fail-closed `compare` flag and never serves its result. Supported first-page/default-order requests emit bounded structured identity/order/continuation parity telemetry; unsupported legacy-only filters are skipped instead of generating misleading comparisons, and projection failures cannot fail the customer response.
+- Monthly Turn14 GitHub Actions no longer receives database or supplier API credentials and cannot execute the legacy direct Prisma writer. It invokes a bearer-authenticated, allowlisted one-brand-per-request endpoint; the endpoint reuses the versioned Turn14 import service and runs bounded outbox publication, while the old CLI fails closed before Prisma initialization.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.
