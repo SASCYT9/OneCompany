@@ -1,0 +1,5 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+test("do88 uses shared persistence and guarded resumable CLI", () => { const adapter = readFileSync("src/lib/shopCatalogDo88Compatibility.server.ts", "utf8"), cli = readFileSync("scripts/backfill-catalog-v2-do88.ts", "utf8");
+  assert.match(adapter, /persistVehicleCompatibilityInTransaction/); assert.match(adapter, /engineRelevant: normalization.engineRelevant/); assert.match(cli, /--limit must be between 1 and 50/); assert.match(cli, /option\("after"\)/); assert.match(cli, /disabled in production/); assert.match(cli, /CATALOG_DO88_BACKFILL_ALLOW_WRITE/); });
