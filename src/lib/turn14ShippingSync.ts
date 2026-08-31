@@ -12,7 +12,9 @@
  * the full Turn14 catalog.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+import type { AdminSession } from './adminAuth';
+import { publishShopCatalogDimensionsUpdate } from './shopCatalogDimensionsWriter.server';
 import {
   fetchTurn14Brands,
   fetchTurn14ItemsByBrand,
@@ -50,6 +52,7 @@ export interface SyncBrandShippingResult {
   unmatched: Array<{ variantId: string; sku: string | null; reason: string }>;
   dryRun: boolean;
   durationMs: number;
+  catalog: Array<{ productId: string; canonicalVersion: string; outboxId: string }>;
   /** Diagnostics — populated to help triage match failures. */
   debug?: {
     turn14ItemMapSize?: number;
@@ -86,6 +89,8 @@ export interface SyncBrandShippingOptions {
    * Defaults to false — we only fill missing data.
    */
   refreshExisting?: boolean;
+  /** Required for applied mutations so audit/revision provenance is never anonymous. */
+  session?: AdminSession;
 }
 
 /**
@@ -343,6 +348,7 @@ export async function syncBrandShippingData(
     unmatched: [],
     dryRun,
     durationMs: 0,
+    catalog: [],
   };
 
   // 0. Compute brand filter early — used both by the no-Turn14 fast path
@@ -430,7 +436,9 @@ export async function syncBrandShippingData(
       grams: true,
       isDimensionsEstimated: true,
       turn14Id: true,
-      product: { select: { id: true, titleEn: true, titleUa: true, brand: true } },
+      product: {
+        select: { id: true, titleEn: true, titleUa: true, brand: true, catalogVersion: true },
+      },
     },
     take: maxVariants,
   });
@@ -463,6 +471,11 @@ export async function syncBrandShippingData(
     turn14BrandNameDistribution: brandNameDistribution,
     turn14ItemSource: source,
   };
+
+  const pendingByProduct = new Map<
+    string,
+    { expectedCatalogVersion: bigint; patches: Array<{ variantId: string; data: Prisma.ShopProductVariantUpdateInput }> }
+  >();
 
   // 4. Iterate variants
   for (const variant of variants) {
@@ -628,11 +641,36 @@ export async function syncBrandShippingData(
     if (!dryRun) {
       const updateData = { ...writePayload } as Record<string, unknown>;
       if (!variant.turn14Id) updateData.turn14Id = t14ItemId;
-      await prisma.shopProductVariant.update({
-        where: { id: variant.id },
-        data: updateData as any,
+      const pending = pendingByProduct.get(variant.product.id) ?? {
+        expectedCatalogVersion: variant.product.catalogVersion,
+        patches: [],
+      };
+      pending.patches.push({
+        variantId: variant.id,
+        data: updateData as Prisma.ShopProductVariantUpdateInput,
       });
-      result.variantsUpdated++;
+      pendingByProduct.set(variant.product.id, pending);
+    }
+  }
+
+  if (!dryRun) {
+    if (!options.session) throw new Error('Applied Turn14 shipping sync requires an admin session');
+    for (const [productId, pending] of [...pendingByProduct.entries()].sort(([a], [b]) =>
+      a.localeCompare(b, 'en'),
+    )) {
+      const mutation = await publishShopCatalogDimensionsUpdate({
+        productId,
+        expectedCatalogVersion: pending.expectedCatalogVersion,
+        patches: pending.patches,
+        session: options.session,
+        reason: 'turn14.shipping.sync',
+      });
+      result.catalog.push({
+        productId: mutation.productId,
+        canonicalVersion: mutation.canonicalVersion,
+        outboxId: mutation.outboxId,
+      });
+      result.variantsUpdated += pending.patches.length;
     }
   }
 

@@ -92,6 +92,21 @@ test("Turn14 live hydration and sync publish through the central catalog writer"
   }
 });
 
+test("Turn14 dimensions sync groups writes behind product catalog locks", () => {
+  const sharedSync = readWorkspaceFile("src/lib/turn14ShippingSync.ts");
+  const route = readWorkspaceFile("src/app/api/admin/shop/turn14/sync-dimensions/route.ts");
+  const writer = readWorkspaceFile("src/lib/shopCatalogDimensionsWriter.server.ts");
+
+  assert.match(sharedSync, /pendingByProduct/);
+  assert.match(sharedSync, /publishShopCatalogDimensionsUpdate/);
+  assert.doesNotMatch(sharedSync, /prisma\.shopProductVariant\.update\(/);
+  assert.match(route, /publishShopCatalogDimensionsUpdate/);
+  assert.match(route, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(route, /prisma\.shopProductVariant\.update\(/);
+  assert.match(writer, /coordinateShopCatalogProductMutation/);
+  assert.match(writer, /buildShopCatalogAdminSnapshot/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
@@ -9,6 +10,8 @@ import {
   type SyncBrandShippingResult,
 } from "@/lib/turn14ShippingSync";
 import { lookupShippingDims } from "@/lib/perplexityDimensions";
+import { publishShopCatalogDimensionsUpdate } from "@/lib/shopCatalogDimensionsWriter.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 /**
  * SHIPPING-DATA-ONLY Turn14 sync.
@@ -38,8 +41,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const cookieStore = await cookies();
+  let session;
   try {
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+    session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     if (message === "UNAUTHORIZED")
@@ -77,6 +81,7 @@ export async function POST(req: Request) {
       refreshExisting: payload.refreshExisting === true,
       maxVariants: payload.maxVariants,
       maxPagesPerBrand: payload.maxPagesPerBrand,
+      session,
     });
 
     // Optional Perplexity fallback for variants Turn14 couldn't fill.
@@ -86,12 +91,13 @@ export async function POST(req: Request) {
       resolved: number;
       changes: SyncBrandShippingResult["changes"];
       skips: Array<{ variantId: string; reason: string; detail?: string }>;
+      catalog: Array<{ productId: string; canonicalVersion: string; outboxId: string }>;
     } | null = null;
 
     if (payload.perplexityFallback === true && result.unmatched.length > 0) {
       const FALLBACK_LIMIT = 5;
       const candidates = result.unmatched.slice(0, FALLBACK_LIMIT);
-      perplexity = { attempted: candidates.length, resolved: 0, changes: [], skips: [] };
+      perplexity = { attempted: candidates.length, resolved: 0, changes: [], skips: [], catalog: [] };
 
       for (const candidate of candidates) {
         const variant = await prisma.shopProductVariant.findUnique({
@@ -103,7 +109,9 @@ export async function POST(req: Request) {
             length: true,
             width: true,
             height: true,
-            product: { select: { titleEn: true, titleUa: true, brand: true } },
+            product: {
+              select: { id: true, titleEn: true, titleUa: true, brand: true, catalogVersion: true },
+            },
           },
         });
         if (!variant) {
@@ -158,12 +166,37 @@ export async function POST(req: Request) {
           if (lookup.lengthCm !== null) updateData.length = lookup.lengthCm;
           if (lookup.widthCm !== null) updateData.width = lookup.widthCm;
           if (lookup.heightCm !== null) updateData.height = lookup.heightCm;
-          await prisma.shopProductVariant.update({
-            where: { id: variant.id },
-            data: updateData as any,
+          const mutation = await publishShopCatalogDimensionsUpdate({
+            productId: variant.product.id,
+            expectedCatalogVersion: variant.product.catalogVersion,
+            patches: [{ variantId: variant.id, data: updateData }],
+            session,
+            reason: "perplexity.shipping.lookup",
+          });
+          perplexity.catalog.push({
+            productId: mutation.productId,
+            canonicalVersion: mutation.canonicalVersion,
+            outboxId: mutation.outboxId,
           });
         }
       }
+    }
+
+    const mutationCount = result.catalog.length + (perplexity?.catalog.length ?? 0);
+    if (payload.apply === true && mutationCount > 0) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-turn14-dimensions:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, mutationCount)),
+          });
+        } catch (error) {
+          console.error(
+            "[shop-catalog.turn14-dimensions] immediate publish failed; cron recovery remains active",
+            error
+          );
+        }
+      });
     }
 
     return NextResponse.json({ success: true, result, perplexity });
