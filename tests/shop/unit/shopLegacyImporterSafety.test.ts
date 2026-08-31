@@ -107,6 +107,15 @@ test("Turn14 dimensions sync groups writes behind product catalog locks", () => 
   assert.match(writer, /buildShopCatalogAdminSnapshot/);
 });
 
+test("AI SEO writes are validated and versioned through the catalog coordinator", () => {
+  const source = readWorkspaceFile("src/app/api/admin/shop/seo-generate/route.ts");
+  assert.match(source, /requiredSeoText/);
+  assert.match(source, /coordinateShopCatalogProductMutation/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
