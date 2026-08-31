@@ -59,6 +59,8 @@
     "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
     "shop:fitment:audit": "tsx --env-file=.env.local scripts/audit-shop-fitment.ts",
     "shop:search:benchmark": "tsx --env-file=.env.local scripts/benchmark-shop-vehicle-search.ts",
+    "shop:catalog:v2:scale": "tsx scripts/benchmark-catalog-v2-scale.ts",
+    "shop:catalog:v2:scale:docker": "tsx scripts/run-catalog-v2-scale-docker.ts",
     "shop:knowledge:dry": "tsx --env-file=.env.local scripts/sync-shop-product-knowledge.ts",
     "shop:knowledge:sync": "tsx --env-file=.env.local scripts/sync-shop-product-knowledge.ts --commit",
     "shop:knowledge:embed:dry": "tsx --env-file=.env.local scripts/embed-shop-product-knowledge.ts",

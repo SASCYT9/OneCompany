@@ -1,6 +1,10 @@
 import "server-only";
 
-import { Prisma, type ShopCatalogProjection } from "@prisma/client";
+import {
+  Prisma,
+  ShopCatalogCompatibilityDimension,
+  type ShopCatalogProjection,
+} from "@prisma/client";
 
 import { prisma } from "./prisma";
 import {
@@ -66,6 +70,26 @@ function targetKey(productId: string, variantId: string | null) {
 function toBigInt(value: string, field: string) {
   if (!/^\d+$/.test(value)) throw new TypeError(`${field} must be an unsigned decimal integer`);
   return BigInt(value);
+}
+
+const PRISMA_COMPATIBILITY_DIMENSION = {
+  scope: ShopCatalogCompatibilityDimension.SCOPE,
+  make: ShopCatalogCompatibilityDimension.MAKE,
+  model: ShopCatalogCompatibilityDimension.MODEL,
+  generation: ShopCatalogCompatibilityDimension.GENERATION,
+  chassis: ShopCatalogCompatibilityDimension.CHASSIS,
+  year: ShopCatalogCompatibilityDimension.YEAR,
+  engine: ShopCatalogCompatibilityDimension.ENGINE,
+  fuel: ShopCatalogCompatibilityDimension.FUEL,
+  bodyStyle: ShopCatalogCompatibilityDimension.BODY_STYLE,
+  drivetrain: ShopCatalogCompatibilityDimension.DRIVETRAIN,
+  transmission: ShopCatalogCompatibilityDimension.TRANSMISSION,
+  market: ShopCatalogCompatibilityDimension.MARKET,
+  opfGpf: ShopCatalogCompatibilityDimension.OPF_GPF,
+} as const;
+
+function toPrismaCompatibilityDimension(dimension: keyof typeof PRISMA_COMPATIBILITY_DIMENSION) {
+  return PRISMA_COMPATIBILITY_DIMENSION[dimension];
 }
 
 function currentDecision(
@@ -154,7 +178,7 @@ export function planShopCatalogProjectionPersistence(
     parentVariantId: row.parentVariantId,
     mode: row.mode,
     sourceVersion: toBigInt(row.sourceVersion, "sourceVersion"),
-    requiredDimensions: [...row.requiredDimensions],
+    requiredDimensions: row.requiredDimensions.map(toPrismaCompatibilityDimension),
     dimensionDefaults: row.dimensionDefaults as Prisma.InputJsonValue,
     clauseCount: row.clauseCount,
   }));
@@ -173,7 +197,7 @@ export function planShopCatalogProjectionPersistence(
     variantId: row.variantId,
     sourceVersion: toBigInt(row.sourceVersion, "sourceVersion"),
     clauseKey: row.clauseId,
-    dimension: row.dimension,
+    dimension: toPrismaCompatibilityDimension(row.dimension),
     state: row.state,
     valueOrdinal: row.valueOrdinal,
     valueKind: row.value?.kind ?? null,

@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 
 import { PrismaClient } from "@prisma/client";
 
+import { normalizeLegacyApplicationsToShopCatalogV2Policy } from "../../../src/lib/shopCatalogV2Compatibility";
 import type { ShopCatalogProjectionSource } from "../../../src/lib/shopCatalogProjection.server";
 
 const databaseUrl =
@@ -48,6 +49,22 @@ function source(productId: string, version: string, titleSuffix = ""): ShopCatal
       ua: { title: `Тестовий товар${titleSuffix}` },
       en: { title: `Test product${titleSuffix}` },
     },
+    compatibilityPolicies: [
+      normalizeLegacyApplicationsToShopCatalogV2Policy({
+        target: { productId },
+        requiredDimensions: ["make", "model", "year"],
+        verification: "VERIFIED",
+        applications: [
+          {
+            id: "integration-bmw-m2",
+            make: "BMW",
+            model: "M2",
+            yearFrom: 2016,
+            yearTo: 2020,
+          },
+        ],
+      }),
+    ],
   };
 }
 
@@ -234,6 +251,17 @@ test(
       assert.equal(query.items[0]?.productId, productId);
       assert.equal(query.items[0]?.projectionVersion, "2");
 
+      const vehicleQuery = await queryShopCatalogProjection({
+        locale: "ua",
+        brand: "test",
+        make: "BMW",
+        model: "M2",
+        year: 2019,
+        limit: 1,
+      });
+      assert.equal(vehicleQuery.items.length, 1);
+      assert.equal(vehicleQuery.items[0]?.productId, productId);
+
       const createdProductId = `${productId}-created`;
       const creation = await coordinateShopCatalogProductCreation({
         changeDomains: ["CONTENT", "PRICE", "INVENTORY", "FITMENT", "VISIBILITY"],
@@ -274,7 +302,9 @@ test(
         1
       );
       assert.equal(
-        await client.shopCatalogPublicationReceipt.count({ where: { productId: createdProductId } }),
+        await client.shopCatalogPublicationReceipt.count({
+          where: { productId: createdProductId },
+        }),
         creation.projectionTargets.length
       );
     } finally {

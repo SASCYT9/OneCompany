@@ -168,6 +168,130 @@ function yearConstraint(year: number): Prisma.ShopCatalogProjectionConstraintWhe
   };
 }
 
+function escapeLike(value: string) {
+  return value.replace(/([\\%_])/g, "\\$1");
+}
+
+function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimension, value: string) {
+  return Prisma.sql`
+    EXISTS (
+      SELECT 1
+      FROM "ShopCatalogProjectionConstraint" compatibility_constraint
+      WHERE compatibility_constraint."targetKey" = clause."targetKey"
+        AND compatibility_constraint."clauseKey" = clause."clauseKey"
+        AND compatibility_constraint."productId" = clause."productId"
+        AND compatibility_constraint."sourceVersion" = clause."sourceVersion"
+        AND compatibility_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"
+        AND (
+          compatibility_constraint."state" IN ('ANY', 'NOT_APPLICABLE')
+          OR (
+            compatibility_constraint."state" = 'EXACT'
+            AND lower(compatibility_constraint."textValue") = lower(${value})
+          )
+        )
+      OFFSET 0
+    )`;
+}
+
+function correlatedYearConstraintSql(year: number) {
+  return Prisma.sql`
+    EXISTS (
+      SELECT 1
+      FROM "ShopCatalogProjectionConstraint" compatibility_constraint
+      WHERE compatibility_constraint."targetKey" = clause."targetKey"
+        AND compatibility_constraint."clauseKey" = clause."clauseKey"
+        AND compatibility_constraint."productId" = clause."productId"
+        AND compatibility_constraint."sourceVersion" = clause."sourceVersion"
+        AND compatibility_constraint."dimension" = 'YEAR'
+        AND (
+          compatibility_constraint."state" IN ('ANY', 'NOT_APPLICABLE')
+          OR (
+            compatibility_constraint."state" = 'EXACT'
+            AND (compatibility_constraint."yearFrom" IS NULL OR compatibility_constraint."yearFrom" <= ${year})
+            AND (compatibility_constraint."yearTo" IS NULL OR compatibility_constraint."yearTo" >= ${year})
+          )
+        )
+      OFFSET 0
+    )`;
+}
+
+export function buildShopCatalogProjectionVehicleQuerySql(
+  raw: ShopCatalogProjectionQueryInput
+): Prisma.Sql | null {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  const vehicleConstraints: Prisma.Sql[] = [];
+  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
+    const value = input[field];
+    if (value) {
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+    }
+  }
+  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
+  if (vehicleConstraints.length === 0) return null;
+
+  const projectionConditions: Prisma.Sql[] = [
+    Prisma.sql`projection."locale" = ${input.locale}`,
+    Prisma.sql`projection."isPublished" = true`,
+    Prisma.sql`projection."statusKey" = 'ACTIVE'`,
+  ];
+  if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  if (input.brand) {
+    projectionConditions.push(
+      Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
+    );
+  }
+  if (input.text) {
+    projectionConditions.push(
+      Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(input.text)}%`} ESCAPE '\\'`
+    );
+  }
+  if (input.after) {
+    projectionConditions.push(
+      Prisma.sql`(projection."stableRank" > ${input.after.stableRank}::numeric OR (projection."stableRank" = ${input.after.stableRank}::numeric AND projection."productId" > ${input.after.productId}))`
+    );
+  }
+
+  projectionConditions.push(Prisma.sql`
+    EXISTS (
+      SELECT 1
+      FROM "ShopCatalogProjectionPolicy" policy
+      JOIN "ShopCatalogProjectionClause" clause
+        ON clause."targetKey" = policy."targetKey"
+       AND clause."productId" = policy."productId"
+       AND clause."sourceVersion" = policy."sourceVersion"
+      WHERE policy."productId" = projection."productId"
+        AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+        AND clause."verification" = 'VERIFIED'
+        AND ${Prisma.join(vehicleConstraints, " AND ")}
+      OFFSET 0
+    )`);
+
+  return Prisma.sql`
+    SELECT
+      projection."productId",
+      projection."locale",
+      projection."slug",
+      projection."title",
+      projection."cardCopy",
+      projection."brandKey",
+      projection."brandLabel",
+      projection."categoryKey",
+      projection."categoryLabel",
+      projection."stableRank",
+      projection."normalizedSku",
+      projection."primaryMediaUrl",
+      projection."minPriceEur",
+      projection."minPriceEurEurope",
+      projection."minPriceUsd",
+      projection."minPriceUah",
+      projection."contentHash",
+      projection."projectionVersion"
+    FROM "ShopCatalogProjection" projection
+    WHERE ${Prisma.join(projectionConditions, " AND ")}
+    ORDER BY projection."stableRank" ASC, projection."productId" ASC
+    LIMIT ${input.limit + 1}`;
+}
+
 /** Builds one correlated-clause filter; selected vehicle fields cannot cross-match different clauses. */
 export function buildShopCatalogProjectionWhere(
   raw: ShopCatalogProjectionQueryInput
@@ -237,31 +361,55 @@ export async function queryShopCatalogProjection(
   raw: ShopCatalogProjectionQueryInput
 ): Promise<ShopCatalogProjectionQueryResult> {
   const input = normalizeShopCatalogProjectionQuery(raw);
-  const rows = await prisma.shopCatalogProjection.findMany({
-    where: buildShopCatalogProjectionWhere(input),
-    orderBy: [{ stableRank: "asc" }, { productId: "asc" }],
-    take: input.limit + 1,
-    select: {
-      productId: true,
-      locale: true,
-      slug: true,
-      title: true,
-      cardCopy: true,
-      brandKey: true,
-      brandLabel: true,
-      categoryKey: true,
-      categoryLabel: true,
-      stableRank: true,
-      normalizedSku: true,
-      primaryMediaUrl: true,
-      minPriceEur: true,
-      minPriceEurEurope: true,
-      minPriceUsd: true,
-      minPriceUah: true,
-      contentHash: true,
-      projectionVersion: true,
-    },
-  });
+  const vehicleSql = buildShopCatalogProjectionVehicleQuerySql(input);
+  const rows = vehicleSql
+    ? await prisma.$queryRaw<
+        Array<{
+          productId: string;
+          locale: string;
+          slug: string;
+          title: string;
+          cardCopy: string | null;
+          brandKey: string;
+          brandLabel: string;
+          categoryKey: string | null;
+          categoryLabel: string | null;
+          stableRank: Prisma.Decimal;
+          normalizedSku: string | null;
+          primaryMediaUrl: string | null;
+          minPriceEur: Prisma.Decimal | null;
+          minPriceEurEurope: Prisma.Decimal | null;
+          minPriceUsd: Prisma.Decimal | null;
+          minPriceUah: Prisma.Decimal | null;
+          contentHash: string;
+          projectionVersion: bigint;
+        }>
+      >(vehicleSql)
+    : await prisma.shopCatalogProjection.findMany({
+        where: buildShopCatalogProjectionWhere(input),
+        orderBy: [{ stableRank: "asc" }, { productId: "asc" }],
+        take: input.limit + 1,
+        select: {
+          productId: true,
+          locale: true,
+          slug: true,
+          title: true,
+          cardCopy: true,
+          brandKey: true,
+          brandLabel: true,
+          categoryKey: true,
+          categoryLabel: true,
+          stableRank: true,
+          normalizedSku: true,
+          primaryMediaUrl: true,
+          minPriceEur: true,
+          minPriceEurEurope: true,
+          minPriceUsd: true,
+          minPriceUah: true,
+          contentHash: true,
+          projectionVersion: true,
+        },
+      });
   const hasMore = rows.length > input.limit;
   const visible = rows.slice(0, input.limit).map((row) => ({
     ...row,

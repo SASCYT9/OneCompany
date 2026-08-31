@@ -72,3 +72,36 @@ test("keyset cursor uses stable rank and product identity", async () => {
     },
   ]);
 });
+
+test("vehicle query is product-first, clause-correlated, and planner-fenced", async () => {
+  const { buildShopCatalogProjectionVehicleQuerySql } = await queryModule;
+  const query = buildShopCatalogProjectionVehicleQuerySql({
+    locale: "ua",
+    limit: 24,
+    make: "BMW",
+    model: "M2",
+    engine: "N55",
+    year: 2019,
+  });
+  assert.ok(query);
+  const sql = query.sql;
+  assert.match(sql, /FROM "ShopCatalogProjection" projection/);
+  assert.match(sql, /policy\."productId" = projection\."productId"/);
+  assert.match(sql, /compatibility_constraint\."targetKey" = clause\."targetKey"/);
+  assert.match(sql, /compatibility_constraint\."clauseKey" = clause\."clauseKey"/);
+  assert.match(sql, /compatibility_constraint\."sourceVersion" = clause\."sourceVersion"/);
+  assert.match(sql, /OFFSET 0/);
+  assert.match(sql, /ORDER BY projection\."stableRank" ASC/);
+  assert.equal(query.values.includes("BMW"), true);
+  assert.equal(query.values.includes("M2"), true);
+  assert.equal(query.values.includes("N55"), true);
+  assert.equal(query.values.includes(2019), true);
+});
+
+test("vehicle SQL path stays disabled when no compatibility filter is selected", async () => {
+  const { buildShopCatalogProjectionVehicleQuerySql } = await queryModule;
+  assert.equal(
+    buildShopCatalogProjectionVehicleQuerySql({ locale: "en", brand: "Eventuri" }),
+    null
+  );
+});

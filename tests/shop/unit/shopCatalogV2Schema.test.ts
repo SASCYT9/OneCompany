@@ -15,6 +15,25 @@ const migration = fs.readFileSync(
   ),
   "utf8"
 );
+const fitmentReadMigration = fs.readFileSync(
+  path.join(
+    repoRoot,
+    "prisma",
+    "migrations",
+    "20260831140000_optimize_catalog_projection_fitment_reads",
+    "migration.sql"
+  ),
+  "utf8"
+);
+
+test("Catalog V2 fitment reads have a product-first case-insensitive index", () => {
+  assert.match(fitmentReadMigration, /ShopCatalogProjectionConstraint_product_exact_text_idx/);
+  assert.match(
+    fitmentReadMigration,
+    /"productId"[\s\S]*"dimension"[\s\S]*"state"[\s\S]*lower\("textValue"\)[\s\S]*"targetKey"[\s\S]*"clauseKey"/
+  );
+  assert.doesNotMatch(fitmentReadMigration, /DELETE\s+FROM|TRUNCATE|DROP\s+TABLE|ALTER\s+TABLE/i);
+});
 
 test("Catalog V2 schema is additive and keeps legacy product identity", () => {
   assert.match(schema, /model ShopProduct \{[\s\S]*?catalogVersion\s+BigInt\s+@default\(0\)/);

@@ -11,6 +11,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green                     |
 | C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Active admin/import/package/workflow writers green; outage drill remains     |
 | C2-P2-003 | Flag-off indexed query and live shadow comparison | Done        | Compare-only stock endpoint telemetry; legacy response remains authoritative |
+| C2-P2-004 | 100k/500k query-plan and scale gate               | Done        | PostgreSQL 17 EXPLAIN gate passes; product-first fitment path is indexed     |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
 serializes writers per product, and rejects same-version conflicts. Immutable revisions provide
@@ -18,14 +19,15 @@ the concrete rebuild source. The leased outbox worker uses `SKIP LOCKED`, reject
 advances each target receipt monotonically. The PostgreSQL integration gate verifies the complete
 mutation → revision → outbox → projection → query path.
 No production or local storefront traffic has been switched to this adapter.
-Current verification: 108/108 focused unit/contract tests, 2/2 disposable PostgreSQL
-integration tests, full TypeScript, and full ESLint.
+Latest scale verification: 100k/500k disposable PostgreSQL 17 gates pass all six query
+scenarios with no large sequential scan; 40 migrations replay cleanly to 135 public tables.
+Focused contracts and full TypeScript pass.
 
 ## Completed sprint: P1 canonical foundation and shadow projection
 
 | ID        | Work item                                                        | Status | Verification                                                         |
 | --------- | ---------------------------------------------------------------- | ------ | -------------------------------------------------------------------- |
-| C2-P1-001 | Additive canonical schema, source ledger, fitment, and migration | Done   | Prisma valid; 39 migrations replay cleanly; schema diff is empty     |
+| C2-P1-001 | Additive canonical schema, source ledger, fitment, and migration | Done   | Prisma valid; 40 migrations replay cleanly; schema diff is empty     |
 | C2-P1-002 | Deterministic bounded shadow projection and parity               | Done   | Flag defaults off; keyset batches; rebuild/parity tests pass         |
 | C2-P1-003 | Versioned publication, source ownership, and retire workflow     | Done   | Immutable revisions, exact outbox domains, monotonic target receipts |
 
@@ -74,8 +76,8 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 ## P1 completion checklist
 
 - [x] Catalog V2 schema is additive and the new reader remains disabled by default.
-- [x] All 39 migrations replay from an empty disposable PostgreSQL 17 database.
-- [x] Replayed database matches `prisma/schema.prisma` exactly (134 public tables).
+- [x] All 40 migrations replay from an empty disposable PostgreSQL 17 database.
+- [x] Replayed database matches `prisma/schema.prisma` exactly (135 public tables).
 - [x] Source records, bindings, revisions, provenance, review issues, and tombstones are explicit.
 - [x] Projection batches are bounded to 500 products and use deterministic product-ID cursors.
 - [x] Brand, make, model, generation, year, engine, and fuel facets are projected explicitly.
@@ -91,7 +93,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 | C2-P0-006 | Immutable baseline fingerprint/loss-ledger dry-run tool                                | Done        | P0 complete           | Counts and hashes cover canonical fields and dependency graph                                                                                                                                                                                          |
 | C2-P0-007 | Migrate or quarantine legacy Brabus/Burger/old DO88/Akrapovič destructive import paths | Done        | Import merge helper   | Scoped active importers have no nested `deleteMany + create`                                                                                                                                                                                           |
 | C2-P0-008 | Make partial Eventuri media migration fail closed per product                          | Done        | Snapshot merge helper | Primary/gallery/variant upload failure prevents product persistence                                                                                                                                                                                    |
-| C2-P1-001 | Review additive Catalog V2 schema ADR and forward migration                            | Done        | Baseline contract     | 39 migrations replay; schema diff empty; baseline unchanged                                                                                                                                                                                            |
+| C2-P1-001 | Review additive Catalog V2 schema ADR and forward migration                            | Done        | Baseline contract     | 40 migrations replay; schema diff empty; baseline unchanged                                                                                                                                                                                            |
 | C2-P1-002 | Implement deterministic `ShopCatalogProjection` builder in shadow mode                 | Done        | P1 schema             | Rebuild idempotency, bounded pages, and per-product parity                                                                                                                                                                                             |
 | C2-P1-003 | Define explicit source ownership and retire/tombstone workflow                         | Done        | P1 schema ADR         | Immutable lineage, head advancement, and no-delete guards                                                                                                                                                                                              |
 | C2-P1-004 | Audit remaining Ducati/IPE repair, rebuild, seed, and cleanup scripts                  | Done        | Import safety         | Every live path is ID-preserving or explicitly quarantined                                                                                                                                                                                             |
@@ -144,9 +146,11 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Eventuri media migration now checks deterministic Blob path ownership before upload, refuses overwrites, and tracks every URL created in the current run. Successful product commits retain their referenced assets; skipped products and database failures remove unretained uploads in `finally`, while pre-existing/shared blobs are never cleanup candidates.
 - The live stock-search endpoint now invokes the indexed Catalog V2 query only under the fail-closed `compare` flag and never serves its result. Supported first-page/default-order requests emit bounded structured identity/order/continuation parity telemetry; unsupported legacy-only filters are skipped instead of generating misleading comparisons, and projection failures cannot fail the customer response.
 - Monthly Turn14 GitHub Actions no longer receives database or supplier API credentials and cannot execute the legacy direct Prisma writer. It invokes a bearer-authenticated, allowlisted one-brand-per-request endpoint; the endpoint reuses the versioned Turn14 import service and runs bounded outbox publication, while the old CLI fails closed before Prisma initialization.
+- The reproducible 100k/500k PostgreSQL scale gate checks first-page listing, 90%-deep keyset pagination, brand, trigram text, make-only fitment, and fully correlated make/model/engine/year fitment. An initially linear candidate-first plan failed the SLO and was replaced by a product-first planner-fenced query plus a case-insensitive expression index; the final 500k warm p95 is 90.02 ms at worst (deep keyset), with correlated fitment at 24.08 ms and no large sequential scans. See [SCALE_GATE_2026-08-31.md](./SCALE_GATE_2026-08-31.md).
+- PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
-- The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.
+- The 100k/500k PostgreSQL gate passes the current compact projection; production-like concurrency, commit-to-visible latency, and canary traffic still require measurement before reader activation.
 - Price-book and global settings version sources need their concrete persistence adapters in P2.
 - The current storefront still reads the legacy/local snapshot; therefore P1 alone does not remove its multi-second cold parse.
 

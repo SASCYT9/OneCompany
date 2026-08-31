@@ -5,6 +5,7 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 
 import type { ShopCatalogProjectionSource } from "../../../src/lib/shopCatalogProjection.server";
+import { normalizeLegacyApplicationsToShopCatalogV2Policy } from "../../../src/lib/shopCatalogV2Compatibility";
 
 const serverOnlyStub = pathToFileURL(
   path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
@@ -54,6 +55,28 @@ test("persistence plan maps every compact row and is deterministic", async () =>
   assert.equal(first.projectionRows.length, 2);
   assert.equal(first.skuRows.length, 2);
   assert.deepEqual(first, second);
+});
+
+test("persistence maps domain compatibility dimensions to Prisma enums", async () => {
+  const { buildShopCatalogProjection } = await projectionModule;
+  const { planShopCatalogProjectionPersistence } = await persistenceModule;
+  const input = source();
+  input.compatibilityPolicies = [
+    normalizeLegacyApplicationsToShopCatalogV2Policy({
+      target: { productId: input.productId },
+      requiredDimensions: ["make", "bodyStyle", "opfGpf"],
+      verification: "VERIFIED",
+      applications: [{ id: "mapped-enums", make: "BMW", bodyStyle: "coupe", opfGpf: true }],
+    }),
+  ];
+  const plan = planShopCatalogProjectionPersistence([], buildShopCatalogProjection(input));
+  assert.deepEqual(plan.policyRows[0]?.requiredDimensions, ["MAKE", "BODY_STYLE", "OPF_GPF"]);
+  const persistedDimensions = new Set(plan.constraintRows.map((row) => row.dimension));
+  assert.equal(persistedDimensions.size, 13);
+  assert.equal(persistedDimensions.has("MAKE"), true);
+  assert.equal(persistedDimensions.has("BODY_STYLE"), true);
+  assert.equal(persistedDimensions.has("OPF_GPF"), true);
+  assert.equal(persistedDimensions.has("make"), false);
 });
 
 test("same version is idempotent only when every locale hash matches", async () => {
