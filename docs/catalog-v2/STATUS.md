@@ -13,6 +13,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-003 | RaceChip normalization/backfill                | Done        | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof |
 | C2-P6-004 | ADRO normalization/backfill                    | Done        | Shared ledger core, aliases, correlated policies, CLI, PostgreSQL proof |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Done        | Mixed universal/exact/review policies, CLI, PostgreSQL proof            |
+| C2-P6-006 | Remaining-source lossless inventory/backfills  | In progress | 9,596 records reconciled; PRODUCT binding support green; per-source work remains |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -54,6 +55,12 @@ remain review-only rather than being broadened. The shared writer persists canon
 source aliases, and all 13 dimensions per clause. PostgreSQL proves verified universal, exact
 M3/M4/S58/petrol, and missing-engine review-only policies. See
 [EVENTURI_AUDIT_2026-08-31.md](./EVENTURI_AUDIT_2026-08-31.md).
+The remaining-source inventory reconciles all 9,596 not-yet-normalized products and 419,661 raw
+leaves across 11 source shards. It exposed 4,188 Remus/Ilmberger records without default variants;
+the shared ledger writer now supports genuine product-level bindings instead of inventing variant
+identity. PostgreSQL proves product-level persistence invokes the compatibility callback and creates
+zero synthetic variants. Burger and iPE repeated SKUs are also explicitly tracked. See
+[REMAINING_SOURCE_INVENTORY_2026-08-31.md](./REMAINING_SOURCE_INVENTORY_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 

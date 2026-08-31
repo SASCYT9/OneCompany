@@ -18,7 +18,7 @@ export type CatalogSourceBackfillPageResult = {
 
 export type CatalogSourceNormalizationIdentity = {
   productId: string;
-  variantId: string;
+  variantId: string | null;
 };
 
 export type CatalogSourceRecordDraft<TNormalization extends CatalogSourceNormalizationIdentity> = {
@@ -143,7 +143,10 @@ export async function persistCatalogSourceRecordPageWithClient<
       }
       if (products.length !== productIds.length) throw new Error(`${config.label} page references missing products`);
       for (const draft of input.drafts) {
-        if (variantOwner.get(draft.normalization.variantId) !== draft.normalization.productId) {
+        if (
+          draft.normalization.variantId !== null &&
+          variantOwner.get(draft.normalization.variantId) !== draft.normalization.productId
+        ) {
           throw new Error(`${config.label} variant ${draft.normalization.variantId} has invalid ownership`);
         }
       }
@@ -154,6 +157,8 @@ export async function persistCatalogSourceRecordPageWithClient<
       let issuesInserted = 0;
       for (const draft of input.drafts) {
         const recordInput = draft.sourceRecord;
+        const bindingEntityType = draft.normalization.variantId ? "VARIANT" : "PRODUCT";
+        const canonicalEntityId = draft.normalization.variantId ?? draft.normalization.productId;
         const existing = await tx.shopCatalogSourceRecord.findUnique({
           where: {
             sourceId_recordKey_sourceRevision: {
@@ -239,7 +244,7 @@ export async function persistCatalogSourceRecordPageWithClient<
           where: {
             sourceId_entityType_externalKey: {
               sourceId: source.id,
-              entityType: "VARIANT",
+              entityType: bindingEntityType,
               externalKey: recordInput.recordKey,
             },
           },
@@ -257,11 +262,11 @@ export async function persistCatalogSourceRecordPageWithClient<
             id: bindingId,
             sourceId: source.id,
             sourceRecordId: record.id,
-            entityType: "VARIANT",
+            entityType: bindingEntityType,
             externalKey: recordInput.recordKey,
             bindingVersion: (head?.currentBinding.bindingVersion ?? 0) + 1,
             action: "MAP",
-            canonicalEntityId: draft.normalization.variantId,
+            canonicalEntityId,
             productId: draft.normalization.productId,
             variantId: draft.normalization.variantId,
             supersedesId: head?.currentBindingId ?? null,
@@ -279,7 +284,7 @@ export async function persistCatalogSourceRecordPageWithClient<
           await tx.shopCatalogSourceBindingHead.create({
             data: {
               sourceId: source.id,
-              entityType: "VARIANT",
+              entityType: bindingEntityType,
               externalKey: recordInput.recordKey,
               currentBindingId: bindingId,
             },
