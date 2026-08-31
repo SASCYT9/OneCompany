@@ -16,6 +16,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-006 | Remaining-source lossless inventory/backfills  | In progress | 9,596 records reconciled; PRODUCT binding support green; per-source work remains |
 | C2-P6-007 | Brabus normalization/backfill                  | Done        | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof |
 | C2-P6-008 | Urban normalization/backfill                   | Done        | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof |
+| C2-P6-009 | Öhlins normalization/backfill                  | Done        | 489 records, universal split, drivetrain quarantine, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -74,6 +75,11 @@ the ledger without polluting vehicle taxonomy; five engine-relevant exhaust prod
 identity and 12 unresolved applications remain review-only. PostgreSQL proves correlated L405/L494
 wheel clauses and unknown-engine exhaust behavior, with Brabus and Eventuri regression coverage. See
 [URBAN_AUDIT_2026-08-31.md](./URBAN_AUDIT_2026-08-31.md).
+Öhlins normalization accounts for 489/489 records and 15,159/15,159 raw leaves. It verifies 329
+products, including 102 universal parts, and produces 318 correlated vehicle applications. The
+existing curated chassis vocabulary is reused; 154 unresolved applications and six drivetrain-
+qualified products remain review-only. PostgreSQL proves exact G80/G82/G87, universal, and
+drivetrain-quarantine behavior. See [OHLINS_AUDIT_2026-08-31.md](./OHLINS_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
