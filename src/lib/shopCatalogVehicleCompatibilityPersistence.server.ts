@@ -13,6 +13,7 @@ export type VehiclePolicyApplication = {
   yearTo: number | null;
   engineCode: string | null;
   fuel: string | null;
+  opfGpf?: string | null;
 };
 
 export type VehiclePolicyNormalization = {
@@ -22,6 +23,7 @@ export type VehiclePolicyNormalization = {
   recordKey: string;
   mode: "UNIVERSAL" | "VEHICLE_SPECIFIC" | "NEEDS_REVIEW";
   engineRelevant: boolean;
+  opfGpfRelevant?: boolean;
   applications: VehiclePolicyApplication[];
   verification: "VERIFIED" | "NEEDS_REVIEW";
 };
@@ -242,10 +244,13 @@ export async function persistVehicleCompatibilityInTransaction(input: {
           isRequired:
             policyMode === "VEHICLE_SPECIFIC" &&
             (["SCOPE", "MAKE", "MODEL"].includes(dimension) ||
-              (dimension === "ENGINE" && normalization.engineRelevant)),
+              (dimension === "ENGINE" && normalization.engineRelevant) ||
+              (dimension === "OPF_GPF" && normalization.opfGpfRelevant)),
           defaultState:
             dimension === "ENGINE" || dimension === "FUEL"
               ? normalization.engineRelevant ? "UNKNOWN" : "NOT_APPLICABLE"
+              : dimension === "OPF_GPF"
+                ? normalization.opfGpfRelevant ? "UNKNOWN" : "NOT_APPLICABLE"
               : "ANY",
         })),
       },
@@ -261,7 +266,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
       data: {
         policyId: policy.id,
         clauseKey: key("eventuri-clause", application
-          ? `${application.scope ?? "auto"}|${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}`
+          ? `${application.scope ?? "auto"}|${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}|${application.opfGpf ?? "*"}`
           : `${normalization.recordKey}|unresolved`),
         position,
         verification: normalization.verification,
@@ -303,13 +308,16 @@ export async function persistVehicleCompatibilityInTransaction(input: {
           { dimension: "DRIVETRAIN", state: "NOT_APPLICABLE" },
           { dimension: "TRANSMISSION", state: "NOT_APPLICABLE" },
           { dimension: "MARKET", state: "ANY" },
-          { dimension: "OPF_GPF", state: "NOT_APPLICABLE" },
+          application.opfGpf
+            ? { dimension: "OPF_GPF", state: "EXACT", value: { textValue: application.opfGpf } }
+            : { dimension: "OPF_GPF", state: normalization.opfGpfRelevant ? "UNKNOWN" : "NOT_APPLICABLE" },
         ]
       : dimensions.map((dimension) => ({
           dimension,
           state:
             dimension === "SCOPE" ? "EXACT" :
             universal ? (dimension === "ENGINE" || dimension === "FUEL" ? "NOT_APPLICABLE" : "ANY") :
+            dimension === "OPF_GPF" && normalization.opfGpfRelevant ? "UNKNOWN" :
             (dimension === "ENGINE" || dimension === "FUEL") && !normalization.engineRelevant
               ? "NOT_APPLICABLE"
               : "UNKNOWN",

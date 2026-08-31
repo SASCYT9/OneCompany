@@ -18,6 +18,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-008 | Urban normalization/backfill                   | Done        | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof |
 | C2-P6-009 | Öhlins normalization/backfill                  | Done        | 489 records, universal split, drivetrain quarantine, PostgreSQL proof |
 | C2-P6-010 | Akrapovič normalization/backfill               | Done        | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof |
+| C2-P6-011 | iPE normalization/backfill                     | Done        | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -88,6 +89,12 @@ Exact engine evidence is absent for 353 exhaust products and 34 mention OPF/GPF 
 those policies remain review-only rather than being broadened. PostgreSQL proves auto/moto
 isolation and prior-source regressions. See
 [AKRAPOVIC_AUDIT_2026-08-31.md](./AKRAPOVIC_AUDIT_2026-08-31.md).
+iPE normalization accounts for 111/111 records and 6,511/6,511 raw leaves. Product ID plus SKU
+protects all 27 records affected by repeated supplier SKUs. Default-variant evidence produces 67
+exact OPF/Non-OPF policies; one contradictory OPF record and one non-contiguous year set remain
+review-only. All 110 engine-relevant records lack exact engine identity and are quarantined without
+discarding their 134 candidate applications. PostgreSQL proves collision-safe records and exact
+variant-first OPF constraints. See [IPE_AUDIT_2026-08-31.md](./IPE_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
