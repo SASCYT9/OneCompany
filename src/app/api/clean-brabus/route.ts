@@ -1,5 +1,15 @@
-import { NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
+import { cookies } from 'next/headers';
+import { after, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { assertAdminRequest, type AdminSession } from '@/lib/adminAuth';
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { buildShopCatalogAdminSnapshot } from '@/lib/shopCatalogAdminSnapshot.server';
+import {
+  coordinateShopCatalogProductMutation,
+  type ShopCatalogCoordinatedMutationResult,
+} from '@/lib/shopCatalogMutationCoordinator.server';
+import { runShopCatalogOutboxRuntime } from '@/lib/shopCatalogOutboxRuntime.server';
 
 // Trigger phrases — when any of these is found, everything from that point onward gets cut
 const triggerPhrases = [
@@ -124,55 +134,145 @@ function cleanHtml(html: string): string {
   return cleaned;
 }
 
-export async function GET() {
+const fieldsToClean = [
+  'seoDescriptionEn', 'seoDescriptionUa',
+  'bodyHtmlEn', 'bodyHtmlUa',
+  'longDescEn', 'longDescUa',
+  'shortDescEn', 'shortDescUa',
+] as const;
+
+async function buildCleanupPlan() {
+  const products = await prisma.shopProduct.findMany({
+    where: { vendor: 'Brabus' },
+    select: {
+      id: true,
+      sku: true,
+      catalogVersion: true,
+      seoDescriptionEn: true,
+      seoDescriptionUa: true,
+      bodyHtmlEn: true,
+      bodyHtmlUa: true,
+      longDescEn: true,
+      longDescUa: true,
+      shortDescEn: true,
+      shortDescUa: true,
+    },
+  });
+  const changes: Array<{
+    id: string;
+    sku: string | null;
+    catalogVersion: bigint;
+    updateData: Record<string, string>;
+    fieldCount: number;
+  }> = [];
+
+  for (const product of products) {
+    const updateData: Record<string, string> = {};
+    for (const field of fieldsToClean) {
+      const value = product[field];
+      if (!value) continue;
+      const cleaned = cleanHtml(value);
+      if (cleaned !== value) updateData[field] = cleaned;
+    }
+    const fieldCount = Object.keys(updateData).length;
+    if (fieldCount) {
+      changes.push({
+        id: product.id,
+        sku: product.sku,
+        catalogVersion: product.catalogVersion,
+        updateData,
+        fieldCount,
+      });
+    }
+  }
+  return { totalProducts: products.length, changes };
+}
+
+async function authorize(permission: string) {
   try {
-    const products = await prisma.shopProduct.findMany({
-      where: { vendor: 'Brabus' },
+    return await assertAdminRequest(await cookies(), permission);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ error: 'Failed to authorize request' }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  const auth = await authorize(ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+  if (auth instanceof NextResponse) return auth;
+  try {
+    const plan = await buildCleanupPlan();
+    return NextResponse.json({
+      success: true,
+      dryRun: true,
+      totalProducts: plan.totalProducts,
+      updatedProducts: plan.changes.length,
+      totalFieldChanges: plan.changes.reduce((sum, change) => sum + change.fieldCount, 0),
+      sampleSkus: plan.changes.slice(0, 20).map((change) => change.sku || change.id),
     });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
 
-    let updatedCount = 0;
-    let totalChanges = 0;
-    const changedSkus: string[] = [];
+export async function POST() {
+  const auth = await authorize(ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
+  if (auth instanceof NextResponse) return auth;
+  const session = auth as AdminSession;
+  try {
+    const plan = await buildCleanupPlan();
+    const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
+    for (const change of plan.changes) {
+      catalogMutations.push(
+        await coordinateShopCatalogProductMutation({
+          productId: change.id,
+          expectedCatalogVersion: change.catalogVersion.toString(),
+          changeDomains: ['CONTENT', 'SEO'],
+          async mutateAndSnapshot(tx, nextCatalogVersion) {
+            await tx.shopProduct.update({ where: { id: change.id }, data: change.updateData });
+            await writeAdminAuditLog(tx, session, {
+              scope: 'shop',
+              action: 'brabus.content.clean',
+              entityType: 'shop.product',
+              entityId: change.id,
+              metadata: { fields: Object.keys(change.updateData), catalogVersion: nextCatalogVersion },
+            });
+            return buildShopCatalogAdminSnapshot(tx, change.id, nextCatalogVersion, {
+              type: 'ADMIN',
+              id: session.email,
+              reason: 'brabus.content.clean',
+            });
+          },
+        })
+      );
+    }
 
-    const fieldsToClean = [
-      'seoDescriptionEn', 'seoDescriptionUa',
-      'bodyHtmlEn', 'bodyHtmlUa',
-      'longDescEn', 'longDescUa',
-      'shortDescEn', 'shortDescUa',
-    ];
-
-    for (const p of products) {
-      let updated = false;
-      const updateData: any = {};
-
-      for (const field of fieldsToClean) {
-        const val = (p as any)[field];
-        if (val) {
-          const cleaned = cleanHtml(val as string);
-          if (cleaned !== val) {
-            updateData[field] = cleaned;
-            updated = true;
-            totalChanges++;
-          }
+    if (catalogMutations.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-clean-brabus:${process.env.VERCEL_REGION || 'local'}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, catalogMutations.length)),
+          });
+        } catch (error) {
+          console.error('[shop-catalog.clean-brabus] immediate publish failed; cron recovery remains active', {
+            outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
+            error,
+          });
         }
-      }
-
-      if (updated) {
-        await prisma.shopProduct.update({
-          where: { id: p.id },
-          data: updateData,
-        });
-        updatedCount++;
-        changedSkus.push(p.sku || p.id);
-      }
+      });
     }
 
     return NextResponse.json({
       success: true,
-      totalProducts: products.length,
-      updatedProducts: updatedCount,
-      totalFieldChanges: totalChanges,
-      sampleSkus: changedSkus.slice(0, 20),
+      dryRun: false,
+      totalProducts: plan.totalProducts,
+      updatedProducts: catalogMutations.length,
+      totalFieldChanges: plan.changes.reduce((sum, change) => sum + change.fieldCount, 0),
+      sampleSkus: plan.changes.slice(0, 20).map((change) => change.sku || change.id),
     });
   } catch (error: any) {
     console.error(error);

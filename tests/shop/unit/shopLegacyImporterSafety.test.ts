@@ -126,6 +126,19 @@ test("Airtable stock cron rejects conflicting feed rows and publishes grouped in
   assert.doesNotMatch(source, /prisma\.shopProductVariant\.updateMany\(/);
 });
 
+test("Brabus cleanup is authenticated, preview-first, and versioned", () => {
+  const source = readWorkspaceFile("src/app/api/clean-brabus/route.ts");
+  const getStart = source.indexOf("export async function GET");
+  const postStart = source.indexOf("export async function POST");
+  assert.ok(getStart >= 0 && postStart > getStart);
+  assert.match(source.slice(getStart, postStart), /SHOP_PRODUCTS_READ/);
+  assert.doesNotMatch(source.slice(getStart, postStart), /coordinateShopCatalogProductMutation/);
+  assert.match(source.slice(postStart), /SHOP_PRODUCTS_WRITE/);
+  assert.match(source.slice(postStart), /coordinateShopCatalogProductMutation/);
+  assert.match(source.slice(postStart), /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
