@@ -8,6 +8,8 @@ import { PrismaClient } from "@prisma/client";
 import { URBAN_COLLECTION_CARDS } from "../src/app/[locale]/shop/data/urbanCollectionsList";
 import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
 import { getUrbanCollectionHandleForProduct } from "../src/lib/urbanCollectionMatcher";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
 
 const prisma = new PrismaClient();
 
@@ -111,6 +113,7 @@ async function fetchUrbanCatalogRows(limit: number | null) {
       tags: true,
       isPublished: true,
       status: true,
+      catalogVersion: true,
       metafields: {
         select: {
           namespace: true,
@@ -150,11 +153,13 @@ type ArchivePlan = {
   source: string | null;
   reason: "duplicate-legacy" | "gp-only-prune";
   keepSlug?: string;
+  catalogVersion: bigint;
 };
 
 type ProductPlan = {
   id: string;
   slug: string;
+  catalogVersion: bigint;
   targetProductBrand: string;
   targetVehicleBrand: string;
   targetSource: string;
@@ -505,6 +510,7 @@ function buildProductPlan(row: UrbanCatalogRow): ProductPlan | null {
   return {
     id: row.id,
     slug: row.slug,
+    catalogVersion: row.catalogVersion,
     targetProductBrand,
     targetVehicleBrand,
     targetSource,
@@ -561,6 +567,7 @@ function findArchiveDuplicatePlans(rows: UrbanCatalogRow[]) {
       source: resolveUrbanSource(legacyRow),
       reason: "duplicate-legacy",
       keepSlug: gpPortalRow.slug,
+      catalogVersion: legacyRow.catalogVersion,
     });
   });
 
@@ -577,6 +584,7 @@ function findGpOnlyArchivePlans(rows: UrbanCatalogRow[]) {
       titleEn: row.titleEn,
       source: resolveUrbanSource(row),
       reason: "gp-only-prune" as const,
+      catalogVersion: row.catalogVersion,
     }))
     .sort((left, right) => left.slug.localeCompare(right.slug));
 }
@@ -603,7 +611,7 @@ async function writeBackup(
         archivePlans,
         productPlans,
       },
-      null,
+      (_key, item) => (typeof item === "bigint" ? item.toString() : item),
       2
     ),
     "utf8"
@@ -651,82 +659,104 @@ async function ensureUrbanCollections() {
 }
 
 async function applyArchivePlans(archivePlans: ArchivePlan[]) {
+  const outboxIds: string[] = [];
   for (const plan of archivePlans) {
-    await prisma.shopProduct.update({
-      where: {
-        id: plan.id,
-      },
-      data: {
-        status: "ARCHIVED",
-        isPublished: false,
-        publishedAt: null,
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: plan.id,
+      expectedCatalogVersion: plan.catalogVersion.toString(),
+      changeDomains: ["VISIBILITY"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
+          where: { id: plan.id },
+          data: { status: "ARCHIVED", isPublished: false, publishedAt: null },
+        });
+        return buildShopCatalogAdminSnapshot(tx, plan.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "urban-reconcile@system.local",
+          reason: `urban.reconcile.archive.${plan.reason}`,
+        });
       },
     });
+    outboxIds.push(mutation.outboxId);
   }
+  return outboxIds;
 }
 
 async function applyProductPlans(
   productPlans: ProductPlan[],
   collectionIdByHandle: Map<string, string>
 ) {
+  const outboxIds: string[] = [];
   for (const plan of productPlans) {
-    await prisma.$transaction(async (tx) => {
-      if (Object.keys(plan.productData).length) {
-        await tx.shopProduct.update({
-          where: {
-            id: plan.id,
-          },
-          data: plan.productData,
-        });
-      }
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: plan.id,
+      expectedCatalogVersion: plan.catalogVersion.toString(),
+      changeDomains: ["CONTENT", "FITMENT", "TAXONOMY", "VISIBILITY"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        if (Object.keys(plan.productData).length) {
+          await tx.shopProduct.update({
+            where: {
+              id: plan.id,
+            },
+            data: plan.productData,
+          });
+        }
 
-      for (const operation of plan.metafieldOps) {
-        await tx.shopProductMetafield.upsert({
-          where: {
-            productId_namespace_key: {
+        for (const operation of plan.metafieldOps) {
+          await tx.shopProductMetafield.upsert({
+            where: {
+              productId_namespace_key: {
+                productId: plan.id,
+                namespace: operation.namespace,
+                key: operation.key,
+              },
+            },
+            update: {
+              value: operation.value,
+              valueType: operation.valueType,
+            },
+            create: {
               productId: plan.id,
               namespace: operation.namespace,
               key: operation.key,
-            },
-          },
-          update: {
-            value: operation.value,
-            valueType: operation.valueType,
-          },
-          create: {
-            productId: plan.id,
-            namespace: operation.namespace,
-            key: operation.key,
-            value: operation.value,
-            valueType: operation.valueType,
-          },
-        });
-      }
-
-      if (plan.syncCollectionHandles) {
-        await tx.shopProductCollection.deleteMany({
-          where: {
-            productId: plan.id,
-          },
-        });
-
-        for (const [index, handle] of plan.targetCollectionHandles.entries()) {
-          const collectionId = collectionIdByHandle.get(handle);
-          if (!collectionId) {
-            continue;
-          }
-
-          await tx.shopProductCollection.create({
-            data: {
-              productId: plan.id,
-              collectionId,
-              sortOrder: index,
+              value: operation.value,
+              valueType: operation.valueType,
             },
           });
         }
-      }
+
+        if (plan.syncCollectionHandles) {
+          await tx.shopProductCollection.deleteMany({
+            where: {
+              productId: plan.id,
+            },
+          });
+
+          for (const [index, handle] of plan.targetCollectionHandles.entries()) {
+            const collectionId = collectionIdByHandle.get(handle);
+            if (!collectionId) {
+              continue;
+            }
+
+            await tx.shopProductCollection.create({
+              data: {
+                productId: plan.id,
+                collectionId,
+                sortOrder: index,
+              },
+            });
+          }
+        }
+        return buildShopCatalogAdminSnapshot(tx, plan.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "urban-reconcile@system.local",
+          reason: "urban.reconcile.normalize",
+        });
+      },
     });
+    outboxIds.push(mutation.outboxId);
   }
+  return outboxIds;
 }
 
 async function main() {
@@ -777,8 +807,8 @@ async function main() {
 
   const backupPath = await writeBackup(rows, archivePlans, productPlans);
   const collectionIdByHandle = await ensureUrbanCollections();
-  await applyArchivePlans(archivePlans);
-  await applyProductPlans(productPlans, collectionIdByHandle);
+  const archiveOutboxIds = await applyArchivePlans(archivePlans);
+  const productOutboxIds = await applyProductPlans(productPlans, collectionIdByHandle);
 
   console.log(
     JSON.stringify(
@@ -788,6 +818,7 @@ async function main() {
         backupPath,
         archiveTotal: archivePlans.length,
         normalizeProducts: productPlans.length,
+        catalogOutboxIds: [...archiveOutboxIds, ...productOutboxIds],
       },
       null,
       2

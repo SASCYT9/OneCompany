@@ -237,6 +237,16 @@ test("Ducati Akrapovic catalog CLI versions update, create, and archive paths", 
   assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update|upsert)\(/);
 });
 
+test("Urban reconcile CLI publishes normalization and archive plans", () => {
+  const source = readWorkspaceFile("scripts/reconcile-urban-catalog.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \["VISIBILITY"\]/);
+  assert.match(source, /"CONTENT", "FITMENT", "TAXONOMY", "VISIBILITY"/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
+  assert.doesNotMatch(source, /prisma\.\$transaction/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
