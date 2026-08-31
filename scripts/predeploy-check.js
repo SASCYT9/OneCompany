@@ -131,6 +131,16 @@ try {
     },
   });
 
+  console.log("[STEP] Verifying commit-bound Catalog V2 production activation...");
+  execSync("npx tsx scripts/check-catalog-v2-release-activation.ts", {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      VERCEL_GIT_COMMIT_SHA: deployedCommitSha,
+    },
+  });
+
   const brabusImagesDir = path.join(process.cwd(), "public", "brabus-images");
   if (fs.existsSync(brabusImagesDir)) {
     const localFiles = countFilesRecursive(brabusImagesDir);
