@@ -11,7 +11,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
 | C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
 | C2-P6-003 | RaceChip normalization/backfill                | Done        | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof |
-| C2-P6-004 | ADRO normalization/backfill                    | Pending     | After RaceChip                                                         |
+| C2-P6-004 | ADRO normalization/backfill                    | In progress | Lossless normalization/audit green; transactional persistence next     |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
@@ -38,6 +38,11 @@ repair compatibility for a pre-existing ledger record, while source changes reti
 append the next revision. PostgreSQL proves insert/replay, five aliases, 13 rules and constraints,
 canonical engine values, policy retirement/revision 2, unknown-fuel quarantine, coverage, and conflict
 rollback. The CLI remains resumable, dry-run by default, and rejects Production commits.
+ADRO normalization now covers 240/240 immutable records and 7,970/7,970 raw leaves. It produces 303
+correlated vehicle applications across 240 products, verifies 234 products, and retains six
+multi-model chassis ambiguities as `NEEDS_REVIEW` without dropping candidate applications. It never
+derives an engine from trim text; the upcoming policy writer will persist aero engine/fuel as
+`NOT_APPLICABLE`. See [ADRO_AUDIT_2026-08-31.md](./ADRO_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
