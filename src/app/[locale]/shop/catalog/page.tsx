@@ -1,13 +1,39 @@
+import { connection } from "next/server";
+
+import { queryShopCatalogProjection } from "@/lib/shopCatalogProjectionQuery.server";
+import {
+  resolveShopCatalogReaderFlag,
+  SHOP_CATALOG_V2_READER_MODE_ENV,
+} from "@/lib/shopCatalogReaderFlag.server";
+import {
+  parseShopCatalogStorefrontQuery,
+  type CatalogSearchParams,
+} from "@/lib/shopCatalogStorefrontQuery";
+import { resolveLocale } from "@/lib/seo";
 import StockCatalogPage from "../stock/page";
+import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
 
-// The catalog shell is static and loads its paginated product data through the
-// existing stock search API. Keeping both routes on the same client component
-// avoids a second catalog implementation or duplicated product data.
-export const dynamic = "force-static";
 export const revalidate = 3600;
 
-export default function CatalogPage() {
-  return <StockCatalogPage />;
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<CatalogSearchParams>;
+};
+
+export default async function CatalogPage({ params, searchParams }: Props) {
+  const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
+  if (!reader.enabled) return <StockCatalogPage />;
+
+  // Opt into request-time rendering only for the explicit V2 reader. The
+  // flag-off legacy branch remains eligible for its existing static caching.
+  await connection();
+  const [{ locale }, filters] = await Promise.all([params, searchParams]);
+  const resolvedLocale = resolveLocale(locale);
+  const result = await queryShopCatalogProjection(
+    parseShopCatalogStorefrontQuery(resolvedLocale, filters)
+  );
+
+  return <CatalogV2Server locale={resolvedLocale} result={result} />;
 }

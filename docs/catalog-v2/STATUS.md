@@ -4,7 +4,23 @@ Last updated: 2026-08-31
 Working branch: `codex/catalog-v2-foundation`  
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Current sprint: P2 persisted projection and shadow reads
+## Current sprint: P3 indexed reads and P4 server-rendered storefront
+
+| ID        | Work item                                      | Status      | Verification / remaining work                                                     |
+| --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------------------- |
+| C2-P3-001 | Bounded indexed listing and fitment query      | Done        | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass        |
+| C2-P3-002 | Progressive facet and suggestion query service | In progress | Listing URL contract exists; aggregate facet/suggestion endpoints remain           |
+| C2-P4-001 | Flag-off direct Server Component first page    | Done        | Explicit `ssr` only; default legacy branch makes no V2 read; first 24 cards are SSR |
+| C2-P4-002 | Interactive progressive filters and pagination | Pending     | Hydrate serializable first result, facets, transitions, and keyset continuation     |
+
+The V2 storefront reader has its own fail-closed `SHOP_CATALOG_V2_READER_MODE` contract and is
+not coupled to shadow comparison. Missing, `off`, and invalid values keep the existing stock
+catalog authoritative and avoid a projection query. Only explicit `ssr` opts into request-time
+rendering and a direct indexed Server Component read. URL parsing already supports bounded
+search plus brand/make/model/generation/year/engine/fuel and a complete keyset cursor; the next
+step is the progressive facet service and client transitions over this serializable result.
+
+## Completed sprint: P2 persisted projection and shadow reads
 
 | ID        | Work item                                         | Status | Verification / remaining work                                                |
 | --------- | ------------------------------------------------- | ------ | ---------------------------------------------------------------------------- |
