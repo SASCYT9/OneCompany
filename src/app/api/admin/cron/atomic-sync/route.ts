@@ -1,9 +1,24 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import Papa from "papaparse";
 import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { matchesBearerSecret, resolveSecret } from "@/lib/requestSecrets";
+import {
+  publishShopCatalogImportCreation,
+  publishShopCatalogImportUpdate,
+} from "@/lib/shopCatalogImportWriter.server";
+import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+
+const atomicCronSession = {
+  email: "cron@system.local",
+  name: "Atomic Feed Cron",
+  permissions: ["*"],
+  issuedAt: 0,
+  nonce: "atomic-feed-cron",
+};
 
 export const maxDuration = 300; // 5 minutes max duration for Vercel
 export const dynamic = "force-dynamic";
@@ -59,6 +74,7 @@ export async function GET(request: Request) {
     let updatedCount = 0;
     const notFoundCount = 0;
     let createdCount = 0;
+    const catalog: ShopCatalogCoordinatedMutationResult[] = [];
 
     function generateSlug(brand: string, sku: string): string {
       return `${brand.toLowerCase()}-${sku
@@ -99,27 +115,42 @@ export async function GET(request: Request) {
             },
           },
         },
+        select: {
+          id: true,
+          productId: true,
+          product: { select: { catalogVersion: true } },
+        },
       });
 
       if (variants.length > 0) {
-        // Update inventory quantity and prices on all matched variants
+        const byProduct = new Map<string, typeof variants>();
         for (const variant of variants) {
-          await prisma.shopProductVariant.update({
-            where: { id: variant.id },
-            data: {
-              inventoryQty: isNaN(stockVal) ? 0 : stockVal,
-              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
-            },
-          });
-
-          // Also optionally update product status string to 'inStock' / 'outOfStock' and priceUah
-          await prisma.shopProduct.update({
-            where: { id: variant.productId },
-            data: {
-              stock: stockVal > 0 ? "inStock" : "outOfStock",
-              ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
-            },
-          });
+          const group = byProduct.get(variant.productId) ?? [];
+          group.push(variant);
+          byProduct.set(variant.productId, group);
+        }
+        for (const [productId, group] of byProduct) {
+          catalog.push(
+            await publishShopCatalogImportUpdate({
+              productId,
+              expectedCatalogVersion: group[0]!.product.catalogVersion,
+              updateData: {
+                stock: stockVal > 0 ? "inStock" : "outOfStock",
+                ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                variants: {
+                  update: group.map((variant) => ({
+                    where: { id: variant.id },
+                    data: {
+                      inventoryQty: isNaN(stockVal) ? 0 : stockVal,
+                      ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                    },
+                  })),
+                },
+              },
+              session: atomicCronSession,
+              reason: "sync.atomic.update",
+            })
+          );
         }
         updatedCount++;
       } else {
@@ -130,8 +161,9 @@ export async function GET(request: Request) {
         const existingSlug = await prisma.shopProduct.findUnique({ where: { slug } });
         const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
 
-        await prisma.shopProduct.create({
-          data: {
+        catalog.push(
+          await publishShopCatalogImportCreation({
+            createData: {
             slug: finalSlug,
             sku: mpn,
             brand,
@@ -180,8 +212,11 @@ export async function GET(request: Request) {
                   ],
                 }
               : undefined,
-          },
-        });
+            },
+            session: atomicCronSession,
+            reason: "sync.atomic.create",
+          })
+        );
         createdCount++;
       }
     }
@@ -200,6 +235,11 @@ export async function GET(request: Request) {
 
     console.log(`Sync complete. Updated: ${updatedCount}. Created: ${createdCount}.`);
 
+    const publication = await runShopCatalogOutboxRuntime({
+      workerId: `catalog-atomic:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+      limit: Math.min(50, Math.max(1, catalog.length)),
+    });
+
     try {
       // Force-clear the router layouts cache so changes instantly reflect
       revalidatePath("/", "layout");
@@ -213,6 +253,14 @@ export async function GET(request: Request) {
       updatedCount,
       createdCount,
       total: rows.length,
+      catalog: catalog.map((mutation) => ({
+        productId: mutation.productId,
+        version: mutation.canonicalVersion,
+        revisionId: mutation.revisionId,
+        outboxId: mutation.outboxId,
+        status: "SAVED",
+      })),
+      publication,
     });
   } catch (error: any) {
     console.error("Atomic Feed Sync Error:", error);

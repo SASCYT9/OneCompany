@@ -65,6 +65,15 @@ test("live Brabus and Burger routes publish snapshot merges through the catalog 
   }
 });
 
+test("Atomic feed cron groups variant updates behind product catalog locks", () => {
+  const source = readWorkspaceFile("src/app/api/admin/cron/atomic-sync/route.ts");
+  assert.match(source, /const byProduct = new Map/);
+  assert.match(source, /publishShopCatalogImportUpdate/);
+  assert.match(source, /publishShopCatalogImportCreation/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:create|update|updateMany)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
