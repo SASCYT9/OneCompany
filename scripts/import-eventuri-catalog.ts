@@ -5,8 +5,9 @@ import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 import { put } from "@vercel/blob";
 import { PrismaClient } from "@prisma/client";
 import {
+  adminProductImportMergeSelect,
   buildAdminProductCreateData,
-  buildAdminProductUpdateData,
+  buildAdminProductSnapshotMergeUpdateData,
   type AdminShopProductPayload,
 } from "../src/lib/shopAdminCatalog";
 import { buildProductsFromShopifyCsv } from "../src/lib/shopAdminCsv";
@@ -17,6 +18,10 @@ import {
   type SupplierFitmentContract,
 } from "../src/lib/shopImportFitment";
 import { getExpectedChassisForMakeModel } from "../src/lib/crossShopFitment";
+import {
+  decideEventuriMediaMigration,
+  getExpectedEventuriMediaSources,
+} from "../src/lib/eventuriMediaMigration";
 import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
 import { sanitizeRichTextHtml } from "../src/lib/sanitizeRichTextHtml";
 
@@ -973,46 +978,77 @@ ${input}`,
   product.seoDescriptionEn = text(translated.seoDescription) || null;
 }
 
-async function migrateMedia(products: AdminShopProductPayload[], report: ImportReport) {
+async function migrateMedia(
+  products: AdminShopProductPayload[],
+  report: ImportReport
+): Promise<AdminShopProductPayload[]> {
   if (!process.env.BLOB_READ_WRITE_TOKEN)
     throw new Error("BLOB_READ_WRITE_TOKEN is required for commit-draft media migration");
   const resolved = new Map<string, string>();
-  for (const product of products) {
-    for (const item of product.media) {
-      if (resolved.has(item.src)) continue;
-      try {
-        const response = await fetch(item.src);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        const contentType =
-          response.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
-        const extension =
-          path.extname(new URL(item.src).pathname) ||
-          (contentType === "image/webp" ? ".webp" : ".jpg");
-        const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 24);
-        const blob = await put(`catalog/eventuri/${hash}${extension}`, buffer, {
-          access: "public",
-          addRandomSuffix: false,
-          allowOverwrite: true,
-          contentType,
-        });
-        resolved.set(item.src, blob.url);
-      } catch (error) {
-        report.unavailableMedia.push({ url: item.src, error: (error as Error).message });
-      }
+  const expectedSources = Array.from(
+    new Set(
+      products.flatMap((product) =>
+        getExpectedEventuriMediaSources({
+          primaryImage: product.image,
+          mediaSources: product.media.map((item) => item.src),
+          variantImages: product.variants.map((variant) => variant.image),
+        })
+      )
+    )
+  );
+
+  for (const source of expectedSources) {
+    try {
+      const response = await fetch(source);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const contentType =
+        response.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
+      const extension =
+        path.extname(new URL(source).pathname) || (contentType === "image/webp" ? ".webp" : ".jpg");
+      const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 24);
+      const blob = await put(`catalog/eventuri/${hash}${extension}`, buffer, {
+        access: "public",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType,
+      });
+      resolved.set(source, blob.url);
+    } catch (error) {
+      report.unavailableMedia.push({ url: source, error: (error as Error).message });
     }
   }
+
+  const safeProducts: AdminShopProductPayload[] = [];
   for (const product of products) {
-    product.media = product.media
-      .filter((item) => resolved.has(item.src))
-      .map((item) => ({ ...item, src: resolved.get(item.src)! }));
+    const decision = decideEventuriMediaMigration(
+      {
+        primaryImage: product.image,
+        mediaSources: product.media.map((item) => item.src),
+        variantImages: product.variants.map((variant) => variant.image),
+      },
+      resolved
+    );
+    if (!decision.canPersist) {
+      report.skipped.push({
+        slug: product.slug,
+        sku: product.sku ?? null,
+        reason: decision.reason,
+      });
+      continue;
+    }
+
+    product.media = product.media.map((item) => ({ ...item, src: resolved.get(item.src)! }));
     product.gallery = product.media.map((item) => item.src);
-    product.image = product.image ? (resolved.get(product.image) ?? null) : null;
+    product.image = product.image ? resolved.get(product.image)! : null;
     product.variants = product.variants.map((variant) => ({
       ...variant,
-      image: variant.image ? (resolved.get(variant.image) ?? product.image) : product.image,
+      image: variant.image ? resolved.get(variant.image)! : product.image,
     }));
+    safeProducts.push(product);
   }
+
+  return safeProducts;
 }
 
 async function validateRemoteMedia(products: AdminShopProductPayload[], report: ImportReport) {
@@ -1366,8 +1402,9 @@ async function main() {
         console.log(`translation ${index + 1}/${products.length} ${product.slug}`);
       }
     }
+    let productsToPersist = products;
     if (!skipMedia) {
-      await migrateMedia(products, report);
+      productsToPersist = await migrateMedia(products, report);
     } else {
       // A resumable pricing-only rerun can retain the Blob URLs already
       // attached to draft records instead of re-downloading/re-uploading the
@@ -1397,15 +1434,15 @@ async function main() {
         });
       }
     }
-    for (const product of products) {
+    for (const product of productsToPersist) {
       const existing = await prisma.shopProduct.findUnique({
         where: { slug: product.slug },
-        select: { id: true },
+        select: adminProductImportMergeSelect,
       });
       if (existing) {
         await prisma.shopProduct.update({
           where: { slug: product.slug },
-          data: buildAdminProductUpdateData(product),
+          data: buildAdminProductSnapshotMergeUpdateData(product, existing),
         });
         report.updated.push(product.slug);
       } else {

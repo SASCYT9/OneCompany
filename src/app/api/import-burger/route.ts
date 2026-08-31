@@ -6,6 +6,27 @@ import { prisma } from "@/lib/prisma";
 import fs from "fs";
 import path from "path";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import {
+  adminProductImportMergeSelect,
+  buildAdminProductCreateData,
+  buildAdminProductSnapshotMergeUpdateData,
+  normalizeAdminProductPayload,
+} from "@/lib/shopAdminCatalog";
+
+type BurgerImportProduct = {
+  title: string;
+  slug: string;
+  sku?: string | null;
+  shopifyProductId: number;
+  descriptionEn?: string | null;
+  descriptionUa?: string | null;
+  priceUsd: number;
+  tags: string[];
+  productType?: string | null;
+  vendor?: string | null;
+  selectedVariant?: string | null;
+  media?: Array<{ url?: string | null; alt?: string | null }>;
+};
 
 export async function POST() {
   try {
@@ -19,7 +40,7 @@ export async function POST() {
       );
     }
 
-    const products = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    const products = JSON.parse(fs.readFileSync(filePath, "utf-8")) as BurgerImportProduct[];
     let created = 0;
     let updated = 0;
     let skipped = 0;
@@ -35,9 +56,18 @@ export async function POST() {
         // causes the second product with a colliding SKU to overwrite the first.
         const existing = await prisma.shopProduct.findUnique({
           where: { slug },
+          select: adminProductImportMergeSelect,
         });
 
         const priceEur = Math.round(p.priceUsd * 0.92 * 100) / 100;
+        const media = Array.isArray(p.media)
+          ? p.media
+              .map((item) => ({
+                src: String(item?.url ?? "").trim(),
+                altText: item?.alt || p.title,
+              }))
+              .filter((item: { src: string }) => Boolean(item.src))
+          : [];
 
         const data = {
           titleEn: p.title,
@@ -51,56 +81,50 @@ export async function POST() {
           priceUsd: p.priceUsd,
           tags: p.tags,
           isPublished: true,
-          image: p.media?.[0]?.url || null,
-          gallery: p.media?.map((m: any) => m.url) || [],
+          image: media[0]?.src || null,
+          gallery: media.map((item: { src: string }) => item.src),
           productType: p.productType || null,
           vendor: p.vendor || "Burger Motorsports Inc",
         };
-
-        let productId: string;
+        const normalized = normalizeAdminProductPayload({
+          ...data,
+          scope: "auto",
+          storefront: "main",
+          status: "ACTIVE",
+          stock: "inStock",
+          media: media.map((item: { src: string; altText?: string }, index: number) => ({
+            ...item,
+            position: index,
+            mediaType: "IMAGE",
+          })),
+          variants: [
+            {
+              title: p.selectedVariant || "Default",
+              sku,
+              priceEur,
+              priceUsd: p.priceUsd,
+              inventoryQty: 999,
+              position: 0,
+              isDefault: true,
+            },
+          ],
+        });
+        if (normalized.errors.length) {
+          throw new Error(normalized.errors.join("; "));
+        }
 
         if (existing) {
           await prisma.shopProduct.update({
             where: { id: existing.id },
-            data,
+            data: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
           });
-          productId = existing.id;
           updated++;
         } else {
-          const product = await prisma.shopProduct.create({ data });
-          productId = product.id;
+          await prisma.shopProduct.create({ data: buildAdminProductCreateData(normalized.data) });
           created++;
         }
-
-        // ── Always upsert media (delete old + create new) ──
-        await prisma.shopProductMedia.deleteMany({ where: { productId } });
-        if (p.media && p.media.length > 0) {
-          await prisma.shopProductMedia.createMany({
-            data: p.media.map((m: any, i: number) => ({
-              productId,
-              src: m.url,
-              altText: m.alt || p.title,
-              position: i,
-              mediaType: "IMAGE",
-            })),
-          });
-        }
-
-        // ── Always upsert default variant (delete old + create new) ──
-        await prisma.shopProductVariant.deleteMany({ where: { productId } });
-        await prisma.shopProductVariant.create({
-          data: {
-            productId,
-            title: p.selectedVariant || "Default",
-            sku,
-            priceEur,
-            priceUsd: p.priceUsd,
-            inventoryQty: 999,
-            position: 0,
-          },
-        });
-      } catch (err: any) {
-        const msg = err.message || String(err);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
         const unknownArg = msg.match(/Unknown argument `(\w+)`/);
         const missing = msg.match(/Argument `(\w+)` is missing/);
         const unique = msg.match(/Unique constraint.*`(\w+)`/);
@@ -125,11 +149,11 @@ export async function POST() {
       skipped,
       errors: errors.slice(0, 20),
     });
-  } catch (err: any) {
-    if (err?.message === "UNAUTHORIZED")
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message === "UNAUTHORIZED")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (err?.message === "FORBIDDEN")
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

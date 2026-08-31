@@ -9,6 +9,7 @@ import {
   isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -22,6 +23,8 @@ const cachedJson = (body: unknown) =>
 let canonicalCoverageCache: { expiresAt: number; ready: boolean } | null = null;
 
 async function hasCanonicalCatalogCoverage() {
+  if (isLocalStorefrontMode()) return false;
+
   const now = Date.now();
   if (canonicalCoverageCache && canonicalCoverageCache.expiresAt > now) {
     return canonicalCoverageCache.ready;

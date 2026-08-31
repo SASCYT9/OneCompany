@@ -2,9 +2,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
+  adminProductImportMergeSelect,
   buildAdminProductCreateData,
-  buildAdminProductUpdateData,
+  buildAdminProductImportUpdateData,
   normalizeAdminProductPayload,
+  type AdminProductImportRelationMask,
 } from "@/lib/shopAdminCatalog";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
@@ -44,6 +46,23 @@ export async function POST(request: NextRequest) {
     const normalizedProducts = products.map((productInput) => ({
       productInput,
       normalized: normalizeAdminProductPayload(productInput),
+      relationMask: (() => {
+        const source =
+          productInput && typeof productInput === "object"
+            ? (productInput as Record<string, unknown>)
+            : {};
+        return {
+          tags: Array.isArray(source.tags),
+          collections: Array.isArray(source.collectionIds),
+          media:
+            Array.isArray(source.media) ||
+            Object.prototype.hasOwnProperty.call(source, "image") ||
+            Object.prototype.hasOwnProperty.call(source, "gallery"),
+          options: Array.isArray(source.options),
+          variants: Array.isArray(source.variants),
+          metafields: Array.isArray(source.metafields),
+        } satisfies AdminProductImportRelationMask;
+      })(),
     }));
     const batchSkus = normalizedProducts
       .flatMap(({ normalized }) => [
@@ -78,7 +97,7 @@ export async function POST(request: NextRequest) {
         .filter((sku): sku is string => Boolean(sku)),
     ]);
 
-    for (const { productInput, normalized, contract } of contracts) {
+    for (const { productInput, normalized, relationMask, contract } of contracts) {
       try {
         const { data, errors } = normalized;
         if (contract) {
@@ -93,12 +112,15 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        const existing = await prisma.shopProduct.findUnique({ where: { slug: data.slug } });
+        const existing = await prisma.shopProduct.findUnique({
+          where: { slug: data.slug },
+          select: adminProductImportMergeSelect,
+        });
 
         if (existing) {
           await prisma.shopProduct.update({
             where: { slug: data.slug },
-            data: buildAdminProductUpdateData(data),
+            data: buildAdminProductImportUpdateData(data, existing, relationMask),
           });
           results.updated++;
         } else {

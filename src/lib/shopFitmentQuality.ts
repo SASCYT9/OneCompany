@@ -26,6 +26,8 @@ export type VehicleApplication = {
   chassisCodes: string[];
   yearRanges: VehicleYearRange[];
   engines: string[];
+  /** Optional for backward compatibility with version-2 records created before supplier fuel. */
+  fuel?: string | null;
   bodyStyles: string[];
   drivetrains: string[];
   markets: string[];
@@ -129,6 +131,7 @@ function cleanVehicleApplication(value: unknown): VehicleApplication | null {
     chassisCodes: cleanStrings(source.chassisCodes).map((item) => item.toUpperCase()),
     yearRanges: cleanYearRanges(source.yearRanges),
     engines: cleanStrings(source.engines),
+    fuel: String(source.fuel ?? "").trim() || null,
     bodyStyles: cleanStrings(source.bodyStyles),
     drivetrains: cleanStrings(source.drivetrains),
     markets: cleanStrings(source.markets),

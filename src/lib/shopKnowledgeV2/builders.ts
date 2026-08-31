@@ -13,7 +13,7 @@ import {
   supplierContractToNormalizedFitment,
   SUPPLIER_FITMENT_KEY,
   SUPPLIER_FITMENT_NAMESPACE,
-  type SupplierFitmentContract,
+  type SupplierFitmentImportContract,
 } from "@/lib/shopImportFitment";
 import { buildShopSearchText } from "@/lib/shopSearch";
 import {
@@ -96,7 +96,7 @@ function toCatalogProduct(product: KnowledgeSourceProduct): ShopProduct {
 }
 
 function supplierFitmentSource(product: KnowledgeSourceProduct): {
-  contract: SupplierFitmentContract;
+  contract: SupplierFitmentImportContract;
   rawValue: string;
 } | null {
   const metafield = product.metafields.find(
@@ -423,7 +423,9 @@ function buildApplicationRecords(
     ? stringAttribute(overlay.attributes, "productKind")
     : null;
   const material = mayUseUnverifiedOverlay ? stringAttribute(overlay.attributes, "material") : null;
-  const fuel = mayUseUnverifiedOverlay ? stringAttribute(overlay.attributes, "fuel") : null;
+  const attributeFuel = mayUseUnverifiedOverlay
+    ? stringAttribute(overlay.attributes, "fuel")
+    : null;
   const attributeEngine = mayUseUnverifiedOverlay
     ? stringAttribute(overlay.attributes, "engine")
     : null;
@@ -453,7 +455,7 @@ function buildApplicationRecords(
       yearFrom: null,
       yearTo: null,
       engine: attributeEngine,
-      fuel,
+      fuel: attributeFuel,
       bodyStyle: null,
       drivetrain: null,
       transmission: null,
@@ -496,7 +498,7 @@ function buildApplicationRecords(
         yearFrom: row.yearFrom,
         yearTo: row.yearTo,
         engine: row.engine,
-        fuel,
+        fuel: application.fuel ?? attributeFuel,
         bodyStyle: row.bodyStyle,
         drivetrain: row.drivetrain,
         transmission: row.transmission,

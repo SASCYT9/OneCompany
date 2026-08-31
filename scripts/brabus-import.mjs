@@ -1,18 +1,19 @@
 /**
- * BRABUS Product Import Script
+ * BRABUS Product Import Preview
  * 
- * Reads brabus-products-raw.json, translates DE content → UA/EN,
- * deletes old Brabus products, creates new products + collections + media.
+ * Reads brabus-products-raw.json and previews DE → UA/EN normalization.
+ * Live writes are disabled; use the authenticated POST /api/import-brabus route.
  * 
  * Usage:
  *   node scripts/brabus-import.mjs [--dry-run] [--delete-old] [--limit=50]
  */
 
-import { PrismaClient } from '@prisma/client';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-const prisma = new PrismaClient();
+const LEGACY_LIVE_IMPORT_DISABLED =
+  'Legacy Brabus CLI live import is write-disabled because it replaced product relation IDs. ' +
+  'Use the authenticated Admin Shop Imports action backed by POST /api/import-brabus.';
 
 // ─── Category Translations ──────────────────────────────────────────
 const CATEGORY_MAP = {
@@ -324,55 +325,14 @@ function generateSlug(sku) {
   return base.replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
-// ─── Delete old Brabus products ─────────────────────────────────────
-async function deleteOldBrabusProducts() {
-  console.log('🗑️  Deleting old Brabus products...');
-  
-  // First get count
-  const count = await prisma.shopProduct.count({ where: { brand: 'Brabus' } });
-  console.log(`  Found ${count} old Brabus products to delete.`);
-  
-  if (count === 0) return;
-
-  // Delete in cascading order
-  // 1. Cart items referencing these products
-  const productIds = (await prisma.shopProduct.findMany({
-    where: { brand: 'Brabus' },
-    select: { id: true },
-  })).map(p => p.id);
-
-  const cartDel = await prisma.shopCartItem.deleteMany({
-    where: { productId: { in: productIds } },
-  });
-  console.log(`  Removed ${cartDel.count} cart items`);
-
-  // 2. Delete products (cascades to variants, media, options, metafields, collections)
-  const prodDel = await prisma.shopProduct.deleteMany({
-    where: { brand: 'Brabus' },
-  });
-  console.log(`  Deleted ${prodDel.count} products`);
-
-  // 3. Clean up empty Brabus collections
-  const emptyColls = await prisma.shopCollection.findMany({
-    where: { brand: 'Brabus', products: { none: {} } },
-    select: { id: true, handle: true },
-  });
-  if (emptyColls.length > 0) {
-    await prisma.shopCollection.deleteMany({
-      where: { id: { in: emptyColls.map(c => c.id) } },
-    });
-    console.log(`  Removed ${emptyColls.length} empty collections`);
-  }
-
-  console.log('  ✅ Old Brabus data cleaned');
-}
-
-// ─── Import new products ────────────────────────────────────────────
+// ─── Read-only import preview ───────────────────────────────────────
 async function importProducts(products, isDryRun) {
-  console.log(`\n📦 Importing ${products.length} products...`);
-  
-  let created = 0, updated = 0, errors = 0;
-  const collectionCache = {};
+  if (!isDryRun) {
+    throw new Error(LEGACY_LIVE_IMPORT_DISABLED);
+  }
+  console.log(`\n📦 Previewing ${products.length} products...`);
+
+  let created = 0, errors = 0;
 
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
@@ -393,167 +353,25 @@ async function importProducts(products, isDryRun) {
       const mainImage = p.localMainImage || p.listingImage || null;
       const gallery = (p.localImages || p.galleryImages || []).slice(0, 8);
       
-      if (isDryRun) {
-        if (i < 5) {
-          console.log(`  [DRY] ${slug}`);
-          console.log(`    EN: ${titleEn}`);
-          console.log(`    UA: ${titleUa}`);
-          console.log(`    Price: €${p.priceEur}`);
-          console.log(`    Images: ${gallery.length}`);
-          console.log(`    Collection: ${coll.handle}`);
-          console.log(`    Desc (EN, ${descEn.length}ch): ${descEn.substring(0, 100)}...`);
-        }
-        created++;
-        continue;
+      if (i < 5) {
+        console.log(`  [DRY] ${slug}`);
+        console.log(`    EN: ${titleEn}`);
+        console.log(`    UA: ${titleUa}`);
+        console.log(`    Price: €${p.priceEur}`);
+        console.log(`    Images: ${gallery.length}`);
+        console.log(`    Main image: ${mainImage ?? "none"}`);
+        console.log(`    Collection: ${coll.handle}`);
+        console.log(`    Desc (UA, ${descUa.length}ch): ${descUa.substring(0, 100)}...`);
+        console.log(`    Desc (EN, ${descEn.length}ch): ${descEn.substring(0, 100)}...`);
       }
-
-      // Ensure collection exists
-      if (!collectionCache[coll.handle]) {
-        const existing = await prisma.shopCollection.findUnique({
-          where: { handle: coll.handle },
-        });
-        if (existing) {
-          collectionCache[coll.handle] = existing.id;
-        } else {
-          const newColl = await prisma.shopCollection.create({
-            data: {
-              handle: coll.handle,
-              titleEn: coll.titleEn,
-              titleUa: coll.titleUa,
-              brand: 'Brabus',
-              isPublished: true,
-            },
-          });
-          collectionCache[coll.handle] = newColl.id;
-          console.log(`  📁 Created collection: ${coll.handle}`);
-        }
-      }
-
-      const productData = {
-        slug,
-        sku,
-        scope: 'auto',
-        brand: 'Brabus',
-        vendor: 'Brabus',
-        productType: 'Premium Tuning',
-        productCategory: p.klasse,
-        status: 'ACTIVE',
-        titleUa: titleUa || p.titleDe,
-        titleEn: titleEn || p.titleDe,
-        bodyHtmlUa: descUa || null,
-        bodyHtmlEn: descEn || null,
-        shortDescUa: titleUa,
-        shortDescEn: titleEn,
-        stock: 'inStock',
-        collectionUa: coll.titleUa,
-        collectionEn: coll.titleEn,
-        priceEur: p.priceEur || 0,
-        image: mainImage,
-        gallery: gallery.length > 0 ? gallery : undefined,
-        isPublished: true,
-        tags: ['Brabus', 'Tuning', p.baseBrand, p.klasse, p.chassis || '', p.categoryDe || ''].filter(Boolean),
-        seoTitleEn: `${titleEn} | BRABUS Tuning`,
-        seoTitleUa: `${titleUa} | BRABUS Тюнінг`,
-        seoDescriptionEn: descEn.substring(0, 160) || `${titleEn} — premium BRABUS tuning for ${p.klasse}`,
-        seoDescriptionUa: descUa.substring(0, 160) || `${titleUa} — преміум тюнінг BRABUS для ${p.klasse}`,
-      };
-
-      const existingProduct = await prisma.shopProduct.findFirst({
-        where: {
-          OR: [
-            { slug },
-            { sku: { equals: sku, mode: 'insensitive' } },
-          ],
-        },
-        select: { id: true },
-      });
-
-      if (existingProduct) {
-        await prisma.shopProduct.update({
-          where: { id: existingProduct.id },
-          data: {
-            ...productData,
-            collections: {
-              deleteMany: {},
-              create: {
-                collectionId: collectionCache[coll.handle],
-              },
-            },
-            variants: {
-              deleteMany: {},
-              create: [{
-                title: 'Default',
-                sku,
-                position: 1,
-                inventoryQty: 0,
-                priceEur: p.priceEur || 0,
-                requiresShipping: true,
-                image: mainImage,
-                isDefault: true,
-              }],
-            },
-            media: {
-              deleteMany: {},
-              ...(gallery.length > 0 ? {
-                create: gallery.map((img, idx) => ({
-                  src: img,
-                  altText: `${titleEn} - Image ${idx + 1}`,
-                  position: idx + 1,
-                  mediaType: 'IMAGE',
-                })),
-              } : {}),
-            },
-          },
-        });
-        updated++;
-      } else {
-        await prisma.shopProduct.create({
-          data: {
-            ...productData,
-            collections: {
-              create: {
-                collectionId: collectionCache[coll.handle],
-              },
-            },
-            variants: {
-              create: [{
-                title: 'Default',
-                sku,
-                position: 1,
-                inventoryQty: 0,
-                priceEur: p.priceEur || 0,
-                requiresShipping: true,
-                image: mainImage,
-                isDefault: true,
-              }],
-            },
-            media: gallery.length > 0 ? {
-              create: gallery.map((img, idx) => ({
-                src: img,
-                altText: `${titleEn} - Image ${idx + 1}`,
-                position: idx + 1,
-                mediaType: 'IMAGE',
-              })),
-            } : undefined,
-          },
-        });
-        created++;
-      }
-
-      if (i % 50 === 0) {
-        console.log(`  [${i + 1}/${products.length}] Created: ${created} | Updated: ${updated} | Errors: ${errors}`);
-      }
+      created++;
     } catch (err) {
       errors++;
-      if (err.code === 'P2002') {
-        // Duplicate slug — skip silently
-        continue;
-      }
       console.error(`  ✗ Error on SKU ${p.sku}: ${err.message}`);
     }
   }
 
-  return { created, updated, errors };
+  return { created, updated: 0, errors };
 }
 
 // ─── MAIN ───────────────────────────────────────────────────────────
@@ -565,11 +383,18 @@ async function main() {
   const limit = limitMatch ? parseInt(limitMatch.split('=')[1]) : 0;
 
   console.log('═══════════════════════════════════════════════');
-  console.log(' BRABUS Product Importer');
+  console.log(' BRABUS Product Import Preview');
   console.log(`  Dry run: ${isDryRun}`);
   console.log(`  Delete old: ${doDelete}`);
   console.log(`  Limit: ${limit || 'ALL'}`);
   console.log('═══════════════════════════════════════════════\n');
+
+  if (!isDryRun) {
+    throw new Error(LEGACY_LIVE_IMPORT_DISABLED);
+  }
+  if (doDelete) {
+    console.log('  [DRY] --delete-old requested; no records will be deleted.');
+  }
 
   // Load scraped data (use translated if available, fallback to raw)
   const translatedPath = join(process.cwd(), 'data', 'brabus-products-translated.json');
@@ -580,17 +405,12 @@ async function main() {
 
   const products = limit ? rawProducts.slice(0, limit) : rawProducts;
 
-  // Step 1: Delete old products
-  if (doDelete && !isDryRun) {
-    await deleteOldBrabusProducts();
-  }
-
-  // Step 2: Import new products
+  // Read-only preview. Live writes are handled by the authenticated route.
   const result = await importProducts(products, isDryRun);
 
   console.log(`\n═══════════════════════════════════════════════`);
-  console.log(`✅ Import complete!`);
-  console.log(`  Created: ${result.created}`);
+  console.log(`✅ Preview complete!`);
+  console.log(`  Previewed: ${result.created}`);
   console.log(`  Updated: ${result.updated}`);
   console.log(`  Errors: ${result.errors}`);
   console.log(`  Mode: ${isDryRun ? 'DRY RUN' : 'LIVE'}`);
@@ -600,6 +420,5 @@ async function main() {
 main()
   .catch(err => {
     console.error('Fatal error:', err);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+    process.exitCode = 1;
+  });

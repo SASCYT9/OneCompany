@@ -46,6 +46,7 @@ import {
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
 import { SHOW_STOCK_BADGE, shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
+import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
 
 type StockItem = {
   id: string;
@@ -1419,11 +1420,15 @@ function StockPageContent() {
 
   // Auto-search for filters and queries
   useEffect(() => {
-    const searchPage = initialSearchRef.current ? initialPage : 1;
-    initialSearchRef.current = false;
-    const delay = scopeSearchImmediateRef.current ? 0 : 600;
+    const isInitialSearch = initialSearchRef.current;
+    const searchPage = isInitialSearch ? initialPage : 1;
+    const delay = resolveShopStockSearchDelay({
+      isInitialSearch,
+      isScopeSearchImmediate: scopeSearchImmediateRef.current,
+    });
     scopeSearchImmediateRef.current = false;
     autoSearchTimerRef.current = setTimeout(() => {
+      if (isInitialSearch) initialSearchRef.current = false;
       autoSearchTimerRef.current = null;
       void doSearch(searchPage);
     }, delay);

@@ -8,8 +8,9 @@ import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
 import {
+  adminProductImportMergeSelect,
   buildAdminProductCreateData,
-  buildAdminProductUpdateData,
+  buildAdminProductSnapshotMergeUpdateData,
   type AdminShopProductPayload,
   type AdminShopProductVariantInput,
   type AdminShopProductOptionInput,
@@ -1263,13 +1264,13 @@ async function applyImportRecord(record: IpeImportRecord) {
 
   const existing = await prisma.shopProduct.findUnique({
     where: { slug: payload.slug },
-    select: { id: true, slug: true },
+    select: adminProductImportMergeSelect,
   });
 
   if (existing) {
     await prisma.shopProduct.update({
       where: { slug: payload.slug },
-      data: buildAdminProductUpdateData(payload),
+      data: buildAdminProductSnapshotMergeUpdateData(payload, existing),
     });
     return 'updated' as const;
   }

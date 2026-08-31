@@ -5,8 +5,39 @@ import fetch from "node-fetch";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { putPublicBlob, isBlobStorageConfigured } from "../src/lib/runtimeBlobStorage.js";
 import { buildAkrapovicEditorialCopy } from "../src/lib/akrapovicEditorialCopy.js";
+import {
+  adminProductImportMergeSelect,
+  buildAdminProductImportUpdateData,
+  normalizeAdminProductPayload,
+  type AdminProductImportScalarMask,
+} from "../src/lib/shopAdminCatalog.js";
 
 const prisma = new PrismaClient();
+
+const AKRAPOVIC_MOTO_UPDATE_SCALAR_MASK: AdminProductImportScalarMask = {
+  product: {
+    scope: true,
+    titleEn: true,
+    titleUa: true,
+    shortDescEn: true,
+    shortDescUa: true,
+    longDescEn: true,
+    longDescUa: true,
+    bodyHtmlEn: true,
+    bodyHtmlUa: true,
+    seoTitleEn: true,
+    seoTitleUa: true,
+    seoDescriptionEn: true,
+    seoDescriptionUa: true,
+    image: true,
+    gallery: true,
+  },
+  media: {
+    src: true,
+    position: true,
+    mediaType: true,
+  },
+};
 
 const MODEL_IDS = [
   { id: 377, brand: "BMW", canonicalModel: "S 1000 RR" },
@@ -623,7 +654,26 @@ async function main() {
     );
 
     // Check if product exists in DB
-    const existingProduct = await prisma.shopProduct.findFirst({ where: { sku } });
+    const existingProducts = await prisma.shopProduct.findMany({
+      where: { sku },
+      select: {
+        ...adminProductImportMergeSelect,
+        priceEur: true,
+        priceUsd: true,
+        priceUah: true,
+        compareAtEur: true,
+        compareAtUsd: true,
+        compareAtUah: true,
+        image: true,
+        gallery: true,
+        tags: true,
+      },
+      take: 2,
+    });
+    if (existingProducts.length > 1) {
+      throw new Error(`Ambiguous Akrapovic Moto product SKU: ${sku}`);
+    }
+    const existingProduct = existingProducts[0] ?? null;
 
     // Defensive pricing checks: preserve existing DB pricing if it exists
     let priceEur = pricing.priceEur;
@@ -645,37 +695,49 @@ async function main() {
     if (existingProduct) {
       console.log(`  Product with SKU ${sku} already exists in DB. Updating...`);
       const mergedTags = Array.from(new Set([...(existingProduct.tags || []), ...tags]));
-
-      // Delete existing media & metafields to recreate them clean
-      await prisma.shopProductMedia.deleteMany({ where: { productId: existingProduct.id } });
-      await prisma.shopProductMetafield.deleteMany({ where: { productId: existingProduct.id } });
+      const normalized = normalizeAdminProductPayload({
+        slug: existingProduct.slug,
+        sku,
+        scope: "moto",
+        storefront: "main",
+        brand: "AKRAPOVIC",
+        titleEn,
+        titleUa,
+        shortDescEn,
+        shortDescUa,
+        longDescEn,
+        longDescUa,
+        bodyHtmlEn,
+        bodyHtmlUa,
+        seoTitleEn: titleEn,
+        seoTitleUa: titleUa,
+        seoDescriptionEn: shortDescEn,
+        seoDescriptionUa: shortDescUa,
+        image: mainImageUrl || existingProduct.image,
+        gallery: galleryUrls.length > 0 ? galleryUrls : existingProduct.gallery,
+        tags: mergedTags,
+        media: mediaCreate,
+        metafields: metafieldsCreate,
+      });
+      if (normalized.errors.length) {
+        throw new Error(normalized.errors.join("; "));
+      }
 
       await prisma.shopProduct.update({
         where: { id: existingProduct.id },
-        data: {
-          titleEn,
-          titleUa: titleUa,
-          shortDescEn,
-          shortDescUa: shortDescUa,
-          longDescEn,
-          longDescUa,
-          bodyHtmlEn,
-          bodyHtmlUa,
-          seoTitleEn: titleEn,
-          seoTitleUa: titleUa,
-          seoDescriptionEn: shortDescEn,
-          seoDescriptionUa: shortDescUa,
-          image: mainImageUrl || existingProduct.image,
-          gallery: galleryUrls.length > 0 ? galleryUrls : existingProduct.gallery,
-          tags: mergedTags,
-          scope: "moto",
-          media: {
-            create: mediaCreate,
+        data: buildAdminProductImportUpdateData(
+          normalized.data,
+          existingProduct,
+          {
+            tags: true,
+            collections: false,
+            media: mediaCreate.length > 0,
+            options: false,
+            variants: false,
+            metafields: metafieldsCreate.length > 0,
           },
-          metafields: {
-            create: metafieldsCreate,
-          },
-        },
+          AKRAPOVIC_MOTO_UPDATE_SCALAR_MASK
+        ),
       });
     } else {
       console.log(`  Creating new Moto product for SKU: ${sku}`);

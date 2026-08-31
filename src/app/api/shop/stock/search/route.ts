@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
-import { getShopProductsByIdsServer } from "@/lib/shopCatalogServer";
+import { getShopProductsByIdsServer, getShopProductsServer } from "@/lib/shopCatalogServer";
 import {
   extractProductFitment,
   isExpectedChassisForMakeModel,
@@ -78,6 +78,7 @@ import {
   type StrictCatalogMatch,
   type StrictCatalogSearchConstraints,
 } from "./strictCatalog";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -265,6 +266,10 @@ function indexProductWithFitment(
 async function getShopProductsWithFitmentsByIds(productIds: string[]) {
   const uniqueIds = [...new Set(productIds)];
   if (uniqueIds.length === 0) return [];
+  if (isLocalStorefrontMode()) {
+    const idSet = new Set(uniqueIds);
+    return (await getShopProductsWithFitments()).filter((item) => idSet.has(item.product.id));
+  }
   const [products, fitmentOverrides] = await Promise.all([
     getShopProductsByIdsServer(uniqueIds),
     prisma.shopProductMetafield.findMany({
@@ -290,6 +295,19 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
 
 export async function getShopProductsWithFitments() {
   const now = Date.now();
+  if (isLocalStorefrontMode()) {
+    if (cachedProductsWithFitment && now - cachedTimestamp < 5 * 60 * 1000) {
+      return cachedProductsWithFitment;
+    }
+
+    const products = await getShopProductsServer();
+    cachedProductsWithFitment = products.map((product) => indexProductWithFitment(product));
+    cachedTimestamp = now;
+    cachedFitmentOverrideUpdatedAt = 0;
+    lastFitmentOverrideVersionCheck = now;
+    return cachedProductsWithFitment;
+  }
+
   let overrideUpdatedAt = cachedFitmentOverrideUpdatedAt;
   if (
     !cachedProductsWithFitment ||
@@ -638,6 +656,8 @@ type StrictCatalogResolution = {
 let strictCoverageCache: { expiresAt: number; ready: boolean } | null = null;
 
 async function hasStrictCatalogCoverage() {
+  if (isLocalStorefrontMode()) return false;
+
   const now = Date.now();
   if (strictCoverageCache && strictCoverageCache.expiresAt > now) {
     return strictCoverageCache.ready;

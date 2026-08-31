@@ -11,8 +11,27 @@ import {
 import { prisma } from "@/lib/prisma";
 import { replaceStorefrontTag } from "@/lib/shopProductStorefront";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import {
+  adminProductImportMergeSelect,
+  buildAdminProductCreateData,
+  buildAdminProductSnapshotMergeUpdateData,
+  normalizeAdminProductPayload,
+} from "@/lib/shopAdminCatalog";
 
-function determineCollections(product: any): {
+type BrabusImportProduct = {
+  sku?: string | number | null;
+  title?: string | null;
+  titleEn?: string | null;
+  titleUk?: string | null;
+  descriptionEn?: string | null;
+  descriptionUk?: string | null;
+  category?: string | null;
+  sourceUrlDe?: string | null;
+  priceEUR_final?: number | null;
+  images?: unknown;
+};
+
+function determineCollections(product: BrabusImportProduct): {
   collectionEn: string;
   collectionUa: string;
   handle: string;
@@ -65,7 +84,11 @@ export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
     await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
-    const products = await req.json();
+    const body: unknown = await req.json();
+    if (!Array.isArray(body)) {
+      return NextResponse.json({ error: "Expected an array of Brabus products" }, { status: 400 });
+    }
+    const products = body as BrabusImportProduct[];
     let created = 0;
     let updated = 0;
     let errors = 0;
@@ -73,12 +96,18 @@ export async function POST(req: Request) {
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
       const sku = String(p.sku ?? "").trim();
-      const slug = buildBrabusProductSlug(sku);
 
       try {
+        if (!sku) {
+          throw new Error("Brabus import requires a non-empty SKU");
+        }
+        const slug = buildBrabusProductSlug(sku);
         const colls = determineCollections(p);
         const priceEur = p.priceEUR_final;
-        const mainImage = p.images && p.images.length > 0 ? p.images[0] : null;
+        const images = Array.isArray(p.images)
+          ? p.images.map((image: unknown) => String(image ?? "").trim()).filter(Boolean)
+          : [];
+        const mainImage = images[0] ?? null;
         const titleUa = cleanBrabusTitle("ua", p.titleUk || p.titleEn || p.title);
         const titleEn = cleanBrabusTitle("en", p.titleEn || p.title);
         const bodyHtmlUa = p.descriptionUk
@@ -120,89 +149,73 @@ export async function POST(req: Request) {
           isPublished: true,
           tags,
         };
-
-        const existingCandidates = await prisma.shopProduct.findMany({
-          where: {
-            OR: [{ slug }, { sku: { equals: sku, mode: "insensitive" } }],
-          },
-          select: {
-            id: true,
-            slug: true,
-            updatedAt: true,
-          },
-          orderBy: { updatedAt: "desc" },
+        const normalized = normalizeAdminProductPayload({
+          ...data,
+          storefront: "brabus",
+          gallery: images,
+          media: images.map((src: string, index: number) => ({
+            src,
+            altText: p.titleEn || p.title,
+            position: index + 1,
+            mediaType: "IMAGE",
+          })),
+          variants: [
+            {
+              title: "Default Title",
+              sku,
+              position: 1,
+              inventoryQty: 0,
+              priceEur,
+              requiresShipping: true,
+              image: mainImage,
+              isDefault: true,
+            },
+          ],
         });
-        const existing =
-          existingCandidates.find((candidate) => candidate.slug === slug) ?? existingCandidates[0];
+        if (normalized.errors.length) {
+          throw new Error(normalized.errors.join("; "));
+        }
+
+        const existingBySlug = await prisma.shopProduct.findUnique({
+          where: { slug },
+          select: adminProductImportMergeSelect,
+        });
+        const skuCandidates = existingBySlug
+          ? []
+          : await prisma.shopProduct.findMany({
+              where: { sku: { equals: sku, mode: "insensitive" } },
+              select: adminProductImportMergeSelect,
+              take: 2,
+            });
+        if (skuCandidates.length > 1) {
+          throw new Error(`Ambiguous Brabus product SKU: ${sku}`);
+        }
+        const existing = existingBySlug ?? skuCandidates[0];
 
         if (existing) {
           await prisma.shopProduct.update({
             where: { id: existing.id },
-            data: {
-              ...data,
-              slug,
-              variants: {
-                deleteMany: {},
-                create: [
-                  {
-                    title: "Default Title",
-                    sku,
-                    position: 1,
-                    inventoryQty: 0,
-                    priceEur: priceEur,
-                    requiresShipping: true,
-                    image: mainImage,
-                    isDefault: true,
-                  },
-                ],
-              },
-            },
+            data: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
           });
           updated++;
         } else {
           await prisma.shopProduct.create({
-            data: {
-              ...data,
-              variants: {
-                create: [
-                  {
-                    title: "Default Title",
-                    sku,
-                    position: 1,
-                    inventoryQty: 0,
-                    priceEur: priceEur,
-                    requiresShipping: true,
-                    image: mainImage,
-                    isDefault: true,
-                  },
-                ],
-              },
-              media: mainImage
-                ? {
-                    create: p.images.map((img: string, idx: number) => ({
-                      src: img,
-                      altText: p.titleEn || p.title,
-                      position: idx + 1,
-                      mediaType: "IMAGE",
-                    })),
-                  }
-                : undefined,
-            },
+            data: buildAdminProductCreateData(normalized.data),
           });
           created++;
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         errors++;
         console.error(`Error on sku ${p.sku}:`, err);
       }
     }
 
     return NextResponse.json({ success: true, created, updated, errors });
-  } catch (error: any) {
-    if (error?.message === "UNAUTHORIZED")
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message === "UNAUTHORIZED")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (error?.message === "FORBIDDEN")
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

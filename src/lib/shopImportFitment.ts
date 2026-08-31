@@ -1,8 +1,37 @@
 import type { NormalizedFitment, VehicleApplication } from "@/lib/shopFitmentQuality";
+import {
+  normalizeSupplierFitmentV2Contract,
+  supplierFitmentV2ToNormalizedFitment,
+  SUPPLIER_FITMENT_V2_VERSION,
+  type SupplierFitmentV2Contract,
+  type SupplierFitmentV2ValidationError,
+} from "@/lib/shopImportFitmentV2";
+
+export {
+  normalizeSupplierFitmentV2Contract,
+  supplierFitmentV2ToShopCatalogV2Policy,
+  upgradeSupplierFitmentContractToV2,
+  SUPPLIER_FITMENT_CONSTRAINT_STATES,
+  SUPPLIER_FITMENT_DIMENSIONS,
+  SUPPLIER_FITMENT_V2_VERSION,
+  type SupplierFitmentConstraintState,
+  type SupplierFitmentDimension,
+  type SupplierFitmentNonExactState,
+  type SupplierFitmentV2Clause,
+  type SupplierFitmentV2ClauseProvenance,
+  type SupplierFitmentV2Constraint,
+  type SupplierFitmentV2Contract,
+  type SupplierFitmentV2ExactConstraint,
+  type SupplierFitmentV2NonExactConstraint,
+  type SupplierFitmentV2Policy,
+  type SupplierFitmentV2Source,
+  type SupplierFitmentVerification,
+} from "@/lib/shopImportFitmentV2";
 
 export const SUPPLIER_FITMENT_NAMESPACE = "onecompany";
 export const SUPPLIER_FITMENT_KEY = "supplier_fitment";
-export const SUPPLIER_FITMENT_VERSION = 1;
+/** Kept as V1 for source compatibility with every existing importer. */
+export const SUPPLIER_FITMENT_VERSION = 1 as const;
 
 export type SupplierFitmentMode =
   | "vehicle_specific"
@@ -10,6 +39,7 @@ export type SupplierFitmentMode =
   | "parent_dependent"
   | "needs_review";
 
+/** The normalized V1 application shape remains unchanged. */
 export type SupplierFitmentApplication = {
   vehicleType: "car" | "motorcycle";
   make: string;
@@ -18,6 +48,8 @@ export type SupplierFitmentApplication = {
   yearFrom: number | null;
   yearTo: number | null;
   engine: string | null;
+  /** Additive V1 field; omitted historical payloads remain valid. */
+  fuel?: string | null;
   bodyStyle: string | null;
   drivetrain: string | null;
   transmission: string | null;
@@ -25,7 +57,7 @@ export type SupplierFitmentApplication = {
   opfGpf: "with" | "without" | "unknown";
 };
 
-export type SupplierFitmentContract = {
+export type SupplierFitmentV1Contract = {
   version: typeof SUPPLIER_FITMENT_VERSION;
   mode: SupplierFitmentMode;
   scope: "auto" | "moto";
@@ -39,7 +71,11 @@ export type SupplierFitmentContract = {
   note: string | null;
 };
 
-export type SupplierFitmentValidationError = {
+/** Existing scripts use this name for authored V1 payloads. */
+export type SupplierFitmentContract = SupplierFitmentV1Contract;
+export type SupplierFitmentImportContract = SupplierFitmentV1Contract | SupplierFitmentV2Contract;
+
+type SupplierFitmentV1ValidationError = {
   code:
     | "INVALID_OBJECT"
     | "UNKNOWN_FIELD"
@@ -59,6 +95,15 @@ export type SupplierFitmentValidationError = {
   message: string;
 };
 
+export type SupplierFitmentValidationError =
+  | SupplierFitmentV1ValidationError
+  | SupplierFitmentV2ValidationError;
+
+type ValidationResult<T> = {
+  data: T | null;
+  errors: SupplierFitmentValidationError[];
+};
+
 function text(value: unknown): string | null {
   const normalized = String(value ?? "").trim();
   return normalized || null;
@@ -70,11 +115,15 @@ function year(value: unknown): number | null {
   return Number.isInteger(parsed) ? parsed : Number.NaN;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function rejectUnknownFields(
   value: Record<string, unknown>,
   allowed: readonly string[],
   path: string,
-  errors: SupplierFitmentValidationError[]
+  errors: SupplierFitmentV1ValidationError[]
 ) {
   const allowedFields = new Set(allowed);
   for (const key of Object.keys(value)) {
@@ -88,12 +137,12 @@ function rejectUnknownFields(
   }
 }
 
-function normalizeApplication(
+function normalizeV1Application(
   value: unknown,
   index: number,
-  errors: SupplierFitmentValidationError[]
+  errors: SupplierFitmentV1ValidationError[]
 ): SupplierFitmentApplication | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  if (!isRecord(value)) {
     errors.push({
       code: "INVALID_APPLICATION",
       path: `applications.${index}`,
@@ -101,9 +150,8 @@ function normalizeApplication(
     });
     return null;
   }
-  const row = value as Record<string, unknown>;
   rejectUnknownFields(
-    row,
+    value,
     [
       "vehicleType",
       "make",
@@ -112,6 +160,7 @@ function normalizeApplication(
       "yearFrom",
       "yearTo",
       "engine",
+      "fuel",
       "bodyStyle",
       "drivetrain",
       "transmission",
@@ -122,12 +171,12 @@ function normalizeApplication(
     errors
   );
   const vehicleType =
-    row.vehicleType === "motorcycle" ? "motorcycle" : row.vehicleType === "car" ? "car" : null;
-  const make = text(row.make);
-  const model = text(row.model);
-  const chassisCode = text(row.chassisCode)?.toUpperCase() ?? null;
-  const yearFrom = year(row.yearFrom);
-  const yearTo = year(row.yearTo);
+    value.vehicleType === "motorcycle" ? "motorcycle" : value.vehicleType === "car" ? "car" : null;
+  const make = text(value.make);
+  const model = text(value.model);
+  const chassisCode = text(value.chassisCode)?.toUpperCase() ?? null;
+  const yearFrom = year(value.yearFrom);
+  const yearTo = year(value.yearTo);
   if (!vehicleType || !make || (!model && !chassisCode)) {
     errors.push({
       code: "INVALID_APPLICATION",
@@ -148,7 +197,7 @@ function normalizeApplication(
       message: "yearFrom/yearTo must form a valid range between 1886 and 2200",
     });
   }
-  const opfGpf = row.opfGpf ?? "unknown";
+  const opfGpf = value.opfGpf ?? "unknown";
   if (!(opfGpf === "with" || opfGpf === "without" || opfGpf === "unknown")) {
     errors.push({
       code: "INVALID_APPLICATION",
@@ -173,41 +222,36 @@ function normalizeApplication(
     chassisCode,
     yearFrom,
     yearTo,
-    engine: text(row.engine),
-    bodyStyle: text(row.bodyStyle),
-    drivetrain: text(row.drivetrain),
-    transmission: text(row.transmission),
-    market: text(row.market),
+    engine: text(value.engine),
+    fuel: text(value.fuel),
+    bodyStyle: text(value.bodyStyle),
+    drivetrain: text(value.drivetrain),
+    transmission: text(value.transmission),
+    market: text(value.market),
     opfGpf,
   };
 }
 
-function applicationIdentity(application: SupplierFitmentApplication): string {
-  return JSON.stringify(application);
-}
-
-export function normalizeSupplierFitmentContract(input: unknown): {
-  data: SupplierFitmentContract | null;
-  errors: SupplierFitmentValidationError[];
-} {
-  const errors: SupplierFitmentValidationError[] = [];
-  if (!input || typeof input !== "object" || Array.isArray(input)) {
+function normalizeSupplierFitmentV1Contract(
+  input: unknown
+): ValidationResult<SupplierFitmentV1Contract> {
+  const errors: SupplierFitmentV1ValidationError[] = [];
+  if (!isRecord(input)) {
     return {
       data: null,
       errors: [{ code: "INVALID_OBJECT", path: "fitment", message: "fitment must be an object" }],
     };
   }
-  const source = input as Record<string, unknown>;
   rejectUnknownFields(
-    source,
+    input,
     ["version", "mode", "scope", "applications", "parentSku", "source", "note"],
     "",
     errors
   );
-  if (Number(source.version) !== SUPPLIER_FITMENT_VERSION) {
+  if (Number(input.version) !== SUPPLIER_FITMENT_VERSION) {
     errors.push({ code: "INVALID_VERSION", path: "version", message: "fitment.version must be 1" });
   }
-  const mode = String(source.mode ?? "") as SupplierFitmentMode;
+  const mode = String(input.mode ?? "") as SupplierFitmentMode;
   if (
     !(["vehicle_specific", "universal", "parent_dependent", "needs_review"] as string[]).includes(
       mode
@@ -215,14 +259,12 @@ export function normalizeSupplierFitmentContract(input: unknown): {
   ) {
     errors.push({ code: "INVALID_MODE", path: "mode", message: "Unknown fitment mode" });
   }
-  const scope = source.scope === "moto" ? "moto" : source.scope === "auto" ? "auto" : null;
-  if (!scope)
+  const scope = input.scope === "moto" ? "moto" : input.scope === "auto" ? "auto" : null;
+  if (!scope) {
     errors.push({ code: "INVALID_SCOPE", path: "scope", message: "scope must be auto or moto" });
+  }
 
-  const sourceInput =
-    source.source && typeof source.source === "object" && !Array.isArray(source.source)
-      ? (source.source as Record<string, unknown>)
-      : {};
+  const sourceInput = isRecord(input.source) ? input.source : {};
   rejectUnknownFields(sourceInput, ["supplier", "sourceRef", "sourceUpdatedAt"], "source", errors);
   const supplier = text(sourceInput.supplier);
   const sourceRef = text(sourceInput.sourceRef);
@@ -242,10 +284,10 @@ export function normalizeSupplierFitmentContract(input: unknown): {
     });
   }
 
-  const applications = (Array.isArray(source.applications) ? source.applications : [])
-    .map((application, index) => normalizeApplication(application, index, errors))
+  const applications = (Array.isArray(input.applications) ? input.applications : [])
+    .map((application, index) => normalizeV1Application(application, index, errors))
     .filter((application): application is SupplierFitmentApplication => Boolean(application));
-  const parentSku = text(source.parentSku);
+  const parentSku = text(input.parentSku);
 
   if (mode === "vehicle_specific" && applications.length === 0) {
     errors.push({
@@ -282,7 +324,7 @@ export function normalizeSupplierFitmentContract(input: unknown): {
   }
   const identities = new Set<string>();
   for (const [index, application] of applications.entries()) {
-    const identity = applicationIdentity(application);
+    const identity = JSON.stringify(application);
     if (identities.has(identity)) {
       errors.push({
         code: "DUPLICATE_APPLICATION",
@@ -301,15 +343,20 @@ export function normalizeSupplierFitmentContract(input: unknown): {
       scope,
       applications,
       parentSku: mode === "parent_dependent" ? parentSku : null,
-      source: {
-        supplier,
-        sourceRef,
-        sourceUpdatedAt,
-      },
-      note: text(source.note),
+      source: { supplier, sourceRef, sourceUpdatedAt },
+      note: text(input.note),
     },
     errors: [],
   };
+}
+
+export function normalizeSupplierFitmentContract(
+  input: unknown
+): ValidationResult<SupplierFitmentImportContract> {
+  if (isRecord(input) && Number(input.version) === SUPPLIER_FITMENT_V2_VERSION) {
+    return normalizeSupplierFitmentV2Contract(input);
+  }
+  return normalizeSupplierFitmentV1Contract(input);
 }
 
 export function parseSupplierFitmentContract(value: string | null | undefined) {
@@ -330,6 +377,7 @@ function asVehicleApplication(application: SupplierFitmentApplication): VehicleA
     yearRanges:
       application.yearFrom === null ? [] : [{ from: application.yearFrom, to: application.yearTo }],
     engines: application.engine ? [application.engine] : [],
+    fuel: application.fuel ?? null,
     bodyStyles: application.bodyStyle ? [application.bodyStyle] : [],
     drivetrains: application.drivetrain ? [application.drivetrain] : [],
     markets: application.market ? [application.market] : [],
@@ -338,9 +386,7 @@ function asVehicleApplication(application: SupplierFitmentApplication): VehicleA
   };
 }
 
-export function supplierContractToNormalizedFitment(
-  contract: SupplierFitmentContract
-): NormalizedFitment {
+function v1ContractToNormalizedFitment(contract: SupplierFitmentV1Contract): NormalizedFitment {
   const universal = contract.mode === "universal";
   const applications =
     contract.mode === "vehicle_specific" ? contract.applications.map(asVehicleApplication) : [];
@@ -379,6 +425,14 @@ export function supplierContractToNormalizedFitment(
   };
 }
 
+export function supplierContractToNormalizedFitment(
+  contract: SupplierFitmentImportContract
+): NormalizedFitment {
+  return contract.version === SUPPLIER_FITMENT_V2_VERSION
+    ? supplierFitmentV2ToNormalizedFitment(contract)
+    : v1ContractToNormalizedFitment(contract);
+}
+
 export function isSupplierFitmentMetafield(item: {
   namespace: string | null | undefined;
   key: string | null | undefined;
@@ -387,7 +441,7 @@ export function isSupplierFitmentMetafield(item: {
 }
 
 export function validateSupplierFitmentParentReference(
-  contract: SupplierFitmentContract,
+  contract: SupplierFitmentImportContract,
   knownSkus: Iterable<string>
 ): SupplierFitmentValidationError[] {
   if (contract.mode !== "parent_dependent" || !contract.parentSku) return [];

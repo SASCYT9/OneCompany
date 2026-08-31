@@ -93,6 +93,11 @@ reference/urban-shopify-theme/*
 docs/
 !docs/
 docs/*
+!docs/catalog-v2/
+docs/catalog-v2/*
+!docs/catalog-v2/MASTER_PLAN.md
+!docs/catalog-v2/STATUS.md
+!docs/catalog-v2/ADR-*.md
 !docs/operations/
 docs/operations/*
 !docs/operations/phase0-rollout-runbook.md

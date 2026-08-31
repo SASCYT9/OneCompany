@@ -56,6 +56,7 @@
         "yearFrom": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 },
         "yearTo": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 },
         "engine": { "type": ["string", "null"] },
+        "fuel": { "type": ["string", "null"] },
         "bodyStyle": { "type": ["string", "null"] },
         "drivetrain": { "type": ["string", "null"] },
         "transmission": { "type": ["string", "null"] },

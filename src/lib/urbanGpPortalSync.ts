@@ -4,7 +4,8 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import {
   buildAdminProductCreateData,
-  buildAdminProductUpdateData,
+  buildAdminProductImportUpdateData,
+  type AdminProductImportMergeRecord,
   type AdminShopProductMediaInput,
   type AdminShopProductOptionInput,
   type AdminShopProductPayload,
@@ -1127,6 +1128,7 @@ export async function applyUrbanGpPortalSnapshot(
   const backupPath = await (input.backupCurrentCatalog ?? defaultBackupCurrentCatalog)(
     existingCatalog
   );
+  const existingBySlug = new Map(existingCatalog.map((product) => [product.slug, product]));
   const now = input.now ?? new Date();
   const collectionIdByHandle = await prisma.$transaction(async (tx) => ensureUrbanCollections(tx), {
     timeout: URBAN_SYNC_TRANSACTION_TIMEOUT_MS,
@@ -1139,9 +1141,26 @@ export async function applyUrbanGpPortalSnapshot(
     );
     const payload = buildAdminPayload(item, collectionIds, now);
 
+    const existing = existingBySlug.get(payload.slug);
+    const mergeCurrent: AdminProductImportMergeRecord = existing ?? {
+      id: `unresolved:${payload.slug}`,
+      slug: payload.slug,
+      collections: [],
+      media: [],
+      options: [],
+      variants: [],
+      metafields: [],
+    };
     await prisma.shopProduct.upsert({
       where: { slug: payload.slug },
-      update: buildAdminProductUpdateData(payload),
+      update: buildAdminProductImportUpdateData(payload, mergeCurrent, {
+        tags: true,
+        collections: payload.collectionIds.length > 0,
+        media: payload.media.length > 0,
+        options: payload.options.length > 0,
+        variants: payload.variants.length > 0,
+        metafields: payload.metafields.length > 0,
+      }),
       create: buildAdminProductCreateData(payload),
     });
   }

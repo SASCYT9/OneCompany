@@ -131,11 +131,13 @@ async function main() {
           path.resolve("node_modules", "tsx", "dist", "cli.mjs"),
           "--test",
           "tests/shop/integration/operationsPersistence.test.ts",
+          "tests/shop/integration/shopCatalogProjectionPersistence.test.ts",
         ],
         {
           env: {
             ...env,
             OPS_TEST_DATABASE_URL: databaseUrl,
+            CATALOG_EPHEMERAL_TEST: "1",
           },
         }
       );

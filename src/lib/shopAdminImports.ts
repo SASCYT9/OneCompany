@@ -7,10 +7,13 @@ import {
 } from "@prisma/client";
 import type { AdminSession } from "@/lib/adminAuth";
 import {
+  adminProductImportMergeSelect,
   buildAdminProductCreateData,
-  buildAdminProductUpdateData,
+  buildAdminProductImportUpdateData,
   normalizeAdminProductPayload,
   type AdminShopProductPayload,
+  type AdminProductImportRelationMask,
+  type AdminProductImportScalarMask,
 } from "@/lib/shopAdminCatalog";
 import { buildProductsFromShopifyCsv, type CsvHeaderMapping } from "@/lib/shopAdminCsv";
 import { writeAdminAuditLog } from "@/lib/adminRbac";
@@ -279,6 +282,118 @@ function extractHeaderMapping(value: unknown): CsvHeaderMapping | undefined {
   return Object.keys(mapping).length ? mapping : undefined;
 }
 
+function normalizedCsvColumns(columns: readonly string[]) {
+  return new Set(columns.map((column) => column.trim().toLowerCase()));
+}
+
+/**
+ * Shopify CSV parsing necessarily fills absent fields with create-time defaults.
+ * UPDATE must distinguish those defaults from columns the operator supplied.
+ */
+export function buildAdminProductCsvScalarMask(
+  columns: readonly string[]
+): AdminProductImportScalarMask {
+  const imported = normalizedCsvColumns(columns);
+  const has = (...names: string[]) => names.some((name) => imported.has(name.toLowerCase()));
+  const titleEn = has("Title (EN)", "Title EN", "title_en", "titleEn");
+  const bodyHtmlEn = has("Body (HTML) (EN)", "Body (HTML) EN", "body_html_en", "bodyHtmlEn");
+  const categoryEn = has(
+    "Type (EN)",
+    "Type EN",
+    "category_en",
+    "Category EN",
+    "product_category_en"
+  );
+  const collectionEn = has(
+    "vehicle_en (product.metafields.custom.vehicle_en)",
+    "vehicle_en",
+    "Vehicle EN",
+    "Collection EN",
+    "collection_en"
+  );
+  const priceEur = has(
+    "price_eur (product.metafields.custom.price_eur)",
+    "custom_price_eur (product.metafields.custom.custom_price_eur)"
+  );
+  const publication = has("Published", "Status");
+  const image = has("Image Src", "Variant Image");
+
+  return {
+    product: {
+      slug: has("Handle"),
+      sku: has("Variant SKU"),
+      brand: has("brand (product.metafields.custom.brand)", "Vendor"),
+      vendor: has("Vendor"),
+      productType: has("Type"),
+      productCategory: has("Product Category"),
+      status: has("Status"),
+      titleUa: has("Title"),
+      titleEn,
+      categoryUa: has("Type"),
+      categoryEn,
+      shortDescUa: has("Body (HTML)"),
+      shortDescEn: bodyHtmlEn,
+      longDescUa: has("Body (HTML)"),
+      longDescEn: bodyHtmlEn,
+      bodyHtmlUa: has("Body (HTML)"),
+      bodyHtmlEn,
+      stock: has("Variant Inventory Qty"),
+      collectionUa: has("vehicle (product.metafields.custom.vehicle)"),
+      collectionEn,
+      priceEur,
+      priceUah: has("Variant Price"),
+      compareAtUah: has("Variant Compare At Price"),
+      image,
+      gallery: has("Image Src"),
+      seoTitleUa: has("SEO Title"),
+      seoTitleEn: has("SEO Title (EN)", "SEO Title EN", "seo_title_en", "seoTitleEn"),
+      seoDescriptionUa: has("SEO Description"),
+      seoDescriptionEn: has(
+        "SEO Description (EN)",
+        "SEO Description EN",
+        "seo_description_en",
+        "seoDescriptionEn"
+      ),
+      isPublished: publication,
+      publishedAt: publication,
+    },
+    media: {
+      src: has("Image Src"),
+      altText: has("Image Alt Text"),
+      position: has("Image Position"),
+    },
+    options: {
+      name: [1, 2, 3].filter((position) => has(`Option${position} Name`)),
+      values: [1, 2, 3].filter((position) => has(`Option${position} Value`)),
+    },
+    variants: {
+      title: has("Option1 Value", "Option2 Value", "Option3 Value"),
+      sku: has("Variant SKU"),
+      option1Value: has("Option1 Value"),
+      option1LinkedTo: has("Option1 Linked To"),
+      option2Value: has("Option2 Value"),
+      option2LinkedTo: has("Option2 Linked To"),
+      option3Value: has("Option3 Value"),
+      option3LinkedTo: has("Option3 Linked To"),
+      grams: has("Variant Grams"),
+      inventoryTracker: has("Variant Inventory Tracker"),
+      inventoryQty: has("Variant Inventory Qty"),
+      inventoryPolicy: has("Variant Inventory Policy"),
+      fulfillmentService: has("Variant Fulfillment Service"),
+      priceEur,
+      priceUah: has("Variant Price"),
+      compareAtUah: has("Variant Compare At Price"),
+      requiresShipping: has("Variant Requires Shipping"),
+      taxable: has("Variant Taxable"),
+      barcode: has("Variant Barcode"),
+      image,
+      weightUnit: has("Variant Weight Unit"),
+      taxCode: has("Variant Tax Code"),
+      costPerItem: has("Cost per item"),
+    },
+  };
+}
+
 export async function listImportTemplates(prisma: PrismaClient) {
   const templates = await prisma.shopImportTemplate.findMany({
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
@@ -511,6 +626,8 @@ export async function runShopCsvImport(
     request.conflictMode,
     template?.defaultConflictMode ?? "UPDATE"
   );
+  const importedColumns = new Set(parsed.columns.map((column) => column.trim().toLowerCase()));
+  const scalarMask = buildAdminProductCsvScalarMask(parsed.columns);
 
   const validationErrors: ImportRowErrorInput[] = [...parsed.errors].map((item) => ({
     rowNumber: item.row,
@@ -518,6 +635,14 @@ export async function runShopCsvImport(
   }));
 
   const productsToUpsert = parsed.productRows.map(({ product, rowNumber }) => {
+    const relationMask: AdminProductImportRelationMask = {
+      tags: importedColumns.has("tags"),
+      collections: product.collectionIds.length > 0,
+      media: product.media.length > 0 || Boolean(product.image),
+      options: product.options.length > 0,
+      variants: product.variants.length > 0,
+      metafields: product.metafields.length > 0,
+    };
     const normalized = normalizeAdminProductPayload(product);
     normalized.errors.forEach((message) => {
       validationErrors.push({
@@ -533,6 +658,7 @@ export async function runShopCsvImport(
     return {
       data: normalized.data,
       rowIndex: rowNumber,
+      relationMask,
     };
   });
 
@@ -694,7 +820,7 @@ export async function runShopCsvImport(
   let skipped = 0;
   const commitErrors: ImportRowErrorInput[] = [...validationErrors];
 
-  for (const { data, rowIndex } of productsToUpsert) {
+  for (const { data, rowIndex, relationMask } of productsToUpsert) {
     if (validationErrors.some((entry) => entry.rowNumber === rowIndex)) {
       continue;
     }
@@ -702,7 +828,7 @@ export async function runShopCsvImport(
     try {
       const existing = await prisma.shopProduct.findUnique({
         where: { slug: data.slug },
-        select: { id: true, slug: true },
+        select: adminProductImportMergeSelect,
       });
 
       if (existing) {
@@ -725,7 +851,7 @@ export async function runShopCsvImport(
 
         await prisma.shopProduct.update({
           where: { slug: data.slug },
-          data: buildAdminProductUpdateData(data),
+          data: buildAdminProductImportUpdateData(data, existing, relationMask, scalarMask),
         });
         updated += 1;
         continue;

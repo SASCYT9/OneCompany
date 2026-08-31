@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://onecompany.global/schemas/shop-fitment-import-v2.json",
+  "title": "One Company Shop Fitment Import V2",
+  "description": "Supplier fitment policy. Clauses are OR alternatives; the 13 explicit constraints in each clause are AND conditions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "mode", "scope", "policy", "source"],
+  "properties": {
+    "version": { "const": 2 },
+    "mode": {
+      "enum": ["vehicle_specific", "universal", "parent_dependent", "needs_review"]
+    },
+    "scope": { "enum": ["auto", "moto"] },
+    "policy": { "$ref": "#/$defs/policy" },
+    "parentSku": { "type": ["string", "null"], "minLength": 1 },
+    "source": { "$ref": "#/$defs/source" },
+    "note": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "const": "vehicle_specific" } }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "policy": {
+            "type": "object",
+            "properties": { "clauses": { "type": "array", "minItems": 1 } }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "const": "universal" } }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "policy": {
+            "type": "object",
+            "properties": {
+              "clauses": { "type": "array", "minItems": 1, "maxItems": 1 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "const": "parent_dependent" } }
+      },
+      "then": {
+        "type": "object",
+        "required": ["parentSku"],
+        "properties": {
+          "parentSku": { "type": "string", "minLength": 1 },
+          "policy": {
+            "type": "object",
+            "properties": { "clauses": { "type": "array", "maxItems": 0 } }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "dimension": {
+      "enum": [
+        "scope",
+        "make",
+        "model",
+        "generation",
+        "chassis",
+        "year",
+        "engine",
+        "fuel",
+        "bodyStyle",
+        "drivetrain",
+        "transmission",
+        "market",
+        "opfGpf"
+      ]
+    },
+    "nonYearDimension": {
+      "enum": [
+        "scope",
+        "make",
+        "model",
+        "generation",
+        "chassis",
+        "engine",
+        "fuel",
+        "bodyStyle",
+        "drivetrain",
+        "transmission",
+        "market",
+        "opfGpf"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supplier", "sourceRef", "sourceKey", "sourceRecordKey", "mapperVersion"],
+      "properties": {
+        "supplier": { "type": "string", "minLength": 1 },
+        "sourceRef": { "type": "string", "minLength": 1 },
+        "sourceUpdatedAt": { "type": ["string", "null"], "format": "date-time" },
+        "sourceKey": { "type": "string", "minLength": 1 },
+        "sourceRecordKey": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": ["string", "null"], "minLength": 1 },
+        "payloadHash": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "mapperVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRef", "sourceRecordKey", "rawPaths", "evidenceRefs"],
+      "properties": {
+        "sourceRef": { "type": "string", "minLength": 1 },
+        "sourceRecordKey": { "type": "string", "minLength": 1 },
+        "rawPaths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "yearRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 },
+        "to": { "type": ["integer", "null"], "minimum": 1886, "maximum": 2200 }
+      },
+      "not": {
+        "type": "object",
+        "properties": { "from": { "type": "null" }, "to": { "type": "null" } },
+        "required": ["from", "to"]
+      }
+    },
+    "exactTextConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "state", "values"],
+      "properties": {
+        "dimension": { "$ref": "#/$defs/nonYearDimension" },
+        "state": { "const": "EXACT" },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "exactYearConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "state", "values"],
+      "properties": {
+        "dimension": { "const": "year" },
+        "state": { "const": "EXACT" },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/yearRange" }
+        }
+      }
+    },
+    "nonExactConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "state"],
+      "properties": {
+        "dimension": { "$ref": "#/$defs/dimension" },
+        "state": { "enum": ["ANY", "NOT_APPLICABLE", "UNKNOWN"] }
+      }
+    },
+    "constraint": {
+      "oneOf": [
+        { "$ref": "#/$defs/exactTextConstraint" },
+        { "$ref": "#/$defs/exactYearConstraint" },
+        { "$ref": "#/$defs/nonExactConstraint" }
+      ]
+    },
+    "constraints": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": { "$ref": "#/$defs/constraint" },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "scope" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "make" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "model" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "generation" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "chassis" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "year" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "engine" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "fuel" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "bodyStyle" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "drivetrain" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "transmission" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "market" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "dimension": { "const": "opfGpf" } },
+            "required": ["dimension"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "clause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "constraints", "verification", "provenance"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "verification": { "enum": ["VERIFIED", "INFERRED", "NEEDS_REVIEW"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requiredDimensions", "clauses"],
+      "properties": {
+        "requiredDimensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/dimension" }
+        },
+        "clauses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/clause" }
+        }
+      }
+    }
+  }
+}

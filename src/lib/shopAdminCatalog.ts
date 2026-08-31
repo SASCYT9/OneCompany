@@ -8,11 +8,7 @@ import {
   resolveProductStorefront,
   type ShopProductStorefront,
 } from "@/lib/shopProductStorefront";
-import {
-  isNormalizedFitmentMetafield,
-  NORMALIZED_FITMENT_KEY,
-  NORMALIZED_FITMENT_NAMESPACE,
-} from "@/lib/shopFitmentQuality";
+import { isNormalizedFitmentMetafield } from "@/lib/shopFitmentQuality";
 import {
   isSupplierFitmentMetafield,
   normalizeSupplierFitmentContract,
@@ -206,6 +202,54 @@ export type AdminShopProductListRecord = Prisma.ShopProductGetPayload<{
   select: typeof adminProductListSelect;
 }>;
 
+export const adminProductImportMergeSelect = {
+  id: true,
+  slug: true,
+  collections: {
+    select: {
+      collectionId: true,
+      sortOrder: true,
+    },
+  },
+  media: {
+    select: {
+      id: true,
+      src: true,
+      position: true,
+    },
+  },
+  options: {
+    select: {
+      id: true,
+      name: true,
+      position: true,
+    },
+  },
+  variants: {
+    select: {
+      id: true,
+      sku: true,
+      title: true,
+      position: true,
+      option1Value: true,
+      option2Value: true,
+      option3Value: true,
+      isDefault: true,
+    },
+  },
+  metafields: {
+    select: {
+      id: true,
+      namespace: true,
+      key: true,
+    },
+  },
+} satisfies Prisma.ShopProductSelect;
+
+export type AdminProductImportMergeRecord = Prisma.ShopProductGetPayload<{
+  select: typeof adminProductImportMergeSelect;
+}>;
+
 export type AdminShopProductMediaInput = {
   id?: string | null;
   src: string;
@@ -332,6 +376,130 @@ export type AdminShopProductPayload = {
   options: AdminShopProductOptionInput[];
   variants: AdminShopProductVariantInput[];
   metafields: AdminShopProductMetafieldInput[];
+};
+
+export type AdminProductImportRelationMask = {
+  tags: boolean;
+  collections: boolean;
+  media: boolean;
+  options: boolean;
+  variants: boolean;
+  metafields: boolean;
+};
+
+const adminProductImportProductScalarFields = [
+  "slug",
+  "sku",
+  "scope",
+  "brand",
+  "vendor",
+  "productType",
+  "productCategory",
+  "status",
+  "titleUa",
+  "titleEn",
+  "categoryUa",
+  "categoryEn",
+  "shortDescUa",
+  "shortDescEn",
+  "longDescUa",
+  "longDescEn",
+  "bodyHtmlUa",
+  "bodyHtmlEn",
+  "leadTimeUa",
+  "leadTimeEn",
+  "stock",
+  "collectionUa",
+  "collectionEn",
+  "priceEur",
+  "priceEurEurope",
+  "priceUsd",
+  "priceUah",
+  "priceEurB2b",
+  "priceUsdB2b",
+  "priceUahB2b",
+  "compareAtEur",
+  "compareAtUsd",
+  "compareAtUah",
+  "compareAtEurB2b",
+  "compareAtUsdB2b",
+  "compareAtUahB2b",
+  "weight",
+  "length",
+  "width",
+  "height",
+  "isDimensionsEstimated",
+  "image",
+  "gallery",
+  "seoTitleUa",
+  "seoTitleEn",
+  "seoDescriptionUa",
+  "seoDescriptionEn",
+  "isPublished",
+  "publishedAt",
+] as const;
+
+const adminProductImportMediaScalarFields = ["src", "altText", "position", "mediaType"] as const;
+
+const adminProductImportVariantScalarFields = [
+  "title",
+  "sku",
+  "option1Value",
+  "option1LinkedTo",
+  "option2Value",
+  "option2LinkedTo",
+  "option3Value",
+  "option3LinkedTo",
+  "grams",
+  "inventoryTracker",
+  "inventoryQty",
+  "inventoryPolicy",
+  "fulfillmentService",
+  "priceEur",
+  "priceEurEurope",
+  "priceUsd",
+  "priceUah",
+  "priceEurB2b",
+  "priceUsdB2b",
+  "priceUahB2b",
+  "compareAtEur",
+  "compareAtUsd",
+  "compareAtUah",
+  "compareAtEurB2b",
+  "compareAtUsdB2b",
+  "compareAtUahB2b",
+  "requiresShipping",
+  "taxable",
+  "barcode",
+  "image",
+  "weightUnit",
+  "weight",
+  "length",
+  "width",
+  "height",
+  "taxCode",
+  "costPerItem",
+  "isDimensionsEstimated",
+] as const;
+
+export type AdminProductImportProductScalarField =
+  (typeof adminProductImportProductScalarFields)[number];
+export type AdminProductImportMediaScalarField =
+  (typeof adminProductImportMediaScalarFields)[number];
+export type AdminProductImportVariantScalarField =
+  (typeof adminProductImportVariantScalarFields)[number];
+export type AdminProductImportOptionScalarField = "name" | "values";
+
+/**
+ * A missing entry means "preserve the stored value". This mask is used by
+ * partial CSV updates after normalization has filled absent input with legacy
+ * defaults such as ACTIVE, inStock, true, zero, or null.
+ */
+export type AdminProductImportScalarMask = {
+  product: Partial<Record<AdminProductImportProductScalarField, boolean>>;
+  media?: Partial<Record<AdminProductImportMediaScalarField, boolean>>;
+  options?: Partial<Record<AdminProductImportOptionScalarField, readonly number[]>>;
+  variants?: Partial<Record<AdminProductImportVariantScalarField, boolean>>;
 };
 
 type NormalizedResult = {
@@ -881,39 +1049,392 @@ export function buildAdminProductScalarUpdateData(
 export function buildAdminProductUpdateData(
   data: AdminShopProductPayload
 ): Prisma.ShopProductUpdateInput {
-  return {
-    ...buildAdminProductScalarMutationData(data),
-    collections: {
-      deleteMany: {},
-      create: data.collectionIds.map((collectionId, index) => ({
-        sortOrder: index,
-        collection: {
-          connect: { id: collectionId },
+  void data;
+  throw new Error(
+    "Unsafe full relation replacement is disabled; use buildAdminProductImportUpdateData"
+  );
+}
+
+function importIdentity(value: string | null | undefined) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function importVariantOptionIdentity(input: {
+  option1Value?: string | null;
+  option2Value?: string | null;
+  option3Value?: string | null;
+}) {
+  const values = [input.option1Value, input.option2Value, input.option3Value].map(importIdentity);
+  return values.some(Boolean) ? values.join("\u001f") : "";
+}
+
+function requireSingleImportMatch<T>(kind: string, identity: string, matches: T[]) {
+  if (matches.length > 1) {
+    throw new Error(`Ambiguous ${kind} identity in import update: ${identity}`);
+  }
+  return matches[0] ?? null;
+}
+
+function assertUnusedImportMatch(kind: string, id: string, usedIds: Set<string>) {
+  if (usedIds.has(id)) {
+    throw new Error(`Duplicate ${kind} identity in import update: ${id}`);
+  }
+  usedIds.add(id);
+}
+
+function nestedMediaUpdate(
+  item: AdminShopProductMediaInput,
+  index: number,
+  scalarMask?: AdminProductImportScalarMask
+) {
+  const created = {
+    src: item.src,
+    altText: item.altText ?? null,
+    position: item.position ?? index + 1,
+    mediaType: item.mediaType ?? "IMAGE",
+  };
+  if (!scalarMask) return created;
+
+  const update: Partial<typeof created> = {};
+  for (const field of adminProductImportMediaScalarFields) {
+    if (scalarMask.media?.[field]) {
+      update[field] = created[field] as never;
+    }
+  }
+  return update;
+}
+
+function nestedVariantUpdate(
+  item: AdminShopProductVariantInput,
+  scalarMask?: AdminProductImportScalarMask
+) {
+  const [created] = nestedVariantCreate([item]);
+  if (!created) throw new Error("Variant update payload is empty");
+  const { position, isDefault, ...update } = created;
+  void position;
+  void isDefault;
+  if (!scalarMask) return update;
+
+  const filtered: Partial<typeof update> = {};
+  for (const field of adminProductImportVariantScalarFields) {
+    const isEstimatedDimension =
+      item.isDimensionsEstimated === true &&
+      (field === "isDimensionsEstimated" || (field === "weight" && item.weight != null));
+    if (scalarMask.variants?.[field] || isEstimatedDimension) {
+      filtered[field] = update[field] as never;
+    }
+  }
+  return filtered;
+}
+
+function applyAdminProductImportScalarMask(
+  update: Prisma.ShopProductUpdateInput,
+  scalarMask?: AdminProductImportScalarMask
+) {
+  if (!scalarMask) return;
+  const mutableUpdate = update as Record<string, unknown>;
+  for (const field of adminProductImportProductScalarFields) {
+    if (!scalarMask.product[field]) {
+      delete mutableUpdate[field];
+    }
+  }
+}
+
+/**
+ * Import updates are merge-only for nested product data. Unlike the full admin
+ * editor PATCH, a CSV row cannot carry database relation ids or reliably state
+ * that an omitted array means "delete everything". Existing records are
+ * therefore updated in place by a stable identity and omissions are preserved.
+ */
+export function buildAdminProductImportUpdateData(
+  data: AdminShopProductPayload,
+  current: AdminProductImportMergeRecord,
+  mask: AdminProductImportRelationMask,
+  scalarMask?: AdminProductImportScalarMask
+): Prisma.ShopProductUpdateInput {
+  const update: Prisma.ShopProductUpdateInput = buildAdminProductScalarMutationData(data);
+  applyAdminProductImportScalarMask(update, scalarMask);
+
+  // CSV has no category-id/highlights columns. Missing values must not detach or
+  // erase data that was authored in the admin editor.
+  if (!data.categoryId) delete update.category;
+  delete update.highlights;
+  if (!mask.tags) delete update.tags;
+  if (!mask.media) {
+    delete update.image;
+    delete update.gallery;
+  }
+
+  if (mask.collections && data.collectionIds.length) {
+    update.collections = {
+      upsert: data.collectionIds.map((collectionId, index) => ({
+        where: {
+          productId_collectionId: {
+            productId: current.id,
+            collectionId,
+          },
+        },
+        update: { sortOrder: index },
+        create: {
+          sortOrder: index,
+          collection: { connect: { id: collectionId } },
         },
       })),
-    },
-    media: {
-      deleteMany: {},
-      create: nestedMediaCreate(data.media),
-    },
-    options: {
-      deleteMany: {},
-      create: nestedOptionCreate(data.options),
-    },
-    variants: {
-      deleteMany: {},
-      create: nestedVariantCreate(data.variants),
-    },
-    metafields: {
-      deleteMany: {
-        NOT: {
-          namespace: NORMALIZED_FITMENT_NAMESPACE,
-          key: NORMALIZED_FITMENT_KEY,
-        },
-      },
-      create: nestedMetafieldCreate(data.metafields),
-    },
-  };
+    };
+  }
+
+  if (mask.media && data.media.length) {
+    const byId = new Map(current.media.map((item) => [item.id, item]));
+    const usedIds = new Set<string>();
+    const mediaUpdate: Array<{
+      where: { id: string };
+      data: ReturnType<typeof nestedMediaUpdate>;
+    }> = [];
+    const mediaCreate: ReturnType<typeof nestedMediaCreate> = [];
+
+    data.media.forEach((item, index) => {
+      const explicitId = String(item.id ?? "").trim();
+      let existing = explicitId ? (byId.get(explicitId) ?? null) : null;
+      if (explicitId && !existing) {
+        throw new Error(`Unknown media id in import update: ${explicitId}`);
+      }
+      if (!existing) {
+        existing = requireSingleImportMatch(
+          "media src",
+          item.src,
+          current.media.filter((candidate) => candidate.src === item.src)
+        );
+      }
+      const mediaData = nestedMediaUpdate(item, index, scalarMask);
+      if (existing) {
+        assertUnusedImportMatch("media", existing.id, usedIds);
+        if (Object.keys(mediaData).length) {
+          mediaUpdate.push({ where: { id: existing.id }, data: mediaData });
+        }
+      } else {
+        const [created] = nestedMediaCreate([item]);
+        if (created) mediaCreate.push(created);
+      }
+    });
+
+    update.media = {
+      ...(mediaUpdate.length ? { update: mediaUpdate } : {}),
+      ...(mediaCreate.length ? { create: mediaCreate } : {}),
+    };
+  }
+
+  if (mask.options && data.options.length) {
+    const byId = new Map(current.options.map((item) => [item.id, item]));
+    const usedIds = new Set<string>();
+    const optionUpdate: Array<{
+      where: { id: string };
+      data: { name?: string; values?: string[] };
+    }> = [];
+    const optionCreate: ReturnType<typeof nestedOptionCreate> = [];
+
+    data.options.forEach((item, index) => {
+      const explicitId = String(item.id ?? "").trim();
+      let existing = explicitId ? (byId.get(explicitId) ?? null) : null;
+      if (explicitId && !existing) {
+        throw new Error(`Unknown option id in import update: ${explicitId}`);
+      }
+      const position = item.position ?? index + 1;
+      if (!existing) {
+        existing =
+          requireSingleImportMatch(
+            "option position",
+            String(position),
+            current.options.filter((candidate) => candidate.position === position)
+          ) ?? null;
+      }
+      if (existing) {
+        assertUnusedImportMatch("option", existing.id, usedIds);
+        const optionData: { name?: string; values?: string[] } = {};
+        if (!scalarMask || scalarMask.options?.name?.includes(position)) {
+          optionData.name = item.name;
+        }
+        if (!scalarMask || scalarMask.options?.values?.includes(position)) {
+          optionData.values = item.values ?? [];
+        }
+        if (Object.keys(optionData).length) {
+          optionUpdate.push({
+            where: { id: existing.id },
+            data: optionData,
+          });
+        }
+      } else {
+        optionCreate.push({
+          name: item.name,
+          position,
+          values: item.values ?? [],
+        });
+      }
+    });
+
+    update.options = {
+      ...(optionUpdate.length ? { update: optionUpdate } : {}),
+      ...(optionCreate.length ? { create: optionCreate } : {}),
+    };
+  }
+
+  if (mask.variants && data.variants.length) {
+    const byId = new Map(current.variants.map((item) => [item.id, item]));
+    const usedIds = new Set<string>();
+    const variantUpdate: Array<{
+      where: { id: string };
+      data: ReturnType<typeof nestedVariantUpdate>;
+    }> = [];
+    const variantsToCreate: AdminShopProductVariantInput[] = [];
+
+    data.variants.forEach((item) => {
+      const explicitId = String(item.id ?? "").trim();
+      let existing = explicitId ? (byId.get(explicitId) ?? null) : null;
+      if (explicitId && !existing) {
+        throw new Error(`Unknown variant id in import update: ${explicitId}`);
+      }
+
+      const skuIdentity = importIdentity(item.sku);
+      if (!existing && skuIdentity) {
+        existing = requireSingleImportMatch(
+          "variant SKU",
+          item.sku ?? skuIdentity,
+          current.variants.filter((candidate) => importIdentity(candidate.sku) === skuIdentity)
+        );
+      }
+
+      const optionIdentity = importVariantOptionIdentity(item);
+      if (!existing && optionIdentity) {
+        existing = requireSingleImportMatch(
+          "variant options",
+          optionIdentity,
+          current.variants.filter(
+            (candidate) => importVariantOptionIdentity(candidate) === optionIdentity
+          )
+        );
+      }
+
+      if (
+        !existing &&
+        !skuIdentity &&
+        !optionIdentity &&
+        data.variants.length === 1 &&
+        current.variants.length === 1
+      ) {
+        existing = current.variants[0] ?? null;
+      }
+
+      if (!existing && !skuIdentity && !optionIdentity && current.variants.length) {
+        throw new Error(
+          "Cannot safely match an imported variant without id, SKU, or option values"
+        );
+      }
+
+      if (existing) {
+        assertUnusedImportMatch("variant", existing.id, usedIds);
+        const variantData = nestedVariantUpdate(item, scalarMask);
+        if (Object.keys(variantData).length) {
+          variantUpdate.push({
+            where: { id: existing.id },
+            data: variantData,
+          });
+        }
+      } else {
+        variantsToCreate.push(item);
+      }
+    });
+
+    const maxPosition = current.variants.reduce(
+      (max, variant) => Math.max(max, variant.position),
+      0
+    );
+    const variantCreate = nestedVariantCreate(variantsToCreate).map((item, index) => ({
+      ...item,
+      position: maxPosition + index + 1,
+      isDefault: current.variants.length === 0 && index === 0,
+    }));
+
+    update.variants = {
+      ...(variantUpdate.length ? { update: variantUpdate } : {}),
+      ...(variantCreate.length ? { create: variantCreate } : {}),
+    };
+  }
+
+  if (mask.metafields && data.metafields.length) {
+    const incomingMetafields = data.metafields.filter(
+      (item) => !isNormalizedFitmentMetafield(item)
+    );
+    const byId = new Map(current.metafields.map((item) => [item.id, item]));
+    const usedIds = new Set<string>();
+    const metafieldUpdate: Array<{
+      where: { id: string };
+      data: { value: string; valueType: string };
+    }> = [];
+    const metafieldCreate: ReturnType<typeof nestedMetafieldCreate> = [];
+
+    incomingMetafields.forEach((item) => {
+      const explicitId = String(item.id ?? "").trim();
+      let existing = explicitId ? (byId.get(explicitId) ?? null) : null;
+      if (explicitId && !existing) {
+        throw new Error(`Unknown metafield id in import update: ${explicitId}`);
+      }
+      if (!existing) {
+        existing = requireSingleImportMatch(
+          "metafield key",
+          `${item.namespace}.${item.key}`,
+          current.metafields.filter(
+            (candidate) => candidate.namespace === item.namespace && candidate.key === item.key
+          )
+        );
+      }
+      if (existing) {
+        assertUnusedImportMatch("metafield", existing.id, usedIds);
+        metafieldUpdate.push({
+          where: { id: existing.id },
+          data: {
+            value: item.value,
+            valueType: item.valueType ?? "single_line_text_field",
+          },
+        });
+      } else {
+        metafieldCreate.push({
+          namespace: item.namespace,
+          key: item.key,
+          value: item.value,
+          valueType: item.valueType ?? "single_line_text_field",
+        });
+      }
+    });
+
+    if (metafieldUpdate.length || metafieldCreate.length) {
+      update.metafields = {
+        ...(metafieldUpdate.length ? { update: metafieldUpdate } : {}),
+        ...(metafieldCreate.length ? { create: metafieldCreate } : {}),
+      };
+    }
+  }
+
+  return update;
+}
+
+/**
+ * Supplier snapshot imports may update every supplied relation, but must still
+ * merge by stable identity so existing variant/application foreign keys remain
+ * valid. Unmentioned relations are deliberately preserved rather than deleted.
+ */
+export function buildAdminProductSnapshotMergeUpdateData(
+  data: AdminShopProductPayload,
+  current: AdminProductImportMergeRecord
+): Prisma.ShopProductUpdateInput {
+  return buildAdminProductImportUpdateData(data, current, {
+    tags: true,
+    collections: data.collectionIds.length > 0,
+    media: data.media.length > 0 || Boolean(data.image),
+    options: data.options.length > 0,
+    variants: data.variants.length > 0,
+    metafields: data.metafields.length > 0,
+  });
 }
 
 function decimalToNumber(value: Prisma.Decimal | number | null | undefined): number | null {

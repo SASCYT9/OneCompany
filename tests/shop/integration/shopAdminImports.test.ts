@@ -44,13 +44,50 @@ const CSV = [
   ].join(','),
 ].join('\n');
 
-type MockProductRecord = { id: string; slug: string };
+const PARTIAL_CSV = ['Handle,Title', 'urban-rear-bumper,Updated title'].join('\n');
+const PARTIAL_VARIANT_CSV = [
+  'Handle,Title,Variant SKU,Variant Price',
+  'urban-rear-bumper,Updated title,URB-RB-001,36000',
+].join('\n');
+const PARTIAL_OPTION_CSV = [
+  'Handle,Title,Option1 Name,Variant SKU',
+  'urban-rear-bumper,Updated title,Surface,URB-RB-001',
+].join('\n');
+
+type MockProductRecord = {
+  id: string;
+  slug: string;
+  collections?: Array<{ collectionId: string; sortOrder: number }>;
+  media?: Array<{ id: string; src: string; position: number }>;
+  options?: Array<{ id: string; name: string; position: number }>;
+  variants?: Array<{
+    id: string;
+    sku: string | null;
+    title: string | null;
+    position: number;
+    option1Value: string | null;
+    option2Value: string | null;
+    option3Value: string | null;
+    isDefault: boolean;
+  }>;
+  metafields?: Array<{ id: string; namespace: string; key: string }>;
+};
 
 function createMockPrisma(existingProduct: MockProductRecord | null) {
   const state = {
-    existingProduct,
+    existingProduct: existingProduct
+      ? {
+          ...existingProduct,
+          collections: existingProduct.collections ?? [],
+          media: existingProduct.media ?? [],
+          options: existingProduct.options ?? [],
+          variants: existingProduct.variants ?? [],
+          metafields: existingProduct.metafields ?? [],
+        }
+      : null,
     created: 0,
     updated: 0,
+    lastUpdateData: null as Record<string, unknown> | null,
     auditLogs: 0,
     jobs: [] as Array<Record<string, unknown>>,
   };
@@ -118,8 +155,9 @@ function createMockPrisma(existingProduct: MockProductRecord | null) {
     },
     shopProduct: {
       findUnique: async () => state.existingProduct,
-      update: async () => {
+      update: async ({ data }: { data: Record<string, unknown> }) => {
         state.updated += 1;
+        state.lastUpdateData = data;
         return { id: 'product-1', slug: 'urban-rear-bumper' };
       },
       create: async () => {
@@ -178,7 +216,30 @@ test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
   assert.equal(skipResult.updated, 0);
   assert.equal(skipResult.skipped, 1);
 
-  const updatePrisma = createMockPrisma({ id: 'product-1', slug: 'urban-rear-bumper' });
+  const updatePrisma = createMockPrisma({
+    id: 'product-1',
+    slug: 'urban-rear-bumper',
+    media: [
+      {
+        id: 'media-1',
+        src: 'https://cdn.example.com/rear-bumper.jpg',
+        position: 1,
+      },
+    ],
+    options: [{ id: 'option-1', name: 'Finish', position: 1 }],
+    variants: [
+      {
+        id: 'variant-1',
+        sku: 'URB-RB-001',
+        title: 'Gloss',
+        position: 1,
+        option1Value: 'Gloss',
+        option2Value: null,
+        option3Value: null,
+        isDefault: true,
+      },
+    ],
+  });
   const updateResult = await runShopCsvImport(updatePrisma as never, adminSession as never, {
     csvText: CSV,
     action: 'commit',
@@ -191,4 +252,143 @@ test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
   assert.equal(updateResult.updated, 1);
   assert.equal(updatePrisma.state.updated, 1);
   assert.equal(updatePrisma.state.auditLogs, 1);
+
+  const updateData = updatePrisma.state.lastUpdateData as {
+    media?: {
+      update?: Array<{ where: { id: string }; data: Record<string, unknown> }>;
+      deleteMany?: unknown;
+    };
+    options?: { update?: Array<{ where: { id: string } }>; deleteMany?: unknown };
+    variants?: {
+      update?: Array<{ where: { id: string }; data: Record<string, unknown> }>;
+      deleteMany?: unknown;
+    };
+  };
+  assert.equal(updateData.media?.update?.[0]?.where.id, 'media-1');
+  assert.equal(updateData.options?.update?.[0]?.where.id, 'option-1');
+  assert.equal(updateData.variants?.update?.[0]?.where.id, 'variant-1');
+  assert.equal(updateData.media?.deleteMany, undefined);
+  assert.equal(updateData.options?.deleteMany, undefined);
+  assert.equal(updateData.variants?.deleteMany, undefined);
+  assert.deepEqual(updateData.media?.update?.[0]?.data, {
+    src: 'https://cdn.example.com/rear-bumper.jpg',
+  });
+  assert.equal(updateData.variants?.update?.[0]?.data.requiresShipping, undefined);
+  assert.equal(updateData.variants?.update?.[0]?.data.taxable, undefined);
+});
+
+test('runShopCsvImport treats missing nested CSV columns as preserve, not delete-all', async () => {
+  const prisma = createMockPrisma({
+    id: 'product-1',
+    slug: 'urban-rear-bumper',
+    media: [{ id: 'media-1', src: 'https://cdn.example.com/existing.jpg', position: 1 }],
+    options: [{ id: 'option-1', name: 'Finish', position: 1 }],
+    variants: [
+      {
+        id: 'variant-1',
+        sku: 'URB-RB-001',
+        title: 'Gloss',
+        position: 1,
+        option1Value: 'Gloss',
+        option2Value: null,
+        option3Value: null,
+        isDefault: true,
+      },
+    ],
+    metafields: [{ id: 'metafield-1', namespace: 'custom', key: 'vehicle' }],
+  });
+
+  const result = await runShopCsvImport(prisma as never, adminSession as never, {
+    csvText: PARTIAL_CSV,
+    action: 'commit',
+    conflictMode: 'UPDATE',
+  });
+
+  assert.equal(result.updated, 1);
+  const updateData = prisma.state.lastUpdateData as Record<string, unknown>;
+  assert.equal(updateData.collections, undefined);
+  assert.equal(updateData.media, undefined);
+  assert.equal(updateData.options, undefined);
+  assert.equal(updateData.variants, undefined);
+  assert.equal(updateData.metafields, undefined);
+  assert.equal(updateData.tags, undefined);
+  assert.equal(updateData.image, undefined);
+  assert.equal(updateData.gallery, undefined);
+  assert.equal(updateData.category, undefined);
+  assert.deepEqual(Object.keys(updateData).sort(), ['slug', 'titleUa']);
+});
+
+test('runShopCsvImport only mutates variant scalar columns that are present', async () => {
+  const prisma = createMockPrisma({
+    id: 'product-1',
+    slug: 'urban-rear-bumper',
+    variants: [
+      {
+        id: 'variant-1',
+        sku: 'URB-RB-001',
+        title: 'Gloss',
+        position: 1,
+        option1Value: 'Gloss',
+        option2Value: null,
+        option3Value: null,
+        isDefault: true,
+      },
+    ],
+  });
+
+  const result = await runShopCsvImport(prisma as never, adminSession as never, {
+    csvText: PARTIAL_VARIANT_CSV,
+    action: 'commit',
+    conflictMode: 'UPDATE',
+  });
+
+  assert.equal(result.updated, 1);
+  const updateData = prisma.state.lastUpdateData as {
+    variants: { update: Array<{ where: { id: string }; data: Record<string, unknown> }> };
+  } & Record<string, unknown>;
+  assert.deepEqual(Object.keys(updateData).sort(), [
+    'priceUah',
+    'sku',
+    'slug',
+    'titleUa',
+    'variants',
+  ]);
+  assert.equal(updateData.variants.update[0]?.where.id, 'variant-1');
+  assert.deepEqual(updateData.variants.update[0]?.data, {
+    sku: 'URB-RB-001',
+    priceUah: 36000,
+  });
+});
+
+test('runShopCsvImport does not clear option values when only the option name is present', async () => {
+  const prisma = createMockPrisma({
+    id: 'product-1',
+    slug: 'urban-rear-bumper',
+    options: [{ id: 'option-1', name: 'Finish', position: 1 }],
+    variants: [
+      {
+        id: 'variant-1',
+        sku: 'URB-RB-001',
+        title: 'Gloss',
+        position: 1,
+        option1Value: 'Gloss',
+        option2Value: null,
+        option3Value: null,
+        isDefault: true,
+      },
+    ],
+  });
+
+  const result = await runShopCsvImport(prisma as never, adminSession as never, {
+    csvText: PARTIAL_OPTION_CSV,
+    action: 'commit',
+    conflictMode: 'UPDATE',
+  });
+
+  assert.equal(result.updated, 1);
+  const updateData = prisma.state.lastUpdateData as {
+    options: { update: Array<{ where: { id: string }; data: Record<string, unknown> }> };
+  };
+  assert.equal(updateData.options.update[0]?.where.id, 'option-1');
+  assert.deepEqual(updateData.options.update[0]?.data, { name: 'Surface' });
 });
