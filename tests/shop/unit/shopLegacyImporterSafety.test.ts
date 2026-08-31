@@ -219,6 +219,15 @@ test("Atomic EU price CLI groups product price mutations through Catalog V2", ()
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:update|updateMany)\(/);
 });
 
+test("Ducati Akrapovic price CLI publishes owned variants with the product revision", () => {
+  const source = readWorkspaceFile("scripts/sync-amsducati-akrapovic-prices.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \["PRICE"\]/);
+  assert.match(source, /productId: row\.id, id: \{ in: row\.variantIds \}/);
+  assert.match(source, /updated\.count !== row\.variantIds\.length/);
+  assert.doesNotMatch(source, /prisma\.\$transaction/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

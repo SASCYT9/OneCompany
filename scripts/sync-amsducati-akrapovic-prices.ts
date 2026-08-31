@@ -3,6 +3,8 @@ import path from "node:path";
 import dotenv from "dotenv";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { chromium, type Page } from "playwright";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
 
 dotenv.config({ path: ".env.local" });
 
@@ -129,6 +131,7 @@ async function main() {
         titleEn: true,
         priceUsd: true,
         priceEur: true,
+        catalogVersion: true,
         variants: { select: { id: true, sku: true, priceUsd: true } },
       },
       orderBy: { sku: "asc" },
@@ -165,6 +168,7 @@ async function main() {
         matchType: aliasSkus.has(sku) ? "verified-alias" : "exact",
         variantIds: product.variants.map((variant) => variant.id),
         changed: currentUsd !== source.priceUsd,
+        catalogVersion: product.catalogVersion,
       },
     ];
   });
@@ -194,7 +198,10 @@ async function main() {
       compareAtUsd: source.compareAtUsd,
       sourceUrl: source.url,
     })),
-    products: matched.map(({ id: _id, variantIds: _variantIds, ...row }) => row),
+    products: matched.map(
+      ({ id: _id, variantIds: _variantIds, catalogVersion: _catalogVersion, ...row }) => row
+    ),
+    catalogOutboxIds: [] as string[],
   };
 
   const outputDir = path.join(process.cwd(), "tmp", "amsducati-akrapovic");
@@ -236,18 +243,33 @@ async function main() {
     "utf8"
   );
 
-  await prisma.$transaction(async (tx) => {
-    for (const row of changed) {
-      const priceUsd = new Prisma.Decimal(row.amsUsd);
-      await tx.shopProduct.update({ where: { id: row.id }, data: { priceUsd } });
-      if (row.variantIds.length > 0) {
-        await tx.shopProductVariant.updateMany({
-          where: { id: { in: row.variantIds } },
-          data: { priceUsd },
+  for (const row of [...changed].sort((a, b) => a.id.localeCompare(b.id, "en"))) {
+    const priceUsd = new Prisma.Decimal(row.amsUsd);
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: row.id,
+      expectedCatalogVersion: row.catalogVersion.toString(),
+      changeDomains: ["PRICE"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({ where: { id: row.id }, data: { priceUsd } });
+        if (row.variantIds.length > 0) {
+          const updated = await tx.shopProductVariant.updateMany({
+            where: { productId: row.id, id: { in: row.variantIds } },
+            data: { priceUsd },
+          });
+          if (updated.count !== row.variantIds.length) {
+            throw new Error(`Variant ownership changed for Akrapovič product ${row.id}`);
+          }
+        }
+        return buildShopCatalogAdminSnapshot(tx, row.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "amsducati-akrapovic-prices@system.local",
+          reason: "amsducati.akrapovic.price-sync",
         });
-      }
-    }
-  });
+      },
+    });
+    report.catalogOutboxIds.push(mutation.outboxId);
+  }
+  await fs.writeFile(outputPath, JSON.stringify(report, null, 2), "utf8");
 
   console.log(`Updated ${changed.length} products and their variants.`);
 }
