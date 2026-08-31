@@ -20,7 +20,7 @@ export type VehiclePolicyApplication = {
 export type VehiclePolicyNormalization = {
   scope?: "auto" | "moto";
   productId: string;
-  variantId: string;
+  variantId: string | null;
   recordKey: string;
   mode: "UNIVERSAL" | "VEHICLE_SPECIFIC" | "NEEDS_REVIEW";
   engineRelevant: boolean;
@@ -219,7 +219,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
   for (const application of normalization.applications) {
     resolved.push(await taxonomy({ tx, sourceId: input.sourceId, label: input.label, aliasPrefix: input.aliasPrefix, application }));
   }
-  const targetKey = `variant:${normalization.variantId}`;
+  const targetKey = normalization.variantId ? `variant:${normalization.variantId}` : `product:${normalization.productId}`;
   const active = await tx.shopCatalogCompatibilityPolicy.findFirst({
     where: { targetKey, isActive: true },
     select: { id: true, sourceRecordId: true },
@@ -236,7 +236,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
     data: {
       targetKey,
       productId: normalization.productId,
-      variantId: normalization.variantId,
+      variantId: normalization.variantId ?? undefined,
       mode: policyMode,
       revision: (latest?.revision ?? 0) + 1,
       sourceRecordId: input.sourceRecordId,

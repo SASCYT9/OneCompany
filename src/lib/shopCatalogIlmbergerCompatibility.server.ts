@@ -1,0 +1,5 @@
+import "server-only";
+import type { Prisma } from "@prisma/client";
+import type { IlmbergerNormalization } from "./shopCatalogIlmbergerNormalization";
+import { persistVehicleCompatibilityInTransaction } from "./shopCatalogVehicleCompatibilityPersistence.server";
+export function persistIlmbergerCompatibilityInTransaction(input: { tx: Prisma.TransactionClient; sourceId: string; sourceRecordId: string; payloadHash: string; normalization: IlmbergerNormalization }) { const normalization = input.normalization; return persistVehicleCompatibilityInTransaction({ tx: input.tx, sourceId: input.sourceId, sourceRecordId: input.sourceRecordId, payloadHash: input.payloadHash, label: "Ilmberger", aliasPrefix: "ilmberger-alias", normalization: { productId: normalization.productId, variantId: null, recordKey: normalization.recordKey, mode: normalization.mode, engineRelevant: false, verification: normalization.verification, applications: normalization.applications.map((application) => ({ ...application, scope: "moto", engineCode: null, fuel: null })) } }); }
