@@ -1,6 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { fetchTurn14ItemPricing } from './turn14';
 import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+import type { AdminSession } from '@/lib/adminAuth';
+import {
+  publishShopCatalogImportCreation,
+  publishShopCatalogImportUpdate,
+} from '@/lib/shopCatalogImportWriter.server';
 
 // Approximate exchange rates for auto-conversion from USD
 // These serve as reasonable defaults for display pricing
@@ -19,7 +24,7 @@ function roundMoney(value: number) {
 export async function importTurn14ItemToDb(
   prisma: PrismaClient,
   turn14Data: any,
-  options: { brandOverride?: string; fetchPricing?: boolean } = {}
+  options: { brandOverride?: string; fetchPricing?: boolean; session: AdminSession }
 ) {
   const attributes = turn14Data.attributes || turn14Data;
   const brand = options.brandOverride || attributes.brand_name || attributes.brand || 'Turn14';
@@ -108,13 +113,6 @@ export async function importTurn14ItemToDb(
       updates.image = thumbnail;
     }
 
-    if (Object.keys(updates).length > 0) {
-      await prisma.shopProduct.update({
-        where: { id: existingProduct.id },
-        data: updates
-      });
-    }
-
     // ALWAYS update default variant pricing when we have valid data
     const defaultVariant = existingProduct.variants[0];
     if (defaultVariant && retailPrice > 0) {
@@ -131,31 +129,34 @@ export async function importTurn14ItemToDb(
       if (totalGrams > 0) {
         vUpdates.grams = totalGrams;
       }
-      await prisma.shopProductVariant.update({
-        where: { id: defaultVariant.id },
-        data: vUpdates
-      });
+      updates.variants = { update: [{ where: { id: defaultVariant.id }, data: vUpdates }] };
     }
 
     // Add thumbnail as media if not already present
     if (thumbnail && existingProduct.media.length === 0) {
-      await prisma.shopProductMedia.create({
-        data: {
-          productId: existingProduct.id,
+      updates.media = {
+        create: {
           src: thumbnail,
           altText: productName,
           position: 1,
           mediaType: 'IMAGE'
-        }
-      });
+        },
+      };
     }
 
-    return { action: 'updated', id: existingProduct.id, slug };
+    const catalog = await publishShopCatalogImportUpdate({
+      productId: existingProduct.id,
+      expectedCatalogVersion: existingProduct.catalogVersion,
+      updateData: updates,
+      session: options.session,
+      reason: 'import.turn14.update',
+    });
+
+    return { action: 'updated', id: existingProduct.id, slug, catalog };
   }
 
   // === CREATE new product ===
-  const product = await prisma.shopProduct.create({
-    data: {
+  const createData: Prisma.ShopProductCreateInput = {
       slug,
       sku,
       brand,
@@ -212,10 +213,14 @@ export async function importTurn14ItemToDb(
           }
         ]
       } : undefined,
-    }
+    };
+  const catalog = await publishShopCatalogImportCreation({
+    createData,
+    session: options.session,
+    reason: 'import.turn14.create',
   });
 
-  return { action: 'created', id: product.id, slug };
+  return { action: 'created', id: catalog.productId, slug, catalog };
 }
 
 /**
@@ -227,6 +232,7 @@ export async function syncBrandFromTurn14(
   brandName: string,
   findBrandId: (name: string) => Promise<string | null>,
   fetchByBrand: (brandId: string, page: number) => Promise<{ data: any[]; meta: any }>,
+  session: AdminSession,
   onProgress?: (msg: string) => void
 ): Promise<{ total: number; created: number; updated: number; errors: number }> {
   const log = onProgress || console.log;
@@ -260,7 +266,8 @@ export async function syncBrandFromTurn14(
       try {
         const res = await importTurn14ItemToDb(prisma, item, {
           brandOverride: brandName,
-          fetchPricing: true
+          fetchPricing: true,
+          session,
         });
         if (res.action === 'created') created++;
         else updated++;

@@ -1,21 +1,36 @@
-import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { prisma } from "@/lib/prisma";
 import { importTurn14ItemToDb } from "@/lib/turn14Sync";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
     const itemData = await request.json();
 
     if (!itemData) {
       return NextResponse.json({ error: "Missing payload" }, { status: 400 });
     }
 
-    const result = await importTurn14ItemToDb(prisma, itemData);
+    const result = await importTurn14ItemToDb(prisma, itemData, { session });
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-turn14-import:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[shop-catalog.turn14-import] immediate publish failed; cron recovery remains active", {
+          outboxId: result.catalog.outboxId,
+          error,
+        });
+      }
+    });
 
     return NextResponse.json({
       success: true,
@@ -23,6 +38,7 @@ export async function POST(request: Request) {
         id: result.id,
         slug: result.slug,
         action: result.action,
+        catalogVersion: result.catalog.canonicalVersion,
       },
     });
   } catch (error: any) {

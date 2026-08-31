@@ -74,6 +74,24 @@ test("Atomic feed cron groups variant updates behind product catalog locks", () 
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:create|update|updateMany)\(/);
 });
 
+test("Turn14 live hydration and sync publish through the central catalog writer", () => {
+  const sharedSync = readWorkspaceFile("src/lib/turn14Sync.ts");
+  assert.match(sharedSync, /publishShopCatalogImportUpdate/);
+  assert.match(sharedSync, /publishShopCatalogImportCreation/);
+  assert.doesNotMatch(
+    sharedSync,
+    /prisma\.shopProduct(?:Variant|Media)?\.(?:create|update|updateMany)\(/
+  );
+
+  for (const relativePath of [
+    "src/app/api/admin/shop/turn14/import/route.ts",
+    "src/app/api/admin/shop/turn14/sync/route.ts",
+    "src/app/api/shop/cart/items/route.ts",
+  ]) {
+    assert.match(readWorkspaceFile(relativePath), /runShopCatalogOutboxRuntime/);
+  }
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

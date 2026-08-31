@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { prisma } from "@/lib/prisma";
 import { findTurn14BrandIdByName, fetchTurn14ItemsByBrand } from "@/lib/turn14";
 import { syncBrandFromTurn14 } from "@/lib/turn14Sync";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 /**
  * POST /api/admin/shop/turn14/sync
@@ -16,7 +18,7 @@ import { syncBrandFromTurn14 } from "@/lib/turn14Sync";
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
     const body = await request.json();
     const brandName = body.brandName || "Urban Automotive";
 
@@ -27,8 +29,19 @@ export async function POST(request: NextRequest) {
       brandName,
       findTurn14BrandIdByName,
       fetchTurn14ItemsByBrand,
+      session,
       (msg) => console.log(msg)
     );
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-turn14-sync:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 50,
+        });
+      } catch (error) {
+        console.error("[shop-catalog.turn14-sync] immediate publish failed; cron recovery remains active", error);
+      }
+    });
 
     return NextResponse.json({
       success: true,
