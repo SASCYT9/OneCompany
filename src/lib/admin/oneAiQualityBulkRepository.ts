@@ -20,6 +20,8 @@ import {
 import { writeAdminAuditLog } from "@/lib/adminRbac";
 import { bumpShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogState";
 import { hashKnowledgeValue } from "@/lib/shopKnowledgeV2/hash";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationInTransaction } from "@/lib/shopCatalogMutationCoordinator.server";
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -398,8 +400,11 @@ type BulkApplyResult = {
     status: string;
     outboxId: string;
     reindexOutboxId: string | null;
+    catalogVersion: string;
+    catalogOutboxId: string;
   }>;
   reindexOutboxIds: string[];
+  catalogOutboxIds: string[];
 };
 
 function storedResult(payload: Prisma.JsonValue): {
@@ -519,23 +524,53 @@ export async function applyOneAiQualityBulk(
           select: { id: true },
         });
 
-        const productResults: BulkApplyResult["products"] = [];
-        for (const product of payload.products) {
-          const result = await mutateOneAiQualityProductInTransaction(
-            tx,
-            product.productId,
-            mutationForRevision(currentMutation, product.expectedRevision),
-            session,
-            { bumpCatalogState: false }
-          );
-          productResults.push({
-            productId: result.productId,
-            revision: result.revision,
-            status: result.status,
-            outboxId: result.outboxId,
-            reindexOutboxId: result.reindexOutboxId,
+        const resultByProductId = new Map<string, BulkApplyResult["products"][number]>();
+        const lockOrderedProducts = [...payload.products].sort((a, b) =>
+          a.productId.localeCompare(b.productId, "en")
+        );
+        for (const product of lockOrderedProducts) {
+          const captured: {
+            value?: Awaited<ReturnType<typeof mutateOneAiQualityProductInTransaction>>;
+          } = {};
+          const catalogMutation = await coordinateShopCatalogProductMutationInTransaction(tx, {
+            productId: product.productId,
+            changeDomains: ["FITMENT"],
+            async mutateAndSnapshot(catalogTx, nextCatalogVersion) {
+              captured.value = await mutateOneAiQualityProductInTransaction(
+                catalogTx,
+                product.productId,
+                mutationForRevision(currentMutation, product.expectedRevision),
+                session,
+                { bumpCatalogState: false }
+              );
+              return buildShopCatalogAdminSnapshot(
+                catalogTx,
+                product.productId,
+                nextCatalogVersion,
+                {
+                  type: "ADMIN",
+                  id: session.email,
+                  reason: `product.ai-quality.bulk.${currentMutation.action}`,
+                }
+              );
+            },
+          });
+          if (!captured.value) throw new Error("Bulk AI quality mutation produced no result");
+          resultByProductId.set(product.productId, {
+            productId: captured.value.productId,
+            revision: captured.value.revision,
+            status: captured.value.status,
+            outboxId: captured.value.outboxId,
+            reindexOutboxId: captured.value.reindexOutboxId,
+            catalogVersion: catalogMutation.canonicalVersion,
+            catalogOutboxId: catalogMutation.outboxId,
           });
         }
+        const productResults = payload.products.map((product) => {
+          const result = resultByProductId.get(product.productId);
+          if (!result) throw new Error(`Missing bulk result for ${product.productId}`);
+          return result;
+        });
         await bumpShopKnowledgeCatalogState(tx);
 
         const result: BulkApplyResult = {
@@ -551,6 +586,7 @@ export async function applyOneAiQualityBulk(
                 .filter((outboxId): outboxId is string => Boolean(outboxId))
             )
           ),
+          catalogOutboxIds: productResults.map((product) => product.catalogOutboxId),
         };
 
         await tx.shopKnowledgeOutbox.update({
@@ -580,7 +616,7 @@ export async function applyOneAiQualityBulk(
         return result;
       },
       {
-        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         maxWait: 10_000,
         timeout: 60_000,
       }

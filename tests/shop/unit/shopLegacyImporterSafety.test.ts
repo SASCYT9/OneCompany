@@ -180,6 +180,17 @@ test("single-product AI quality mutation atomically publishes Catalog V2 fitment
   assert.match(route, /runShopCatalogOutboxRuntime/);
 });
 
+test("AI quality bulk keeps idempotency, knowledge, and Catalog V2 in one transaction", () => {
+  const repository = readWorkspaceFile("src/lib/admin/oneAiQualityBulkRepository.ts");
+  const route = readWorkspaceFile("src/app/api/admin/shop/ai-quality/bulk/apply/route.ts");
+  assert.match(repository, /lockOrderedProducts/);
+  assert.match(repository, /coordinateShopCatalogProductMutationInTransaction/);
+  assert.match(repository, /changeDomains: \["FITMENT"\]/);
+  assert.match(repository, /catalogOutboxIds/);
+  assert.match(repository, /TransactionIsolationLevel\.Serializable/);
+  assert.match(route, /runShopCatalogOutboxRuntime/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

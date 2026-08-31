@@ -23,6 +23,7 @@ import {
   createPrismaShopKnowledgeV2Repository,
   runShopKnowledgeOutboxJobById,
 } from "@/lib/shopKnowledgeV2";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -114,6 +115,22 @@ export async function POST(request: NextRequest) {
     );
     if (result.reindexOutboxIds.length) {
       after(() => processTargetedOutboxJobs(result.reindexOutboxIds));
+    }
+    const catalogOutboxIds = result.catalogOutboxIds ?? [];
+    if (catalogOutboxIds.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-ai-quality-bulk:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, catalogOutboxIds.length)),
+          });
+        } catch (error) {
+          console.error("Admin One AI bulk catalog publication failed; cron recovery remains active", {
+            outboxIds: catalogOutboxIds,
+            error,
+          });
+        }
+      });
     }
     return json(result);
   } catch (error) {

@@ -82,13 +82,12 @@ function expectedVersion(value: string | null | undefined) {
   return BigInt(value);
 }
 
-export async function coordinateShopCatalogProductMutation(
+export async function coordinateShopCatalogProductMutationInTransaction(
+  tx: Prisma.TransactionClient,
   input: ShopCatalogCoordinatedMutationInput
 ): Promise<ShopCatalogCoordinatedMutationResult> {
   if (!input.productId.trim()) throw new TypeError("productId is required");
   const expected = expectedVersion(input.expectedCatalogVersion);
-  return prisma.$transaction(
-    async (tx) => {
       const products = await tx.$queryRaw<LockedProduct[]>`
         SELECT "id", "slug", "catalogVersion"
         FROM "ShopProduct"
@@ -200,7 +199,13 @@ export async function coordinateShopCatalogProductMutation(
         projectionTargets: Object.freeze([...plan.projectionTargets]),
         contentHash,
       });
-    },
+}
+
+export async function coordinateShopCatalogProductMutation(
+  input: ShopCatalogCoordinatedMutationInput
+): Promise<ShopCatalogCoordinatedMutationResult> {
+  return prisma.$transaction(
+    (tx) => coordinateShopCatalogProductMutationInTransaction(tx, input),
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       timeout: 30_000,
