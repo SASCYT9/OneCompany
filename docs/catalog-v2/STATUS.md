@@ -12,7 +12,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
 | C2-P6-003 | RaceChip normalization/backfill                | Done        | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof |
 | C2-P6-004 | ADRO normalization/backfill                    | Done        | Shared ledger core, aliases, correlated policies, CLI, PostgreSQL proof |
-| C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
+| C2-P6-005 | Eventuri mixed-policy normalization/backfill   | In progress | Lossless per-SKU audit green; transactional policy persistence next    |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -46,6 +46,12 @@ per correlated application with all 13 dimensions explicit. Engine, fuel, drivet
 and OPF/GPF are `NOT_APPLICABLE` for aero rather than inferred from trim text. PostgreSQL proves four
 correlated chassis clauses, exact canonical values, replay idempotency, review-only ambiguous clauses,
 and activation coverage. See [ADRO_AUDIT_2026-08-31.md](./ADRO_AUDIT_2026-08-31.md).
+Eventuri normalization covers all 115 products and 5,341/5,341 raw leaves. It distinguishes one
+verified universal maintenance kit, 50 verified vehicle-specific products, two replacement filters
+that require parent resolution, and 64 review-only products. Exact engine evidence is retained in
+128 correlated applications; 58 physical intake/cover/pipe records without an explicit engine code
+remain review-only rather than being broadened. See
+[EVENTURI_AUDIT_2026-08-31.md](./EVENTURI_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
