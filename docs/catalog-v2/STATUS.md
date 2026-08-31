@@ -9,7 +9,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | ID        | Work item                                      | Status      | Verification / remaining work                                         |
 | --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------- |
 | C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
-| C2-P6-002 | Per-source coverage/parity report              | In progress | Aggregate current records, bindings, issues, relations, and activation |
+| C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
 | C2-P6-003 | RaceChip normalization/backfill                | Pending     | Requires source report                                                 |
 | C2-P6-004 | ADRO normalization/backfill                    | Pending     | After RaceChip                                                         |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
@@ -18,6 +18,12 @@ The P6 field ledger now deterministically flattens arbitrary supplier JSON witho
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
 quarantined with an issue, or ignored with an explicit reason; otherwise that source record cannot
 be activation-ready. Fingerprints are stable across object key order.
+The per-source reader processes at most 500 current revision heads per page and requires immutable
+inline payload, a current canonical binding/tombstone, complete valid provenance, no quarantined
+fields, and no open issues before activation. The read-only CLI is forbidden in Production,
+requires explicit database-read authorization, fingerprints its report, and exits non-zero for an
+incomplete source. Disposable PostgreSQL proves an incomplete record becomes ready only after its
+missing provenance is supplied.
 
 ## Completed sprint: P5 unified admin publication
 
@@ -201,6 +207,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The V2 storefront now keeps result rendering on the server while a small client controller provides progressive URL transitions, complete descendant resets, HTML GET fallback, and debounced abortable suggestions. Suggestions are capped before vehicle lookups and preserve make/model clause correlation. A route-level flag-off rewrite keeps the old stock catalog available at the public URL without importing its client tree into V2; production-build entry JS fell from 191,298 to 148,294 gzip bytes. See [STOREFRONT_GATE_2026-08-31.md](./STOREFRONT_GATE_2026-08-31.md).
 - Product administration now has a version-specific publication-status resolver and authorized uncached endpoint. The editor reports `Saved`, `Publishing`, `Published`, or `Publication failed` independently from the mutation response, exposes pending targets/version lag, and stops polling only at a verified terminal state. PostgreSQL integration covers saved, retry, published, and dead-letter transitions.
 - The disposable P5 publication gate runs 30 complete canonical commit-to-visible cycles and a same-version contention race. Latest results are p95 416.027 ms, p99 503.758 ms, maximum 503.758 ms, zero final version lag, and exactly one contention winner. No catalog-wide ISR write is part of this V2 projection path.
+- P6 per-source coverage reporting is bounded to current immutable revision heads and fails closed on missing payloads, bindings, raw-field provenance, quarantine, or open normalization issues. A guarded read-only CLI produces stable fingerprints and PostgreSQL integration proves the activation transition.
 - PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
