@@ -48,6 +48,16 @@ export type ShopCatalogCoordinatedMutationResult = {
   contentHash: string;
 };
 
+export type ShopCatalogCoordinatedCreationInput = {
+  changeDomains: readonly ShopCatalogChangeDomain[];
+  create(tx: Prisma.TransactionClient, initialCatalogVersion: string): Promise<string>;
+  snapshot(
+    tx: Prisma.TransactionClient,
+    productId: string,
+    initialCatalogVersion: string
+  ): Promise<ShopCatalogCoordinatedMutationSnapshot>;
+};
+
 type LockedProduct = {
   id: string;
   slug: string;
@@ -195,5 +205,97 @@ export async function coordinateShopCatalogProductMutation(
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       timeout: 30_000,
     }
+  );
+}
+
+/** Creates a new aggregate and its first immutable publication atomically. */
+export async function coordinateShopCatalogProductCreation(
+  input: ShopCatalogCoordinatedCreationInput
+): Promise<ShopCatalogCoordinatedMutationResult> {
+  const initialVersion = BigInt(1);
+  return prisma.$transaction(
+    async (tx) => {
+      const productId = (await input.create(tx, initialVersion.toString())).trim();
+      if (!productId) throw new Error("Catalog creation callback returned no product ID");
+      const updated = await tx.shopProduct.updateMany({
+        where: { id: productId, catalogVersion: BigInt(0) },
+        data: { catalogVersion: initialVersion },
+      });
+      if (updated.count !== 1) {
+        throw new Error(`New catalog product ${productId} must start at version 0`);
+      }
+      const snapshotInput = await input.snapshot(tx, productId, initialVersion.toString());
+      const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
+      const projectionSource = {
+        ...snapshotInput.projectionSource,
+        productId,
+        sourceVersion: initialVersion.toString(),
+        catalogVersion: initialVersion.toString(),
+        canonicalContentHash: contentHash,
+      } satisfies ShopCatalogProjectionSource;
+      buildShopCatalogProjection(projectionSource);
+      const safeProjectionSource = jsonRoundTrip(projectionSource, "projectionSource");
+      const canonical = canonicalizeCatalogBaselineValue(snapshotInput.canonical);
+      const plan = buildShopCatalogPublicationPlan({
+        entityType: "PRODUCT",
+        entityId: productId,
+        canonicalVersion: initialVersion.toString(),
+        changeDomains: input.changeDomains,
+        oldSlug: null,
+        newSlug: projectionSource.slug,
+      });
+      const revision = await tx.shopCatalogProductRevision.create({
+        data: {
+          productId,
+          version: initialVersion,
+          schemaVersion: SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION,
+          changeDomains: [...plan.changeDomains],
+          snapshot: {
+            schemaVersion: SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION,
+            canonical,
+            projectionSource: safeProjectionSource,
+          } as Prisma.InputJsonValue,
+          contentHash,
+          actorType: snapshotInput.actorType ?? null,
+          actorId: snapshotInput.actorId ?? null,
+          reason: snapshotInput.reason ?? null,
+          sourceRecordId: snapshotInput.sourceRecordId ?? null,
+        },
+      });
+      const outbox = await tx.shopCatalogOutbox.create({
+        data: {
+          dedupeKey: plan.dedupeKey,
+          entityType: plan.entityType,
+          entityId: plan.entityId,
+          productId,
+          revisionId: revision.id,
+          canonicalVersion: initialVersion,
+          changeDomains: [...plan.changeDomains],
+          payload: plan as unknown as Prisma.InputJsonValue,
+        },
+      });
+      for (const target of plan.projectionTargets) {
+        await tx.shopCatalogPublicationReceipt.create({
+          data: {
+            entityType: plan.entityType,
+            entityId: plan.entityId,
+            target,
+            productId,
+            status: "SAVED",
+          },
+        });
+      }
+      return Object.freeze({
+        productId,
+        previousVersion: "0",
+        canonicalVersion: initialVersion.toString(),
+        revisionId: revision.id,
+        outboxId: outbox.id,
+        dedupeKey: plan.dedupeKey,
+        projectionTargets: Object.freeze([...plan.projectionTargets]),
+        contentHash,
+      });
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 }
   );
 }

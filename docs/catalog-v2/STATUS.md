@@ -9,7 +9,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | ID        | Work item                                         | Status      | Verification / remaining work                                |
 | --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------ |
 | C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green     |
-| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Editor, archive, bulk visibility, inventory, pricing and recovery worker green; import writers pending |
+| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Existing writers green; atomic product-creation coordinator added for importer adoption |
 | C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
@@ -111,6 +111,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 ## Residual risks after P1
 
 - Atomic persistence, immutable-revision source loading, durable rebuild checkpoints, mutation coordination, and leased outbox processing exist. `/api/cron/shop-catalog` runs a bounded recovery batch every five minutes and rebuilds exclusively from the event's immutable revision. The full editor, soft archive, bulk visibility, inventory, and pricing writers schedule immediate publication after returning. Bulk visibility validates the complete ID set before writing and creates a versioned `VISIBILITY` event per product. Inventory and pricing keep variant values, product summaries, audit, lossless revision, and outbox in the same product-locked transaction. Import adoption plus retry/dead-letter operational drills remain.
+- The creation coordinator now atomically creates a new product aggregate at version `1` together with its first immutable revision, receipts, and outbox event. Its disposable PostgreSQL regression is present but the latest local run was blocked because Docker Desktop was not running; TypeScript and 14 focused contracts passed. CSV/supplier adapters are not switched until the injected-client transaction boundary is wired and this integration reruns green.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.

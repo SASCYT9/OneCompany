@@ -61,7 +61,8 @@ test(
     const { persistShopCatalogProjectionBuild } = await persistenceModule;
     const { queryShopCatalogProjection } = await queryModule;
     const { RevisionBackedShopCatalogProjectionSource } = await sourceModule;
-    const { coordinateShopCatalogProductMutation } = await mutationModule;
+    const { coordinateShopCatalogProductCreation, coordinateShopCatalogProductMutation } =
+      await mutationModule;
     const { claimShopCatalogOutbox, processShopCatalogOutboxJob } = await outboxModule;
     const { startShopCatalogRebuildCheckpoint, runCheckpointedShopCatalogRebuildPage } =
       await checkpointModule;
@@ -232,6 +233,50 @@ test(
       assert.equal(query.items.length, 1);
       assert.equal(query.items[0]?.productId, productId);
       assert.equal(query.items[0]?.projectionVersion, "2");
+
+      const createdProductId = `${productId}-created`;
+      const creation = await coordinateShopCatalogProductCreation({
+        changeDomains: ["CONTENT", "PRICE", "INVENTORY", "FITMENT", "VISIBILITY"],
+        async create(tx) {
+          const created = await tx.shopProduct.create({
+            data: {
+              id: createdProductId,
+              slug: createdProductId,
+              titleUa: "Atomic creation",
+              titleEn: "Atomic creation",
+            },
+            select: { id: true },
+          });
+          return created.id;
+        },
+        async snapshot(_tx, id, version) {
+          return {
+            canonical: { productId: id, titleUa: "Atomic creation", catalogVersion: version },
+            projectionSource: source(id, version, " created"),
+            actorType: "TEST",
+            reason: "integration create",
+          };
+        },
+      });
+      assert.equal(creation.previousVersion, "0");
+      assert.equal(creation.canonicalVersion, "1");
+      const createdAggregate = await client.shopProduct.findUniqueOrThrow({
+        where: { id: createdProductId },
+        select: { catalogVersion: true },
+      });
+      assert.equal(createdAggregate.catalogVersion, BigInt(1));
+      assert.equal(
+        await client.shopCatalogProductRevision.count({ where: { productId: createdProductId } }),
+        1
+      );
+      assert.equal(
+        await client.shopCatalogOutbox.count({ where: { productId: createdProductId } }),
+        1
+      );
+      assert.equal(
+        await client.shopCatalogPublicationReceipt.count({ where: { productId: createdProductId } }),
+        creation.projectionTargets.length
+      );
     } finally {
       await client.$disconnect();
     }
