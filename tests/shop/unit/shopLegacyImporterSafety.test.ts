@@ -287,6 +287,16 @@ test("active Eventuri importer versions repair, draft, creation, and publish pat
   assert.doesNotMatch(source, /prisma\.\$transaction/);
 });
 
+test("Brabus Blob migration groups every owned image reference into MEDIA revisions", () => {
+  const source = readWorkspaceFile("scripts/migrate-brabus-images-to-blob.ts");
+  assert.match(source, /const groups = new Map/);
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \[['"]MEDIA['"]\]/);
+  assert.match(source, /Media ownership changed/);
+  assert.match(source, /Variant ownership changed/);
+  assert.doesNotMatch(source, /prisma\.shopProduct(?:Media|Variant)?\.updateMany\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

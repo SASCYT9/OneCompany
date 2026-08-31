@@ -14,28 +14,30 @@
  *   npx tsx scripts/migrate-brabus-images-to-blob.ts --commit --concurrency=12
  */
 
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { PrismaClient } from "@prisma/client";
 import {
   isBlobStorageConfigured,
   listAllBlobsByPrefix,
   putPublicBlob,
-} from '@/lib/runtimeBlobStorage';
+} from "@/lib/runtimeBlobStorage";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 
 const prisma = new PrismaClient();
 const args = process.argv.slice(2);
-const commit = args.includes('--commit');
+const commit = args.includes("--commit");
 const dryRun = !commit;
 
-const concurrencyArg = args.find((a) => a.startsWith('--concurrency='));
+const concurrencyArg = args.find((a) => a.startsWith("--concurrency="));
 const CONCURRENCY = Math.max(
   1,
-  Math.min(20, parseInt(concurrencyArg?.split('=')[1] ?? '8', 10) || 8),
+  Math.min(20, parseInt(concurrencyArg?.split("=")[1] ?? "8", 10) || 8)
 );
 
-const BLOB_PREFIX = 'brabus-images/';
-const PUBLIC_DIR = path.resolve(process.cwd(), 'public', 'brabus-images');
+const BLOB_PREFIX = "brabus-images/";
+const PUBLIC_DIR = path.resolve(process.cwd(), "public", "brabus-images");
 
 type LocalFile = {
   absolutePath: string;
@@ -48,12 +50,12 @@ type LocalFile = {
 
 function contentTypeFor(filename: string) {
   const ext = path.extname(filename).toLowerCase();
-  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
-  if (ext === '.png') return 'image/png';
-  if (ext === '.webp') return 'image/webp';
-  if (ext === '.gif') return 'image/gif';
-  if (ext === '.avif') return 'image/avif';
-  return 'application/octet-stream';
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".avif") return "image/avif";
+  return "application/octet-stream";
 }
 
 function formatBytes(bytes: number) {
@@ -94,7 +96,7 @@ async function runWithConcurrency<T, R>(
   items: T[],
   worker: (item: T, index: number) => Promise<R>,
   concurrency: number,
-  onProgress?: (done: number, total: number) => void,
+  onProgress?: (done: number, total: number) => void
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let cursor = 0;
@@ -120,13 +122,13 @@ function progressLine(done: number, total: number, action: string) {
 }
 
 async function main() {
-  console.log('=== Brabus images → Vercel Blob migration ===');
-  console.log(`Mode: ${commit ? 'COMMIT' : 'DRY-RUN (pass --commit to apply)'}`);
+  console.log("=== Brabus images → Vercel Blob migration ===");
+  console.log(`Mode: ${commit ? "COMMIT" : "DRY-RUN (pass --commit to apply)"}`);
   console.log(`Concurrency: ${CONCURRENCY}`);
 
   if (!isBlobStorageConfigured()) {
     throw new Error(
-      'BLOB_READ_WRITE_TOKEN is not set. Add it to .env.local (or pull from Vercel) before running.',
+      "BLOB_READ_WRITE_TOKEN is not set. Add it to .env.local (or pull from Vercel) before running."
     );
   }
 
@@ -135,19 +137,19 @@ async function main() {
     listAllBlobsByPrefix(BLOB_PREFIX),
   ]);
 
-  const existingBlobUrls = new Map<string, string>(
-    existingBlobs.map((b) => [b.pathname, b.url]),
-  );
+  const existingBlobUrls = new Map<string, string>(existingBlobs.map((b) => [b.pathname, b.url]));
 
   const totalSize = localFiles.reduce((sum, f) => sum + f.size, 0);
   console.log(
-    `\nLocal files: ${localFiles.length} (${formatBytes(totalSize)}) under ${PUBLIC_DIR}`,
+    `\nLocal files: ${localFiles.length} (${formatBytes(totalSize)}) under ${PUBLIC_DIR}`
   );
   console.log(`Already in Blob (prefix "${BLOB_PREFIX}"): ${existingBlobs.length}`);
 
   /* ── 1. Upload missing files to Blob ──────────────────────────────────── */
   const toUpload = localFiles.filter((f) => !existingBlobUrls.has(f.blobPathname));
-  console.log(`To upload: ${toUpload.length} files (${formatBytes(toUpload.reduce((s, f) => s + f.size, 0))})`);
+  console.log(
+    `To upload: ${toUpload.length} files (${formatBytes(toUpload.reduce((s, f) => s + f.size, 0))})`
+  );
 
   let lastLog = Date.now();
   let uploaded = 0;
@@ -175,12 +177,12 @@ async function main() {
       (done, total) => {
         const now = Date.now();
         if (now - lastLog > 2000 || done === total) {
-          process.stdout.write(`\r${progressLine(done, total, 'uploaded')}        `);
+          process.stdout.write(`\r${progressLine(done, total, "uploaded")}        `);
           lastLog = now;
         }
-      },
+      }
     );
-    process.stdout.write('\n');
+    process.stdout.write("\n");
   } else if (toUpload.length > 0) {
     console.log(`(dry-run) would upload ${toUpload.length} files to Blob`);
   }
@@ -195,9 +197,9 @@ async function main() {
 
   /* ── 3. Inspect DB rows that still need rewriting ─────────────────────── */
   const [productCount, mediaCount, variantCount] = await Promise.all([
-    prisma.shopProduct.count({ where: { image: { startsWith: '/brabus-images/' } } }),
-    prisma.shopProductMedia.count({ where: { src: { startsWith: '/brabus-images/' } } }),
-    prisma.shopProductVariant.count({ where: { image: { startsWith: '/brabus-images/' } } }),
+    prisma.shopProduct.count({ where: { image: { startsWith: "/brabus-images/" } } }),
+    prisma.shopProductMedia.count({ where: { src: { startsWith: "/brabus-images/" } } }),
+    prisma.shopProductVariant.count({ where: { image: { startsWith: "/brabus-images/" } } }),
   ]);
   console.log(`\nDB rows still pointing at /brabus-images/...:`);
   console.log(`  ShopProduct.image:        ${productCount}`);
@@ -207,46 +209,142 @@ async function main() {
   /* ── 4. Rewrite DB references in batches by exact path ────────────────── */
   if (commit && rewriteMap.size > 0) {
     console.log(`\nRewriting DB references…`);
-    const entries = Array.from(rewriteMap.entries());
+    const oldReferences = [...rewriteMap.keys()];
+    const [products, mediaRows, variants] = await Promise.all([
+      prisma.shopProduct.findMany({
+        where: { image: { in: oldReferences } },
+        select: { id: true, image: true, catalogVersion: true },
+      }),
+      prisma.shopProductMedia.findMany({
+        where: { src: { in: oldReferences } },
+        select: {
+          id: true,
+          src: true,
+          productId: true,
+          product: { select: { catalogVersion: true } },
+        },
+      }),
+      prisma.shopProductVariant.findMany({
+        where: { image: { in: oldReferences } },
+        select: {
+          id: true,
+          image: true,
+          productId: true,
+          product: { select: { catalogVersion: true } },
+        },
+      }),
+    ]);
+    const groups = new Map<
+      string,
+      {
+        catalogVersion: bigint;
+        primaryImage?: string;
+        media: Array<{ id: string; src: string }>;
+        variants: Array<{ id: string; image: string }>;
+      }
+    >();
+    for (const product of products) {
+      const next = product.image ? rewriteMap.get(product.image) : null;
+      if (!next) continue;
+      groups.set(product.id, {
+        catalogVersion: product.catalogVersion,
+        primaryImage: next,
+        media: [],
+        variants: [],
+      });
+    }
+    for (const media of mediaRows) {
+      const next = rewriteMap.get(media.src);
+      if (!next) continue;
+      const group = groups.get(media.productId) ?? {
+        catalogVersion: media.product.catalogVersion,
+        media: [],
+        variants: [],
+      };
+      group.media.push({ id: media.id, src: next });
+      groups.set(media.productId, group);
+    }
+    for (const variant of variants) {
+      const next = variant.image ? rewriteMap.get(variant.image) : null;
+      if (!next) continue;
+      const group = groups.get(variant.productId) ?? {
+        catalogVersion: variant.product.catalogVersion,
+        media: [],
+        variants: [],
+      };
+      group.variants.push({ id: variant.id, image: next });
+      groups.set(variant.productId, group);
+    }
+
     let rewriteDone = 0;
     let productUpdates = 0;
     let mediaUpdates = 0;
     let variantUpdates = 0;
+    const catalogOutboxIds: string[] = [];
     lastLog = Date.now();
 
-    await runWithConcurrency(
-      entries,
-      async ([from, to]) => {
-        const [p, m, v] = await Promise.all([
-          prisma.shopProduct.updateMany({ where: { image: from }, data: { image: to } }),
-          prisma.shopProductMedia.updateMany({ where: { src: from }, data: { src: to } }),
-          prisma.shopProductVariant.updateMany({ where: { image: from }, data: { image: to } }),
-        ]);
-        productUpdates += p.count;
-        mediaUpdates += m.count;
-        variantUpdates += v.count;
-        rewriteDone += 1;
-        const now = Date.now();
-        if (now - lastLog > 2000 || rewriteDone === entries.length) {
-          process.stdout.write(
-            `\r${progressLine(rewriteDone, entries.length, 'paths rewritten')}     `,
-          );
-          lastLog = now;
-        }
-      },
-      Math.min(CONCURRENCY, 4),
-    );
-    process.stdout.write('\n');
+    for (const [productId, group] of [...groups.entries()].sort(([a], [b]) =>
+      a.localeCompare(b, "en")
+    )) {
+      const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+        productId,
+        expectedCatalogVersion: group.catalogVersion.toString(),
+        changeDomains: ["MEDIA"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          if (group.primaryImage) {
+            await tx.shopProduct.update({
+              where: { id: productId },
+              data: { image: group.primaryImage },
+            });
+            productUpdates += 1;
+          }
+          for (const media of group.media) {
+            const updated = await tx.shopProductMedia.updateMany({
+              where: { id: media.id, productId },
+              data: { src: media.src },
+            });
+            if (updated.count !== 1) throw new Error(`Media ownership changed for ${media.id}`);
+            mediaUpdates += 1;
+          }
+          for (const variant of group.variants) {
+            const updated = await tx.shopProductVariant.updateMany({
+              where: { id: variant.id, productId },
+              data: { image: variant.image },
+            });
+            if (updated.count !== 1) throw new Error(`Variant ownership changed for ${variant.id}`);
+            variantUpdates += 1;
+          }
+          return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+            type: "IMPORT",
+            id: "brabus-images-migration@system.local",
+            reason: "brabus.images.blob-migration",
+          });
+        },
+      });
+      catalogOutboxIds.push(mutation.outboxId);
+      rewriteDone += 1;
+      const now = Date.now();
+      if (now - lastLog > 2000 || rewriteDone === groups.size) {
+        process.stdout.write(
+          `\r${progressLine(rewriteDone, groups.size, "products rewritten")}     `
+        );
+        lastLog = now;
+      }
+    }
+    process.stdout.write("\n");
 
     console.log(`  ShopProduct.image rows updated:        ${productUpdates}`);
     console.log(`  ShopProductMedia.src rows updated:     ${mediaUpdates}`);
     console.log(`  ShopProductVariant.image rows updated: ${variantUpdates}`);
+    console.log(`  Catalog outbox events:                 ${catalogOutboxIds.length}`);
   } else if (rewriteMap.size > 0) {
-    console.log(`(dry-run) would rewrite up to ${productCount + mediaCount + variantCount} DB rows`);
+    console.log(
+      `(dry-run) would rewrite up to ${productCount + mediaCount + variantCount} DB rows`
+    );
   }
 
   /* ── 5. Final summary ─────────────────────────────────────────────────── */
-  console.log('\n=== Summary ===');
+  console.log("\n=== Summary ===");
   console.log(`Local files scanned:    ${localFiles.length}`);
   console.log(`Already in Blob:        ${existingBlobs.length}`);
   console.log(`Uploaded this run:      ${uploaded}`);
@@ -268,7 +366,7 @@ async function main() {
 
 main()
   .catch((err) => {
-    console.error('\nFATAL:', err instanceof Error ? err.stack || err.message : err);
+    console.error("\nFATAL:", err instanceof Error ? err.stack || err.message : err);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());
