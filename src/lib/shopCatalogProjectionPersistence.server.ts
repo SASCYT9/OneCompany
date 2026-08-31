@@ -48,6 +48,26 @@ export type ShopCatalogProjectionPersistResult = {
   rowCount: number;
 };
 
+type ShopCatalogBrandFacetProjection = {
+  locale: string;
+  scopeKey: string;
+  statusKey: string;
+  isPublished: boolean;
+  brandKey: string;
+  brandLabel: string;
+};
+
+export type ShopCatalogBrandFacetDelta = {
+  locale: string;
+  dimension: "BRAND" | "MAKE";
+  prefixKey: string;
+  valueKey: string;
+  valueLabel: string;
+  delta: number;
+};
+
+export type ShopCatalogMakeFacetValue = { key: string; label: string };
+
 export type ShopCatalogProjectionRebuildSource = {
   loadPage(input: {
     afterProductId: string | null;
@@ -110,6 +130,168 @@ function currentDecision(
     currentRows.length === expectedHashes.size &&
     currentRows.every((row) => expectedHashes.get(row.locale as "ua" | "en") === row.contentHash);
   return hashesMatch ? "IDEMPOTENT" : "VERSION_CONFLICT";
+}
+
+function brandFacetBuckets(row: ShopCatalogBrandFacetProjection) {
+  if (!row.isPublished || row.statusKey !== "ACTIVE" || !row.brandKey) return [];
+  return ["", `scope:${row.scopeKey}`].map((prefixKey) => ({
+    locale: row.locale,
+    dimension: "BRAND" as const,
+    prefixKey,
+    valueKey: row.brandKey,
+    valueLabel: row.brandLabel,
+  }));
+}
+
+/** Pure delta plan used by transactional projection writes and rebuilds. */
+export function buildShopCatalogBrandFacetDeltas(
+  current: readonly ShopCatalogBrandFacetProjection[],
+  incoming: readonly ShopCatalogBrandFacetProjection[]
+): readonly ShopCatalogBrandFacetDelta[] {
+  const deltas = new Map<string, Omit<ShopCatalogBrandFacetDelta, "delta"> & { delta: number }>();
+  const currentLabels = new Map<string, string>();
+  const incomingLabels = new Map<string, string>();
+  const apply = (row: ShopCatalogBrandFacetProjection, direction: -1 | 1) => {
+    for (const bucket of brandFacetBuckets(row)) {
+      const identity = JSON.stringify([
+        bucket.locale,
+        bucket.dimension,
+        bucket.prefixKey,
+        bucket.valueKey,
+      ]);
+      const previous = deltas.get(identity);
+      (direction === -1 ? currentLabels : incomingLabels).set(identity, bucket.valueLabel);
+      deltas.set(identity, {
+        ...bucket,
+        valueLabel:
+          direction === 1 ? bucket.valueLabel : (previous?.valueLabel ?? bucket.valueLabel),
+        delta: (previous?.delta ?? 0) + direction,
+      });
+    }
+  };
+  current.forEach((row) => apply(row, -1));
+  incoming.forEach((row) => apply(row, 1));
+  return Object.freeze(
+    [...deltas.entries()]
+      .filter(
+        ([identity, row]) =>
+          row.delta !== 0 || currentLabels.get(identity) !== incomingLabels.get(identity)
+      )
+      .map(([, row]) => row)
+      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), "en"))
+      .map((row) => Object.freeze(row))
+  );
+}
+
+export function buildShopCatalogMakeFacetDeltas(
+  current: {
+    projections: readonly ShopCatalogBrandFacetProjection[];
+    makes: readonly ShopCatalogMakeFacetValue[];
+  },
+  incoming: {
+    projections: readonly ShopCatalogBrandFacetProjection[];
+    makes: readonly ShopCatalogMakeFacetValue[];
+  }
+): readonly ShopCatalogBrandFacetDelta[] {
+  const rows = new Map<string, ShopCatalogBrandFacetDelta>();
+  const currentLabels = new Map<string, string>();
+  const incomingLabels = new Map<string, string>();
+  const apply = (
+    projections: readonly ShopCatalogBrandFacetProjection[],
+    makes: readonly ShopCatalogMakeFacetValue[],
+    direction: -1 | 1
+  ) => {
+    const uniqueMakes = new Map(
+      makes
+        .filter((make) => make.key.trim())
+        .map((make) => [make.key.trim().toLowerCase(), make.label.trim() || make.key.trim()])
+    );
+    for (const projection of projections) {
+      if (!projection.isPublished || projection.statusKey !== "ACTIVE" || !projection.brandKey) {
+        continue;
+      }
+      const prefixes = [
+        `brand:${projection.brandKey}`,
+        `scope:${projection.scopeKey}|brand:${projection.brandKey}`,
+      ];
+      for (const [valueKey, valueLabel] of uniqueMakes) {
+        for (const prefixKey of prefixes) {
+          const identity = JSON.stringify([projection.locale, prefixKey, valueKey]);
+          const previous = rows.get(identity);
+          (direction === -1 ? currentLabels : incomingLabels).set(identity, valueLabel);
+          rows.set(identity, {
+            locale: projection.locale,
+            dimension: "MAKE",
+            prefixKey,
+            valueKey,
+            valueLabel: direction === 1 ? valueLabel : (previous?.valueLabel ?? valueLabel),
+            delta: (previous?.delta ?? 0) + direction,
+          });
+        }
+      }
+    }
+  };
+  apply(current.projections, current.makes, -1);
+  apply(incoming.projections, incoming.makes, 1);
+  return Object.freeze(
+    [...rows.entries()]
+      .filter(
+        ([identity, row]) =>
+          row.delta !== 0 || currentLabels.get(identity) !== incomingLabels.get(identity)
+      )
+      .map(([, row]) => row)
+      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), "en"))
+      .map((row) => Object.freeze(row))
+  );
+}
+
+async function applyShopCatalogBrandFacetDeltas(
+  tx: Prisma.TransactionClient,
+  deltas: readonly ShopCatalogBrandFacetDelta[]
+) {
+  for (const row of deltas) {
+    const { delta, ...bucket } = row;
+    const where = {
+      locale_dimension_prefixKey_valueKey: {
+        locale: row.locale,
+        dimension: row.dimension,
+        prefixKey: row.prefixKey,
+        valueKey: row.valueKey,
+      },
+    };
+    if (delta === 0) {
+      const updated = await tx.shopCatalogProjectionFacetCount.updateMany({
+        where: where.locale_dimension_prefixKey_valueKey,
+        data: { valueLabel: row.valueLabel },
+      });
+      if (updated.count !== 1) {
+        throw new Error(
+          `Catalog facet label drift for ${row.locale}/${row.prefixKey}/${row.valueKey}`
+        );
+      }
+      continue;
+    }
+    if (delta > 0) {
+      await tx.shopCatalogProjectionFacetCount.upsert({
+        where,
+        create: { ...bucket, productCount: delta },
+        update: { productCount: { increment: delta }, valueLabel: row.valueLabel },
+      });
+      continue;
+    }
+    const updated = await tx.shopCatalogProjectionFacetCount.updateMany({
+      where: { ...where.locale_dimension_prefixKey_valueKey, productCount: { gte: -delta } },
+      data: { productCount: { increment: delta } },
+    });
+    if (updated.count !== 1) {
+      throw new Error(
+        `Catalog facet counter drift for ${row.locale}/${row.prefixKey}/${row.valueKey}`
+      );
+    }
+    await tx.shopCatalogProjectionFacetCount.deleteMany({
+      where: { ...where.locale_dimension_prefixKey_valueKey, productCount: 0 },
+    });
+  }
 }
 
 /**
@@ -233,7 +415,16 @@ async function persistInTransaction(
   }
   const currentRows = await tx.shopCatalogProjection.findMany({
     where: { productId: incoming.productId },
-    select: { locale: true, projectionVersion: true, contentHash: true },
+    select: {
+      locale: true,
+      projectionVersion: true,
+      contentHash: true,
+      scopeKey: true,
+      statusKey: true,
+      isPublished: true,
+      brandKey: true,
+      brandLabel: true,
+    },
   });
   const plan = planShopCatalogProjectionPersistence(currentRows, incoming);
   if (!plan.apply) {
@@ -251,8 +442,47 @@ async function persistInTransaction(
     );
   }
 
+  const currentMakeRows = await tx.shopCatalogProjectionConstraint.findMany({
+    where: {
+      productId: plan.productId,
+      dimension: ShopCatalogCompatibilityDimension.MAKE,
+      state: "EXACT",
+      textValue: { not: null },
+      clause: { verification: "VERIFIED" },
+    },
+    select: { textValue: true },
+  });
+  const verifiedClauseKeys = new Set(
+    plan.clauseRows
+      .filter((row) => row.verification === "VERIFIED")
+      .map((row) => `${row.targetKey}\u0000${row.clauseKey}`)
+  );
+  const incomingMakeRows = plan.constraintRows
+    .filter(
+      (row) =>
+        row.dimension === ShopCatalogCompatibilityDimension.MAKE &&
+        row.state === "EXACT" &&
+        typeof row.textValue === "string" &&
+        verifiedClauseKeys.has(`${row.targetKey}\u0000${row.clauseKey}`)
+    )
+    .map((row) => ({ key: String(row.textValue).toLowerCase(), label: String(row.textValue) }));
+
   await tx.shopCatalogProjectionPolicy.deleteMany({ where: { productId: plan.productId } });
   await tx.shopCatalogProjectionSku.deleteMany({ where: { productId: plan.productId } });
+  const incomingFacetProjections =
+    plan.projectionRows as unknown as ShopCatalogBrandFacetProjection[];
+  await applyShopCatalogBrandFacetDeltas(tx, [
+    ...buildShopCatalogBrandFacetDeltas(currentRows, incomingFacetProjections),
+    ...buildShopCatalogMakeFacetDeltas(
+      {
+        projections: currentRows,
+        makes: currentMakeRows.flatMap((row) =>
+          row.textValue ? [{ key: row.textValue.toLowerCase(), label: row.textValue }] : []
+        ),
+      },
+      { projections: incomingFacetProjections, makes: incomingMakeRows }
+    ),
+  ]);
   for (const row of plan.projectionRows) {
     const data = row as Prisma.ShopCatalogProjectionUncheckedCreateInput;
     await tx.shopCatalogProjection.upsert({

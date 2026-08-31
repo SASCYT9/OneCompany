@@ -88,5 +88,19 @@ test("catalog page performs direct server query only behind the reader flag", ()
   assert.match(source, /if \(!reader\.enabled\) return <StockCatalogPage \/>/);
   assert.match(source, /await connection\(\)/);
   assert.match(source, /queryShopCatalogProjection\(/);
+  assert.match(source, /queryShopCatalogProjectionFacets\(query\)/);
+  assert.match(source, /Promise\.all/);
   assert.doesNotMatch(source, /fetch\(/);
+});
+
+test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
+  const source = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
+  assert.match(source, /method="get"/);
+  for (const field of ["q", "brand", "make", "model", "generation", "year", "engine", "fuel"]) {
+    assert.match(source, new RegExp(`name=[{\"]+${field}`));
+  }
+  assert.match(source, /afterRank/);
+  assert.match(source, /afterProduct/);
+  assert.match(source, /rel="next"/);
+  assert.doesNotMatch(source, /useEffect|fetch\(/);
 });

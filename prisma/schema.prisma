@@ -3701,6 +3701,7 @@ model ShopCatalogProjection {
   @@index([locale, isPublished, statusKey, stableRank, productId])
   @@index([locale, scopeKey, stableRank, productId])
   @@index([locale, brandKey, stableRank, productId])
+  @@index([locale, isPublished, statusKey, brandKey])
   @@index([locale, categoryKey, stableRank, productId])
   @@index([normalizedSku])
   @@index([projectionVersion])
@@ -3725,6 +3726,19 @@ model ShopCatalogProjectionSku {
   @@index([normalizedSku, stableRank, productId])
   @@index([variantId])
   @@index([sourceVersion])
+}
+
+model ShopCatalogProjectionFacetCount {
+  locale       String
+  dimension    String
+  prefixKey    String
+  valueKey     String
+  valueLabel   String
+  productCount Int
+  updatedAt    DateTime @updatedAt
+
+  @@id([locale, dimension, prefixKey, valueKey])
+  @@index([locale, dimension, prefixKey, productCount], map: "ShopCatalogFacetCount_lookup_idx")
 }
 
 model ShopCatalogProjectionPolicy {

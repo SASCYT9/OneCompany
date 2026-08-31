@@ -169,3 +169,94 @@ test("rebuild rejects oversized or dishonest source pages", async () => {
     /more rows than requested/
   );
 });
+
+test("brand facet counter deltas cover create, move, scope, locale, and archive", async () => {
+  const { buildShopCatalogBrandFacetDeltas } = await persistenceModule;
+  const row = (overrides: Partial<Record<string, unknown>> = {}) => ({
+    locale: "ua",
+    scopeKey: "auto",
+    statusKey: "ACTIVE",
+    isPublished: true,
+    brandKey: "eventuri",
+    brandLabel: "Eventuri",
+    ...overrides,
+  });
+
+  const created = buildShopCatalogBrandFacetDeltas([], [row(), row({ locale: "en" })]);
+  assert.equal(created.length, 4);
+  assert.ok(created.every((item) => item.delta === 1));
+  assert.deepEqual(
+    new Set(created.map((item) => `${item.locale}:${item.prefixKey}`)),
+    new Set(["ua:", "ua:scope:auto", "en:", "en:scope:auto"])
+  );
+
+  const moved = buildShopCatalogBrandFacetDeltas(
+    [row()],
+    [row({ scopeKey: "moto", brandKey: "akrapovic", brandLabel: "Akrapovič" })]
+  );
+  assert.equal(moved.length, 4);
+  assert.equal(moved.filter((item) => item.delta === -1).length, 2);
+  assert.equal(moved.filter((item) => item.delta === 1).length, 2);
+
+  const archived = buildShopCatalogBrandFacetDeltas([row()], [row({ statusKey: "ARCHIVED" })]);
+  assert.equal(archived.length, 2);
+  assert.ok(archived.every((item) => item.delta === -1));
+});
+
+test("brand facet delta is empty for unchanged eligibility and ignores drafts", async () => {
+  const { buildShopCatalogBrandFacetDeltas } = await persistenceModule;
+  const active = {
+    locale: "ua",
+    scopeKey: "auto",
+    statusKey: "ACTIVE",
+    isPublished: true,
+    brandKey: "eventuri",
+    brandLabel: "Eventuri",
+  };
+  assert.deepEqual(buildShopCatalogBrandFacetDeltas([active], [active]), []);
+  const relabeled = buildShopCatalogBrandFacetDeltas(
+    [active],
+    [{ ...active, brandLabel: "Eventuri Ukraine" }]
+  );
+  assert.equal(relabeled.length, 2);
+  assert.ok(relabeled.every((item) => item.delta === 0 && item.valueLabel === "Eventuri Ukraine"));
+  assert.deepEqual(buildShopCatalogBrandFacetDeltas([], [{ ...active, isPublished: false }]), []);
+});
+
+test("make facet counters are distinct per product and keyed by brand plus scope", async () => {
+  const { buildShopCatalogMakeFacetDeltas } = await persistenceModule;
+  const projection = {
+    locale: "ua",
+    scopeKey: "auto",
+    statusKey: "ACTIVE",
+    isPublished: true,
+    brandKey: "eventuri",
+    brandLabel: "Eventuri",
+  };
+  const created = buildShopCatalogMakeFacetDeltas(
+    { projections: [], makes: [] },
+    {
+      projections: [projection],
+      makes: [
+        { key: "bmw", label: "BMW" },
+        { key: "BMW", label: "BMW duplicate clause" },
+      ],
+    }
+  );
+  assert.equal(created.length, 2);
+  assert.ok(created.every((item) => item.dimension === "MAKE" && item.delta === 1));
+  assert.deepEqual(
+    new Set(created.map((item) => item.prefixKey)),
+    new Set(["brand:eventuri", "scope:auto|brand:eventuri"])
+  );
+
+  const archived = buildShopCatalogMakeFacetDeltas(
+    { projections: [projection], makes: [{ key: "bmw", label: "BMW" }] },
+    {
+      projections: [{ ...projection, isPublished: false }],
+      makes: [{ key: "bmw", label: "BMW" }],
+    }
+  );
+  assert.equal(archived.length, 2);
+  assert.ok(archived.every((item) => item.delta === -1));
+});

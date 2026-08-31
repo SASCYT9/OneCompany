@@ -1,6 +1,9 @@
 import { connection } from "next/server";
 
-import { queryShopCatalogProjection } from "@/lib/shopCatalogProjectionQuery.server";
+import {
+  queryShopCatalogProjection,
+  queryShopCatalogProjectionFacets,
+} from "@/lib/shopCatalogProjectionQuery.server";
 import {
   resolveShopCatalogReaderFlag,
   SHOP_CATALOG_V2_READER_MODE_ENV,
@@ -31,9 +34,18 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   await connection();
   const [{ locale }, filters] = await Promise.all([params, searchParams]);
   const resolvedLocale = resolveLocale(locale);
-  const result = await queryShopCatalogProjection(
-    parseShopCatalogStorefrontQuery(resolvedLocale, filters)
-  );
+  const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
+  const [result, facetResult] = await Promise.all([
+    queryShopCatalogProjection(query),
+    queryShopCatalogProjectionFacets(query),
+  ]);
 
-  return <CatalogV2Server locale={resolvedLocale} result={result} />;
+  return (
+    <CatalogV2Server
+      locale={resolvedLocale}
+      result={result}
+      facets={facetResult.facets}
+      query={query}
+    />
+  );
 }

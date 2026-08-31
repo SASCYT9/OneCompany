@@ -105,3 +105,84 @@ test("vehicle SQL path stays disabled when no compatibility filter is selected",
     null
   );
 });
+
+test("progressive facet SQL is bounded, single-round-trip, and clause-correlated", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql, SHOP_CATALOG_PROJECTION_FACET_LIMIT } =
+    await queryModule;
+  const query = buildShopCatalogProjectionFacetQuerySql({
+    locale: "ua",
+    text: "intake",
+    brand: "Eventuri",
+    make: "BMW",
+    model: "M2",
+    generation: "G87",
+    year: 2024,
+    engine: "S58",
+  });
+  const sql = query.sql;
+  assert.equal((sql.match(/UNION ALL/g) ?? []).length, 6);
+  assert.equal((sql.match(/LIMIT/g) ?? []).length, 7);
+  assert.match(sql, /'brand'::text/);
+  assert.match(sql, /candidate_row\."dimension"/);
+  assert.match(sql, /candidate_row\."targetKey" = clause\."targetKey"/);
+  assert.match(sql, /candidate_row\."clauseKey" = clause\."clauseKey"/);
+  assert.match(sql, /compatibility_constraint\."targetKey" = clause\."targetKey"/);
+  assert.match(sql, /compatibility_constraint\."clauseKey" = clause\."clauseKey"/);
+  assert.match(sql, /candidate_row\."state" = 'EXACT'/);
+  assert.match(sql, /JOIN LATERAL/);
+  assert.match(sql, /OFFSET 0/);
+  assert.match(sql, /count\(DISTINCT projection\."productId"\)/);
+  assert.equal(
+    query.values.filter((value) => value === SHOP_CATALOG_PROJECTION_FACET_LIMIT).length,
+    7
+  );
+  assert.equal(query.values.includes("intake"), false);
+  assert.equal(
+    query.values.some((value) => value === "%intake%"),
+    true
+  );
+  assert.equal(query.values.includes("Eventuri"), true);
+  assert.equal(query.values.includes("BMW"), true);
+  assert.equal(query.values.includes("M2"), true);
+  assert.equal(query.values.includes("G87"), true);
+  assert.equal(query.values.includes(2024), true);
+  assert.equal(query.values.includes("S58"), true);
+});
+
+test("progressive facet SQL never applies a later vehicle field to an earlier facet", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
+  const query = buildShopCatalogProjectionFacetQuerySql({
+    locale: "en",
+    engine: "S58",
+    fuel: "petrol",
+  });
+  // A sparse deep link cannot unlock expensive later aggregations. Only the
+  // brand facet is queried until the user selects the required prefix.
+  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length, 0);
+  assert.equal(query.values.includes("S58"), false);
+  assert.equal(query.values.includes("petrol"), false);
+});
+
+test("progressive facets unlock exactly one level at a time", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
+  const cases = [
+    [{ locale: "ua" as const }, 1],
+    [{ locale: "ua" as const, brand: "Eventuri" }, 2],
+    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW" }, 3],
+    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW", model: "M2" }, 7],
+    [
+      {
+        locale: "ua" as const,
+        brand: "Eventuri",
+        make: "BMW",
+        model: "M2",
+        generation: "G87",
+      },
+      7,
+    ],
+  ] as const;
+  for (const [input, branchCount] of cases) {
+    const sql = buildShopCatalogProjectionFacetQuerySql(input).sql;
+    assert.equal((sql.match(/UNION ALL/g) ?? []).length + 1, branchCount);
+  }
+});

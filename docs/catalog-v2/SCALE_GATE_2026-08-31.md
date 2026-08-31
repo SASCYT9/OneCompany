@@ -20,12 +20,16 @@ five times warm with `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)`.
 |  100,000 |         200,000 | listing deep keyset |  17.976 |      16.998 | none                  |
 |  100,000 |         200,000 | brand page          |   0.049 |       0.028 | none                  |
 |  100,000 |         200,000 | trigram text search |   5.054 |       4.767 | none                  |
+|  100,000 |         200,000 | brand facet        |   0.030 |       0.030 | none                  |
+|  100,000 |         200,000 | make facet         |   0.020 |       0.020 | none                  |
 |  100,000 |         200,000 | make-only fitment   |   5.327 |       4.770 | none                  |
 |  100,000 |         200,000 | correlated fitment  |  20.725 |      20.708 | none                  |
 |  500,000 |       1,000,000 | listing first page  |   0.041 |       0.053 | none                  |
 |  500,000 |       1,000,000 | listing deep keyset |  89.643 |      90.017 | none                  |
 |  500,000 |       1,000,000 | brand page          |   0.048 |       0.024 | none                  |
 |  500,000 |       1,000,000 | trigram text search |  23.093 |      23.396 | none                  |
+|  500,000 |       1,000,000 | brand facet        |   0.040 |       0.020 | none                  |
+|  500,000 |       1,000,000 | make facet         |   0.020 |       0.020 | none                  |
 |  500,000 |       1,000,000 | make-only fitment   |   4.759 |       6.112 | none                  |
 |  500,000 |       1,000,000 | correlated fitment  |  26.476 |      24.083 | none                  |
 
@@ -42,6 +46,13 @@ case-insensitive product-first expression index. The indexed SQL path is used on
 vehicle constraint is present; the existing Prisma projection query remains the path for
 unfiltered, brand, and text-only reads.
 
+The first aggregate facet plan scanned the full projection and measured about 288 ms warm at
+only 100k products. Migration `20260831150000_optimize_catalog_projection_facets` replaces that
+hot path with transactionally maintained brand/make counters keyed by locale, scope, and brand.
+Counters are updated in the same serializable projection transaction for create, relabel,
+brand/scope move, publish, and archive. Later vehicle facets retain clause correlation and unlock
+only after brand/make/model have reduced the candidate set.
+
 ## Reproduction
 
 ```powershell
@@ -54,4 +65,4 @@ localhost port, and writes the detailed ignored artifact to
 through `shop:catalog:v2:scale`, but it rejects any URL that is not localhost and does not contain
 `application_name=catalog-scale-gate`.
 
-Fresh migration replay after this change: 40 migrations, 135 public tables, schema diff empty.
+Fresh migration replay after this change: 41 migrations, 136 public tables, schema diff empty.

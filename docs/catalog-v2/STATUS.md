@@ -6,19 +6,22 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
 ## Current sprint: P3 indexed reads and P4 server-rendered storefront
 
-| ID        | Work item                                      | Status      | Verification / remaining work                                                     |
-| --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------------------- |
-| C2-P3-001 | Bounded indexed listing and fitment query      | Done        | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass        |
-| C2-P3-002 | Progressive facet and suggestion query service | In progress | Listing URL contract exists; aggregate facet/suggestion endpoints remain           |
+| ID        | Work item                                      | Status      | Verification / remaining work                                                       |
+| --------- | ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| C2-P3-001 | Bounded indexed listing and fitment query      | Done        | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass         |
+| C2-P3-002 | Progressive facet and suggestion query service | In progress | Facets pass 500k gate; bounded suggestion service remains                           |
 | C2-P4-001 | Flag-off direct Server Component first page    | Done        | Explicit `ssr` only; default legacy branch makes no V2 read; first 24 cards are SSR |
-| C2-P4-002 | Interactive progressive filters and pagination | Pending     | Hydrate serializable first result, facets, transitions, and keyset continuation     |
+| C2-P4-002 | Interactive progressive filters and pagination | In progress | SSR GET filters/keyset work; client transitions and parent-reset UX remain          |
 
 The V2 storefront reader has its own fail-closed `SHOP_CATALOG_V2_READER_MODE` contract and is
 not coupled to shadow comparison. Missing, `off`, and invalid values keep the existing stock
 catalog authoritative and avoid a projection query. Only explicit `ssr` opts into request-time
 rendering and a direct indexed Server Component read. URL parsing already supports bounded
-search plus brand/make/model/generation/year/engine/fuel and a complete keyset cursor; the next
-step is the progressive facet service and client transitions over this serializable result.
+search plus brand/make/model/generation/year/engine/fuel and a complete keyset cursor. Listing and
+facets load in parallel. Brand/make counts are updated atomically with every projection change;
+their 500k warm p95 is about 0.02 ms. Optional compatibility dimensions unlock after model, so a
+brand that does not require generation cannot block year or engine. The next step is bounded
+suggestions and client transitions over this serializable result.
 
 ## Completed sprint: P2 persisted projection and shadow reads
 
@@ -35,8 +38,8 @@ the concrete rebuild source. The leased outbox worker uses `SKIP LOCKED`, reject
 advances each target receipt monotonically. The PostgreSQL integration gate verifies the complete
 mutation → revision → outbox → projection → query path.
 No production or local storefront traffic has been switched to this adapter.
-Latest scale verification: 100k/500k disposable PostgreSQL 17 gates pass all six query
-scenarios with no large sequential scan; 40 migrations replay cleanly to 135 public tables.
+Latest scale verification: 100k/500k disposable PostgreSQL 17 gates pass all eight query
+scenarios with no large sequential scan; 41 migrations replay cleanly to 136 public tables.
 Focused contracts and full TypeScript pass.
 
 ## Completed sprint: P1 canonical foundation and shadow projection

@@ -61,6 +61,26 @@ export type ShopCatalogProjectionQueryResult = {
   nextCursor: { stableRank: string; productId: string } | null;
 };
 
+export const SHOP_CATALOG_PROJECTION_FACET_LIMIT = 100 as const;
+
+export type ShopCatalogProjectionFacetItem = {
+  key: string;
+  label: string;
+  count: number;
+  yearFrom: number | null;
+  yearTo: number | null;
+};
+
+export type ShopCatalogProjectionFacetResult = {
+  source: "catalog_v2_projection";
+  facets: Readonly<
+    Record<
+      "brand" | "make" | "model" | "generation" | "year" | "engine" | "fuel",
+      readonly ShopCatalogProjectionFacetItem[]
+    >
+  >;
+};
+
 export type ShopCatalogProjectionShadowQueryResult =
   | { enabled: false; reason: ShopCatalogShadowFlag["reason"]; result: null }
   | {
@@ -213,6 +233,239 @@ function correlatedYearConstraintSql(year: number) {
         )
       OFFSET 0
     )`;
+}
+
+function projectionFacetBaseConditions(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
+  includeBrand: boolean
+) {
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`projection."locale" = ${input.locale}`,
+    Prisma.sql`projection."isPublished" = true`,
+    Prisma.sql`projection."statusKey" = 'ACTIVE'`,
+  ];
+  if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  if (includeBrand && input.brand) {
+    conditions.push(
+      Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
+    );
+  }
+  if (input.text) {
+    conditions.push(
+      Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(input.text)}%`} ESCAPE '\\'`
+    );
+  }
+  return conditions;
+}
+
+function selectedVehicleFacetConstraints(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
+  before: VehicleDimension | "year"
+) {
+  const order: Array<VehicleDimension | "year"> = [
+    "make",
+    "model",
+    "generation",
+    "year",
+    "engine",
+    "fuel",
+  ];
+  const constraints: Prisma.Sql[] = [];
+  for (const field of order.slice(0, order.indexOf(before))) {
+    if (field === "year") {
+      if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
+      continue;
+    }
+    const value = input[field];
+    if (value) constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+  }
+  return constraints;
+}
+
+function vehicleFacetBranch(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
+  field: VehicleDimension | "year"
+) {
+  const dimension =
+    field === "year" ? ShopCatalogCompatibilityDimension.YEAR : VEHICLE_DIMENSIONS[field];
+  const prefix = selectedVehicleFacetConstraints(input, field);
+  const conditions = projectionFacetBaseConditions(input, true);
+  const key =
+    field === "year"
+      ? Prisma.sql`concat(coalesce(candidate."yearFrom"::text, ''), ':', coalesce(candidate."yearTo"::text, ''))`
+      : Prisma.sql`lower(candidate."textValue")`;
+  const label =
+    field === "year"
+      ? Prisma.sql`CASE
+          WHEN candidate."yearFrom" IS NULL THEN concat('≤', candidate."yearTo")
+          WHEN candidate."yearTo" IS NULL THEN concat(candidate."yearFrom", '+')
+          WHEN candidate."yearFrom" = candidate."yearTo" THEN candidate."yearFrom"::text
+          ELSE concat(candidate."yearFrom", '–', candidate."yearTo")
+        END`
+      : Prisma.sql`min(candidate."textValue")`;
+
+  return Prisma.sql`
+    (SELECT
+       ${field}::text AS "dimension",
+       ${key} AS "key",
+       ${label} AS "label",
+       count(DISTINCT projection."productId")::bigint AS "count",
+       ${field === "year" ? Prisma.sql`candidate."yearFrom"` : Prisma.sql`NULL::integer`} AS "yearFrom",
+       ${field === "year" ? Prisma.sql`candidate."yearTo"` : Prisma.sql`NULL::integer`} AS "yearTo"
+     FROM "ShopCatalogProjection" projection
+     JOIN LATERAL (
+       SELECT candidate_row.*
+       FROM "ShopCatalogProjectionPolicy" policy
+       JOIN "ShopCatalogProjectionClause" clause
+         ON clause."targetKey" = policy."targetKey"
+        AND clause."productId" = policy."productId"
+        AND clause."sourceVersion" = policy."sourceVersion"
+        AND clause."verification" = 'VERIFIED'
+       JOIN "ShopCatalogProjectionConstraint" candidate_row
+         ON candidate_row."targetKey" = clause."targetKey"
+        AND candidate_row."clauseKey" = clause."clauseKey"
+        AND candidate_row."productId" = clause."productId"
+        AND candidate_row."sourceVersion" = clause."sourceVersion"
+        AND candidate_row."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"
+        AND candidate_row."state" = 'EXACT'
+       WHERE policy."productId" = projection."productId"
+         AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+         ${prefix.length ? Prisma.sql`AND ${Prisma.join(prefix, " AND ")}` : Prisma.empty}
+       OFFSET 0
+     ) candidate
+       ON true
+     WHERE ${Prisma.join(conditions, " AND ")}
+       AND ${
+         field === "year"
+           ? Prisma.sql`(candidate."yearFrom" IS NOT NULL OR candidate."yearTo" IS NOT NULL)`
+           : Prisma.sql`candidate."textValue" IS NOT NULL AND candidate."textValue" <> ''`
+       }
+     GROUP BY ${key}${field === "year" ? Prisma.sql`, candidate."yearFrom", candidate."yearTo"` : Prisma.empty}
+     ORDER BY "count" DESC, "label" ASC
+     LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
+}
+
+/** One bounded round-trip returns cascading facets; each vehicle option stays in one clause. */
+export function buildShopCatalogProjectionFacetQuerySql(
+  raw: ShopCatalogProjectionQueryInput
+): Prisma.Sql {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  const brandBranch = input.text
+    ? (() => {
+        const brandConditions = projectionFacetBaseConditions(input, false);
+        return Prisma.sql`
+          (SELECT
+             'brand'::text AS "dimension",
+             projection."brandKey" AS "key",
+             min(projection."brandLabel") AS "label",
+             count(*)::bigint AS "count",
+             NULL::integer AS "yearFrom",
+             NULL::integer AS "yearTo"
+           FROM "ShopCatalogProjection" projection
+           WHERE ${Prisma.join(brandConditions, " AND ")}
+             AND projection."brandKey" <> ''
+           GROUP BY projection."brandKey"
+           ORDER BY "count" DESC, "label" ASC
+           LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
+      })()
+    : Prisma.sql`
+        (SELECT
+           'brand'::text AS "dimension",
+           facet."valueKey" AS "key",
+           facet."valueLabel" AS "label",
+           facet."productCount"::bigint AS "count",
+           NULL::integer AS "yearFrom",
+           NULL::integer AS "yearTo"
+         FROM "ShopCatalogProjectionFacetCount" facet
+         WHERE facet."locale" = ${input.locale}
+           AND facet."dimension" = 'BRAND'
+           AND facet."prefixKey" = ${input.scope ? `scope:${input.scope}` : ""}
+           AND facet."productCount" > 0
+         ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
+         LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
+  const branches = [brandBranch];
+  // Facets unlock progressively. This prevents the empty first request from
+  // aggregating every compatibility dimension across the whole catalog.
+  if (input.brand) {
+    branches.push(
+      input.text
+        ? vehicleFacetBranch(input, "make")
+        : Prisma.sql`
+            (SELECT
+               'make'::text AS "dimension",
+               facet."valueKey" AS "key",
+               facet."valueLabel" AS "label",
+               facet."productCount"::bigint AS "count",
+               NULL::integer AS "yearFrom",
+               NULL::integer AS "yearTo"
+             FROM "ShopCatalogProjectionFacetCount" facet
+             WHERE facet."locale" = ${input.locale}
+               AND facet."dimension" = 'MAKE'
+               AND facet."prefixKey" = ${
+                 input.scope
+                   ? `scope:${input.scope}|brand:${input.brand.toLowerCase()}`
+                   : `brand:${input.brand.toLowerCase()}`
+               }
+               AND facet."productCount" > 0
+             ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
+             LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
+    );
+  }
+  if (input.brand && input.make) branches.push(vehicleFacetBranch(input, "model"));
+  if (input.brand && input.make && input.model) {
+    branches.push(vehicleFacetBranch(input, "generation"));
+    branches.push(vehicleFacetBranch(input, "year"));
+    branches.push(vehicleFacetBranch(input, "engine"));
+    branches.push(vehicleFacetBranch(input, "fuel"));
+  }
+  return Prisma.sql`${Prisma.join(branches, " UNION ALL ")}`;
+}
+
+export async function queryShopCatalogProjectionFacets(
+  raw: ShopCatalogProjectionQueryInput
+): Promise<ShopCatalogProjectionFacetResult> {
+  const rows = await prisma.$queryRaw<
+    Array<{
+      dimension: keyof ShopCatalogProjectionFacetResult["facets"];
+      key: string;
+      label: string;
+      count: bigint;
+      yearFrom: number | null;
+      yearTo: number | null;
+    }>
+  >(buildShopCatalogProjectionFacetQuerySql(raw));
+  const facets: Record<
+    keyof ShopCatalogProjectionFacetResult["facets"],
+    ShopCatalogProjectionFacetItem[]
+  > = {
+    brand: [],
+    make: [],
+    model: [],
+    generation: [],
+    year: [],
+    engine: [],
+    fuel: [],
+  };
+  for (const row of rows) {
+    if (!(row.dimension in facets)) continue;
+    const count = Number(row.count);
+    if (!Number.isSafeInteger(count) || count < 1) continue;
+    facets[row.dimension].push({
+      key: row.key,
+      label: row.label,
+      count,
+      yearFrom: row.yearFrom,
+      yearTo: row.yearTo,
+    });
+  }
+  return Object.freeze({
+    source: "catalog_v2_projection",
+    facets: Object.freeze(
+      Object.fromEntries(
+        Object.entries(facets).map(([key, value]) => [key, Object.freeze(value)])
+      ) as ShopCatalogProjectionFacetResult["facets"]
+    ),
+  });
 }
 
 export function buildShopCatalogProjectionVehicleQuerySql(

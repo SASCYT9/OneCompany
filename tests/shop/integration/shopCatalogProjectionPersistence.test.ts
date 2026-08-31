@@ -77,6 +77,7 @@ test(
     const { buildShopCatalogProjection } = await projectionModule;
     const { persistShopCatalogProjectionBuild } = await persistenceModule;
     const { queryShopCatalogProjection } = await queryModule;
+    const { queryShopCatalogProjectionFacets } = await queryModule;
     const { RevisionBackedShopCatalogProjectionSource } = await sourceModule;
     const { coordinateShopCatalogProductCreation, coordinateShopCatalogProductMutation } =
       await mutationModule;
@@ -261,6 +262,22 @@ test(
       });
       assert.equal(vehicleQuery.items.length, 1);
       assert.equal(vehicleQuery.items[0]?.productId, productId);
+
+      const facetResult = await queryShopCatalogProjectionFacets({
+        locale: "ua",
+        brand: "test",
+        make: "BMW",
+        model: "M2",
+      });
+      assert.equal(facetResult.source, "catalog_v2_projection");
+      assert.ok(facetResult.facets.brand.some((item) => item.key === "test"));
+      assert.ok(facetResult.facets.make.some((item) => item.key === "bmw"));
+      assert.ok(facetResult.facets.model.some((item) => item.key === "m2"));
+      assert.ok(
+        facetResult.facets.year.some(
+          (item) => item.yearFrom === 2016 && item.yearTo === 2020 && item.count >= 1
+        )
+      );
 
       async function enqueueDrillJob(label: string, maxAttempts: number) {
         const id = `${productId}-${label}`;

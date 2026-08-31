@@ -88,6 +88,15 @@ async function createFixture(tx: any, size: number) {
       year_from integer,
       year_to integer
     ) ON COMMIT DROP`,
+    `CREATE TEMP TABLE scale_facet_count (
+      locale text NOT NULL,
+      dimension text NOT NULL,
+      prefix_key text NOT NULL,
+      value_key text NOT NULL,
+      value_label text NOT NULL,
+      product_count integer NOT NULL,
+      PRIMARY KEY (locale, dimension, prefix_key, value_key)
+    ) ON COMMIT DROP`,
   ];
   for (const statement of tableStatements) await tx.$executeRawUnsafe(statement);
 
@@ -103,6 +112,13 @@ async function createFixture(tx: any, size: number) {
      FROM generate_series(1, $1) value
      CROSS JOIN (VALUES ('ua'), ('en')) language(locale)`,
     size
+  );
+  await tx.$executeRawUnsafe(
+    `INSERT INTO scale_facet_count
+      (locale, dimension, prefix_key, value_key, value_label, product_count)
+     SELECT locale, 'BRAND', '', brand_key, brand_key, count(*)::integer
+     FROM scale_projection
+     GROUP BY locale, brand_key`
   );
   await tx.$executeRawUnsafe(
     `INSERT INTO scale_policy (target_key, product_id, mode)
@@ -132,6 +148,18 @@ async function createFixture(tx: any, size: number) {
      ) constraint_value(dimension, text_value, year_from, year_to)`,
     size
   );
+  await tx.$executeRawUnsafe(
+    `INSERT INTO scale_facet_count
+      (locale, dimension, prefix_key, value_key, value_label, product_count)
+     SELECT projection.locale, 'MAKE', 'brand:' || projection.brand_key,
+            lower(constraint_row.text_value), min(constraint_row.text_value), count(*)::integer
+     FROM scale_projection projection
+     JOIN scale_constraint constraint_row
+       ON constraint_row.product_id = projection.product_id
+      AND constraint_row.dimension = 'MAKE'
+      AND constraint_row.state = 'EXACT'
+     GROUP BY projection.locale, projection.brand_key, lower(constraint_row.text_value)`
+  );
 
   const indexStatements = [
     `CREATE INDEX scale_projection_listing_idx
@@ -140,6 +168,8 @@ async function createFixture(tx: any, size: number) {
       ON scale_projection (locale, scope_key, stable_rank, product_id)`,
     `CREATE INDEX scale_projection_brand_idx
       ON scale_projection (locale, brand_key, stable_rank, product_id)`,
+    `CREATE INDEX scale_projection_brand_facet_idx
+      ON scale_projection (locale, is_published, status_key, brand_key)`,
     `CREATE INDEX scale_projection_search_trgm_idx
       ON scale_projection USING gin (search_text gin_trgm_ops)`,
     `CREATE INDEX scale_policy_product_idx ON scale_policy (product_id)`,
@@ -191,6 +221,22 @@ function scenarios(size: number) {
           WHERE locale = 'ua' AND is_published = true AND status_key = 'ACTIVE'
             AND search_text ILIKE '%eventuri bmw m2%'
           ORDER BY stable_rank, product_id LIMIT 25`,
+    },
+    {
+      name: "brand_facet",
+      sql: `SELECT value_key, value_label, product_count
+          FROM scale_facet_count
+          WHERE locale = 'ua' AND dimension = 'BRAND' AND prefix_key = ''
+          ORDER BY product_count DESC
+          LIMIT 100`,
+    },
+    {
+      name: "progressive_make_facet",
+      sql: `SELECT value_key, value_label, product_count
+          FROM scale_facet_count
+          WHERE locale = 'ua' AND dimension = 'MAKE' AND prefix_key = 'brand:brand-0'
+          ORDER BY product_count DESC
+          LIMIT 100`,
     },
     {
       name: "make_only_fitment",
