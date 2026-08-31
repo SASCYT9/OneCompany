@@ -167,6 +167,19 @@ test("manual fitment review publishes a FITMENT revision", () => {
   assert.doesNotMatch(source, /prisma\.\$transaction/);
 });
 
+test("single-product AI quality mutation atomically publishes Catalog V2 fitment", () => {
+  const repository = readWorkspaceFile("src/lib/admin/oneAiQualityProductRepository.ts");
+  const route = readWorkspaceFile(
+    "src/app/api/admin/shop/ai-quality/products/[productId]/route.ts"
+  );
+  const wrapperStart = repository.indexOf("export async function mutateOneAiQualityProduct(");
+  assert.ok(wrapperStart >= 0);
+  assert.match(repository.slice(wrapperStart), /coordinateShopCatalogProductMutation/);
+  assert.match(repository.slice(wrapperStart), /changeDomains: \["FITMENT"\]/);
+  assert.match(repository.slice(wrapperStart), /buildShopCatalogAdminSnapshot/);
+  assert.match(route, /runShopCatalogOutboxRuntime/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

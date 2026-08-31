@@ -1,6 +1,8 @@
 import "server-only";
 
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutation } from "@/lib/shopCatalogMutationCoordinator.server";
 
 import type { AdminSession } from "@/lib/adminAuth";
 import {
@@ -1509,17 +1511,35 @@ export async function mutateOneAiQualityProductInTransaction(
 }
 
 export async function mutateOneAiQualityProduct(
-  client: PrismaClient,
+  _client: PrismaClient,
   productId: string,
   input: OneAiQualityMutationInput,
   session: AdminSession
 ) {
-  return client.$transaction(
-    (tx) => mutateOneAiQualityProductInTransaction(tx, productId, input, session),
-    {
-      isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-      maxWait: 5_000,
-      timeout: 15_000,
-    }
-  );
+  const captured: {
+    value?: Awaited<ReturnType<typeof mutateOneAiQualityProductInTransaction>>;
+  } = {};
+  const catalogMutation = await coordinateShopCatalogProductMutation({
+    productId,
+    changeDomains: ["FITMENT"],
+    async mutateAndSnapshot(tx, nextCatalogVersion) {
+      captured.value = await mutateOneAiQualityProductInTransaction(
+        tx,
+        productId,
+        input,
+        session
+      );
+      return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+        type: "ADMIN",
+        id: session.email,
+        reason: `product.ai-quality.${input.action}`,
+      });
+    },
+  });
+  if (!captured.value) throw new Error("AI quality mutation did not produce a result");
+  return {
+    ...captured.value,
+    catalogVersion: catalogMutation.canonicalVersion,
+    catalogOutboxId: catalogMutation.outboxId,
+  };
 }
