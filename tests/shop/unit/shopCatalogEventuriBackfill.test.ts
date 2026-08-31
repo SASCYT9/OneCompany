@@ -4,13 +4,15 @@ import test from "node:test";
 
 test("Eventuri persistence supports universal, exact-engine, and review-only policies", () => {
   const source = readFileSync("src/lib/shopCatalogEventuriCompatibility.server.ts", "utf8");
-  assert.match(source, /policyMode === "UNIVERSAL"/);
-  assert.match(source, /powertrainId: item\.powertrain\.id/);
-  assert.match(source, /dimension: "ENGINE", state: "UNKNOWN"/);
-  assert.match(source, /dimension: "ENGINE", state: "NOT_APPLICABLE"/);
-  assert.match(source, /dimension: "FUEL", state: "EXACT"/);
-  assert.match(source, /normalization\.applications\.length/);
-  assert.doesNotMatch(source, /deleteMany|\.delete\(/);
+  const core = readFileSync("src/lib/shopCatalogVehicleCompatibilityPersistence.server.ts", "utf8");
+  assert.match(source, /persistVehicleCompatibilityInTransaction/);
+  assert.match(core, /policyMode === "UNIVERSAL"/);
+  assert.match(core, /powertrainId: item\.powertrain\.id/);
+  assert.match(core, /dimension: "ENGINE", state: "UNKNOWN"/);
+  assert.match(core, /dimension: "ENGINE", state: "NOT_APPLICABLE"/);
+  assert.match(core, /dimension: "FUEL", state: "EXACT"/);
+  assert.match(core, /normalization\.applications\.length/);
+  assert.doesNotMatch(core, /deleteMany|\.delete\(/);
 });
 
 test("Eventuri CLI is bounded, resumable, dry-run by default, and production guarded", () => {

@@ -14,6 +14,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-004 | ADRO normalization/backfill                    | Done        | Shared ledger core, aliases, correlated policies, CLI, PostgreSQL proof |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Done        | Mixed universal/exact/review policies, CLI, PostgreSQL proof            |
 | C2-P6-006 | Remaining-source lossless inventory/backfills  | In progress | 9,596 records reconciled; PRODUCT binding support green; per-source work remains |
+| C2-P6-007 | Brabus normalization/backfill                  | Done        | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -61,6 +62,11 @@ the shared ledger writer now supports genuine product-level bindings instead of 
 identity. PostgreSQL proves product-level persistence invokes the compatibility callback and creates
 zero synthetic variants. Burger and iPE repeated SKUs are also explicitly tracked. See
 [REMAINING_SOURCE_INVENTORY_2026-08-31.md](./REMAINING_SOURCE_INVENTORY_2026-08-31.md).
+Brabus normalization accounts for 977/977 records and 49,932/49,932 raw leaves. Title/chassis
+evidence produces 978 correlated applications; 729 products verify while 168 conflicting legacy
+make tags and 125 engine-relevant products without engine identity remain review-only. Brabus and
+Eventuri now share one vehicle-policy persistence engine. PostgreSQL proves exact X167/GLS and
+missing-engine PowerXtra behavior. See [BRABUS_AUDIT_2026-08-31.md](./BRABUS_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
