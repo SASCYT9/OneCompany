@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
@@ -17,6 +18,17 @@ import {
   buildAdminProductSnapshotMergeUpdateData,
   normalizeAdminProductPayload,
 } from "@/lib/shopAdminCatalog";
+import {
+  publishShopCatalogImportCreation,
+  publishShopCatalogImportUpdate,
+} from "@/lib/shopCatalogImportWriter.server";
+import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+
+const brabusImportProductSelect = {
+  ...adminProductImportMergeSelect,
+  catalogVersion: true,
+};
 
 type BrabusImportProduct = {
   sku?: string | number | null;
@@ -83,7 +95,7 @@ function determineCollections(product: BrabusImportProduct): {
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
     const body: unknown = await req.json();
     if (!Array.isArray(body)) {
       return NextResponse.json({ error: "Expected an array of Brabus products" }, { status: 400 });
@@ -92,6 +104,7 @@ export async function POST(req: Request) {
     let created = 0;
     let updated = 0;
     let errors = 0;
+    const catalog: ShopCatalogCoordinatedMutationResult[] = [];
 
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
@@ -178,13 +191,13 @@ export async function POST(req: Request) {
 
         const existingBySlug = await prisma.shopProduct.findUnique({
           where: { slug },
-          select: adminProductImportMergeSelect,
+          select: brabusImportProductSelect,
         });
         const skuCandidates = existingBySlug
           ? []
           : await prisma.shopProduct.findMany({
               where: { sku: { equals: sku, mode: "insensitive" } },
-              select: adminProductImportMergeSelect,
+              select: brabusImportProductSelect,
               take: 2,
             });
         if (skuCandidates.length > 1) {
@@ -193,15 +206,24 @@ export async function POST(req: Request) {
         const existing = existingBySlug ?? skuCandidates[0];
 
         if (existing) {
-          await prisma.shopProduct.update({
-            where: { id: existing.id },
-            data: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
-          });
+          catalog.push(
+            await publishShopCatalogImportUpdate({
+              productId: existing.id,
+              expectedCatalogVersion: existing.catalogVersion,
+              updateData: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
+              session,
+              reason: "import.brabus.update",
+            })
+          );
           updated++;
         } else {
-          await prisma.shopProduct.create({
-            data: buildAdminProductCreateData(normalized.data),
-          });
+          catalog.push(
+            await publishShopCatalogImportCreation({
+              createData: buildAdminProductCreateData(normalized.data),
+              session,
+              reason: "import.brabus.create",
+            })
+          );
           created++;
         }
       } catch (err: unknown) {
@@ -210,7 +232,35 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, created, updated, errors });
+    if (catalog.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-brabus:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, catalog.length)),
+          });
+        } catch (error) {
+          console.error("[shop-catalog.brabus] immediate publish failed; cron recovery remains active", {
+            outboxIds: catalog.map((mutation) => mutation.outboxId),
+            error,
+          });
+        }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      created,
+      updated,
+      errors,
+      catalog: catalog.map((mutation) => ({
+        productId: mutation.productId,
+        version: mutation.canonicalVersion,
+        revisionId: mutation.revisionId,
+        outboxId: mutation.outboxId,
+        status: "SAVED",
+      })),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     if (message === "UNAUTHORIZED")

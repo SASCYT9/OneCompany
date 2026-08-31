@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
@@ -12,6 +13,17 @@ import {
   buildAdminProductSnapshotMergeUpdateData,
   normalizeAdminProductPayload,
 } from "@/lib/shopAdminCatalog";
+import {
+  publishShopCatalogImportCreation,
+  publishShopCatalogImportUpdate,
+} from "@/lib/shopCatalogImportWriter.server";
+import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+
+const burgerImportProductSelect = {
+  ...adminProductImportMergeSelect,
+  catalogVersion: true,
+};
 
 type BurgerImportProduct = {
   title: string;
@@ -31,7 +43,7 @@ type BurgerImportProduct = {
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
     const filePath = path.join(process.cwd(), "data", "burger-products.json");
     if (!fs.existsSync(filePath)) {
       return NextResponse.json(
@@ -45,6 +57,7 @@ export async function POST() {
     let updated = 0;
     let skipped = 0;
     const errors: string[] = [];
+    const catalog: ShopCatalogCoordinatedMutationResult[] = [];
 
     for (const p of products) {
       try {
@@ -56,7 +69,7 @@ export async function POST() {
         // causes the second product with a colliding SKU to overwrite the first.
         const existing = await prisma.shopProduct.findUnique({
           where: { slug },
-          select: adminProductImportMergeSelect,
+          select: burgerImportProductSelect,
         });
 
         const priceEur = Math.round(p.priceUsd * 0.92 * 100) / 100;
@@ -114,13 +127,24 @@ export async function POST() {
         }
 
         if (existing) {
-          await prisma.shopProduct.update({
-            where: { id: existing.id },
-            data: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
-          });
+          catalog.push(
+            await publishShopCatalogImportUpdate({
+              productId: existing.id,
+              expectedCatalogVersion: existing.catalogVersion,
+              updateData: buildAdminProductSnapshotMergeUpdateData(normalized.data, existing),
+              session,
+              reason: "import.burger.update",
+            })
+          );
           updated++;
         } else {
-          await prisma.shopProduct.create({ data: buildAdminProductCreateData(normalized.data) });
+          catalog.push(
+            await publishShopCatalogImportCreation({
+              createData: buildAdminProductCreateData(normalized.data),
+              session,
+              reason: "import.burger.create",
+            })
+          );
           created++;
         }
       } catch (err: unknown) {
@@ -141,6 +165,22 @@ export async function POST() {
       }
     }
 
+    if (catalog.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-burger:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, catalog.length)),
+          });
+        } catch (error) {
+          console.error("[shop-catalog.burger] immediate publish failed; cron recovery remains active", {
+            outboxIds: catalog.map((mutation) => mutation.outboxId),
+            error,
+          });
+        }
+      });
+    }
+
     return NextResponse.json({
       success: true,
       total: products.length,
@@ -148,6 +188,13 @@ export async function POST() {
       updated,
       skipped,
       errors: errors.slice(0, 20),
+      catalog: catalog.map((mutation) => ({
+        productId: mutation.productId,
+        version: mutation.canonicalVersion,
+        revisionId: mutation.revisionId,
+        outboxId: mutation.outboxId,
+        status: "SAVED",
+      })),
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

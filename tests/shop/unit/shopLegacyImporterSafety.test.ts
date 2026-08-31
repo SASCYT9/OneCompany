@@ -52,6 +52,19 @@ test("live do88 admin import publishes through the central catalog writer", () =
   assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
 });
 
+test("live Brabus and Burger routes publish snapshot merges through the catalog adapter", () => {
+  for (const relativePath of [
+    "src/app/api/import-brabus/route.ts",
+    "src/app/api/import-burger/route.ts",
+  ]) {
+    const source = readWorkspaceFile(relativePath);
+    assert.match(source, /publishShopCatalogImportUpdate/);
+    assert.match(source, /publishShopCatalogImportCreation/);
+    assert.match(source, /runShopCatalogOutboxRuntime/);
+    assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
+  }
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
