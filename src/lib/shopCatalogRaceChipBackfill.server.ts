@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 import type { RaceChipSourceRecordDraft } from "./shopCatalogRaceChipNormalization";
+import { persistRaceChipCompatibilityInTransaction } from "./shopCatalogRaceChipCompatibility.server";
 
 export const RACECHIP_BACKFILL_PAGE_LIMIT = 50;
 
@@ -137,6 +138,13 @@ export async function persistRaceChipSourceRecordPageWithClient(
           ) {
             throw new Error(`RaceChip immutable replay conflict for ${recordInput.recordKey}`);
           }
+          await persistRaceChipCompatibilityInTransaction({
+            tx,
+            sourceId: source.id,
+            sourceRecordId: existing.id,
+            payloadHash: existing.payloadHash,
+            normalization: draft.normalization,
+          });
           idempotent += 1;
           continue;
         }
@@ -241,6 +249,13 @@ export async function persistRaceChipSourceRecordPageWithClient(
         if (provenance.count !== draft.provenance.length || issues.count !== draft.issues.length) {
           throw new Error(`RaceChip evidence persistence count mismatch for ${recordInput.recordKey}`);
         }
+        await persistRaceChipCompatibilityInTransaction({
+          tx,
+          sourceId: source.id,
+          sourceRecordId: record.id,
+          payloadHash: recordInput.payloadHash,
+          normalization: draft.normalization,
+        });
         inserted += 1;
         provenanceInserted += provenance.count;
         issuesInserted += issues.count;

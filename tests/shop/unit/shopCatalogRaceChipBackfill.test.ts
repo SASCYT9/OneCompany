@@ -13,6 +13,23 @@ test("RaceChip backfill is bounded, serializable, append-only, and verifies repl
   assert.match(source, /requires reviewedById/);
   assert.match(source, /immutable replay conflict/);
   assert.match(source, /evidence persistence count mismatch/);
+  assert.match(source, /persistRaceChipCompatibilityInTransaction/);
+  assert.doesNotMatch(source, /deleteMany|\.delete\(/);
+});
+
+test("RaceChip compatibility persistence is explicit, versioned, and never verifies unknown fuel", () => {
+  const source = readFileSync("src/lib/shopCatalogRaceChipCompatibility.server.ts", "utf8");
+  for (const dimension of [
+    "SCOPE", "MAKE", "MODEL", "GENERATION", "CHASSIS", "YEAR", "ENGINE", "FUEL",
+    "BODY_STYLE", "DRIVETRAIN", "TRANSMISSION", "MARKET", "OPF_GPF",
+  ]) {
+    assert.match(source, new RegExp(`"${dimension}"`));
+  }
+  assert.match(source, /powertrainId: powertrain\.id/);
+  assert.match(source, /normalization\.fuel[\s\S]*state: "UNKNOWN"/);
+  assert.match(source, /verification: exact \? "VERIFIED" : "NEEDS_REVIEW"/);
+  assert.match(source, /vehicleTaxonomyAlias\.upsert/);
+  assert.match(source, /isActive: false, retiredAt: new Date\(\)/);
   assert.doesNotMatch(source, /deleteMany|\.delete\(/);
 });
 

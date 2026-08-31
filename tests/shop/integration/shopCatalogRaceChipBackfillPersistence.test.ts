@@ -80,6 +80,29 @@ test(
       assert.equal(first.inserted, 1);
       assert.equal(first.provenanceInserted, draftV1.provenance.length);
       assert.equal(first.issuesInserted, 0);
+      const policyV1 = await client.shopCatalogCompatibilityPolicy.findFirstOrThrow({
+        where: { targetKey: `variant:${variantId}`, isActive: true },
+        include: {
+          dimensionRules: true,
+          clauses: { include: { constraints: { include: { values: true } } } },
+        },
+      });
+      assert.equal(policyV1.mode, "VEHICLE_SPECIFIC");
+      assert.equal(policyV1.revision, 1);
+      assert.equal(policyV1.dimensionRules.length, 13);
+      assert.equal(policyV1.clauses.length, 1);
+      assert.equal(policyV1.clauses[0]?.verification, "VERIFIED");
+      assert.equal(policyV1.clauses[0]?.constraints.length, 13);
+      const engineV1 = policyV1.clauses[0]?.constraints.find(
+        (constraint) => constraint.dimension === "ENGINE"
+      );
+      assert.equal(engineV1?.state, "EXACT");
+      assert.ok(engineV1?.values[0]?.powertrainId);
+      assert.equal(engineV1?.values[0]?.textValue, null);
+      assert.equal(
+        await client.vehicleTaxonomyAlias.count({ where: { sourceId: first.sourceId } }),
+        5
+      );
       const replay = await persistRaceChipSourceRecordPageWithClient(client, {
         sourceKey,
         drafts: [draftV1],
@@ -103,6 +126,15 @@ test(
         reviewedById: "integration-reviewer",
       });
       assert.equal(second.inserted, 1);
+      const policies = await client.shopCatalogCompatibilityPolicy.findMany({
+        where: { targetKey: `variant:${variantId}` },
+        orderBy: { revision: "asc" },
+      });
+      assert.equal(policies.length, 2);
+      assert.equal(policies[0]?.isActive, false);
+      assert.ok(policies[0]?.retiredAt);
+      assert.equal(policies[1]?.revision, 2);
+      assert.equal(policies[1]?.isActive, true);
       const source = await client.shopCatalogSource.findUniqueOrThrow({ where: { key: sourceKey } });
       const records = await client.shopCatalogSourceRecord.findMany({
         where: { sourceId: source.id },
@@ -111,6 +143,7 @@ test(
       });
       assert.equal(records.length, 2);
       assert.equal(records[0]?.supersededBy?.sourceRevision, "shard-v2");
+      assert.equal(policies[1]?.sourceRecordId, records[1]?.id);
       const head = await client.shopCatalogSourceBindingHead.findUniqueOrThrow({
         where: {
           sourceId_entityType_externalKey: {
@@ -136,6 +169,49 @@ test(
           reviewedById: "integration-reviewer",
         }),
         /immutable replay conflict/
+      );
+
+      const reviewProductId = `${productId}-review`;
+      const reviewVariantId = `${variantId}-review`;
+      await client.shopProduct.create({
+        data: {
+          id: reviewProductId,
+          slug: reviewProductId,
+          titleUa: reviewProductId,
+          titleEn: reviewProductId,
+          variants: {
+            create: {
+              id: reviewVariantId,
+              title: "Default",
+              sku: `RC-REVIEW-${suffix}`,
+              isDefault: true,
+            },
+          },
+        },
+      });
+      const reviewSnapshot = snapshot(reviewProductId, reviewVariantId);
+      reviewSnapshot.tags = reviewSnapshot.tags.map((tag) =>
+        tag.startsWith("car_engine:") ? "car_engine:2-0-1984ccm-190hp-140kw-320nm" : tag
+      );
+      const reviewDraft = buildRaceChipSourceRecordDraft({
+        product: reviewSnapshot,
+        sourceRevision: "shard-review",
+      });
+      assert.equal(reviewDraft.normalization.verification, "NEEDS_REVIEW");
+      await persistRaceChipSourceRecordPageWithClient(client, {
+        sourceKey: `${sourceKey}-review`,
+        drafts: [reviewDraft],
+      });
+      const reviewPolicy = await client.shopCatalogCompatibilityPolicy.findFirstOrThrow({
+        where: { targetKey: `variant:${reviewVariantId}`, isActive: true },
+        include: { clauses: { include: { constraints: true } } },
+      });
+      assert.equal(reviewPolicy.mode, "NEEDS_REVIEW");
+      assert.equal(reviewPolicy.clauses[0]?.verification, "NEEDS_REVIEW");
+      assert.equal(
+        reviewPolicy.clauses[0]?.constraints.find((constraint) => constraint.dimension === "FUEL")
+          ?.state,
+        "UNKNOWN"
       );
     } finally {
       await client.$disconnect();

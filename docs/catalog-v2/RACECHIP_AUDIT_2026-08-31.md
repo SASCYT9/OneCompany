@@ -73,3 +73,12 @@ npm run shop:catalog:v2:racechip:backfill -- --limit=50
 Disposable PostgreSQL integration proves initial insert, idempotent replay, append-only source and
 binding revision 2, current-head advancement, 100% coverage, and immutable replay rejection. No
 Production backfill has been executed.
+
+The same Serializable transaction now upserts source-scoped aliases and canonical make, model,
+optional generation, powertrain, and configuration rows. It creates one variant policy revision with
+all 13 compatibility dimensions represented. A verified engine is an exact canonical powertrain
+reference; raw engine text cannot satisfy the verified constraint. Missing/ambiguous fuel persists as
+`FUEL=UNKNOWN`, and both policy and clause remain `NEEDS_REVIEW`. A new source revision retires the
+old active policy and appends the next revision without deleting history. Integration coverage also
+proves that an idempotent replay can safely finish compatibility for a ledger record written before
+this phase.

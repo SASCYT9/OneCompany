@@ -10,7 +10,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------- |
 | C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
 | C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
-| C2-P6-003 | RaceChip normalization/backfill                | In progress | Source/provenance writer green; taxonomy/policy persistence remains          |
+| C2-P6-003 | RaceChip normalization/backfill                | Done        | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof |
 | C2-P6-004 | ADRO normalization/backfill                    | Pending     | After RaceChip                                                         |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
 
@@ -29,12 +29,15 @@ one provenance entry per leaf. It exposed 883 non-unique supplier variant SKUs a
 vehicle applications, so source identity is product ID plus SKU rather than SKU alone. The strict
 configuration mapper verifies 4,347 records and quarantines 834 fuel-ambiguous records for review;
 unknown fuel never becomes exact. See [RACECHIP_AUDIT_2026-08-31.md](./RACECHIP_AUDIT_2026-08-31.md).
-The RaceChip source/provenance writer is bounded to 50 sorted records per Serializable transaction,
-validates complete product/variant ownership before writing, advances immutable source and binding
-revision chains atomically, and verifies full evidence signatures on replay. Its CLI is resumable,
-dry-run by default, and rejects Production commits. PostgreSQL proves insert, idempotency, revision
-2/head advancement, coverage, and conflict rollback. Canonical vehicle taxonomy and compatibility
-policy persistence remain before this source item is complete.
+The RaceChip writer is bounded to 50 sorted records per Serializable transaction, validates complete
+product/variant ownership, and atomically persists immutable source evidence, source-scoped taxonomy
+aliases, make/model/generation/powertrain/configuration identities, and a versioned variant policy
+with all 13 dimensions explicit. Engine exactness references a canonical powertrain rather than raw
+text; ambiguous fuel produces `NEEDS_REVIEW` plus `FUEL=UNKNOWN`, never a verified match. Replays can
+repair compatibility for a pre-existing ledger record, while source changes retire the old policy and
+append the next revision. PostgreSQL proves insert/replay, five aliases, 13 rules and constraints,
+canonical engine values, policy retirement/revision 2, unknown-fuel quarantine, coverage, and conflict
+rollback. The CLI remains resumable, dry-run by default, and rejects Production commits.
 
 ## Completed sprint: P5 unified admin publication
 
@@ -219,7 +222,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Product administration now has a version-specific publication-status resolver and authorized uncached endpoint. The editor reports `Saved`, `Publishing`, `Published`, or `Publication failed` independently from the mutation response, exposes pending targets/version lag, and stops polling only at a verified terminal state. PostgreSQL integration covers saved, retry, published, and dead-letter transitions.
 - The disposable P5 publication gate runs 30 complete canonical commit-to-visible cycles and a same-version contention race. Latest results are p95 416.027 ms, p99 503.758 ms, maximum 503.758 ms, zero final version lag, and exactly one contention winner. No catalog-wide ISR write is part of this V2 projection path.
 - P6 per-source coverage reporting is bounded to current immutable revision heads and fails closed on missing payloads, bindings, raw-field provenance, quarantine, or open normalization issues. A guarded read-only CLI produces stable fingerprints and PostgreSQL integration proves the activation transition.
-- The RaceChip immutable-shard mapper retains 5,181 vehicle-specific identities and 232,536/232,536 raw-field provenance entries. It detects repeated supplier SKUs instead of merging them, audits legacy scope mapping, creates exact engine configuration keys, verifies 4,347 records, and leaves 834 fuel-ambiguous records in review. No database backfill has been run.
+- The RaceChip immutable-shard mapper retains 5,181 vehicle-specific identities and 232,536/232,536 raw-field provenance entries. It detects repeated supplier SKUs instead of merging them, audits legacy scope mapping, creates exact engine configuration keys, verifies 4,347 records, and leaves 834 fuel-ambiguous records in review. Its transactional writer now persists source-scoped aliases and revisioned 13-dimension compatibility policies. No Production database backfill has been run.
 - PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
