@@ -86,15 +86,67 @@ export function compatibilityPolicyFromNormalizedFitment(
   };
 }
 
-function jsonSnapshot(record: AdminProductRecord): unknown {
+function jsonSnapshot(record: unknown): unknown {
   return JSON.parse(
     JSON.stringify(record, (_key, value) => (typeof value === "bigint" ? value.toString() : value))
   );
 }
 
+async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, productId: string) {
+  const product = await tx.shopProduct.findUnique({
+    where: { id: productId },
+    include: {
+      category: true,
+      bundle: { include: { items: true } },
+      bundleComponentItems: true,
+      cartItems: { select: { id: true, productId: true, variantId: true, productSlug: true } },
+      orderItems: { select: { id: true, productId: true, variantId: true, productSlug: true } },
+      collections: { include: { collection: true } },
+      media: true,
+      options: true,
+      metafields: true,
+      variants: {
+        include: {
+          inventoryLevels: true,
+          cartItems: {
+            where: { productId: null },
+            select: { id: true, productId: true, variantId: true, productSlug: true },
+          },
+          knowledgeReviewTasks: true,
+        },
+      },
+      vehicleApplications: { include: { reviewTasks: true } },
+      knowledgeAttributeValues: { include: { definition: true, reviewTasks: true } },
+      knowledgeChunks: true,
+      knowledgeEvidence: true,
+      knowledgeRevisions: true,
+      knowledgeReviewTasks: true,
+      knowledgeOutboxEvents: true,
+      variantKnowledge: {
+        include: {
+          applications: true,
+          attributeValues: { include: { definition: true } },
+          chunks: true,
+          evidence: true,
+        },
+      },
+      knowledge: { include: { reviewTasks: true } },
+    },
+  });
+  if (!product) throw new Error(`Cannot snapshot missing product ${productId}`);
+  const variantOrderItems = product.variants.length
+    ? await tx.shopOrderItem.findMany({
+        where: { productId: null, variantId: { in: product.variants.map((variant) => variant.id) } },
+        select: { id: true, productId: true, variantId: true, productSlug: true },
+      })
+    : [];
+  return { product, variantOrderItems };
+}
+
 function projectionSource(
   record: AdminProductRecord,
-  nextCatalogVersion: string
+  nextCatalogVersion: string,
+  inventoryLevelCount: number
 ): ShopCatalogProjectionSource {
   const normalizedMetafield = record.metafields.find(
     (item) =>
@@ -116,6 +168,7 @@ function projectionSource(
       collections: record.collections.length,
       applications: normalizedFitment?.applications.length ?? 0,
       bundleItems: record.bundle?.items.length ?? 0,
+      inventoryLevels: inventoryLevelCount,
     },
     slug: record.slug,
     sku: record.sku,
@@ -188,9 +241,14 @@ export async function buildShopCatalogAdminSnapshot(
     include: adminProductInclude,
   });
   if (!record) throw new Error(`Cannot snapshot missing product ${productId}`);
+  const canonical = await loadLosslessCanonicalProduct(tx, productId);
   return {
-    canonical: jsonSnapshot(record),
-    projectionSource: projectionSource(record, nextCatalogVersion),
+    canonical: jsonSnapshot(canonical),
+    projectionSource: projectionSource(
+      record,
+      nextCatalogVersion,
+      canonical.product.variants.reduce((count, variant) => count + variant.inventoryLevels.length, 0)
+    ),
     actorType: actor.type,
     actorId: actor.id ?? null,
     reason: actor.reason ?? null,

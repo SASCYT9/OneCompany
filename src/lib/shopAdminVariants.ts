@@ -358,6 +358,75 @@ export async function applyAdminInventoryPatch(
   };
 }
 
+/**
+ * Product-scoped inventory mutation used by Catalog V2 writers. The caller
+ * owns the transaction and product row lock, so legacy variant fields,
+ * warehouse stock, and the product stock summary commit or roll back together.
+ */
+export async function applyAdminInventoryPatchInTransaction(
+  tx: Prisma.TransactionClient,
+  input: AdminInventoryPatchInput & { productId: string; locationId?: string }
+) {
+  const variantIds = uniqueStrings(input.variantIds);
+  const variants = await tx.shopProductVariant.findMany({
+    where: { id: { in: variantIds }, productId: input.productId },
+    select: { id: true, inventoryQty: true },
+  });
+  if (variants.length !== variantIds.length) {
+    throw new Error(`Inventory variants do not all belong to product ${input.productId}`);
+  }
+
+  for (const variant of variants) {
+    await tx.shopProductVariant.update({
+      where: { id: variant.id },
+      data: {
+        inventoryQty:
+          input.inventoryQty != null
+            ? input.inventoryQty
+            : input.inventoryAdjustment != null
+              ? variant.inventoryQty + input.inventoryAdjustment
+              : undefined,
+        inventoryPolicy: input.inventoryPolicy ?? undefined,
+        inventoryTracker:
+          input.inventoryTracker !== undefined ? input.inventoryTracker : undefined,
+        fulfillmentService:
+          input.fulfillmentService !== undefined ? input.fulfillmentService : undefined,
+      },
+    });
+  }
+
+  if (input.locationId && (input.inventoryQty != null || input.inventoryAdjustment != null)) {
+    const levels = await tx.shopInventoryLevel.findMany({
+      where: { variantId: { in: variantIds }, locationId: input.locationId },
+      select: { variantId: true, stockedQuantity: true },
+    });
+    const levelByVariant = new Map(levels.map((level) => [level.variantId, level.stockedQuantity]));
+    for (const variant of variants) {
+      const stockedQuantity =
+        input.inventoryQty != null
+          ? input.inventoryQty
+          : (levelByVariant.get(variant.id) ?? 0) + (input.inventoryAdjustment ?? 0);
+      await tx.shopInventoryLevel.upsert({
+        where: {
+          variantId_locationId: { variantId: variant.id, locationId: input.locationId },
+        },
+        create: { variantId: variant.id, locationId: input.locationId, stockedQuantity },
+        update: { stockedQuantity },
+      });
+    }
+  }
+
+  const positiveVariant = await tx.shopProductVariant.findFirst({
+    where: { productId: input.productId, inventoryQty: { gt: 0 } },
+    select: { id: true },
+  });
+  await tx.shopProduct.update({
+    where: { id: input.productId },
+    data: { stock: positiveVariant ? "inStock" : "preOrder" },
+  });
+  return { updatedCount: variants.length, productIds: [input.productId] };
+}
+
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
