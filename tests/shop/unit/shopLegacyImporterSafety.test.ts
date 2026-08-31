@@ -265,6 +265,16 @@ test("runtime media migration groups all product-owned references into MEDIA rev
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Media|Variant)?\.updateMany\(/);
 });
 
+test("active IPE importer publishes ID-preserving update and creation paths", () => {
+  const source = readWorkspaceFile("scripts/import-ipe-catalog.ts");
+  assert.match(source, /adminProductImportMergeSelect/);
+  assert.match(source, /buildAdminProductSnapshotMergeUpdateData/);
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /coordinateShopCatalogProductCreationWithClient/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

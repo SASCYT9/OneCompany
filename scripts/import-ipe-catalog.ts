@@ -1,11 +1,11 @@
 #!/usr/bin/env tsx
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 
-import { config } from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import { config } from "dotenv";
+import { PrismaClient } from "@prisma/client";
 
 import {
   adminProductImportMergeSelect,
@@ -16,8 +16,8 @@ import {
   type AdminShopProductOptionInput,
   type AdminShopProductMediaInput,
   type AdminShopProductMetafieldInput,
-} from '../src/lib/shopAdminCatalog';
-import { replaceStorefrontTag } from '../src/lib/shopProductStorefront';
+} from "../src/lib/shopAdminCatalog";
+import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
 import {
   buildIpeCanonicalTokenSetFromPriceRow,
   buildIpeCanonicalTokenSetFromOfficialProduct,
@@ -40,30 +40,51 @@ import {
   type IpeParsedPriceListRow,
   type IpeMatchScoreBreakdown,
   type IpeVariantCandidate,
-} from '../src/lib/ipeCatalogImport';
-import { htmlToPlainText } from '../src/lib/sanitizeRichTextHtml';
+} from "../src/lib/ipeCatalogImport";
+import { htmlToPlainText } from "../src/lib/sanitizeRichTextHtml";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import {
+  coordinateShopCatalogProductCreationWithClient,
+  coordinateShopCatalogProductMutationWithClient,
+} from "../src/lib/shopCatalogMutationCoordinator.server";
 
-config({ path: '.env.local' });
-config({ path: '.env' });
+config({ path: ".env.local" });
+config({ path: ".env" });
 
 const prisma = new PrismaClient();
 
-const OFFICIAL_BASE_URL = 'https://ipeofficial.com';
-const DEFAULT_PARSED_JSON = path.join(process.cwd(), 'artifacts', 'ipe-price-list', '2025-price-list.parsed.json');
+const OFFICIAL_BASE_URL = "https://ipeofficial.com";
+const DEFAULT_PARSED_JSON = path.join(
+  process.cwd(),
+  "artifacts",
+  "ipe-price-list",
+  "2025-price-list.parsed.json"
+);
 const DEFAULT_OUTPUT_DIR = path.join(
   process.cwd(),
-  'artifacts',
-  'ipe-import',
-  new Date().toISOString().replace(/[:.]/g, '-')
+  "artifacts",
+  "ipe-import",
+  new Date().toISOString().replace(/[:.]/g, "-")
 );
-const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const MEDIA_ROOT_DIR = path.join(PUBLIC_DIR, 'media', 'shop', 'ipe');
-const USER_AGENT = 'OneCompany/IPEImport/1.0';
+const PUBLIC_DIR = path.join(process.cwd(), "public");
+const MEDIA_ROOT_DIR = path.join(PUBLIC_DIR, "media", "shop", "ipe");
+const USER_AGENT = "OneCompany/IPEImport/1.0";
 const MATCH_AUTO_THRESHOLD = 0.9;
 const MATCH_REVIEW_THRESHOLD = 0.75;
 const PER_HANDLE_VARIANT_REVIEW_LIMIT = 12;
+const FULL_IMPORT_DOMAINS = [
+  "CONTENT",
+  "SEO",
+  "MEDIA",
+  "PRICE",
+  "INVENTORY",
+  "FITMENT",
+  "TAXONOMY",
+  "VISIBILITY",
+] as const;
+const ipeImportProductSelect = { ...adminProductImportMergeSelect, catalogVersion: true } as const;
 
-type TranslationProvider = 'gemini' | 'none';
+type TranslationProvider = "gemini" | "none";
 
 type CliOptions = {
   commit: boolean;
@@ -123,7 +144,7 @@ type IpeMatchManifestItem = {
   officialHandle: string | null;
   officialUrl: string | null;
   score: number;
-  status: 'auto' | 'review' | 'unresolved';
+  status: "auto" | "review" | "unresolved";
   breakdown: IpeMatchScoreBreakdown | null;
   candidates: Array<{
     handle: string;
@@ -164,7 +185,7 @@ type IpeImportRecord = {
   slug: string;
   officialUrl: string;
   matchScore: number;
-  status: 'draft-review';
+  status: "draft-review";
   reviewReasons: string[];
   matchedRows: IpeMatchManifestItem[];
   unresolvedRows: IpeMatchManifestItem[];
@@ -175,34 +196,36 @@ type IpeImportRecord = {
 
 function parseCliOptions(): CliOptions {
   const args = new Set(process.argv.slice(2));
-  const commit = args.has('--commit');
+  const commit = args.has("--commit");
   // --skip-ua-translation lets us commit a single new product even when no
   // translation API is wired up (e.g. when Gemini's billing project is
   // disabled). The product lands in DB with English copy only — UA translation
   // can be applied later with a targeted repair script.
-  const translateUa = (commit && !args.has('--skip-ua-translation')) || args.has('--translate-ua');
-  const translationProvider = resolveTranslationProvider(readArgValue('--translate-provider') ?? 'auto');
-  const limitArg = readArgValue('--limit');
+  const translateUa = (commit && !args.has("--skip-ua-translation")) || args.has("--translate-ua");
+  const translationProvider = resolveTranslationProvider(
+    readArgValue("--translate-provider") ?? "auto"
+  );
+  const limitArg = readArgValue("--limit");
   const limit = limitArg ? Number(limitArg) || null : null;
   return {
     commit,
     translateUa,
     translationProvider,
     limit: limit != null && limit > 0 ? Math.trunc(limit) : null,
-    handle: readArgValue('--handle'),
-    outputDir: path.resolve(readArgValue('--output-dir') ?? DEFAULT_OUTPUT_DIR),
-    parsedJsonPath: path.resolve(readArgValue('--parsed-json') ?? DEFAULT_PARSED_JSON),
-    pdfPath: readArgValue('--pdf') ? path.resolve(readArgValue('--pdf') as string) : null,
-    officialBaseUrl: (readArgValue('--official-base') ?? OFFICIAL_BASE_URL).replace(/\/+$/, ''),
+    handle: readArgValue("--handle"),
+    outputDir: path.resolve(readArgValue("--output-dir") ?? DEFAULT_OUTPUT_DIR),
+    parsedJsonPath: path.resolve(readArgValue("--parsed-json") ?? DEFAULT_PARSED_JSON),
+    pdfPath: readArgValue("--pdf") ? path.resolve(readArgValue("--pdf") as string) : null,
+    officialBaseUrl: (readArgValue("--official-base") ?? OFFICIAL_BASE_URL).replace(/\/+$/, ""),
   };
 }
 
 function resolveTranslationProvider(value: string): TranslationProvider {
   const normalized = value.trim().toLowerCase();
-  if (normalized === 'gemini') return 'gemini';
-  if (normalized === 'none') return 'none';
-  if ((process.env.GEMINI_API_KEY || '').trim()) return 'gemini';
-  return 'none';
+  if (normalized === "gemini") return "gemini";
+  if (normalized === "none") return "none";
+  if ((process.env.GEMINI_API_KEY || "").trim()) return "gemini";
+  return "none";
 }
 
 function readArgValue(flag: string) {
@@ -221,21 +244,23 @@ function sleep(ms: number) {
 }
 
 function normalizeHandle(value: string | null | undefined) {
-  return String(value ?? '')
+  return String(value ?? "")
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-function buildPriceRowGroupKey(row: Pick<IpeParsedPriceListRow, 'brand' | 'model' | 'year_range' | 'engine'>) {
+function buildPriceRowGroupKey(
+  row: Pick<IpeParsedPriceListRow, "brand" | "model" | "year_range" | "engine">
+) {
   return [
     normalizeHandle(row.brand),
     normalizeHandle(row.model),
     normalizeHandle(row.year_range),
     normalizeHandle(row.engine),
-  ].join('|');
+  ].join("|");
 }
 
 function buildPriceRowGroupIndex(priceList: IpeParsedPriceList) {
@@ -253,20 +278,25 @@ function buildPriceRowGroupIndex(priceList: IpeParsedPriceList) {
   return { rowToGroupKey, rowsByGroupKey };
 }
 
-function isBrandWideAccessoryRow(row: Pick<IpeParsedPriceListRow, 'model' | 'section' | 'description' | 'remarks'>) {
-  const haystack = [row.model, row.section, row.description, row.remarks].filter(Boolean).join(' ').toLowerCase();
-  return haystack.includes('accessories') && haystack.includes('upgrade option with exhaust');
+function isBrandWideAccessoryRow(
+  row: Pick<IpeParsedPriceListRow, "model" | "section" | "description" | "remarks">
+) {
+  const haystack = [row.model, row.section, row.description, row.remarks]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes("accessories") && haystack.includes("upgrade option with exhaust");
 }
 
 function normalizeRemoteUrl(value: string | null | undefined) {
-  const normalized = String(value ?? '').trim();
+  const normalized = String(value ?? "").trim();
   if (!normalized) return null;
-  if (normalized.startsWith('//')) return `https:${normalized}`;
+  if (normalized.startsWith("//")) return `https:${normalized}`;
   return normalized;
 }
 
 function uniqueStrings(values: Array<string | null | undefined>) {
-  return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
+  return Array.from(new Set(values.map((value) => String(value ?? "").trim()).filter(Boolean)));
 }
 
 function parseShopifyTags(value: string | string[] | null | undefined) {
@@ -274,8 +304,8 @@ function parseShopifyTags(value: string | string[] | null | undefined) {
     return uniqueStrings(value);
   }
   return uniqueStrings(
-    String(value ?? '')
-      .split(',')
+    String(value ?? "")
+      .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean)
   );
@@ -283,7 +313,7 @@ function parseShopifyTags(value: string | string[] | null | undefined) {
 
 function pickImageUrl(value: RawShopifyImage | string | null | undefined) {
   if (!value) return null;
-  if (typeof value === 'string') return normalizeRemoteUrl(value);
+  if (typeof value === "string") return normalizeRemoteUrl(value);
   return normalizeRemoteUrl(value.src ?? value.url ?? value.originalSrc ?? null);
 }
 
@@ -291,21 +321,30 @@ function buildOfficialProductUrl(baseUrl: string, handle: string) {
   return `${baseUrl}/products/${handle}`;
 }
 
-function buildOfficialVariant(product: RawShopifyProduct, variant: RawShopifyVariant, index: number): IpeOfficialVariantSnapshot {
-  const optionNames = (product.options ?? []).map((option) => String(option?.name ?? '').trim()).slice(0, 3);
+function buildOfficialVariant(
+  product: RawShopifyProduct,
+  variant: RawShopifyVariant,
+  index: number
+): IpeOfficialVariantSnapshot {
+  const optionNames = (product.options ?? [])
+    .map((option) => String(option?.name ?? "").trim())
+    .slice(0, 3);
   const optionValues = [variant.option1, variant.option2, variant.option3]
-    .map((value) => String(value ?? '').trim())
+    .map((value) => String(value ?? "").trim())
     .filter(Boolean);
-  const optionMap = optionNames.reduce<Record<string, string>>((accumulator, optionName, optionIndex) => {
-    const optionValue = optionValues[optionIndex];
-    if (optionName && optionValue) accumulator[optionName] = optionValue;
-    return accumulator;
-  }, {});
+  const optionMap = optionNames.reduce<Record<string, string>>(
+    (accumulator, optionName, optionIndex) => {
+      const optionValue = optionValues[optionIndex];
+      if (optionName && optionValue) accumulator[optionName] = optionValue;
+      return accumulator;
+    },
+    {}
+  );
 
   return {
-    id: String(variant.id ?? `${String(product.handle ?? 'variant')}-${index + 1}`),
-    title: String(variant.title ?? '').trim() || optionValues.join(' / ') || 'Default Title',
-    sku: String(variant.sku ?? '').trim() || null,
+    id: String(variant.id ?? `${String(product.handle ?? "variant")}-${index + 1}`),
+    title: String(variant.title ?? "").trim() || optionValues.join(" / ") || "Default Title",
+    sku: String(variant.sku ?? "").trim() || null,
     available: variant.available !== false,
     featuredImage: pickImageUrl(variant.featured_image),
     optionValues,
@@ -313,26 +352,31 @@ function buildOfficialVariant(product: RawShopifyProduct, variant: RawShopifyVar
   };
 }
 
-function buildOfficialProduct(baseUrl: string, product: RawShopifyProduct): IpeOfficialProductSnapshot | null {
+function buildOfficialProduct(
+  baseUrl: string,
+  product: RawShopifyProduct
+): IpeOfficialProductSnapshot | null {
   const handle = normalizeHandle(product.handle);
   if (!handle) return null;
-  if (/\bwheels?\b/i.test(handle) || /\bwheels?\b/i.test(String(product.title ?? ''))) return null;
+  if (/\bwheels?\b/i.test(handle) || /\bwheels?\b/i.test(String(product.title ?? ""))) return null;
   const options: IpeOfficialOptionSnapshot[] = (product.options ?? [])
     .map((option) => ({
-      name: String(option?.name ?? '').trim(),
+      name: String(option?.name ?? "").trim(),
       values: uniqueStrings(option?.values ?? []),
     }))
     .filter((option) => option.name);
-  const variants = (product.variants ?? []).map((variant, index) => buildOfficialVariant(product, variant, index));
+  const variants = (product.variants ?? []).map((variant, index) =>
+    buildOfficialVariant(product, variant, index)
+  );
   const images = uniqueStrings((product.images ?? []).map((image) => pickImageUrl(image)));
   return {
     id: String(product.id ?? handle),
     handle,
-    title: String(product.title ?? '').trim(),
-    bodyHtml: String(product.body_html ?? '').trim(),
+    title: String(product.title ?? "").trim(),
+    bodyHtml: String(product.body_html ?? "").trim(),
     tags: parseShopifyTags(product.tags),
-    vendor: String(product.vendor ?? '').trim() || null,
-    productType: String(product.product_type ?? '').trim() || null,
+    vendor: String(product.vendor ?? "").trim() || null,
+    productType: String(product.product_type ?? "").trim() || null,
     images,
     url: buildOfficialProductUrl(baseUrl, handle),
     options,
@@ -342,7 +386,7 @@ function buildOfficialProduct(baseUrl: string, product: RawShopifyProduct): IpeO
 
 async function fetchText(url: string) {
   const response = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT },
+    headers: { "User-Agent": USER_AGENT },
   });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status} while fetching ${url}`);
@@ -352,7 +396,7 @@ async function fetchText(url: string) {
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
   });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status} while fetching ${url}`);
@@ -373,15 +417,17 @@ async function fetchHandlesFromSitemap(baseUrl: string): Promise<SitemapResult> 
     visited.add(current);
 
     const xml = await fetchText(current);
-    const locMatches = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).map((match) => match[1].trim());
+    const locMatches = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).map((match) =>
+      match[1].trim()
+    );
     for (const loc of locMatches) {
       if (/\/products\//.test(loc)) {
         urls.add(loc);
-        const handle = normalizeHandle(loc.split('/products/')[1]?.split(/[?#]/)[0] ?? '');
+        const handle = normalizeHandle(loc.split("/products/")[1]?.split(/[?#]/)[0] ?? "");
         if (handle) handles.add(handle);
         continue;
       }
-      if (loc.endsWith('.xml') || loc.includes('.xml?')) {
+      if (loc.endsWith(".xml") || loc.includes(".xml?")) {
         queue.push(loc);
       }
     }
@@ -401,7 +447,11 @@ async function fetchProductsJson(baseUrl: string) {
     );
     const chunk = Array.isArray(payload.products) ? payload.products : [];
     if (!chunk.length) break;
-    products.push(...chunk.map((item) => buildOfficialProduct(baseUrl, item)).filter((item): item is IpeOfficialProductSnapshot => Boolean(item)));
+    products.push(
+      ...chunk
+        .map((item) => buildOfficialProduct(baseUrl, item))
+        .filter((item): item is IpeOfficialProductSnapshot => Boolean(item))
+    );
     if (chunk.length < 250) break;
   }
   return products;
@@ -409,7 +459,9 @@ async function fetchProductsJson(baseUrl: string) {
 
 async function fetchProductDetail(baseUrl: string, handle: string) {
   try {
-    const payload = await fetchJson<{ product?: RawShopifyProduct }>(`${baseUrl}/products/${handle}.js`);
+    const payload = await fetchJson<{ product?: RawShopifyProduct }>(
+      `${baseUrl}/products/${handle}.js`
+    );
     return payload.product ? buildOfficialProduct(baseUrl, payload.product) : null;
   } catch {
     return null;
@@ -454,8 +506,8 @@ function mergeOfficialProduct(
   return {
     id: detailProduct?.id ?? baseProduct?.id ?? handle,
     handle,
-    title: detailProduct?.title || baseProduct?.title || '',
-    bodyHtml: detailProduct?.bodyHtml || baseProduct?.bodyHtml || '',
+    title: detailProduct?.title || baseProduct?.title || "",
+    bodyHtml: detailProduct?.bodyHtml || baseProduct?.bodyHtml || "",
     tags: uniqueStrings([...(detailProduct?.tags ?? []), ...(baseProduct?.tags ?? [])]),
     vendor: detailProduct?.vendor ?? baseProduct?.vendor ?? null,
     productType: detailProduct?.productType ?? baseProduct?.productType ?? null,
@@ -466,7 +518,10 @@ function mergeOfficialProduct(
   } satisfies IpeOfficialProductSnapshot;
 }
 
-async function fetchOfficialSnapshot(baseUrl: string, handleFilter?: string | null): Promise<IpeOfficialSnapshot> {
+async function fetchOfficialSnapshot(
+  baseUrl: string,
+  handleFilter?: string | null
+): Promise<IpeOfficialSnapshot> {
   const [sitemap, productsJson] = await Promise.all([
     fetchHandlesFromSitemap(baseUrl),
     fetchProductsJson(baseUrl),
@@ -478,18 +533,21 @@ async function fetchOfficialSnapshot(baseUrl: string, handleFilter?: string | nu
   const detailHandleSet = new Set(detailHandles);
   const detailed = new Map(
     (
-      await mapWithConcurrency(detailHandles, handleFilter ? 1 : 12, async (handle) => [
-        handle,
-        await fetchProductDetail(baseUrl, handle),
-      ] as const)
-    ).filter((entry): entry is readonly [string, IpeOfficialProductSnapshot | null] => Boolean(entry))
+      await mapWithConcurrency(
+        detailHandles,
+        handleFilter ? 1 : 12,
+        async (handle) => [handle, await fetchProductDetail(baseUrl, handle)] as const
+      )
+    ).filter((entry): entry is readonly [string, IpeOfficialProductSnapshot | null] =>
+      Boolean(entry)
+    )
   );
 
   const products = handles
     .map((handle) =>
       mergeOfficialProduct(
         byHandle.get(handle),
-        detailHandleSet.has(handle) ? detailed.get(handle) ?? null : null,
+        detailHandleSet.has(handle) ? (detailed.get(handle) ?? null) : null,
         baseUrl,
         handle
       )
@@ -512,12 +570,12 @@ async function ensureDirectory(target: string) {
 
 async function writeJsonFile(target: string, value: unknown) {
   await ensureDirectory(path.dirname(target));
-  await fs.writeFile(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  await fs.writeFile(target, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
 async function loadParsedPriceList(options: CliOptions): Promise<IpeParsedPriceList> {
   try {
-    const raw = await fs.readFile(options.parsedJsonPath, 'utf8');
+    const raw = await fs.readFile(options.parsedJsonPath, "utf8");
     return JSON.parse(raw) as IpeParsedPriceList;
   } catch (error) {
     if (!options.pdfPath) {
@@ -526,27 +584,42 @@ async function loadParsedPriceList(options: CliOptions): Promise<IpeParsedPriceL
   }
 
   await ensureDirectory(path.dirname(options.parsedJsonPath));
-  const parsedCsvPath = options.parsedJsonPath.replace(/\.json$/i, '.csv');
-  const pythonCandidates = ['python', 'py'];
+  const parsedCsvPath = options.parsedJsonPath.replace(/\.json$/i, ".csv");
+  const pythonCandidates = ["python", "py"];
   let lastError: string | null = null;
 
   for (const command of pythonCandidates) {
     const args =
-      command === 'py'
-        ? ['-3', 'scripts/parse-ipe-price-list.py', options.pdfPath as string, '--json-out', options.parsedJsonPath, '--csv-out', parsedCsvPath]
-        : ['scripts/parse-ipe-price-list.py', options.pdfPath as string, '--json-out', options.parsedJsonPath, '--csv-out', parsedCsvPath];
+      command === "py"
+        ? [
+            "-3",
+            "scripts/parse-ipe-price-list.py",
+            options.pdfPath as string,
+            "--json-out",
+            options.parsedJsonPath,
+            "--csv-out",
+            parsedCsvPath,
+          ]
+        : [
+            "scripts/parse-ipe-price-list.py",
+            options.pdfPath as string,
+            "--json-out",
+            options.parsedJsonPath,
+            "--csv-out",
+            parsedCsvPath,
+          ];
     const result = spawnSync(command, args, {
       cwd: process.cwd(),
-      encoding: 'utf8',
+      encoding: "utf8",
     });
     if (result.status === 0) {
-      const raw = await fs.readFile(options.parsedJsonPath, 'utf8');
+      const raw = await fs.readFile(options.parsedJsonPath, "utf8");
       return JSON.parse(raw) as IpeParsedPriceList;
     }
-    lastError = `${command}: ${result.stderr || result.stdout || 'unknown parser failure'}`;
+    lastError = `${command}: ${result.stderr || result.stdout || "unknown parser failure"}`;
   }
 
-  throw new Error(`Unable to build parsed IPE price list. ${lastError ?? ''}`.trim());
+  throw new Error(`Unable to build parsed IPE price list. ${lastError ?? ""}`.trim());
 }
 
 function buildMatchManifest(
@@ -585,10 +658,10 @@ function buildMatchManifest(
     const best = candidates[0] ?? null;
     const status =
       !best || best.score < MATCH_REVIEW_THRESHOLD
-        ? 'unresolved'
+        ? "unresolved"
         : best.score >= MATCH_AUTO_THRESHOLD
-          ? 'auto'
-          : 'review';
+          ? "auto"
+          : "review";
     return {
       rowIndex,
       sku: row.sku,
@@ -619,7 +692,7 @@ function buildMatchManifest(
 function groupManifestRowsByHandle(manifest: IpeMatchManifest) {
   const map = new Map<string, IpeMatchManifestItem[]>();
   for (const item of manifest.rows) {
-    if (!item.officialHandle || item.priceKind !== 'absolute') continue;
+    if (!item.officialHandle || item.priceKind !== "absolute") continue;
     const current = map.get(item.officialHandle) ?? [];
     current.push(item);
     map.set(item.officialHandle, current);
@@ -630,9 +703,9 @@ function groupManifestRowsByHandle(manifest: IpeMatchManifest) {
 function buildMediaPlan(product: IpeOfficialProductSnapshot): IpeMediaPlanItem[] {
   return product.images.map((remoteUrl, index) => {
     const extension = resolveImageExtension(remoteUrl);
-    const filename = `${String(index + 1).padStart(2, '0')}${extension}`;
+    const filename = `${String(index + 1).padStart(2, "0")}${extension}`;
     const absolutePath = path.join(MEDIA_ROOT_DIR, product.handle, filename);
-    const publicPath = `/${path.relative(PUBLIC_DIR, absolutePath).split(path.sep).join('/')}`;
+    const publicPath = `/${path.relative(PUBLIC_DIR, absolutePath).split(path.sep).join("/")}`;
     return {
       remoteUrl,
       publicPath,
@@ -646,26 +719,35 @@ function resolveImageExtension(remoteUrl: string) {
   try {
     const pathname = new URL(remoteUrl).pathname.toLowerCase();
     const extension = path.extname(pathname);
-    if (['.jpg', '.jpeg', '.png', '.webp', '.avif'].includes(extension)) {
-      return extension === '.jpeg' ? '.jpg' : extension;
+    if ([".jpg", ".jpeg", ".png", ".webp", ".avif"].includes(extension)) {
+      return extension === ".jpeg" ? ".jpg" : extension;
     }
   } catch {
     // ignore
   }
-  return '.jpg';
+  return ".jpg";
 }
 
-function buildCategoryAndCollection(rows: readonly IpeParsedPriceListRow[], productTokens: IpeCanonicalTokenSet) {
+function buildCategoryAndCollection(
+  rows: readonly IpeParsedPriceListRow[],
+  productTokens: IpeCanonicalTokenSet
+) {
   const category = deriveIpeCategoryLabels(rows);
-  const collectionEn = productTokens.vehicleMake ?? 'iPE Exhaust';
+  const collectionEn = productTokens.vehicleMake ?? "iPE Exhaust";
   return {
     category,
     collectionEn,
-    collectionUa: productTokens.vehicleMake ? translateVehicleMakeToUa(productTokens.vehicleMake) : 'iPE Exhaust',
+    collectionUa: productTokens.vehicleMake
+      ? translateVehicleMakeToUa(productTokens.vehicleMake)
+      : "iPE Exhaust",
   };
 }
 
-function buildBaseTags(product: IpeOfficialProductSnapshot, productTokens: IpeCanonicalTokenSet, categoryEn: string) {
+function buildBaseTags(
+  product: IpeOfficialProductSnapshot,
+  productTokens: IpeCanonicalTokenSet,
+  categoryEn: string
+) {
   const systemTokens = uniqueStrings(
     [
       productTokens.systemFamily,
@@ -673,15 +755,15 @@ function buildBaseTags(product: IpeOfficialProductSnapshot, productTokens: IpeCa
       product.vendor,
       product.productType,
       productTokens.vehicleMake,
-      'iPE',
-      'iPE exhaust',
-      'Innotech Performance Exhaust',
+      "iPE",
+      "iPE exhaust",
+      "Innotech Performance Exhaust",
       ...product.tags,
       ...productTokens.featureFlags,
-    ].map((value) => String(value ?? '').trim())
+    ].map((value) => String(value ?? "").trim())
   );
 
-  return replaceStorefrontTag(systemTokens, 'main');
+  return replaceStorefrontTag(systemTokens, "main");
 }
 
 // Postprocessor for Gemini Ukrainian output. Two responsibilities:
@@ -696,50 +778,57 @@ export function sanitizeIpeUaCopy(value: string, options?: { isHtml?: boolean })
   let out = value;
 
   // "Передній патрубок" / "Середній патрубок" — exhaust pipes (двойной выхлоп → plural)
-  out = out.replace(/\bПередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, 'Передні труби');
-  out = out.replace(/\bСередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, 'Середні труби');
+  out = out.replace(/\bПередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, "Передні труби");
+  out = out.replace(/\bСередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, "Середні труби");
   // Standalone "патрубок" in exhaust context → "труба"
-  out = out.replace(/\bпатрубок(?=[^\n<]{0,80}(?:вихлоп|глушник|катал|x[- ]?пайп|h[- ]?пайп|даунпайп))/gi, 'труба');
-  out = out.replace(/(?<=(?:вихлоп|глушник|x[- ]?пайп|h[- ]?пайп)[^\n<]{0,80})\bпатрубок\b/gi, 'труба');
+  out = out.replace(
+    /\bпатрубок(?=[^\n<]{0,80}(?:вихлоп|глушник|катал|x[- ]?пайп|h[- ]?пайп|даунпайп))/gi,
+    "труба"
+  );
+  out = out.replace(
+    /(?<=(?:вихлоп|глушник|x[- ]?пайп|h[- ]?пайп)[^\n<]{0,80})\bпатрубок\b/gi,
+    "труба"
+  );
 
   // Tips: наконечник → насадка (all forms)
   out = out.replace(/\bНаконечник(и|а|ів|ам|ами|ах)?\b/g, (_match, suffix) => {
     const map: Record<string, string> = {
-      '': 'Насадка',
-      'и': 'Насадки',
-      'а': 'Насадка',
-      'ів': 'Насадок',
-      'ам': 'Насадкам',
-      'ами': 'Насадками',
-      'ах': 'Насадках',
+      "": "Насадка",
+      и: "Насадки",
+      а: "Насадка",
+      ів: "Насадок",
+      ам: "Насадкам",
+      ами: "Насадками",
+      ах: "Насадках",
     };
-    return map[suffix ?? ''] ?? 'Насадки';
+    return map[suffix ?? ""] ?? "Насадки";
   });
   out = out.replace(/\bнаконечник(и|а|ів|ам|ами|ах)?\b/g, (_match, suffix) => {
     const map: Record<string, string> = {
-      '': 'насадка',
-      'и': 'насадки',
-      'а': 'насадка',
-      'ів': 'насадок',
-      'ам': 'насадкам',
-      'ами': 'насадками',
-      'ах': 'насадках',
+      "": "насадка",
+      и: "насадки",
+      а: "насадка",
+      ів: "насадок",
+      ам: "насадкам",
+      ами: "насадками",
+      ах: "насадках",
     };
-    return map[suffix ?? ''] ?? 'насадки';
+    return map[suffix ?? ""] ?? "насадки";
   });
 
   // "штатного керування клапаном" → "клапанами" (plural, dual-valve setup)
-  out = out.replace(/\bкерування\s+клапаном\b/gi, 'керування клапанами');
-  out = out.replace(/\bкеруванням\s+клапаном\b/gi, 'керуванням клапанами');
+  out = out.replace(/\bкерування\s+клапаном\b/gi, "керування клапанами");
+  out = out.replace(/\bкеруванням\s+клапаном\b/gi, "керуванням клапанами");
   // "клапанамИ" with Latin/wrong-case I sometimes leaks through Gemini
-  out = out.replace(/клапанам[ИI]\b/g, 'клапанами');
+  out = out.replace(/клапанам[ИI]\b/g, "клапанами");
 
   // OPF warning callout: tag it for the storefront to render as a styled banner.
   // We support both HTML (with <strong>) and plain-text shapes.
-  const warningRx = /(?:<strong>)?\s*ПОПЕРЕДЖЕННЯ\s*[-–—]\s*Перед\s+покупкою[^<\n]*?Дякуємо\.\s*(?:<\/strong>)?/g;
+  const warningRx =
+    /(?:<strong>)?\s*ПОПЕРЕДЖЕННЯ\s*[-–—]\s*Перед\s+покупкою[^<\n]*?Дякуємо\.\s*(?:<\/strong>)?/g;
   if (options?.isHtml) {
     out = out.replace(warningRx, (match) => {
-      const text = match.replace(/<\/?strong>/gi, '').trim();
+      const text = match.replace(/<\/?strong>/gi, "").trim();
       return `<aside data-warning="opf" class="ipe-warning ipe-warning--opf"><strong>${text}</strong></aside>`;
     });
   }
@@ -753,14 +842,14 @@ async function translateTextToUa(
   cache: Map<string, string>,
   options?: { isHtml?: boolean }
 ) {
-  const normalized = String(value ?? '').trim();
-  if (!normalized) return '';
-  const cacheKey = `${provider}:${options?.isHtml ? 'html' : 'text'}:${normalized}`;
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return "";
+  const cacheKey = `${provider}:${options?.isHtml ? "html" : "text"}:${normalized}`;
   const cached = cache.get(cacheKey);
   if (cached) return cached;
 
-  let translated = '';
-  if (provider === 'gemini') {
+  let translated = "";
+  if (provider === "gemini") {
     translated = await translateWithGemini(normalized, options);
   } else {
     translated = normalized;
@@ -773,21 +862,21 @@ async function translateTextToUa(
 }
 
 async function translateWithGemini(value: string, options?: { isHtml?: boolean }) {
-  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is not configured');
+    throw new Error("GEMINI_API_KEY is not configured");
   }
-  const model = 'gemini-2.5-flash-lite';
+  const model = "gemini-2.5-flash-lite";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [
           {
-            role: 'user',
+            role: "user",
             parts: [
               {
                 text: options?.isHtml
@@ -806,9 +895,14 @@ async function translateWithGemini(value: string, options?: { isHtml?: boolean }
     });
 
     if (!response.ok) {
-      const details = await response.text().catch(() => '');
-      const retryAfter = Number(response.headers.get('retry-after') || NaN);
-      const retryable = response.status === 429 || response.status === 500 || response.status === 502 || response.status === 503 || response.status === 504;
+      const details = await response.text().catch(() => "");
+      const retryAfter = Number(response.headers.get("retry-after") || NaN);
+      const retryable =
+        response.status === 429 ||
+        response.status === 500 ||
+        response.status === 502 ||
+        response.status === 503 ||
+        response.status === 504;
       if (retryable && attempt < 4) {
         const delayMs = Number.isFinite(retryAfter)
           ? Math.max(1000, retryAfter * 1000)
@@ -816,25 +910,30 @@ async function translateWithGemini(value: string, options?: { isHtml?: boolean }
         await sleep(delayMs);
         continue;
       }
-      throw new Error(`Gemini translation failed: HTTP ${response.status}${details ? ` ${details}` : ''}`);
+      throw new Error(
+        `Gemini translation failed: HTTP ${response.status}${details ? ` ${details}` : ""}`
+      );
     }
 
     const payload = (await response.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
-    let translated = payload.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
-    translated = translated.replace(/^```html?/i, '').replace(/```$/i, '').trim();
+    let translated = payload.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
+    translated = translated
+      .replace(/^```html?/i, "")
+      .replace(/```$/i, "")
+      .trim();
     if (!translated) {
       if (attempt < 4) {
         await sleep(1000 * (attempt + 1));
         continue;
       }
-      throw new Error('Gemini returned an empty translation');
+      throw new Error("Gemini returned an empty translation");
     }
     return translated;
   }
 
-  throw new Error('Gemini translation failed after retries');
+  throw new Error("Gemini translation failed after retries");
 }
 
 async function downloadMedia(plan: readonly IpeMediaPlanItem[]) {
@@ -850,7 +949,7 @@ async function downloadMedia(plan: readonly IpeMediaPlanItem[]) {
     }
 
     const response = await fetch(item.remoteUrl, {
-      headers: { 'User-Agent': USER_AGENT },
+      headers: { "User-Agent": USER_AGENT },
     });
     if (!response.ok) {
       throw new Error(`Image download failed: ${item.remoteUrl} -> HTTP ${response.status}`);
@@ -867,22 +966,29 @@ function buildVariantOptions(
   candidates: readonly IpeVariantCandidate[],
   variants: readonly IpeResolvedVariantRecord[]
 ) {
-  const meaningfulOfficialOptions = product.options.filter((option) => option.name && option.values.length > 0);
-  if (candidates.some((candidate) => candidate.source === 'official') && meaningfulOfficialOptions.length > 0) {
-    const options: AdminShopProductOptionInput[] = meaningfulOfficialOptions.slice(0, 3).map((option, index) => ({
-      name: option.name,
-      position: index + 1,
-      values: uniqueStrings(
-        variants.map((variant) => variant.optionValues[index]).filter(Boolean)
-      ),
-    }));
+  const meaningfulOfficialOptions = product.options.filter(
+    (option) => option.name && option.values.length > 0
+  );
+  if (
+    candidates.some((candidate) => candidate.source === "official") &&
+    meaningfulOfficialOptions.length > 0
+  ) {
+    const options: AdminShopProductOptionInput[] = meaningfulOfficialOptions
+      .slice(0, 3)
+      .map((option, index) => ({
+        name: option.name,
+        position: index + 1,
+        values: uniqueStrings(
+          variants.map((variant) => variant.optionValues[index]).filter(Boolean)
+        ),
+      }));
     return options.filter((option) => option.values.length > 0);
   }
 
   if (variants.length > 1) {
     return [
       {
-        name: 'Configuration',
+        name: "Configuration",
         position: 1,
         values: uniqueStrings(variants.map((variant) => variant.title)),
       },
@@ -892,13 +998,16 @@ function buildVariantOptions(
   return [] satisfies AdminShopProductOptionInput[];
 }
 
-function determineDefaultVariantIndex(_candidates: readonly IpeVariantCandidate[], variants: readonly IpeResolvedVariantRecord[]) {
+function determineDefaultVariantIndex(
+  _candidates: readonly IpeVariantCandidate[],
+  variants: readonly IpeResolvedVariantRecord[]
+) {
   // Cat-back is the most-purchased configuration (~70% of iPE sales for BMW
   // exhaust platforms); within that, Factory front-pipe + Catted (OPF) is the
   // street-legal default. Score every variant by how closely its option values
   // match that profile, breaking ties by lowest price (the cleanest catback).
   const score = (variant: IpeResolvedVariantRecord) => {
-    const joined = variant.optionValues.filter(Boolean).join(' | ').toLowerCase();
+    const joined = variant.optionValues.filter(Boolean).join(" | ").toLowerCase();
     let s = 0;
     if (/\bcat\s*back\b|\bcatback\b/.test(joined) && !/\bfull\s*system\b/.test(joined)) s += 1000;
     if (/\bfactory\b/.test(joined)) s += 100;
@@ -914,10 +1023,7 @@ function determineDefaultVariantIndex(_candidates: readonly IpeVariantCandidate[
   variants.forEach((variant, index) => {
     if (variant.priceUsd <= 0) return;
     const variantScore = score(variant);
-    if (
-      variantScore > bestScore ||
-      (variantScore === bestScore && variant.priceUsd < bestPrice)
-    ) {
+    if (variantScore > bestScore || (variantScore === bestScore && variant.priceUsd < bestPrice)) {
       bestScore = variantScore;
       bestPrice = variant.priceUsd;
       bestIndex = index;
@@ -948,13 +1054,17 @@ async function buildImportRecord(
   translationCache: Map<string, string>
 ): Promise<IpeImportRecord | null> {
   const matchedBrands = new Set(
-    matchedItems.map((item) => priceList.items[item.rowIndex]?.brand).filter((brand): brand is string => Boolean(brand))
+    matchedItems
+      .map((item) => priceList.items[item.rowIndex]?.brand)
+      .filter((brand): brand is string => Boolean(brand))
   );
   const importedRows = Array.from(
     new Set([
       ...matchedItems.flatMap((item) => {
-        const groupKey = rowToGroupKey[item.rowIndex] ?? '';
-        return groupKey ? Array.from(rowsByGroupKey.get(groupKey) ?? [item.rowIndex]) : [item.rowIndex];
+        const groupKey = rowToGroupKey[item.rowIndex] ?? "";
+        return groupKey
+          ? Array.from(rowsByGroupKey.get(groupKey) ?? [item.rowIndex])
+          : [item.rowIndex];
       }),
       ...priceList.items.flatMap((row, rowIndex) =>
         matchedBrands.has(row.brand) && isBrandWideAccessoryRow(row) ? [rowIndex] : []
@@ -966,7 +1076,7 @@ async function buildImportRecord(
     .map((rowIndex) => priceList.items[rowIndex])
     .filter((row): row is IpeParsedPriceListRow => Boolean(row))
     .map((row) =>
-      row.price_kind === 'absolute' && row.retail_usd == null
+      row.price_kind === "absolute" && row.retail_usd == null
         ? {
             ...row,
             retail_usd: computeIpeRetailPrice(row.msrp_usd, {
@@ -983,19 +1093,26 @@ async function buildImportRecord(
   const cleanedBodyHtmlEn = cleanIpeOfficialHtml(product.bodyHtml);
   const shortDescEn = buildIpeShortDescription(cleanedBodyHtmlEn || product.title);
   const longDescEn = htmlToPlainText(cleanedBodyHtmlEn || product.bodyHtml);
-  const { category, collectionEn, collectionUa } = buildCategoryAndCollection(priceRows, productTokens);
+  const { category, collectionEn, collectionUa } = buildCategoryAndCollection(
+    priceRows,
+    productTokens
+  );
 
-  const variantCandidates = buildIpeVariantCandidates(product, priceRows).slice(0, PER_HANDLE_VARIANT_REVIEW_LIMIT);
+  const variantCandidates = buildIpeVariantCandidates(product, priceRows).slice(
+    0,
+    PER_HANDLE_VARIANT_REVIEW_LIMIT
+  );
   const resolvedVariants = variantCandidates
     .map((candidate) => {
       const pricing = resolveIpeVariantPricing(product, candidate, priceRows);
       if (!pricing.baseRow || pricing.priceUsd == null || pricing.priceUsd <= 0) return null;
       const directMatch = candidate.baseRow ?? pricing.baseRow;
-      const optionSignature = [candidate.title, ...candidate.optionValues].filter(Boolean).join(' | ') || candidate.title;
+      const optionSignature =
+        [candidate.title, ...candidate.optionValues].filter(Boolean).join(" | ") || candidate.title;
       return {
         title: candidate.title,
         sku:
-          candidate.source === 'absolute-row' && directMatch.sku
+          candidate.source === "absolute-row" && directMatch.sku
             ? directMatch.sku
             : directMatch.sku && pricing.deltaRows.length === 0
               ? directMatch.sku
@@ -1038,54 +1155,62 @@ async function buildImportRecord(
     return null;
   }
 
-  const unresolvedRows = manifest.rows.filter((item) => item.status === 'unresolved' && importedRows.includes(item.rowIndex));
+  const unresolvedRows = manifest.rows.filter(
+    (item) => item.status === "unresolved" && importedRows.includes(item.rowIndex)
+  );
   const reviewReasons = uniqueStrings([
-    matchedItems.some((item) => item.status === 'review' || item.status === 'unresolved')
-      ? 'product-match-review-threshold'
+    matchedItems.some((item) => item.status === "review" || item.status === "unresolved")
+      ? "product-match-review-threshold"
       : null,
-    !cleanedBodyHtmlEn ? 'official-body-empty' : null,
-    unresolvedRows.length ? 'unresolved-price-rows-nearby' : null,
+    !cleanedBodyHtmlEn ? "official-body-empty" : null,
+    unresolvedRows.length ? "unresolved-price-rows-nearby" : null,
   ]);
 
   let titleUa = product.title;
-  let bodyHtmlUa = '';
-  let shortDescUa = '';
-  let longDescUa = '';
+  let bodyHtmlUa = "";
+  let shortDescUa = "";
+  let longDescUa = "";
 
   if (options.translateUa) {
-    if (options.translationProvider === 'none') {
-      throw new Error('UA translation is required for commit but no translation provider is configured');
+    if (options.translationProvider === "none") {
+      throw new Error(
+        "UA translation is required for commit but no translation provider is configured"
+      );
     }
     titleUa = await translateTextToUa(options.translationProvider, product.title, translationCache);
     bodyHtmlUa = cleanedBodyHtmlEn
-      ? await translateTextToUa(options.translationProvider, cleanedBodyHtmlEn, translationCache, { isHtml: true })
-      : '';
+      ? await translateTextToUa(options.translationProvider, cleanedBodyHtmlEn, translationCache, {
+          isHtml: true,
+        })
+      : "";
     shortDescUa = bodyHtmlUa ? buildIpeShortDescription(bodyHtmlUa) : shortDescEn;
     longDescUa = bodyHtmlUa ? htmlToPlainText(bodyHtmlUa) : longDescEn;
   } else {
-    reviewReasons.push('ua-translation-pending');
+    reviewReasons.push("ua-translation-pending");
   }
 
   const defaultIndex = determineDefaultVariantIndex(variantCandidates, resolvedVariants);
   const optionDefinitions = buildVariantOptions(product, variantCandidates, resolvedVariants);
 
-  const variantPayloads: AdminShopProductVariantInput[] = resolvedVariants.map((variant, index) => ({
-    title: variant.title,
-    sku: variant.sku,
-    position: index + 1,
-    option1Value: optionDefinitions[0] ? (variant.optionValues[0] ?? variant.title) : null,
-    option2Value: optionDefinitions[1] ? (variant.optionValues[1] ?? null) : null,
-    option3Value: optionDefinitions[2] ? (variant.optionValues[2] ?? null) : null,
-    inventoryQty: 0,
-    inventoryPolicy: 'CONTINUE',
-    priceUsd: variant.priceUsd,
-    priceEur: null,
-    priceUah: null,
-    requiresShipping: true,
-    taxable: true,
-    image: mediaPlan[0]?.publicPath ?? null,
-    isDefault: index === defaultIndex,
-  }));
+  const variantPayloads: AdminShopProductVariantInput[] = resolvedVariants.map(
+    (variant, index) => ({
+      title: variant.title,
+      sku: variant.sku,
+      position: index + 1,
+      option1Value: optionDefinitions[0] ? (variant.optionValues[0] ?? variant.title) : null,
+      option2Value: optionDefinitions[1] ? (variant.optionValues[1] ?? null) : null,
+      option3Value: optionDefinitions[2] ? (variant.optionValues[2] ?? null) : null,
+      inventoryQty: 0,
+      inventoryPolicy: "CONTINUE",
+      priceUsd: variant.priceUsd,
+      priceEur: null,
+      priceUah: null,
+      requiresShipping: true,
+      taxable: true,
+      image: mediaPlan[0]?.publicPath ?? null,
+      isDefault: index === defaultIndex,
+    })
+  );
 
   const variantMapJson = serializeVariantMapForMetafield(
     product,
@@ -1106,16 +1231,16 @@ async function buildImportRecord(
   const payload: AdminShopProductPayload = {
     slug: `ipe-${product.handle}`,
     sku: resolvedVariants[defaultIndex]?.sku ?? resolvedVariants[0]?.sku ?? null,
-    scope: 'auto',
-    storefront: 'main',
-    brand: 'iPE exhaust',
-    vendor: 'Innotech Performance Exhaust',
+    scope: "auto",
+    storefront: "main",
+    brand: "iPE exhaust",
+    vendor: "Innotech Performance Exhaust",
     productType: category.en,
     productCategory: category.en,
     categoryId: null,
     tags: baseTags,
     collectionIds: [],
-    status: 'DRAFT',
+    status: "DRAFT",
     titleUa,
     titleEn: product.title,
     categoryUa: category.ua,
@@ -1128,7 +1253,7 @@ async function buildImportRecord(
     bodyHtmlEn: cleanedBodyHtmlEn || null,
     leadTimeUa: null,
     leadTimeEn: null,
-    stock: 'preOrder',
+    stock: "preOrder",
     collectionUa,
     collectionEn,
     priceEur: null,
@@ -1161,58 +1286,58 @@ async function buildImportRecord(
       src: item.publicPath,
       altText: `${product.title} ${index + 1}`,
       position: index + 1,
-      mediaType: 'IMAGE',
+      mediaType: "IMAGE",
     })) satisfies AdminShopProductMediaInput[],
     options: optionDefinitions,
     variants: variantPayloads,
     metafields: [
       {
-        namespace: 'custom',
-        key: 'official_handle',
+        namespace: "custom",
+        key: "official_handle",
         value: product.handle,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'official_url',
+        namespace: "custom",
+        key: "official_url",
         value: product.url,
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'crawl_date',
+        namespace: "custom",
+        key: "crawl_date",
         value: new Date().toISOString(),
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'match_score',
+        namespace: "custom",
+        key: "match_score",
         value: matchScore.toFixed(3),
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'source_pdf_name',
+        namespace: "custom",
+        key: "source_pdf_name",
         value: path.basename(priceList.source_pdf),
-        valueType: 'single_line_text_field',
+        valueType: "single_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'variant_map_json',
+        namespace: "custom",
+        key: "variant_map_json",
         value: variantMapJson,
-        valueType: 'multi_line_text_field',
+        valueType: "multi_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'matched_row_indexes',
-        value: importedRows.join(','),
-        valueType: 'multi_line_text_field',
+        namespace: "custom",
+        key: "matched_row_indexes",
+        value: importedRows.join(","),
+        valueType: "multi_line_text_field",
       },
       {
-        namespace: 'custom',
-        key: 'review_reasons',
-        value: reviewReasons.join('\n'),
-        valueType: 'multi_line_text_field',
+        namespace: "custom",
+        key: "review_reasons",
+        value: reviewReasons.join("\n"),
+        valueType: "multi_line_text_field",
       },
     ] satisfies AdminShopProductMetafieldInput[],
   };
@@ -1222,7 +1347,7 @@ async function buildImportRecord(
     slug: payload.slug,
     officialUrl: product.url,
     matchScore: Number(matchScore.toFixed(3)),
-    status: 'draft-review',
+    status: "draft-review",
     reviewReasons,
     matchedRows: [...matchedItems].sort((left, right) => left.rowIndex - right.rowIndex),
     unresolvedRows,
@@ -1245,48 +1370,71 @@ async function applyImportRecord(record: IpeImportRecord) {
   const mediaMap = await downloadMedia(record.mediaPlan);
   const payload: AdminShopProductPayload = {
     ...record.payload,
-    image: mediaMap.get(record.mediaPlan[0]?.remoteUrl ?? '') ?? record.payload.image,
+    image: mediaMap.get(record.mediaPlan[0]?.remoteUrl ?? "") ?? record.payload.image,
     gallery: record.mediaPlan.map((item) => mediaMap.get(item.remoteUrl) ?? item.publicPath),
     media: record.payload.media.map((item, index) => {
       const planned = record.mediaPlan[index];
       return {
         ...item,
-        src: planned ? mediaMap.get(planned.remoteUrl) ?? planned.publicPath : item.src,
+        src: planned ? (mediaMap.get(planned.remoteUrl) ?? planned.publicPath) : item.src,
       };
     }),
     variants: record.payload.variants.map((variant, index) => ({
       ...variant,
       image: record.mediaPlan[index]
-        ? mediaMap.get(record.mediaPlan[index].remoteUrl) ?? record.mediaPlan[index].publicPath
-        : mediaMap.get(record.mediaPlan[0]?.remoteUrl ?? '') ?? variant.image ?? null,
+        ? (mediaMap.get(record.mediaPlan[index].remoteUrl) ?? record.mediaPlan[index].publicPath)
+        : (mediaMap.get(record.mediaPlan[0]?.remoteUrl ?? "") ?? variant.image ?? null),
     })),
   };
 
   const existing = await prisma.shopProduct.findUnique({
     where: { slug: payload.slug },
-    select: adminProductImportMergeSelect,
+    select: ipeImportProductSelect,
   });
 
   if (existing) {
-    await prisma.shopProduct.update({
-      where: { slug: payload.slug },
-      data: buildAdminProductSnapshotMergeUpdateData(payload, existing),
+    const catalog = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: existing.id,
+      expectedCatalogVersion: existing.catalogVersion.toString(),
+      changeDomains: FULL_IMPORT_DOMAINS,
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
+          where: { id: existing.id },
+          data: buildAdminProductSnapshotMergeUpdateData(payload, existing),
+        });
+        return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "ipe-catalog-import@system.local",
+          reason: "import.ipe.update",
+        });
+      },
     });
-    return 'updated' as const;
+    return { action: "updated" as const, catalog };
   }
 
-  await prisma.shopProduct.create({
-    data: buildAdminProductCreateData(payload),
+  const createData = buildAdminProductCreateData(payload);
+  const catalog = await coordinateShopCatalogProductCreationWithClient(prisma, {
+    changeDomains: FULL_IMPORT_DOMAINS,
+    async create(tx) {
+      return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
+    },
+    snapshot(tx, productId, initialCatalogVersion) {
+      return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+        type: "IMPORT",
+        id: "ipe-catalog-import@system.local",
+        reason: "import.ipe.create",
+      });
+    },
   });
-  return 'created' as const;
+  return { action: "created" as const, catalog };
 }
 
 async function main() {
   const options = parseCliOptions();
   await ensureDirectory(options.outputDir);
 
-  logJson('config', {
-    mode: options.commit ? 'commit' : 'dry-run',
+  logJson("config", {
+    mode: options.commit ? "commit" : "dry-run",
     translateUa: options.translateUa,
     translationProvider: options.translationProvider,
     limit: options.limit,
@@ -1299,14 +1447,17 @@ async function main() {
 
   const [priceList, officialSnapshot] = await Promise.all([
     loadParsedPriceList(options),
-    fetchOfficialSnapshot(options.officialBaseUrl, options.handle ? normalizeHandle(options.handle) : null),
+    fetchOfficialSnapshot(
+      options.officialBaseUrl,
+      options.handle ? normalizeHandle(options.handle) : null
+    ),
   ]);
   const { rowToGroupKey, rowsByGroupKey } = buildPriceRowGroupIndex(priceList);
 
-  await writeJsonFile(path.join(options.outputDir, 'official-snapshot.json'), officialSnapshot);
+  await writeJsonFile(path.join(options.outputDir, "official-snapshot.json"), officialSnapshot);
 
   const matchManifest = buildMatchManifest(priceList, officialSnapshot);
-  await writeJsonFile(path.join(options.outputDir, 'match-manifest.json'), matchManifest);
+  await writeJsonFile(path.join(options.outputDir, "match-manifest.json"), matchManifest);
 
   const groupedMatches = groupManifestRowsByHandle(matchManifest);
   const translationCache = new Map<string, string>();
@@ -1335,7 +1486,7 @@ async function main() {
   }
 
   const limitedRecords = options.limit != null ? records.slice(0, options.limit) : records;
-  await writeJsonFile(path.join(options.outputDir, 'import-batch.json'), limitedRecords);
+  await writeJsonFile(path.join(options.outputDir, "import-batch.json"), limitedRecords);
 
   const existing = await fetchExistingProducts(limitedRecords.map((record) => record.slug));
   const summary = {
@@ -1347,9 +1498,9 @@ async function main() {
     applyingHandles: limitedRecords.length,
     existingDraftsOrProducts: Array.from(existing.keys()).length,
     manifestStatusCounts: {
-      auto: matchManifest.rows.filter((item) => item.status === 'auto').length,
-      review: matchManifest.rows.filter((item) => item.status === 'review').length,
-      unresolved: matchManifest.rows.filter((item) => item.status === 'unresolved').length,
+      auto: matchManifest.rows.filter((item) => item.status === "auto").length,
+      review: matchManifest.rows.filter((item) => item.status === "review").length,
+      unresolved: matchManifest.rows.filter((item) => item.status === "unresolved").length,
     },
     sample: limitedRecords.slice(0, 10).map((record) => ({
       handle: record.handle,
@@ -1357,30 +1508,33 @@ async function main() {
       matchScore: record.matchScore,
       variants: record.variants.length,
       reviewReasons: record.reviewReasons,
-      action: existing.has(record.slug) ? 'update' : 'create',
+      action: existing.has(record.slug) ? "update" : "create",
     })),
   };
 
-  await writeJsonFile(path.join(options.outputDir, 'summary.json'), summary);
-  logJson('summary', summary);
+  await writeJsonFile(path.join(options.outputDir, "summary.json"), summary);
+  logJson("summary", summary);
 
   if (!options.commit) {
     return;
   }
 
-  if (options.translationProvider === 'none') {
-    throw new Error('Commit requires UA translation, but no translation provider is configured');
+  if (options.translationProvider === "none") {
+    throw new Error("Commit requires UA translation, but no translation provider is configured");
   }
 
   let created = 0;
   let updated = 0;
   const errors: Array<{ slug: string; message: string }> = [];
+  const catalogOutboxIds: string[] = [];
 
   for (const record of limitedRecords) {
     try {
-      const action = await applyImportRecord(record);
-      if (action === 'created') created += 1;
-      if (action === 'updated') updated += 1;
+      const result = await applyImportRecord(record);
+      const action = result.action;
+      catalogOutboxIds.push(result.catalog.outboxId);
+      if (action === "created") created += 1;
+      if (action === "updated") updated += 1;
       console.log(`[${action}] ${record.slug}`);
     } catch (error) {
       errors.push({
@@ -1394,11 +1548,12 @@ async function main() {
     created,
     updated,
     errors,
+    catalogOutboxIds,
     committedAt: new Date().toISOString(),
   };
 
-  await writeJsonFile(path.join(options.outputDir, 'commit-summary.json'), commitSummary);
-  logJson('commit-summary', commitSummary);
+  await writeJsonFile(path.join(options.outputDir, "commit-summary.json"), commitSummary);
+  logJson("commit-summary", commitSummary);
 
   if (errors.length > 0) {
     process.exitCode = 1;
