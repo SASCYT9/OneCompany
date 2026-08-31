@@ -30,6 +30,11 @@ import {
   getUrbanProgramFallbackImage,
 } from "@/lib/urbanProductOverrides";
 import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import {
+  coordinateShopCatalogProductCreationWithClient,
+  coordinateShopCatalogProductMutationWithClient,
+} from "@/lib/shopCatalogMutationCoordinator.server";
 
 const GP_PORTAL_COLLECTION_URL =
   "https://gp-portal.eu/collections/automotive?filter.p.vendor=Urban&sort_by=best-selling";
@@ -167,6 +172,7 @@ type ApplyUrbanGpPortalSnapshotInput = {
   commit: boolean;
   backupCurrentCatalog?: (catalog: unknown[]) => Promise<string>;
   now?: Date;
+  catalogWriter?: UrbanGpCatalogWriter;
 };
 
 type ApplyUrbanGpPortalSnapshotResult = {
@@ -174,6 +180,22 @@ type ApplyUrbanGpPortalSnapshotResult = {
   archivedCount: number;
   upsertedCount: number;
   backupPath: string | null;
+  catalogOutboxIds: string[];
+};
+
+type UrbanGpCatalogMutation = { productId: string; outboxId: string };
+
+export type UrbanGpCatalogWriter = {
+  update(input: {
+    productId: string;
+    expectedCatalogVersion: bigint;
+    data: Prisma.ShopProductUpdateInput;
+  }): Promise<UrbanGpCatalogMutation>;
+  create(input: { data: Prisma.ShopProductCreateInput }): Promise<UrbanGpCatalogMutation>;
+  archive(input: {
+    productId: string;
+    expectedCatalogVersion: bigint;
+  }): Promise<UrbanGpCatalogMutation>;
 };
 
 type RunUrbanGpPortalSyncOptions = {
@@ -189,6 +211,57 @@ type RunUrbanGpPortalSyncOptions = {
 
 function nowStamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function createUrbanGpCatalogWriter(client: PrismaClient): UrbanGpCatalogWriter {
+  const actor = {
+    type: "IMPORT",
+    id: "urban-gp-portal@system.local",
+  } as const;
+  return {
+    update: ({ productId, expectedCatalogVersion, data }) =>
+      coordinateShopCatalogProductMutationWithClient(client, {
+        productId,
+        expectedCatalogVersion: expectedCatalogVersion.toString(),
+        changeDomains: ["CONTENT", "SEO", "MEDIA", "PRICE", "INVENTORY", "FITMENT", "TAXONOMY", "VISIBILITY"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          await tx.shopProduct.update({ where: { id: productId }, data });
+          return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+            ...actor,
+            reason: "import.urban-gp.update",
+          });
+        },
+      }),
+    create: ({ data }) =>
+      coordinateShopCatalogProductCreationWithClient(client, {
+        changeDomains: ["CONTENT", "SEO", "MEDIA", "PRICE", "INVENTORY", "FITMENT", "TAXONOMY", "VISIBILITY"],
+        async create(tx) {
+          return (await tx.shopProduct.create({ data, select: { id: true } })).id;
+        },
+        snapshot(tx, productId, initialCatalogVersion) {
+          return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+            ...actor,
+            reason: "import.urban-gp.create",
+          });
+        },
+      }),
+    archive: ({ productId, expectedCatalogVersion }) =>
+      coordinateShopCatalogProductMutationWithClient(client, {
+        productId,
+        expectedCatalogVersion: expectedCatalogVersion.toString(),
+        changeDomains: ["VISIBILITY"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          await tx.shopProduct.update({
+            where: { id: productId },
+            data: { status: "ARCHIVED", isPublished: false, publishedAt: null },
+          });
+          return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+            ...actor,
+            reason: "import.urban-gp.archive-missing",
+          });
+        },
+      }),
+  };
 }
 
 function normalizeWhitespace(value: string) {
@@ -1102,6 +1175,7 @@ export async function applyUrbanGpPortalSnapshot(
       archivedCount: 0,
       upsertedCount: 0,
       backupPath: null,
+      catalogOutboxIds: [],
     };
   }
 
@@ -1134,6 +1208,8 @@ export async function applyUrbanGpPortalSnapshot(
     timeout: URBAN_SYNC_TRANSACTION_TIMEOUT_MS,
     maxWait: URBAN_SYNC_TRANSACTION_MAX_WAIT_MS,
   });
+  const catalogWriter = input.catalogWriter ?? createUrbanGpCatalogWriter(prisma);
+  const catalogOutboxIds: string[] = [];
 
   for (const item of input.items) {
     const collectionIds = uniqueStrings(
@@ -1151,54 +1227,45 @@ export async function applyUrbanGpPortalSnapshot(
       variants: [],
       metafields: [],
     };
-    await prisma.shopProduct.upsert({
-      where: { slug: payload.slug },
-      update: buildAdminProductImportUpdateData(payload, mergeCurrent, {
+    const updateData = buildAdminProductImportUpdateData(payload, mergeCurrent, {
         tags: true,
         collections: payload.collectionIds.length > 0,
         media: payload.media.length > 0,
         options: payload.options.length > 0,
         variants: payload.variants.length > 0,
         metafields: payload.metafields.length > 0,
-      }),
-      create: buildAdminProductCreateData(payload),
-    });
+      });
+    const mutation = existing
+      ? await catalogWriter.update({
+          productId: existing.id,
+          expectedCatalogVersion: existing.catalogVersion,
+          data: updateData,
+        })
+      : await catalogWriter.create({ data: buildAdminProductCreateData(payload) });
+    catalogOutboxIds.push(mutation.outboxId);
   }
 
-  const archivedCount = await prisma.$transaction(
-    async (tx) => {
-      const currentSlugs = input.items.map((item) => item.slug);
-      const archiveResult = await tx.shopProduct.updateMany({
-        where: {
-          AND: [
-            getUrbanCatalogWhere(),
-            {
-              slug: {
-                notIn: currentSlugs,
-              },
-            },
-          ],
-        },
-        data: {
-          status: "ARCHIVED",
-          isPublished: false,
-          publishedAt: null,
-        },
-      });
-
-      return archiveResult.count;
-    },
-    {
-      timeout: URBAN_SYNC_TRANSACTION_TIMEOUT_MS,
-      maxWait: URBAN_SYNC_TRANSACTION_MAX_WAIT_MS,
-    }
+  const currentSlugs = new Set(input.items.map((item) => item.slug));
+  const missingProducts = existingCatalog.filter(
+    (product) =>
+      !currentSlugs.has(product.slug) &&
+      (product.status !== "ARCHIVED" || product.isPublished || product.publishedAt !== null)
   );
+  for (const product of missingProducts.sort((a, b) => a.id.localeCompare(b.id, "en"))) {
+    const mutation = await catalogWriter.archive({
+      productId: product.id,
+      expectedCatalogVersion: product.catalogVersion,
+    });
+    catalogOutboxIds.push(mutation.outboxId);
+  }
+  const archivedCount = missingProducts.length;
 
   return {
     committed: true,
     archivedCount,
     upsertedCount: input.items.length,
     backupPath,
+    catalogOutboxIds,
   };
 }
 

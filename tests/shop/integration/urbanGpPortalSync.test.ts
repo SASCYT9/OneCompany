@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import {
   applyUrbanGpPortalSnapshot,
   type PreparedUrbanGpPortalProduct,
+  type UrbanGpCatalogWriter,
 } from "../../../src/lib/urbanGpPortalSync";
 
 function createMockPrisma() {
@@ -60,6 +61,10 @@ function createMockPrisma() {
           id: "legacy-1",
           slug: "legacy-urban-product",
           titleEn: "Legacy",
+          catalogVersion: BigInt(4),
+          status: "ACTIVE",
+          isPublished: true,
+          publishedAt: new Date(),
         },
       ],
       upsert: async ({
@@ -81,6 +86,24 @@ function createMockPrisma() {
     ) => {
       state.transactionOptions = options ?? null;
       return callback(tx);
+    },
+  };
+}
+
+function createMockCatalogWriter(prisma: ReturnType<typeof createMockPrisma>): UrbanGpCatalogWriter {
+  return {
+    async update({ productId, data }) {
+      prisma.state.upserts.push({ slug: productId, create: {} as never, update: data });
+      return { productId, outboxId: `outbox-update-${productId}` };
+    },
+    async create({ data }) {
+      const slug = String(data.slug);
+      prisma.state.upserts.push({ slug, create: data, update: {} });
+      return { productId: `product-${slug}`, outboxId: `outbox-create-${slug}` };
+    },
+    async archive({ productId }) {
+      prisma.state.archivedCount += 1;
+      return { productId, outboxId: `outbox-archive-${productId}` };
     },
   };
 }
@@ -196,6 +219,7 @@ test("applyUrbanGpPortalSnapshot archives existing Urban products and upserts in
     items: [buildPreparedItem()],
     blockers: [],
     commit: true,
+    catalogWriter: createMockCatalogWriter(prisma),
     backupCurrentCatalog: async () => {
       prisma.state.backupCalls += 1;
       return "backup.json";
@@ -209,10 +233,7 @@ test("applyUrbanGpPortalSnapshot archives existing Urban products and upserts in
   assert.equal(prisma.state.upserts.length, 1);
   assert.equal(prisma.state.upserts[0]?.slug, "urb-spo-25353093-v1");
   assert.equal(prisma.state.collectionUpserts.includes("land-rover-defender"), true);
-  assert.equal(
-    JSON.stringify(prisma.state.updateManyArgs[0] ?? {}).includes("urban_sync_source"),
-    true
-  );
+  assert.equal(result.catalogOutboxIds.length, 2);
   assert.equal(Number(prisma.state.transactionOptions?.timeout ?? 0) >= 120000, true);
   assert.equal(
     JSON.stringify(prisma.state.upserts[0]?.create ?? {}).includes("vehicle_brand"),

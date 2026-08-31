@@ -37,6 +37,7 @@ async function main() {
           committed: result.committed,
           archivedCount: result.archivedCount,
           upsertedCount: result.upsertedCount,
+          catalogOutboxCount: result.catalogOutboxIds.length,
           backupPath: result.backupPath,
           blockers: result.blockers,
         },

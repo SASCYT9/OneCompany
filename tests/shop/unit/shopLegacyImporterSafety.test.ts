@@ -191,6 +191,15 @@ test("AI quality bulk keeps idempotency, knowledge, and Catalog V2 in one transa
   assert.match(route, /runShopCatalogOutboxRuntime/);
 });
 
+test("Urban GP CLI snapshot uses the explicit-client Catalog V2 writer", () => {
+  const source = readWorkspaceFile("src/lib/urbanGpPortalSync.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /coordinateShopCatalogProductCreationWithClient/);
+  assert.match(source, /catalogWriter\.archive/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.(?:upsert|updateMany)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
