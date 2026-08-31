@@ -10,14 +10,15 @@ The gate then read the exact canonical version through the admin publication res
 | Measurement | Result | Gate |
 | ----------- | -----: | ---: |
 | Samples | 30 | 30 |
-| Commit-to-visible p95 | 416.027 ms | <2,000 ms |
-| Commit-to-visible p99 | 503.758 ms | <5,000 ms |
-| Maximum | 503.758 ms | informational |
+| Commit-to-visible p95 | 94.521 ms | <2,000 ms |
+| Commit-to-visible p99 | 154.133 ms | <5,000 ms |
+| Maximum | 154.133 ms | informational |
 | Same-version concurrent winners | 1 | exactly 1 |
 
 The latency includes mutation validation, serializable canonical commit, revision/outbox creation,
 worker claim, all projection targets, projection rows/facets, receipt completion, and the final
 status read. It is a local correctness/SLO gate, not a substitute for a production-region canary.
+These measurements are from the post-source-normalization rerun on the current Catalog V2 branch.
 
 ## Reproduction
 

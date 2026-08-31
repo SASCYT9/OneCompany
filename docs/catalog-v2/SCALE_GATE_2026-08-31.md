@@ -16,23 +16,24 @@ five times warm with `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)`.
 
 | Products | Projection rows | Scenario            | Cold ms | Warm p95 ms | Large sequential scan |
 | -------: | --------------: | ------------------- | ------: | ----------: | --------------------- |
-|  100,000 |         200,000 | listing first page  |   0.033 |       0.022 | none                  |
-|  100,000 |         200,000 | listing deep keyset |  17.976 |      16.998 | none                  |
-|  100,000 |         200,000 | brand page          |   0.049 |       0.028 | none                  |
-|  100,000 |         200,000 | trigram text search |   5.054 |       4.767 | none                  |
-|  100,000 |         200,000 | brand facet        |   0.030 |       0.030 | none                  |
-|  100,000 |         200,000 | make facet         |   0.020 |       0.020 | none                  |
-|  100,000 |         200,000 | make-only fitment   |   5.327 |       4.770 | none                  |
-|  100,000 |         200,000 | correlated fitment  |  20.725 |      20.708 | none                  |
-|  500,000 |       1,000,000 | listing first page  |   0.041 |       0.053 | none                  |
-|  500,000 |       1,000,000 | listing deep keyset |  89.643 |      90.017 | none                  |
-|  500,000 |       1,000,000 | brand page          |   0.048 |       0.024 | none                  |
-|  500,000 |       1,000,000 | trigram text search |  23.093 |      23.396 | none                  |
-|  500,000 |       1,000,000 | product autocomplete |  23.573 |      24.134 | none                  |
-|  500,000 |       1,000,000 | brand facet        |   0.040 |       0.020 | none                  |
-|  500,000 |       1,000,000 | make facet         |   0.020 |       0.020 | none                  |
-|  500,000 |       1,000,000 | make-only fitment   |   4.759 |       6.112 | none                  |
-|  500,000 |       1,000,000 | correlated fitment  |  26.476 |      24.083 | none                  |
+|  100,000 |         200,000 | listing first page  |   0.050 |       0.050 | none                  |
+|  100,000 |         200,000 | listing deep keyset |  17.270 |      17.960 | none                  |
+|  100,000 |         200,000 | brand page          |   0.140 |       0.020 | none                  |
+|  100,000 |         200,000 | trigram text search |   1.680 |       1.150 | none                  |
+|  100,000 |         200,000 | product autocomplete |  5.320 |       5.250 | none                  |
+|  100,000 |         200,000 | brand facet         |   0.040 |       0.080 | none                  |
+|  100,000 |         200,000 | make facet          |   0.020 |       0.010 | none                  |
+|  100,000 |         200,000 | make-only fitment   |   4.970 |       5.030 | none                  |
+|  100,000 |         200,000 | correlated fitment  |  19.660 |      23.750 | none                  |
+|  500,000 |       1,000,000 | listing first page  |   0.140 |       0.040 | none                  |
+|  500,000 |       1,000,000 | listing deep keyset | 110.170 |      91.760 | none                  |
+|  500,000 |       1,000,000 | brand page          |   0.150 |       0.060 | none                  |
+|  500,000 |       1,000,000 | trigram text search |  25.780 |      24.830 | none                  |
+|  500,000 |       1,000,000 | product autocomplete | 28.540 |      28.200 | none                  |
+|  500,000 |       1,000,000 | brand facet         |   0.040 |       0.030 | none                  |
+|  500,000 |       1,000,000 | make facet          |   0.020 |       0.010 | none                  |
+|  500,000 |       1,000,000 | make-only fitment   |   4.930 |       4.960 | none                  |
+|  500,000 |       1,000,000 | correlated fitment  |  27.370 |      24.950 | none                  |
 
 ## Query-plan decision
 
