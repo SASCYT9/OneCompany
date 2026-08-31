@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { assertAdminRequest } from "@/lib/adminAuth";
@@ -13,6 +14,9 @@ import {
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
 import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductCreation } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 import { Prisma } from "@prisma/client";
 
@@ -106,24 +110,60 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json({ error: "Product with this slug already exists" }, { status: 409 });
     }
-    const product = await prisma.$transaction(async (tx) => {
-      const createdProduct = await tx.shopProduct.create({
-        data: buildAdminProductCreateData(data),
-        include: adminProductInclude,
-      });
+    const catalogMutation = await coordinateShopCatalogProductCreation({
+      changeDomains: [
+        "CONTENT",
+        "SEO",
+        "MEDIA",
+        "PRICE",
+        "INVENTORY",
+        "FITMENT",
+        "TAXONOMY",
+        "VISIBILITY",
+      ],
+      async create(tx) {
+        const createdProduct = await tx.shopProduct.create({
+          data: buildAdminProductCreateData(data),
+          select: { id: true },
+        });
+        return createdProduct.id;
+      },
+      async snapshot(tx, productId, initialCatalogVersion) {
+        await writeAdminAuditLog(tx, session, {
+          scope: "shop",
+          action: "product.create",
+          entityType: "shop.product",
+          entityId: productId,
+          metadata: {
+            slug: data.slug,
+            status: data.status,
+            catalogVersion: initialCatalogVersion,
+          },
+        });
+        return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+          type: "ADMIN",
+          id: session.email,
+          reason: "product.create",
+        });
+      },
+    });
+    const product = await prisma.shopProduct.findUniqueOrThrow({
+      where: { id: catalogMutation.productId },
+      include: adminProductInclude,
+    });
 
-      await writeAdminAuditLog(tx, session, {
-        scope: "shop",
-        action: "product.create",
-        entityType: "shop.product",
-        entityId: createdProduct.id,
-        metadata: {
-          slug: createdProduct.slug,
-          status: createdProduct.status,
-        },
-      });
-
-      return createdProduct;
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-product-create:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[shop-catalog.product-create] immediate publish failed; cron recovery remains active", {
+          outboxId: catalogMutation.outboxId,
+          error,
+        });
+      }
     });
     try {
       revalidateShopStorefrontProduct(product);
@@ -137,7 +177,15 @@ export async function POST(request: NextRequest) {
       console.error("[revalidate] Error:", e);
     }
 
-    return NextResponse.json(serializeAdminProductListItem(product));
+    return NextResponse.json({
+      ...serializeAdminProductListItem(product),
+      catalog: {
+        version: catalogMutation.canonicalVersion,
+        revisionId: catalogMutation.revisionId,
+        outboxId: catalogMutation.outboxId,
+        status: "SAVED",
+      },
+    });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
