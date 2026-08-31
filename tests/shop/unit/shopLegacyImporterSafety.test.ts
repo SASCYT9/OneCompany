@@ -116,6 +116,16 @@ test("AI SEO writes are validated and versioned through the catalog coordinator"
   assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
 });
 
+test("Airtable stock cron rejects conflicting feed rows and publishes grouped inventory", () => {
+  const source = readWorkspaceFile("src/app/api/admin/cron/airtable-stocks/route.ts");
+  assert.match(source, /Conflicting Airtable inventory quantities/);
+  assert.match(source, /const groups = new Map/);
+  assert.match(source, /coordinateShopCatalogProductMutation/);
+  assert.match(source, /changeDomains: \["INVENTORY"\]/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.shopProductVariant\.updateMany\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
