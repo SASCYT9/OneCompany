@@ -10,7 +10,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------- |
 | C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
 | C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
-| C2-P6-003 | RaceChip normalization/backfill                | In progress | Lossless 5,181-record mapper/audit done; transactional DB backfill remains |
+| C2-P6-003 | RaceChip normalization/backfill                | In progress | Source/provenance writer green; taxonomy/policy persistence remains          |
 | C2-P6-004 | ADRO normalization/backfill                    | Pending     | After RaceChip                                                         |
 | C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
 
@@ -29,6 +29,12 @@ one provenance entry per leaf. It exposed 883 non-unique supplier variant SKUs a
 vehicle applications, so source identity is product ID plus SKU rather than SKU alone. The strict
 configuration mapper verifies 4,347 records and quarantines 834 fuel-ambiguous records for review;
 unknown fuel never becomes exact. See [RACECHIP_AUDIT_2026-08-31.md](./RACECHIP_AUDIT_2026-08-31.md).
+The RaceChip source/provenance writer is bounded to 50 sorted records per Serializable transaction,
+validates complete product/variant ownership before writing, advances immutable source and binding
+revision chains atomically, and verifies full evidence signatures on replay. Its CLI is resumable,
+dry-run by default, and rejects Production commits. PostgreSQL proves insert, idempotency, revision
+2/head advancement, coverage, and conflict rollback. Canonical vehicle taxonomy and compatibility
+policy persistence remain before this source item is complete.
 
 ## Completed sprint: P5 unified admin publication
 

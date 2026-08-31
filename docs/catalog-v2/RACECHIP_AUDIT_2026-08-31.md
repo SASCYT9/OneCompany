@@ -52,3 +52,24 @@ npm run shop:catalog:v2:racechip:audit
 
 This command reads only the immutable local fallback shard. Optional JSON output is restricted to
 `artifacts/catalog-v2-racechip/`. No database or production action is performed.
+
+## Transactional backfill
+
+The bounded writer accepts at most 50 source drafts in deterministic record-key order. A page is a
+Serializable transaction that validates every product/variant owner before inserting anything,
+then commits the immutable source record, binding revision/head, every provenance leaf, and every
+normalization issue together. Replays compare payload identity plus complete mapping/issue
+signatures; conflicting content under the same source revision fails closed.
+
+New source revisions append through `supersedes` and never update/delete ledger rows. Advancing an
+existing binding requires an explicit reviewer identity. The CLI is dry-run by default and uses an
+`after` cursor; commit is restricted to an explicitly named non-production environment with a
+dedicated database URL and write acknowledgement.
+
+```powershell
+npm run shop:catalog:v2:racechip:backfill -- --limit=50
+```
+
+Disposable PostgreSQL integration proves initial insert, idempotent replay, append-only source and
+binding revision 2, current-head advancement, 100% coverage, and immutable replay rejection. No
+Production backfill has been executed.
