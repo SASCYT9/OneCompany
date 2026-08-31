@@ -124,6 +124,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The Brabus content-tail cleanup is no longer an unauthenticated mutating GET. Read-authorized GET returns a dry-run plan only; write-authorized POST applies each changed product through the catalog coordinator with audit, immutable revision, outbox, and bounded publication.
 - Category derivation now deduplicates category seeds before upsert, avoiding repeated writes per product. Changed product assignments publish `TAXONOMY` revisions under optimistic product locks, while the route keeps the response/audit bounded and schedules outbox processing.
 - Storefront-tag backfill now applies each changed aggregate under its catalog version and publishes `TAXONOMY` plus `VISIBILITY` revisions. Per-product audit/snapshot/outbox state is atomic, a bounded batch summary is retained, and immediate publication has cron recovery.
+- Manual fitment review now commits its normalized metafield, detailed admin audit, lossless snapshot, immutable `FITMENT` revision, and outbox event in one optimistic product transaction, then schedules immediate publication.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.

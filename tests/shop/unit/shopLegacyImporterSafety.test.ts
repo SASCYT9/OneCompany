@@ -158,6 +158,15 @@ test("storefront tag backfill publishes taxonomy and visibility revisions", () =
   assert.doesNotMatch(source, /prisma\.\$transaction/);
 });
 
+test("manual fitment review publishes a FITMENT revision", () => {
+  const source = readWorkspaceFile("src/app/api/admin/shop/fitment-review/[id]/route.ts");
+  assert.match(source, /coordinateShopCatalogProductMutation/);
+  assert.match(source, /changeDomains: \["FITMENT"\]/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.\$transaction/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
