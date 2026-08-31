@@ -730,11 +730,11 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
     }
   }
 
-  const now = Date.now();
-  if (cachedShopSettingsRecord && now - cachedShopSettingsFetchedAt < 60_000) {
-    return cachedShopSettingsRecord;
-  }
-
+  // Do not reuse the process-local record in a live runtime. `revalidateTag`
+  // cannot invalidate module memory in other serverless instances, which made
+  // regional pricing, currency, tax, and shipping changes stale for up to a
+  // minute. The in-flight promise still collapses concurrent reads inside one
+  // instance, while every subsequent request observes the current DB row.
   if (cachedShopSettingsPromise) {
     return cachedShopSettingsPromise;
   }
