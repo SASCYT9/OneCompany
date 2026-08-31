@@ -85,6 +85,7 @@
     "shop:catalog:v2:do88:audit": "tsx scripts/audit-catalog-v2-do88.ts",
     "shop:catalog:v2:do88:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-do88.ts",
     "shop:catalog:v2:burger:audit": "tsx scripts/audit-catalog-v2-burger.ts",
+    "shop:catalog:v2:burger:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-burger.ts",
     "shop:catalog:v2:girodisc:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-girodisc.ts",
     "shop:catalog:v2:racechip:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-racechip.ts",
     "shop:knowledge:dry": "tsx --env-file=.env.local scripts/sync-shop-product-knowledge.ts",

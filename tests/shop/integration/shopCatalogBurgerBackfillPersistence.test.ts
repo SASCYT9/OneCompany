@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import { registerHooks } from "node:module";
+import path from "node:path";
+import test from "node:test";
+import { pathToFileURL } from "node:url";
+import { PrismaClient } from "@prisma/client";
+import { buildBurgerSourceRecordDraft, type BurgerSnapshotProduct } from "../../../src/lib/shopCatalogBurgerNormalization";
+const databaseUrl = process.env.CATALOG_EPHEMERAL_TEST === "1" ? process.env.OPS_TEST_DATABASE_URL : undefined;
+registerHooks({ resolve(specifier, context, nextResolve) { if (specifier === "server-only") return { url: pathToFileURL(path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")).href, shortCircuit: true }; return nextResolve(specifier, context); } });
+const backfillModule = import("../../../src/lib/shopCatalogBurgerBackfill.server");
+function snapshot(productId: string, variantId: string, sku: string, slug: string, title: string, tags: string[]): BurgerSnapshotProduct { return { id: productId, slug, sku, scope: "SHOP", title: { ua: title, en: title }, tags, variants: [{ id: variantId, sku, isDefault: true }] }; }
+async function createProduct(client: PrismaClient, productId: string, variantId: string, sku: string) { await client.shopProduct.create({ data: { id: productId, slug: productId, titleUa: productId, titleEn: productId, variants: { create: { id: variantId, title: "Default", sku, isDefault: true } } } }); }
+test("Burger persists correlated BMW engine/chassis and quarantines polluted multi-make tags", { skip: !databaseUrl }, async () => { const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } }), suffix = Date.now().toString(), { persistBurgerSourceRecordPageWithClient } = await backfillModule; try { const cases = [
+  { key: "bmw", title: "JB4 for B58 BMW 3-Series", tags: ["brand:BMW", "model:3-Series", "engine:B58", "chassis:G20", "fits-model:bmw:3-series", "fits-trim:bmw:3-series:g20"], mode: "VEHICLE_SPECIFIC" },
+  { key: "polluted", title: "KIA Stinger / Hyundai Genesis Package", tags: ["brand:BMW", "brand:Kia", "brand:Hyundai", "model:Stinger", "model:Genesis", "fits-make:bmw", "fits-trim:bmw:7-series:g70"], mode: "NEEDS_REVIEW" },
+  ]; for (const item of cases) { const productId = `burger-${item.key}-${suffix}`, variantId = `${productId}-variant`, sku = `shared-${suffix}`; await createProduct(client, productId, variantId, `${sku}-${item.key}`); const draft = buildBurgerSourceRecordDraft({ product: snapshot(productId, variantId, `${sku}-${item.key}`, `${item.key}-${suffix}`, item.title, item.tags), sourceRevision: "burger-v1" }); await persistBurgerSourceRecordPageWithClient(client, { sourceKey: `burger-${item.key}-${suffix}`, drafts: [draft] }); const policy = await client.shopCatalogCompatibilityPolicy.findFirstOrThrow({ where: { targetKey: `variant:${variantId}` }, include: { clauses: { include: { constraints: { include: { values: true } } } } } }); assert.equal(policy.mode, item.mode); if (item.key === "bmw") { const constraints = policy.clauses[0]!.constraints, engineValue = constraints.find((entry) => entry.dimension === "ENGINE")?.values[0]; assert.equal(constraints.find((entry) => entry.dimension === "CHASSIS")?.values[0]?.textValue, "G20"); assert.ok(engineValue?.powertrainId); assert.equal((await client.vehiclePowertrain.findUniqueOrThrow({ where: { id: engineValue.powertrainId } })).code, "B58"); } }
+  } finally { await client.$disconnect(); } });
