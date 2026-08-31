@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
@@ -22,6 +23,10 @@ import {
   NORMALIZED_FITMENT_KEY,
   NORMALIZED_FITMENT_NAMESPACE,
 } from "@/lib/shopFitmentQuality";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutation } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import { randomUUID } from "node:crypto";
 
 const VARIANT_TEMP_POSITION_OFFSET = 10_000;
 
@@ -513,26 +518,51 @@ export async function DELETE(
       return NextResponse.json({ success: true, mode: "hard" });
     }
 
-    const archived = await prisma.$transaction(async (tx) => {
-      const updated = await tx.shopProduct.update({
-        where: { id },
-        data: buildAdminProductArchiveMutation(),
-        select: { id: true, slug: true, status: true, brand: true, vendor: true, tags: true },
-      });
+    const catalogMutation = await coordinateShopCatalogProductMutation({
+      productId: id,
+      changeDomains: ["VISIBILITY"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        const updated = await tx.shopProduct.update({
+          where: { id },
+          data: buildAdminProductArchiveMutation(),
+          select: { id: true, slug: true, status: true },
+        });
+        await writeAdminAuditLog(tx, session, {
+          scope: "shop",
+          action: "product.archive",
+          entityType: "shop.product",
+          entityId: updated.id,
+          metadata: {
+            slug: updated.slug,
+            status: updated.status,
+            mode: "archive",
+            catalogVersion: nextCatalogVersion,
+          },
+        });
+        return buildShopCatalogAdminSnapshot(tx, id, nextCatalogVersion, {
+          type: "ADMIN",
+          id: session.email,
+          reason: "product.archive",
+        });
+      },
+    });
+    const archived = await prisma.shopProduct.findUniqueOrThrow({
+      where: { id },
+      select: { id: true, slug: true, status: true, brand: true, vendor: true, tags: true },
+    });
 
-      await writeAdminAuditLog(tx, session, {
-        scope: "shop",
-        action: "product.archive",
-        entityType: "shop.product",
-        entityId: updated.id,
-        metadata: {
-          slug: updated.slug,
-          status: updated.status,
-          mode: "archive",
-        },
-      });
-
-      return updated;
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-admin:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[shop-catalog.admin] immediate publish failed; cron recovery remains active", {
+          outboxId: catalogMutation.outboxId,
+          error,
+        });
+      }
     });
 
     try {
@@ -552,6 +582,12 @@ export async function DELETE(
       mode: "archive",
       archived: true,
       status: archived.status,
+      catalog: {
+        version: catalogMutation.canonicalVersion,
+        revisionId: catalogMutation.revisionId,
+        outboxId: catalogMutation.outboxId,
+        status: "SAVED",
+      },
     });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
