@@ -46,3 +46,28 @@ npm run shop:catalog:v2:adro:audit
 
 The command reads only the immutable fallback shard and performs no database or Production action.
 Observed fingerprint: `c804241458812cf0935b11750dd58d8bbd214310a24e26cd14c330ef3277015b`.
+
+## Transactional persistence
+
+ADRO uses the common Catalog V2 source backfill core rather than a copy of the RaceChip transaction.
+The core bounds pages to 50 sorted records, validates product/variant ownership, appends immutable
+source and binding revisions, compares complete provenance and issue evidence on replay, and commits
+under `Serializable` isolation. A source-specific callback persists taxonomy and compatibility in the
+same transaction.
+
+The ADRO callback creates source-scoped make/model/generation aliases and a versioned policy targeting
+the exact default variant. Every parsed application becomes a correlated OR clause with 13 explicit
+constraints. Engine, fuel, drivetrain, transmission, and OPF/GPF are `NOT_APPLICABLE`; generation,
+chassis, and year are exact only when present in source evidence, otherwise `ANY`. Ambiguous products
+create only `NEEDS_REVIEW` clauses. A new source revision retires the old policy without deleting it.
+
+The resumable CLI is dry-run by default, requires an explicit non-production environment, dedicated
+database URL, and write acknowledgement before commit:
+
+```powershell
+npm run shop:catalog:v2:adro:backfill -- --limit=50
+```
+
+Disposable PostgreSQL integration proves correlated M3/M4 chassis clauses, all 13 constraints,
+source aliases, explicit aero non-applicability, idempotent replay, activation-ready coverage, and
+review-only persistence for an ambiguous GR86/BRZ/M2 product. No Production backfill was executed.

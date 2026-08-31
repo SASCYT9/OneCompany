@@ -4,17 +4,18 @@ import test from "node:test";
 
 test("RaceChip backfill is bounded, serializable, append-only, and verifies replay evidence", () => {
   const source = readFileSync("src/lib/shopCatalogRaceChipBackfill.server.ts", "utf8");
-  assert.match(source, /RACECHIP_BACKFILL_PAGE_LIMIT = 50/);
-  assert.match(source, /TransactionIsolationLevel\.Serializable/);
-  assert.match(source, /supersededBy: null/);
-  assert.match(source, /supersedesId: previousRecord\?\.id/);
-  assert.match(source, /bindingVersion: \(head\?\.currentBinding\.bindingVersion \?\? 0\) \+ 1/);
-  assert.match(source, /currentBindingId: bindingId/);
-  assert.match(source, /requires reviewedById/);
-  assert.match(source, /immutable replay conflict/);
-  assert.match(source, /evidence persistence count mismatch/);
+  const core = readFileSync("src/lib/shopCatalogSourceBackfill.server.ts", "utf8");
+  assert.match(core, /CATALOG_SOURCE_BACKFILL_PAGE_LIMIT = 50/);
+  assert.match(core, /TransactionIsolationLevel\.Serializable/);
+  assert.match(core, /supersededBy: null/);
+  assert.match(core, /supersedesId: previousRecord\?\.id/);
+  assert.match(core, /bindingVersion: \(head\?\.currentBinding\.bindingVersion \?\? 0\) \+ 1/);
+  assert.match(core, /currentBindingId: bindingId/);
+  assert.match(core, /requires reviewedById/);
+  assert.match(core, /immutable replay conflict/);
+  assert.match(core, /evidence persistence count mismatch/);
   assert.match(source, /persistRaceChipCompatibilityInTransaction/);
-  assert.doesNotMatch(source, /deleteMany|\.delete\(/);
+  assert.doesNotMatch(core, /deleteMany|\.delete\(/);
 });
 
 test("RaceChip compatibility persistence is explicit, versioned, and never verifies unknown fuel", () => {

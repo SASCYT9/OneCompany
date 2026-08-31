@@ -109,6 +109,15 @@ test(
       });
       assert.equal(replay.inserted, 0);
       assert.equal(replay.idempotent, 1);
+      const remappedReplay = structuredClone(draftV1);
+      remappedReplay.provenance[0]!.normalizedValue = "changed-without-a-source-revision";
+      await assert.rejects(
+        persistRaceChipSourceRecordPageWithClient(client, {
+          sourceKey,
+          drafts: [remappedReplay],
+        }),
+        /immutable replay conflict/
+      );
 
       const { readShopCatalogSourceCoveragePage } = await reportModule;
       const coverageV1 = await readShopCatalogSourceCoveragePage(client, { sourceKey });
