@@ -4,7 +4,21 @@ Last updated: 2026-08-31
 Working branch: `codex/catalog-v2-foundation`  
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Current sprint: P3 indexed reads and P4 server-rendered storefront
+## Current sprint: P5 unified admin publication
+
+| ID        | Work item                                      | Status      | Verification / remaining work                                                |
+| --------- | ---------------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
+| C2-P5-001 | Version-specific publication status contract   | Done        | Saved/Publishing/Published/Failed resolver and authorized no-store API        |
+| C2-P5-002 | Product editor publication visibility          | Done        | Editor polls exact saved version; failed work is never presented as published |
+| C2-P5-003 | Commit-to-visible latency and concurrency gate | In progress | Disposable PostgreSQL p95/p99, contention, lag-recovery evidence remains      |
+
+Publication status is derived from the exact outbox event and every required target receipt for
+the requested canonical version. A successful product save remains `SAVED` until workers begin,
+then becomes `PUBLISHING`; it reaches `PUBLISHED` only when every target applied that version.
+Dead-letter jobs or version-matching failed receipts return `FAILED` with bounded error context.
+The admin editor displays target lag and polls only while the version is non-terminal.
+
+## Completed sprint: P3 indexed reads and P4 server-rendered storefront
 
 | ID        | Work item                                      | Status      | Verification / remaining work                                                       |
 | --------- | ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
@@ -20,8 +34,8 @@ rendering and a direct indexed Server Component read. URL parsing already suppor
 search plus brand/make/model/generation/year/engine/fuel and a complete keyset cursor. Listing and
 facets load in parallel. Brand/make counts are updated atomically with every projection change;
 their 500k warm p95 is about 0.02 ms. Optional compatibility dimensions unlock after model, so a
-brand that does not require generation cannot block year or engine. The next step is bounded
-suggestions and client transitions over this serializable result.
+brand that does not require generation cannot block year or engine. Bounded suggestions and
+client transitions operate over this serializable result.
 
 ## Completed sprint: P2 persisted projection and shadow reads
 
@@ -167,6 +181,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Monthly Turn14 GitHub Actions no longer receives database or supplier API credentials and cannot execute the legacy direct Prisma writer. It invokes a bearer-authenticated, allowlisted one-brand-per-request endpoint; the endpoint reuses the versioned Turn14 import service and runs bounded outbox publication, while the old CLI fails closed before Prisma initialization.
 - The reproducible 100k/500k PostgreSQL scale gate checks first-page listing, 90%-deep keyset pagination, brand, trigram text, make-only fitment, and fully correlated make/model/engine/year fitment. An initially linear candidate-first plan failed the SLO and was replaced by a product-first planner-fenced query plus a case-insensitive expression index; the final 500k warm p95 is 90.02 ms at worst (deep keyset), with correlated fitment at 24.08 ms and no large sequential scans. See [SCALE_GATE_2026-08-31.md](./SCALE_GATE_2026-08-31.md).
 - The V2 storefront now keeps result rendering on the server while a small client controller provides progressive URL transitions, complete descendant resets, HTML GET fallback, and debounced abortable suggestions. Suggestions are capped before vehicle lookups and preserve make/model clause correlation. A route-level flag-off rewrite keeps the old stock catalog available at the public URL without importing its client tree into V2; production-build entry JS fell from 191,298 to 148,294 gzip bytes. See [STOREFRONT_GATE_2026-08-31.md](./STOREFRONT_GATE_2026-08-31.md).
+- Product administration now has a version-specific publication-status resolver and authorized uncached endpoint. The editor reports `Saved`, `Publishing`, `Published`, or `Publication failed` independently from the mutation response, exposes pending targets/version lag, and stops polling only at a verified terminal state. PostgreSQL integration covers saved, retry, published, and dead-letter transitions.
 - PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.

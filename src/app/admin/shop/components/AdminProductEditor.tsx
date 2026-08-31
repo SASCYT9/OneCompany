@@ -343,6 +343,16 @@ type ProductResponse = {
   }>;
 };
 
+type CatalogPublicationStatus = {
+  version: string;
+  status: "SAVED" | "PUBLISHING" | "PUBLISHED" | "FAILED";
+  tracked: boolean;
+  pendingTargets: string[];
+  failedTargets: string[];
+  maxVersionLag: string;
+  lastError: string | null;
+};
+
 function slugify(value: string): string {
   return value
     .trim()
@@ -855,6 +865,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [variantBulk, setVariantBulk] = useState<VariantBulkState>(createEmptyVariantBulk());
   const [hardDeleting, setHardDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<ProductEditorTabId>("general");
+  const [publicationVersion, setPublicationVersion] = useState<string | null>(null);
+  const [publication, setPublication] = useState<CatalogPublicationStatus | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -952,6 +964,45 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       cancelled = true;
     };
   }, [productId]);
+
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const controller = new AbortController();
+
+    async function refreshPublication() {
+      const suffix = publicationVersion
+        ? `?version=${encodeURIComponent(publicationVersion)}`
+        : "";
+      try {
+        const response = await fetch(
+          `/api/admin/shop/products/${productId}/publication${suffix}`,
+          { cache: "no-store", signal: controller.signal }
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Failed to read publication status");
+        if (cancelled) return;
+        const next = data as CatalogPublicationStatus;
+        setPublication(next);
+        if (next.tracked && next.status !== "PUBLISHED" && next.status !== "FAILED") {
+          timer = setTimeout(refreshPublication, 1_000);
+        }
+      } catch (statusError) {
+        if (!cancelled && (statusError as Error).name !== "AbortError") {
+          console.error("Failed to refresh catalog publication status:", statusError);
+          timer = setTimeout(refreshPublication, 3_000);
+        }
+      }
+    }
+
+    void refreshPublication();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (timer) clearTimeout(timer);
+    };
+  }, [productId, publicationVersion]);
 
   const updateField = <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((current) => {
@@ -1504,8 +1555,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       }
       if (productId) {
         setForm(productToForm(data as ProductResponse));
-        setSuccess("Saved");
-        toast.success("Product saved");
+        const catalog = data.catalog as { version?: string; status?: "SAVED" } | undefined;
+        if (catalog?.version) {
+          setPublicationVersion(catalog.version);
+          setPublication({
+            version: catalog.version,
+            status: "SAVED",
+            tracked: true,
+            pendingTargets: [],
+            failedTargets: [],
+            maxVersionLag: "0",
+            lastError: null,
+          });
+        }
+        setSuccess("Збережено. Публікація перевіряється окремо.");
+        toast.success("Product saved", "Catalog publication is being verified");
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -1585,6 +1649,37 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         {success ? (
           <div className="mb-4">
             <AdminInlineAlert tone="success">{success}</AdminInlineAlert>
+          </div>
+        ) : null}
+        {publication ? (
+          <div className="mb-4 flex flex-wrap items-center gap-3 border border-white/8 bg-white/[0.025] px-4 py-3 text-xs text-zinc-400">
+            <span>Catalog V2 · version {publication.version}</span>
+            <AdminStatusBadge
+              tone={
+                publication.status === "PUBLISHED"
+                  ? "success"
+                  : publication.status === "FAILED"
+                    ? "danger"
+                    : "warning"
+              }
+            >
+              {publication.status === "SAVED"
+                ? "Saved"
+                : publication.status === "PUBLISHING"
+                  ? "Publishing"
+                  : publication.status === "PUBLISHED"
+                    ? "Published"
+                    : "Publication failed"}
+            </AdminStatusBadge>
+            {publication.maxVersionLag !== "0" ? (
+              <span>version lag: {publication.maxVersionLag}</span>
+            ) : null}
+            {publication.pendingTargets.length ? (
+              <span>pending: {publication.pendingTargets.join(", ")}</span>
+            ) : null}
+            {publication.lastError ? (
+              <span className="text-red-300">{publication.lastError}</span>
+            ) : null}
           </div>
         ) : null}
 

@@ -30,6 +30,7 @@ const mutationModule = import("../../../src/lib/shopCatalogMutationCoordinator.s
 const outboxModule = import("../../../src/lib/shopCatalogOutboxWorker.server");
 const checkpointModule = import("../../../src/lib/shopCatalogRebuildCheckpoint.server");
 const suggestionModule = import("../../../src/lib/shopCatalogSuggestion.server");
+const publicationStatusModule = import("../../../src/lib/shopCatalogPublicationStatus.server");
 
 function source(productId: string, version: string, titleSuffix = ""): ShopCatalogProjectionSource {
   return {
@@ -80,6 +81,7 @@ test(
     const { queryShopCatalogProjection } = await queryModule;
     const { queryShopCatalogProjectionFacets } = await queryModule;
     const { queryShopCatalogSuggestions } = await suggestionModule;
+    const { getShopCatalogPublicationStatusWithClient } = await publicationStatusModule;
     const { RevisionBackedShopCatalogProjectionSource } = await sourceModule;
     const { coordinateShopCatalogProductCreation, coordinateShopCatalogProductMutation } =
       await mutationModule;
@@ -150,6 +152,12 @@ test(
         },
       });
       assert.equal(secondMutation.canonicalVersion, "2");
+      const savedStatus = await getShopCatalogPublicationStatusWithClient(client, {
+        productId,
+        version: "2",
+      });
+      assert.equal(savedStatus?.status, "SAVED");
+      assert.deepEqual(savedStatus?.pendingTargets, ["CONTENT", "SEARCH"]);
       await assert.rejects(
         coordinateShopCatalogProductMutation({
           productId,
@@ -210,6 +218,12 @@ test(
         });
         assert.equal(result.status, "COMPLETED");
       }
+      const publishedStatus = await getShopCatalogPublicationStatusWithClient(client, {
+        productId,
+        version: "2",
+      });
+      assert.equal(publishedStatus?.status, "PUBLISHED");
+      assert.equal(publishedStatus?.maxVersionLag, "0");
       assert.equal((await persistShopCatalogProjectionBuild(newer)).decision, "IDEMPOTENT");
       assert.equal((await persistShopCatalogProjectionBuild(first)).decision, "STALE_VERSION");
 
@@ -329,6 +343,14 @@ test(
         },
       });
       assert.equal(retryResult.status, "RETRY");
+      assert.equal(
+        (
+          await getShopCatalogPublicationStatusWithClient(client, {
+            productId: retryMutation.productId,
+          })
+        )?.status,
+        "SAVED"
+      );
       await client.shopCatalogOutbox.update({
         where: { id: retryMutation.outboxId },
         data: { availableAt: new Date(0) },
@@ -384,6 +406,11 @@ test(
       assert.equal(deadLetter.status, "DEAD_LETTER");
       assert.equal(deadLetter.attempts, 2);
       assert.ok(deadLetter.processedAt);
+      const failedStatus = await getShopCatalogPublicationStatusWithClient(client, {
+        productId: deadMutation.productId,
+      });
+      assert.equal(failedStatus?.status, "FAILED");
+      assert.match(failedStatus?.lastError ?? "", /persistent projection outage/);
       const failedReceipts = await client.shopCatalogPublicationReceipt.findMany({
         where: { productId: deadMutation.productId },
         orderBy: { target: "asc" },
