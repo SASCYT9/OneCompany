@@ -139,6 +139,16 @@ test("Brabus cleanup is authenticated, preview-first, and versioned", () => {
   assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
 });
 
+test("category derivation deduplicates category upserts and publishes taxonomy assignments", () => {
+  const sharedSync = readWorkspaceFile("src/lib/shopAdminCategories.ts");
+  const route = readWorkspaceFile("src/app/api/admin/shop/categories/sync-from-products/route.ts");
+  assert.match(sharedSync, /const uniqueSeeds = new Map/);
+  assert.match(sharedSync, /coordinateShopCatalogProductMutation/);
+  assert.match(sharedSync, /changeDomains: \['TAXONOMY'\]/);
+  assert.doesNotMatch(sharedSync, /prisma\.shopProduct\.update\(/);
+  assert.match(route, /runShopCatalogOutboxRuntime/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

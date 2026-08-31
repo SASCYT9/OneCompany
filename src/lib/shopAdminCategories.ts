@@ -1,4 +1,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import type { AdminSession } from './adminAuth';
+import { buildShopCatalogAdminSnapshot } from './shopCatalogAdminSnapshot.server';
+import { coordinateShopCatalogProductMutation } from './shopCatalogMutationCoordinator.server';
 
 export const adminCategoryInclude = {
   parent: {
@@ -245,7 +248,7 @@ export function serializeAdminCategoryListItem(record: AdminShopCategoryRecord |
   };
 }
 
-export async function syncCatalogCategories(prisma: PrismaClient) {
+export async function syncCatalogCategories(prisma: PrismaClient, session: AdminSession) {
   const existingCategories = await prisma.shopCategory.findMany({
     select: {
       id: true,
@@ -260,6 +263,7 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
       categoryEn: true,
       categoryUa: true,
       categoryId: true,
+      catalogVersion: true,
     },
   });
 
@@ -267,12 +271,13 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
   let updated = 0;
   const categoryIdBySlug = new Map(existingBySlug);
 
+  const uniqueSeeds = new Map<string, ReturnType<typeof productCategorySeed> & {}>();
   for (const product of products) {
     const seed = productCategorySeed(product);
-    if (!seed) {
-      continue;
-    }
+    if (seed) uniqueSeeds.set(seed.slug, seed);
+  }
 
+  for (const seed of [...uniqueSeeds.values()].sort((a, b) => a.slug.localeCompare(b.slug, 'en'))) {
     const previousCategoryId = categoryIdBySlug.get(seed.slug);
     const category = await prisma.shopCategory.upsert({
       where: { slug: seed.slug },
@@ -302,6 +307,7 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
   }
 
   let assigned = 0;
+  const catalog: Array<{ productId: string; canonicalVersion: string; outboxId: string }> = [];
 
   for (const product of products) {
     const seed = productCategorySeed(product);
@@ -314,11 +320,26 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
       continue;
     }
 
-    await prisma.shopProduct.update({
-      where: { id: product.id },
-      data: {
-        categoryId,
+    const mutation = await coordinateShopCatalogProductMutation({
+      productId: product.id,
+      expectedCatalogVersion: product.catalogVersion.toString(),
+      changeDomains: ['TAXONOMY'],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
+          where: { id: product.id },
+          data: { categoryId },
+        });
+        return buildShopCatalogAdminSnapshot(tx, product.id, nextCatalogVersion, {
+          type: 'ADMIN',
+          id: session.email,
+          reason: 'category.sync_from_products',
+        });
       },
+    });
+    catalog.push({
+      productId: mutation.productId,
+      canonicalVersion: mutation.canonicalVersion,
+      outboxId: mutation.outboxId,
     });
     assigned += 1;
   }
@@ -328,5 +349,6 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
     updated,
     assigned,
     totalCategories: categoryIdBySlug.size,
+    catalog,
   };
 }
