@@ -79,6 +79,9 @@ import {
   type StrictCatalogSearchConstraints,
 } from "./strictCatalog";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import { compareShopCatalogLiveShadowPage } from "@/lib/shopCatalogLiveShadow";
+import { queryShopCatalogProjectionShadow } from "@/lib/shopCatalogProjectionQuery.server";
+import { resolveShopCatalogShadowFlag } from "@/lib/shopCatalogShadowFlag.server";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -975,6 +978,47 @@ export async function GET(request: NextRequest) {
     const strictCatalogPromise = strictCatalogApplied
       ? resolveStrictCatalogMatches(strictCatalogConstraints, locale === "en" ? "en" : "ua")
       : Promise.resolve<StrictCatalogResolution | null>(null);
+    const shadowFlag = resolveShopCatalogShadowFlag({
+      nodeEnv: process.env.NODE_ENV,
+      mode: process.env.SHOP_CATALOG_V2_SHADOW_MODE,
+    });
+    const rawBrands = searchParams
+      .getAll("brand")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const shadowUnsupported = Boolean(
+      page !== 1 ||
+      all ||
+      sort !== "default" ||
+      stock !== "all" ||
+      category ||
+      productType ||
+      (productKind && productKind !== "any") ||
+      strictCatalogApplied ||
+      minPrice !== null ||
+      maxPrice !== null ||
+      requestedOpfGpf ||
+      rawBrands.length > 1
+    );
+    const shadowStartedAt = Date.now();
+    const shadowPromise = shadowUnsupported
+      ? null
+      : queryShopCatalogProjectionShadow({
+          flag: shadowFlag,
+          query: {
+            locale: locale === "en" ? "en" : "ua",
+            limit,
+            text: q,
+            scope: searchParams.get("scope"),
+            brand: rawBrands[0] ?? null,
+            make,
+            model,
+            generation: chassis,
+            year: requestedYear,
+            engine: requestedEngine,
+            fuel: searchParams.get("fuel"),
+          },
+        }).catch((error: unknown) => ({ error }) as const);
 
     const [settingsRecord, session, canonicalVehicleProductIds, strictCatalogResolution] =
       await Promise.all([
@@ -1616,6 +1660,40 @@ export async function GET(request: NextRequest) {
     // Extract all unique brands and curated product groups for filter menus
     const brands = globalFilterStats.brands.map((entry) => entry.label);
     const categories = globalFilterStats.categories.map((entry) => entry.label);
+
+    if (shadowPromise) {
+      const shadow = await shadowPromise;
+      if ("error" in shadow) {
+        console.error("[Catalog V2 Shadow]", {
+          event: "catalog_v2_shadow_error",
+          durationMs: Date.now() - shadowStartedAt,
+          error: shadow.error instanceof Error ? shadow.error.message : String(shadow.error),
+        });
+      } else if (shadow.enabled) {
+        const comparison = compareShopCatalogLiveShadowPage({
+          legacyProductIds: sanitizedItems.map((item) => item.id),
+          projectionProductIds: shadow.result.items.map((item) => item.productId),
+          legacyHasMore: page < totalPages,
+          projectionHasMore: shadow.result.hasMore,
+        });
+        console.info("[Catalog V2 Shadow]", {
+          event: "catalog_v2_shadow_page_comparison",
+          durationMs: Date.now() - shadowStartedAt,
+          query: {
+            locale: locale === "en" ? "en" : "ua",
+            text: q || null,
+            scope: searchParams.get("scope"),
+            brand: rawBrands[0] ?? null,
+            make: make || null,
+            model: model || null,
+            generation: chassis || null,
+            year: requestedYear,
+            engine: requestedEngine,
+          },
+          ...comparison,
+        });
+      }
+    }
 
     const response = NextResponse.json({
       data: sanitizedItems,

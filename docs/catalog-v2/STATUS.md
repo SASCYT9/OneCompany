@@ -10,7 +10,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
 | C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green                              |
 | C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Core admin/imports plus Atomic feed cron green; remaining supplier/brand sync pending |
-| C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off                          |
+| C2-P2-003 | Flag-off indexed query and live shadow comparison | Done        | Compare-only stock endpoint telemetry; legacy response remains authoritative          |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
 serializes writers per product, and rejects same-version conflicts. Immutable revisions provide
@@ -98,7 +98,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 | C2-P1-005 | Add orphan-asset cleanup for failed multi-file Blob uploads                            | Done        | Media ownership ADR   | Failed product import leaves no unreferenced uploaded files                                                                                                                                                                                            |
 | C2-P2-001 | Persist projection batches and add a resumable rebuild worker                          | Done        | P1 complete           | Cursor, counts, restart replay, and completion are durable                                                                                                                                                                                             |
 | C2-P2-002 | Add mutation coordinator and transactional outbox publisher                            | In progress | P1 complete           | Editor, archive, bulk visibility, inventory, and pricing commit audit + lossless immutable revision + outbox atomically per product, use optimistic version checks, and trigger immediate bounded publication; import writers and failure drill remain |
-| C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | In progress | P2 projection writer  | Correlated indexed query exists; endpoint comparison remains                                                                                                                                                                                           |
+| C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | Done        | P2 projection writer  | Correlated indexed query and compare-only endpoint telemetry                                                                                                                                                                                           |
 
 ## Residual risks after P0
 
@@ -142,6 +142,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Active Atomic English translation package commands now run through the TSX server runner. Commit mode dynamically loads the explicit-client coordinator, applies each translated content/SEO field set under its planned catalog version, and reports catalog outbox IDs; plain-JS syntax and package JSON are validated.
 - Seventeen unreferenced destructive Brabus, Burger, Ducati/Akrapovič, IPE, dedupe, and media-trimming utilities now fail closed before Prisma client creation or product deletion. A source contract keeps them quarantined and prevents package-command exposure while preserving their historical transformation logic for later versioned rewrites.
 - Eventuri media migration now checks deterministic Blob path ownership before upload, refuses overwrites, and tracks every URL created in the current run. Successful product commits retain their referenced assets; skipped products and database failures remove unretained uploads in `finally`, while pre-existing/shared blobs are never cleanup candidates.
+- The live stock-search endpoint now invokes the indexed Catalog V2 query only under the fail-closed `compare` flag and never serves its result. Supported first-page/default-order requests emit bounded structured identity/order/continuation parity telemetry; unsupported legacy-only filters are skipped instead of generating misleading comparisons, and projection failures cannot fail the customer response.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.
