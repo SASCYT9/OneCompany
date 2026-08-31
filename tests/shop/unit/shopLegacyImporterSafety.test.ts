@@ -74,6 +74,17 @@ test("Atomic feed cron groups variant updates behind product catalog locks", () 
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:create|update|updateMany)\(/);
 });
 
+test("Atomic scheduler invokes the versioned endpoint instead of a direct database writer", () => {
+  const cli = readWorkspaceFile("scripts/atomic-sync-cron.ts");
+  const workflow = readWorkspaceFile(".github/workflows/atomic-sync-cron.yml");
+  assert.match(cli, /api\/admin\/cron\/atomic-sync/);
+  assert.match(cli, /CRON_SECRET/);
+  assert.doesNotMatch(cli, /PrismaClient|shopProduct|DATABASE_URL/);
+  assert.match(workflow, /api\/admin\/cron\/atomic-sync/);
+  assert.match(workflow, /secrets\.CRON_SECRET/);
+  assert.doesNotMatch(workflow, /DATABASE_URL|DIRECT_URL|scripts\/atomic-sync-cron/);
+});
+
 test("Turn14 live hydration and sync publish through the central catalog writer", () => {
   const sharedSync = readWorkspaceFile("src/lib/turn14Sync.ts");
   assert.match(sharedSync, /publishShopCatalogImportUpdate/);

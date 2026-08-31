@@ -19,23 +19,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Run Atomic Feed Sync
+      - name: Invoke versioned Atomic Feed Sync
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: npx tsx scripts/atomic-sync-cron.ts
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --show-error --silent \
+            --retry 3 --retry-all-errors --max-time 600 \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            https://onecompany.global/api/admin/cron/atomic-sync
