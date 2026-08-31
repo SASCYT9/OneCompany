@@ -9,7 +9,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | ID        | Work item                                         | Status      | Verification / remaining work                                |
 | --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------ |
 | C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green     |
-| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Editor, archive, inventory and recovery worker green; bulk/import/price writers pending |
+| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Editor, archive, inventory, pricing and recovery worker green; bulk/import writers pending |
 | C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
@@ -97,7 +97,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 | C2-P1-004 | Audit remaining Ducati/IPE repair, rebuild, seed, and cleanup scripts                  | Pending     | Import safety         | Every live path is ID-preserving or explicitly quarantined          |
 | C2-P1-005 | Add orphan-asset cleanup for failed multi-file Blob uploads                            | Pending     | Media ownership ADR   | Failed product import leaves no unreferenced uploaded files         |
 | C2-P2-001 | Persist projection batches and add a resumable rebuild worker                          | Done        | P1 complete           | Cursor, counts, restart replay, and completion are durable          |
-| C2-P2-002 | Add mutation coordinator and transactional outbox publisher                            | In progress | P1 complete           | Editor, archive, and product-scoped inventory commit audit + lossless immutable revision + outbox atomically, use optimistic version checks, and trigger immediate bounded publication; remaining writers and failure drill remain |
+| C2-P2-002 | Add mutation coordinator and transactional outbox publisher                            | In progress | P1 complete           | Editor, archive, inventory, and pricing commit audit + lossless immutable revision + outbox atomically, use optimistic version checks, and trigger immediate bounded publication; remaining writers and failure drill remain |
 | C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | In progress | P2 projection writer  | Correlated indexed query exists; endpoint comparison remains        |
 
 ## Residual risks after P0
@@ -110,7 +110,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 
 ## Residual risks after P1
 
-- Atomic persistence, immutable-revision source loading, durable rebuild checkpoints, mutation coordination, and leased outbox processing exist. `/api/cron/shop-catalog` runs a bounded recovery batch every five minutes and rebuilds exclusively from the event's immutable revision. The full editor, soft archive, and inventory writer schedule immediate publication after returning. Inventory now keeps legacy quantities, warehouse levels, product stock summary, audit, lossless revision, and outbox in the same product-locked transaction. Bulk status, imports, and pricing adoption plus retry/dead-letter operational drills remain.
+- Atomic persistence, immutable-revision source loading, durable rebuild checkpoints, mutation coordination, and leased outbox processing exist. `/api/cron/shop-catalog` runs a bounded recovery batch every five minutes and rebuilds exclusively from the event's immutable revision. The full editor, soft archive, inventory, and pricing writers schedule immediate publication after returning. Inventory and pricing keep variant values, product summaries, audit, lossless revision, and outbox in the same product-locked transaction. Pricing routes only to the volatile `PRICE` target. Bulk status and import adoption plus retry/dead-letter operational drills remain.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.

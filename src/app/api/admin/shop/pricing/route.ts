@@ -1,13 +1,20 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminVariantSummarySelect,
-  applyAdminPricingPatch,
+  applyAdminPricingPatchInTransaction,
   serializeAdminVariantSummary,
 } from "@/lib/shopAdminVariants";
 import { prisma } from "@/lib/prisma";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import {
+  coordinateShopCatalogProductMutation,
+  type ShopCatalogCoordinatedMutationResult,
+} from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 function decimalOrNull(value: unknown): number | null {
   if (value === "" || value == null) return null;
@@ -124,43 +131,105 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "No pricing changes provided" }, { status: 400 });
     }
 
-    const result = await applyAdminPricingPatch(prisma, payload);
-    await writeAdminAuditLog(prisma, session, {
-      scope: "shop",
-      action: "pricing.patch",
-      entityType: "shop.variant",
-      metadata: {
-        variantIds,
-        priceEur: payload.priceEur,
-        priceEurEurope: payload.priceEurEurope,
-        priceUsd: payload.priceUsd,
-        priceUah: payload.priceUah,
-        priceEurB2b: payload.priceEurB2b,
-        priceUsdB2b: payload.priceUsdB2b,
-        priceUahB2b: payload.priceUahB2b,
-        compareAtEur: payload.compareAtEur,
-        compareAtUsd: payload.compareAtUsd,
-        compareAtUah: payload.compareAtUah,
-        compareAtEurB2b: payload.compareAtEurB2b,
-        compareAtUsdB2b: payload.compareAtUsdB2b,
-        compareAtUahB2b: payload.compareAtUahB2b,
-        multiplyUah: payload.multiplyUah,
-        multiplyEur: payload.multiplyEur,
-        multiplyEurEurope: payload.multiplyEurEurope,
-        multiplyUsd: payload.multiplyUsd,
-        multiplyEurB2b: payload.multiplyEurB2b,
-        multiplyUsdB2b: payload.multiplyUsdB2b,
-        multiplyUahB2b: payload.multiplyUahB2b,
-        affectedCount: result.updatedCount,
+    const uniqueVariantIds = [...new Set(variantIds)];
+    const selectedVariants = await prisma.shopProductVariant.findMany({
+      where: { id: { in: uniqueVariantIds } },
+      select: {
+        id: true,
+        productId: true,
+        product: { select: { catalogVersion: true } },
       },
     });
-    return NextResponse.json(result);
+    if (selectedVariants.length !== uniqueVariantIds.length) {
+      return NextResponse.json({ error: "One or more variants were not found" }, { status: 404 });
+    }
+    const groups = new Map<string, { catalogVersion: string; variantIds: string[] }>();
+    for (const variant of selectedVariants) {
+      const group = groups.get(variant.productId) ?? {
+        catalogVersion: variant.product.catalogVersion.toString(),
+        variantIds: [],
+      };
+      group.variantIds.push(variant.id);
+      groups.set(variant.productId, group);
+    }
+
+    const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
+    let updatedCount = 0;
+    for (const [productId, group] of [...groups.entries()].sort(([left], [right]) =>
+      left.localeCompare(right, "en")
+    )) {
+      let affectedCount = 0;
+      const mutation = await coordinateShopCatalogProductMutation({
+        productId,
+        expectedCatalogVersion: group.catalogVersion,
+        changeDomains: ["PRICE"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          const result = await applyAdminPricingPatchInTransaction(tx, {
+            ...payload,
+            productId,
+            variantIds: group.variantIds,
+          });
+          affectedCount = result.updatedCount;
+          await writeAdminAuditLog(tx, session, {
+            scope: "shop",
+            action: "pricing.patch",
+            entityType: "shop.product",
+            entityId: productId,
+            metadata: {
+              ...payload,
+              variantIds: group.variantIds,
+              affectedCount,
+              catalogVersion: nextCatalogVersion,
+            },
+          });
+          return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+            type: "ADMIN",
+            id: session.email,
+            reason: "pricing.patch",
+          });
+        },
+      });
+      updatedCount += affectedCount;
+      catalogMutations.push(mutation);
+    }
+
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-pricing:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: Math.min(50, Math.max(10, catalogMutations.length)),
+        });
+      } catch (error) {
+        console.error("[shop-catalog.pricing] immediate publish failed; cron recovery remains active", {
+          outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
+          error,
+        });
+      }
+    });
+
+    return NextResponse.json({
+      updatedCount,
+      productIds: [...groups.keys()],
+      catalog: catalogMutations.map((mutation) => ({
+        productId: mutation.productId,
+        version: mutation.canonicalVersion,
+        revisionId: mutation.revisionId,
+        outboxId: mutation.outboxId,
+        status: "SAVED",
+      })),
+    });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if ((error as Error).message === "FORBIDDEN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (/^Catalog version conflict/.test((error as Error).message)) {
+      return NextResponse.json(
+        { error: "Pricing changed concurrently. Reload it before saving again." },
+        { status: 409 }
+      );
     }
     console.error("Admin pricing patch", error);
     return NextResponse.json({ error: "Failed to update pricing" }, { status: 500 });

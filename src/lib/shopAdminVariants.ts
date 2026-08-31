@@ -431,12 +431,28 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminPricingPatchInput) {
-  const variantIds = uniqueStrings(input.variantIds);
-  if (!variantIds.length) {
-    return { updatedCount: 0, productIds: [] as string[] };
-  }
+const pricingVariantSelect = {
+  id: true,
+  productId: true,
+  isDefault: true,
+  priceEur: true,
+  priceEurEurope: true,
+  priceUsd: true,
+  priceUah: true,
+  priceEurB2b: true,
+  priceUsdB2b: true,
+  priceUahB2b: true,
+  compareAtEur: true,
+  compareAtUsd: true,
+  compareAtUah: true,
+  compareAtEurB2b: true,
+  compareAtUsdB2b: true,
+  compareAtUahB2b: true,
+} satisfies Prisma.ShopProductVariantSelect;
 
+type PricingVariant = Prisma.ShopProductVariantGetPayload<{ select: typeof pricingVariantSelect }>;
+
+function pricingUpdateData(variant: PricingVariant, input: AdminPricingPatchInput) {
   const hasMultiplier =
     input.multiplyUah != null ||
     input.multiplyEur != null ||
@@ -445,26 +461,48 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
     input.multiplyEurB2b != null ||
     input.multiplyUsdB2b != null ||
     input.multiplyUahB2b != null;
+  const multiplied = (value: Prisma.Decimal | null, multiplier: number | null | undefined) =>
+    hasMultiplier && multiplier != null && value != null
+      ? round2(decimalToNumber(value)! * multiplier)
+      : undefined;
+  return {
+    priceEur: input.priceEur !== undefined ? input.priceEur : multiplied(variant.priceEur, input.multiplyEur),
+    priceEurEurope:
+      input.priceEurEurope !== undefined
+        ? input.priceEurEurope
+        : multiplied(variant.priceEurEurope, input.multiplyEurEurope),
+    priceUsd: input.priceUsd !== undefined ? input.priceUsd : multiplied(variant.priceUsd, input.multiplyUsd),
+    priceUah: input.priceUah !== undefined ? input.priceUah : multiplied(variant.priceUah, input.multiplyUah),
+    priceEurB2b:
+      input.priceEurB2b !== undefined
+        ? input.priceEurB2b
+        : multiplied(variant.priceEurB2b, input.multiplyEurB2b),
+    priceUsdB2b:
+      input.priceUsdB2b !== undefined
+        ? input.priceUsdB2b
+        : multiplied(variant.priceUsdB2b, input.multiplyUsdB2b),
+    priceUahB2b:
+      input.priceUahB2b !== undefined
+        ? input.priceUahB2b
+        : multiplied(variant.priceUahB2b, input.multiplyUahB2b),
+    compareAtEur: input.compareAtEur !== undefined ? input.compareAtEur : undefined,
+    compareAtUsd: input.compareAtUsd !== undefined ? input.compareAtUsd : undefined,
+    compareAtUah: input.compareAtUah !== undefined ? input.compareAtUah : undefined,
+    compareAtEurB2b: input.compareAtEurB2b !== undefined ? input.compareAtEurB2b : undefined,
+    compareAtUsdB2b: input.compareAtUsdB2b !== undefined ? input.compareAtUsdB2b : undefined,
+    compareAtUahB2b: input.compareAtUahB2b !== undefined ? input.compareAtUahB2b : undefined,
+  } satisfies Prisma.ShopProductVariantUpdateInput;
+}
+
+export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminPricingPatchInput) {
+  const variantIds = uniqueStrings(input.variantIds);
+  if (!variantIds.length) {
+    return { updatedCount: 0, productIds: [] as string[] };
+  }
 
   const variants = await prisma.shopProductVariant.findMany({
     where: { id: { in: variantIds } },
-    select: {
-      id: true,
-      productId: true,
-      priceEur: true,
-      priceEurEurope: true,
-      priceUsd: true,
-      priceUah: true,
-      priceEurB2b: true,
-      priceUsdB2b: true,
-      priceUahB2b: true,
-      compareAtEur: true,
-      compareAtUsd: true,
-      compareAtUah: true,
-      compareAtEurB2b: true,
-      compareAtUsdB2b: true,
-      compareAtUahB2b: true,
-    },
+    select: pricingVariantSelect,
   });
 
   if (!variants.length) {
@@ -473,74 +511,9 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
 
   await prisma.$transaction(
     variants.map((variant) => {
-      const current = {
-        priceEur: decimalToNumber(variant.priceEur),
-        priceEurEurope: decimalToNumber(variant.priceEurEurope),
-        priceUsd: decimalToNumber(variant.priceUsd),
-        priceUah: decimalToNumber(variant.priceUah),
-        priceEurB2b: decimalToNumber(variant.priceEurB2b),
-        priceUsdB2b: decimalToNumber(variant.priceUsdB2b),
-        priceUahB2b: decimalToNumber(variant.priceUahB2b),
-        compareAtEur: decimalToNumber(variant.compareAtEur),
-        compareAtUsd: decimalToNumber(variant.compareAtUsd),
-        compareAtUah: decimalToNumber(variant.compareAtUah),
-        compareAtEurB2b: decimalToNumber(variant.compareAtEurB2b),
-        compareAtUsdB2b: decimalToNumber(variant.compareAtUsdB2b),
-        compareAtUahB2b: decimalToNumber(variant.compareAtUahB2b),
-      };
-      const data: Prisma.ShopProductVariantUpdateInput = {
-        priceEur:
-          input.priceEur !== undefined
-            ? input.priceEur
-            : hasMultiplier && input.multiplyEur != null && current.priceEur != null
-              ? round2(current.priceEur * input.multiplyEur)
-              : undefined,
-        priceEurEurope:
-          input.priceEurEurope !== undefined
-            ? input.priceEurEurope
-            : hasMultiplier && input.multiplyEurEurope != null && current.priceEurEurope != null
-              ? round2(current.priceEurEurope * input.multiplyEurEurope)
-              : undefined,
-        priceUsd:
-          input.priceUsd !== undefined
-            ? input.priceUsd
-            : hasMultiplier && input.multiplyUsd != null && current.priceUsd != null
-              ? round2(current.priceUsd * input.multiplyUsd)
-              : undefined,
-        priceUah:
-          input.priceUah !== undefined
-            ? input.priceUah
-            : hasMultiplier && input.multiplyUah != null && current.priceUah != null
-              ? round2(current.priceUah * input.multiplyUah)
-              : undefined,
-        priceEurB2b:
-          input.priceEurB2b !== undefined
-            ? input.priceEurB2b
-            : hasMultiplier && input.multiplyEurB2b != null && current.priceEurB2b != null
-              ? round2(current.priceEurB2b * input.multiplyEurB2b)
-              : undefined,
-        priceUsdB2b:
-          input.priceUsdB2b !== undefined
-            ? input.priceUsdB2b
-            : hasMultiplier && input.multiplyUsdB2b != null && current.priceUsdB2b != null
-              ? round2(current.priceUsdB2b * input.multiplyUsdB2b)
-              : undefined,
-        priceUahB2b:
-          input.priceUahB2b !== undefined
-            ? input.priceUahB2b
-            : hasMultiplier && input.multiplyUahB2b != null && current.priceUahB2b != null
-              ? round2(current.priceUahB2b * input.multiplyUahB2b)
-              : undefined,
-        compareAtEur: input.compareAtEur !== undefined ? input.compareAtEur : undefined,
-        compareAtUsd: input.compareAtUsd !== undefined ? input.compareAtUsd : undefined,
-        compareAtUah: input.compareAtUah !== undefined ? input.compareAtUah : undefined,
-        compareAtEurB2b: input.compareAtEurB2b !== undefined ? input.compareAtEurB2b : undefined,
-        compareAtUsdB2b: input.compareAtUsdB2b !== undefined ? input.compareAtUsdB2b : undefined,
-        compareAtUahB2b: input.compareAtUahB2b !== undefined ? input.compareAtUahB2b : undefined,
-      };
       return prisma.shopProductVariant.update({
         where: { id: variant.id },
-        data,
+        data: pricingUpdateData(variant, input),
       });
     })
   );
@@ -552,4 +525,49 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
     updatedCount: variants.length,
     productIds,
   };
+}
+
+export async function applyAdminPricingPatchInTransaction(
+  tx: Prisma.TransactionClient,
+  input: AdminPricingPatchInput & { productId: string }
+) {
+  const variantIds = uniqueStrings(input.variantIds);
+  const variants = await tx.shopProductVariant.findMany({
+    where: { id: { in: variantIds }, productId: input.productId },
+    select: pricingVariantSelect,
+  });
+  if (variants.length !== variantIds.length) {
+    throw new Error(`Pricing variants do not all belong to product ${input.productId}`);
+  }
+  for (const variant of variants) {
+    await tx.shopProductVariant.update({
+      where: { id: variant.id },
+      data: pricingUpdateData(variant, input),
+    });
+  }
+  const defaultVariant = await tx.shopProductVariant.findFirst({
+    where: { productId: input.productId, isDefault: true },
+    select: pricingVariantSelect,
+  });
+  if (defaultVariant) {
+    await tx.shopProduct.update({
+      where: { id: input.productId },
+      data: {
+        priceEur: defaultVariant.priceEur,
+        priceEurEurope: defaultVariant.priceEurEurope,
+        priceUsd: defaultVariant.priceUsd,
+        priceUah: defaultVariant.priceUah,
+        priceEurB2b: defaultVariant.priceEurB2b,
+        priceUsdB2b: defaultVariant.priceUsdB2b,
+        priceUahB2b: defaultVariant.priceUahB2b,
+        compareAtEur: defaultVariant.compareAtEur,
+        compareAtUsd: defaultVariant.compareAtUsd,
+        compareAtUah: defaultVariant.compareAtUah,
+        compareAtEurB2b: defaultVariant.compareAtEurB2b,
+        compareAtUsdB2b: defaultVariant.compareAtUsdB2b,
+        compareAtUahB2b: defaultVariant.compareAtUahB2b,
+      },
+    });
+  }
+  return { updatedCount: variants.length, productIds: [input.productId] };
 }
