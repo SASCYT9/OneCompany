@@ -297,6 +297,16 @@ test("Brabus Blob migration groups every owned image reference into MEDIA revisi
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Media|Variant)?\.updateMany\(/);
 });
 
+test("Atomic EN translation command runs with TS support and publishes content revisions", () => {
+  const source = readWorkspaceFile("scripts/translate-atomic-products-en.js");
+  const manifest = readWorkspaceFile("package.json");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \['CONTENT', 'SEO'\]/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
+  assert.match(manifest, /shop:translate-atomic-en[^\n]+run-react-server-tsx\.mjs/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

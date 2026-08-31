@@ -8,10 +8,10 @@
  * 3. Translate only the remaining gaps from UA -> EN via Gemini.
  *
  * Usage:
- *   node scripts/translate-atomic-products-en.js --dry-run
- *   node scripts/translate-atomic-products-en.js --commit
- *   node scripts/translate-atomic-products-en.js --commit --translate-html
- *   node scripts/translate-atomic-products-en.js --commit --brands=ADRO,CSF
+ *   node scripts/run-react-server-tsx.mjs scripts/translate-atomic-products-en.js --dry-run
+ *   node scripts/run-react-server-tsx.mjs scripts/translate-atomic-products-en.js --commit
+ *   node scripts/run-react-server-tsx.mjs scripts/translate-atomic-products-en.js --commit --translate-html
+ *   node scripts/run-react-server-tsx.mjs scripts/translate-atomic-products-en.js --commit --brands=ADRO,CSF
  */
 require('dotenv').config({ path: '.env' });
 require('dotenv').config({ path: '.env.local', override: true });
@@ -589,6 +589,7 @@ async function main() {
       longDescEn: true,
       bodyHtmlUa: true,
       bodyHtmlEn: true,
+      catalogVersion: true,
     },
   });
 
@@ -623,6 +624,12 @@ async function main() {
     return;
   }
 
+  const [{ buildShopCatalogAdminSnapshot }, { coordinateShopCatalogProductMutationWithClient }] =
+    await Promise.all([
+      import('../src/lib/shopCatalogAdminSnapshot.server.ts'),
+      import('../src/lib/shopCatalogMutationCoordinator.server.ts'),
+    ]);
+
   const cache = new Map();
   const stats = {
     updated: 0,
@@ -638,6 +645,7 @@ async function main() {
     longFromBody: 0,
     longTranslated: 0,
     htmlTranslated: 0,
+    catalogOutboxIds: [],
   };
   const errors = [];
   const translationState = {
@@ -698,10 +706,20 @@ async function main() {
     }
 
     if (Object.keys(data).length > 0) {
-      await prisma.shopProduct.update({
-        where: { id: product.id },
-        data,
+      const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+        productId: product.id,
+        expectedCatalogVersion: product.catalogVersion.toString(),
+        changeDomains: ['CONTENT', 'SEO'],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          await tx.shopProduct.update({ where: { id: product.id }, data });
+          return buildShopCatalogAdminSnapshot(tx, product.id, nextCatalogVersion, {
+            type: 'IMPORT',
+            id: 'atomic-en-translation@system.local',
+            reason: 'atomic.en-translation',
+          });
+        },
       });
+      stats.catalogOutboxIds.push(mutation.outboxId);
       stats.updated += 1;
     }
 
@@ -732,6 +750,7 @@ async function main() {
         failed: stats.failed,
         stoppedBecauseQuota: stats.stoppedBecauseQuota,
         translationDisabledReason: translationState.reason,
+        catalogOutboxIds: stats.catalogOutboxIds,
         strategyBreakdown: {
           skippedTranslationFields: stats.skippedTranslationFields,
           titleFromBody: stats.titleFromBody,
