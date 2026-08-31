@@ -58,3 +58,12 @@ export function decideEventuriMediaMigration(
       : `media migration incomplete: ${missingLabel}`,
   };
 }
+
+export function getUnreferencedUploadedBlobUrls(
+  uploadedThisRun: ReadonlySet<string>,
+  persistedReferences: ReadonlySet<string>
+): string[] {
+  return Array.from(uploadedThisRun)
+    .filter((url) => !persistedReferences.has(url))
+    .sort();
+}

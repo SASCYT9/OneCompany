@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   decideEventuriMediaMigration,
   getExpectedEventuriMediaSources,
+  getUnreferencedUploadedBlobUrls,
 } from "../../../src/lib/eventuriMediaMigration";
 
 const primary = "https://cdn.example.com/primary.jpg";
@@ -89,12 +90,29 @@ test("Eventuri products with no expected media retain the existing draft-import 
   assert.deepEqual(decision, { canPersist: true, expectedSources: [] });
 });
 
+test("Eventuri orphan cleanup deletes only new uploads that no persisted product references", () => {
+  const uploadedThisRun = new Set([
+    "https://blob.example.com/shared.jpg",
+    "https://blob.example.com/skipped.jpg",
+    "https://blob.example.com/failed-after-upload.jpg",
+  ]);
+  const persistedReferences = new Set([
+    "https://blob.example.com/shared.jpg",
+    "https://blob.example.com/preexisting.jpg",
+  ]);
+
+  assert.deepEqual(getUnreferencedUploadedBlobUrls(uploadedThisRun, persistedReferences), [
+    "https://blob.example.com/failed-after-upload.jpg",
+    "https://blob.example.com/skipped.jpg",
+  ]);
+});
+
 test("Eventuri commit persists only the products returned by fail-closed media migration", () => {
   const source = readFileSync(
     new URL("../../../scripts/import-eventuri-catalog.ts", import.meta.url),
     "utf8"
   );
-  const migration = source.indexOf("productsToPersist = await migrateMedia(products, report)");
+  const migration = source.indexOf("mediaMigration = await migrateMedia(products, report)");
   const persistenceLoop = source.indexOf("for (const product of productsToPersist)", migration);
   const databaseLookup = source.indexOf(
     "const existing = await prisma.shopProduct.findUnique",
@@ -107,4 +125,7 @@ test("Eventuri commit persists only the products returned by fail-closed media m
     databaseLookup > persistenceLoop,
     "the fail-closed gate must run before database lookup"
   );
+  assert.match(source, /allowOverwrite: false/);
+  assert.match(source, /mediaMigration\?\.retain\(product\)/);
+  assert.match(source, /finally \{\s*await mediaMigration\?\.cleanup\(\)/);
 });

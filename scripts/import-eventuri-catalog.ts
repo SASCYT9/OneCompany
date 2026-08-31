@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
-import { put } from "@vercel/blob";
+import { del, list, put } from "@vercel/blob";
 import { PrismaClient } from "@prisma/client";
 import {
   adminProductImportMergeSelect,
@@ -21,6 +21,7 @@ import { getExpectedChassisForMakeModel } from "../src/lib/crossShopFitment";
 import {
   decideEventuriMediaMigration,
   getExpectedEventuriMediaSources,
+  getUnreferencedUploadedBlobUrls,
 } from "../src/lib/eventuriMediaMigration";
 import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
 import { sanitizeRichTextHtml } from "../src/lib/sanitizeRichTextHtml";
@@ -1001,10 +1002,16 @@ ${input}`,
 async function migrateMedia(
   products: AdminShopProductPayload[],
   report: ImportReport
-): Promise<AdminShopProductPayload[]> {
+): Promise<{
+  products: AdminShopProductPayload[];
+  retain(product: AdminShopProductPayload): void;
+  cleanup(): Promise<void>;
+}> {
   if (!process.env.BLOB_READ_WRITE_TOKEN)
     throw new Error("BLOB_READ_WRITE_TOKEN is required for commit-draft media migration");
   const resolved = new Map<string, string>();
+  const uploadedThisRun = new Set<string>();
+  const persistedReferences = new Set<string>();
   const expectedSources = Array.from(
     new Set(
       products.flatMap((product) =>
@@ -1027,13 +1034,22 @@ async function migrateMedia(
       const extension =
         path.extname(new URL(source).pathname) || (contentType === "image/webp" ? ".webp" : ".jpg");
       const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 24);
-      const blob = await put(`catalog/eventuri/${hash}${extension}`, buffer, {
-        access: "public",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType,
-      });
-      resolved.set(source, blob.url);
+      const pathname = `catalog/eventuri/${hash}${extension}`;
+      const existing = (await list({ prefix: pathname, limit: 2 })).blobs.find(
+        (blob) => blob.pathname === pathname
+      );
+      if (existing) {
+        resolved.set(source, existing.url);
+      } else {
+        const blob = await put(pathname, buffer, {
+          access: "public",
+          addRandomSuffix: false,
+          allowOverwrite: false,
+          contentType,
+        });
+        resolved.set(source, blob.url);
+        uploadedThisRun.add(blob.url);
+      }
     } catch (error) {
       report.unavailableMedia.push({ url: source, error: (error as Error).message });
     }
@@ -1068,7 +1084,31 @@ async function migrateMedia(
     safeProducts.push(product);
   }
 
-  return safeProducts;
+  return {
+    products: safeProducts,
+    retain(product) {
+      for (const url of getExpectedEventuriMediaSources({
+        primaryImage: product.image,
+        mediaSources: product.media.map((item) => item.src),
+        variantImages: product.variants.map((variant) => variant.image),
+      })) {
+        persistedReferences.add(url);
+      }
+    },
+    async cleanup() {
+      const orphanUrls = getUnreferencedUploadedBlobUrls(uploadedThisRun, persistedReferences);
+      for (const url of orphanUrls) {
+        try {
+          await del(url);
+        } catch (error) {
+          report.unavailableMedia.push({
+            url,
+            error: `orphan cleanup failed: ${(error as Error).message}`,
+          });
+        }
+      }
+    },
+  };
 }
 
 async function validateRemoteMedia(products: AdminShopProductPayload[], report: ImportReport) {
@@ -1436,8 +1476,10 @@ async function main() {
       }
     }
     let productsToPersist = products;
+    let mediaMigration: Awaited<ReturnType<typeof migrateMedia>> | null = null;
     if (!skipMedia) {
-      productsToPersist = await migrateMedia(products, report);
+      mediaMigration = await migrateMedia(products, report);
+      productsToPersist = mediaMigration.products;
     } else {
       // A resumable pricing-only rerun can retain the Blob URLs already
       // attached to draft records instead of re-downloading/re-uploading the
@@ -1467,48 +1509,53 @@ async function main() {
         });
       }
     }
-    for (const product of productsToPersist) {
-      const existing = await prisma.shopProduct.findUnique({
-        where: { slug: product.slug },
-        select: eventuriImportProductSelect,
-      });
-      if (existing) {
-        const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
-          productId: existing.id,
-          expectedCatalogVersion: existing.catalogVersion.toString(),
-          changeDomains: FULL_IMPORT_DOMAINS,
-          async mutateAndSnapshot(tx, nextCatalogVersion) {
-            await tx.shopProduct.update({
-              where: { id: existing.id },
-              data: buildAdminProductSnapshotMergeUpdateData(product, existing),
-            });
-            return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
-              type: "IMPORT",
-              id: "eventuri-import@system.local",
-              reason: "eventuri.draft-update",
-            });
-          },
+    try {
+      for (const product of productsToPersist) {
+        const existing = await prisma.shopProduct.findUnique({
+          where: { slug: product.slug },
+          select: eventuriImportProductSelect,
         });
-        report.catalogOutboxIds.push(mutation.outboxId);
-        report.updated.push(product.slug);
-      } else {
-        const createData = buildAdminProductCreateData(product);
-        const mutation = await coordinateShopCatalogProductCreationWithClient(prisma, {
-          changeDomains: FULL_IMPORT_DOMAINS,
-          async create(tx) {
-            return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
-          },
-          snapshot(tx, productId, initialCatalogVersion) {
-            return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
-              type: "IMPORT",
-              id: "eventuri-import@system.local",
-              reason: "eventuri.draft-create",
-            });
-          },
-        });
-        report.catalogOutboxIds.push(mutation.outboxId);
-        report.created.push(product.slug);
+        if (existing) {
+          const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+            productId: existing.id,
+            expectedCatalogVersion: existing.catalogVersion.toString(),
+            changeDomains: FULL_IMPORT_DOMAINS,
+            async mutateAndSnapshot(tx, nextCatalogVersion) {
+              await tx.shopProduct.update({
+                where: { id: existing.id },
+                data: buildAdminProductSnapshotMergeUpdateData(product, existing),
+              });
+              return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
+                type: "IMPORT",
+                id: "eventuri-import@system.local",
+                reason: "eventuri.draft-update",
+              });
+            },
+          });
+          report.catalogOutboxIds.push(mutation.outboxId);
+          report.updated.push(product.slug);
+        } else {
+          const createData = buildAdminProductCreateData(product);
+          const mutation = await coordinateShopCatalogProductCreationWithClient(prisma, {
+            changeDomains: FULL_IMPORT_DOMAINS,
+            async create(tx) {
+              return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
+            },
+            snapshot(tx, productId, initialCatalogVersion) {
+              return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+                type: "IMPORT",
+                id: "eventuri-import@system.local",
+                reason: "eventuri.draft-create",
+              });
+            },
+          });
+          report.catalogOutboxIds.push(mutation.outboxId);
+          report.created.push(product.slug);
+        }
+        mediaMigration?.retain(product);
       }
+    } finally {
+      await mediaMigration?.cleanup();
     }
   }
 
