@@ -38,42 +38,44 @@ export async function persistRaceChipCompatibilityInTransaction(input: {
   normalization: RaceChipNormalization;
 }) {
   const { tx, normalization } = input;
-  const makeKey = `auto:${normalization.make}`;
+  const normalizedMake = normalization.make.trim().toLowerCase();
+  const makeKey = `auto:${normalizedMake}`;
   const make = await tx.vehicleMake.upsert({
     where: { makeKey },
     create: {
       makeKey,
       scope: "auto",
       name: normalization.make,
-      normalizedName: normalization.make,
+      normalizedName: normalizedMake,
     },
     update: {},
   });
-  if (make.scope !== "auto" || make.name !== normalization.make) {
+  if (make.scope !== "auto" || make.normalizedName !== normalizedMake) {
     throw new Error(`RaceChip make taxonomy conflict: ${makeKey}`);
   }
-  const modelKey = `auto:${normalization.make}:${normalization.model}`;
+  const normalizedModel = normalization.model.trim().toLowerCase();
+  const modelKey = `auto:${normalizedMake}:${normalizedModel}`;
   const model = await tx.vehicleModel.upsert({
     where: { modelKey },
     create: {
       modelKey,
       makeId: make.id,
       name: normalization.model,
-      normalizedName: normalization.model,
+      normalizedName: normalizedModel,
     },
     update: {},
   });
-  if (model.makeId !== make.id || model.name !== normalization.model) {
+  if (model.makeId !== make.id || model.normalizedName !== normalizedModel) {
     throw new Error(`RaceChip model taxonomy conflict: ${modelKey}`);
   }
 
   const generation = normalization.generation
     ? await tx.vehicleGeneration.upsert({
         where: {
-          generationKey: `auto:${normalization.make}:${normalization.model}:${normalization.generation}`,
+          generationKey: `auto:${normalizedMake}:${normalizedModel}:${normalization.generation.toLowerCase()}`,
         },
         create: {
-          generationKey: `auto:${normalization.make}:${normalization.model}:${normalization.generation}`,
+          generationKey: `auto:${normalizedMake}:${normalizedModel}:${normalization.generation.toLowerCase()}`,
           scope: "auto",
           make: normalization.make,
           model: normalization.model,
@@ -91,14 +93,14 @@ export async function persistRaceChipCompatibilityInTransaction(input: {
     generation &&
     (generation.makeId !== make.id ||
       generation.modelId !== model.id ||
-      generation.generationName !== normalization.generation)
+      generation.generationName?.toLowerCase() !== normalization.generation?.toLowerCase())
   ) {
     throw new Error(`RaceChip generation taxonomy conflict: ${generation.generationKey}`);
   }
 
   const powertrainKey = key(
     "auto-powertrain",
-    `${normalization.make}|${normalization.engineDescriptor}|${normalization.fuel ?? "unknown"}`
+    `${normalizedMake}|${normalization.engineDescriptor}|${normalization.fuel ?? "unknown"}`
   );
   const powertrain = await tx.vehiclePowertrain.upsert({
     where: { powertrainKey },
@@ -179,9 +181,10 @@ export async function persistRaceChipCompatibilityInTransaction(input: {
       : []),
   ];
   for (const alias of aliases) {
+    const normalizedAlias = alias.alias.trim().toLowerCase();
     const aliasKey = key(
       "racechip-alias",
-      `${alias.entityType}|${alias.parentMakeId ?? ""}|${alias.parentModelId ?? ""}|${alias.alias}`
+      `${alias.entityType}|${"makeId" in alias ? alias.makeId : ""}|${"modelId" in alias ? alias.modelId : ""}|${"generationId" in alias ? alias.generationId : ""}|${"powertrainId" in alias ? alias.powertrainId : ""}|${"configurationId" in alias ? alias.configurationId : ""}|${alias.parentMakeId ?? ""}|${alias.parentModelId ?? ""}|${"parentGenerationId" in alias ? alias.parentGenerationId : ""}|${normalizedAlias}`
     );
     const persisted = await tx.vehicleTaxonomyAlias.upsert({
       where: { sourceId_aliasKey: { sourceId: input.sourceId, aliasKey } },
@@ -189,8 +192,9 @@ export async function persistRaceChipCompatibilityInTransaction(input: {
         sourceId: input.sourceId,
         aliasKey,
         entityType: alias.entityType,
+        scope: "auto",
         alias: alias.alias,
-        normalizedAlias: alias.alias,
+        normalizedAlias,
         makeId: "makeId" in alias ? alias.makeId : undefined,
         modelId: "modelId" in alias ? alias.modelId : undefined,
         generationId: "generationId" in alias ? alias.generationId : undefined,
@@ -204,7 +208,8 @@ export async function persistRaceChipCompatibilityInTransaction(input: {
     });
     if (
       persisted.entityType !== alias.entityType ||
-      persisted.alias !== alias.alias ||
+      persisted.scope !== "auto" ||
+      persisted.normalizedAlias !== normalizedAlias ||
       persisted.makeId !== ("makeId" in alias ? alias.makeId : null) ||
       persisted.modelId !== ("modelId" in alias ? alias.modelId : null) ||
       persisted.generationId !== ("generationId" in alias ? alias.generationId : null) ||

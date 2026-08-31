@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { Prisma, type ShopCatalogCompatibilityDimension } from "@prisma/client";
 
@@ -53,6 +53,7 @@ async function alias(input: {
   sourceId: string;
   label: string;
   aliasPrefix: string;
+  scope: "auto" | "moto";
   entityType: "MAKE" | "MODEL" | "GENERATION" | "POWERTRAIN";
   value: string;
   makeId?: string;
@@ -62,9 +63,13 @@ async function alias(input: {
   parentMakeId?: string;
   parentModelId?: string;
 }) {
+  const normalizedAlias = input.value.trim().toLowerCase();
   const aliasKey = key(
     input.aliasPrefix,
-    `${input.entityType}|${input.parentMakeId ?? ""}|${input.parentModelId ?? ""}|${input.value}`
+    // A literal alias such as "BMW" can legitimately target distinct auto
+    // and moto taxonomy nodes. Include both the resolved target and its
+    // parents so mixed-scope suppliers never collapse those identities.
+    `${input.entityType}|${input.makeId ?? ""}|${input.modelId ?? ""}|${input.generationId ?? ""}|${input.powertrainId ?? ""}|${input.parentMakeId ?? ""}|${input.parentModelId ?? ""}|${normalizedAlias}`
   );
   const persisted = await input.tx.vehicleTaxonomyAlias.upsert({
     where: { sourceId_aliasKey: { sourceId: input.sourceId, aliasKey } },
@@ -72,8 +77,9 @@ async function alias(input: {
       sourceId: input.sourceId,
       aliasKey,
       entityType: input.entityType,
+      scope: input.scope,
       alias: input.value,
-      normalizedAlias: input.value.toLowerCase(),
+      normalizedAlias,
       makeId: input.makeId,
       modelId: input.modelId,
       generationId: input.generationId,
@@ -85,6 +91,7 @@ async function alias(input: {
   });
   if (
     persisted.entityType !== input.entityType ||
+    persisted.scope !== input.scope ||
     persisted.makeId !== (input.makeId ?? null) ||
     persisted.modelId !== (input.modelId ?? null) ||
     persisted.generationId !== (input.generationId ?? null) ||
@@ -164,13 +171,14 @@ async function taxonomy(input: {
   if (powertrain && (powertrain.makeId !== make.id || powertrain.code !== application.engineCode || powertrain.fuelKey !== application.fuel)) {
     throw new Error(`${input.label} powertrain taxonomy conflict: ${powertrainKey}`);
   }
-  await alias({ tx, sourceId: input.sourceId, label: input.label, aliasPrefix: input.aliasPrefix, entityType: "MAKE", value: application.make, makeId: make.id });
-  await alias({ tx, sourceId: input.sourceId, label: input.label, aliasPrefix: input.aliasPrefix, entityType: "MODEL", value: application.model, modelId: model.id, parentMakeId: make.id });
+  await alias({ tx, sourceId: input.sourceId, label: input.label, aliasPrefix: input.aliasPrefix, scope, entityType: "MAKE", value: application.make, makeId: make.id });
+  await alias({ tx, sourceId: input.sourceId, label: input.label, aliasPrefix: input.aliasPrefix, scope, entityType: "MODEL", value: application.model, modelId: model.id, parentMakeId: make.id });
   if (generation) await alias({
     tx,
     sourceId: input.sourceId,
     label: input.label,
     aliasPrefix: input.aliasPrefix,
+    scope,
     entityType: "GENERATION",
     value: application.generation!,
     generationId: generation.id,
@@ -182,27 +190,13 @@ async function taxonomy(input: {
     sourceId: input.sourceId,
     label: input.label,
     aliasPrefix: input.aliasPrefix,
+    scope,
     entityType: "POWERTRAIN",
     value: application.engineCode!,
     powertrainId: powertrain.id,
     parentMakeId: make.id,
   });
   return { make, model, generation, powertrain };
-}
-
-async function createConstraint(input: {
-  tx: Prisma.TransactionClient;
-  clauseId: string;
-  dimension: ShopCatalogCompatibilityDimension;
-  state: "EXACT" | "ANY" | "NOT_APPLICABLE" | "UNKNOWN";
-  value?: ExactValue;
-}) {
-  const constraint = await input.tx.shopCatalogCompatibilityConstraint.create({
-    data: { clauseId: input.clauseId, dimension: input.dimension, state: input.state },
-  });
-  if (input.value) await input.tx.shopCatalogCompatibilityValue.create({
-    data: { constraintId: constraint.id, dimension: input.dimension, state: "EXACT", ...input.value },
-  });
 }
 
 export async function persistVehicleCompatibilityInTransaction(input: {
@@ -264,22 +258,25 @@ export async function persistVehicleCompatibilityInTransaction(input: {
   const clauseApplications: Array<VehiclePolicyApplication | null> = normalization.applications.length
     ? normalization.applications
     : [null];
+  const clauseRows: Prisma.ShopCatalogCompatibilityClauseUncheckedCreateInput[] = [];
+  const constraintRows: Prisma.ShopCatalogCompatibilityConstraintUncheckedCreateInput[] = [];
+  const valueRows: Prisma.ShopCatalogCompatibilityValueUncheckedCreateInput[] = [];
   for (let position = 0; position < clauseApplications.length; position += 1) {
     const application = clauseApplications[position];
     const item = application ? resolved[position]! : null;
-    const clause = await tx.shopCatalogCompatibilityClause.create({
-      data: {
+    const clause = {
+      id: randomUUID(),
         policyId: policy.id,
         clauseKey: key("eventuri-clause", application
-          ? `${application.scope ?? "auto"}|${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}|${application.opfGpf ?? "*"}|${application.transmission ?? "*"}`
+          ? `${application.scope ?? "auto"}|${application.make}|${application.model}|${application.generation ?? "*"}|${application.yearFrom ?? "*"}|${application.yearTo ?? "*"}|${application.engineCode ?? "*"}|${application.fuel ?? "*"}|${application.opfGpf ?? "*"}|${application.transmission ?? "*"}`
           : `${normalization.recordKey}|unresolved`),
         position,
         verification: normalization.verification,
         sourceRecordId: input.sourceRecordId,
         sourceRef: normalization.recordKey,
         evidenceHash: input.payloadHash,
-      },
-    });
+    } satisfies Prisma.ShopCatalogCompatibilityClauseUncheckedCreateInput;
+    clauseRows.push(clause);
     const universal = policyMode === "UNIVERSAL";
     const specs: Array<{
       dimension: ShopCatalogCompatibilityDimension;
@@ -331,7 +328,14 @@ export async function persistVehicleCompatibilityInTransaction(input: {
               : "UNKNOWN",
           value: dimension === "SCOPE" ? { textValue: normalization.applications[0]?.scope ?? normalization.scope ?? "auto" } : undefined,
         }));
-    for (const spec of specs) await createConstraint({ tx, clauseId: clause.id, ...spec });
+    for (const spec of specs) {
+      const constraintId = randomUUID();
+      constraintRows.push({ id: constraintId, clauseId: clause.id, dimension: spec.dimension, state: spec.state });
+      if (spec.state === "EXACT" && spec.value) valueRows.push({ constraintId, dimension: spec.dimension, state: spec.state, ...spec.value });
+    }
   }
+  await tx.shopCatalogCompatibilityClause.createMany({ data: clauseRows });
+  await tx.shopCatalogCompatibilityConstraint.createMany({ data: constraintRows });
+  if (valueRows.length) await tx.shopCatalogCompatibilityValue.createMany({ data: valueRows });
   return { policyId: policy.id, idempotent: false, clauses: clauseApplications.length };
 }

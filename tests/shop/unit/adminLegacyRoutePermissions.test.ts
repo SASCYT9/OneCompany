@@ -20,6 +20,10 @@ const EXPLICIT_EXCEPTIONS = new Map<string, string>([
     "Service endpoint authenticated with its bearer secret instead of an admin session.",
   ],
   [
+    "src/app/api/admin/cron/turn14-sync/route.ts",
+    "Service endpoint authenticated with its bearer secret instead of an admin session.",
+  ],
+  [
     "src/app/api/admin/search/route.ts",
     "Search resolves current DB access once and applies domain permissions to each result group.",
   ],
