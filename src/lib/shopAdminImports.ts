@@ -26,6 +26,7 @@ import {
   supplierContractToNormalizedFitment,
   validateSupplierFitmentParentReference,
 } from "@/lib/shopImportFitment";
+import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
 
 export const adminImportTemplateSelect = {
   id: true,
@@ -83,6 +84,92 @@ type ImportRowErrorInput = {
 };
 
 type ImportTemplatePayload = ReturnType<typeof normalizeImportTemplatePayload>["data"];
+
+type CsvCatalogUpdateInput = {
+  prisma: PrismaClient;
+  session: AdminSession;
+  data: AdminShopProductPayload;
+  existing: Prisma.ShopProductGetPayload<{ select: typeof adminProductImportMergeSelect }> & {
+    catalogVersion: bigint;
+  };
+  relationMask: AdminProductImportRelationMask;
+  scalarMask: AdminProductImportScalarMask;
+};
+
+export type ShopCsvCatalogWriter = {
+  update(input: CsvCatalogUpdateInput): Promise<ShopCatalogCoordinatedMutationResult>;
+  create(input: {
+    prisma: PrismaClient;
+    session: AdminSession;
+    data: AdminShopProductPayload;
+  }): Promise<ShopCatalogCoordinatedMutationResult>;
+};
+
+const IMPORT_CHANGE_DOMAINS = [
+  "CONTENT",
+  "SEO",
+  "MEDIA",
+  "PRICE",
+  "INVENTORY",
+  "FITMENT",
+  "TAXONOMY",
+  "VISIBILITY",
+] as const;
+
+const adminProductImportCoordinatorSelect = {
+  ...adminProductImportMergeSelect,
+  catalogVersion: true,
+} satisfies Prisma.ShopProductSelect;
+
+export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
+  async update({ session, data, existing, relationMask, scalarMask }) {
+    const [{ coordinateShopCatalogProductMutation }, { buildShopCatalogAdminSnapshot }] =
+      await Promise.all([
+        import("@/lib/shopCatalogMutationCoordinator.server"),
+        import("@/lib/shopCatalogAdminSnapshot.server"),
+      ]);
+    return coordinateShopCatalogProductMutation({
+      productId: existing.id,
+      expectedCatalogVersion: existing.catalogVersion.toString(),
+      changeDomains: IMPORT_CHANGE_DOMAINS,
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
+          where: { id: existing.id },
+          data: buildAdminProductImportUpdateData(data, existing, relationMask, scalarMask),
+        });
+        return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: session.email,
+          reason: "import.csv.update",
+        });
+      },
+    });
+  },
+  async create({ session, data }) {
+    const [{ coordinateShopCatalogProductCreation }, { buildShopCatalogAdminSnapshot }] =
+      await Promise.all([
+        import("@/lib/shopCatalogMutationCoordinator.server"),
+        import("@/lib/shopCatalogAdminSnapshot.server"),
+      ]);
+    return coordinateShopCatalogProductCreation({
+      changeDomains: IMPORT_CHANGE_DOMAINS,
+      async create(tx) {
+        const created = await tx.shopProduct.create({
+          data: buildAdminProductCreateData(data),
+          select: { id: true },
+        });
+        return created.id;
+      },
+      snapshot(tx, productId, initialCatalogVersion) {
+        return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+          type: "IMPORT",
+          id: session.email,
+          reason: "import.csv.create",
+        });
+      },
+    });
+  },
+};
 
 function nullableString(value: unknown) {
   const normalized = String(value ?? "").trim();
@@ -614,7 +701,8 @@ async function createImportJobRecord(
 export async function runShopCsvImport(
   prisma: PrismaClient,
   session: AdminSession,
-  request: CsvImportRequest
+  request: CsvImportRequest,
+  catalogWriter: ShopCsvCatalogWriter = prismaShopCsvCatalogWriter
 ) {
   const template = await findTemplate(prisma, request.templateId);
   const headerMapping = extractHeaderMapping(template?.fieldMapping);
@@ -818,6 +906,7 @@ export async function runShopCsvImport(
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
   const commitErrors: ImportRowErrorInput[] = [...validationErrors];
 
   for (const { data, rowIndex, relationMask } of productsToUpsert) {
@@ -828,7 +917,7 @@ export async function runShopCsvImport(
     try {
       const existing = await prisma.shopProduct.findUnique({
         where: { slug: data.slug },
-        select: adminProductImportMergeSelect,
+        select: adminProductImportCoordinatorSelect,
       });
 
       if (existing) {
@@ -849,17 +938,21 @@ export async function runShopCsvImport(
           continue;
         }
 
-        await prisma.shopProduct.update({
-          where: { slug: data.slug },
-          data: buildAdminProductImportUpdateData(data, existing, relationMask, scalarMask),
-        });
+        catalogMutations.push(
+          await catalogWriter.update({
+            prisma,
+            session,
+            data,
+            existing,
+            relationMask,
+            scalarMask,
+          })
+        );
         updated += 1;
         continue;
       }
 
-      await prisma.shopProduct.create({
-        data: buildAdminProductCreateData(data),
-      });
+      catalogMutations.push(await catalogWriter.create({ prisma, session, data }));
       created += 1;
     } catch (error) {
       commitErrors.push({
@@ -924,6 +1017,13 @@ export async function runShopCsvImport(
     created,
     updated,
     skipped,
+    catalog: catalogMutations.map((mutation) => ({
+      productId: mutation.productId,
+      version: mutation.canonicalVersion,
+      revisionId: mutation.revisionId,
+      outboxId: mutation.outboxId,
+      status: "SAVED" as const,
+    })),
     fitment: fitmentValidation,
     errors: commitErrors.map((item) => ({
       row: item.rowNumber,

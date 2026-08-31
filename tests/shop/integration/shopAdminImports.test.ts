@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ShopImportConflictMode } from '@prisma/client';
 import { runShopCsvImport } from '../../../src/lib/shopAdminImports';
+import type { ShopCsvCatalogWriter } from '../../../src/lib/shopAdminImports';
+import {
+  buildAdminProductCreateData,
+  buildAdminProductImportUpdateData,
+} from '../../../src/lib/shopAdminCatalog';
 
 const CSV = [
   [
@@ -186,6 +191,33 @@ const adminSession = {
   permissions: ['*'],
 } as const;
 
+function catalogResult(productId: string) {
+  return {
+    productId,
+    previousVersion: '0',
+    canonicalVersion: '1',
+    revisionId: `revision-${productId}`,
+    outboxId: `outbox-${productId}`,
+    dedupeKey: `product:${productId}:1`,
+    projectionTargets: ['CONTENT'] as const,
+    contentHash: 'a'.repeat(64),
+  };
+}
+
+const mockCatalogWriter: ShopCsvCatalogWriter = {
+  async update({ prisma, data, existing, relationMask, scalarMask }) {
+    await prisma.shopProduct.update({
+      where: { id: existing.id },
+      data: buildAdminProductImportUpdateData(data, existing, relationMask, scalarMask),
+    });
+    return catalogResult(existing.id);
+  },
+  async create({ prisma, data }) {
+    const created = await prisma.shopProduct.create({ data: buildAdminProductCreateData(data) });
+    return catalogResult(created.id);
+  },
+};
+
 test('runShopCsvImport respects CREATE conflict mode and records row errors', async () => {
   const prisma = createMockPrisma({ id: 'product-1', slug: 'urban-rear-bumper' });
   const result = await runShopCsvImport(prisma as never, adminSession as never, {
@@ -193,7 +225,7 @@ test('runShopCsvImport respects CREATE conflict mode and records row errors', as
     action: 'commit',
     conflictMode: 'CREATE',
     sourceFilename: 'urban.csv',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(result.created, 0);
   assert.equal(result.updated, 0);
@@ -203,6 +235,29 @@ test('runShopCsvImport respects CREATE conflict mode and records row errors', as
   assert.equal(prisma.state.auditLogs, 1);
 });
 
+test('runShopCsvImport returns the first catalog publication for a created product', async () => {
+  const prisma = createMockPrisma(null);
+  const result = await runShopCsvImport(prisma as never, adminSession as never, {
+    csvText: CSV,
+    action: 'commit',
+    conflictMode: 'CREATE',
+    sourceFilename: 'new-product.csv',
+  }, mockCatalogWriter);
+
+  assert.equal(result.created, 1);
+  assert.equal(result.updated, 0);
+  assert.equal(prisma.state.created, 1);
+  assert.deepEqual(result.catalog, [
+    {
+      productId: 'product-2',
+      version: '1',
+      revisionId: 'revision-product-2',
+      outboxId: 'outbox-product-2',
+      status: 'SAVED',
+    },
+  ]);
+});
+
 test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
   const skipPrisma = createMockPrisma({ id: 'product-1', slug: 'urban-rear-bumper' });
   const skipResult = await runShopCsvImport(skipPrisma as never, adminSession as never, {
@@ -210,7 +265,7 @@ test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
     action: 'commit',
     conflictMode: 'SKIP',
     sourceFilename: 'urban.csv',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(skipResult.created, 0);
   assert.equal(skipResult.updated, 0);
@@ -246,7 +301,7 @@ test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
     conflictMode: 'UPDATE',
     sourceFilename: 'urban.csv',
     templateId: 'template-1',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(updateResult.created, 0);
   assert.equal(updateResult.updated, 1);
@@ -302,7 +357,7 @@ test('runShopCsvImport treats missing nested CSV columns as preserve, not delete
     csvText: PARTIAL_CSV,
     action: 'commit',
     conflictMode: 'UPDATE',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(result.updated, 1);
   const updateData = prisma.state.lastUpdateData as Record<string, unknown>;
@@ -340,7 +395,7 @@ test('runShopCsvImport only mutates variant scalar columns that are present', as
     csvText: PARTIAL_VARIANT_CSV,
     action: 'commit',
     conflictMode: 'UPDATE',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(result.updated, 1);
   const updateData = prisma.state.lastUpdateData as {
@@ -383,7 +438,7 @@ test('runShopCsvImport does not clear option values when only the option name is
     csvText: PARTIAL_OPTION_CSV,
     action: 'commit',
     conflictMode: 'UPDATE',
-  });
+  }, mockCatalogWriter);
 
   assert.equal(result.updated, 1);
   const updateData = prisma.state.lastUpdateData as {

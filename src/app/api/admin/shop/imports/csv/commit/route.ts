@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { runShopCsvImport } from "@/lib/shopAdminImports";
 import { prisma } from "@/lib/prisma";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 async function parseImportRequest(request: NextRequest) {
   const contentType = request.headers.get("content-type") || "";
@@ -61,12 +63,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "CSV payload is required" }, { status: 400 });
     }
 
-    return NextResponse.json(
-      await runShopCsvImport(prisma, session, {
-        ...payload,
-        action: "commit",
-      })
-    );
+    const result = await runShopCsvImport(prisma, session, {
+      ...payload,
+      action: "commit",
+    });
+    const catalog = result.catalog ?? [];
+    if (catalog.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-csv:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, catalog.length)),
+          });
+        } catch (error) {
+          console.error("[shop-catalog.csv] immediate publish failed; cron recovery remains active", {
+            outboxIds: catalog.map((mutation) => mutation.outboxId),
+            error,
+          });
+        }
+      });
+    }
+    return NextResponse.json(result);
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
