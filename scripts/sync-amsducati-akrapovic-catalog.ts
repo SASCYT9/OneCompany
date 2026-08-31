@@ -10,6 +10,11 @@ import {
   listAllBlobsByPrefix,
   putPublicBlob,
 } from "../src/lib/runtimeBlobStorage";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import {
+  coordinateShopCatalogProductCreationWithClient,
+  coordinateShopCatalogProductMutationWithClient,
+} from "../src/lib/shopCatalogMutationCoordinator.server";
 
 dotenv.config({ path: ".env.local" });
 
@@ -18,6 +23,24 @@ const AMS_EXHAUST_URL = "https://amsducati.com/ducati-accessories/exhaust/";
 const AMS_LISTING_URLS = [AMS_BRAND_URL, AMS_EXHAUST_URL];
 const COMMIT = process.argv.includes("--commit");
 const prisma = new PrismaClient();
+const FULL_IMPORT_DOMAINS = [
+  "CONTENT",
+  "SEO",
+  "MEDIA",
+  "PRICE",
+  "INVENTORY",
+  "FITMENT",
+  "TAXONOMY",
+  "VISIBILITY",
+] as const;
+
+function stringifyJson(value: unknown) {
+  return JSON.stringify(
+    value,
+    (_key, item) => (typeof item === "bigint" ? item.toString() : item),
+    2
+  );
+}
 
 const REPRESENTED_AMS_SKUS = new Set([
   "96481775DA",
@@ -409,14 +432,11 @@ async function main() {
       sourceUrl: candidate.url,
     })),
     archiveInvalidComponent: Boolean(invalidComponent?.isPublished),
+    catalogOutboxIds: [] as string[],
   };
   const reportDir = path.join(process.cwd(), "tmp", "amsducati-akrapovic");
   await fs.mkdir(reportDir, { recursive: true });
-  await fs.writeFile(
-    path.join(reportDir, "catalog-latest.json"),
-    JSON.stringify(report, null, 2),
-    "utf8"
-  );
+  await fs.writeFile(path.join(reportDir, "catalog-latest.json"), stringifyJson(report), "utf8");
 
   console.table(report.candidates.map(({ sourceUrl: _sourceUrl, ...row }) => row));
   console.log(`Create: ${creates.length}; update: ${updates.length}`);
@@ -433,7 +453,7 @@ async function main() {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   await fs.writeFile(
     path.join(backupDir, `catalog-before-${stamp}.json`),
-    JSON.stringify({ report, existing, invalidComponent }, null, 2),
+    stringifyJson({ report, existing, invalidComponent }),
     "utf8"
   );
 
@@ -452,106 +472,147 @@ async function main() {
     if (imageUrls.length === 0) throw new Error(`No images available for ${candidate.sku}`);
 
     if (current) {
-      await prisma.$transaction(async (tx) => {
-        await tx.shopProduct.update({
-          where: { id: current.id },
-          data: {
-            titleEn: candidate.title,
-            titleUa: ua.titleUa,
-            categoryEn: category.en,
-            categoryUa: category.ua,
-            productType: category.en,
-            shortDescEn,
-            shortDescUa: ua.shortDescUa,
-            longDescEn: plainEnglish,
-            longDescUa: ua.longDescUa,
-            bodyHtmlEn: candidate.descriptionHtml,
-            bodyHtmlUa: ua.bodyHtmlUa,
-            seoTitleEn: candidate.title,
-            seoTitleUa: ua.titleUa,
-            seoDescriptionEn: shortDescEn,
-            seoDescriptionUa: ua.shortDescUa,
-            priceUsd,
-            compareAtUsd,
-            image: imageUrls[0],
-            gallery: imageUrls,
-            tags,
-            stock: candidate.outOfStock ? "outOfStock" : "inStock",
-            isPublished: true,
-            status: "ACTIVE",
-          },
-        });
-        await tx.shopProductVariant.updateMany({
-          where: { productId: current.id },
-          data: { priceUsd, compareAtUsd, image: imageUrls[0] },
-        });
+      const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+        productId: current.id,
+        expectedCatalogVersion: current.catalogVersion.toString(),
+        changeDomains: FULL_IMPORT_DOMAINS,
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          await tx.shopProduct.update({
+            where: { id: current.id },
+            data: {
+              titleEn: candidate.title,
+              titleUa: ua.titleUa,
+              categoryEn: category.en,
+              categoryUa: category.ua,
+              productType: category.en,
+              shortDescEn,
+              shortDescUa: ua.shortDescUa,
+              longDescEn: plainEnglish,
+              longDescUa: ua.longDescUa,
+              bodyHtmlEn: candidate.descriptionHtml,
+              bodyHtmlUa: ua.bodyHtmlUa,
+              seoTitleEn: candidate.title,
+              seoTitleUa: ua.titleUa,
+              seoDescriptionEn: shortDescEn,
+              seoDescriptionUa: ua.shortDescUa,
+              priceUsd,
+              compareAtUsd,
+              image: imageUrls[0],
+              gallery: imageUrls,
+              tags,
+              stock: candidate.outOfStock ? "outOfStock" : "inStock",
+              isPublished: true,
+              status: "ACTIVE",
+            },
+          });
+          const updatedVariants = await tx.shopProductVariant.updateMany({
+            where: { productId: current.id },
+            data: { priceUsd, compareAtUsd, image: imageUrls[0] },
+          });
+          if (updatedVariants.count !== current.variants.length) {
+            throw new Error(`Variant set changed during Akrapovič catalog update ${current.id}`);
+          }
+          return buildShopCatalogAdminSnapshot(tx, current.id, nextCatalogVersion, {
+            type: "IMPORT",
+            id: "amsducati-akrapovic-catalog@system.local",
+            reason: "amsducati.akrapovic.catalog-update",
+          });
+        },
       });
+      report.catalogOutboxIds.push(mutation.outboxId);
       continue;
     }
 
-    await prisma.shopProduct.create({
-      data: {
-        slug: slugify(`ducati-akrapovic-${candidate.sku}`),
-        sku: candidate.sku,
-        scope: "moto",
-        brand: "AKRAPOVIC",
-        vendor: "Ducati Performance",
-        titleEn: candidate.title,
-        titleUa: ua.titleUa,
-        categoryEn: category.en,
-        categoryUa: category.ua,
-        productType: category.en,
-        shortDescEn,
-        shortDescUa: ua.shortDescUa,
-        longDescEn: plainEnglish,
-        longDescUa: ua.longDescUa,
-        bodyHtmlEn: candidate.descriptionHtml,
-        bodyHtmlUa: ua.bodyHtmlUa,
-        seoTitleEn: candidate.title,
-        seoTitleUa: ua.titleUa,
-        seoDescriptionEn: shortDescEn,
-        seoDescriptionUa: ua.shortDescUa,
-        priceUsd,
-        compareAtUsd,
-        image: imageUrls[0],
-        gallery: imageUrls,
-        tags,
-        stock: candidate.outOfStock ? "outOfStock" : "inStock",
-        isPublished: true,
-        status: "ACTIVE",
-        publishedAt: new Date(),
-        variants: {
-          create: {
-            title: "Default Title",
-            sku: candidate.sku,
-            position: 1,
-            inventoryQty: candidate.outOfStock ? 0 : 5,
-            inventoryPolicy: "CONTINUE",
-            priceUsd,
-            compareAtUsd,
-            image: imageUrls[0],
-            isDefault: true,
-            requiresShipping: true,
-            taxable: true,
-          },
-        },
-        media: {
-          create: imageUrls.map((src, index) => ({
-            mediaType: "IMAGE",
-            src,
-            position: index + 1,
-          })),
+    const createData: Prisma.ShopProductCreateInput = {
+      slug: slugify(`ducati-akrapovic-${candidate.sku}`),
+      sku: candidate.sku,
+      scope: "moto",
+      brand: "AKRAPOVIC",
+      vendor: "Ducati Performance",
+      titleEn: candidate.title,
+      titleUa: ua.titleUa,
+      categoryEn: category.en,
+      categoryUa: category.ua,
+      productType: category.en,
+      shortDescEn,
+      shortDescUa: ua.shortDescUa,
+      longDescEn: plainEnglish,
+      longDescUa: ua.longDescUa,
+      bodyHtmlEn: candidate.descriptionHtml,
+      bodyHtmlUa: ua.bodyHtmlUa,
+      seoTitleEn: candidate.title,
+      seoTitleUa: ua.titleUa,
+      seoDescriptionEn: shortDescEn,
+      seoDescriptionUa: ua.shortDescUa,
+      priceUsd,
+      compareAtUsd,
+      image: imageUrls[0],
+      gallery: imageUrls,
+      tags,
+      stock: candidate.outOfStock ? "outOfStock" : "inStock",
+      isPublished: true,
+      status: "ACTIVE",
+      publishedAt: new Date(),
+      variants: {
+        create: {
+          title: "Default Title",
+          sku: candidate.sku,
+          position: 1,
+          inventoryQty: candidate.outOfStock ? 0 : 5,
+          inventoryPolicy: "CONTINUE",
+          priceUsd,
+          compareAtUsd,
+          image: imageUrls[0],
+          isDefault: true,
+          requiresShipping: true,
+          taxable: true,
         },
       },
+      media: {
+        create: imageUrls.map((src, index) => ({
+          mediaType: "IMAGE",
+          src,
+          position: index + 1,
+        })),
+      },
+    };
+    const mutation = await coordinateShopCatalogProductCreationWithClient(prisma, {
+      changeDomains: FULL_IMPORT_DOMAINS,
+      async create(tx) {
+        return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
+      },
+      snapshot(tx, productId, initialCatalogVersion) {
+        return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+          type: "IMPORT",
+          id: "amsducati-akrapovic-catalog@system.local",
+          reason: "amsducati.akrapovic.catalog-create",
+        });
+      },
     });
+    report.catalogOutboxIds.push(mutation.outboxId);
   }
 
   if (invalidComponent?.isPublished) {
-    await prisma.shopProduct.update({
-      where: { id: invalidComponent.id },
-      data: { isPublished: false, status: "ARCHIVED" },
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: invalidComponent.id,
+      expectedCatalogVersion: invalidComponent.catalogVersion.toString(),
+      changeDomains: ["VISIBILITY"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
+          where: { id: invalidComponent.id },
+          data: { isPublished: false, status: "ARCHIVED" },
+        });
+        return buildShopCatalogAdminSnapshot(tx, invalidComponent.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "amsducati-akrapovic-catalog@system.local",
+          reason: "amsducati.akrapovic.archive-invalid-component",
+        });
+      },
     });
+    report.catalogOutboxIds.push(mutation.outboxId);
   }
+
+  await fs.writeFile(path.join(reportDir, "catalog-latest.json"), stringifyJson(report), "utf8");
 
   console.log(
     `Catalog synchronized: ${creates.length} created, ${updates.length} updated, invalid component archived=${Boolean(invalidComponent?.isPublished)}.`

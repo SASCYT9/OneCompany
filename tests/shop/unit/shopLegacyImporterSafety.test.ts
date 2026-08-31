@@ -228,6 +228,15 @@ test("Ducati Akrapovic price CLI publishes owned variants with the product revis
   assert.doesNotMatch(source, /prisma\.\$transaction/);
 });
 
+test("Ducati Akrapovic catalog CLI versions update, create, and archive paths", () => {
+  const source = readWorkspaceFile("scripts/sync-amsducati-akrapovic-catalog.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /coordinateShopCatalogProductCreationWithClient/);
+  assert.match(source, /Variant set changed during Akrapovič catalog update/);
+  assert.match(source, /archive-invalid-component/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update|upsert)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
