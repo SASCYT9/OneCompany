@@ -247,6 +247,14 @@ test("Urban reconcile CLI publishes normalization and archive plans", () => {
   assert.doesNotMatch(source, /prisma\.\$transaction/);
 });
 
+test("Urban UA editorial CLI publishes content and SEO revisions", () => {
+  const source = readWorkspaceFile("scripts/curate-urban-ua-copy.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \[["']CONTENT["'], ["']SEO["']\]/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.update\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

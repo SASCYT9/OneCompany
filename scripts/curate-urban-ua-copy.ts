@@ -1,31 +1,33 @@
 #!/usr/bin/env tsx
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 import {
   buildUrbanEditorialCopy,
   computeUrbanUaEditorialUpdate,
   type UrbanEditorialProductInput,
-} from '../src/lib/urbanEditorialCopy';
+} from "../src/lib/urbanEditorialCopy";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
 
 const prisma = new PrismaClient();
 const args = new Set(process.argv.slice(2));
-const COMMIT = args.has('--commit');
-const DRY_RUN = !COMMIT || args.has('--dry-run');
-const FORCE_WHEELS = args.has('--force-wheels');
-const ONLY_WHEELS = args.has('--only-wheels');
-const LIMIT_ARG = process.argv.find((arg) => arg.startsWith('--limit='));
-const LIMIT = LIMIT_ARG ? Number(LIMIT_ARG.split('=')[1]) : null;
+const COMMIT = args.has("--commit");
+const DRY_RUN = !COMMIT || args.has("--dry-run");
+const FORCE_WHEELS = args.has("--force-wheels");
+const ONLY_WHEELS = args.has("--only-wheels");
+const LIMIT_ARG = process.argv.find((arg) => arg.startsWith("--limit="));
+const LIMIT = LIMIT_ARG ? Number(LIMIT_ARG.split("=")[1]) : null;
 
 function normalizeWhitespace(value: string | null | undefined) {
-  return String(value ?? '')
-    .replace(/\s+/g, ' ')
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function isWheelLikeProduct(product: UrbanEditorialProductInput) {
   const category = normalizeWhitespace(product.categoryEn || product.productType).toLowerCase();
-  if (category === 'wheels' || category === 'диски') return true;
+  if (category === "wheels" || category === "диски") return true;
 
   return (
     /\b\d{2}"\b/.test(product.titleEn) &&
@@ -36,11 +38,11 @@ function isWheelLikeProduct(product: UrbanEditorialProductInput) {
 async function main() {
   const rows = await prisma.shopProduct.findMany({
     where: {
-      vendor: 'Urban Automotive',
+      vendor: "Urban Automotive",
       isPublished: true,
-      status: 'ACTIVE',
+      status: "ACTIVE",
     },
-    orderBy: { slug: 'asc' },
+    orderBy: { slug: "asc" },
     ...(LIMIT ? { take: LIMIT } : {}),
     select: {
       id: true,
@@ -62,6 +64,7 @@ async function main() {
       collectionEn: true,
       collectionUa: true,
       tags: true,
+      catalogVersion: true,
     },
   });
 
@@ -89,6 +92,7 @@ async function main() {
       return {
         id: row.id,
         slug: row.slug,
+        catalogVersion: row.catalogVersion,
         data,
         preview: generated,
       };
@@ -105,7 +109,7 @@ async function main() {
   console.log(
     JSON.stringify(
       {
-        mode: DRY_RUN ? 'dry-run' : 'commit',
+        mode: DRY_RUN ? "dry-run" : "commit",
         forceWheels: FORCE_WHEELS,
         onlyWheels: ONLY_WHEELS,
         totalActiveUrban: rows.length,
@@ -128,13 +132,25 @@ async function main() {
     return;
   }
 
-  for (const entry of updates) {
-    await prisma.shopProduct.update({
-      where: { id: entry.id },
-      data: entry.data,
+  const catalogOutboxIds: string[] = [];
+  for (const entry of [...updates].sort((a, b) => a.id.localeCompare(b.id, "en"))) {
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: entry.id,
+      expectedCatalogVersion: entry.catalogVersion.toString(),
+      changeDomains: ["CONTENT", "SEO"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({ where: { id: entry.id }, data: entry.data });
+        return buildShopCatalogAdminSnapshot(tx, entry.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "urban-ua-copy@system.local",
+          reason: "urban.ua-copy.curate",
+        });
+      },
     });
+    catalogOutboxIds.push(mutation.outboxId);
     console.log(`[updated] ${entry.slug}`);
   }
+  console.log(`Catalog outbox events: ${catalogOutboxIds.length}`);
 
   await prisma.$disconnect();
 }
