@@ -9,6 +9,8 @@ import {
   normalizeAtomicSku,
   type AtomicEuPriceResult,
 } from "./_lib/atomic-eu-prices";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
 
 dotenv.config({ path: ".env.local" });
 
@@ -33,6 +35,7 @@ type VariantCandidate = {
     brand: string | null;
     vendor: string | null;
     priceEurEurope: unknown;
+    catalogVersion: bigint;
   };
 };
 
@@ -95,35 +98,6 @@ function writeArtifact(artifactPath: string, artifact: Record<string, unknown>) 
   fs.writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
 }
 
-async function syncProductEuropePrices(productIds: string[]) {
-  const uniqueProductIds = Array.from(new Set(productIds.filter(Boolean)));
-  if (!uniqueProductIds.length) return 0;
-
-  const defaultVariants = await prisma.shopProductVariant.findMany({
-    where: {
-      productId: { in: uniqueProductIds },
-      isDefault: true,
-    },
-    select: {
-      productId: true,
-      priceEurEurope: true,
-    },
-  });
-
-  if (!defaultVariants.length) return 0;
-
-  await prisma.$transaction(
-    defaultVariants.map((variant) =>
-      prisma.shopProduct.update({
-        where: { id: variant.productId },
-        data: { priceEurEurope: variant.priceEurEurope },
-      })
-    )
-  );
-
-  return defaultVariants.length;
-}
-
 async function main() {
   const options = parseCliOptions(process.argv.slice(2));
   const where = options.sku
@@ -150,6 +124,7 @@ async function main() {
           brand: true,
           vendor: true,
           priceEurEurope: true,
+          catalogVersion: true,
         },
       },
     },
@@ -190,6 +165,7 @@ async function main() {
     },
     matches: [] as unknown[],
     skipped: [] as unknown[],
+    catalogOutboxIds: [] as string[],
   };
 
   const totals = artifact.totals as Record<string, number>;
@@ -197,6 +173,7 @@ async function main() {
   const skipped = artifact.skipped as unknown[];
   const touchedProductIds: string[] = [];
   const changedProductIds = new Set<string>();
+  const nextPriceByVariantId = new Map<string, number>();
   const artifactPath = buildArtifactPath();
   let processedSkuGroups = 0;
 
@@ -269,10 +246,7 @@ async function main() {
     });
 
     if (options.commit && changedVariants.length) {
-      await prisma.shopProductVariant.updateMany({
-        where: { id: { in: changedVariants.map((variant) => variant.id) } },
-        data: { priceEurEurope: nextPrice },
-      });
+      for (const variant of changedVariants) nextPriceByVariantId.set(variant.id, nextPrice);
     }
 
     await sleep(options.delayMs);
@@ -280,7 +254,62 @@ async function main() {
   }
 
   if (options.commit) {
-    totals.changedProducts = await syncProductEuropePrices(touchedProductIds);
+    const uniqueProductIds = Array.from(new Set(touchedProductIds));
+    const defaultVariants = uniqueProductIds.length
+      ? await prisma.shopProductVariant.findMany({
+          where: { productId: { in: uniqueProductIds }, isDefault: true },
+          select: { id: true, productId: true, priceEurEurope: true },
+        })
+      : [];
+    const candidatesByProduct = new Map<string, VariantCandidate[]>();
+    for (const variant of variants) {
+      const list = candidatesByProduct.get(variant.productId) ?? [];
+      list.push(variant);
+      candidatesByProduct.set(variant.productId, list);
+    }
+    const defaultByProduct = new Map(defaultVariants.map((variant) => [variant.productId, variant]));
+    const catalogOutboxIds = artifact.catalogOutboxIds as string[];
+
+    for (const productId of [...uniqueProductIds].sort((a, b) => a.localeCompare(b, "en"))) {
+      const productCandidates = candidatesByProduct.get(productId) ?? [];
+      const changed = productCandidates.filter((variant) => nextPriceByVariantId.has(variant.id));
+      const defaultVariant = defaultByProduct.get(productId);
+      const nextProductPrice = defaultVariant
+        ? (nextPriceByVariantId.get(defaultVariant.id) ?? decimalToNumber(defaultVariant.priceEurEurope))
+        : null;
+      const product = productCandidates[0]?.product;
+      const productPriceChanged =
+        product !== undefined && decimalToNumber(product.priceEurEurope) !== nextProductPrice;
+      if (!changed.length && !productPriceChanged) continue;
+      if (!product) throw new Error(`Missing product metadata for ${productId}`);
+
+      const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+        productId,
+        expectedCatalogVersion: product.catalogVersion.toString(),
+        changeDomains: ["PRICE"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          for (const variant of changed) {
+            await tx.shopProductVariant.update({
+              where: { id: variant.id },
+              data: { priceEurEurope: nextPriceByVariantId.get(variant.id)! },
+            });
+          }
+          if (productPriceChanged) {
+            await tx.shopProduct.update({
+              where: { id: productId },
+              data: { priceEurEurope: nextProductPrice },
+            });
+          }
+          return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+            type: "IMPORT",
+            id: "atomic-eu-prices@system.local",
+            reason: "atomic.eu-prices.sync",
+          });
+        },
+      });
+      catalogOutboxIds.push(mutation.outboxId);
+    }
+    totals.changedProducts = catalogOutboxIds.length;
   } else {
     totals.changedProducts = changedProductIds.size;
   }

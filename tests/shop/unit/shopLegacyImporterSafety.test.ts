@@ -211,6 +211,14 @@ test("Urban GP CLI snapshot uses the explicit-client Catalog V2 writer", () => {
   assert.doesNotMatch(source, /prisma\.shopProduct\.(?:upsert|updateMany)\(/);
 });
 
+test("Atomic EU price CLI groups product price mutations through Catalog V2", () => {
+  const source = readWorkspaceFile("scripts/sync-atomic-eu-prices.ts");
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /changeDomains: \["PRICE"\]/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:update|updateMany)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
