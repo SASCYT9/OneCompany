@@ -262,6 +262,166 @@ test(
       assert.equal(vehicleQuery.items.length, 1);
       assert.equal(vehicleQuery.items[0]?.productId, productId);
 
+      async function enqueueDrillJob(label: string, maxAttempts: number) {
+        const id = `${productId}-${label}`;
+        await client.shopProduct.create({
+          data: { id, slug: id, titleUa: label, titleEn: label },
+        });
+        const mutation = await coordinateShopCatalogProductMutation({
+          productId: id,
+          expectedCatalogVersion: "0",
+          changeDomains: ["CONTENT"],
+          async mutateAndSnapshot() {
+            return {
+              canonical: { productId: id, titleUa: label },
+              projectionSource: source(id, "0", ` ${label}`),
+              actorType: "TEST",
+              reason: `outbox drill ${label}`,
+            };
+          },
+        });
+        await client.shopCatalogOutbox.update({
+          where: { id: mutation.outboxId },
+          data: { maxAttempts },
+        });
+        return mutation;
+      }
+
+      const retryMutation = await enqueueDrillJob("retry-recovery", 3);
+      const retryWorker = `catalog-retry-${Date.now()}`;
+      const retryClaim = (await claimShopCatalogOutbox({ workerId: retryWorker, limit: 10 })).find(
+        (job) => job.id === retryMutation.outboxId
+      );
+      assert.ok(retryClaim);
+      const retryResult = await processShopCatalogOutboxJob({
+        job: retryClaim,
+        workerId: retryWorker,
+        handlers: {
+          CONTENT: async () => {
+            throw new Error("simulated projection outage");
+          },
+          SEARCH: async () => {},
+        },
+      });
+      assert.equal(retryResult.status, "RETRY");
+      await client.shopCatalogOutbox.update({
+        where: { id: retryMutation.outboxId },
+        data: { availableAt: new Date(0) },
+      });
+      const recoveryWorker = `catalog-recovery-${Date.now()}`;
+      const recoveryClaim = (
+        await claimShopCatalogOutbox({ workerId: recoveryWorker, limit: 10 })
+      ).find((job) => job.id === retryMutation.outboxId);
+      assert.ok(recoveryClaim);
+      assert.equal(
+        (
+          await processShopCatalogOutboxJob({
+            job: recoveryClaim,
+            workerId: recoveryWorker,
+            handlers: { CONTENT: async () => {}, SEARCH: async () => {} },
+          })
+        ).status,
+        "COMPLETED"
+      );
+      const recovered = await client.shopCatalogOutbox.findUniqueOrThrow({
+        where: { id: retryMutation.outboxId },
+      });
+      assert.equal(recovered.attempts, 2);
+      assert.equal(recovered.status, "COMPLETED");
+      assert.ok(recovered.processedAt);
+
+      const deadMutation = await enqueueDrillJob("dead-letter", 2);
+      for (const expectedStatus of ["RETRY", "DEAD_LETTER"] as const) {
+        await client.shopCatalogOutbox.update({
+          where: { id: deadMutation.outboxId },
+          data: { availableAt: new Date(0) },
+        });
+        const deadWorker = `catalog-dead-${expectedStatus}-${Date.now()}`;
+        const deadClaim = (await claimShopCatalogOutbox({ workerId: deadWorker, limit: 10 })).find(
+          (job) => job.id === deadMutation.outboxId
+        );
+        assert.ok(deadClaim);
+        const result = await processShopCatalogOutboxJob({
+          job: deadClaim,
+          workerId: deadWorker,
+          handlers: {
+            CONTENT: async () => {
+              throw new Error("persistent projection outage");
+            },
+            SEARCH: async () => {},
+          },
+        });
+        assert.equal(result.status, expectedStatus);
+      }
+      const deadLetter = await client.shopCatalogOutbox.findUniqueOrThrow({
+        where: { id: deadMutation.outboxId },
+      });
+      assert.equal(deadLetter.status, "DEAD_LETTER");
+      assert.equal(deadLetter.attempts, 2);
+      assert.ok(deadLetter.processedAt);
+      const failedReceipts = await client.shopCatalogPublicationReceipt.findMany({
+        where: { productId: deadMutation.productId },
+        orderBy: { target: "asc" },
+      });
+      assert.deepEqual(
+        failedReceipts.map((receipt) => ({
+          target: receipt.target,
+          status: receipt.status,
+          failedVersion: receipt.failedVersion,
+        })),
+        [
+          { target: "CONTENT", status: "FAILED", failedVersion: BigInt(1) },
+          { target: "SEARCH", status: "SAVED", failedVersion: null },
+        ]
+      );
+      assert.equal(
+        await client.shopCatalogProductRevision.count({
+          where: { productId: deadMutation.productId },
+        }),
+        1
+      );
+
+      const leaseMutation = await enqueueDrillJob("lost-lease", 3);
+      await client.shopCatalogOutbox.update({
+        where: { id: leaseMutation.outboxId },
+        data: { availableAt: new Date(0) },
+      });
+      const staleWorker = `catalog-stale-lease-${Date.now()}`;
+      const staleClaim = (
+        await claimShopCatalogOutbox({
+          workerId: staleWorker,
+          limit: 10,
+          now: new Date(Date.now() - 120_000),
+          leaseMs: 1_000,
+        })
+      ).find((job) => job.id === leaseMutation.outboxId);
+      assert.ok(staleClaim);
+      assert.equal(
+        (
+          await processShopCatalogOutboxJob({
+            job: staleClaim,
+            workerId: staleWorker,
+            handlers: { CONTENT: async () => {}, SEARCH: async () => {} },
+          })
+        ).status,
+        "LOST_LEASE"
+      );
+      const reclaimWorker = `catalog-reclaimed-${Date.now()}`;
+      const reclaimed = (await claimShopCatalogOutbox({ workerId: reclaimWorker, limit: 10 })).find(
+        (job) => job.id === leaseMutation.outboxId
+      );
+      assert.ok(reclaimed);
+      assert.equal(
+        (
+          await processShopCatalogOutboxJob({
+            job: reclaimed,
+            workerId: reclaimWorker,
+            handlers: { CONTENT: async () => {}, SEARCH: async () => {} },
+          })
+        ).status,
+        "COMPLETED"
+      );
+
       const createdProductId = `${productId}-created`;
       const creation = await coordinateShopCatalogProductCreation({
         changeDomains: ["CONTENT", "PRICE", "INVENTORY", "FITMENT", "VISIBILITY"],

@@ -265,6 +265,7 @@ async function failJob(
         lockedBy: null,
         lockedAt: null,
         leaseExpiresAt: null,
+        processedAt: deadLetter ? new Date() : null,
         lastError: error,
       },
     });
