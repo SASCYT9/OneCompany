@@ -9,7 +9,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | ID        | Work item                                         | Status      | Verification / remaining work                                |
 | --------- | ------------------------------------------------- | ----------- | ------------------------------------------------------------ |
 | C2-P2-001 | Persist projection batches and resumable rebuild  | Done        | Revision loader and durable restart checkpoint are green     |
-| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Core admin create/editor/archive/bulk/inventory/pricing and CSV green; supplier/brand sync pending |
+| C2-P2-002 | Mutation coordinator and outbox publisher         | In progress | Core admin/CSV and live do88 importer green; remaining supplier/brand sync pending |
 | C2-P2-003 | Flag-off indexed query and live shadow comparison | In progress | Query adapter is green; live endpoint comparison remains off |
 
 P2 currently processes exactly one bounded page at a time, exposes its next product-ID cursor,
@@ -114,6 +114,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The creation coordinator now atomically creates a new product aggregate at version `1` together with its first immutable revision, receipts, and outbox event. Its disposable PostgreSQL regression is present but the latest local run was blocked because Docker Desktop was not running; the injected CSV adapter is covered separately by mock-transaction regressions.
 - Central CSV commit now uses an injected catalog writer: production lazily loads the server-only creation/update coordinators, while dry-run and tests do not load publication runtime. Successful rows cannot be counted as created/updated without returning version, revision, and outbox metadata; partial-column and relation-ID preservation contracts remain green. The commit route schedules immediate bounded publication, with cron recovery. Supplier and brand-specific sync paths remain to migrate.
 - Manual product creation now uses the same atomic version-`1` creation coordinator as CSV imports. Admin audit, the lossless snapshot, initial revision, publication receipts, and outbox event commit together, and the response exposes publication metadata before scheduling immediate processing.
+- The live authenticated do88 batch route reuses the central catalog writer for both create and ID-preserving update paths, retains supplier fitment parent validation, returns publication metadata per successful product, and schedules immediate bounded processing.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The 100k/500k synthetic load and `EXPLAIN (ANALYZE, BUFFERS)` gates still need to be run before choosing final indexes or a search service.

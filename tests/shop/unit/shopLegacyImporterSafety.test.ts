@@ -44,6 +44,14 @@ test("supported legacy routes and Akrapovic Moto use the shared identity merge",
   }
 });
 
+test("live do88 admin import publishes through the central catalog writer", () => {
+  const source = readWorkspaceFile("src/app/api/admin/shop/do88-import/route.ts");
+  assert.match(source, /prismaShopCsvCatalogWriter\.update/);
+  assert.match(source, /prismaShopCsvCatalogWriter\.create/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");

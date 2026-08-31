@@ -93,7 +93,7 @@ type CsvCatalogUpdateInput = {
     catalogVersion: bigint;
   };
   relationMask: AdminProductImportRelationMask;
-  scalarMask: AdminProductImportScalarMask;
+  scalarMask?: AdminProductImportScalarMask;
 };
 
 export type ShopCsvCatalogWriter = {

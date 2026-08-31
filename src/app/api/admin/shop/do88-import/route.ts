@@ -1,10 +1,9 @@
 // DO88 Bulk Import Route - v1
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { after, NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   adminProductImportMergeSelect,
-  buildAdminProductCreateData,
-  buildAdminProductImportUpdateData,
   normalizeAdminProductPayload,
   type AdminProductImportRelationMask,
 } from "@/lib/shopAdminCatalog";
@@ -16,6 +15,14 @@ import {
   parseSupplierFitmentContract,
   validateSupplierFitmentParentReference,
 } from "@/lib/shopImportFitment";
+import { prismaShopCsvCatalogWriter } from "@/lib/shopAdminImports";
+import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+
+const do88ImportProductSelect = {
+  ...adminProductImportMergeSelect,
+  catalogVersion: true,
+};
 
 /**
  * Temporary bulk import endpoint for DO88 products.
@@ -29,7 +36,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
     const body = await request.json();
     const products = body.products;
 
@@ -41,6 +48,7 @@ export async function POST(request: NextRequest) {
       created: 0,
       updated: 0,
       errors: [] as { slug: string; error: string }[],
+      catalog: [] as ShopCatalogCoordinatedMutationResult[],
     };
 
     const normalizedProducts = products.map((productInput) => ({
@@ -114,19 +122,22 @@ export async function POST(request: NextRequest) {
 
         const existing = await prisma.shopProduct.findUnique({
           where: { slug: data.slug },
-          select: adminProductImportMergeSelect,
+          select: do88ImportProductSelect,
         });
 
         if (existing) {
-          await prisma.shopProduct.update({
-            where: { slug: data.slug },
-            data: buildAdminProductImportUpdateData(data, existing, relationMask),
-          });
+          results.catalog.push(
+            await prismaShopCsvCatalogWriter.update({
+              prisma,
+              session,
+              data,
+              existing,
+              relationMask,
+            })
+          );
           results.updated++;
         } else {
-          await prisma.shopProduct.create({
-            data: buildAdminProductCreateData(data),
-          });
+          results.catalog.push(await prismaShopCsvCatalogWriter.create({ prisma, session, data }));
           results.created++;
         }
       } catch (err: unknown) {
@@ -138,7 +149,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(results);
+    if (results.catalog.length) {
+      after(async () => {
+        try {
+          await runShopCatalogOutboxRuntime({
+            workerId: `catalog-do88:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+            limit: Math.min(50, Math.max(10, results.catalog.length)),
+          });
+        } catch (error) {
+          console.error("[shop-catalog.do88] immediate publish failed; cron recovery remains active", {
+            outboxIds: results.catalog.map((mutation) => mutation.outboxId),
+            error,
+          });
+        }
+      });
+    }
+
+    return NextResponse.json({
+      ...results,
+      catalog: results.catalog.map((mutation) => ({
+        productId: mutation.productId,
+        version: mutation.canonicalVersion,
+        revisionId: mutation.revisionId,
+        outboxId: mutation.outboxId,
+        status: "SAVED",
+      })),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     if (message === "UNAUTHORIZED")
