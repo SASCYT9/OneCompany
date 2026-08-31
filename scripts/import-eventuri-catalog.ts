@@ -24,6 +24,11 @@ import {
 } from "../src/lib/eventuriMediaMigration";
 import { replaceStorefrontTag } from "../src/lib/shopProductStorefront";
 import { sanitizeRichTextHtml } from "../src/lib/sanitizeRichTextHtml";
+import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import {
+  coordinateShopCatalogProductCreationWithClient,
+  coordinateShopCatalogProductMutationWithClient,
+} from "../src/lib/shopCatalogMutationCoordinator.server";
 
 type Mode = "dry-run" | "preview-one" | "commit-draft" | "publish-approved" | "repair-fitment";
 type CategoryKey = "intake" | "turbo-pipes" | "engine-cover" | "brace" | "filter-accessory";
@@ -68,6 +73,7 @@ type ImportReport = {
   updated: string[];
   published: string[];
   skipped: QualityIssue[];
+  catalogOutboxIds: string[];
 };
 
 type TranslationCacheEntry = {
@@ -85,6 +91,20 @@ const TRANSLATION_PRIMARY_MODEL =
   process.env.OPS_GEMINI_PRIMARY_MODEL?.trim() || "gemini-3.5-flash-lite";
 const TRANSLATION_FALLBACK_MODEL =
   process.env.OPS_GEMINI_FALLBACK_MODEL?.trim() || "gemini-3.5-flash";
+const FULL_IMPORT_DOMAINS = [
+  "CONTENT",
+  "SEO",
+  "MEDIA",
+  "PRICE",
+  "INVENTORY",
+  "FITMENT",
+  "TAXONOMY",
+  "VISIBILITY",
+] as const;
+const eventuriImportProductSelect = {
+  ...adminProductImportMergeSelect,
+  catalogVersion: true,
+} as const;
 
 // Eventuri/IND have changed SKU naming over time. These are explicit, audited
 // aliases rather than fuzzy matching: the target SKU must still be present in
@@ -723,13 +743,13 @@ function hasGoodTranslation(product: AdminShopProductPayload) {
   const cyrillic = /[А-Яа-яІіЇїЄє]/;
   return Boolean(
     product.titleEn &&
-      product.bodyHtmlEn &&
-      product.seoDescriptionEn &&
-      // Some Shopify titles are already natural English. Equality is only a
-      // translation failure when the source title actually contains Cyrillic.
-      (!cyrillic.test(product.titleUa) || product.titleEn !== product.titleUa) &&
-      !cyrillic.test(product.titleEn) &&
-      !cyrillic.test(product.seoDescriptionEn)
+    product.bodyHtmlEn &&
+    product.seoDescriptionEn &&
+    // Some Shopify titles are already natural English. Equality is only a
+    // translation failure when the source title actually contains Cyrillic.
+    (!cyrillic.test(product.titleUa) || product.titleEn !== product.titleUa) &&
+    !cyrillic.test(product.titleEn) &&
+    !cyrillic.test(product.seoDescriptionEn)
   );
 }
 
@@ -1120,6 +1140,7 @@ function buildReport(
     updated: [],
     published: [],
     skipped: [],
+    catalogOutboxIds: [],
   };
   const skuMap = new Map<string, string[]>();
   for (const product of products) {
@@ -1164,7 +1185,7 @@ async function repairPersistedFitment(
   const slugs = products.map((product) => product.slug);
   const existing = await prisma.shopProduct.findMany({
     where: { brand: "Eventuri", slug: { in: slugs } },
-    select: { id: true, slug: true, status: true, isPublished: true },
+    select: { id: true, slug: true, status: true, isPublished: true, catalogVersion: true },
   });
   const bySlug = new Map(existing.map((product) => [product.slug, product]));
   const updated: Array<{
@@ -1174,22 +1195,25 @@ async function repairPersistedFitment(
     isPublished: boolean;
   }> = [];
   const skipped: Array<{ slug: string; reason: string }> = [];
-  await prisma.$transaction(
-    async (tx) => {
-      for (const product of products) {
-        const persisted = bySlug.get(product.slug);
-        if (!persisted) {
-          skipped.push({ slug: product.slug, reason: "Eventuri product is not persisted" });
-          continue;
-        }
-        const supplierValue = product.metafields.find(
-          (item) =>
-            item.namespace === SUPPLIER_FITMENT_NAMESPACE && item.key === SUPPLIER_FITMENT_KEY
-        );
-        if (!supplierValue) {
-          skipped.push({ slug: product.slug, reason: "normalized supplier fitment is empty" });
-          continue;
-        }
+  const catalogOutboxIds: string[] = [];
+  for (const product of products) {
+    const persisted = bySlug.get(product.slug);
+    if (!persisted) {
+      skipped.push({ slug: product.slug, reason: "Eventuri product is not persisted" });
+      continue;
+    }
+    const supplierValue = product.metafields.find(
+      (item) => item.namespace === SUPPLIER_FITMENT_NAMESPACE && item.key === SUPPLIER_FITMENT_KEY
+    );
+    if (!supplierValue) {
+      skipped.push({ slug: product.slug, reason: "normalized supplier fitment is empty" });
+      continue;
+    }
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId: persisted.id,
+      expectedCatalogVersion: persisted.catalogVersion.toString(),
+      changeDomains: ["FITMENT", "TAXONOMY"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
         await tx.shopProductMetafield.upsert({
           where: {
             productId_namespace_key: {
@@ -1210,18 +1234,26 @@ async function repairPersistedFitment(
         // Keep vehicle tags aligned with the same canonical applications. This
         // improves lexical search without touching publication, pricing, media,
         // translations or manually reviewed fitment fields.
-        await tx.shopProduct.update({ where: { id: persisted.id }, data: { tags: product.tags } });
-        const fitment = fitmentOf(product);
-        updated.push({
-          slug: product.slug,
-          applications: fitment?.applications.length ?? 0,
-          status: persisted.status,
-          isPublished: persisted.isPublished,
+        await tx.shopProduct.update({
+          where: { id: persisted.id },
+          data: { tags: product.tags },
         });
-      }
-    },
-    { timeout: 120_000 }
-  );
+        return buildShopCatalogAdminSnapshot(tx, persisted.id, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "eventuri-import@system.local",
+          reason: "eventuri.fitment-repair",
+        });
+      },
+    });
+    catalogOutboxIds.push(mutation.outboxId);
+    const fitment = fitmentOf(product);
+    updated.push({
+      slug: product.slug,
+      applications: fitment?.applications.length ?? 0,
+      status: persisted.status,
+      isPublished: persisted.isPublished,
+    });
+  }
   const report = {
     mode: "repair-fitment",
     generatedAt: new Date().toISOString(),
@@ -1235,6 +1267,7 @@ async function repairPersistedFitment(
       (item) => item.status === "ACTIVE" || item.status === "DRAFT"
     ),
     updatedProducts: updated,
+    catalogOutboxIds,
   };
   await mkdir(outputDir, { recursive: true });
   const reportPath = path.join(
@@ -1437,16 +1470,43 @@ async function main() {
     for (const product of productsToPersist) {
       const existing = await prisma.shopProduct.findUnique({
         where: { slug: product.slug },
-        select: adminProductImportMergeSelect,
+        select: eventuriImportProductSelect,
       });
       if (existing) {
-        await prisma.shopProduct.update({
-          where: { slug: product.slug },
-          data: buildAdminProductSnapshotMergeUpdateData(product, existing),
+        const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+          productId: existing.id,
+          expectedCatalogVersion: existing.catalogVersion.toString(),
+          changeDomains: FULL_IMPORT_DOMAINS,
+          async mutateAndSnapshot(tx, nextCatalogVersion) {
+            await tx.shopProduct.update({
+              where: { id: existing.id },
+              data: buildAdminProductSnapshotMergeUpdateData(product, existing),
+            });
+            return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
+              type: "IMPORT",
+              id: "eventuri-import@system.local",
+              reason: "eventuri.draft-update",
+            });
+          },
         });
+        report.catalogOutboxIds.push(mutation.outboxId);
         report.updated.push(product.slug);
       } else {
-        await prisma.shopProduct.create({ data: buildAdminProductCreateData(product) });
+        const createData = buildAdminProductCreateData(product);
+        const mutation = await coordinateShopCatalogProductCreationWithClient(prisma, {
+          changeDomains: FULL_IMPORT_DOMAINS,
+          async create(tx) {
+            return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
+          },
+          snapshot(tx, productId, initialCatalogVersion) {
+            return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+              type: "IMPORT",
+              id: "eventuri-import@system.local",
+              reason: "eventuri.draft-create",
+            });
+          },
+        });
+        report.catalogOutboxIds.push(mutation.outboxId);
         report.created.push(product.slug);
       }
     }
@@ -1484,10 +1544,28 @@ async function main() {
         });
         continue;
       }
-      await prisma.shopProduct.update({
-        where: { id: existing.id },
-        data: { status: "ACTIVE", isPublished: true, publishedAt: new Date(), stock: "preOrder" },
+      const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+        productId: existing.id,
+        expectedCatalogVersion: existing.catalogVersion.toString(),
+        changeDomains: ["INVENTORY", "VISIBILITY"],
+        async mutateAndSnapshot(tx, nextCatalogVersion) {
+          await tx.shopProduct.update({
+            where: { id: existing.id },
+            data: {
+              status: "ACTIVE",
+              isPublished: true,
+              publishedAt: new Date(),
+              stock: "preOrder",
+            },
+          });
+          return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
+            type: "IMPORT",
+            id: "eventuri-import@system.local",
+            reason: "eventuri.publish-approved",
+          });
+        },
       });
+      report.catalogOutboxIds.push(mutation.outboxId);
       report.published.push(sourceProduct.slug);
     }
   }
@@ -1510,6 +1588,7 @@ async function main() {
     persistedReport.updated = report.updated;
     persistedReport.published = report.published;
     persistedReport.skipped = report.skipped;
+    persistedReport.catalogOutboxIds = report.catalogOutboxIds;
     report = persistedReport;
   }
 

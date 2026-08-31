@@ -275,6 +275,18 @@ test("active IPE importer publishes ID-preserving update and creation paths", ()
   assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
 });
 
+test("active Eventuri importer versions repair, draft, creation, and publish paths", () => {
+  const source = readWorkspaceFile("scripts/import-eventuri-catalog.ts");
+  assert.match(source, /eventuriImportProductSelect/);
+  assert.match(source, /buildAdminProductSnapshotMergeUpdateData/);
+  assert.match(source, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(source, /coordinateShopCatalogProductCreationWithClient/);
+  assert.match(source, /eventuri\.fitment-repair/);
+  assert.match(source, /eventuri\.publish-approved/);
+  assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
+  assert.doesNotMatch(source, /prisma\.\$transaction/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
