@@ -46,5 +46,29 @@ raw data, but it also cannot become a false exact engine match.
 npm run shop:catalog:v2:eventuri:audit
 ```
 
-Observed fingerprint: `5b0d32adabc86f2021e6b247212915234a54f29693e991f55cd2ec5d3949309a`.
+Observed fingerprint: `74dd23ad16c724a477b553361b71ac869f1ee85a6eb28d1e74f5632099609ced`.
 The audit is read-only and performs no database or Production action.
+
+## Transactional persistence
+
+Eventuri uses the shared bounded, Serializable source-ledger writer. Its source callback persists
+source-scoped aliases plus canonical make, model, generation, and powertrain rows, then creates one
+versioned variant policy with 13 explicit dimensions per correlated clause.
+
+- the cleaning kit becomes a verified `UNIVERSAL` policy with one explicit clause;
+- vehicle-specific products with a reviewed engine code use an exact canonical powertrain and the
+  versioned Eventuri petrol-engine vocabulary;
+- non-engine accessories use `ENGINE/FUEL=NOT_APPLICABLE`;
+- physical products without engine evidence use `ENGINE/FUEL=UNKNOWN` and remain `NEEDS_REVIEW`;
+- unresolved replacement-filter parents remain `NEEDS_REVIEW` until a real parent product ID exists.
+
+The resumable CLI is dry-run by default and requires an explicit non-production environment,
+dedicated database URL, and write acknowledgement:
+
+```powershell
+npm run shop:catalog:v2:eventuri:backfill -- --limit=50
+```
+
+Disposable PostgreSQL proves a four-clause M3/M4/S58 policy with exact engine and fuel, a verified
+universal maintenance policy, and a missing-engine policy that stays review-only. No Production
+backfill was executed.

@@ -41,11 +41,11 @@ test("Eventuri intake retains correlated models and exact explicit engine code",
   }));
   assert.equal(result.mode, "VEHICLE_SPECIFIC");
   assert.equal(result.verification, "VERIFIED");
-  assert.deepEqual(result.applications.map(({ model, generation, engineCode }) => [model, generation, engineCode]), [
-    ["M3", "G80", "S58"],
-    ["M3", "G81", "S58"],
-    ["M4", "G82", "S58"],
-    ["M4", "G83", "S58"],
+  assert.deepEqual(result.applications.map(({ model, generation, engineCode, fuel }) => [model, generation, engineCode, fuel]), [
+    ["M3", "G80", "S58", "petrol"],
+    ["M3", "G81", "S58", "petrol"],
+    ["M4", "G82", "S58", "petrol"],
+    ["M4", "G83", "S58", "petrol"],
   ]);
 });
 

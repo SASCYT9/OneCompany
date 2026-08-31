@@ -67,6 +67,7 @@
     "shop:catalog:v2:adro:audit": "tsx scripts/audit-catalog-v2-adro.ts",
     "shop:catalog:v2:adro:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-adro.ts",
     "shop:catalog:v2:eventuri:audit": "tsx scripts/audit-catalog-v2-eventuri.ts",
+    "shop:catalog:v2:eventuri:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-eventuri.ts",
     "shop:catalog:v2:racechip:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-racechip.ts",
     "shop:knowledge:dry": "tsx --env-file=.env.local scripts/sync-shop-product-knowledge.ts",
     "shop:knowledge:sync": "tsx --env-file=.env.local scripts/sync-shop-product-knowledge.ts --commit",

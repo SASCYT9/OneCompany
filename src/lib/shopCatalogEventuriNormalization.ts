@@ -21,6 +21,7 @@ export type EventuriApplication = {
   yearFrom: number | null;
   yearTo: number | null;
   engineCode: string | null;
+  fuel: "petrol" | null;
 };
 
 export type EventuriNormalization = {
@@ -129,13 +130,21 @@ export function normalizeEventuriSnapshotProduct(product: EventuriSnapshotProduc
       const engines = engineRelevant && specificEngines.length ? specificEngines : [null];
       for (const generation of generations) {
         for (const engineCode of engines) {
-          applications.push({ make: row.make, model: row.model, generation, ...years, engineCode });
+          applications.push({
+            make: row.make,
+            model: row.model,
+            generation,
+            ...years,
+            engineCode,
+            // Versioned Eventuri vocabulary above contains petrol engine families only.
+            fuel: engineCode ? "petrol" : null,
+          });
         }
       }
     }
   }
   const uniqueApplications = [...new Map(applications.map((application) => [
-    `${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}`,
+    `${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}|${application.fuel ?? "*"}`,
     application,
   ])).values()];
 
