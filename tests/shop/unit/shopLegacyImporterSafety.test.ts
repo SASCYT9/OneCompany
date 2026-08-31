@@ -149,6 +149,15 @@ test("category derivation deduplicates category upserts and publishes taxonomy a
   assert.match(route, /runShopCatalogOutboxRuntime/);
 });
 
+test("storefront tag backfill publishes taxonomy and visibility revisions", () => {
+  const source = readWorkspaceFile("src/app/api/admin/shop/products/backfill-storefront/route.ts");
+  assert.match(source, /coordinateShopCatalogProductMutation/);
+  assert.match(source, /changeDomains: \["TAXONOMY", "VISIBILITY"\]/);
+  assert.match(source, /buildShopCatalogAdminSnapshot/);
+  assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.doesNotMatch(source, /prisma\.\$transaction/);
+});
+
 test("SKU fallback importers fail closed instead of selecting an ambiguous product", () => {
   const brabus = readWorkspaceFile("src/app/api/import-brabus/route.ts");
   const akrapovic = readWorkspaceFile("scripts/import-akrapovic-moto.ts");
