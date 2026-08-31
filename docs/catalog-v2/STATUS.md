@@ -4,7 +4,22 @@ Last updated: 2026-08-31
 Working branch: `codex/catalog-v2-foundation`  
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Current sprint: P5 unified admin publication
+## Current sprint: P6 lossless normalization and backfill
+
+| ID        | Work item                                      | Status      | Verification / remaining work                                         |
+| --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------- |
+| C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
+| C2-P6-002 | Per-source coverage/parity report              | In progress | Aggregate current records, bindings, issues, relations, and activation |
+| C2-P6-003 | RaceChip normalization/backfill                | Pending     | Requires source report                                                 |
+| C2-P6-004 | ADRO normalization/backfill                    | Pending     | After RaceChip                                                         |
+| C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Pending     | After ADRO                                                             |
+
+The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
+arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
+quarantined with an issue, or ignored with an explicit reason; otherwise that source record cannot
+be activation-ready. Fingerprints are stable across object key order.
+
+## Completed sprint: P5 unified admin publication
 
 | ID        | Work item                                      | Status      | Verification / remaining work                                                |
 | --------- | ---------------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
