@@ -17,6 +17,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-007 | Brabus normalization/backfill                  | Done        | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof |
 | C2-P6-008 | Urban normalization/backfill                   | Done        | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof |
 | C2-P6-009 | Öhlins normalization/backfill                  | Done        | 489 records, universal split, drivetrain quarantine, PostgreSQL proof |
+| C2-P6-010 | Akrapovič normalization/backfill               | Done        | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -80,6 +81,13 @@ products, including 102 universal parts, and produces 318 correlated vehicle app
 existing curated chassis vocabulary is reused; 154 unresolved applications and six drivetrain-
 qualified products remain review-only. PostgreSQL proves exact G80/G82/G87, universal, and
 drivetrain-quarantine behavior. See [OHLINS_AUDIT_2026-08-31.md](./OHLINS_AUDIT_2026-08-31.md).
+Akrapovič normalization accounts for 421/421 records and 15,970/15,970 raw leaves, producing 670
+correlated applications with no unresolved vehicle candidate. The generic policy engine is now
+scope-aware, keeping 356 automotive and 65 motorcycle products in distinct canonical taxonomies.
+Exact engine evidence is absent for 353 exhaust products and 34 mention OPF/GPF restrictions, so
+those policies remain review-only rather than being broadened. PostgreSQL proves auto/moto
+isolation and prior-source regressions. See
+[AKRAPOVIC_AUDIT_2026-08-31.md](./AKRAPOVIC_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 

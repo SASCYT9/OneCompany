@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { Prisma, type ShopCatalogCompatibilityDimension } from "@prisma/client";
 
 export type VehiclePolicyApplication = {
+  scope?: "auto" | "moto";
   make: string;
   model: string;
   generation: string | null;
@@ -15,6 +16,7 @@ export type VehiclePolicyApplication = {
 };
 
 export type VehiclePolicyNormalization = {
+  scope?: "auto" | "moto";
   productId: string;
   variantId: string;
   recordKey: string;
@@ -94,18 +96,19 @@ async function taxonomy(input: {
   application: VehiclePolicyApplication;
 }) {
   const { tx, application } = input;
+  const scope = application.scope ?? "auto";
   const normalizedMake = application.make.toLowerCase();
-  const makeKey = `auto:${normalizedMake}`;
+  const makeKey = `${scope}:${normalizedMake}`;
   const make = await tx.vehicleMake.upsert({
     where: { makeKey },
-    create: { makeKey, scope: "auto", name: application.make, normalizedName: normalizedMake },
+    create: { makeKey, scope, name: application.make, normalizedName: normalizedMake },
     update: {},
   });
-  if (make.scope !== "auto" || make.normalizedName !== normalizedMake) {
+  if (make.scope !== scope || make.normalizedName !== normalizedMake) {
     throw new Error(`${input.label} make taxonomy conflict: ${makeKey}`);
   }
   const normalizedModel = application.model.toLowerCase();
-  const modelKey = `auto:${normalizedMake}:${normalizedModel}`;
+  const modelKey = `${scope}:${normalizedMake}:${normalizedModel}`;
   const model = await tx.vehicleModel.upsert({
     where: { modelKey },
     create: { modelKey, makeId: make.id, name: application.model, normalizedName: normalizedModel },
@@ -115,14 +118,14 @@ async function taxonomy(input: {
     throw new Error(`${input.label} model taxonomy conflict: ${modelKey}`);
   }
   const generationKey = application.generation
-    ? `auto:${normalizedMake}:${normalizedModel}:${application.generation.toLowerCase()}`
+    ? `${scope}:${normalizedMake}:${normalizedModel}:${application.generation.toLowerCase()}`
     : null;
   const generation = generationKey
     ? await tx.vehicleGeneration.upsert({
         where: { generationKey },
         create: {
           generationKey,
-          scope: "auto",
+          scope,
           make: application.make,
           model: application.model,
           makeId: make.id,
@@ -139,7 +142,7 @@ async function taxonomy(input: {
     throw new Error(`${input.label} generation taxonomy conflict: ${generationKey}`);
   }
   const powertrainKey = application.engineCode
-    ? `auto-powertrain:${digest(`${normalizedMake}|${application.engineCode}|${application.fuel}`).slice(0, 24)}`
+    ? `${scope}-powertrain:${digest(`${normalizedMake}|${application.engineCode}|${application.fuel}`).slice(0, 24)}`
     : null;
   const powertrain = powertrainKey
     ? await tx.vehiclePowertrain.upsert({
@@ -258,7 +261,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
       data: {
         policyId: policy.id,
         clauseKey: key("eventuri-clause", application
-          ? `${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}`
+          ? `${application.scope ?? "auto"}|${application.make}|${application.model}|${application.generation ?? "*"}|${application.engineCode ?? "*"}`
           : `${normalization.recordKey}|unresolved`),
         position,
         verification: normalization.verification,
@@ -274,7 +277,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
       value?: ExactValue;
     }> = application && item
       ? [
-          { dimension: "SCOPE", state: "EXACT", value: { textValue: "auto" } },
+          { dimension: "SCOPE", state: "EXACT", value: { textValue: application.scope ?? "auto" } },
           { dimension: "MAKE", state: "EXACT", value: { makeId: item.make.id } },
           { dimension: "MODEL", state: "EXACT", value: { modelId: item.model.id } },
           item.generation
@@ -310,7 +313,7 @@ export async function persistVehicleCompatibilityInTransaction(input: {
             (dimension === "ENGINE" || dimension === "FUEL") && !normalization.engineRelevant
               ? "NOT_APPLICABLE"
               : "UNKNOWN",
-          value: dimension === "SCOPE" ? { textValue: "auto" } : undefined,
+          value: dimension === "SCOPE" ? { textValue: normalization.applications[0]?.scope ?? normalization.scope ?? "auto" } : undefined,
         }));
     for (const spec of specs) await createConstraint({ tx, clauseId: clause.id, ...spec });
   }

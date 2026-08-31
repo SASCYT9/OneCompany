@@ -37,7 +37,7 @@ export const BRAND_PATTERNS: { key: string; patterns: RegExp[] }[] = [
  */
 export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: RegExp }[]> = {
   Porsche: [
-    { model: "911", pattern: /\b911\b/i },
+    { model: "911", pattern: /\b(?:911|99[127]|GT3(?:\s*RS)?)\b/i },
     { model: "718", pattern: /\b(?:718|Boxster|Cayman)\b/i },
     { model: "Cayenne", pattern: /\bCayenne\b/i },
     { model: "Macan", pattern: /\bMacan\b/i },
@@ -45,6 +45,10 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "Taycan", pattern: /\bTaycan\b/i },
   ],
   BMW: [
+    { model: "1M", pattern: /\b1M\b/i },
+    { model: "335i/435i", pattern: /\b(?:335i|435i)\b/i },
+    { model: "340i/440i", pattern: /\b(?:340i|440i)\b/i },
+    { model: "XM", pattern: /\bXM\b/i },
     { model: "M135i/M140i", pattern: /\b(?:M135[id]|M140[id])\b/i },
     { model: "M235i/M240i", pattern: /\b(?:M235[id]|M240[id])\b/i },
     { model: "M340i/M340d", pattern: /\bM340[id]\b/i },
@@ -60,6 +64,7 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "M4", pattern: /\bM4\b/i },
     { model: "M5", pattern: /\bM5\b/i },
     { model: "M8", pattern: /\bM8\b/i },
+    { model: "M6", pattern: /\bM6\b/i },
     { model: "Z4", pattern: /\bZ4\b/i },
     { model: "S1000RR", pattern: /\bS\s*1000\s*RR\b/i },
     { model: "S1000R", pattern: /\bS\s*1000\s*R(?!\s*[RX])\b/i },
@@ -72,6 +77,7 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "F 900 R", pattern: /\bF\s*900\s*R\b/i },
   ],
   Audi: [
+    { model: "S7", pattern: /\bS7\b/i },
     { model: "RS3", pattern: /\bRS\s*3\b/i },
     { model: "RS4", pattern: /\bRS\s*4\b/i },
     { model: "RS5", pattern: /\bRS\s*5\b/i },
@@ -87,6 +93,11 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "S5", pattern: /\bS5\b/i },
   ],
   "Mercedes-AMG": [
+    { model: "A35", pattern: /\bA\s*35L?\b/i },
+    { model: "C43", pattern: /\bC\s*43\b/i },
+    { model: "CLA35", pattern: /\bCLA\s*35\b/i },
+    { model: "GLS63", pattern: /\bGLS\s*63\b/i },
+    { model: "G500/G550", pattern: /\bG\s*(?:500|550)\b/i },
     { model: "A45", pattern: /\bA\s*45\b/i },
     { model: "CLA45", pattern: /\bCLA\s*45\b/i },
     { model: "GLA45", pattern: /\bGLA\s*45\b/i },
@@ -97,7 +108,7 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "G63", pattern: /\bG\s*63\b/i },
     { model: "S63", pattern: /\bS\s*63\b/i },
     { model: "SL63", pattern: /\bSL\s*63\b/i },
-    { model: "AMG GT", pattern: /\bAMG\s+GT\b/i },
+    { model: "AMG GT", pattern: /\b(?:AMG\s+GT|Roadster\s+GT)\b/i },
   ],
   Toyota: [
     { model: "GR Supra", pattern: /\b(?:GR\s*)?Supra\b/i },
@@ -119,11 +130,13 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "Roma", pattern: /\bRoma\b/i },
   ],
   Lamborghini: [
+    { model: "Gallardo", pattern: /\bGallardo\b/i },
     { model: "Huracán", pattern: /\bHuracan\b/i },
     { model: "Aventador", pattern: /\bAventador\b/i },
     { model: "Urus", pattern: /\bUrus\b/i },
   ],
   McLaren: [
+    { model: "650S", pattern: /\b650\s*S\b/i },
     { model: "720S", pattern: /\b720\s*S\b/i },
     { model: "765LT", pattern: /\b765\s*LT\b/i },
     { model: "570S", pattern: /\b570\s*S\b/i },
@@ -140,9 +153,10 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "Golf", pattern: /\bGolf\b/i },
     { model: "Polo", pattern: /\bPolo\b/i },
   ],
-  Renault: [{ model: "Mégane RS", pattern: /\bMegane\b/i }],
+  Renault: [{ model: "Mégane RS", pattern: /\bM[eé]gane\b/i }, { model: "Clio RS", pattern: /\bClio\b/i }],
   Mini: [{ model: "Cooper", pattern: /\bCooper\b/i }],
   Abarth: [
+    { model: "500/500C", pattern: /\b500C?\b/i },
     { model: "595", pattern: /\b595\b/i },
     { model: "695", pattern: /\b695\b/i },
   ],
@@ -151,6 +165,7 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "Focus RS", pattern: /\bFocus\s*RS\b/i },
   ],
   Ducati: [
+    { model: "Panigale V4", pattern: /\bPanigale\s*V4\b/i },
     { model: "Panigale V2", pattern: /\bPanigale\b(?!\s*V4)/i },
     { model: "Streetfighter V4 2025", pattern: /\bStreetfighter\s*V4\b/i },
     { model: "Streetfighter V2", pattern: /\bStreetfighter\b(?!\s*V4)/i },
@@ -197,11 +212,16 @@ const VALID_CHASSIS_BY_BRAND_MODEL: Record<string, Record<string, string[]>> = {
     Taycan: ["J1"],
   },
   BMW: {
+    "1M": ["E82"],
+    "335i/435i": ["F30", "F31", "F32", "F33", "F36"],
+    "340i/440i": ["F30", "F31", "F32", "F33", "F36"],
+    XM: ["G09"],
     M2: ["F87", "G87"],
     M3: ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
     M4: ["F82", "F83", "G82", "G83"],
     M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90"],
     M8: ["F91", "F92", "F93"],
+    M6: ["F06", "F12", "F13"],
     "X3 M": ["F97"],
     "X4 M": ["F98"],
     "X5 M": ["F95"],
@@ -215,6 +235,7 @@ const VALID_CHASSIS_BY_BRAND_MODEL: Record<string, Record<string, string[]>> = {
     M850i: ["G14", "G15", "G16"],
   },
   Audi: {
+    S7: ["C7"],
     RS3: ["8V", "8Y"],
     RS4: ["B7", "B8", "B9"],
     RS5: ["B8", "B9"],
@@ -230,6 +251,11 @@ const VALID_CHASSIS_BY_BRAND_MODEL: Record<string, Record<string, string[]>> = {
     S5: ["B8", "B9"],
   },
   "Mercedes-AMG": {
+    A35: ["W177", "Z117"],
+    C43: ["W206", "S206"],
+    CLA35: ["C118", "X118"],
+    GLS63: ["X167"],
+    "G500/G550": ["W463", "W463A"],
     A45: ["W176", "W177"],
     CLA45: ["C117", "X117", "C118", "X118"],
     GLA45: ["X156", "X247", "H247"],
