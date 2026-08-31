@@ -20,6 +20,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-010 | Akrapovič normalization/backfill               | Done        | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof |
 | C2-P6-011 | iPE normalization/backfill                     | Done        | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof |
 | C2-P6-012 | CSF normalization/backfill                     | Done        | 297 records, tag quarantine, exact transmission, concurrency proof |
+| C2-P6-013 | GiroDisc normalization/backfill                | Done        | 958 records, dimension-safe parsing, parent quarantine, PostgreSQL proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -102,6 +103,11 @@ Six manual/automatic constraints are now exact through the shared transmission-a
 290 engine-relevant products without engine identity remain quarantined. Bounded `P2034` retry is
 proven by parallel CSF, iPE, and Akrapovič persistence. See
 [CSF_AUDIT_2026-08-31.md](./CSF_AUDIT_2026-08-31.md).
+GiroDisc normalization accounts for 958/958 records and 47,068/47,068 raw leaves. It verifies 705
+products and produces 861 applications without treating rotor/piston dimensions as models. Generic
+hardware and replacement parts without a vehicle or parent remain review-only, as do three suspect
+complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only quarantine. See
+[GIRODISC_AUDIT_2026-08-31.md](./GIRODISC_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 
