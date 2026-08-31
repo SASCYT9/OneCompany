@@ -19,6 +19,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-009 | Öhlins normalization/backfill                  | Done        | 489 records, universal split, drivetrain quarantine, PostgreSQL proof |
 | C2-P6-010 | Akrapovič normalization/backfill               | Done        | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof |
 | C2-P6-011 | iPE normalization/backfill                     | Done        | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof |
+| C2-P6-012 | CSF normalization/backfill                     | Done        | 297 records, tag quarantine, exact transmission, concurrency proof |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -95,6 +96,12 @@ exact OPF/Non-OPF policies; one contradictory OPF record and one non-contiguous 
 review-only. All 110 engine-relevant records lack exact engine identity and are quarantined without
 discarding their 134 candidate applications. PostgreSQL proves collision-safe records and exact
 variant-first OPF constraints. See [IPE_AUDIT_2026-08-31.md](./IPE_AUDIT_2026-08-31.md).
+CSF normalization accounts for 297/297 records and 10,763/10,763 raw leaves. Title-derived
+correlation avoids known-invalid legacy tag cross-products; 18 tag-only records remain review-only.
+Six manual/automatic constraints are now exact through the shared transmission-aware writer. The
+290 engine-relevant products without engine identity remain quarantined. Bounded `P2034` retry is
+proven by parallel CSF, iPE, and Akrapovič persistence. See
+[CSF_AUDIT_2026-08-31.md](./CSF_AUDIT_2026-08-31.md).
 
 ## Completed sprint: P5 unified admin publication
 

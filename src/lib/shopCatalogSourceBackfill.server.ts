@@ -120,7 +120,7 @@ export async function persistCatalogSourceRecordPageWithClient<
   const sourceKey = (input.sourceKey ?? config.defaultSourceKey).trim().toLowerCase();
   if (!sourceKey || sourceKey.length > 200) throw new TypeError(`Invalid ${config.label} source key`);
 
-  return client.$transaction(
+  const execute = () => client.$transaction(
     async (tx) => {
       const source = await tx.shopCatalogSource.upsert({
         where: { key: sourceKey },
@@ -346,4 +346,13 @@ export async function persistCatalogSourceRecordPageWithClient<
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 }
   );
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await execute();
+    } catch (error) {
+      const retryable = error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+      if (!retryable || attempt >= 5) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 20 * 2 ** (attempt - 1) + Math.floor(Math.random() * 20)));
+    }
+  }
 }
