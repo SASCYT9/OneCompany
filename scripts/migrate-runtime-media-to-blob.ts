@@ -1,24 +1,27 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { PrismaClient } from '@prisma/client';
-import { readSiteContent, writeSiteContent } from '@/lib/siteContentServer';
-import { readSiteMedia, writeSiteMedia } from '@/lib/siteMediaServer';
-import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
+import { promises as fs } from "fs";
+import path from "path";
+import { PrismaClient } from "@prisma/client";
+import { readSiteContent, writeSiteContent } from "@/lib/siteContentServer";
+import { readSiteMedia, writeSiteMedia } from "@/lib/siteMediaServer";
+import { readVideoConfig, writeVideoConfig } from "@/lib/videoConfig";
+import { MEDIA_LIBRARY_PATH_PREFIX, VIDEO_UPLOADS_PATH_PREFIX } from "@/lib/runtimeAssetPaths";
 import {
-  MEDIA_LIBRARY_PATH_PREFIX,
-  VIDEO_UPLOADS_PATH_PREFIX,
-} from '@/lib/runtimeAssetPaths';
-import { isBlobStorageConfigured, listAllBlobsByPrefix, putPublicBlob } from '@/lib/runtimeBlobStorage';
+  isBlobStorageConfigured,
+  listAllBlobsByPrefix,
+  putPublicBlob,
+} from "@/lib/runtimeBlobStorage";
+import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 
 const prisma = new PrismaClient();
 const args = new Set(process.argv.slice(2));
-const commit = args.has('--commit');
-const dryRun = !commit || args.has('--dry-run');
+const commit = args.has("--commit");
+const dryRun = !commit || args.has("--dry-run");
 
-const mediaRoot = path.join(process.cwd(), 'public', 'media');
-const videoUploadsRoot = path.join(process.cwd(), 'public', 'videos', 'uploads');
+const mediaRoot = path.join(process.cwd(), "public", "media");
+const videoUploadsRoot = path.join(process.cwd(), "public", "videos", "uploads");
 
-type AssetKind = 'media' | 'video';
+type AssetKind = "media" | "video";
 
 type LocalAsset = {
   kind: AssetKind;
@@ -31,7 +34,7 @@ type LocalAsset = {
 };
 
 type UploadedAsset = LocalAsset & {
-  action: 'existing' | 'uploaded' | 'pending';
+  action: "existing" | "uploaded" | "pending";
   blobUrl: string | null;
 };
 
@@ -39,6 +42,7 @@ type DbRewriteSummary = {
   productPrimaryImages: number;
   productMedia: number;
   variantImages: number;
+  catalogOutboxIds: string[];
 };
 
 type JsonRewriteSummary = {
@@ -47,42 +51,45 @@ type JsonRewriteSummary = {
 };
 
 function toPosixPath(value: string) {
-  return value.split(path.sep).join('/');
+  return value.split(path.sep).join("/");
 }
 
 function contentTypeFromFilePath(filePath: string) {
   const extension = path.extname(filePath).toLowerCase();
   switch (extension) {
-    case '.jpg':
-    case '.jpeg':
-      return 'image/jpeg';
-    case '.png':
-      return 'image/png';
-    case '.webp':
-      return 'image/webp';
-    case '.gif':
-      return 'image/gif';
-    case '.avif':
-      return 'image/avif';
-    case '.svg':
-      return 'image/svg+xml';
-    case '.mp4':
-      return 'video/mp4';
-    case '.webm':
-      return 'video/webm';
-    case '.ogg':
-    case '.ogv':
-      return 'video/ogg';
-    case '.mov':
-      return 'video/quicktime';
-    case '.m4v':
-      return 'video/x-m4v';
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".png":
+      return "image/png";
+    case ".webp":
+      return "image/webp";
+    case ".gif":
+      return "image/gif";
+    case ".avif":
+      return "image/avif";
+    case ".svg":
+      return "image/svg+xml";
+    case ".mp4":
+      return "video/mp4";
+    case ".webm":
+      return "video/webm";
+    case ".ogg":
+    case ".ogv":
+      return "video/ogg";
+    case ".mov":
+      return "video/quicktime";
+    case ".m4v":
+      return "video/x-m4v";
     default:
-      return 'application/octet-stream';
+      return "application/octet-stream";
   }
 }
 
-async function walkFiles(rootDir: string, skipFile?: (relativePath: string) => boolean): Promise<LocalAsset[]> {
+async function walkFiles(
+  rootDir: string,
+  skipFile?: (relativePath: string) => boolean
+): Promise<LocalAsset[]> {
   const items: LocalAsset[] = [];
 
   async function visit(currentDir: string, kind: AssetKind) {
@@ -111,7 +118,7 @@ async function walkFiles(rootDir: string, skipFile?: (relativePath: string) => b
         continue;
       }
 
-      if (kind === 'media') {
+      if (kind === "media") {
         items.push({
           kind,
           absolutePath,
@@ -139,14 +146,14 @@ async function walkFiles(rootDir: string, skipFile?: (relativePath: string) => b
     }
   }
 
-  const inferredKind: AssetKind = rootDir === mediaRoot ? 'media' : 'video';
+  const inferredKind: AssetKind = rootDir === mediaRoot ? "media" : "video";
   await visit(rootDir, inferredKind);
   return items.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
 async function loadLocalAssets() {
   const [mediaAssets, videoAssets] = await Promise.all([
-    walkFiles(mediaRoot, (relativePath) => relativePath === 'media.json'),
+    walkFiles(mediaRoot, (relativePath) => relativePath === "media.json"),
     walkFiles(videoUploadsRoot),
   ]);
 
@@ -179,12 +186,12 @@ async function uploadAssets(assets: LocalAsset[], existingBlobUrls: Map<string, 
       for (const reference of asset.oldReferences) {
         rewriteMap.set(reference, existingUrl);
       }
-      uploadedAssets.push({ ...asset, action: 'existing', blobUrl: existingUrl });
+      uploadedAssets.push({ ...asset, action: "existing", blobUrl: existingUrl });
       continue;
     }
 
     if (!commit) {
-      uploadedAssets.push({ ...asset, action: 'pending', blobUrl: null });
+      uploadedAssets.push({ ...asset, action: "pending", blobUrl: null });
       continue;
     }
 
@@ -196,7 +203,7 @@ async function uploadAssets(assets: LocalAsset[], existingBlobUrls: Map<string, 
       rewriteMap.set(reference, uploaded.url);
     }
 
-    uploadedAssets.push({ ...asset, action: 'uploaded', blobUrl: uploaded.url });
+    uploadedAssets.push({ ...asset, action: "uploaded", blobUrl: uploaded.url });
   }
 
   return { uploadedAssets, rewriteMap };
@@ -225,8 +232,11 @@ function rewriteStringValue(value: string, orderedMappings: Array<[string, strin
   return { value: nextValue, replacements };
 }
 
-function rewriteStructuredValue<T>(value: T, orderedMappings: Array<[string, string]>): { value: T; replacements: number } {
-  if (typeof value === 'string') {
+function rewriteStructuredValue<T>(
+  value: T,
+  orderedMappings: Array<[string, string]>
+): { value: T; replacements: number } {
+  if (typeof value === "string") {
     return rewriteStringValue(value, orderedMappings) as { value: T; replacements: number };
   }
 
@@ -240,7 +250,7 @@ function rewriteStructuredValue<T>(value: T, orderedMappings: Array<[string, str
     return { value: nextArray as T, replacements };
   }
 
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     let replacements = 0;
     const nextObject = Object.fromEntries(
       Object.entries(value as Record<string, unknown>).map(([key, entry]) => {
@@ -255,20 +265,32 @@ function rewriteStructuredValue<T>(value: T, orderedMappings: Array<[string, str
   return { value, replacements: 0 };
 }
 
-async function rewriteDbReferences(orderedMappings: Array<[string, string]>): Promise<DbRewriteSummary> {
+async function rewriteDbReferences(
+  orderedMappings: Array<[string, string]>
+): Promise<DbRewriteSummary> {
   const oldReferences = orderedMappings.map(([from]) => from);
   const [productImages, productMedia, variantImages] = await Promise.all([
     prisma.shopProduct.findMany({
       where: { image: { in: oldReferences } },
-      select: { image: true },
+      select: { id: true, image: true, catalogVersion: true },
     }),
     prisma.shopProductMedia.findMany({
       where: { src: { in: oldReferences } },
-      select: { src: true },
+      select: {
+        id: true,
+        src: true,
+        productId: true,
+        product: { select: { catalogVersion: true } },
+      },
     }),
     prisma.shopProductVariant.findMany({
       where: { image: { in: oldReferences } },
-      select: { image: true },
+      select: {
+        id: true,
+        image: true,
+        productId: true,
+        product: { select: { catalogVersion: true } },
+      },
     }),
   ]);
 
@@ -276,27 +298,92 @@ async function rewriteDbReferences(orderedMappings: Array<[string, string]>): Pr
     productPrimaryImages: productImages.length,
     productMedia: productMedia.length,
     variantImages: variantImages.filter((item) => Boolean(item.image)).length,
+    catalogOutboxIds: [],
   };
 
   if (!commit) {
     return summary;
   }
 
-  for (const [from, to] of orderedMappings) {
-    await Promise.all([
-      prisma.shopProduct.updateMany({
-        where: { image: from },
-        data: { image: to },
-      }),
-      prisma.shopProductMedia.updateMany({
-        where: { src: from },
-        data: { src: to },
-      }),
-      prisma.shopProductVariant.updateMany({
-        where: { image: from },
-        data: { image: to },
-      }),
-    ]);
+  const rewriteBySource = new Map(orderedMappings);
+  const groups = new Map<
+    string,
+    {
+      catalogVersion: bigint;
+      primaryImage?: string;
+      media: Array<{ id: string; src: string }>;
+      variants: Array<{ id: string; image: string }>;
+    }
+  >();
+  for (const product of productImages) {
+    const next = product.image ? rewriteBySource.get(product.image) : null;
+    if (!next) continue;
+    groups.set(product.id, {
+      catalogVersion: product.catalogVersion,
+      primaryImage: next,
+      media: [],
+      variants: [],
+    });
+  }
+  for (const media of productMedia) {
+    const next = rewriteBySource.get(media.src);
+    if (!next) continue;
+    const group = groups.get(media.productId) ?? {
+      catalogVersion: media.product.catalogVersion,
+      media: [],
+      variants: [],
+    };
+    group.media.push({ id: media.id, src: next });
+    groups.set(media.productId, group);
+  }
+  for (const variant of variantImages) {
+    const next = variant.image ? rewriteBySource.get(variant.image) : null;
+    if (!next) continue;
+    const group = groups.get(variant.productId) ?? {
+      catalogVersion: variant.product.catalogVersion,
+      media: [],
+      variants: [],
+    };
+    group.variants.push({ id: variant.id, image: next });
+    groups.set(variant.productId, group);
+  }
+
+  for (const [productId, group] of [...groups.entries()].sort(([a], [b]) =>
+    a.localeCompare(b, "en")
+  )) {
+    const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
+      productId,
+      expectedCatalogVersion: group.catalogVersion.toString(),
+      changeDomains: ["MEDIA"],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        if (group.primaryImage) {
+          await tx.shopProduct.update({
+            where: { id: productId },
+            data: { image: group.primaryImage },
+          });
+        }
+        for (const media of group.media) {
+          const updated = await tx.shopProductMedia.updateMany({
+            where: { id: media.id, productId },
+            data: { src: media.src },
+          });
+          if (updated.count !== 1) throw new Error(`Media ownership changed for ${media.id}`);
+        }
+        for (const variant of group.variants) {
+          const updated = await tx.shopProductVariant.updateMany({
+            where: { id: variant.id, productId },
+            data: { image: variant.image },
+          });
+          if (updated.count !== 1) throw new Error(`Variant ownership changed for ${variant.id}`);
+        }
+        return buildShopCatalogAdminSnapshot(tx, productId, nextCatalogVersion, {
+          type: "IMPORT",
+          id: "runtime-media-migration@system.local",
+          reason: "runtime-media.blob-migration",
+        });
+      },
+    });
+    summary.catalogOutboxIds.push(mutation.outboxId);
   }
 
   return summary;
@@ -356,7 +443,7 @@ function printUploadSummary(uploadedAssets: UploadedAsset[]) {
     (accumulator, asset) => {
       accumulator.assets += 1;
       accumulator.bytes += asset.size;
-      if (asset.kind === 'media') {
+      if (asset.kind === "media") {
         accumulator.media += 1;
       } else {
         accumulator.video += 1;
@@ -375,8 +462,10 @@ function printUploadSummary(uploadedAssets: UploadedAsset[]) {
     }
   );
 
-  console.log('');
-  console.log(`Assets scanned: ${totals.assets} (${totals.media} media, ${totals.video} uploaded videos)`);
+  console.log("");
+  console.log(
+    `Assets scanned: ${totals.assets} (${totals.media} media, ${totals.video} uploaded videos)`
+  );
   console.log(`Total size: ${formatBytes(totals.bytes)}`);
   console.log(`Already in Blob: ${totals.existing}`);
   console.log(`Uploaded now: ${totals.uploaded}`);
@@ -387,7 +476,9 @@ function printUploadSummary(uploadedAssets: UploadedAsset[]) {
 
 async function main() {
   if (!isBlobStorageConfigured()) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is required. Pull Vercel env first, then rerun the migration.');
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is required. Pull Vercel env first, then rerun the migration."
+    );
   }
 
   const { mediaAssets, videoAssets, allAssets } = await loadLocalAssets();
@@ -398,12 +489,17 @@ async function main() {
   const dbSummary = await rewriteDbReferences(orderedMappings);
   const jsonSummary = await rewriteJsonPayloads(orderedMappings);
 
-  console.log(commit ? 'Runtime media Blob migration committed.' : 'Runtime media Blob migration dry-run.');
+  console.log(
+    commit ? "Runtime media Blob migration committed." : "Runtime media Blob migration dry-run."
+  );
   printUploadSummary(uploadedAssets);
 
-  console.log('');
+  console.log("");
   console.log(`Rewrite mappings ready: ${orderedMappings.length}`);
-  console.log(`DB rewrites: products=${dbSummary.productPrimaryImages}, media=${dbSummary.productMedia}, variants=${dbSummary.variantImages}`);
+  console.log(
+    `DB rewrites: products=${dbSummary.productPrimaryImages}, media=${dbSummary.productMedia}, variants=${dbSummary.variantImages}`
+  );
+  console.log(`Catalog outbox events: ${dbSummary.catalogOutboxIds.length}`);
   console.log(
     `JSON rewrites: siteContent=${jsonSummary.siteContentSummary.replacements}, siteMedia=${jsonSummary.siteMediaSummary.replacements}, videoConfig=${jsonSummary.videoConfigSummary.replacements}`
   );
@@ -413,8 +509,8 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error('');
-    console.error('Runtime media Blob migration failed.');
+    console.error("");
+    console.error("Runtime media Blob migration failed.");
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
   })
