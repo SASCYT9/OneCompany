@@ -95,6 +95,13 @@ export async function coordinateShopCatalogProductMutation(
       const nextVersion = product.catalogVersion + BigInt(1);
       if (nextVersion > MAX_POSTGRES_BIGINT) throw new Error("Catalog version overflow");
 
+      // Set the locked aggregate version before the writer reloads its canonical
+      // state, so the immutable snapshot describes the exact committed version.
+      // The surrounding transaction rolls this back together with the mutation.
+      await tx.shopProduct.update({
+        where: { id: product.id },
+        data: { catalogVersion: nextVersion },
+      });
       const snapshotInput = await input.mutateAndSnapshot(tx, nextVersion.toString());
       const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
       const projectionSource = {
@@ -117,10 +124,6 @@ export async function coordinateShopCatalogProductMutation(
         newSlug,
       });
 
-      await tx.shopProduct.update({
-        where: { id: product.id },
-        data: { catalogVersion: nextVersion },
-      });
       const revision = await tx.shopCatalogProductRevision.create({
         data: {
           productId: product.id,

@@ -133,6 +133,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       select: {
         id: true,
         slug: true,
+        catalogVersion: true,
         media: {
           select: {
             id: true,
@@ -267,11 +268,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const variantUpdateIds = new Set(variantMutationPlan.updateIds);
 
-    const product = await prisma.$transaction(async (tx) => {
-      await tx.shopProduct.update({
+    const catalogMutation = await coordinateShopCatalogProductMutation({
+      productId: id,
+      expectedCatalogVersion: currentProduct.catalogVersion.toString(),
+      changeDomains: [
+        "CONTENT",
+        "SEO",
+        "MEDIA",
+        "PRICE",
+        "INVENTORY",
+        "FITMENT",
+        "TAXONOMY",
+        "VISIBILITY",
+      ],
+      async mutateAndSnapshot(tx, nextCatalogVersion) {
+        await tx.shopProduct.update({
         where: { id },
         data: buildAdminProductScalarUpdateData(data),
-      });
+        });
 
       await tx.shopProductCollection.deleteMany({
         where: { productId: id },
@@ -416,10 +430,34 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           variantUpdates: variantMutationPlan.updateIds.length,
           variantCreates: variantMutationPlan.create.length,
           variantDeletes: variantMutationPlan.deleteIds.length,
+          catalogVersion: nextCatalogVersion,
         },
       });
 
-      return updatedProduct;
+        return buildShopCatalogAdminSnapshot(tx, id, nextCatalogVersion, {
+          type: "ADMIN",
+          id: session.email,
+          reason: "product.update",
+        });
+      },
+    });
+    const product = await prisma.shopProduct.findUniqueOrThrow({
+      where: { id },
+      include: adminProductInclude,
+    });
+
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `catalog-admin:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[shop-catalog.admin] immediate publish failed; cron recovery remains active", {
+          outboxId: catalogMutation.outboxId,
+          error,
+        });
+      }
     });
 
     try {
@@ -445,13 +483,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       console.error("[revalidate] Error:", e);
     }
 
-    return NextResponse.json(serializeAdminProduct(product));
+    return NextResponse.json({
+      ...serializeAdminProduct(product),
+      catalog: {
+        version: catalogMutation.canonicalVersion,
+        revisionId: catalogMutation.revisionId,
+        outboxId: catalogMutation.outboxId,
+        status: "SAVED",
+      },
+    });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if ((error as Error).message === "FORBIDDEN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (/^Catalog version conflict/.test((error as Error).message)) {
+      return NextResponse.json(
+        { error: "Product was changed by another request. Reload it before saving again." },
+        { status: 409 }
+      );
     }
     console.error("Admin shop product update", error);
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
