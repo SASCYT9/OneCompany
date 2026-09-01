@@ -128,6 +128,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-007 | Unbypassable production build guard            | Done        | Next config blocks unsigned/over-scoped V2 before route selection; reader-off rollback remains buildable |
 | C2-P7-008 | Signed observation window and decision owner    | Done        | Canary requires 24h, full SSR 72h, and every activation names its responsible owner |
 | C2-P7-009 | Canonical regional/B2B card-price parity        | Done        | Fresh bounded page hydration; shared pricing engine; no projection price rendering |
+| C2-P5-008 | Targeted PDP freshness after price/inventory    | Done        | Exact-slug reads bypass external TTL; changed product aliases revalidate without listing invalidation |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,

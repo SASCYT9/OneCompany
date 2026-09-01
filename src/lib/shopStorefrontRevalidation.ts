@@ -37,13 +37,19 @@ type RevalidationProduct = {
   tags?: string[] | null;
 };
 
-export function revalidateShopStorefrontProduct(product: RevalidationProduct) {
-  const segment = resolveShopStorefrontSegment(product);
-
+/** Invalidates only the canonical and legacy PDP aliases, never a listing. */
+export function revalidateShopStorefrontProductDetail(product: RevalidationProduct) {
   for (const locale of ["ua", "en"] as const) {
     revalidatePath(buildShopStorefrontProductPath(locale, product));
     revalidatePath(`/${locale}/shop/${product.slug}`);
+  }
+}
 
+export function revalidateShopStorefrontProduct(product: RevalidationProduct) {
+  const segment = resolveShopStorefrontSegment(product);
+  revalidateShopStorefrontProductDetail(product);
+
+  for (const locale of ["ua", "en"] as const) {
     if (!segment) continue;
     const surface = LISTING_SURFACE_BY_SEGMENT[segment];
     const basePath = `/${locale}/shop/${segment}/${surface}`;

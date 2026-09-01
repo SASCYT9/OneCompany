@@ -3211,12 +3211,12 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
         where: allowDraftPreview ? { slug } : { slug, isPublished: true, status: "ACTIVE" },
         include: storefrontProductInclude,
       };
-      if (isAccelerateEnabled && !allowDraftPreview) {
-        queryParams.cacheStrategy = { ttl: 300, swr: 60 };
-      }
+      // Exact-slug reads back PDP, cart, and checkout prices. Do not put them
+      // behind Accelerate's independent TTL: a targeted Next revalidation
+      // after an admin mutation must observe the new canonical row at once.
       const row = allowDraftPreview
         ? await prisma.shopProduct.findFirst(queryParams)
-        : await getPrismaCachedClient().shopProduct.findFirst(queryParams);
+        : await prisma.shopProduct.findFirst(queryParams);
       if (row) {
         const product = applyShopProductImageOverrides(
           mapDbToCatalog(row as unknown as AdminShopProductRecord)

@@ -16,6 +16,7 @@ import {
   type ShopCatalogCoordinatedMutationResult,
 } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import { revalidateShopStorefrontProductDetail } from "@/lib/shopStorefrontRevalidation";
 
 function numberOrNull(value: unknown): number | null {
   if (value === "" || value == null) return null;
@@ -113,7 +114,9 @@ export async function PATCH(request: NextRequest) {
       select: {
         id: true,
         productId: true,
-        product: { select: { catalogVersion: true } },
+        product: {
+          select: { catalogVersion: true, slug: true, brand: true, vendor: true, tags: true },
+        },
       },
     });
     if (selectedVariants.length !== uniqueVariantIds.length) {
@@ -121,12 +124,17 @@ export async function PATCH(request: NextRequest) {
     }
     const groups = new Map<
       string,
-      { catalogVersion: string; variantIds: string[] }
+      {
+        catalogVersion: string;
+        variantIds: string[];
+        storefront: { slug: string; brand: string | null; vendor: string | null; tags: string[] };
+      }
     >();
     for (const variant of selectedVariants) {
       const group = groups.get(variant.productId) ?? {
         catalogVersion: variant.product.catalogVersion.toString(),
         variantIds: [],
+        storefront: variant.product,
       };
       group.variantIds.push(variant.id);
       groups.set(variant.productId, group);
@@ -195,6 +203,16 @@ export async function PATCH(request: NextRequest) {
         });
       }
     });
+
+    try {
+      for (const group of groups.values()) {
+        revalidateShopStorefrontProductDetail(group.storefront);
+      }
+    } catch (error) {
+      // Persistence already committed. Never report a false mutation failure;
+      // the product remains protected by its normal ISR expiry.
+      console.error("[shop-catalog.inventory] targeted PDP revalidation failed", { error });
+    }
 
     return NextResponse.json({
       updatedCount,
