@@ -232,7 +232,7 @@ export function normalizeShopCatalogProjectionQuery(
 function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
   if (input.useEuropePrice) {
     return Prisma.sql`COALESCE(
-      (SELECT COALESCE(canonical_product."priceEurEurope", canonical_variant."priceEurEurope", canonical_product."priceEur", canonical_variant."priceEur")
+      (SELECT COALESCE(NULLIF(canonical_product."priceEurEurope", 0), NULLIF(canonical_variant."priceEurEurope", 0), NULLIF(canonical_product."priceEur", 0), NULLIF(canonical_variant."priceEur", 0))
        FROM "ShopProduct" canonical_product
        LEFT JOIN LATERAL (
          SELECT variant."priceEur", variant."priceEurEurope"
@@ -242,7 +242,7 @@ function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProject
          LIMIT 1
        ) canonical_variant ON true
        WHERE canonical_product."id" = projection."productId"),
-      projection."minPriceEurEurope", projection."minPriceEur"
+      NULLIF(projection."minPriceEurEurope", 0), NULLIF(projection."minPriceEur", 0)
     )`;
   }
   const productColumn =
@@ -264,7 +264,7 @@ function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProject
         ? Prisma.sql`projection."minPriceEur"`
         : Prisma.sql`projection."minPriceUsd"`;
   return Prisma.sql`COALESCE(
-    (SELECT COALESCE(${productColumn}, ${variantColumn})
+    (SELECT COALESCE(NULLIF(${productColumn}, 0), NULLIF(${variantColumn}, 0))
      FROM "ShopProduct" canonical_product
      LEFT JOIN LATERAL (
        SELECT variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah"
@@ -274,7 +274,7 @@ function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProject
        LIMIT 1
      ) canonical_variant ON true
      WHERE canonical_product."id" = projection."productId"),
-    ${projectionColumn}
+    NULLIF(${projectionColumn}, 0)
   )`;
 }
 
