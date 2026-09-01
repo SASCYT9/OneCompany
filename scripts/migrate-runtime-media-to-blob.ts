@@ -11,7 +11,12 @@ import {
   listAllBlobsByPrefix,
   putPublicBlob,
 } from "@/lib/runtimeBlobStorage";
-import { collectReferencedBlobUrls, getUnreferencedUploadedBlobUrls } from "@/lib/blobUploadRetention";
+import {
+  assertBlobCleanupSucceeded,
+  collectReferencedBlobUrls,
+  deleteUploadedBlobUrls,
+  getUnreferencedUploadedBlobUrls,
+} from "@/lib/blobUploadRetention";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 
@@ -525,8 +530,9 @@ async function cleanupUnreferencedUploads() {
     if (value) retained.add(value);
   }
   const orphaned = getUnreferencedUploadedBlobUrls(uploadedThisRun, retained);
-  for (const url of orphaned) await deleteBlob(url);
-  console.log(`Orphan uploads removed: ${orphaned.length}`);
+  const cleanup = await deleteUploadedBlobUrls(orphaned, deleteBlob);
+  console.log(`Orphan uploads removed: ${cleanup.deleted.length}/${orphaned.length}`);
+  assertBlobCleanupSucceeded(cleanup.failures);
 }
 
 main()
