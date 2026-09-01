@@ -179,6 +179,15 @@ test("Airtable stock cron rejects conflicting feed rows and publishes grouped in
   assert.doesNotMatch(cli, /prisma\.shopProductVariant\.updateMany\(/);
 });
 
+test("admin price and inventory helpers cannot write outside a caller-owned catalog transaction", () => {
+  const source = readWorkspaceFile("src/lib/shopAdminVariants.ts");
+  assert.match(source, /applyAdminInventoryPatchInTransaction/);
+  assert.match(source, /applyAdminPricingPatchInTransaction/);
+  assert.doesNotMatch(source, /export async function applyAdminInventoryPatch\(/);
+  assert.doesNotMatch(source, /export async function applyAdminPricingPatch\(/);
+  assert.doesNotMatch(source, /\bPrismaClient\b/);
+});
+
 test("Brabus cleanup is authenticated, preview-first, and versioned", () => {
   const source = readWorkspaceFile("src/app/api/clean-brabus/route.ts");
   const getStart = source.indexOf("export async function GET");
