@@ -4,6 +4,12 @@ import { randomUUID } from "node:crypto";
 
 import { Prisma, type PrismaClient } from "@prisma/client";
 
+import {
+  acquireCatalogCanonicalLocks,
+  catalogCompatibilityTargetLockKey,
+  catalogSourceBindingLockKey,
+} from "./shopCatalogCanonicalLocks.server";
+
 export const CATALOG_SOURCE_BACKFILL_PAGE_LIMIT = 50;
 
 export type CatalogSourceBackfillPageResult = {
@@ -150,6 +156,21 @@ export async function persistCatalogSourceRecordPageWithClient<
           throw new Error(`${config.label} variant ${draft.normalization.variantId} has invalid ownership`);
         }
       }
+
+      await acquireCatalogCanonicalLocks(
+        tx,
+        input.drafts.flatMap((draft) => {
+          const entityType = draft.normalization.variantId ? "VARIANT" as const : "PRODUCT" as const;
+          return [
+            catalogSourceBindingLockKey({
+              sourceId: source.id,
+              entityType,
+              externalKey: draft.sourceRecord.recordKey,
+            }),
+            catalogCompatibilityTargetLockKey(draft.normalization),
+          ];
+        })
+      );
 
       let inserted = 0;
       let idempotent = 0;

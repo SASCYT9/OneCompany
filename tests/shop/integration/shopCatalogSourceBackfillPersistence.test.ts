@@ -69,3 +69,61 @@ test("shared source writer supports true product-level records without synthetic
     assert.equal(await client.shopProductVariant.count({ where: { productId } }), 0);
   } finally { await client.$disconnect(); }
 });
+
+test("shared source writer serializes concurrent binding and compatibility promotion", { skip: !databaseUrl }, async () => {
+  const first = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+  const second = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const productId = `concurrent-source-${suffix}`;
+  const sourceKey = `concurrent-source-${suffix}`;
+  try {
+    await first.shopProduct.create({
+      data: { id: productId, slug: productId, titleUa: productId, titleEn: productId },
+    });
+    const draft = {
+      sourceRecord: {
+        recordKey: productId,
+        sourceRevision: "v1",
+        rawPayload: { id: productId },
+        payloadHash: "b".repeat(64),
+        productId,
+      },
+      provenance: [{
+        fieldPath: "id",
+        ordinal: 0,
+        rawValue: productId,
+        canonicalEntityType: "PRODUCT" as const,
+        canonicalEntityId: productId,
+        canonicalField: "id",
+        normalizedValue: productId,
+        mappingStatus: "MAPPED" as const,
+        mapperVersion: "concurrency-test-v1",
+        confidence: 1,
+        reason: null,
+        productId,
+        variantId: null,
+      }],
+      normalization: { productId, variantId: null },
+      issues: [],
+    };
+    const { persistCatalogSourceRecordPageWithClient } = await backfillModule;
+    const config = {
+      label: "Concurrent fixture",
+      defaultSourceKey: "unused",
+      defaultDisplayName: "Concurrent fixture",
+      decisionReason: "concurrency regression",
+      async persistCompatibility() {},
+    };
+    const results = await Promise.all([
+      persistCatalogSourceRecordPageWithClient(first, { drafts: [draft], sourceKey }, config),
+      persistCatalogSourceRecordPageWithClient(second, { drafts: [draft], sourceKey }, config),
+    ]);
+    assert.deepEqual(results.map((result) => result.inserted).sort(), [0, 1]);
+    assert.deepEqual(results.map((result) => result.idempotent).sort(), [0, 1]);
+    const source = await first.shopCatalogSource.findUniqueOrThrow({ where: { key: sourceKey } });
+    assert.equal(await first.shopCatalogSourceRecord.count({ where: { sourceId: source.id } }), 1);
+    assert.equal(await first.shopCatalogSourceBindingHead.count({ where: { sourceId: source.id } }), 1);
+  } finally {
+    await Promise.all([first.$disconnect(), second.$disconnect()]);
+  }
+});

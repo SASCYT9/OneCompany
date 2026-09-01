@@ -118,6 +118,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P5-002 | Product editor publication visibility          | Done        | Editor polls exact saved version; failed work is never presented as published |
 | C2-P5-003 | Commit-to-visible latency and concurrency gate | Done        | 30 samples: p95 416 ms, p99 504 ms; exactly one same-version contention winner |
 | C2-P5-007 | Global settings and price-book publication     | Done        | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate |
+| C2-P6-021 | Shared canonical promotion lock protocol       | Done        | Page-wide stable advisory locks; two-client PostgreSQL contention regression |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -317,7 +318,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - PostgreSQL policy integration now covers real compatibility rows and the optimized vehicle SQL path. This exposed and fixed the persistence boundary mapping from domain dimensions (`make`, `bodyStyle`, `opfGpf`) to Prisma enums (`MAKE`, `BODY_STYLE`, `OPF_GPF`); all 13 dimensions are mapped explicitly before policy and constraint insertion.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
-- Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
+- Polymorphic binding-head and compatibility-policy promotion now acquire page-wide, stably ordered PostgreSQL transaction advisory locks. A two-client disposable PostgreSQL regression proves one insert plus one idempotent replay under contention.
 - The current-branch 100k/500k PostgreSQL gate passes the compact projection: worst warm p95 is 91.760 ms for 90%-deep keyset pagination, correlated fitment is 24.950 ms, and autocomplete is 28.200 ms. Production-region canary traffic remains required by the signed reader activation guard.
 - Price-book and global settings use concrete monotonic version sources and targeted publication; the historical hardcoded currency writer fails closed.
 - The current storefront still reads the legacy/local snapshot; therefore P1 alone does not remove its multi-second cold parse.
