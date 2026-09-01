@@ -10,6 +10,8 @@ export type ShopCatalogCardPricing = Readonly<{
   compareAt: ShopMoneySet | null;
   b2bCompareAt: ShopMoneySet | null;
   brand: string | null;
+  primaryMediaUrl: string | null;
+  defaultVariantId: string | null;
 }>;
 
 const money = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
@@ -39,6 +41,7 @@ export async function getShopCatalogCardPricingByIds(
       id: true,
       brand: true,
       vendor: true,
+      image: true,
       priceEur: true,
       priceEurEurope: true,
       priceUsd: true,
@@ -56,6 +59,8 @@ export async function getShopCatalogCardPricingByIds(
         orderBy: [{ isDefault: "desc" }, { position: "asc" }],
         take: 1,
         select: {
+          id: true,
+          image: true,
           priceEur: true,
           priceEurEurope: true,
           priceUsd: true,
@@ -70,6 +75,12 @@ export async function getShopCatalogCardPricingByIds(
           compareAtUsdB2b: true,
           compareAtUahB2b: true,
         },
+      },
+      media: {
+        where: { mediaType: "IMAGE" },
+        orderBy: [{ position: "asc" }, { createdAt: "asc" }],
+        take: 1,
+        select: { src: true },
       },
     },
   });
@@ -108,6 +119,8 @@ export async function getShopCatalogCardPricingByIds(
           )
         ),
         brand: resolveShopProductBrand(row) || null,
+        primaryMediaUrl: row.image ?? variant?.image ?? row.media[0]?.src ?? null,
+        defaultVariantId: variant?.id ?? null,
       } satisfies ShopCatalogCardPricing;
     })
     .sort(

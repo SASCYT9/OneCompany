@@ -103,6 +103,11 @@ test("catalog page keeps the premium UI while its API reads the bounded projecti
   assert.match(adapter, /getShopCatalogCardPricingByIds/);
   assert.match(adapter, /=== "moto" \? "moto" : null/);
   assert.match(adapter, /Promise\.all/);
+  assert.match(source, /PremiumCatalogPage/);
+  const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+  assert.match(premium, /setSelectedBrands\(\[\]\)/);
+  assert.match(premium, /renderStandardCompatibilityFields/);
+  assert.match(premium, /name="fuel"|params\.set\("fuel"/);
 });
 
 test("flag-off catalog is internally rewritten without coupling legacy client code to V2", () => {

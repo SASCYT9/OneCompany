@@ -147,6 +147,13 @@ const SORT_LABELS: Record<StockSort, { ua: string; en: string }> = {
   name_asc: { ua: "Назва A-Z", en: "Name A-Z" },
 };
 
+const FUEL_OPTIONS = [
+  { value: "petrol", ua: "Бензин", en: "Petrol" },
+  { value: "diesel", ua: "Дизель", en: "Diesel" },
+  { value: "hybrid", ua: "Гібрид", en: "Hybrid" },
+  { value: "electric", ua: "Електро", en: "Electric" },
+] as const;
+
 const normalizeStockPriceParam = (value: string) => value.trim().replace(",", ".");
 
 const getUkrainianPlural = (count: number, one: string, few: string, many: string) => {
@@ -759,6 +766,7 @@ function StockPageContent() {
       : null;
   });
   const [engineFilter, setEngineFilter] = useState(searchParams.get("engine")?.trim() || "");
+  const [fuelFilter, setFuelFilter] = useState(searchParams.get("fuel")?.trim() || "");
   const [opfGpfFilter, setOpfGpfFilter] = useState<"with" | "without" | null>(() => {
     const value = searchParams.get("opfGpf");
     return value === "with" || value === "without" ? value : null;
@@ -1102,17 +1110,12 @@ function StockPageContent() {
     };
   }, [makePickerOpen]);
 
-  // Brand filters state (multi-select)
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands);
+  // Brand is a single standardized catalog dimension. Combining several
+  // brands here used to be silently reduced by the projection reader.
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands.slice(0, 1));
 
   const handleToggleBrand = (brandName: string) => {
-    setSelectedBrands((prev) => {
-      if (prev.includes(brandName)) {
-        return prev.filter((b) => b !== brandName);
-      } else {
-        return [...prev, brandName];
-      }
-    });
+    setSelectedBrands((current) => (current.includes(brandName) ? [] : [brandName]));
   };
 
   const syncUrlState = useCallback(
@@ -1128,6 +1131,7 @@ function StockPageContent() {
       if (chassis) params.set("chassis", chassis);
       if (requestedYear) params.set("year", String(requestedYear));
       if (engineFilter.trim()) params.set("engine", engineFilter.trim());
+      if (fuelFilter) params.set("fuel", fuelFilter);
       if (opfGpfFilter) params.set("opfGpf", opfGpfFilter);
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
@@ -1152,6 +1156,7 @@ function StockPageContent() {
       chassis,
       currency,
       engineFilter,
+      fuelFilter,
       localCategory,
       productTypeFilter,
       make,
@@ -1343,6 +1348,7 @@ function StockPageContent() {
       if (chassis) params.set("chassis", chassis);
       if (requestedYear) params.set("year", String(requestedYear));
       if (engineFilter.trim()) params.set("engine", engineFilter.trim());
+      if (fuelFilter) params.set("fuel", fuelFilter);
       if (opfGpfFilter) params.set("opfGpf", opfGpfFilter);
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
@@ -1401,6 +1407,7 @@ function StockPageContent() {
       chassis,
       requestedYear,
       engineFilter,
+      fuelFilter,
       opfGpfFilter,
       productKindFilter,
       strictMatch,
@@ -1444,6 +1451,7 @@ function StockPageContent() {
     chassis,
     requestedYear,
     engineFilter,
+    fuelFilter,
     opfGpfFilter,
     productKindFilter,
     strictMatch,
@@ -1500,6 +1508,7 @@ function StockPageContent() {
     setProductTypeFilter("");
     setRequestedYear(null);
     setEngineFilter("");
+    setFuelFilter("");
     setOpfGpfFilter(null);
     setProductKindFilter(null);
     setStrictMatch(false);
@@ -1625,6 +1634,13 @@ function StockPageContent() {
     setMake(nextMake);
     setModel("");
     setChassis("");
+    setRequestedYear(null);
+    setEngineFilter("");
+    setFuelFilter("");
+    // Selecting a new vehicle starts a vehicle-wide search. A brand can still
+    // be applied afterwards, but a stale brand must not silently hide all
+    // other compatible products.
+    setSelectedBrands([]);
     setMakePickerOpen(false);
     setMakePickerQuery("");
   };
@@ -1655,6 +1671,10 @@ function StockPageContent() {
     setMake(suggestion.make);
     setModel("");
     setChassis("");
+    setRequestedYear(null);
+    setEngineFilter("");
+    setFuelFilter("");
+    setSelectedBrands([]);
     setQuery("");
   };
 
@@ -1687,6 +1707,7 @@ function StockPageContent() {
     Boolean(chassis) ||
     Boolean(requestedYear) ||
     Boolean(engineFilter.trim()) ||
+    Boolean(fuelFilter) ||
     Boolean(opfGpfFilter) ||
     Boolean(productKindFilter) ||
     vehicleMode === "moto" ||
@@ -1703,6 +1724,7 @@ function StockPageContent() {
     (chassis ? 1 : 0) +
     (requestedYear ? 1 : 0) +
     (engineFilter.trim() ? 1 : 0) +
+    (fuelFilter ? 1 : 0) +
     (opfGpfFilter ? 1 : 0) +
     (productKindFilter ? 1 : 0) +
     (vehicleMode === "moto" ? 1 : 0) +
@@ -1925,6 +1947,66 @@ function StockPageContent() {
     );
   };
 
+  const renderStandardCompatibilityFields = (horizontal = false) => {
+    const surface = horizontal
+      ? "rounded-[8px] bg-card/90 shadow-[0_8px_24px_rgba(0,0,0,0.055)] backdrop-blur-xl dark:bg-black/55 dark:shadow-none"
+      : "bg-foreground/[0.035]";
+    const fieldClass = `h-11 w-full border border-foreground/15 px-3 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${surface}`;
+
+    return (
+      <div className={horizontal ? "contents" : "grid grid-cols-1 gap-2"}>
+        <label className="relative block min-w-0">
+          <span className="sr-only">{isUa ? "Рік" : "Year"}</span>
+          <input
+            type="number"
+            min={1886}
+            max={new Date().getFullYear() + 2}
+            value={requestedYear ?? ""}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              setRequestedYear(Number.isInteger(value) && value >= 1886 ? value : null);
+            }}
+            placeholder={isUa ? "Рік" : "Year"}
+            className={fieldClass}
+          />
+        </label>
+        <label className="relative block min-w-0">
+          <span className="sr-only">{isUa ? "Двигун" : "Engine"}</span>
+          <input
+            type="text"
+            value={engineFilter}
+            maxLength={80}
+            onChange={(event) => setEngineFilter(event.target.value)}
+            placeholder={isUa ? "Двигун: S58, 3.0 TFSI…" : "Engine: S58, 3.0 TFSI…"}
+            className={fieldClass}
+          />
+        </label>
+        <label className="relative block min-w-0">
+          <span className="sr-only">{isUa ? "Паливо" : "Fuel"}</span>
+          <select
+            value={fuelFilter}
+            onChange={(event) => setFuelFilter(event.target.value)}
+            className={`${fieldClass} appearance-none pr-9`}
+          >
+            <option value="" className="bg-card text-foreground dark:bg-[#121216]">
+              {isUa ? "Будь-яке паливо" : "Any fuel"}
+            </option>
+            {FUEL_OPTIONS.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                className="bg-card text-foreground dark:bg-[#121216]"
+              >
+                {isUa ? option.ua : option.en}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+        </label>
+      </div>
+    );
+  };
+
   const renderFilterPanel = (mobile = false) => (
     <form onSubmit={handleSearch} className="flex h-full flex-col">
       <div
@@ -2002,6 +2084,12 @@ function StockPageContent() {
               })}
             </div>
             {renderVehicleFitmentFields()}
+            <div className="border-t border-foreground/10 pt-3">
+              <p className="mb-2 text-[9px] font-medium uppercase tracking-[0.16em] text-foreground/50">
+                {isUa ? "Точна сумісність" : "Exact compatibility"}
+              </p>
+              {renderStandardCompatibilityFields()}
+            </div>
           </section>
         ) : null}
 
@@ -2744,22 +2832,21 @@ function StockPageContent() {
                 <ChevronDown className="h-4 w-4 shrink-0 rotate-180 text-foreground/45" />
               </button>
             </div>
-            <div className="hidden gap-2 lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))_132px]">
-              {renderVehicleFitmentFields(true)}
-              <button
-                type="button"
-                onClick={() => handleSearch()}
-                disabled={loading}
-                className="flex h-11 items-center justify-center rounded-[8px] border border-primary bg-primary px-4 text-[10px] font-semibold uppercase tracking-[0.13em] text-primary-foreground shadow-[0_10px_22px_rgba(213,0,28,0.2)] transition hover:-translate-y-px hover:brightness-105 disabled:cursor-wait disabled:opacity-60"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isUa ? (
-                  "Застосувати"
-                ) : (
-                  "Apply"
-                )}
-              </button>
+            <div className="hidden space-y-2 lg:block">
+              <div className="grid gap-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_132px]">
+                {renderVehicleFitmentFields(true)}
+                <button
+                  type="button"
+                  onClick={() => handleSearch()}
+                  disabled={loading}
+                  className="flex h-11 items-center justify-center rounded-[8px] border border-primary bg-primary px-4 text-[10px] font-semibold uppercase tracking-[0.13em] text-primary-foreground shadow-[0_10px_22px_rgba(213,0,28,0.2)] transition hover:-translate-y-px hover:brightness-105 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {isUa ? "Застосувати" : "Apply"}
+                </button>
+              </div>
+              <div className="grid gap-2 lg:grid-cols-3">
+                {renderStandardCompatibilityFields(true)}
+              </div>
             </div>
           </div>
         </section>
@@ -2803,6 +2890,9 @@ function StockPageContent() {
                     setMake("");
                     setModel("");
                     setChassis("");
+                    setRequestedYear(null);
+                    setEngineFilter("");
+                    setFuelFilter("");
                   }}
                   className="flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/10 text-foreground/45 transition hover:border-foreground/30 hover:text-foreground"
                   aria-label={
@@ -3015,6 +3105,9 @@ function StockPageContent() {
                           setMake("");
                           setModel("");
                           setChassis("");
+                          setRequestedYear(null);
+                          setEngineFilter("");
+                          setFuelFilter("");
                         }
                       }}
                       className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
@@ -3040,6 +3133,19 @@ function StockPageContent() {
                       className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
                     >
                       {isUa ? `Двигун: ${engineFilter.trim()}` : `Engine: ${engineFilter.trim()}`}
+                      <X className="h-3.5 w-3.5 text-foreground/45" />
+                    </button>
+                  ) : null}
+                  {fuelFilter ? (
+                    <button
+                      type="button"
+                      onClick={() => setFuelFilter("")}
+                      className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
+                    >
+                      {isUa ? "Паливо: " : "Fuel: "}
+                      {FUEL_OPTIONS.find((option) => option.value === fuelFilter)?.[
+                        isUa ? "ua" : "en"
+                      ] ?? fuelFilter}
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}

@@ -7,12 +7,12 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 test("Catalog V2 hydrates only the visible page from fresh canonical product pricing", () => {
-  const page = read("src/app/[locale]/shop/catalog/page.tsx");
-  assert.match(page, /result\.items\.map\(\(item\) => item\.productId\)/);
-  assert.match(page, /getShopCatalogCardPricingByIds\(result\.items\.map/);
-  assert.match(page, /operation: "pricing"/);
-  assert.match(page, /databaseQueriesUpperBound: 5/);
-  assert.doesNotMatch(page, /getShopProductsServer\(/);
+  const adapter = read("src/lib/shopCatalogPremiumProjection.server.ts");
+  assert.match(adapter, /items\.map\(\(item\) => item\.productId\)/);
+  assert.match(adapter, /getShopCatalogCardPricingByIds\(items\.map/);
+  assert.match(adapter, /cardPrice\?\.primaryMediaUrl \?\? item\.primaryMediaUrl/);
+  assert.match(adapter, /cardPrice\?\.defaultVariantId/);
+  assert.doesNotMatch(adapter, /getShopProductsServer\(/);
 });
 
 test("Catalog V2 cards use the shared regional and B2B pricing engine", () => {
@@ -31,5 +31,7 @@ test("fresh card pricing uses one narrow bounded query", () => {
   assert.match(catalog, /uniqueIds\.length > 100/);
   assert.match(catalog, /prisma\.shopProduct\.findMany\(/);
   assert.match(catalog, /variants: \{[\s\S]*take: 1/);
+  assert.match(catalog, /media: \{[\s\S]*take: 1/);
+  assert.match(catalog, /primaryMediaUrl: row\.image/);
   assert.doesNotMatch(catalog, /include:/);
 });

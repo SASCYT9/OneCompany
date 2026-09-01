@@ -128,7 +128,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       partNumber: item.normalizedSku ?? "",
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
-      thumbnail: item.primaryMediaUrl,
+      thumbnail: cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null,
       inStock: true,
       price: displayPrice,
       priceUsd: priceSet.usd,
@@ -147,7 +147,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         slug: item.slug,
         brand: item.brandLabel || item.brandKey,
       }),
-      variantId: null,
+      variantId: cardPrice?.defaultVariantId ?? null,
       turn14Id: "",
       source: "catalog_v2_projection" as const,
     };
