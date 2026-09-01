@@ -62,6 +62,44 @@ export type ShopCatalogProjectionQueryResult = {
   nextCursor: { stableRank: string; productId: string } | null;
 };
 
+export async function countShopCatalogProjection(
+  raw: ShopCatalogProjectionQueryInput
+): Promise<number> {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  const conditions = projectionFacetBaseConditions(input, true);
+  const vehicleConstraints: Prisma.Sql[] = [];
+  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
+    const value = input[field];
+    if (value) {
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+    }
+  }
+  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
+  if (vehicleConstraints.length) {
+    conditions.push(Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM "ShopCatalogProjectionPolicy" policy
+        JOIN "ShopCatalogProjectionClause" clause
+          ON clause."targetKey" = policy."targetKey"
+         AND clause."productId" = policy."productId"
+         AND clause."sourceVersion" = policy."sourceVersion"
+        WHERE policy."productId" = projection."productId"
+          AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+          AND ${Prisma.join(vehicleConstraints, " AND ")}
+        OFFSET 0
+      )
+    `);
+  }
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
+    SELECT count(*)::bigint AS "count"
+    FROM "ShopCatalogProjection" projection
+    WHERE ${Prisma.join(conditions, " AND ")}
+  `);
+  const count = Number(rows[0]?.count ?? 0);
+  return Number.isSafeInteger(count) && count >= 0 ? count : 0;
+}
+
 export const SHOP_CATALOG_PROJECTION_FACET_LIMIT = 100 as const;
 
 export type ShopCatalogProjectionFacetItem = {
@@ -140,7 +178,11 @@ export function normalizeShopCatalogProjectionQuery(
     text: optionalBounded(input.text, "text", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.text),
     scope: optionalBounded(input.scope, "scope", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     brand: optionalBounded(input.brand, "brand", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
-    category: optionalBounded(input.category, "category", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    category: optionalBounded(
+      input.category,
+      "category",
+      SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
+    ),
     make: optionalBounded(input.make, "make", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     model: optionalBounded(input.model, "model", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     generation: optionalBounded(

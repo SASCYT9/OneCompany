@@ -67,7 +67,6 @@ No actionable P0, P1, or P2 mismatch remains.
 ## Final result
 
 final result: passed
-
 ---
 
 # Design QA — Official AI provider marks (latest)
@@ -478,3 +477,54 @@ final result: passed
 ## Final result
 
 final result: passed
+
+---
+
+# Catalog restoration design QA
+
+- Source visual truth: `C:\Users\Admin\AppData\Local\Temp\codex-clipboard-6f9a5b2c-194e-48d0-8883-4e369844ead1.png`
+- Implementation screenshot: `C:\Users\Admin\.codex\visualizations\2026\08\30\01a05461-4006-78a2-b87b-6081db436935\catalog-restored.png`
+- Combined comparison: `C:\Users\Admin\.codex\visualizations\2026\08\30\01a05461-4006-78a2-b87b-6081db436935\catalog-design-comparison.png`
+- Browser viewport / implementation pixels: 1265 × 712 CSS px at device scale 1
+- Source pixels: 1362 × 1197; the shared above-the-fold region was normalized to 712 px high for the combined comparison
+- State: dark theme, Ukrainian locale, RaceChip brand, BMW make
+
+## Full-view comparison evidence
+
+The implementation restores the same established component and assets shown in the source: ONE COMPANY navigation, performance hero, search and Auto/Moto selector, BMW vehicle picker, selected-vehicle strip, filter sidebar, result controls, and product grid. The source error panel is replaced by 24 real product cards. There is no technical V2 form or route-level loading graphic.
+
+## Focused-region comparison evidence
+
+The hero/search/filter/results region is fully readable in the combined comparison, so a separate crop was unnecessary. Browser interaction verified that selecting BMW M2 preserved all 24 current cards during the request and then replaced them with 6 filtered cards; no skeleton grid appeared.
+
+## Required fidelity surfaces
+
+- Fonts and typography: unchanged premium catalog typography, weights, hierarchy, and labels.
+- Spacing and layout rhythm: unchanged hero proportions, overlapping finder panel, sidebar/content grid, radii, borders, and card spacing.
+- Colors and visual tokens: unchanged dark theme, gold primary action, neutral borders, and white controls.
+- Image quality and assets: existing ONE COMPANY logo, performance hero, vehicle icons, brand marks, and product media are used directly.
+- Copy and content: Ukrainian catalog copy is preserved; stale `0 товарів` and the Prisma P6009 message are replaced with live counts and products.
+
+## Interaction and runtime checks
+
+- Initial product cards: 24.
+- Cards still visible immediately after changing model: 24.
+- BMW M2 cards after completion: 6.
+- Visible Prisma/P6009 errors: 0.
+- Browser console errors: 0.
+- TypeScript: passed.
+- Relevant catalog tests: 22/22 passed.
+
+## Comparison history
+
+- P0 fixed: the public route rendered the technical V2 template instead of the premium catalog.
+- P0 fixed: the premium catalog's legacy full-product query could exceed Prisma's 5 MB response limit.
+- P1 fixed: a 12-card pulse skeleton replaced products during every filter refresh.
+- Post-fix evidence: premium UI is restored, bounded projection reads are wired through the catalog API, existing cards remain visible during refresh, and filtered products render without errors.
+
+## Findings
+
+No actionable P0, P1, or P2 visual differences remain. Live data counts and product cards intentionally differ from the broken reference state.
+
+final result: passed
+

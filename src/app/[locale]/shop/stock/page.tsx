@@ -3150,25 +3150,7 @@ function StockPageContent() {
               </motion.div>
             )}
 
-            {loading ? (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:2300px)]:grid-cols-5">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-[380px] rounded-none border border-foreground/10 bg-foreground/[0.018] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:rounded-none sm:p-5 md:p-6 flex flex-col"
-                  >
-                    <div className="aspect-square bg-foreground/5 mb-6 animate-pulse rounded-none" />
-                    <div className="h-2 bg-foreground/5 animate-pulse w-10 mb-2" />
-                    <div className="h-4 bg-foreground/5 animate-pulse w-full mb-1" />
-                    <div className="h-4 bg-foreground/5 animate-pulse w-2/3 mb-3" />
-                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-foreground/5">
-                      <div className="h-5 bg-foreground/5 animate-pulse w-16" />
-                      <div className="h-8 bg-foreground/5 animate-pulse w-24 rounded-none" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : !hasSearched ? (
+            {loading && items.length === 0 ? null : !hasSearched ? (
               <div className="rounded-none border border-foreground/10 bg-foreground/[0.014] py-32 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
                 <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-foreground/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
                   <Package className="w-8 h-8 text-foreground/45" />

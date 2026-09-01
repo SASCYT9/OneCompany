@@ -84,6 +84,7 @@ import {
   recordShopCatalogShadowObservation,
   resolveShopCatalogDeploymentCommit,
 } from "@/lib/shopCatalogShadowTelemetry.server";
+import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -936,6 +937,9 @@ async function resolveStrictCatalogMatches(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    if (process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr") {
+      return queryPremiumCatalogProjection(searchParams);
+    }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     const q = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
@@ -1684,9 +1688,7 @@ export async function GET(request: NextRequest) {
             console.error("[Catalog V2 Shadow]", {
               event: "catalog_v2_shadow_telemetry_persist_error",
               error:
-                telemetryError instanceof Error
-                  ? telemetryError.message
-                  : String(telemetryError),
+                telemetryError instanceof Error ? telemetryError.message : String(telemetryError),
             });
           }
         });

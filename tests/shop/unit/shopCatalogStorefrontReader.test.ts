@@ -89,16 +89,19 @@ test("storefront query ignores malformed optional filters instead of broadening 
   assert.equal(parsed.after, null);
 });
 
-test("catalog page performs direct server query only behind the reader flag", () => {
+test("catalog page keeps the premium UI while its API reads the bounded projection", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(source, /if\s*\(\s*!isShopCatalogReaderRequestEnabled\(/);
-  assert.match(source, /redirect\(`/);
-  assert.doesNotMatch(source, /stock\/page/);
-  assert.match(source, /await connection\(\)/);
-  assert.match(source, /queryShopCatalogProjection\(/);
-  assert.match(source, /queryShopCatalogProjectionFacets\(query\)/);
-  assert.match(source, /Promise\.all/);
+  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const adapter = readFileSync("src/lib/shopCatalogPremiumProjection.server.ts", "utf8");
+  assert.match(source, /PremiumCatalogPage/);
+  assert.match(source, /stock\/page/);
   assert.doesNotMatch(source, /fetch\(/);
+  assert.match(api, /queryPremiumCatalogProjection/);
+  assert.match(adapter, /queryShopCatalogProjection\(query\)/);
+  assert.match(adapter, /queryShopCatalogProjectionFacets\(query\)/);
+  assert.match(adapter, /countShopCatalogProjection\(query\)/);
+  assert.match(adapter, /getShopCatalogCardPricingByIds/);
+  assert.match(adapter, /Promise\.all/);
 });
 
 test("flag-off catalog is internally rewritten without coupling legacy client code to V2", () => {
@@ -116,16 +119,16 @@ test("canary routing is request-bound and the page still fails closed without it
   assert.match(proxy, /NextResponse\.rewrite\(legacyUrl\)/);
   assert.match(proxy, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
   assert.match(proxy, /Vary", "Cookie/);
-  assert.match(page, /isShopCatalogReaderRequestEnabled/);
+  assert.match(page, /PremiumCatalogPage/);
   assert.match(suggest, /isShopCatalogReaderRequestEnabled/);
 });
 
-test("canary read failures preserve filters and fall back to legacy while full SSR stays fail-closed", () => {
+test("premium catalog adapter keeps projection failures recoverable in the stock API", () => {
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(page, /function legacyCatalogHref/);
-  assert.match(page, /catalog_v2_canary_fallback/);
-  assert.match(page, /if \(reader\.mode !== "canary"\) throw error/);
-  assert.match(page, /redirect\(legacyCatalogHref\(locale, filters\)\)/);
+  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  assert.match(page, /PremiumCatalogPage/);
+  assert.match(api, /catch \(error: any\)/);
+  assert.match(api, /NextResponse\.json\(\{ error: error\.message \}, \{ status: 500 \}\)/);
 });
 
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
@@ -157,12 +160,14 @@ test("SSR catalog exposes progressive GET filters and keyset continuation withou
   assert.match(client, /\/api\/shop\/catalog\/suggest/);
 });
 
-test("catalog route has accessible loading, empty, and recoverable error states", () => {
+test("catalog route avoids transition graphics and keeps recoverable error states", () => {
   const loading = readFileSync("src/app/[locale]/shop/catalog/loading.tsx", "utf8");
   const error = readFileSync("src/app/[locale]/shop/catalog/error.tsx", "utf8");
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
-  assert.match(loading, /aria-busy="true"/);
-  assert.match(loading, /aspect-square/);
+  const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+  assert.match(loading, /return null/);
+  assert.doesNotMatch(loading, /animate-pulse|aspect-square/);
+  assert.doesNotMatch(premium, /Array\.from\(\{ length: 12 \}\)/);
   assert.match(error, /"use client"/);
   assert.match(error, /onClick=\{reset\}/);
   assert.match(error, /filters remain in the URL/);
