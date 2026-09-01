@@ -98,7 +98,10 @@ export default function CatalogV2Server({
   const nextHref = nextPageHref(locale, query, result);
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-20 pt-28 text-zinc-950 dark:bg-zinc-950 dark:text-white">
+    <main
+      data-catalog-v2="true"
+      className="min-h-screen bg-white px-4 pb-20 pt-28 text-zinc-950 dark:bg-zinc-950 dark:text-white"
+    >
       <div className="mx-auto max-w-7xl">
         <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">{copy.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">{copy.title}</h1>
@@ -118,6 +121,7 @@ export default function CatalogV2Server({
               return (
                 <Link
                   key={item.productId}
+                  data-catalog-product-id={item.productId}
                   href={href}
                   className="group bg-white p-5 transition-colors hover:bg-zinc-50 dark:bg-zinc-950 dark:hover:bg-zinc-900"
                 >
