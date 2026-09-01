@@ -21,8 +21,8 @@ import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { prisma } from "@/lib/prisma";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -73,36 +73,24 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     // Canonical products (1), settings read/create (up to 2), system rules
     // (1), and authenticated customer rules (1).
     databaseQueriesUpperBound: 5,
-    rows: (value) => value[0].length,
-    execute: () =>
-      Promise.all([
+    rows: (value) => value.canonicalProducts.length,
+    execute: async () => {
+      const [canonicalProducts, settingsRecord] = await Promise.all([
         getShopCatalogCardPricingByIds(result.items.map((item) => item.productId)),
         getOrCreateShopSettings(prisma),
-        prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
-        session
-          ? prisma.shopCustomerBrandDiscount.findMany({
-              where: { customerId: session.customerId },
-              select: { brand: true, discountPct: true },
-            })
-          : Promise.resolve([]),
-      ]),
+      ]);
+      const pricingContext = await buildShopViewerPricingContextServer({
+        prisma,
+        settings: getShopSettingsRuntime(settingsRecord),
+        customerId: session?.customerId,
+        customerGroup: session?.group,
+        isAuthenticated: Boolean(session),
+        customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      });
+      return { canonicalProducts, pricingContext };
+    },
   });
-  const [canonicalProducts, settingsRecord, systemBrandDiscounts, customerBrandDiscounts] =
-    pricingRead.value;
-  const pricingContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null,
-    {
-      systemBrandDiscountMap: new Map(
-        systemBrandDiscounts.map((row) => [row.brand.trim().toLowerCase(), Number(row.discountPct)])
-      ),
-      customerBrandDiscountMap: new Map(
-        customerBrandDiscounts.map((row) => [row.brand.trim().toLowerCase(), Number(row.discountPct)])
-      ),
-    }
-  );
+  const { canonicalProducts, pricingContext } = pricingRead.value;
   const cardPrices = Object.fromEntries(
     canonicalProducts.map((product) => [
       product.productId,

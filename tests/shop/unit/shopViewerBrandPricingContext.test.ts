@@ -72,6 +72,14 @@ test("every variant pricing path supplies its owning product brand", () => {
   }
 });
 
+test("Catalog V2 SSR uses the shared B2B-gated pricing context", () => {
+  const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
+  assert.match(source, /buildShopViewerPricingContextServer\(\{/);
+  assert.match(source, /customerId: session\?\.customerId/);
+  assert.doesNotMatch(source, /prisma\.shopBrandB2bDiscount\.findMany/);
+  assert.doesNotMatch(source, /prisma\.shopCustomerBrandDiscount\.findMany/);
+});
+
 test("client viewer context deduplicates and applies four-tier brand discounts", () => {
   const hook = readFileSync("src/lib/useShopViewerContext.ts", "utf8");
   assert.match(hook, /brandDiscountRequests = new Map/);
