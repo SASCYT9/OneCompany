@@ -51,12 +51,16 @@ async function main() {
   const lcp: number[] = [];
   const filterLatency: number[] = [];
   const consoleErrors: string[] = [];
+  const failedResponses: Array<{ url: string; status: number }> = [];
   try {
     for (let index = 0; index < sampleCount; index += 1) {
       const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
       const page = await context.newPage();
       page.on("console", (message) => {
         if (message.type() === "error") consoleErrors.push(message.text());
+      });
+      page.on("response", (response) => {
+        if (response.status() >= 400) failedResponses.push({ url: response.url(), status: response.status() });
       });
       await page.addInitScript(() => {
         (window as Window & { __catalogLcp?: number }).__catalogLcp = 0;
@@ -93,11 +97,32 @@ async function main() {
   const lcpP75 = percentile(lcp, 75);
   const lcpP95 = percentile(lcp, 95);
   const filterP95 = percentile(filterLatency, 95);
+  const localAnalyticsFailures = failedResponses.filter((entry) => {
+    const failedUrl = new URL(entry.url);
+    return failedUrl.origin === url.origin && failedUrl.pathname === "/_vercel/insights/script.js" && entry.status === 404;
+  });
+  const genericResourceErrorsToIgnore = localAnalyticsFailures.length;
+  let ignoredGenericResourceErrors = 0;
+  const criticalConsoleErrors = consoleErrors.filter((message) => {
+    if (message.includes(`${url.origin}/_vercel/insights/script.js`)) return false;
+    if (
+      message === "Failed to load resource: the server responded with a status of 404 (Not Found)" &&
+      ignoredGenericResourceErrors < genericResourceErrorsToIgnore
+    ) {
+      ignoredGenericResourceErrors += 1;
+      return false;
+    }
+    return true;
+  });
+  const unexpectedFailedResponses = failedResponses.filter(
+    (entry) => !localAnalyticsFailures.includes(entry),
+  );
   const checks = {
     lcpP75Within1800Ms: lcpP75 < LCP_P75_LIMIT_MS,
     lcpP95Within2500Ms: lcpP95 < LCP_P95_LIMIT_MS,
     filterP95Within1000Ms: filterP95 < FILTER_P95_LIMIT_MS,
-    noConsoleErrors: consoleErrors.length === 0,
+    noApplicationConsoleErrors: criticalConsoleErrors.length === 0,
+    noUnexpectedFailedResponses: unexpectedFailedResponses.length === 0,
   };
   const artifact = {
     version: 1,
@@ -112,7 +137,11 @@ async function main() {
       filterNavigationMs: { p95: Number(filterP95.toFixed(3)), max: Number(Math.max(...filterLatency).toFixed(3)) },
     },
     limits: { lcpP75Ms: LCP_P75_LIMIT_MS, lcpP95Ms: LCP_P95_LIMIT_MS, filterP95Ms: FILTER_P95_LIMIT_MS },
-    consoleErrors,
+    diagnostics: {
+      criticalConsoleErrors,
+      unexpectedFailedResponses,
+      ignoredLocalAnalyticsFailures: localAnalyticsFailures.length,
+    },
     checks,
   };
   const directory = path.resolve("artifacts", "catalog-v2-storefront");

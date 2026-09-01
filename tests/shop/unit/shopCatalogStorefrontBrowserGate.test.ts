@@ -17,6 +17,8 @@ test("browser gate enforces P4 LCP and interactive filtering", () => {
   assert.match(source, /largest-contentful-paint/);
   assert.match(source, /select\[name=["']brand["']\]/);
   assert.match(source, /data-nextjs-dialog/);
-  assert.match(source, /noConsoleErrors/);
+  assert.match(source, /noApplicationConsoleErrors/);
+  assert.match(source, /\/_vercel\/insights\/script\.js/);
+  assert.match(source, /noUnexpectedFailedResponses/);
   assert.match(source, /artifact\.status !== "PASS"/);
 });
