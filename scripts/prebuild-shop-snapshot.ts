@@ -31,6 +31,10 @@ import {
   getShopProductsServer,
 } from "../src/lib/shopCatalogServer";
 import { resolveShopStorefrontSegment } from "../src/lib/shopStorefrontRouting";
+import {
+  assertSafeCatalogReplacement,
+  replaceCatalogDirectoryAtomically,
+} from "./lib/atomic-catalog-directory";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
 const PRODUCTS_OUTPUT = path.join(process.cwd(), "data", "shop-products.snapshot.json");
@@ -164,14 +168,13 @@ async function main() {
         `Duplicate product slugs in fallback snapshot: ${simplifiedProducts.length - uniqueSlugs.size}`
       );
     }
-    if (simplifiedProducts.length < productCount) {
-      throw new Error(
-        `Fallback snapshot is truncated: ${simplifiedProducts.length} products for ${productCount} active DB rows`
-      );
-    }
-
-    fs.rmSync(FALLBACK_OUTPUT_DIR, { recursive: true, force: true });
-    fs.mkdirSync(FALLBACK_OUTPUT_DIR, { recursive: true });
+    assertSafeCatalogReplacement({
+      productCount: simplifiedProducts.length,
+      activeDatabaseCount: productCount,
+    });
+    const stagedFallbackDirectory = fs.mkdtempSync(
+      path.join(path.dirname(FALLBACK_OUTPUT_DIR), ".catalog-fallback-staged-")
+    );
 
     const groups = new Map<string, typeof simplifiedProducts>();
     const slugToStore: Record<string, string> = {};
@@ -190,7 +193,7 @@ async function main() {
       const json = JSON.stringify(storeProducts);
       const hash = crypto.createHash("sha256").update(json).digest("hex").slice(0, 12);
       const file = `${store}.${hash}.json`;
-      fs.writeFileSync(path.join(FALLBACK_OUTPUT_DIR, file), json, "utf8");
+      fs.writeFileSync(path.join(stagedFallbackDirectory, file), json, "utf8");
       stores[store] = { file, count: storeProducts.length };
     }
 
@@ -202,7 +205,7 @@ async function main() {
       productType: product.productType ?? undefined,
     }));
     fs.writeFileSync(
-      path.join(FALLBACK_OUTPUT_DIR, "sitemap.json"),
+      path.join(stagedFallbackDirectory, "sitemap.json"),
       JSON.stringify(sitemapRows),
       "utf8"
     );
@@ -210,7 +213,7 @@ async function main() {
     // Manifest is written last: its presence means all referenced immutable
     // shards are complete and safe for runtime fallback reads.
     fs.writeFileSync(
-      path.join(FALLBACK_OUTPUT_DIR, "manifest.json"),
+      path.join(stagedFallbackDirectory, "manifest.json"),
       JSON.stringify({
         version: FALLBACK_VERSION,
         generatedAt: new Date().toISOString(),
@@ -221,6 +224,7 @@ async function main() {
       }),
       "utf8"
     );
+    replaceCatalogDirectoryAtomically(stagedFallbackDirectory, FALLBACK_OUTPUT_DIR);
     fs.writeFileSync(PRODUCTS_OUTPUT, JSON.stringify(simplifiedProducts), "utf8");
     console.log(
       `[prebuild-shop-snapshot] wrote simplified products to ${path.relative(process.cwd(), PRODUCTS_OUTPUT)}`
