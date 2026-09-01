@@ -21,6 +21,8 @@ import {
   Plus,
   CircleAlert,
   ShieldCheck,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { StockAiAssistant } from "@/components/shop/StockAiAssistant";
@@ -744,6 +746,8 @@ function StockPageContent() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [items, setItems] = useState<StockItem[]>([]);
+  const [heroProductIndex, setHeroProductIndex] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(initialPage);
@@ -804,8 +808,54 @@ function StockPageContent() {
   const [vehicleMode, setVehicleMode] = useState<VehicleMode>(
     searchParams.get("scope") === "moto" ? "moto" : "auto"
   );
+  const heroProducts = useMemo(() => {
+    const available = items
+      .filter((item) => item.inStock && item.thumbnail)
+      .sort((left, right) => (right.price ?? 0) - (left.price ?? 0));
+    const featured: StockItem[] = [];
+    const usedBrands = new Set<string>();
+
+    for (const item of available) {
+      const brandKey = item.brand.trim().toLocaleLowerCase();
+      if (!brandKey || usedBrands.has(brandKey)) continue;
+      featured.push(item);
+      usedBrands.add(brandKey);
+      if (featured.length === 8) return featured;
+    }
+
+    for (const item of available) {
+      if (featured.some((featuredItem) => featuredItem.id === item.id)) continue;
+      featured.push(item);
+      if (featured.length === 8) break;
+    }
+
+    return featured;
+  }, [items]);
+  const activeHeroProduct = heroProducts[heroProductIndex] ?? null;
+  const heroRailProducts = useMemo(
+    () =>
+      heroProducts.length > 1
+        ? Array.from({ length: Math.min(3, heroProducts.length - 1) }, (_, offset) => {
+            const index = (heroProductIndex + offset + 1) % heroProducts.length;
+            return { product: heroProducts[index], index };
+          })
+        : [],
+    [heroProductIndex, heroProducts]
+  );
   const mobileFiltersDialogRef = useRef<HTMLElement | null>(null);
   const mobileFiltersCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    setHeroProductIndex((current) => (heroProducts.length ? current % heroProducts.length : 0));
+  }, [heroProducts.length]);
+
+  useEffect(() => {
+    if (heroPaused || heroProducts.length < 2 || shouldReduceMotion) return;
+    const interval = window.setInterval(() => {
+      setHeroProductIndex((current) => (current + 1) % heroProducts.length);
+    }, 7000);
+    return () => window.clearInterval(interval);
+  }, [heroPaused, heroProducts.length, shouldReduceMotion]);
 
   useEffect(() => {
     const handleOpenCatalogFilters = () => setMobileFiltersOpen(true);
@@ -2583,36 +2633,72 @@ function StockPageContent() {
       </CatalogOverlayPortal>
 
       <div className="relative w-full max-w-none px-3 pb-32 sm:px-5 lg:px-6 2xl:px-8">
-        <section className="relative z-30 isolate mb-0 min-h-[250px] overflow-hidden rounded-[18px] border border-foreground/10 bg-[#f3efe7] shadow-[0_18px_55px_rgba(0,0,0,0.08)] dark:bg-[#08090b] sm:min-h-[270px] lg:-mx-6 lg:rounded-none lg:border-x-0 2xl:-mx-8">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[url('/images/hero-stock-performance-light-v3.webp')] bg-cover bg-[position:66%_46%] bg-no-repeat dark:bg-[url('/images/hero-stock-performance-dark-v3.webp')] sm:bg-[position:50%_46%]"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-[#f8f5ef]/98 via-[#f8f5ef]/76 to-[#f8f5ef]/5 dark:from-black/92 dark:via-black/52 dark:to-black/5 sm:from-[#f8f5ef]/95 sm:via-[#f8f5ef]/62 sm:to-transparent sm:dark:from-black/88 sm:dark:via-black/38 sm:dark:to-transparent" />
-          <div className="relative z-10 flex min-h-[250px] items-end p-5 pb-20 sm:min-h-[270px] sm:p-7 sm:pb-24 lg:p-9 lg:pb-24">
-            <div className="min-w-0 self-end lg:pb-1">
-              <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-foreground/55 dark:text-white/65">
-                ONE COMPANY
-              </p>
-              <h1 className="mt-2 max-w-[620px] text-[29px] font-extralight leading-[1.03] tracking-[-0.035em] text-foreground dark:text-white sm:text-[38px] lg:text-[46px]">
+        <section
+          onMouseEnter={() => setHeroPaused(true)}
+          onMouseLeave={() => setHeroPaused(false)}
+          onFocusCapture={() => setHeroPaused(true)}
+          onBlurCapture={() => setHeroPaused(false)}
+          className="relative z-30 isolate mb-0 min-h-[390px] overflow-hidden rounded-[18px] border border-white/10 bg-[#050505] text-white shadow-[0_18px_55px_rgba(0,0,0,0.18)] lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
+        >
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]" />
+          <div className="relative z-10 grid min-h-[390px] grid-cols-1 px-5 pb-[110px] pt-7 sm:px-8 lg:min-h-[430px] lg:grid-cols-[0.78fr_1.12fr_0.92fr] lg:items-center lg:gap-5 lg:px-12 lg:pb-[112px] lg:pt-8 xl:px-16">
+            <div className="relative z-20 self-start lg:self-center">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#c6a657] sm:text-[11px]">ONE COMPANY</p>
+              <h1 className="mt-3 max-w-[480px] text-[34px] font-extralight leading-[0.98] tracking-[-0.045em] sm:text-[46px] lg:text-[52px] xl:text-[60px]">
                 {isUa ? "Каталог товарів" : "Product catalog"}
               </h1>
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-light text-foreground/60 dark:text-white/65">
-                <span>
-                  {isInitialCatalogLoading
-                    ? isUa
-                      ? "Завантаження каталогу…"
-                      : "Loading catalog…"
-                    : `${totalCatalogCount.toLocaleString(isUa ? "uk-UA" : "en-US")} ${isUa ? getUkrainianPlural(totalCatalogCount, "товар", "товари", "товарів") : "products"}`}
-                </span>
-                {SHOW_STOCK_BADGE && !isInitialCatalogLoading ? (
-                  <span className="border-l border-foreground/18 pl-3 dark:border-white/22">
-                    {(filterStats?.stock.inStock ?? 0).toLocaleString(isUa ? "uk-UA" : "en-US")}{" "}
-                    {isUa ? "в наявності" : "in stock"}
-                  </span>
-                ) : null}
-              </div>
             </div>
+
+            {activeHeroProduct ? (
+              <>
+                <motion.div
+                  key={`hero-image-${activeHeroProduct.id}`}
+                  initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden lg:block"
+                >
+                  <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="46vw" className="object-contain object-center drop-shadow-[0_28px_42px_rgba(0,0,0,0.72)]" />
+                </motion.div>
+                <motion.div
+                  key={`hero-copy-${activeHeroProduct.id}`}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.42 }}
+                  className="relative z-20 mt-6 self-end lg:col-start-3 lg:mt-0 lg:self-center"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#c6a657]">{activeHeroProduct.brand}</p>
+                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{activeHeroProduct.name}</h2>
+                  <p className="mt-4 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
+                  <div className="mt-3 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.17em] text-white/62">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#c6a657] shadow-[0_0_12px_rgba(198,166,87,0.9)]" />
+                    {isUa ? "В наявності · готово до відправлення" : "In stock · ready to ship"}
+                  </div>
+                  <Link href={resolveShopCatalogProductHref(locale, activeHeroProduct.href, activeHeroProduct.slug)} className="mt-5 inline-flex h-11 items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                    {isUa ? "Детальніше" : "View product"}<ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                  <div className="mt-4 flex max-w-[250px] items-center justify-between border-b border-white/12 pb-2">
+                    <button type="button" aria-label={isUa ? "Попередній товар" : "Previous product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current - 1 + heroProducts.length) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-white/70 transition hover:text-[#c6a657] disabled:opacity-25"><ArrowLeft className="h-4 w-4" /></button>
+                    <span className="text-[10px] tracking-[0.16em] text-white/45">{String(heroProducts.length ? heroProductIndex + 1 : 0).padStart(2, "0")} / {String(heroProducts.length).padStart(2, "0")}</span>
+                    <button type="button" aria-label={isUa ? "Наступний товар" : "Next product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current + 1) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-white/70 transition hover:text-[#c6a657] disabled:opacity-25"><ArrowRight className="h-4 w-4" /></button>
+                  </div>
+                </motion.div>
+              </>
+            ) : null}
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-white/10 bg-black/72 backdrop-blur-xl">
+            <div className="flex min-w-0 flex-1 overflow-x-auto">
+              {heroRailProducts.map(({ product, index }) => (
+                <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-white/10 px-4 text-left transition hover:bg-white/[0.04] sm:min-w-[230px]">
+                  <span className="relative h-14 w-16 shrink-0"><Image src={product.thumbnail!} alt="" fill unoptimized sizes="64px" className="object-contain" /></span>
+                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c6a657]">{product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-white/68 group-hover:text-white">{product.name}</span></span>
+                </button>
+              ))}
+            </div>
+            <Link href={`/${locale}/shop/catalog?stock=inStock`} className="hidden w-[245px] shrink-0 items-center justify-center gap-4 px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#c6a657] transition hover:bg-white/[0.04] hover:text-[#dfc06d] xl:flex">
+              {isUa ? "Усі товари в наявності" : "All in-stock products"}<ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </section>
 
@@ -2624,7 +2710,7 @@ function StockPageContent() {
                 : "Пошук і підбір за мото"
               : "Search and vehicle finder"
           }
-          className="relative z-40 -mt-16 mx-2 rounded-[16px] border border-foreground/10 bg-card/98 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.13)] backdrop-blur-2xl dark:bg-[#08090b]/98 sm:mx-0 sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5"
+          className="relative z-40 mx-2 mt-4 rounded-[16px] border border-foreground/10 bg-card/98 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.13)] backdrop-blur-2xl dark:bg-[#08090b]/98 sm:mx-0 sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5"
         >
           <div className="space-y-2 self-end sm:space-y-3">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_380px]">
