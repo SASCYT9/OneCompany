@@ -20,9 +20,9 @@ test("BMW model aliases collapse to canonical labels", () => {
 });
 
 test("Audi performance models use canonical spacing", () => {
-  assert.equal(canonicalVehicleModelLabel("Audi", "RSQ8"), "RS Q8");
-  assert.equal(canonicalVehicleModelLabel("Audi", "RS3"), "RS 3");
-  assert.equal(canonicalVehicleModelLabel("Audi", "TTRS"), "TT RS");
+  assert.equal(canonicalVehicleModelLabel("Audi", "RS Q8"), "RSQ8");
+  assert.equal(canonicalVehicleModelLabel("Audi", "RS 3"), "RS3");
+  assert.equal(canonicalVehicleModelLabel("Audi", "TT RS"), "TTRS");
 });
 
 test("catalog-wide punctuation and casing aliases keep official labels", () => {

@@ -45,12 +45,12 @@ export function canonicalVehicleModelLabel(make: string, value: string) {
   }
   if (makeKey === "audi") {
     const rsQ = key.match(/^rsq(\d)$/);
-    if (rsQ) return `RS Q${rsQ[1]}`;
+    if (rsQ) return `RSQ${rsQ[1]}`;
     const rs = key.match(/^rs(\d)$/);
-    if (rs) return `RS ${rs[1]}`;
+    if (rs) return `RS${rs[1]}`;
     const sq = key.match(/^sq(\d)$/);
     if (sq) return `SQ${sq[1]}`;
-    if (key === "ttrs") return "TT RS";
+    if (key === "ttrs") return "TTRS";
   }
   return value.trim().replace(/\s+/g, " ");
 }
