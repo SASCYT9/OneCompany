@@ -35,6 +35,18 @@ measurement rather than the incremental filter-controller size.
 
 ## Remaining activation gates
 
-- Measure representative TTFB/LCP and browser interaction latency with production-shaped data.
+- Commit `249a538921a641a5ecb051b10ba49f64960ee798` passed the local production-shaped
+  runtime gates against disposable PostgreSQL 17 with all 43 migrations and 31 publication-gate
+  projections. The production Next server rendered 24 meaningful product cards before hydration;
+  the 20-sample warm SSR TTFB p95 was 109.834 ms and the complete first response was 27,338
+  gzip bytes. The isolated 10-sample Chromium run measured LCP p75 964 ms, LCP p95 1,140 ms,
+  and brand-filter navigation p95 306.879 ms, with no framework overlay, application console
+  error, or unexpected failed response.
+- The same build passed at 150,526 bytes initial JS gzip, 10,286 bytes catalog-only incremental
+  JS gzip, and no legacy stock client module.
+- These local production-shaped results prove the implementation gate, but the response was
+  explicitly private/no-store because viewer pricing is session-aware. A deployed-region
+  observation is still required before describing the TTFB as CDN-cached or approving production
+  activation.
 - Run commit-to-visible and concurrent mutation/outbox latency drills.
 - Canary shadow parity and error-rate monitoring must pass before changing the reader flag.
