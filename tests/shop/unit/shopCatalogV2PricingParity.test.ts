@@ -10,6 +10,8 @@ test("Catalog V2 hydrates only the visible page from fresh canonical product pri
   const page = read("src/app/[locale]/shop/catalog/page.tsx");
   assert.match(page, /result\.items\.map\(\(item\) => item\.productId\)/);
   assert.match(page, /getShopProductsByIdsServer\([\s\S]*\{ fresh: true \}/);
+  assert.match(page, /operation: "pricing"/);
+  assert.match(page, /databaseQueriesUpperBound: 5/);
   assert.doesNotMatch(page, /getShopProductsServer\(/);
 });
 

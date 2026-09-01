@@ -382,3 +382,4 @@ Production actions performed: none
 - Catalog V2 discovery remains projection-backed, then performs one fresh bounded canonical read for only the visible product IDs.
 - Cards now use the shared regional/B2B pricing engine, including Europe bands, explicit B2B prices, compare-at semantics, system/customer brand discounts, customer discounts, live currency selection, and current settings.
 - Projection min-price fields are no longer rendered as authoritative storefront prices, so admin price edits do not wait for an index refresh.
+- The bounded canonical pricing phase emits the same privacy-safe duration, row-count, filter-dimension, and DB-query-bound telemetry as other V2 reads.

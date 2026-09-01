@@ -1,4 +1,4 @@
-export type ShopCatalogReadOperation = "listing" | "facets" | "suggestions";
+export type ShopCatalogReadOperation = "listing" | "facets" | "suggestions" | "pricing";
 
 export type ShopCatalogReadMetric = Readonly<{
   event: "catalog_v2_read";

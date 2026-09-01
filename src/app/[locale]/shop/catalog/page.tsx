@@ -66,18 +66,29 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   // Projection rows keep discovery fast, while this single bounded canonical
   // read makes admin price edits visible immediately and preserves regional /
   // B2B bands that deliberately do not belong in the public search index.
+  const pricingRead = await observeShopCatalogRead({
+    operation: "pricing",
+    locale: resolvedLocale,
+    filters: query,
+    // Canonical products (1), settings read/create (up to 2), system rules
+    // (1), and authenticated customer rules (1).
+    databaseQueriesUpperBound: 5,
+    rows: (value) => value[0].length,
+    execute: () =>
+      Promise.all([
+        getShopProductsByIdsServer(result.items.map((item) => item.productId), { fresh: true }),
+        getOrCreateShopSettings(prisma),
+        prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
+        session
+          ? prisma.shopCustomerBrandDiscount.findMany({
+              where: { customerId: session.customerId },
+              select: { brand: true, discountPct: true },
+            })
+          : Promise.resolve([]),
+      ]),
+  });
   const [canonicalProducts, settingsRecord, systemBrandDiscounts, customerBrandDiscounts] =
-    await Promise.all([
-      getShopProductsByIdsServer(result.items.map((item) => item.productId), { fresh: true }),
-      getOrCreateShopSettings(prisma),
-      prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
-      session
-        ? prisma.shopCustomerBrandDiscount.findMany({
-            where: { customerId: session.customerId },
-            select: { brand: true, discountPct: true },
-          })
-        : Promise.resolve([]),
-    ]);
+    pricingRead.value;
   const pricingContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
     session?.group ?? null,
