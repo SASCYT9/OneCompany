@@ -32,6 +32,7 @@ export type ShopCatalogProjectionQueryInput = {
   year?: number | null;
   engine?: string | null;
   fuel?: string | null;
+  productIds?: readonly string[] | null;
 };
 
 export type ShopCatalogProjectionQueryItem = {
@@ -193,6 +194,7 @@ export function normalizeShopCatalogProjectionQuery(
     year: input.year ?? null,
     engine: optionalBounded(input.engine, "engine", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     fuel: optionalBounded(input.fuel, "fuel", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    productIds: input.productIds ? [...new Set(input.productIds.filter(Boolean))] : null,
   });
 }
 
@@ -289,6 +291,13 @@ function projectionFacetBaseConditions(
     Prisma.sql`projection."isPublished" = true`,
     Prisma.sql`projection."statusKey" = 'ACTIVE'`,
   ];
+  if (input.productIds) {
+    conditions.push(
+      input.productIds.length
+        ? Prisma.sql`projection."productId" IN (${Prisma.join(input.productIds)})`
+        : Prisma.sql`false`
+    );
+  }
   if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
   if (includeBrand && input.brand) {
     conditions.push(
@@ -399,10 +408,11 @@ export function buildShopCatalogProjectionFacetQuerySql(
   raw: ShopCatalogProjectionQueryInput
 ): Prisma.Sql {
   const input = normalizeShopCatalogProjectionQuery(raw);
-  const brandBranch = input.text
-    ? (() => {
-        const brandConditions = projectionFacetBaseConditions(input, false);
-        return Prisma.sql`
+  const brandBranch =
+    input.text || input.productIds
+      ? (() => {
+          const brandConditions = projectionFacetBaseConditions(input, false);
+          return Prisma.sql`
           (SELECT
              'brand'::text AS "dimension",
              projection."brandKey" AS "key",
@@ -416,8 +426,8 @@ export function buildShopCatalogProjectionFacetQuerySql(
            GROUP BY projection."brandKey"
            ORDER BY "count" DESC, "label" ASC
            LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
-      })()
-    : Prisma.sql`
+        })()
+      : Prisma.sql`
         (SELECT
            'brand'::text AS "dimension",
            facet."valueKey" AS "key",
@@ -656,6 +666,7 @@ export function buildShopCatalogProjectionWhere(
     locale: input.locale,
     isPublished: true,
     statusKey: "ACTIVE",
+    ...(input.productIds ? { productId: { in: [...input.productIds] } } : {}),
     ...(input.scope ? { scopeKey: input.scope } : {}),
     ...(and.length ? { AND: and } : {}),
     ...(input.text

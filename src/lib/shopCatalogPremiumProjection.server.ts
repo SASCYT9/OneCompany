@@ -16,6 +16,7 @@ import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.se
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { prisma } from "@/lib/prisma";
+import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 
 const PAGE_SIZE = 24;
 
@@ -67,6 +68,22 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     engine: clean(params.get("engine")),
     fuel: clean(params.get("fuel")),
   };
+
+  // Until every historical brand is backfilled into compatibility policies,
+  // preserve the complete product-owned vehicle coverage. Engine/fuel remain
+  // projection-native because legacy evidence does not model them reliably.
+  if (query.make || query.model || query.generation || query.year) {
+    query.productIds = await resolveLegacyVehicleProductIds({
+      make: query.make,
+      model: query.model,
+      generation: query.generation,
+      year: query.year,
+    });
+    query.make = null;
+    query.model = null;
+    query.generation = null;
+    query.year = null;
+  }
 
   let cursor: { stableRank: string; productId: string } | null = null;
   let result: Awaited<ReturnType<typeof queryShopCatalogProjection>> | null = null;
