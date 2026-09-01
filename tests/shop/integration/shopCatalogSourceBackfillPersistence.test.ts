@@ -5,6 +5,7 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { PrismaClient } from "@prisma/client";
+import { buildShopCatalogBaselineProductEntry } from "../../../src/lib/shopCatalogBaseline";
 
 const databaseUrl = process.env.CATALOG_EPHEMERAL_TEST === "1" ? process.env.OPS_TEST_DATABASE_URL : undefined;
 const serverOnlyStub = pathToFileURL(path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")).href;
@@ -13,13 +14,26 @@ registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const backfillModule = import("../../../src/lib/shopCatalogSourceBackfill.server");
+const toBaselineSnapshot = (value: unknown) => JSON.parse(JSON.stringify(value, (_key, nested) => typeof nested === "bigint" ? nested.toString() : nested));
 
 test("shared source writer supports true product-level records without synthetic variants", { skip: !databaseUrl }, async () => {
   const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   const suffix = Date.now().toString();
   const productId = `product-level-source-${suffix}`;
   try {
-    await client.shopProduct.create({ data: { id: productId, slug: productId, titleUa: productId, titleEn: productId } });
+    const collectionId = `source-collection-${suffix}`;
+    await client.shopCollection.create({ data: { id: collectionId, handle: collectionId, titleUa: "Колекція", titleEn: "Collection" } });
+    await client.shopProduct.create({ data: {
+      id: productId, slug: productId, sku: `SKU-${suffix}`, titleUa: "Товар", titleEn: "Product",
+      shortDescUa: "Опис", shortDescEn: "Description", priceEur: "199.00",
+      image: "/media/source-primary.jpg", gallery: ["/media/source-primary.jpg", "/media/source-detail.jpg"],
+      media: { create: [{ id: `source-media-${suffix}`, src: "/media/source-primary.jpg", position: 1 }] },
+      options: { create: [{ id: `source-option-${suffix}`, name: "Finish", position: 1, values: ["Gloss"] }] },
+      metafields: { create: [{ id: `source-meta-${suffix}`, namespace: "spec", key: "material", value: "carbon" }] },
+      collections: { create: [{ collectionId, sortOrder: 3 }] },
+    } });
+    const commerceInclude = { variants: true, media: true, options: true, metafields: true, collections: true } as const;
+    const beforeCommerce = buildShopCatalogBaselineProductEntry(toBaselineSnapshot(await client.shopProduct.findUniqueOrThrow({ where: { id: productId }, include: commerceInclude })));
     const draft = {
       sourceRecord: {
         recordKey: productId,
@@ -67,6 +81,14 @@ test("shared source writer supports true product-level records without synthetic
     assert.equal(replay.inserted, 0);
     assert.equal(replay.idempotent, 1);
     assert.equal(callbackRecords.length, 1);
+    const afterCommerce = buildShopCatalogBaselineProductEntry(toBaselineSnapshot(await client.shopProduct.findUniqueOrThrow({ where: { id: productId }, include: commerceInclude })));
+    assert.equal(afterCommerce.hashes.full, beforeCommerce.hashes.full);
+    assert.deepEqual(afterCommerce.counts, beforeCommerce.counts);
+    assert.equal(afterCommerce.counts.media, 1);
+    assert.equal(afterCommerce.counts.options, 1);
+    assert.equal(afterCommerce.counts.metafields, 1);
+    assert.equal(afterCommerce.counts.collections, 1);
+    assert.equal(afterCommerce.counts.priceValues, 1);
     const sourceRecord = await client.shopCatalogSourceRecord.findFirstOrThrow({ where: { sourceId: result.sourceId } });
     assert.equal(sourceRecord.productId, productId);
     assert.equal(sourceRecord.variantId, null);
