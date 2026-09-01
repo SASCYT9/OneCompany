@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
+const RESTORE_IMAGE = "pgvector/pgvector:0.8.2-pg17";
+
 type Options = {
   archivePath: string;
   dockerPath: string;
@@ -93,7 +95,7 @@ async function main() {
       "POSTGRES_HOST_AUTH_METHOD=trust",
       "--volume",
       `${archiveDirectory}:/backup:ro`,
-      "postgres:17",
+      RESTORE_IMAGE,
     ]);
 
     await waitForPostgres(options.dockerPath, containerName);
@@ -157,7 +159,7 @@ async function main() {
     const manifest = {
       verifiedAt: new Date().toISOString(),
       archive: archiveName,
-      temporaryTarget: "postgres:17",
+      temporaryTarget: RESTORE_IMAGE,
       restored,
       expected: {
         tables: options.expectedTables ?? null,
