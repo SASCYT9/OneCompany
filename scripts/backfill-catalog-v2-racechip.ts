@@ -64,11 +64,15 @@ async function main() {
   const after = option("after") ?? null;
   const requestedLimit = Number(option("limit") ?? 50);
   const concurrency = Number(option("concurrency") ?? 1);
+  const pageSize = Number(option("page-size") ?? 50);
   if (!Number.isSafeInteger(requestedLimit) || requestedLimit < 1 || requestedLimit > 50) {
     throw new TypeError("--limit must be between 1 and 50");
   }
   if (!Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 12) {
     throw new TypeError("--concurrency must be between 1 and 12");
+  }
+  if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 50) {
+    throw new TypeError("--page-size must be between 1 and 50");
   }
   const allDrafts = await loadDrafts();
   const remaining = after
@@ -99,8 +103,8 @@ async function main() {
     let issuesInserted = 0;
     let completed = 0;
     let nextPage = 0;
-    const pages = Array.from({ length: Math.ceil(drafts.length / 50) }, (_, index) =>
-      drafts.slice(index * 50, index * 50 + 50)
+    const pages = Array.from({ length: Math.ceil(drafts.length / pageSize) }, (_, index) =>
+      drafts.slice(index * pageSize, index * pageSize + pageSize)
     );
     const worker = async () => {
       while (true) {

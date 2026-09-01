@@ -125,8 +125,8 @@ async function main() {
         ON cl."targetKey" = c."targetKey"
        AND cl."clauseKey" = c."clauseKey"
       CROSS JOIN LATERAL (
-        VALUES ('brand:' || projection."brandKey"),
-               ('scope:' || projection."scopeKey" || '|brand:' || projection."brandKey")
+        VALUES ('brand:' || lower(projection."brandKey")),
+               ('scope:' || projection."scopeKey" || '|brand:' || lower(projection."brandKey"))
       ) AS prefixes(prefix)
       WHERE projection."isPublished" = true AND projection."statusKey" = 'ACTIVE'
       GROUP BY projection."locale", prefix, lower(c."textValue")

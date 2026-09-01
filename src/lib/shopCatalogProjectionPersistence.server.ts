@@ -211,8 +211,8 @@ export function buildShopCatalogMakeFacetDeltas(
         continue;
       }
       const prefixes = [
-        `brand:${projection.brandKey}`,
-        `scope:${projection.scopeKey}|brand:${projection.brandKey}`,
+        `brand:${projection.brandKey.toLowerCase()}`,
+        `scope:${projection.scopeKey}|brand:${projection.brandKey.toLowerCase()}`,
       ];
       for (const [valueKey, valueLabel] of uniqueMakes) {
         for (const prefixKey of prefixes) {
