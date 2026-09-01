@@ -81,7 +81,7 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
     service,
     /getShopProductsWithFitments|findMany\(\{\s*where:\s*\{\s*isPublished/
   );
-  assert.match(route, /if \(!reader\.enabled\)/);
+  assert.match(route, /if \(!isShopCatalogReaderRequestEnabled\(/);
   assert.match(route, /private, no-store/);
   assert.match(route, /status: 400/);
 });

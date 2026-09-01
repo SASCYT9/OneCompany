@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   resolveShopCatalogReaderFlag,
+  isShopCatalogReaderRequestEnabled,
   SHOP_CATALOG_V2_READER_MODE_ENV,
 } from "@/lib/shopCatalogReaderFlag.server";
+import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { queryShopCatalogSuggestions } from "@/lib/shopCatalogSuggestion.server";
 
 export async function GET(request: NextRequest) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
-  if (!reader.enabled) {
+  if (!isShopCatalogReaderRequestEnabled(reader, request.headers.get(SHOP_CATALOG_CANARY_REQUEST_HEADER))) {
     return NextResponse.json({ error: "Not found", data: [] }, { status: 404 });
   }
   const params = request.nextUrl.searchParams;

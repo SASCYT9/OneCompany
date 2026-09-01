@@ -11,9 +11,61 @@ import {
 import { ADMIN_PATH_HEADER } from "@/lib/admin/adminPathHeader";
 import { ADMIN_SESSION_COOKIE } from "@/lib/adminAuth";
 import { shouldAllowAdminApiRequest, shouldAllowAdminPageRequest } from "@/lib/adminProxyAuth";
+import {
+  evaluateShopCatalogCanary,
+  parseShopCatalogCanaryConfig,
+  SHOP_CATALOG_CANARY_COOKIE,
+  SHOP_CATALOG_CANARY_REQUEST_HEADER,
+  SHOP_CATALOG_CANARY_SELECTED_COOKIE,
+} from "@/lib/shopCatalogCanary";
 
 const intlMiddleware = createMiddleware(routing);
 const blockedCountries = ["RU"];
+
+function withCatalogCanaryCookie(response: NextResponse, rolloutId: string, selected: boolean) {
+  const options = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 30,
+    path: "/",
+  };
+  response.cookies.set(SHOP_CATALOG_CANARY_COOKIE, rolloutId, options);
+  response.cookies.set(SHOP_CATALOG_CANARY_SELECTED_COOKIE, selected ? "1" : "0", options);
+  response.headers.set("Vary", "Cookie");
+  return response;
+}
+
+function routeCatalogCanary(req: NextRequest, pathname: string) {
+  if (process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() !== "canary") return null;
+  const catalogMatch = pathname.match(/^\/(ua|en)\/shop\/catalog$/);
+  const isSuggestion = pathname === "/api/shop/catalog/suggest";
+  if (!catalogMatch && !isSuggestion) return null;
+
+  const rolloutId = req.cookies.get(SHOP_CATALOG_CANARY_COOKIE)?.value || crypto.randomUUID();
+  const requestHeaders = new Headers(req.headers);
+  const selected = catalogMatch
+    ? evaluateShopCatalogCanary({
+        config: parseShopCatalogCanaryConfig(process.env),
+        rolloutId,
+        locale: catalogMatch[1] ?? null,
+        brand: req.nextUrl.searchParams.get("brand"),
+        category: req.nextUrl.searchParams.get("category"),
+      })
+    : req.cookies.get(SHOP_CATALOG_CANARY_SELECTED_COOKIE)?.value === "1";
+
+  if (selected) requestHeaders.set(SHOP_CATALOG_CANARY_REQUEST_HEADER, "1");
+  if (catalogMatch && !selected) {
+    const legacyUrl = req.nextUrl.clone();
+    legacyUrl.pathname = `/${catalogMatch[1]}/shop/stock`;
+    return withCatalogCanaryCookie(NextResponse.rewrite(legacyUrl), rolloutId, false);
+  }
+  return withCatalogCanaryCookie(
+    NextResponse.next({ request: { headers: requestHeaders } }),
+    rolloutId,
+    selected
+  );
+}
 
 function nextWithAdminPath(request: NextRequest, pathname: string) {
   const requestHeaders = new Headers(request.headers);
@@ -44,6 +96,9 @@ export default async function proxy(req: NextRequest) {
     url.pathname = normalizedPathname;
     return NextResponse.redirect(url, 308);
   }
+
+  const catalogCanaryResponse = routeCatalogCanary(req, currentPath);
+  if (catalogCanaryResponse) return catalogCanaryResponse;
 
   if (currentPath.startsWith("/api/admin")) {
     const result = await shouldAllowAdminApiRequest({
@@ -104,5 +159,9 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|ua/|en/|.*\\..*).*)"],
+  matcher: [
+    "/:locale(ua|en)/shop/catalog",
+    "/api/shop/catalog/suggest",
+    "/((?!_next/static|_next/image|favicon.ico|ua/|en/|.*\\..*).*)",
+  ],
 };

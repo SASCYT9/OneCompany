@@ -6,7 +6,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
-const isCatalogV2ReaderEnabled = process.env.SHOP_CATALOG_V2_READER_MODE === "ssr";
+const catalogV2ReaderMode = process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase();
+const shouldRewriteCatalogV2ToLegacy = !["ssr", "canary"].includes(catalogV2ReaderMode ?? "");
 
 const STATIC_REMOTE_IMAGE_HOSTS = [
   "cdn.shopify.com",
@@ -507,7 +508,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        ...(!isCatalogV2ReaderEnabled
+        ...(shouldRewriteCatalogV2ToLegacy
           ? [
               {
                 // Preserve the public catalog URL while the V2 reader is off,

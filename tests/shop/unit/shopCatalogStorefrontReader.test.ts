@@ -36,6 +36,11 @@ test("Catalog V2 storefront reader is fail-closed and requires explicit SSR mode
     mode: "ssr",
     reason: "explicit_ssr",
   });
+  assert.deepEqual(resolveShopCatalogReaderFlag("canary"), {
+    enabled: false,
+    mode: "canary",
+    reason: "explicit_canary",
+  });
 });
 
 test("storefront query maps bounded progressive filters and a complete keyset cursor", async () => {
@@ -85,7 +90,7 @@ test("storefront query ignores malformed optional filters instead of broadening 
 
 test("catalog page performs direct server query only behind the reader flag", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(source, /if \(!reader\.enabled\)/);
+  assert.match(source, /if \(!isShopCatalogReaderRequestEnabled\(/);
   assert.match(source, /redirect\(`/);
   assert.doesNotMatch(source, /stock\/page/);
   assert.match(source, /await connection\(\)/);
@@ -97,9 +102,21 @@ test("catalog page performs direct server query only behind the reader flag", ()
 
 test("flag-off catalog is internally rewritten without coupling legacy client code to V2", () => {
   const config = readFileSync("next.config.ts", "utf8");
-  assert.match(config, /SHOP_CATALOG_V2_READER_MODE === "ssr"/);
+  assert.match(config, /\["ssr", "canary"\]/);
   assert.match(config, /source: "\/:locale\(ua\|en\)\/shop\/catalog"/);
   assert.match(config, /destination: "\/:locale\/shop\/stock"/);
+});
+
+test("canary routing is request-bound and the page still fails closed without its header", () => {
+  const proxy = readFileSync("src/proxy.ts", "utf8");
+  const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
+  const suggest = readFileSync("src/app/api/shop/catalog/suggest/route.ts", "utf8");
+  assert.match(proxy, /evaluateShopCatalogCanary/);
+  assert.match(proxy, /NextResponse\.rewrite\(legacyUrl\)/);
+  assert.match(proxy, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
+  assert.match(proxy, /Vary", "Cookie/);
+  assert.match(page, /isShopCatalogReaderRequestEnabled/);
+  assert.match(suggest, /isShopCatalogReaderRequestEnabled/);
 });
 
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {

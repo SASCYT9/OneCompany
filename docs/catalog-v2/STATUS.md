@@ -120,6 +120,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P5-007 | Global settings and price-book publication     | Done        | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate |
 | C2-P6-021 | Shared canonical promotion lock protocol       | Done        | Page-wide stable advisory locks; two-client PostgreSQL contention regression |
 | C2-P7-001 | Reproducible signed activation marker          | Done        | Guard-validated signer CLI; weak/stale/lagging evidence fails closed |
+| C2-P7-002 | Segmented deterministic canary and rollback    | Done        | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -322,7 +323,9 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - Polymorphic binding-head and compatibility-policy promotion now acquire page-wide, stably ordered PostgreSQL transaction advisory locks. A two-client disposable PostgreSQL regression proves one insert plus one idempotent replay under contention.
 - The current-branch 100k/500k PostgreSQL gate passes the compact projection: worst warm p95 is 91.760 ms for 90%-deep keyset pagination, correlated fitment is 24.950 ms, and autocomplete is 28.200 ms. Production-region canary traffic remains required by the signed reader activation guard.
 - Price-book and global settings use concrete monotonic version sources and targeted publication; the historical hardcoded currency writer fails closed.
-- The current storefront still reads the legacy/local snapshot; therefore P1 alone does not remove its multi-second cold parse.
+- Reader-off remains the safe default and still serves the legacy/local snapshot. Signed `canary`
+  and `ssr` modes use the indexed server projection; production activation evidence and owner
+  approval remain intentionally outstanding.
 
 ## Decision log
 

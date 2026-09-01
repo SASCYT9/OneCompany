@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 import {
   queryShopCatalogProjection,
@@ -7,8 +8,10 @@ import {
 } from "@/lib/shopCatalogProjectionQuery.server";
 import {
   resolveShopCatalogReaderFlag,
+  isShopCatalogReaderRequestEnabled,
   SHOP_CATALOG_V2_READER_MODE_ENV,
 } from "@/lib/shopCatalogReaderFlag.server";
+import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import {
   parseShopCatalogStorefrontQuery,
   type CatalogSearchParams,
@@ -27,7 +30,8 @@ type Props = {
 
 export default async function CatalogPage({ params, searchParams }: Props) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
-  if (!reader.enabled) {
+  const requestHeaders = reader.mode === "canary" ? await headers() : null;
+  if (!isShopCatalogReaderRequestEnabled(reader, requestHeaders?.get(SHOP_CATALOG_CANARY_REQUEST_HEADER))) {
     // Normal requests are internally rewritten by next.config. This is a
     // fail-closed fallback for direct route-module invocation only.
     redirect(`/${(await params).locale}/shop/stock`);

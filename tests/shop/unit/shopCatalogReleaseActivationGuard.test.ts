@@ -5,6 +5,10 @@ test("catalog reader stays unaffected outside requested production activation", 
 test("valid commit-bound release evidence permits production reader", () => { const result = evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "ssr", deployedCommit: commit, marker: marker(), secret, now }); assert.equal(result.allowed, true); });
 test("activation fails closed for stale ownership, mismatch, lag, weak samples, and SLO failures", () => { const result = evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "ssr", deployedCommit: commit, marker: marker({ ownershipFingerprint: "c".repeat(64), sourcesReady: 13, projectionLag: 1, shadow: { sampledRequests: 999, mismatches: 1, errorRate: 0.01 }, performance: { scaleP95Ms: 201, publicationP95Ms: 2001 } }), secret, now }); assert.equal(result.allowed, false); assert.ok(result.reasons.length >= 8); });
 test("activation rejects tampering and commit mismatch", () => { const signed = marker(); assert.equal(evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "ssr", deployedCommit: "d".repeat(40), marker: signed, secret, now }).allowed, false); assert.equal(evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "ssr", deployedCommit: commit, marker: `${signed}x`, secret, now }).allowed, false); });
+test("production canary requires the same signed evidence as full SSR", () => {
+  assert.equal(evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "canary" }).allowed, false);
+  assert.equal(evaluateShopCatalogReleaseActivation({ nodeEnv: "production", readerMode: "canary", deployedCommit: commit, marker: marker(), secret, now }).allowed, true);
+});
 test("official marker builder signs only activation-ready evidence", () => {
   const payload = JSON.parse(Buffer.from(marker().split(".")[0]!, "base64url").toString("utf8")) as ShopCatalogReleaseEvidence;
   const signed = createShopCatalogReleaseMarker({ evidence: payload, secret, now });

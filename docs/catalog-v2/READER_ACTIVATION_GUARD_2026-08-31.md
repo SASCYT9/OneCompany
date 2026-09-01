@@ -2,6 +2,9 @@
 
 Production `SHOP_CATALOG_V2_READER_MODE=ssr` now fails closed during predeploy unless a signed evidence marker is valid for the exact deployed commit.
 
+The same guard applies to `SHOP_CATALOG_V2_READER_MODE=canary`; partial traffic is production
+traffic and cannot bypass evidence requirements.
+
 Required evidence:
 
 - current all-source ownership fingerprint;
@@ -32,3 +35,7 @@ only the signed marker; the evidence file and secret must not be committed. Set 
 Rollback is the independent, recoverable operation: set `SHOP_CATALOG_V2_READER_MODE=off` and
 redeploy the same known-good commit. The off decision does not require a marker and never mutates or
 deletes canonical data. The production decision owner still has to be named before activation.
+
+For a faster percentage rollback while retaining canary mode, set
+`SHOP_CATALOG_V2_CANARY_PERCENTAGE=0`. See
+[CANARY_ROLLBACK_GATE_2026-09-01.md](./CANARY_ROLLBACK_GATE_2026-09-01.md).
