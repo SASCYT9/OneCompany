@@ -53,7 +53,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     locale,
     limit: requestedLimit,
     text: clean(params.get("q"), 256),
-    scope: clean(params.get("scope")),
+    // The established UI uses `auto` as its default tab, while many canonical
+    // automotive products intentionally have no explicit scope key. Vehicle
+    // constraints already keep auto searches precise. Moto is an actual
+    // catalog partition and must remain strict.
+    scope: params.get("scope")?.trim().toLowerCase() === "moto" ? "moto" : null,
     brand: firstBrand(params),
     category: clean(params.get("category")),
     make: clean(params.get("make")),

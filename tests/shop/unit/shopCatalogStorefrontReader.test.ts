@@ -101,6 +101,7 @@ test("catalog page keeps the premium UI while its API reads the bounded projecti
   assert.match(adapter, /queryShopCatalogProjectionFacets\(query\)/);
   assert.match(adapter, /countShopCatalogProjection\(query\)/);
   assert.match(adapter, /getShopCatalogCardPricingByIds/);
+  assert.match(adapter, /=== "moto" \? "moto" : null/);
   assert.match(adapter, /Promise\.all/);
 });
 
