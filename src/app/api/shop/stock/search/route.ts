@@ -1710,17 +1710,17 @@ export async function GET(request: NextRequest) {
         console.info("[Catalog V2 Shadow]", {
           event: "catalog_v2_shadow_page_comparison",
           durationMs: shadowDurationMs,
-          query: {
-            locale: locale === "en" ? "en" : "ua",
-            text: q || null,
-            scope: searchParams.get("scope"),
-            brand: rawBrands[0] ?? null,
-            make: make || null,
-            model: model || null,
-            generation: chassis || null,
-            year: requestedYear,
-            engine: requestedEngine,
-          },
+          filterDimensions: [
+            ...(q ? ["text"] : []),
+            ...(searchParams.get("scope") ? ["scope"] : []),
+            ...(rawBrands[0] ? ["brand"] : []),
+            ...(category ? ["category"] : []),
+            ...(make ? ["make"] : []),
+            ...(model ? ["model"] : []),
+            ...(chassis ? ["generation"] : []),
+            ...(requestedYear ? ["year"] : []),
+            ...(requestedEngine ? ["engine"] : []),
+          ],
           ...comparison,
         });
       }

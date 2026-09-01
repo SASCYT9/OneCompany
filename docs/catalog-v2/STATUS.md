@@ -123,6 +123,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-002 | Segmented deterministic canary and rollback    | Done        | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete |
 | C2-P7-003 | Durable commit-bound shadow evidence           | Done        | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate |
 | C2-P7-004 | Read-only operational readiness telemetry      | Done        | Authenticated no-store report for catalog size, projection lag, outbox age/retries/dead letters, failed receipts, and commit shadow parity |
+| C2-P7-005 | Privacy-safe live reader performance telemetry | Done        | Listing/facet/suggestion duration, bounded DB-query count and returned rows; no raw query/filter values |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -367,3 +368,7 @@ Production actions performed: none
   state. It fails readiness for fewer than 10,000 published products, backlog, dead letters, failed
   receipts, missing UA/EN projections, or non-zero version lag; deployment-specific shadow totals
   are included when a full commit SHA is available.
+- V2 listing, facet, and suggestion reads emit one bounded structured `catalog_v2_read` event with
+  duration, outcome, locale, active filter dimension names, returned-row count, and the maximum DB
+  query count. Raw search text, SKU/filter values, exception messages, and customer identifiers are
+  excluded. Suggestion responses additionally expose standards-compatible `Server-Timing`.

@@ -7,6 +7,7 @@ import {
 } from "@/lib/shopCatalogReaderFlag.server";
 import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { queryShopCatalogSuggestions } from "@/lib/shopCatalogSuggestion.server";
+import { observeShopCatalogRead, shopCatalogServerTiming } from "@/lib/shopCatalogReadTelemetry";
 
 export async function GET(request: NextRequest) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
@@ -15,14 +16,19 @@ export async function GET(request: NextRequest) {
   }
   const params = request.nextUrl.searchParams;
   try {
-    const data = await queryShopCatalogSuggestions({
-      locale: params.get("locale") === "en" ? "en" : "ua",
-      query: params.get("q") ?? "",
-      scope: params.get("scope"),
+    const locale = params.get("locale") === "en" ? "en" : "ua";
+    const filters = { text: params.get("q") ?? "", scope: params.get("scope") };
+    const read = await observeShopCatalogRead({
+      operation: "suggestions",
+      locale,
+      filters,
+      databaseQueriesUpperBound: 3,
+      rows: (value) => value.length,
+      execute: () => queryShopCatalogSuggestions({ locale, query: filters.text, scope: filters.scope }),
     });
     return NextResponse.json(
-      { data },
-      { headers: { "Cache-Control": "private, no-store, max-age=0" } }
+      { data: read.value },
+      { headers: { "Cache-Control": "private, no-store, max-age=0", "Server-Timing": shopCatalogServerTiming(read.metric) } }
     );
   } catch (error) {
     if (error instanceof TypeError) {

@@ -17,6 +17,7 @@ import {
   type CatalogSearchParams,
 } from "@/lib/shopCatalogStorefrontQuery";
 import { resolveLocale } from "@/lib/seo";
+import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -43,10 +44,19 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const [{ locale }, filters] = await Promise.all([params, searchParams]);
   const resolvedLocale = resolveLocale(locale);
   const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
-  const [result, facetResult] = await Promise.all([
-    queryShopCatalogProjection(query),
-    queryShopCatalogProjectionFacets(query),
+  const [listingRead, facetRead] = await Promise.all([
+    observeShopCatalogRead({
+      operation: "listing", locale: resolvedLocale, filters: query, databaseQueriesUpperBound: 1,
+      rows: (value) => value.items.length, execute: () => queryShopCatalogProjection(query),
+    }),
+    observeShopCatalogRead({
+      operation: "facets", locale: resolvedLocale, filters: query, databaseQueriesUpperBound: 1,
+      rows: (value) => Object.values(value.facets).reduce((sum, rows) => sum + rows.length, 0),
+      execute: () => queryShopCatalogProjectionFacets(query),
+    }),
   ]);
+  const result = listingRead.value;
+  const facetResult = facetRead.value;
 
   return (
     <CatalogV2Server
