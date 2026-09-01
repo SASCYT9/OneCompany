@@ -34,6 +34,7 @@ import { resolveShopStorefrontSegment } from "../src/lib/shopStorefrontRouting";
 import {
   assertSafeCatalogReplacement,
   replaceCatalogDirectoryAtomically,
+  replaceFileAtomically,
 } from "./lib/atomic-catalog-directory";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
@@ -61,6 +62,7 @@ async function recoverProductsWithRetry(slugs: string[]) {
 
 async function main() {
   const prisma = new PrismaClient();
+  let stagedFallbackDirectory: string | null = null;
   try {
     console.log("[prebuild-shop-snapshot] fetching settings and product count...");
     const [settings, activeProducts] = await Promise.all([
@@ -76,11 +78,6 @@ async function main() {
       console.warn(
         "[prebuild-shop-snapshot] no shop settings row found — skipping settings snapshot"
       );
-    } else {
-      fs.writeFileSync(SETTINGS_OUTPUT, JSON.stringify(settings, null, 2), "utf8");
-      console.log(
-        `[prebuild-shop-snapshot] wrote settings to ${path.relative(process.cwd(), SETTINGS_OUTPUT)}`
-      );
     }
 
     console.log(
@@ -91,11 +88,6 @@ async function main() {
         "No published products found in database! Database might be empty or disconnected."
       );
     }
-
-    // Never let a previous local/build artifact short-circuit the fresh DB
-    // read below. The old behavior silently reused a stale 14,934-product
-    // snapshot while the database already contained 15,015 active rows.
-    fs.rmSync(PRODUCTS_OUTPUT, { force: true });
 
     // Fetch products using getShopProductsServer (includes full DB fetch + static fallbacks mapping)
     console.log("[prebuild-shop-snapshot] fetching all products catalog...");
@@ -172,7 +164,7 @@ async function main() {
       productCount: simplifiedProducts.length,
       activeDatabaseCount: productCount,
     });
-    const stagedFallbackDirectory = fs.mkdtempSync(
+    stagedFallbackDirectory = fs.mkdtempSync(
       path.join(path.dirname(FALLBACK_OUTPUT_DIR), ".catalog-fallback-staged-")
     );
 
@@ -225,11 +217,21 @@ async function main() {
       "utf8"
     );
     replaceCatalogDirectoryAtomically(stagedFallbackDirectory, FALLBACK_OUTPUT_DIR);
-    fs.writeFileSync(PRODUCTS_OUTPUT, JSON.stringify(simplifiedProducts), "utf8");
+    stagedFallbackDirectory = null;
+    replaceFileAtomically(PRODUCTS_OUTPUT, JSON.stringify(simplifiedProducts));
+    if (settings) {
+      replaceFileAtomically(SETTINGS_OUTPUT, JSON.stringify(settings, null, 2));
+      console.log(
+        `[prebuild-shop-snapshot] wrote settings to ${path.relative(process.cwd(), SETTINGS_OUTPUT)}`
+      );
+    }
     console.log(
       `[prebuild-shop-snapshot] wrote simplified products to ${path.relative(process.cwd(), PRODUCTS_OUTPUT)}`
     );
   } finally {
+    if (stagedFallbackDirectory) {
+      fs.rmSync(stagedFallbackDirectory, { recursive: true, force: true });
+    }
     await prisma.$disconnect();
   }
 }

@@ -7,11 +7,26 @@ import test from "node:test";
 import {
   assertSafeCatalogReplacement,
   replaceCatalogDirectoryAtomically,
+  replaceFileAtomically,
 } from "../../../scripts/lib/atomic-catalog-directory";
 
 test("catalog replacement rejects truncated and undersized snapshots", () => {
   assert.throws(() => assertSafeCatalogReplacement({ productCount: 188, activeDatabaseCount: 1 }), /at least 10000/);
   assert.throws(() => assertSafeCatalogReplacement({ productCount: 10_000, activeDatabaseCount: 10_001 }), /truncated/);
+});
+
+test("atomic file replacement never exposes a partial file", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "catalog-file-test-"));
+  try {
+    const target = path.join(root, "data", "products.json");
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, "old");
+    replaceFileAtomically(target, "new-complete-snapshot");
+    assert.equal(fs.readFileSync(target, "utf8"), "new-complete-snapshot");
+    assert.deepEqual(fs.readdirSync(path.dirname(target)), ["products.json"]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("catalog replacement validates staging before preserving and atomically replacing target", () => {
