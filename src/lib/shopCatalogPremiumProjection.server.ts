@@ -30,6 +30,12 @@ const positiveInteger = (value: string | null, fallback: number) => {
   return Number.isSafeInteger(number) && number > 0 ? number : fallback;
 };
 
+const nonNegativeAmount = (value: string | null) => {
+  if (!value?.trim()) return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+};
+
 const firstBrand = (params: URLSearchParams) =>
   clean(
     params
@@ -50,6 +56,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
   const yearText = clean(params.get("year"), 4);
   const year = yearText && /^\d{4}$/.test(yearText) ? Number(yearText) : null;
+  let minPrice = nonNegativeAmount(params.get("minPrice"));
+  let maxPrice = nonNegativeAmount(params.get("maxPrice"));
+  if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+    [minPrice, maxPrice] = [maxPrice, minPrice];
+  }
+  const requestedCurrency = params.get("currency")?.trim().toUpperCase();
+  const priceCurrency =
+    requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
+  const requestedSort = params.get("sort");
   const query: ShopCatalogProjectionQueryInput = {
     locale,
     limit: requestedLimit,
@@ -67,7 +82,33 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     year: year && year >= 1886 && year <= 2200 ? year : null,
     engine: clean(params.get("engine")),
     fuel: clean(params.get("fuel")),
+    minPrice,
+    maxPrice,
+    priceCurrency,
+    offset: (page - 1) * requestedLimit,
   };
+
+  const hasVehicleSelection = Boolean(query.make || query.model || query.generation || query.year);
+  query.orderSeed = [
+    query.make,
+    query.model,
+    query.generation,
+    query.year,
+    query.engine,
+    query.fuel,
+  ]
+    .filter(Boolean)
+    .join("|");
+  query.order =
+    requestedSort === "price_asc"
+      ? "price_asc"
+      : requestedSort === "price_desc"
+        ? "price_desc"
+        : requestedSort === "name_asc"
+          ? "name_asc"
+          : hasVehicleSelection
+            ? "brand_interleave"
+            : "default";
 
   // Until every historical brand is backfilled into compatibility policies,
   // preserve the complete product-owned vehicle coverage. Engine/fuel remain
@@ -85,25 +126,16 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.year = null;
   }
 
-  let cursor: { stableRank: string; productId: string } | null = null;
-  let result: Awaited<ReturnType<typeof queryShopCatalogProjection>> | null = null;
-  const [firstPage, facetResult, totalItems] = await Promise.all([
+  const [result, facetResult, totalItems] = await Promise.all([
     queryShopCatalogProjection(query),
     queryShopCatalogProjectionFacets(query),
     countShopCatalogProjection(query),
   ]);
-  result = firstPage;
-  cursor = firstPage.nextCursor;
-  for (let currentPage = 2; currentPage <= page && result.hasMore; currentPage += 1) {
-    result = await queryShopCatalogProjection({ ...query, after: cursor });
-    cursor = result.nextCursor;
-  }
-
   const [session, settingsRecord] = await Promise.all([
     getCurrentShopCustomerSession(),
     getOrCreateShopSettings(prisma),
   ]);
-  const items = result?.items ?? [];
+  const items = result.items;
   const prices = await getShopCatalogCardPricingByIds(items.map((item) => item.productId));
   const settings = getShopSettingsRuntime(settingsRecord);
   const pricingContext = await buildShopViewerPricingContextServer({

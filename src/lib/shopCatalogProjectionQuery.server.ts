@@ -34,6 +34,12 @@ export type ShopCatalogProjectionQueryInput = {
   engine?: string | null;
   fuel?: string | null;
   productIds?: readonly string[] | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  priceCurrency?: "EUR" | "USD" | "UAH" | null;
+  offset?: number;
+  order?: "default" | "price_asc" | "price_desc" | "name_asc" | "brand_interleave";
+  orderSeed?: string | null;
 };
 
 export type ShopCatalogProjectionQueryItem = {
@@ -152,6 +158,7 @@ export function normalizeShopCatalogProjectionQuery(
 ): Required<Pick<ShopCatalogProjectionQueryInput, "locale">> &
   Omit<ShopCatalogProjectionQueryInput, "locale"> & { limit: number } {
   const limit = input.limit ?? SHOP_CATALOG_PROJECTION_QUERY_LIMITS.defaultPageSize;
+  const offset = input.offset ?? 0;
   if (
     !Number.isSafeInteger(limit) ||
     limit < 1 ||
@@ -160,6 +167,17 @@ export function normalizeShopCatalogProjectionQuery(
     throw new TypeError(
       `limit must be between 1 and ${SHOP_CATALOG_PROJECTION_QUERY_LIMITS.maxPageSize}`
     );
+  }
+  if (!Number.isSafeInteger(offset) || offset < 0 || offset > 1_000_000) {
+    throw new TypeError("offset must be between 0 and 1000000");
+  }
+  for (const [field, value] of [
+    ["minPrice", input.minPrice],
+    ["maxPrice", input.maxPrice],
+  ] as const) {
+    if (value != null && (!Number.isFinite(value) || value < 0)) {
+      throw new TypeError(`${field} must be a non-negative number`);
+    }
   }
   if (
     input.year != null &&
@@ -196,7 +214,51 @@ export function normalizeShopCatalogProjectionQuery(
     engine: optionalBounded(input.engine, "engine", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     fuel: optionalBounded(input.fuel, "fuel", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     productIds: input.productIds ? [...new Set(input.productIds.filter(Boolean))] : null,
+    minPrice: input.minPrice ?? null,
+    maxPrice: input.maxPrice ?? null,
+    priceCurrency: input.priceCurrency ?? "USD",
+    offset,
+    order: input.order ?? "default",
+    orderSeed: optionalBounded(
+      input.orderSeed,
+      "orderSeed",
+      SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
+    ),
   });
+}
+
+function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
+  const productColumn =
+    input.priceCurrency === "UAH"
+      ? Prisma.sql`canonical_product."priceUah"`
+      : input.priceCurrency === "EUR"
+        ? Prisma.sql`COALESCE(canonical_product."priceEurEurope", canonical_product."priceEur")`
+        : Prisma.sql`canonical_product."priceUsd"`;
+  const variantColumn =
+    input.priceCurrency === "UAH"
+      ? Prisma.sql`canonical_variant."priceUah"`
+      : input.priceCurrency === "EUR"
+        ? Prisma.sql`COALESCE(canonical_variant."priceEurEurope", canonical_variant."priceEur")`
+        : Prisma.sql`canonical_variant."priceUsd"`;
+  const projectionColumn =
+    input.priceCurrency === "UAH"
+      ? Prisma.sql`projection."minPriceUah"`
+      : input.priceCurrency === "EUR"
+        ? Prisma.sql`COALESCE(projection."minPriceEurEurope", projection."minPriceEur")`
+        : Prisma.sql`projection."minPriceUsd"`;
+  return Prisma.sql`COALESCE(
+    (SELECT COALESCE(${productColumn}, ${variantColumn})
+     FROM "ShopProduct" canonical_product
+     LEFT JOIN LATERAL (
+       SELECT variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah"
+       FROM "ShopProductVariant" variant
+       WHERE variant."productId" = canonical_product."id"
+       ORDER BY variant."isDefault" DESC, variant."position" ASC
+       LIMIT 1
+     ) canonical_variant ON true
+     WHERE canonical_product."id" = projection."productId"),
+    ${projectionColumn}
+  )`;
 }
 
 function textConstraint(
@@ -303,6 +365,9 @@ function projectionFacetBaseConditions(
         : Prisma.sql`false`
     );
   }
+  const price = projectionPriceSql(input);
+  if (input.minPrice != null) conditions.push(Prisma.sql`${price} >= ${input.minPrice}`);
+  if (input.maxPrice != null) conditions.push(Prisma.sql`${price} <= ${input.maxPrice}`);
   if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
   if (includeBrand && input.brand) {
     conditions.push(
@@ -646,6 +711,78 @@ export function buildShopCatalogProjectionVehicleQuerySql(
     LIMIT ${input.limit + 1}`;
 }
 
+export function buildShopCatalogProjectionOrderedQuerySql(
+  raw: ShopCatalogProjectionQueryInput
+): Prisma.Sql | null {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  if (input.order === "default" && input.offset === 0) return null;
+  const conditions = projectionFacetBaseConditions(input, true);
+  const vehicleConstraints: Prisma.Sql[] = [];
+  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
+    const value = input[field];
+    if (value)
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+  }
+  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
+  if (vehicleConstraints.length) {
+    conditions.push(Prisma.sql`EXISTS (
+      SELECT 1 FROM "ShopCatalogProjectionPolicy" policy
+      JOIN "ShopCatalogProjectionClause" clause
+        ON clause."targetKey" = policy."targetKey"
+       AND clause."productId" = policy."productId"
+       AND clause."sourceVersion" = policy."sourceVersion"
+      WHERE policy."productId" = projection."productId"
+        AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+        AND ${Prisma.join(vehicleConstraints, " AND ")}
+      OFFSET 0
+    )`);
+  }
+  const price = projectionPriceSql(input);
+  const seed =
+    input.orderSeed ??
+    [
+      input.text,
+      input.make,
+      input.model,
+      input.generation,
+      input.year?.toString(),
+      input.engine,
+      input.fuel,
+      input.category,
+    ]
+      .filter(Boolean)
+      .join("|");
+  const order =
+    input.order === "price_asc"
+      ? Prisma.sql`${price} ASC NULLS LAST, projection."stableRank" ASC`
+      : input.order === "price_desc"
+        ? Prisma.sql`${price} DESC NULLS LAST, projection."stableRank" ASC`
+        : input.order === "name_asc"
+          ? Prisma.sql`lower(projection."title") ASC, projection."stableRank" ASC`
+          : input.order === "brand_interleave"
+            ? Prisma.sql`
+                row_number() OVER (
+                  PARTITION BY regexp_replace(lower(projection."brandLabel"), '[^a-z0-9]+', '', 'g')
+                  ORDER BY ${price} DESC NULLS LAST, projection."stableRank" ASC, projection."productId" ASC
+                ) ASC,
+                md5(regexp_replace(lower(projection."brandLabel"), '[^a-z0-9]+', '', 'g') || ${seed}) ASC,
+                ${price} DESC NULLS LAST`
+            : Prisma.sql`projection."stableRank" ASC, projection."productId" ASC`;
+  return Prisma.sql`
+    SELECT
+      projection."productId", projection."locale", projection."slug", projection."title",
+      projection."cardCopy", projection."brandKey", projection."brandLabel",
+      projection."categoryKey", projection."categoryLabel", projection."stableRank",
+      projection."normalizedSku", projection."primaryMediaUrl", projection."minPriceEur",
+      projection."minPriceEurEurope", projection."minPriceUsd", projection."minPriceUah",
+      projection."contentHash", projection."projectionVersion"
+    FROM "ShopCatalogProjection" projection
+    WHERE ${Prisma.join(conditions, " AND ")}
+    ORDER BY ${order}, projection."productId" ASC
+    LIMIT ${input.limit + 1}
+    OFFSET ${input.offset}`;
+}
+
 /** Builds one correlated-clause filter; selected vehicle fields cannot cross-match different clauses. */
 export function buildShopCatalogProjectionWhere(
   raw: ShopCatalogProjectionQueryInput
@@ -723,8 +860,10 @@ export async function queryShopCatalogProjection(
   raw: ShopCatalogProjectionQueryInput
 ): Promise<ShopCatalogProjectionQueryResult> {
   const input = normalizeShopCatalogProjectionQuery(raw);
-  const vehicleSql = buildShopCatalogProjectionVehicleQuerySql(input);
-  const rows = vehicleSql
+  const projectionSql =
+    buildShopCatalogProjectionOrderedQuerySql(input) ??
+    buildShopCatalogProjectionVehicleQuerySql(input);
+  const rows = projectionSql
     ? await prisma.$queryRaw<
         Array<{
           productId: string;
@@ -746,7 +885,7 @@ export async function queryShopCatalogProjection(
           contentHash: string;
           projectionVersion: bigint;
         }>
-      >(vehicleSql)
+      >(projectionSql)
     : await prisma.shopCatalogProjection.findMany({
         where: buildShopCatalogProjectionWhere(input),
         orderBy: [{ stableRank: "asc" }, { productId: "asc" }],

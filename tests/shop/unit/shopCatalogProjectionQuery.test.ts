@@ -110,6 +110,30 @@ test("vehicle SQL path stays disabled when no compatibility filter is selected",
   );
 });
 
+test("vehicle storefront order interleaves brands by fresh canonical price", async () => {
+  const { buildShopCatalogProjectionOrderedQuerySql } = await queryModule;
+  const query = buildShopCatalogProjectionOrderedQuerySql({
+    locale: "ua",
+    productIds: ["p1", "p2"],
+    minPrice: 1000,
+    maxPrice: 5000,
+    priceCurrency: "EUR",
+    order: "brand_interleave",
+    orderSeed: "BMW|M3",
+    offset: 24,
+  });
+  assert.ok(query);
+  assert.match(query.sql, /row_number\(\) OVER/);
+  assert.match(query.sql, /PARTITION BY regexp_replace\(lower\(projection\."brandLabel"\)/);
+  assert.match(query.sql, /FROM "ShopProduct" canonical_product/);
+  assert.match(query.sql, /canonical_product\."priceEurEurope"/);
+  assert.match(query.sql, /OFFSET/);
+  assert.equal(query.values.includes(1000), true);
+  assert.equal(query.values.includes(5000), true);
+  assert.equal(query.values.includes("BMW|M3"), true);
+  assert.equal(query.values.includes(24), true);
+});
+
 test("progressive facet SQL is bounded, single-round-trip, and clause-correlated", async () => {
   const { buildShopCatalogProjectionFacetQuerySql, SHOP_CATALOG_PROJECTION_FACET_LIMIT } =
     await queryModule;
