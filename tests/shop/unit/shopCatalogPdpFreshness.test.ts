@@ -48,3 +48,11 @@ test("manual product mutations delegate storefront invalidation without duplicat
     assert.doesNotMatch(source, /buildShopStorefrontProductPath/);
   }
 });
+
+test("storefront invalidation takes legacy listing behavior from the shared route registry", () => {
+  const source = read("src/lib/shopStorefrontRevalidation.ts");
+  assert.match(source, /getStorefrontRoute\(segment\)/);
+  assert.match(source, /route\.listingSurface/);
+  assert.match(source, /route\.paginated/);
+  assert.doesNotMatch(source, /LISTING_SURFACE_BY_SEGMENT|PAGINATED_SEGMENTS/);
+});

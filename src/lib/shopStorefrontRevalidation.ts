@@ -3,32 +3,7 @@ import {
   buildShopStorefrontProductPath,
   resolveShopStorefrontSegment,
 } from "@/lib/shopStorefrontRouting";
-
-const LISTING_SURFACE_BY_SEGMENT = {
-  adro: "collections",
-  akrapovic: "collections",
-  brabus: "products",
-  burger: "products",
-  csf: "collections",
-  do88: "collections",
-  girodisc: "catalog",
-  ilmberger: "collections",
-  ipe: "collections",
-  ohlins: "catalog",
-  racechip: "catalog",
-  urban: "products",
-} as const;
-
-const PAGINATED_SEGMENTS = new Set([
-  "adro",
-  "brabus",
-  "burger",
-  "csf",
-  "girodisc",
-  "ipe",
-  "ohlins",
-  "racechip",
-]);
+import { getStorefrontRoute } from "@/lib/storefrontRouteRegistry";
 
 type RevalidationProduct = {
   slug: string;
@@ -51,10 +26,10 @@ export function revalidateShopStorefrontProduct(product: RevalidationProduct) {
 
   for (const locale of ["ua", "en"] as const) {
     if (!segment) continue;
-    const surface = LISTING_SURFACE_BY_SEGMENT[segment];
-    const basePath = `/${locale}/shop/${segment}/${surface}`;
+    const route = getStorefrontRoute(segment);
+    const basePath = `/${locale}/shop/${segment}/${route.listingSurface}`;
     revalidatePath(basePath);
-    if (PAGINATED_SEGMENTS.has(segment)) {
+    if (route.paginated) {
       revalidatePath(`${basePath}/page/[page]`, "page");
     }
   }

@@ -6,7 +6,11 @@ import {
   resolveShopCatalogProductHref,
   resolveShopStorefrontSegment,
 } from "../../../src/lib/shopStorefrontRouting";
-import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "../../../src/lib/storefrontRouteRegistry";
+import {
+  getStorefrontRoute,
+  SHOP_PRODUCT_LEGACY_PREFIX_ROUTES,
+  STOREFRONT_ROUTE_REGISTRY,
+} from "../../../src/lib/storefrontRouteRegistry";
 
 test("resolveShopStorefrontSegment prioritizes explicit Urban and Brabus store tags", () => {
   assert.equal(resolveShopStorefrontSegment({ tags: ["store:urban"] }), "urban");
@@ -58,6 +62,21 @@ test("buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront"
     }),
     "ipe"
   );
+});
+
+test("storefront route registry is the complete declarative routing and listing configuration", () => {
+  assert.equal(new Set(STOREFRONT_ROUTE_REGISTRY.map(({ segment }) => segment)).size, STOREFRONT_ROUTE_REGISTRY.length);
+  assert.equal(
+    new Set(STOREFRONT_ROUTE_REGISTRY.flatMap(({ brandAliases }) => brandAliases)).size,
+    STOREFRONT_ROUTE_REGISTRY.flatMap(({ brandAliases }) => brandAliases).length
+  );
+  assert.deepEqual(getStorefrontRoute("ipe"), {
+    segment: "ipe",
+    brandAliases: ["ipe", "ipe exhaust", "innotech performance exhaust"],
+    legacySlugPrefixes: ["ipe-"],
+    listingSurface: "collections",
+    paginated: true,
+  });
 });
 
 test("legacy product prefixes are unique and cover every canonical storefront route", () => {

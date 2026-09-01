@@ -1,6 +1,5 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { extractStorefrontTag } from "@/lib/shopProductStorefront";
-import { isIpeBrandValue } from "@/lib/ipeBrand";
 import { STOREFRONT_ROUTE_REGISTRY, type StorefrontSegment } from "@/lib/storefrontRouteRegistry";
 
 type StorefrontRouteInput = {
@@ -39,9 +38,7 @@ export function resolveShopStorefrontSegment(
   const brandKey = normalizeStorefrontKey(input.brand);
   const vendorKey = normalizeStorefrontKey(input.vendor);
   const explicitStorefront = extractStorefrontTag(input.tags);
-  const isIpeAlias = isIpeBrandValue(input.brand) || isIpeBrandValue(input.vendor);
   const legacySegment =
-    (isIpeAlias ? "ipe" : null) ||
     (brandKey && STOREFRONT_SEGMENT_BY_BRAND.get(brandKey)) ||
     (vendorKey && STOREFRONT_SEGMENT_BY_BRAND.get(vendorKey)) ||
     null;
