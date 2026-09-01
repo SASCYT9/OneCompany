@@ -3767,7 +3767,7 @@ model ShopCatalogShadowAggregate {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  @@unique([deploymentCommit, bucketStart, locale, brandKey, categoryKey])
+  @@unique([deploymentCommit, bucketStart, locale, brandKey, categoryKey], map: "ShopCatalogShadowAggregate_deploymentCommit_bucketStart_locale_")
   @@index([deploymentCommit, bucketStart])
 }
 

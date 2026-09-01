@@ -57,6 +57,16 @@ test("shared source writer supports true product-level records without synthetic
     });
     assert.equal(result.inserted, 1);
     assert.equal(callbackRecords.length, 1);
+    const replay = await persistCatalogSourceRecordPageWithClient(client, { drafts: [draft], sourceKey: `product-source-${suffix}` }, {
+      label: "Product fixture",
+      defaultSourceKey: "unused",
+      defaultDisplayName: "Product fixture",
+      decisionReason: "verified product-level identity",
+      async persistCompatibility(input) { callbackRecords.push(input.sourceRecordId); },
+    });
+    assert.equal(replay.inserted, 0);
+    assert.equal(replay.idempotent, 1);
+    assert.equal(callbackRecords.length, 1);
     const sourceRecord = await client.shopCatalogSourceRecord.findFirstOrThrow({ where: { sourceId: result.sourceId } });
     assert.equal(sourceRecord.productId, productId);
     assert.equal(sourceRecord.variantId, null);

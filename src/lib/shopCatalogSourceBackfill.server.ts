@@ -233,13 +233,10 @@ export async function persistCatalogSourceRecordPageWithClient<
           ) {
             throw new Error(`${config.label} immutable replay conflict for ${recordInput.recordKey}`);
           }
-          await config.persistCompatibility({
-            tx,
-            sourceId: source.id,
-            sourceRecordId: existing.id,
-            payloadHash: existing.payloadHash,
-            normalization: draft.normalization,
-          });
+          // The record, evidence, and compatibility policy were committed in the
+          // same transaction on first insertion. Once all immutable signatures
+          // match, replaying the compatibility mapper can only repeat expensive
+          // taxonomy writes; it cannot repair a partially committed record.
           idempotent += 1;
           continue;
         }
