@@ -232,7 +232,7 @@ export function normalizeShopCatalogProjectionQuery(
 function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
   if (input.useEuropePrice) {
     return Prisma.sql`COALESCE(
-      (SELECT COALESCE(canonical_product."priceEurEurope", canonical_product."priceEur", canonical_variant."priceEurEurope", canonical_variant."priceEur")
+      (SELECT COALESCE(canonical_product."priceEurEurope", canonical_variant."priceEurEurope", canonical_product."priceEur", canonical_variant."priceEur")
        FROM "ShopProduct" canonical_product
        LEFT JOIN LATERAL (
          SELECT variant."priceEur", variant."priceEurEurope"
