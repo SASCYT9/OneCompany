@@ -32,7 +32,7 @@ test("query normalization is bounded and fail-closed", async () => {
   );
 });
 
-test("vehicle filters stay correlated inside one verified clause", async () => {
+test("vehicle filters stay correlated inside one clause regardless of review status", async () => {
   const { buildShopCatalogProjectionWhere } = await queryModule;
   const where = buildShopCatalogProjectionWhere({
     locale: "ua",
@@ -47,7 +47,7 @@ test("vehicle filters stay correlated inside one verified clause", async () => {
   });
   const serialized = JSON.stringify(where);
   assert.match(serialized, /catalogProjectionPolicies/);
-  assert.match(serialized, /\"verification\":\"VERIFIED\"/);
+  assert.doesNotMatch(serialized, /\"verification\"/);
   assert.match(serialized, /\"dimension\":\"MAKE\"/);
   assert.match(serialized, /\"dimension\":\"ENGINE\"/);
   assert.match(serialized, /\"categoryKey\"/);

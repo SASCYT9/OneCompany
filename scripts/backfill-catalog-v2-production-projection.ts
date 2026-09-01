@@ -124,7 +124,6 @@ async function main() {
       JOIN "ShopCatalogProjectionClause" cl
         ON cl."targetKey" = c."targetKey"
        AND cl."clauseKey" = c."clauseKey"
-       AND cl."verification" = 'VERIFIED'
       CROSS JOIN LATERAL (
         VALUES ('brand:' || projection."brandKey"),
                ('scope:' || projection."scopeKey" || '|brand:' || projection."brandKey")

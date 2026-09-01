@@ -448,14 +448,11 @@ async function persistInTransaction(
       dimension: ShopCatalogCompatibilityDimension.MAKE,
       state: "EXACT",
       textValue: { not: null },
-      clause: { verification: "VERIFIED" },
     },
     select: { textValue: true },
   });
-  const verifiedClauseKeys = new Set(
-    plan.clauseRows
-      .filter((row) => row.verification === "VERIFIED")
-      .map((row) => `${row.targetKey}\u0000${row.clauseKey}`)
+  const storefrontClauseKeys = new Set(
+    plan.clauseRows.map((row) => `${row.targetKey}\u0000${row.clauseKey}`)
   );
   const incomingMakeRows = plan.constraintRows
     .filter(
@@ -463,7 +460,7 @@ async function persistInTransaction(
         row.dimension === ShopCatalogCompatibilityDimension.MAKE &&
         row.state === "EXACT" &&
         typeof row.textValue === "string" &&
-        verifiedClauseKeys.has(`${row.targetKey}\u0000${row.clauseKey}`)
+        storefrontClauseKeys.has(`${row.targetKey}\u0000${row.clauseKey}`)
     )
     .map((row) => ({ key: String(row.textValue).toLowerCase(), label: String(row.textValue) }));
 

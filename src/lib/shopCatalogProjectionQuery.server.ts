@@ -328,7 +328,6 @@ function vehicleFacetBranch(
          ON clause."targetKey" = policy."targetKey"
         AND clause."productId" = policy."productId"
         AND clause."sourceVersion" = policy."sourceVersion"
-        AND clause."verification" = 'VERIFIED'
        JOIN "ShopCatalogProjectionConstraint" candidate_row
          ON candidate_row."targetKey" = clause."targetKey"
         AND candidate_row."clauseKey" = clause."clauseKey"
@@ -544,7 +543,6 @@ export function buildShopCatalogProjectionVehicleQuerySql(
        AND clause."sourceVersion" = policy."sourceVersion"
       WHERE policy."productId" = projection."productId"
         AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
-        AND clause."verification" = 'VERIFIED'
         AND ${Prisma.join(vehicleConstraints, " AND ")}
       OFFSET 0
     )`);
@@ -636,7 +634,6 @@ export function buildShopCatalogProjectionWhere(
                 },
                 clauses: {
                   some: {
-                    verification: ShopCatalogClauseVerification.VERIFIED,
                     AND: constraints.map((constraint) => ({ constraints: { some: constraint } })),
                   },
                 },

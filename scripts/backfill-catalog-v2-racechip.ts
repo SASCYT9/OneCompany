@@ -19,10 +19,12 @@ function option(name: string) {
 
 function assertCommitTarget() {
   const environment = option("environment")?.toLowerCase();
-  if (!environment || !safeEnvironments.has(environment)) {
-    throw new Error("Commit requires an explicit non-production --environment");
+  const productionAuthorized =
+    environment === "production" && process.env.CATALOG_V2_PRODUCTION_PROJECTION_ACK === "1";
+  if (!environment || (!safeEnvironments.has(environment) && !productionAuthorized)) {
+    throw new Error("Commit requires an explicit safe --environment or the production acknowledgement");
   }
-  if ([process.env.VERCEL_ENV, process.env.DEPLOY_ENV, process.env.APP_ENV].some((value) => value?.toLowerCase() === "production")) {
+  if (!productionAuthorized && [process.env.VERCEL_ENV, process.env.DEPLOY_ENV, process.env.APP_ENV].some((value) => value?.toLowerCase() === "production")) {
     throw new Error("RaceChip backfill commit is disabled in production");
   }
   if (process.env.CATALOG_RACECHIP_BACKFILL_ALLOW_WRITE !== "1") {
@@ -30,6 +32,12 @@ function assertCommitTarget() {
   }
   const url = process.env.CATALOG_RACECHIP_BACKFILL_DATABASE_URL;
   if (!url) throw new Error("CATALOG_RACECHIP_BACKFILL_DATABASE_URL is required for commit");
+  if (productionAuthorized) {
+    const target = new URL(url);
+    if (target.hostname !== "db.prisma.io" || target.pathname !== "/postgres") {
+      throw new Error("Production RaceChip backfill target must be the approved Prisma database");
+    }
+  }
   return url;
 }
 
@@ -62,7 +70,7 @@ async function main() {
   const remaining = after
     ? allDrafts.filter((draft) => draft.sourceRecord.recordKey.localeCompare(after) > 0)
     : allDrafts;
-  const drafts = remaining.slice(0, requestedLimit);
+  const drafts = process.argv.includes("--all") ? remaining : remaining.slice(0, requestedLimit);
   const summary = {
     mode: commit ? "commit" : "dry-run",
     totalRecords: allDrafts.length,
@@ -81,11 +89,20 @@ async function main() {
   }
   const client = new PrismaClient({ datasources: { db: { url: assertCommitTarget() } } });
   try {
-    const result = await persistRaceChipSourceRecordPageWithClient(client, {
-      drafts,
-      reviewedById: process.env.CATALOG_RACECHIP_BACKFILL_REVIEWED_BY_ID,
-    });
-    console.log(JSON.stringify({ ...summary, persistence: result }, null, 2));
+    let created = 0;
+    let updated = 0;
+    let unchanged = 0;
+    for (let index = 0; index < drafts.length; index += 50) {
+      const result = await persistRaceChipSourceRecordPageWithClient(client, {
+        drafts: drafts.slice(index, index + 50),
+        reviewedById: process.env.CATALOG_RACECHIP_BACKFILL_REVIEWED_BY_ID,
+      });
+      created += result.created;
+      updated += result.updated;
+      unchanged += result.unchanged;
+      process.stdout.write(`[racechip-backfill] ${Math.min(index + 50, drafts.length)}/${drafts.length}\n`);
+    }
+    console.log(JSON.stringify({ ...summary, persistence: { created, updated, unchanged } }, null, 2));
   } finally {
     await client.$disconnect();
   }
