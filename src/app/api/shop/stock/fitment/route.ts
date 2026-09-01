@@ -10,6 +10,7 @@ import {
   parseShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import { canonicalizeVehicleModels, vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -113,10 +114,13 @@ async function getCanonicalFitmentOptions(input: {
       select: { model: true },
       orderBy: { model: "asc" },
     });
-    let data = rows
-      .map((row) => row.model)
-      .filter((value): value is string => Boolean(value))
-      .filter((value) => isKnownVehicleModelForMake(input.make ?? "", value));
+    let data = canonicalizeVehicleModels(
+      input.make,
+      rows
+        .map((row) => row.model)
+        .filter((value): value is string => Boolean(value))
+        .filter((value) => isKnownVehicleModelForMake(input.make ?? "", value))
+    );
     if (
       input.make.toLowerCase() === "porsche" &&
       data.some((modelName) => /^911\s+\S/i.test(modelName))
@@ -126,12 +130,28 @@ async function getCanonicalFitmentOptions(input: {
     return { type: "models" as const, make: input.make, data };
   }
 
+  const modelRows = await prisma.shopVehicleApplication.findMany({
+    where: {
+      ...baseWhere,
+      make: { equals: input.make, mode: "insensitive" },
+      model: { not: null },
+    },
+    distinct: ["model"],
+    select: { model: true },
+  });
+  const requestedModelKey = vehicleModelKey(input.model);
+  const modelAliases = modelRows
+    .map((row) => row.model)
+    .filter((value): value is string => Boolean(value))
+    .filter((value) => vehicleModelKey(value) === requestedModelKey);
+  if (!modelAliases.length) modelAliases.push(input.model);
+
   if (input.chassis) {
     const rows = await prisma.shopVehicleApplication.findMany({
       where: {
         ...baseWhere,
         make: { equals: input.make, mode: "insensitive" },
-        model: { equals: input.model, mode: "insensitive" },
+        model: { in: modelAliases, mode: "insensitive" },
         chassisCode: { equals: input.chassis, mode: "insensitive" },
         engine: { not: null },
       },
@@ -152,7 +172,7 @@ async function getCanonicalFitmentOptions(input: {
     where: {
       ...baseWhere,
       make: { equals: input.make, mode: "insensitive" },
-      model: { equals: input.model, mode: "insensitive" },
+      model: { in: modelAliases, mode: "insensitive" },
       chassisCode: { not: null },
     },
     distinct: ["chassisCode"],
@@ -238,7 +258,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      let models = Array.from(modelsSet).sort((a, b) => a.localeCompare(b));
+      let models = canonicalizeVehicleModels(make, Array.from(modelsSet));
       if (
         make.toLowerCase() === "porsche" &&
         models.some((modelName) => /^911\s+\S/i.test(modelName))

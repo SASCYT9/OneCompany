@@ -97,7 +97,7 @@ test("vehicle query is product-first, clause-correlated, and planner-fenced", as
   assert.match(sql, /ORDER BY projection\."stableRank" ASC/);
   assert.equal(query.values.includes("BMW"), true);
   assert.equal(query.values.includes("intake"), true);
-  assert.equal(query.values.includes("M2"), true);
+  assert.equal(query.values.includes("m2"), true);
   assert.equal(query.values.includes("N55"), true);
   assert.equal(query.values.includes(2019), true);
 });
@@ -148,7 +148,7 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
   );
   assert.equal(query.values.includes("Eventuri"), true);
   assert.equal(query.values.includes("BMW"), true);
-  assert.equal(query.values.includes("M2"), true);
+  assert.equal(query.values.includes("m2"), true);
   assert.equal(query.values.includes("G87"), true);
   assert.equal(query.values.includes(2024), true);
   assert.equal(query.values.includes("S58"), true);

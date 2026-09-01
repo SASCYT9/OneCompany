@@ -10,6 +10,7 @@ import {
 
 import { prisma } from "./prisma";
 import type { ShopCatalogShadowFlag } from "./shopCatalogShadowFlag.server";
+import { canonicalVehicleModelLabel, vehicleModelKey } from "./shopVehicleTaxonomy";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
   defaultPageSize: 24,
@@ -239,6 +240,10 @@ function escapeLike(value: string) {
 }
 
 function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimension, value: string) {
+  const exactMatch =
+    dimension === ShopCatalogCompatibilityDimension.MODEL
+      ? Prisma.sql`regexp_replace(lower(compatibility_constraint."textValue"), '[^a-z0-9]+', '', 'g') = ${vehicleModelKey(value)}`
+      : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
   return Prisma.sql`
     EXISTS (
       SELECT 1
@@ -252,7 +257,7 @@ function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimensio
           compatibility_constraint."state" IN ('ANY', 'NOT_APPLICABLE')
           OR (
             compatibility_constraint."state" = 'EXACT'
-            AND lower(compatibility_constraint."textValue") = lower(${value})
+            AND ${exactMatch}
           )
         )
       OFFSET 0
@@ -533,6 +538,22 @@ export async function queryShopCatalogProjectionFacets(
       yearFrom: row.yearFrom,
       yearTo: row.yearTo,
     });
+  }
+  if (raw.make && facets.model.length) {
+    const canonicalModels = new Map<string, ShopCatalogProjectionFacetItem>();
+    for (const item of facets.model) {
+      const key = vehicleModelKey(item.label);
+      const existing = canonicalModels.get(key);
+      canonicalModels.set(key, {
+        ...item,
+        key,
+        label: canonicalVehicleModelLabel(raw.make, item.label),
+        count: (existing?.count ?? 0) + item.count,
+      });
+    }
+    facets.model = [...canonicalModels.values()].sort((left, right) =>
+      left.label.localeCompare(right.label, "en", { numeric: true, sensitivity: "base" })
+    );
   }
   return Object.freeze({
     source: "catalog_v2_projection",

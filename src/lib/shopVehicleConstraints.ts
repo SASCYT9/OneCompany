@@ -1,6 +1,7 @@
 import type { Fitment } from "@/lib/crossShopFitment";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
+import { vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
 
 export type ShopVehicleConstraints = {
   make?: string | null;
@@ -28,7 +29,7 @@ export function shopVehicleMakesMatch(
 
 export function shopVehicleModelsMatch(candidate: string, requested: string | null | undefined) {
   if (!requested) return true;
-  return normalizeShopSearchText(candidate) === normalizeShopSearchText(requested);
+  return vehicleModelKey(candidate) === vehicleModelKey(requested);
 }
 
 /**
