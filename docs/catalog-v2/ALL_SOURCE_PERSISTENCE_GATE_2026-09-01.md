@@ -33,4 +33,10 @@ relations before source persistence and proves that their complete baseline hash
 identical after insert and replay. Canonical promotion coverage for new empty databases must still
 be measured separately before production activation.
 
+The supported new-product path is instead the full-commerce import coordinator. Disposable
+PostgreSQL now proves that it atomically creates localized content, product/variant pricing,
+inventory, multiple variants, options, media, metafields, and collection membership together with
+catalog version `1`, an immutable revision, outbox event, and publication receipts. Only after that
+canonical aggregate exists may the source-ledger writer add provenance and compatibility.
+
 No Production database, deployment, reader flag, or external integration was changed.

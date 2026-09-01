@@ -159,3 +159,61 @@ test("shared source writer serializes concurrent binding and compatibility promo
     await Promise.all([first.$disconnect(), second.$disconnect()]);
   }
 });
+
+test("source ledger refuses to promote a resilience snapshot into a missing canonical product", { skip: !databaseUrl }, async () => {
+  const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const productId = `missing-canonical-${suffix}`;
+  const sourceKey = `missing-canonical-source-${suffix}`;
+  const draft = {
+    sourceRecord: { recordKey: productId, sourceRevision: "v1", rawPayload: { id: productId }, payloadHash: "c".repeat(64), productId },
+    provenance: [{ fieldPath: "id", ordinal: 0, rawValue: productId, canonicalEntityType: "PRODUCT" as const, canonicalEntityId: productId, canonicalField: "id", normalizedValue: productId, mappingStatus: "MAPPED" as const, mapperVersion: "missing-product-test-v1", confidence: 1, reason: null, productId, variantId: null }],
+    normalization: { productId, variantId: null },
+    issues: [],
+  };
+  try {
+    const { persistCatalogSourceRecordPageWithClient } = await backfillModule;
+    await assert.rejects(() => persistCatalogSourceRecordPageWithClient(client, { drafts: [draft], sourceKey }, {
+      label: "Missing canonical fixture", defaultSourceKey: "unused", defaultDisplayName: "Missing canonical fixture", decisionReason: "must fail closed", async persistCompatibility() { throw new Error("compatibility must not run"); },
+    }), /references missing products/);
+    assert.equal(await client.shopCatalogSource.count({ where: { key: sourceKey } }), 0);
+    assert.equal(await client.shopCatalogSourceRecord.count({ where: { recordKey: productId } }), 0);
+  } finally { await client.$disconnect(); }
+});
+
+test("versioned full-commerce import creates a publishable canonical aggregate before source promotion", { skip: !databaseUrl }, async () => {
+  const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const collectionId = `import-collection-${suffix}`;
+  try {
+    await client.shopCollection.create({ data: { id: collectionId, handle: collectionId, titleUa: "Імпорт", titleEn: "Import" } });
+    const [{ normalizeAdminProductPayload, buildAdminProductCreateData }, { coordinateShopCatalogProductCreationWithClient }, { buildShopCatalogAdminSnapshot }] = await Promise.all([
+      import("../../../src/lib/shopAdminCatalog"),
+      import("../../../src/lib/shopCatalogMutationCoordinator.server"),
+      import("../../../src/lib/shopCatalogAdminSnapshot.server"),
+    ]);
+    const normalized = normalizeAdminProductPayload({
+      slug: `full-commerce-${suffix}`, sku: `FULL-${suffix}`, scope: "auto", storefront: "main", brand: "Future Brand",
+      titleUa: "Повний товар", titleEn: "Full product", shortDescUa: "Опис", shortDescEn: "Description",
+      priceEur: 499, image: "/media/full-main.jpg", gallery: ["/media/full-main.jpg", "/media/full-detail.jpg"],
+      collectionIds: [collectionId], tags: ["future-brand"], isPublished: true,
+      media: [{ src: "/media/full-main.jpg", position: 1 }, { src: "/media/full-detail.jpg", position: 2 }],
+      options: [{ name: "Finish", position: 1, values: ["Gloss", "Matte"] }],
+      variants: [{ title: "Gloss", sku: `FULL-${suffix}-G`, option1Value: "Gloss", priceEur: 499, inventoryQty: 2, isDefault: true }, { title: "Matte", sku: `FULL-${suffix}-M`, option1Value: "Matte", priceEur: 519, inventoryQty: 1 }],
+      metafields: [{ namespace: "spec", key: "material", value: "carbon" }],
+    });
+    assert.deepEqual(normalized.errors, []);
+    const creation = await coordinateShopCatalogProductCreationWithClient(client, {
+      changeDomains: ["CONTENT", "SEO", "MEDIA", "PRICE", "INVENTORY", "FITMENT", "TAXONOMY", "VISIBILITY"],
+      async create(tx) { return (await tx.shopProduct.create({ data: buildAdminProductCreateData(normalized.data), select: { id: true } })).id; },
+      snapshot(tx, productId, initialVersion) { return buildShopCatalogAdminSnapshot(tx, productId, initialVersion, { type: "IMPORT", id: "integration", reason: "full commerce creation" }); },
+    });
+    assert.equal(creation.canonicalVersion, "1");
+    const product = await client.shopProduct.findUniqueOrThrow({ where: { id: creation.productId }, include: { media: true, options: true, variants: true, metafields: true, collections: true } });
+    assert.equal(product.media.length, 2); assert.equal(product.options.length, 1); assert.equal(product.variants.length, 2); assert.equal(product.metafields.length, 1); assert.equal(product.collections.length, 1);
+    assert.equal(product.titleUa, "Повний товар"); assert.equal(product.titleEn, "Full product"); assert.equal(product.priceEur?.toString(), "499");
+    assert.equal(await client.shopCatalogProductRevision.count({ where: { productId: product.id } }), 1);
+    assert.equal(await client.shopCatalogOutbox.count({ where: { productId: product.id } }), 1);
+    assert.ok(await client.shopCatalogPublicationReceipt.count({ where: { productId: product.id } }));
+  } finally { await client.$disconnect(); }
+});
