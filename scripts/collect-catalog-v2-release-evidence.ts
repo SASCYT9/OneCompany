@@ -15,6 +15,7 @@ import {
 } from "../src/lib/shopCatalogReleaseActivationGuard";
 import { readShopCatalogShadowEvidenceWithClient } from "../src/lib/shopCatalogShadowTelemetry.server";
 import { readShopCatalogSourceCoveragePage } from "../src/lib/shopCatalogSourceCoverageReport.server";
+import { readShopCatalogProjectionReadinessWithClient } from "../src/lib/shopCatalogOperationalReadiness.server";
 
 function argument(name: string, fallback?: string) {
   const prefix = `--${name}=`;
@@ -55,30 +56,6 @@ async function sourceCoverage(client: PrismaClient) {
   return fingerprintCatalogSourceCoverage(result);
 }
 
-async function projectionLag(client: PrismaClient) {
-  const rows = await client.$queryRaw<Array<{ missing: bigint; lag: bigint | null }>>`
-    SELECT
-      count(*) FILTER (WHERE ready_locales < 2)::bigint AS missing,
-      max(GREATEST(product_version - projection_version, 0))::bigint AS lag
-    FROM (
-      SELECT product.id,
-             product."publishedCatalogVersion" AS product_version,
-             count(projection.id) FILTER (
-               WHERE projection.locale IN ('ua', 'en')
-                 AND projection."catalogVersion" = product."publishedCatalogVersion"
-             ) AS ready_locales,
-             coalesce(min(projection."catalogVersion"), 0) AS projection_version
-      FROM "ShopProduct" product
-      LEFT JOIN "ShopCatalogProjection" projection ON projection."productId" = product.id
-      WHERE product."isPublished" = true AND product.status = 'ACTIVE'
-      GROUP BY product.id, product."publishedCatalogVersion"
-    ) readiness
-  `;
-  const missing = Number(rows[0]?.missing ?? 0);
-  if (missing) throw new Error(`${missing} published products lack current ua/en projections`);
-  return Number(rows[0]?.lag ?? 0);
-}
-
 async function main() {
   if (process.env.CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ !== "1") throw new Error("Set CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ=1 for this read-only collector");
   const databaseUrl = process.env.CATALOG_RELEASE_EVIDENCE_DATABASE_URL?.trim();
@@ -96,7 +73,7 @@ async function main() {
   try {
     const [sourceCoverageFingerprint, lag, shadow] = await Promise.all([
       sourceCoverage(client),
-      projectionLag(client),
+      readShopCatalogProjectionReadinessWithClient(client),
       readShopCatalogShadowEvidenceWithClient(client, { deploymentCommit: commitSha, since: new Date(Date.now() - hours * 3_600_000) }),
     ]);
     const generatedAt = new Date();
@@ -105,7 +82,10 @@ async function main() {
       generatedAt,
       lifetimeMinutes,
       sourceCoverageFingerprint,
-      projectionLag: lag,
+      projectionLag: (() => {
+        if (lag.missingLocaleProjections) throw new Error(`${lag.missingLocaleProjections} published locale projections are missing or stale`);
+        return lag.maxVersionLag;
+      })(),
       shadow: { sampledRequests: shadow.sampledRequests, mismatches: shadow.mismatches, errorRate: shadow.errorRate },
       performance,
     });

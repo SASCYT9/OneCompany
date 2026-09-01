@@ -122,6 +122,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-001 | Reproducible signed activation marker          | Done        | Guard-validated signer CLI; weak/stale/lagging evidence fails closed |
 | C2-P7-002 | Segmented deterministic canary and rollback    | Done        | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete |
 | C2-P7-003 | Durable commit-bound shadow evidence           | Done        | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate |
+| C2-P7-004 | Read-only operational readiness telemetry      | Done        | Authenticated no-store report for catalog size, projection lag, outbox age/retries/dead letters, failed receipts, and commit shadow parity |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -362,3 +363,7 @@ Production actions performed: none
 - Scale and commit-to-visible publication artifacts now include the exact 40-character Git commit and their Docker runners refuse a dirty worktree.
 - `shop:catalog:v2:release:evidence` assembles one short-lived activation document from all 14 source-coverage audits, current UA/EN projections, commit-specific shadow telemetry, and the two matching performance artifacts.
 - Collection is read-only and fail-closed; signing remains a separate secret-bearing step. No production read, write, deployment, or reader switch is performed automatically.
+- `/api/admin/shop/catalog-v2-readiness` exposes current cutover/rollback evidence without mutating
+  state. It fails readiness for fewer than 10,000 published products, backlog, dead letters, failed
+  receipts, missing UA/EN projections, or non-zero version lag; deployment-specific shadow totals
+  are included when a full commit SHA is available.
