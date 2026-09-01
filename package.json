@@ -62,6 +62,7 @@
     "shop:catalog:v2:scale": "tsx scripts/benchmark-catalog-v2-scale.ts",
     "shop:catalog:v2:scale:docker": "tsx scripts/run-catalog-v2-scale-docker.ts",
     "shop:catalog:v2:publication:docker": "tsx scripts/run-catalog-v2-publication-docker.ts",
+    "shop:catalog:v2:storefront:build-gate": "tsx scripts/measure-catalog-v2-storefront-build.ts",
     "shop:catalog:v2:source-coverage": "node scripts/run-react-server-tsx.mjs scripts/audit-catalog-v2-source-coverage.ts",
     "shop:catalog:v2:racechip:audit": "tsx scripts/audit-catalog-v2-racechip.ts",
     "shop:catalog:v2:adro:audit": "tsx scripts/audit-catalog-v2-adro.ts",
