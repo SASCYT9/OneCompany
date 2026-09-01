@@ -91,7 +91,7 @@ test("storefront query ignores malformed optional filters instead of broadening 
 
 test("catalog page performs direct server query only behind the reader flag", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(source, /if \(!isShopCatalogReaderRequestEnabled\(/);
+  assert.match(source, /if\s*\(\s*!isShopCatalogReaderRequestEnabled\(/);
   assert.match(source, /redirect\(`/);
   assert.doesNotMatch(source, /stock\/page/);
   assert.match(source, /await connection\(\)/);
@@ -120,12 +120,30 @@ test("canary routing is request-bound and the page still fails closed without it
   assert.match(suggest, /isShopCatalogReaderRequestEnabled/);
 });
 
+test("canary read failures preserve filters and fall back to legacy while full SSR stays fail-closed", () => {
+  const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
+  assert.match(page, /function legacyCatalogHref/);
+  assert.match(page, /catalog_v2_canary_fallback/);
+  assert.match(page, /if \(reader\.mode !== "canary"\) throw error/);
+  assert.match(page, /redirect\(legacyCatalogHref\(locale, filters\)\)/);
+});
+
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
   const client = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Filters.tsx", "utf8");
   assert.match(server, /<CatalogV2Filters/);
   assert.match(client, /method="get"/);
-  for (const field of ["q", "brand", "category", "make", "model", "generation", "year", "engine", "fuel"]) {
+  for (const field of [
+    "q",
+    "brand",
+    "category",
+    "make",
+    "model",
+    "generation",
+    "year",
+    "engine",
+    "fuel",
+  ]) {
     assert.match(client, new RegExp(`name=[{\"]+${field}`));
   }
   assert.match(server, /afterRank/);
