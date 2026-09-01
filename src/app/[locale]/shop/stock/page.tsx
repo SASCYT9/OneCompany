@@ -2692,10 +2692,10 @@ function StockPageContent() {
                   initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                  className="pointer-events-none relative flex h-[250px] min-w-0 items-center justify-center sm:h-[290px] lg:h-[300px]"
+                  className="pointer-events-none relative flex h-[230px] min-w-0 items-center justify-center sm:h-[265px] lg:h-[275px]"
                 >
-                  <span className="relative block aspect-[16/10] h-full max-h-[300px] w-full max-w-[600px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
-                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="(min-width: 1024px) 600px, 92vw" className="object-cover object-center mix-blend-multiply contrast-[1.04]" />
+                  <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
+                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="(min-width: 1024px) 550px, 88vw" className="object-contain object-center p-4 mix-blend-multiply contrast-[1.04] sm:p-5" />
                   </span>
                 </motion.div>
                 <motion.div
@@ -2708,8 +2708,8 @@ function StockPageContent() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-white/20">·</span>{activeHeroProduct.partNumber}</p>
                   <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogHeroProductTitle(activeHeroProduct)}</h2>
                   <p className="mt-4 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
-                  <div className="mt-3 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.17em] text-white/62">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#c6a657] shadow-[0_0_12px_rgba(198,166,87,0.9)]" />
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.08)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.95)]" />
                     {isUa ? "В наявності · готово до відправлення" : "In stock · ready to ship"}
                   </div>
                   <Link href={resolveShopCatalogProductHref(locale, activeHeroProduct.href, activeHeroProduct.slug)} className="mt-5 inline-flex h-11 items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
@@ -3472,10 +3472,10 @@ function StockPageContent() {
                               <SafeProductImage
                                 src={item.thumbnail}
                                 alt={item.name}
-                                className={`h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-[1.018] md:p-3.5 ${
+                                className={`h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
                                   item.brand === "Eventuri"
-                                    ? "mix-blend-multiply dark:mix-blend-normal"
-                                    : ""
+                                    ? "p-6 mix-blend-multiply dark:mix-blend-normal md:p-7"
+                                    : "p-3 md:p-3.5"
                                 }`}
                               />
                             </div>
