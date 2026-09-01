@@ -17,6 +17,7 @@ import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
+import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 
 const PAGE_SIZE = 24;
 
@@ -65,6 +66,19 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const priceCurrency =
     requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
   const requestedSort = params.get("sort");
+  const settingsRecord = await getOrCreateShopSettings(prisma);
+  const settings = getShopSettingsRuntime(settingsRecord);
+  const useEuropePrice = isEuropePricingCountry(params.get("country"));
+  if (useEuropePrice) {
+    const rate =
+      priceCurrency === "USD"
+        ? settings.currencyRates.USD || 1.152174
+        : priceCurrency === "UAH"
+          ? settings.currencyRates.UAH || 53
+          : 1;
+    minPrice = minPrice == null ? null : minPrice / rate;
+    maxPrice = maxPrice == null ? null : maxPrice / rate;
+  }
   const query: ShopCatalogProjectionQueryInput = {
     locale,
     limit: requestedLimit,
@@ -84,7 +98,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     fuel: clean(params.get("fuel")),
     minPrice,
     maxPrice,
-    priceCurrency,
+    priceCurrency: useEuropePrice ? "EUR" : priceCurrency,
+    useEuropePrice,
     offset: (page - 1) * requestedLimit,
   };
 
@@ -131,13 +146,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     queryShopCatalogProjectionFacets(query),
     countShopCatalogProjection(query),
   ]);
-  const [session, settingsRecord] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
-  ]);
+  const session = await getCurrentShopCustomerSession();
   const items = result.items;
   const prices = await getShopCatalogCardPricingByIds(items.map((item) => item.productId));
-  const settings = getShopSettingsRuntime(settingsRecord);
   const pricingContext = await buildShopViewerPricingContextServer({
     prisma,
     settings,

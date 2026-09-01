@@ -40,6 +40,7 @@ export type ShopCatalogProjectionQueryInput = {
   offset?: number;
   order?: "default" | "price_asc" | "price_desc" | "name_asc" | "brand_interleave";
   orderSeed?: string | null;
+  useEuropePrice?: boolean;
 };
 
 export type ShopCatalogProjectionQueryItem = {
@@ -224,27 +225,43 @@ export function normalizeShopCatalogProjectionQuery(
       "orderSeed",
       SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
     ),
+    useEuropePrice: input.useEuropePrice ?? false,
   });
 }
 
 function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
+  if (input.useEuropePrice) {
+    return Prisma.sql`COALESCE(
+      (SELECT COALESCE(canonical_product."priceEurEurope", canonical_product."priceEur", canonical_variant."priceEurEurope", canonical_variant."priceEur")
+       FROM "ShopProduct" canonical_product
+       LEFT JOIN LATERAL (
+         SELECT variant."priceEur", variant."priceEurEurope"
+         FROM "ShopProductVariant" variant
+         WHERE variant."productId" = canonical_product."id"
+         ORDER BY variant."isDefault" DESC, variant."position" ASC
+         LIMIT 1
+       ) canonical_variant ON true
+       WHERE canonical_product."id" = projection."productId"),
+      projection."minPriceEurEurope", projection."minPriceEur"
+    )`;
+  }
   const productColumn =
     input.priceCurrency === "UAH"
       ? Prisma.sql`canonical_product."priceUah"`
       : input.priceCurrency === "EUR"
-        ? Prisma.sql`COALESCE(canonical_product."priceEurEurope", canonical_product."priceEur")`
+        ? Prisma.sql`canonical_product."priceEur"`
         : Prisma.sql`canonical_product."priceUsd"`;
   const variantColumn =
     input.priceCurrency === "UAH"
       ? Prisma.sql`canonical_variant."priceUah"`
       : input.priceCurrency === "EUR"
-        ? Prisma.sql`COALESCE(canonical_variant."priceEurEurope", canonical_variant."priceEur")`
+        ? Prisma.sql`canonical_variant."priceEur"`
         : Prisma.sql`canonical_variant."priceUsd"`;
   const projectionColumn =
     input.priceCurrency === "UAH"
       ? Prisma.sql`projection."minPriceUah"`
       : input.priceCurrency === "EUR"
-        ? Prisma.sql`COALESCE(projection."minPriceEurEurope", projection."minPriceEur")`
+        ? Prisma.sql`projection."minPriceEur"`
         : Prisma.sql`projection."minPriceUsd"`;
   return Prisma.sql`COALESCE(
     (SELECT COALESCE(${productColumn}, ${variantColumn})

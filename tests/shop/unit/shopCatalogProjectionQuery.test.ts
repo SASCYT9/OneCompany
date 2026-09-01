@@ -118,6 +118,7 @@ test("vehicle storefront order interleaves brands by fresh canonical price", asy
     minPrice: 1000,
     maxPrice: 5000,
     priceCurrency: "EUR",
+    useEuropePrice: true,
     order: "brand_interleave",
     orderSeed: "BMW|M3",
     offset: 24,
