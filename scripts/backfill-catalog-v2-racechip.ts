@@ -63,8 +63,12 @@ async function main() {
   const commit = process.argv.includes("--commit");
   const after = option("after") ?? null;
   const requestedLimit = Number(option("limit") ?? 50);
+  const concurrency = Number(option("concurrency") ?? 1);
   if (!Number.isSafeInteger(requestedLimit) || requestedLimit < 1 || requestedLimit > 50) {
     throw new TypeError("--limit must be between 1 and 50");
+  }
+  if (!Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 12) {
+    throw new TypeError("--concurrency must be between 1 and 12");
   }
   const allDrafts = await loadDrafts();
   const remaining = after
@@ -89,20 +93,40 @@ async function main() {
   }
   const client = new PrismaClient({ datasources: { db: { url: assertCommitTarget() } } });
   try {
-    let created = 0;
-    let updated = 0;
-    let unchanged = 0;
-    for (let index = 0; index < drafts.length; index += 50) {
+    let inserted = 0;
+    let idempotent = 0;
+    let provenanceInserted = 0;
+    let issuesInserted = 0;
+    let completed = 0;
+    let nextPage = 0;
+    const pages = Array.from({ length: Math.ceil(drafts.length / 50) }, (_, index) =>
+      drafts.slice(index * 50, index * 50 + 50)
+    );
+    const worker = async () => {
+      while (true) {
+        const pageIndex = nextPage++;
+        const page = pages[pageIndex];
+        if (!page) return;
       const result = await persistRaceChipSourceRecordPageWithClient(client, {
-        drafts: drafts.slice(index, index + 50),
+        drafts: page,
         reviewedById: process.env.CATALOG_RACECHIP_BACKFILL_REVIEWED_BY_ID,
       });
-      created += result.created;
-      updated += result.updated;
-      unchanged += result.unchanged;
-      process.stdout.write(`[racechip-backfill] ${Math.min(index + 50, drafts.length)}/${drafts.length}\n`);
-    }
-    console.log(JSON.stringify({ ...summary, persistence: { created, updated, unchanged } }, null, 2));
+        inserted += result.inserted;
+        idempotent += result.idempotent;
+        provenanceInserted += result.provenanceInserted;
+        issuesInserted += result.issuesInserted;
+        completed += page.length;
+        process.stdout.write(`[racechip-backfill] ${completed}/${drafts.length}\n`);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, pages.length) }, () => worker()));
+    console.log(
+      JSON.stringify(
+        { ...summary, persistence: { inserted, idempotent, provenanceInserted, issuesInserted } },
+        null,
+        2
+      )
+    );
   } finally {
     await client.$disconnect();
   }
