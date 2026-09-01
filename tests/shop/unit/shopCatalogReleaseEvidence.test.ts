@@ -34,8 +34,10 @@ test("release evidence has a bounded lifetime and exact immutable identity", () 
     projectionLag: 0,
     shadow: { sampledRequests: 1000, mismatches: 0, errorRate: 0 },
     performance: { scaleP95Ms: 92, publicationP95Ms: 740 },
+    rollout: { maxCanaryPercentage: 5, fullSsrApproved: false },
   });
   assert.equal(evidence.expiresAt, "2026-09-01T14:00:00.000Z");
   assert.equal(evidence.sourcesReady, 14);
   assert.throws(() => buildShopCatalogReleaseEvidence({ ...evidence, generatedAt: new Date(), lifetimeMinutes: 1441 }), /1..1440/);
+  assert.throws(() => buildShopCatalogReleaseEvidence({ ...evidence, generatedAt: new Date(), lifetimeMinutes: 10, rollout: { maxCanaryPercentage: 101, fullSsrApproved: false } }), /1..100/);
 });

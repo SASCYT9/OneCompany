@@ -63,6 +63,8 @@ async function main() {
   const commitSha = fullCommit();
   const hours = Number(argument("shadow-hours", "24"));
   const lifetimeMinutes = Number(argument("lifetime-minutes", "120"));
+  const maxCanaryPercentage = Number(argument("max-canary-percentage", "1"));
+  const fullSsrApproved = process.argv.includes("--approve-full-ssr");
   if (!Number.isFinite(hours) || hours <= 0 || hours > 168) throw new Error("--shadow-hours must be within 0..168");
   const performance = readCommitBoundPerformance({
     commitSha,
@@ -88,10 +90,13 @@ async function main() {
       })(),
       shadow: { sampledRequests: shadow.sampledRequests, mismatches: shadow.mismatches, errorRate: shadow.errorRate },
       performance,
+      rollout: { maxCanaryPercentage, fullSsrApproved },
     });
     const validationSecret = "catalog-release-evidence-validation-only";
     const decision = evaluateShopCatalogReleaseActivation({
-      requestedMode: "canary",
+      nodeEnv: "production",
+      readerMode: fullSsrApproved ? "ssr" : "canary",
+      canaryPercentage: maxCanaryPercentage,
       deployedCommit: commitSha,
       marker: createShopCatalogReleaseMarker({ evidence, secret: validationSecret }),
       secret: validationSecret,

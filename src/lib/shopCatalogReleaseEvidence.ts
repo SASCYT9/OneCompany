@@ -68,11 +68,13 @@ export function buildShopCatalogReleaseEvidence(input: {
   projectionLag: number;
   shadow: { sampledRequests: number; mismatches: number; errorRate: number };
   performance: { scaleP95Ms: number; publicationP95Ms: number };
+  rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean };
 }): ShopCatalogReleaseEvidence {
   if (!/^[a-f0-9]{40}$/.test(input.commitSha)) throw new Error("full commit SHA is required");
   if (!Number.isInteger(input.lifetimeMinutes) || input.lifetimeMinutes < 1 || input.lifetimeMinutes > 1440) throw new Error("evidence lifetime must be 1..1440 minutes");
+  if (!Number.isInteger(input.rollout.maxCanaryPercentage) || input.rollout.maxCanaryPercentage < 1 || input.rollout.maxCanaryPercentage > 100) throw new Error("max canary percentage must be 1..100");
   return {
-    version: 1,
+    version: 2,
     commitSha: input.commitSha,
     generatedAt: input.generatedAt.toISOString(),
     expiresAt: new Date(input.generatedAt.getTime() + input.lifetimeMinutes * 60_000).toISOString(),
@@ -82,5 +84,6 @@ export function buildShopCatalogReleaseEvidence(input: {
     projectionLag: input.projectionLag,
     shadow: input.shadow,
     performance: input.performance,
+    rollout: input.rollout,
   };
 }

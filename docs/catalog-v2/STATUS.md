@@ -124,6 +124,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-003 | Durable commit-bound shadow evidence           | Done        | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate |
 | C2-P7-004 | Read-only operational readiness telemetry      | Done        | Authenticated no-store report for catalog size, projection lag, outbox age/retries/dead letters, failed receipts, and commit shadow parity |
 | C2-P7-005 | Privacy-safe live reader performance telemetry | Done        | Listing/facet/suggestion duration, bounded DB-query count and returned rows; no raw query/filter values |
+| C2-P7-006 | Signed progressive rollout ceiling             | Done        | Evidence v2 caps canary percentage and requires separate explicit approval for full SSR |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,

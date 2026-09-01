@@ -54,3 +54,8 @@ The command exits `2` unless the activation thresholds are satisfied.
 ### Automatic evidence collection
 
 Run `shop:catalog:v2:release:evidence -- --commit=<full-sha>` with explicit `CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ=1` and `CATALOG_RELEASE_EVIDENCE_DATABASE_URL`. The collector only accepts JSON performance artifacts below `artifacts/`, requires both artifacts to match the requested commit, verifies every active source record and both locale projections, and reads shadow aggregates for that same commit. It writes an unsigned, short-lived document below `artifacts/catalog-v2-release/`; signing is deliberately separate.
+
+Evidence version 2 also binds rollout authority. `--max-canary-percentage=<1..100>` defaults to 1;
+production rejects a configured canary percentage above that signed ceiling. Full SSR is a separate
+authorization and is absent unless evidence was explicitly collected with `--approve-full-ssr`.
+Version-1 markers cannot activate either mode.
