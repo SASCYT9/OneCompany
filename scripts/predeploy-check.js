@@ -5,12 +5,16 @@
  * 2. Require the configured production branch (master by default).
  * 3. Run prisma generate (fast) & a dry build check (optional flag).
  */
-const { execSync } = require("child_process");
+const { execFileSync, execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
 function run(cmd) {
   return execSync(cmd, { stdio: "pipe" }).toString().trim();
+}
+
+function runNode(modulePath, args = [], options = {}) {
+  return execFileSync(process.execPath, [require.resolve(modulePath), ...args], options);
 }
 
 function countFilesRecursive(dir) {
@@ -116,13 +120,13 @@ try {
   console.log("[OK] Git clean. Branch:", branch);
 
   console.log("[STEP] Verifying Operations release files and fail-closed rollout configuration...");
-  execSync("node scripts/operations/check-production-readiness.mjs --mode=prepare", {
+  execFileSync(process.execPath, ["scripts/operations/check-production-readiness.mjs", "--mode=prepare"], {
     stdio: "inherit",
   });
 
   const deployedCommitSha = run("git rev-parse HEAD");
   console.log("[STEP] Verifying commit-bound One AI V2 production activation...");
-  execSync("npx tsx scripts/check-shop-ai-v2-release-activation.ts", {
+  runNode("tsx/cli", ["scripts/check-shop-ai-v2-release-activation.ts"], {
     stdio: "inherit",
     env: {
       ...process.env,
@@ -132,7 +136,7 @@ try {
   });
 
   console.log("[STEP] Verifying commit-bound Catalog V2 production activation...");
-  execSync("npx tsx scripts/check-catalog-v2-release-activation.ts", {
+  runNode("tsx/cli", ["scripts/check-catalog-v2-release-activation.ts"], {
     stdio: "inherit",
     env: {
       ...process.env,
@@ -170,11 +174,12 @@ try {
   }
 
   console.log("[STEP] Generating Prisma client...");
-  execSync("npm run prisma:generate", { stdio: "inherit" });
+  runNode("prisma/build/index.js", ["generate"], { stdio: "inherit" });
+  execFileSync(process.execPath, ["scripts/cleanup-prisma-temp-engines.js"], { stdio: "inherit" });
 
   // Lightweight build sanity without emitting .next (Next has no official dry mode, so we run build).
   console.log("[STEP] Running Next.js production build sanity...");
-  execSync("npx next build", { stdio: "inherit" });
+  runNode("next/dist/bin/next", ["build"], { stdio: "inherit" });
 
   console.log("\n[READY] All pre-deploy checks passed.");
 } catch (e) {
