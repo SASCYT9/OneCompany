@@ -66,13 +66,14 @@ export function buildShopCatalogReleaseEvidence(input: {
   lifetimeMinutes: number;
   sourceCoverageFingerprint: string;
   projectionLag: number;
-  shadow: { sampledRequests: number; mismatches: number; errorRate: number };
+  shadow: { sampledRequests: number; mismatches: number; errorRate: number; windowHours: number };
   performance: { scaleP95Ms: number; publicationP95Ms: number };
-  rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean };
+  rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean; approvedBy: string };
 }): ShopCatalogReleaseEvidence {
   if (!/^[a-f0-9]{40}$/.test(input.commitSha)) throw new Error("full commit SHA is required");
   if (!Number.isInteger(input.lifetimeMinutes) || input.lifetimeMinutes < 1 || input.lifetimeMinutes > 1440) throw new Error("evidence lifetime must be 1..1440 minutes");
   if (!Number.isInteger(input.rollout.maxCanaryPercentage) || input.rollout.maxCanaryPercentage < 1 || input.rollout.maxCanaryPercentage > 100) throw new Error("max canary percentage must be 1..100");
+  if (!/^[\p{L}\p{N}][\p{L}\p{N} ._@-]{2,119}$/u.test(input.rollout.approvedBy.trim())) throw new Error("decision owner is required");
   return {
     version: 2,
     commitSha: input.commitSha,

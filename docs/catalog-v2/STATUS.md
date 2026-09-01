@@ -126,6 +126,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-005 | Privacy-safe live reader performance telemetry | Done        | Listing/facet/suggestion duration, bounded DB-query count and returned rows; no raw query/filter values |
 | C2-P7-006 | Signed progressive rollout ceiling             | Done        | Evidence v2 caps canary percentage and requires separate explicit approval for full SSR |
 | C2-P7-007 | Unbypassable production build guard            | Done        | Next config blocks unsigned/over-scoped V2 before route selection; reader-off rollback remains buildable |
+| C2-P7-008 | Signed observation window and decision owner    | Done        | Canary requires 24h, full SSR 72h, and every activation names its responsible owner |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,

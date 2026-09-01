@@ -60,6 +60,10 @@ production rejects a configured canary percentage above that signed ceiling. Ful
 authorization and is absent unless evidence was explicitly collected with `--approve-full-ssr`.
 Version-1 markers cannot activate either mode.
 
+Collection also requires `--decision-owner=<name>` and signs the requested shadow window. Canary
+requires 24–168 hours of evidence; full SSR requires at least 72 hours inside that signed window.
+Missing nested evidence is rejected as invalid instead of causing an unclassified build failure.
+
 The assertion runs while `next.config.ts` is evaluated, before Next decides whether the Catalog V2
 route is buildable. Therefore direct `next build`, Vercel's configured build command, and the local
 deployment wrapper share the same guard; `predeploy-check` remains defense in depth rather than the

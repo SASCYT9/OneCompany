@@ -65,6 +65,7 @@ async function main() {
   const lifetimeMinutes = Number(argument("lifetime-minutes", "120"));
   const maxCanaryPercentage = Number(argument("max-canary-percentage", "1"));
   const fullSsrApproved = process.argv.includes("--approve-full-ssr");
+  const approvedBy = argument("decision-owner") ?? "";
   if (!Number.isFinite(hours) || hours <= 0 || hours > 168) throw new Error("--shadow-hours must be within 0..168");
   const performance = readCommitBoundPerformance({
     commitSha,
@@ -88,9 +89,9 @@ async function main() {
         if (lag.missingLocaleProjections) throw new Error(`${lag.missingLocaleProjections} published locale projections are missing or stale`);
         return lag.maxVersionLag;
       })(),
-      shadow: { sampledRequests: shadow.sampledRequests, mismatches: shadow.mismatches, errorRate: shadow.errorRate },
+      shadow: { sampledRequests: shadow.sampledRequests, mismatches: shadow.mismatches, errorRate: shadow.errorRate, windowHours: hours },
       performance,
-      rollout: { maxCanaryPercentage, fullSsrApproved },
+      rollout: { maxCanaryPercentage, fullSsrApproved, approvedBy },
     });
     const validationSecret = "catalog-release-evidence-validation-only";
     const decision = evaluateShopCatalogReleaseActivation({

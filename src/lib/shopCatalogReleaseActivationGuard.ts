@@ -6,9 +6,9 @@ export type ShopCatalogReleaseEvidence = {
   version: 2; commitSha: string; generatedAt: string; expiresAt: string;
   ownershipFingerprint: string; sourceCoverageFingerprint: string; sourcesReady: number;
   projectionLag: number;
-  shadow: { sampledRequests: number; mismatches: number; errorRate: number };
+  shadow: { sampledRequests: number; mismatches: number; errorRate: number; windowHours: number };
   performance: { scaleP95Ms: number; publicationP95Ms: number };
-  rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean };
+  rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean; approvedBy: string };
 };
 export type ShopCatalogActivationDecision = { allowed: boolean; requested: boolean; reasons: string[]; evidence: ShopCatalogReleaseEvidence | null };
 function decode(value: string) { return Buffer.from(value, "base64url"); }
@@ -41,19 +41,23 @@ export function evaluateShopCatalogReleaseActivation(input: { nodeEnv?: string; 
     if (!Number.isFinite(generated) || !Number.isFinite(expires) || generated > now.getTime() || expires <= now.getTime() || expires - generated > 86_400_000) reasons.push("release evidence is stale or has an invalid lifetime");
     if (evidence.sourcesReady !== 14) reasons.push("all 14 logical sources must be activation-ready");
     if (evidence.projectionLag !== 0) reasons.push("projection version lag must be zero");
-    if (evidence.shadow.sampledRequests < 1000) reasons.push("shadow parity sample is too small");
-    if (evidence.shadow.mismatches !== 0) reasons.push("shadow parity mismatches must be zero");
-    if (!Number.isFinite(evidence.shadow.errorRate) || evidence.shadow.errorRate < 0 || evidence.shadow.errorRate > 0.001) reasons.push("shadow error rate exceeds 0.1%");
-    if (!Number.isFinite(evidence.performance.scaleP95Ms) || evidence.performance.scaleP95Ms > 200) reasons.push("catalog scale p95 exceeds 200 ms");
-    if (!Number.isFinite(evidence.performance.publicationP95Ms) || evidence.performance.publicationP95Ms > 2000) reasons.push("commit-to-visible p95 exceeds 2000 ms");
+    if (!Number.isFinite(evidence.shadow?.sampledRequests) || evidence.shadow.sampledRequests < 1000) reasons.push("shadow parity sample is too small");
+    if (evidence.shadow?.mismatches !== 0) reasons.push("shadow parity mismatches must be zero");
+    if (!Number.isFinite(evidence.shadow?.errorRate) || evidence.shadow.errorRate < 0 || evidence.shadow.errorRate > 0.001) reasons.push("shadow error rate exceeds 0.1%");
+    const windowHours = evidence.shadow?.windowHours;
+    if (!Number.isFinite(windowHours) || windowHours! < 24 || windowHours! > 168) reasons.push("shadow observation window must be 24..168 hours");
+    if (!Number.isFinite(evidence.performance?.scaleP95Ms) || evidence.performance.scaleP95Ms > 200) reasons.push("catalog scale p95 exceeds 200 ms");
+    if (!Number.isFinite(evidence.performance?.publicationP95Ms) || evidence.performance.publicationP95Ms > 2000) reasons.push("commit-to-visible p95 exceeds 2000 ms");
     const maxCanary = evidence.rollout?.maxCanaryPercentage;
     if (!Number.isInteger(maxCanary) || maxCanary < 1 || maxCanary > 100 || typeof evidence.rollout?.fullSsrApproved !== "boolean") reasons.push("rollout authorization is invalid");
+    if (typeof evidence.rollout?.approvedBy !== "string" || !/^[\p{L}\p{N}][\p{L}\p{N} ._@-]{2,119}$/u.test(evidence.rollout.approvedBy.trim())) reasons.push("rollout decision owner is missing or invalid");
     if (mode === "canary") {
       const percentage = input.canaryPercentage;
       if (!Number.isInteger(percentage) || percentage! < 0 || percentage! > 100) reasons.push("production canary percentage must be an integer from 0 to 100");
       else if (Number.isInteger(maxCanary) && percentage! > maxCanary) reasons.push(`production canary percentage ${percentage} exceeds signed maximum ${maxCanary}`);
     }
     if (mode === "ssr" && evidence.rollout?.fullSsrApproved !== true) reasons.push("full SSR rollout is not approved by signed evidence");
+    if (mode === "ssr" && (!Number.isFinite(windowHours) || windowHours! < 72)) reasons.push("full SSR requires at least 72 hours of shadow observation");
   }
   return { allowed: reasons.length === 0, requested, reasons, evidence };
 }
