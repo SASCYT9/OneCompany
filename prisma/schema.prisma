@@ -3752,6 +3752,25 @@ model ShopCatalogProjectionFacetCount {
   @@index([locale, dimension, prefixKey, productCount], map: "ShopCatalogFacetCount_lookup_idx")
 }
 
+model ShopCatalogShadowAggregate {
+  id               String   @id @default(cuid())
+  deploymentCommit String   @db.VarChar(40)
+  bucketStart      DateTime
+  locale           String   @db.VarChar(8)
+  brandKey         String   @default("") @db.VarChar(200)
+  categoryKey      String   @default("") @db.VarChar(200)
+  sampledRequests  Int      @default(0)
+  mismatches       Int      @default(0)
+  errors           Int      @default(0)
+  durationTotalMs  BigInt   @default(0)
+  durationMaxMs    Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([deploymentCommit, bucketStart, locale, brandKey, categoryKey])
+  @@index([deploymentCommit, bucketStart])
+}
+
 model ShopCatalogProjectionPolicy {
   id                 String                              @id @default(cuid())
   targetKey          String                              @unique

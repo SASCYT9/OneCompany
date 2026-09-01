@@ -37,6 +37,7 @@ test("vehicle filters stay correlated inside one verified clause", async () => {
   const where = buildShopCatalogProjectionWhere({
     locale: "ua",
     brand: "Eventuri",
+    category: "intake",
     make: "BMW",
     model: "M2",
     generation: "F87",
@@ -49,6 +50,7 @@ test("vehicle filters stay correlated inside one verified clause", async () => {
   assert.match(serialized, /\"verification\":\"VERIFIED\"/);
   assert.match(serialized, /\"dimension\":\"MAKE\"/);
   assert.match(serialized, /\"dimension\":\"ENGINE\"/);
+  assert.match(serialized, /\"categoryKey\"/);
   assert.doesNotMatch(serialized, /UNKNOWN/);
   const clause =
     where.product && "catalogProjectionPolicies" in where.product
@@ -78,6 +80,7 @@ test("vehicle query is product-first, clause-correlated, and planner-fenced", as
   const query = buildShopCatalogProjectionVehicleQuerySql({
     locale: "ua",
     limit: 24,
+    category: "intake",
     make: "BMW",
     model: "M2",
     engine: "N55",
@@ -93,6 +96,7 @@ test("vehicle query is product-first, clause-correlated, and planner-fenced", as
   assert.match(sql, /OFFSET 0/);
   assert.match(sql, /ORDER BY projection\."stableRank" ASC/);
   assert.equal(query.values.includes("BMW"), true);
+  assert.equal(query.values.includes("intake"), true);
   assert.equal(query.values.includes("M2"), true);
   assert.equal(query.values.includes("N55"), true);
   assert.equal(query.values.includes(2019), true);
@@ -120,9 +124,10 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
     engine: "S58",
   });
   const sql = query.sql;
-  assert.equal((sql.match(/UNION ALL/g) ?? []).length, 6);
-  assert.equal((sql.match(/LIMIT/g) ?? []).length, 7);
+  assert.equal((sql.match(/UNION ALL/g) ?? []).length, 7);
+  assert.equal((sql.match(/LIMIT/g) ?? []).length, 8);
   assert.match(sql, /'brand'::text/);
+  assert.match(sql, /'category'::text/);
   assert.match(sql, /candidate_row\."dimension"/);
   assert.match(sql, /candidate_row\."targetKey" = clause\."targetKey"/);
   assert.match(sql, /candidate_row\."clauseKey" = clause\."clauseKey"/);
@@ -134,7 +139,7 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
   assert.match(sql, /count\(DISTINCT projection\."productId"\)/);
   assert.equal(
     query.values.filter((value) => value === SHOP_CATALOG_PROJECTION_FACET_LIMIT).length,
-    7
+    8
   );
   assert.equal(query.values.includes("intake"), false);
   assert.equal(
@@ -157,8 +162,8 @@ test("progressive facet SQL never applies a later vehicle field to an earlier fa
     fuel: "petrol",
   });
   // A sparse deep link cannot unlock expensive later aggregations. Only the
-  // brand facet is queried until the user selects the required prefix.
-  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length, 0);
+  // Brand and category are cheap projection facets; vehicle facets remain locked.
+  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length, 1);
   assert.equal(query.values.includes("S58"), false);
   assert.equal(query.values.includes("petrol"), false);
 });
@@ -166,10 +171,10 @@ test("progressive facet SQL never applies a later vehicle field to an earlier fa
 test("progressive facets unlock exactly one level at a time", async () => {
   const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
   const cases = [
-    [{ locale: "ua" as const }, 1],
-    [{ locale: "ua" as const, brand: "Eventuri" }, 2],
-    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW" }, 3],
-    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW", model: "M2" }, 7],
+    [{ locale: "ua" as const }, 2],
+    [{ locale: "ua" as const, brand: "Eventuri" }, 3],
+    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW" }, 4],
+    [{ locale: "ua" as const, brand: "Eventuri", make: "BMW", model: "M2" }, 8],
     [
       {
         locale: "ua" as const,
@@ -178,7 +183,7 @@ test("progressive facets unlock exactly one level at a time", async () => {
         model: "M2",
         generation: "G87",
       },
-      7,
+      8,
     ],
   ] as const;
   for (const [input, branchCount] of cases) {

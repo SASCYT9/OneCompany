@@ -65,6 +65,7 @@ test("storefront query maps bounded progressive filters and a complete keyset cu
       text: "intake",
       scope: null,
       brand: "Eventuri",
+      category: null,
       make: "BMW",
       model: "M2",
       generation: "G87",
@@ -124,7 +125,7 @@ test("SSR catalog exposes progressive GET filters and keyset continuation withou
   const client = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Filters.tsx", "utf8");
   assert.match(server, /<CatalogV2Filters/);
   assert.match(client, /method="get"/);
-  for (const field of ["q", "brand", "make", "model", "generation", "year", "engine", "fuel"]) {
+  for (const field of ["q", "brand", "category", "make", "model", "generation", "year", "engine", "fuel"]) {
     assert.match(client, new RegExp(`name=[{\"]+${field}`));
   }
   assert.match(server, /afterRank/);

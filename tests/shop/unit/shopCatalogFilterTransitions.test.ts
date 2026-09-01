@@ -11,6 +11,7 @@ import {
 const selected: ShopCatalogFilterState = {
   q: "intake",
   brand: "eventuri",
+  category: "intake",
   make: "bmw",
   model: "m2",
   generation: "g87",
@@ -23,6 +24,7 @@ test("changing a parent facet clears every incompatible descendant", () => {
   assert.deepEqual(applyShopCatalogFilterChange(selected, "brand", "racechip"), {
     q: "intake",
     brand: "racechip",
+    category: "intake",
     make: "",
     model: "",
     generation: "",
@@ -49,12 +51,13 @@ test("changing a parent facet clears every incompatible descendant", () => {
 test("filter href is canonical, trimmed, and never carries a keyset cursor", () => {
   assert.equal(
     buildShopCatalogFilterHref("ua", { ...selected, q: "  carbon intake " }),
-    "/ua/shop/catalog?q=carbon+intake&brand=eventuri&make=bmw&model=m2&generation=g87&year=2024&engine=s58&fuel=petrol"
+    "/ua/shop/catalog?q=carbon+intake&brand=eventuri&category=intake&make=bmw&model=m2&generation=g87&year=2024&engine=s58&fuel=petrol"
   );
   assert.equal(
     buildShopCatalogFilterHref("en", {
       q: "",
       brand: "",
+      category: "",
       make: "",
       model: "",
       generation: "",
@@ -72,12 +75,14 @@ test("SSR query becomes plain serializable client filter state", () => {
       locale: "ua",
       text: "intake",
       brand: "eventuri",
+      category: "intake",
       year: 2024,
       after: { stableRank: "10", productId: "p10" },
     }),
     {
       q: "intake",
       brand: "eventuri",
+      category: "intake",
       make: "",
       model: "",
       generation: "",

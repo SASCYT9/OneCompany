@@ -39,3 +39,15 @@ deletes canonical data. The production decision owner still has to be named befo
 For a faster percentage rollback while retaining canary mode, set
 `SHOP_CATALOG_V2_CANARY_PERCENTAGE=0`. See
 [CANARY_ROLLBACK_GATE_2026-09-01.md](./CANARY_ROLLBACK_GATE_2026-09-01.md).
+
+Shadow evidence is no longer reconstructed from ephemeral logs. With compare mode enabled, each
+supported legacy request records a commit-bound hourly aggregate after the response, segmented by
+locale, brand, and category. Read the last 24 hours without mutating data using:
+
+```powershell
+$env:CATALOG_SHADOW_EVIDENCE_ALLOW_DB_READ = "1"
+$env:CATALOG_SHADOW_EVIDENCE_DATABASE_URL = "<read-only-database-url>"
+npm run shop:catalog:v2:shadow:evidence -- --commit=<full-commit-sha> --hours=24
+```
+
+The command exits `2` unless the activation thresholds are satisfied.

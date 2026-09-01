@@ -25,6 +25,7 @@ export type ShopCatalogProjectionQueryInput = {
   text?: string | null;
   scope?: string | null;
   brand?: string | null;
+  category?: string | null;
   make?: string | null;
   model?: string | null;
   generation?: string | null;
@@ -75,7 +76,7 @@ export type ShopCatalogProjectionFacetResult = {
   source: "catalog_v2_projection";
   facets: Readonly<
     Record<
-      "brand" | "make" | "model" | "generation" | "year" | "engine" | "fuel",
+      "brand" | "category" | "make" | "model" | "generation" | "year" | "engine" | "fuel",
       readonly ShopCatalogProjectionFacetItem[]
     >
   >;
@@ -139,6 +140,7 @@ export function normalizeShopCatalogProjectionQuery(
     text: optionalBounded(input.text, "text", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.text),
     scope: optionalBounded(input.scope, "scope", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     brand: optionalBounded(input.brand, "brand", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    category: optionalBounded(input.category, "category", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     make: optionalBounded(input.make, "make", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     model: optionalBounded(input.model, "model", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     generation: optionalBounded(
@@ -237,7 +239,8 @@ function correlatedYearConstraintSql(year: number) {
 
 function projectionFacetBaseConditions(
   input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
-  includeBrand: boolean
+  includeBrand: boolean,
+  includeCategory = true
 ) {
   const conditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
@@ -248,6 +251,11 @@ function projectionFacetBaseConditions(
   if (includeBrand && input.brand) {
     conditions.push(
       Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
+    );
+  }
+  if (includeCategory && input.category) {
+    conditions.push(
+      Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
     );
   }
   if (input.text) {
@@ -383,7 +391,23 @@ export function buildShopCatalogProjectionFacetQuerySql(
            AND facet."productCount" > 0
          ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
          LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
-  const branches = [brandBranch];
+  const categoryConditions = projectionFacetBaseConditions(input, true, false);
+  const categoryBranch = Prisma.sql`
+    (SELECT
+       'category'::text AS "dimension",
+       projection."categoryKey" AS "key",
+       min(projection."categoryLabel") AS "label",
+       count(*)::bigint AS "count",
+       NULL::integer AS "yearFrom",
+       NULL::integer AS "yearTo"
+     FROM "ShopCatalogProjection" projection
+     WHERE ${Prisma.join(categoryConditions, " AND ")}
+       AND projection."categoryKey" IS NOT NULL
+       AND projection."categoryKey" <> ''
+     GROUP BY projection."categoryKey"
+     ORDER BY "count" DESC, "label" ASC
+     LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
+  const branches = [brandBranch, categoryBranch];
   // Facets unlock progressively. This prevents the empty first request from
   // aggregating every compatibility dimension across the whole catalog.
   if (input.brand) {
@@ -439,6 +463,7 @@ export async function queryShopCatalogProjectionFacets(
     ShopCatalogProjectionFacetItem[]
   > = {
     brand: [],
+    category: [],
     make: [],
     model: [],
     generation: [],
@@ -491,6 +516,11 @@ export function buildShopCatalogProjectionVehicleQuerySql(
   if (input.brand) {
     projectionConditions.push(
       Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
+    );
+  }
+  if (input.category) {
+    projectionConditions.push(
+      Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
     );
   }
   if (input.text) {
@@ -562,6 +592,14 @@ export function buildShopCatalogProjectionWhere(
       OR: [
         { brandKey: { equals: input.brand, mode: "insensitive" } },
         { brandLabel: { equals: input.brand, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (input.category) {
+    and.push({
+      OR: [
+        { categoryKey: { equals: input.category, mode: "insensitive" } },
+        { categoryLabel: { equals: input.category, mode: "insensitive" } },
       ],
     });
   }

@@ -27,6 +27,7 @@ type Props = {
   copy: Record<
     | "search"
     | "brand"
+    | "category"
     | "make"
     | "model"
     | "generation"
@@ -237,6 +238,14 @@ export default function CatalogV2Filters({ locale, facets, query, copy }: Props)
         label={copy.brand}
         value={filters.brand}
         options={facets.brand}
+        pending={pending}
+        onChange={updateFacet}
+      />
+      <FilterSelect
+        name="category"
+        label={copy.category}
+        value={filters.category}
+        options={facets.category}
         pending={pending}
         onChange={updateFacet}
       />

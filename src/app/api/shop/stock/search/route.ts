@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { getShopProductsByIdsServer, getShopProductsServer } from "@/lib/shopCatalogServer";
@@ -82,6 +82,10 @@ import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { compareShopCatalogLiveShadowPage } from "@/lib/shopCatalogLiveShadow";
 import { queryShopCatalogProjectionShadow } from "@/lib/shopCatalogProjectionQuery.server";
 import { resolveShopCatalogShadowFlag } from "@/lib/shopCatalogShadowFlag.server";
+import {
+  recordShopCatalogShadowObservation,
+  resolveShopCatalogDeploymentCommit,
+} from "@/lib/shopCatalogShadowTelemetry.server";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -991,7 +995,6 @@ export async function GET(request: NextRequest) {
       all ||
       sort !== "default" ||
       stock !== "all" ||
-      category ||
       productType ||
       (productKind && productKind !== "any") ||
       strictCatalogApplied ||
@@ -1011,6 +1014,7 @@ export async function GET(request: NextRequest) {
             text: q,
             scope: searchParams.get("scope"),
             brand: rawBrands[0] ?? null,
+            category: category || null,
             make,
             model,
             generation: chassis,
@@ -1663,10 +1667,36 @@ export async function GET(request: NextRequest) {
 
     if (shadowPromise) {
       const shadow = await shadowPromise;
+      const shadowDurationMs = Date.now() - shadowStartedAt;
+      const deploymentCommit = resolveShopCatalogDeploymentCommit(process.env);
+      const persistShadowObservation = (outcome: { mismatch: boolean; error: boolean }) => {
+        if (!deploymentCommit) return;
+        after(async () => {
+          try {
+            await recordShopCatalogShadowObservation({
+              deploymentCommit,
+              locale: locale === "en" ? "en" : "ua",
+              brand: rawBrands[0] ?? null,
+              category: category || null,
+              durationMs: shadowDurationMs,
+              ...outcome,
+            });
+          } catch (telemetryError) {
+            console.error("[Catalog V2 Shadow]", {
+              event: "catalog_v2_shadow_telemetry_persist_error",
+              error:
+                telemetryError instanceof Error
+                  ? telemetryError.message
+                  : String(telemetryError),
+            });
+          }
+        });
+      };
       if ("error" in shadow) {
+        persistShadowObservation({ mismatch: false, error: true });
         console.error("[Catalog V2 Shadow]", {
           event: "catalog_v2_shadow_error",
-          durationMs: Date.now() - shadowStartedAt,
+          durationMs: shadowDurationMs,
           error: shadow.error instanceof Error ? shadow.error.message : String(shadow.error),
         });
       } else if (shadow.enabled) {
@@ -1676,9 +1706,10 @@ export async function GET(request: NextRequest) {
           legacyHasMore: page < totalPages,
           projectionHasMore: shadow.result.hasMore,
         });
+        persistShadowObservation({ mismatch: !comparison.parity, error: false });
         console.info("[Catalog V2 Shadow]", {
           event: "catalog_v2_shadow_page_comparison",
-          durationMs: Date.now() - shadowStartedAt,
+          durationMs: shadowDurationMs,
           query: {
             locale: locale === "en" ? "en" : "ua",
             text: q || null,

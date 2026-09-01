@@ -32,5 +32,9 @@ migrations:
 - disposable publication seed: 30 commit-to-visible samples, p95 85.585 ms, p99 133.550 ms;
 - rollback selector regression proves every sampled ID returns legacy at zero percent.
 - unsigned production canary guard exits non-zero; production reader-off rollback exits zero.
+- category is applied by the indexed reader, SSR form/URL state, facets, pagination, and shadow
+  adapter before it can be used as a canary segment;
+- all 43 migrations replay on disposable PostgreSQL and concurrent shadow aggregate writes retain
+  exact sample/mismatch/error totals.
 
 No Production environment variable, database, deployment, or reader was changed.

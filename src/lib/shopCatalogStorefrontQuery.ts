@@ -31,6 +31,7 @@ export function parseShopCatalogStorefrontQuery(
     text: bounded(params.q, 256),
     scope: bounded(params.scope),
     brand: bounded(params.brand),
+    category: bounded(params.category),
     make: bounded(params.make),
     model: bounded(params.model),
     generation: bounded(params.generation),

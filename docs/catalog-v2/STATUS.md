@@ -121,6 +121,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P6-021 | Shared canonical promotion lock protocol       | Done        | Page-wide stable advisory locks; two-client PostgreSQL contention regression |
 | C2-P7-001 | Reproducible signed activation marker          | Done        | Guard-validated signer CLI; weak/stale/lagging evidence fails closed |
 | C2-P7-002 | Segmented deterministic canary and rollback    | Done        | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete |
+| C2-P7-003 | Durable commit-bound shadow evidence           | Done        | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -227,7 +228,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 ## P1 completion checklist
 
 - [x] Catalog V2 schema is additive and the new reader remains disabled by default.
-- [x] All 42 current migrations replay from an empty disposable PostgreSQL 17 database.
+- [x] All 43 current migrations replay from an empty disposable PostgreSQL 17 database.
 - [x] Replayed database matches `prisma/schema.prisma`, including monotonic global publication cursors.
 - [x] Source records, bindings, revisions, provenance, review issues, and tombstones are explicit.
 - [x] Projection batches are bounded to 500 products and use deterministic product-ID cursors.
@@ -321,6 +322,11 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The disposable PostgreSQL outage drill proves transient failure → `RETRY` → successful reclaim, bounded attempts → `DEAD_LETTER`, and expired lease → `LOST_LEASE` → a different worker reclaim. Revisions survive every failure, receipts advance or fail per target without version regression, and terminal jobs retain `processedAt`; the drill exposed and fixed a dead-letter transition that previously violated its own lifecycle constraint.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Polymorphic binding-head and compatibility-policy promotion now acquire page-wide, stably ordered PostgreSQL transaction advisory locks. A two-client disposable PostgreSQL regression proves one insert plus one idempotent replay under contention.
+- Category is now a first-class indexed V2 query, URL-state, facet, and shadow-comparison field;
+  canary category segments cannot activate a reader that ignores their category constraint.
+- Shadow comparisons persist commit-bound hourly locale/brand/category aggregates after the
+  customer response. The read-only evidence command fails its gate below 1,000 samples, above zero
+  mismatches, or above 0.1% errors; concurrent PostgreSQL increments retain exact totals.
 - The current-branch 100k/500k PostgreSQL gate passes the compact projection: worst warm p95 is 91.760 ms for 90%-deep keyset pagination, correlated fitment is 24.950 ms, and autocomplete is 28.200 ms. Production-region canary traffic remains required by the signed reader activation guard.
 - Price-book and global settings use concrete monotonic version sources and targeted publication; the historical hardcoded currency writer fails closed.
 - Reader-off remains the safe default and still serves the legacy/local snapshot. Signed `canary`
