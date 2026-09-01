@@ -18,7 +18,7 @@ import {
 } from "@/lib/shopCatalogStorefrontQuery";
 import { resolveLocale } from "@/lib/seo";
 import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
-import { getShopProductsByIdsServer } from "@/lib/shopCatalogServer";
+import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -76,7 +76,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     rows: (value) => value[0].length,
     execute: () =>
       Promise.all([
-        getShopProductsByIdsServer(result.items.map((item) => item.productId), { fresh: true }),
+        getShopCatalogCardPricingByIds(result.items.map((item) => item.productId)),
         getOrCreateShopSettings(prisma),
         prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
         session
@@ -105,13 +105,14 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   );
   const cardPrices = Object.fromEntries(
     canonicalProducts.map((product) => [
-      product.id,
+      product.productId,
       {
         price: product.price,
         europePrice: product.europePrice ?? null,
         b2bPrice: product.b2bPrice ?? null,
         compareAt: product.compareAt ?? null,
-        brand: product.brand ?? product.vendor ?? null,
+        b2bCompareAt: product.b2bCompareAt ?? null,
+        brand: product.brand,
       },
     ])
   );

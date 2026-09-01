@@ -28,6 +28,8 @@ type Props = {
   europePrice?: Partial<ShopMoneySet> | null;
   /** Optional explicit B2B override (per-product fixed B2B price). */
   b2bExplicit?: Partial<ShopMoneySet> | null;
+  /** Optional B2B compare-at / MSRP band. */
+  b2bCompareAt?: Partial<ShopMoneySet> | null;
   /** Optional retail / MSRP from product fields. Used when no B2B discount is in effect. */
   compareAt?: ShopMoneySet | null;
   /** Product brand — enables per-brand discount lookup. */
@@ -133,6 +135,7 @@ export function ShopCardPriceTag({
   b2cPrice,
   europePrice,
   b2bExplicit,
+  b2bCompareAt,
   compareAt,
   brand,
   variant = "compact",
@@ -149,6 +152,7 @@ export function ShopCardPriceTag({
     europePrice,
     compareAt,
     b2bExplicit,
+    b2bCompareAt,
     brand,
     initialViewerContext,
   });

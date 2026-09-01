@@ -383,3 +383,4 @@ Production actions performed: none
 - Cards now use the shared regional/B2B pricing engine, including Europe bands, explicit B2B prices, compare-at semantics, system/customer brand discounts, customer discounts, live currency selection, and current settings.
 - Projection min-price fields are no longer rendered as authoritative storefront prices, so admin price edits do not wait for an index refresh.
 - The bounded canonical pricing phase emits the same privacy-safe duration, row-count, filter-dimension, and DB-query-bound telemetry as other V2 reads.
+- Its single product query selects only price/brand columns and one default variant (hard cap: 100 IDs); it does not hydrate media, collections, options, metafields, or the rest of the storefront graph.

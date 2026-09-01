@@ -3152,10 +3152,7 @@ export async function getShopProductsBySlugsServer(slugs: string[]): Promise<Sho
 }
 
 /** Loads a bounded storefront projection for already-resolved product IDs. */
-export async function getShopProductsByIdsServer(
-  ids: string[],
-  options?: { fresh?: boolean }
-): Promise<ShopProduct[]> {
+export async function getShopProductsByIdsServer(ids: string[]): Promise<ShopProduct[]> {
   const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
   if (uniqueIds.length === 0) return [];
 
@@ -3167,7 +3164,7 @@ export async function getShopProductsByIdsServer(
     },
     include: storefrontProductInclude,
   };
-  if (isAccelerateEnabled && !options?.fresh) {
+  if (isAccelerateEnabled) {
     queryParams.cacheStrategy = { ttl: 300, swr: 60 };
   }
 

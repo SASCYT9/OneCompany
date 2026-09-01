@@ -26,6 +26,7 @@ type Params = {
   compareAt?: Partial<ShopMoneySet> | null;
   /** Optional explicit B2B price from product fields (overrides percentage). */
   b2bExplicit?: Partial<ShopMoneySet> | null;
+  b2bCompareAt?: Partial<ShopMoneySet> | null;
   /** Product brand — enables 4-tier per-brand discount lookup. */
   brand?: string | null;
   initialViewerContext?: ShopViewerPricingContext;
@@ -57,6 +58,7 @@ export function useResolvedShopPrice({
   europePrice,
   compareAt,
   b2bExplicit,
+  b2bCompareAt,
   brand,
   initialViewerContext,
 }: Params): ResolvedShopPrice {
@@ -68,6 +70,7 @@ export function useResolvedShopPrice({
       europePrice,
       b2cCompareAt: compareAt,
       b2bPrice: b2bExplicit,
+      b2bCompareAt,
       context: viewer,
       brand,
     });
@@ -81,6 +84,7 @@ export function useResolvedShopPrice({
     europePrice,
     compareAt,
     b2bExplicit,
+    b2bCompareAt,
     brand,
     viewer,
   ]);

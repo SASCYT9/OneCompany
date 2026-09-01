@@ -17,6 +17,7 @@ type CatalogCardPrice = {
   europePrice: ShopMoneySet | null;
   b2bPrice: ShopMoneySet | null;
   compareAt: ShopMoneySet | null;
+  b2bCompareAt: ShopMoneySet | null;
   brand: string | null;
 };
 
@@ -146,6 +147,7 @@ export default function CatalogV2Server({
                         b2cPrice={pricing.price}
                         europePrice={pricing.europePrice}
                         b2bExplicit={pricing.b2bPrice}
+                        b2bCompareAt={pricing.b2bCompareAt}
                         compareAt={pricing.compareAt}
                         brand={pricing.brand}
                         initialViewerContext={pricingContext}
