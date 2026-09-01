@@ -746,6 +746,7 @@ function StockPageContent() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [items, setItems] = useState<StockItem[]>([]);
+  const [warehouseHeroItems, setWarehouseHeroItems] = useState<StockItem[]>([]);
   const [heroProductIndex, setHeroProductIndex] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -809,7 +810,15 @@ function StockPageContent() {
     searchParams.get("scope") === "moto" ? "moto" : "auto"
   );
   const heroProducts = useMemo(() => {
-    const available = items
+    const uniqueInventory = new Map<string, StockItem>();
+    for (const item of warehouseHeroItems) {
+      const inventoryKey = item.partNumber.trim().toUpperCase() || item.id;
+      const existing = uniqueInventory.get(inventoryKey);
+      if (!existing || (item.price ?? 0) > (existing.price ?? 0)) {
+        uniqueInventory.set(inventoryKey, item);
+      }
+    }
+    const available = [...uniqueInventory.values()]
       .filter((item) => item.inStock && item.thumbnail)
       .sort((left, right) => (right.price ?? 0) - (left.price ?? 0));
     const featured: StockItem[] = [];
@@ -820,17 +829,15 @@ function StockPageContent() {
       if (!brandKey || usedBrands.has(brandKey)) continue;
       featured.push(item);
       usedBrands.add(brandKey);
-      if (featured.length === 8) return featured;
     }
 
     for (const item of available) {
       if (featured.some((featuredItem) => featuredItem.id === item.id)) continue;
       featured.push(item);
-      if (featured.length === 8) break;
     }
 
     return featured;
-  }, [items]);
+  }, [warehouseHeroItems]);
   const activeHeroProduct = heroProducts[heroProductIndex] ?? null;
   const heroRailProducts = useMemo(
     () =>
@@ -844,6 +851,32 @@ function StockPageContent() {
   );
   const mobileFiltersDialogRef = useRef<HTMLElement | null>(null);
   const mobileFiltersCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      locale,
+      stock: "inStock",
+      limit: "24",
+      sort: "price_desc",
+      currency,
+    });
+    if (country) params.set("country", country);
+
+    void fetch(`/api/shop/stock/search?${params.toString()}`, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("inventory"))))
+      .then((payload: StockSearchResponse) => setWarehouseHeroItems(payload.data ?? []))
+      .catch((requestError: unknown) => {
+        if (!(requestError instanceof DOMException && requestError.name === "AbortError")) {
+          setWarehouseHeroItems([]);
+        }
+      });
+
+    return () => controller.abort();
+  }, [country, currency, locale]);
 
   useEffect(() => {
     setHeroProductIndex((current) => (heroProducts.length ? current % heroProducts.length : 0));
@@ -2658,8 +2691,8 @@ function StockPageContent() {
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden items-center justify-center lg:flex"
                 >
-                  <span className="relative block aspect-[16/10] w-full max-w-[520px] overflow-hidden bg-[#090909] shadow-[0_28px_60px_rgba(0,0,0,0.52)]">
-                    <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="520px" className="object-cover object-center" />
+                  <span className="relative block aspect-[16/10] w-full max-w-[390px] overflow-hidden bg-[#090909] shadow-[0_28px_60px_rgba(0,0,0,0.52)]">
+                    <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="390px" className="object-cover object-center" />
                   </span>
                 </motion.div>
                 <motion.div

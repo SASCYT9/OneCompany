@@ -18,6 +18,10 @@ import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
+import {
+  isShopWarehouseInStockSku,
+  SHOP_WAREHOUSE_IN_STOCK_SKUS,
+} from "@/lib/shopWarehouseInventory";
 
 const PAGE_SIZE = 24;
 
@@ -66,6 +70,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const priceCurrency =
     requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
   const requestedSort = params.get("sort");
+  const requestedStock = params.get("stock") === "inStock" ? "inStock" : null;
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
   const useEuropePrice = isEuropePricingCountry(params.get("country"));
@@ -102,6 +107,19 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     useEuropePrice,
     offset: (page - 1) * requestedLimit,
   };
+  const warehouseProducts = await prisma.shopProduct.findMany({
+    where: {
+      isPublished: true,
+      status: "ACTIVE",
+      OR: [
+        { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } },
+        { variants: { some: { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } } } },
+      ],
+    },
+    select: { id: true },
+  });
+  const warehouseProductIds = warehouseProducts.map((product) => product.id);
+  if (requestedStock === "inStock") query.productIds = warehouseProductIds;
 
   const hasVehicleSelection = Boolean(query.make || query.model || query.generation || query.year);
   query.orderSeed = [
@@ -129,12 +147,17 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // preserve the complete product-owned vehicle coverage. Engine/fuel remain
   // projection-native because legacy evidence does not model them reliably.
   if (query.make || query.model || query.generation || query.year) {
-    query.productIds = await resolveLegacyVehicleProductIds({
+    const vehicleProductIds = await resolveLegacyVehicleProductIds({
       make: query.make,
       model: query.model,
       generation: query.generation,
       year: query.year,
     });
+    if (vehicleProductIds) {
+      query.productIds = query.productIds
+        ? vehicleProductIds.filter((productId) => query.productIds?.includes(productId))
+        : vehicleProductIds;
+    }
     query.make = null;
     query.model = null;
     query.generation = null;
@@ -189,7 +212,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       thumbnail: cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null,
-      inStock: true,
+      inStock: isShopWarehouseInStockSku(cardPrice?.sku ?? item.normalizedSku),
       price: displayPrice,
       priceUsd: priceSet.usd,
       priceEur: priceSet.eur,
@@ -217,7 +240,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const filterStats = {
     brands: facetResult.facets.brand.map(({ label, count }) => ({ label, count })),
     categories: facetResult.facets.category.map(({ label, count }) => ({ label, count })),
-    stock: { all: totalItems, inStock: totalItems, preOrder: 0 },
+    stock: {
+      all: totalItems,
+      inStock: requestedStock === "inStock" ? totalItems : warehouseProductIds.length,
+      preOrder: requestedStock === "inStock" ? 0 : Math.max(0, totalItems - warehouseProductIds.length),
+    },
     price: {
       min: pricesOnPage.length ? Math.floor(Math.min(...pricesOnPage)) : 0,
       max: pricesOnPage.length ? Math.ceil(Math.max(...pricesOnPage)) : 0,

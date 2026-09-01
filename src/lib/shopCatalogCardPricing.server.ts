@@ -10,6 +10,7 @@ export type ShopCatalogCardPricing = Readonly<{
   compareAt: ShopMoneySet | null;
   b2bCompareAt: ShopMoneySet | null;
   brand: string | null;
+  sku: string | null;
   primaryMediaUrl: string | null;
   defaultVariantId: string | null;
 }>;
@@ -42,6 +43,7 @@ export async function getShopCatalogCardPricingByIds(
       brand: true,
       vendor: true,
       image: true,
+      sku: true,
       priceEur: true,
       priceEurEurope: true,
       priceUsd: true,
@@ -60,6 +62,7 @@ export async function getShopCatalogCardPricingByIds(
         take: 1,
         select: {
           id: true,
+          sku: true,
           image: true,
           priceEur: true,
           priceEurEurope: true,
@@ -119,6 +122,7 @@ export async function getShopCatalogCardPricingByIds(
           )
         ),
         brand: resolveShopProductBrand(row) || null,
+        sku: row.sku ?? variant?.sku ?? null,
         primaryMediaUrl: row.image ?? variant?.image ?? row.media[0]?.src ?? null,
         defaultVariantId: variant?.id ?? null,
       } satisfies ShopCatalogCardPricing;

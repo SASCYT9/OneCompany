@@ -85,6 +85,10 @@ import {
   resolveShopCatalogDeploymentCommit,
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
+import {
+  getShopWarehouseStockStatus,
+  isShopWarehouseInStockSku,
+} from "@/lib/shopWarehouseInventory";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -587,7 +591,7 @@ function buildFilterStats(
     incrementCount(brands, getProductDisplayBrand(item.product.brand));
     incrementCount(categories, getShopStockCategoryLabelForProduct(item, locale));
 
-    if (item.product.stock === "inStock") {
+    if (isShopWarehouseInStockSku(item.product.sku)) {
       inStock += 1;
     } else {
       preOrder += 1;
@@ -1158,7 +1162,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (stock !== "all") {
-      filtered = filtered.filter((item) => item.product.stock === stock);
+      filtered = filtered.filter((item) => getShopWarehouseStockStatus(item.product.sku) === stock);
     }
 
     if (hasPriceFilter) {
@@ -1277,7 +1281,7 @@ export async function GET(request: NextRequest) {
             normalizedTitle
           );
 
-        let catalogScore = item.product.stock === "inStock" ? 120 : 0;
+        let catalogScore = isShopWarehouseInStockSku(item.product.sku) ? 120 : 0;
         if (hasImage) catalogScore += 45;
         if (productPrice > 0) catalogScore += 15 + Math.min(30, Math.log10(productPrice + 1) * 6);
         if (hasFitment) catalogScore += 12;
@@ -1444,7 +1448,9 @@ export async function GET(request: NextRequest) {
         );
       }
       if (stock !== "all") {
-        fallbackFiltered = fallbackFiltered.filter((item) => item.product.stock === stock);
+        fallbackFiltered = fallbackFiltered.filter(
+          (item) => getShopWarehouseStockStatus(item.product.sku) === stock
+        );
       }
       if (hasPriceFilter) {
         fallbackFiltered = fallbackFiltered.filter(matchesPriceRange);
@@ -1498,7 +1504,9 @@ export async function GET(request: NextRequest) {
         // Fallback 2: Ignore brand/category as well (global query match)
         let globalSource = productsWithFitments;
         if (stock !== "all") {
-          globalSource = globalSource.filter((item) => item.product.stock === stock);
+          globalSource = globalSource.filter(
+            (item) => getShopWarehouseStockStatus(item.product.sku) === stock
+          );
         }
         if (hasPriceFilter) {
           globalSource = globalSource.filter(matchesPriceRange);
@@ -1612,7 +1620,7 @@ export async function GET(request: NextRequest) {
               : product.shortDescription?.ua || product.shortDescription?.en || "",
           category: sourceCategory || getShopStockCategoryLabelForProduct({ product }, locale),
           thumbnail: product.image || null,
-          inStock: product.stock === "inStock",
+          inStock: isShopWarehouseInStockSku(product.sku),
           price: dealerPrice,
           priceUsd: effectivePriceSet.usd,
           priceEur: effectivePriceSet.eur,
