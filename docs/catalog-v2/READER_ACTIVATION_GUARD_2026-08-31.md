@@ -59,3 +59,8 @@ Evidence version 2 also binds rollout authority. `--max-canary-percentage=<1..10
 production rejects a configured canary percentage above that signed ceiling. Full SSR is a separate
 authorization and is absent unless evidence was explicitly collected with `--approve-full-ssr`.
 Version-1 markers cannot activate either mode.
+
+The assertion runs while `next.config.ts` is evaluated, before Next decides whether the Catalog V2
+route is buildable. Therefore direct `next build`, Vercel's configured build command, and the local
+deployment wrapper share the same guard; `predeploy-check` remains defense in depth rather than the
+only enforcement point.
