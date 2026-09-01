@@ -22,6 +22,8 @@ tmp
 !/scripts/build-site.mjs
 !/scripts/prebuild-shop-snapshot.ts
 !/scripts/generate-shop-filter-indexes.ts
+!/scripts/lib/
+!/scripts/lib/atomic-catalog-directory.ts
 /tests/
 /public/logos.rar
 /.shop-products-dev-cache.json
