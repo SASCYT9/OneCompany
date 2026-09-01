@@ -337,6 +337,10 @@ async function runSize(prisma: PrismaClient, size: number) {
 }
 
 async function main() {
+  const commitSha = process.env.CATALOG_GATE_COMMIT_SHA?.trim().toLowerCase();
+  if (!commitSha || !/^[a-f0-9]{40}$/.test(commitSha)) {
+    throw new Error("CATALOG_GATE_COMMIT_SHA must be a full 40-character Git commit SHA");
+  }
   const databaseUrl = process.env.CATALOG_SCALE_DATABASE_URL?.trim();
   if (!databaseUrl) throw new Error("CATALOG_SCALE_DATABASE_URL is required");
   assertDisposableTarget(databaseUrl);
@@ -344,6 +348,7 @@ async function main() {
   const sizes = parseSizes();
   const report = {
     version: 1,
+    commitSha,
     generatedAt: new Date().toISOString(),
     limits: CATALOG_SCALE_GATE_LIMITS,
     sizes: [] as Array<{

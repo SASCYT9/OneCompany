@@ -42,6 +42,11 @@ async function waitForPostgres() {
 
 async function main() {
   try {
+    if (run("git", ["status", "--porcelain"], true)) {
+      throw new Error("Commit-bound scale gate requires a clean Git worktree");
+    }
+    const commitSha = run("git", ["rev-parse", "HEAD"], true).toLowerCase();
+    if (!/^[a-f0-9]{40}$/.test(commitSha)) throw new Error("Could not resolve full Git commit SHA");
     run(docker, [
       "run",
       "--detach",
@@ -63,7 +68,7 @@ async function main() {
     const benchmark = path.resolve("scripts", "benchmark-catalog-v2-scale.ts");
     const result = spawnSync(process.execPath, [tsxCli, benchmark, ...benchmarkArguments], {
       encoding: "utf8",
-      env: { ...process.env, CATALOG_SCALE_DATABASE_URL: databaseUrl },
+      env: { ...process.env, CATALOG_SCALE_DATABASE_URL: databaseUrl, CATALOG_GATE_COMMIT_SHA: commitSha },
       maxBuffer: 32 * 1024 * 1024,
       stdio: "inherit",
     });

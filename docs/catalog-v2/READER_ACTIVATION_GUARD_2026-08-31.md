@@ -51,3 +51,6 @@ npm run shop:catalog:v2:shadow:evidence -- --commit=<full-commit-sha> --hours=24
 ```
 
 The command exits `2` unless the activation thresholds are satisfied.
+### Automatic evidence collection
+
+Run `shop:catalog:v2:release:evidence -- --commit=<full-sha>` with explicit `CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ=1` and `CATALOG_RELEASE_EVIDENCE_DATABASE_URL`. The collector only accepts JSON performance artifacts below `artifacts/`, requires both artifacts to match the requested commit, verifies every active source record and both locale projections, and reads shadow aggregates for that same commit. It writes an unsigned, short-lived document below `artifacts/catalog-v2-release/`; signing is deliberately separate.

@@ -16,6 +16,11 @@ function run(executable: string, args: string[], capture = false) {
 
 async function main() {
   try {
+    if (run("git", ["status", "--porcelain"], true)) {
+      throw new Error("Commit-bound publication gate requires a clean Git worktree");
+    }
+    const commitSha = run("git", ["rev-parse", "HEAD"], true).toLowerCase();
+    if (!/^[a-f0-9]{40}$/.test(commitSha)) throw new Error("Could not resolve full Git commit SHA");
     run(docker, ["run", "--detach", "--rm", "--name", containerName, "--env", "POSTGRES_HOST_AUTH_METHOD=trust", "--publish", "127.0.0.1::5432", "pgvector/pgvector:0.8.2-pg17"]);
     const deadline = Date.now() + 30_000;
     while (Date.now() < deadline) {
@@ -32,7 +37,7 @@ async function main() {
     const serverRunner = path.resolve("scripts", "run-react-server-tsx.mjs");
     const benchmark = path.resolve("scripts", "benchmark-catalog-v2-publication.ts");
     const result = spawnSync(process.execPath, [serverRunner, benchmark], {
-      env: { ...process.env, DATABASE_URL: url, DIRECT_URL: url, CATALOG_PUBLICATION_GATE_DATABASE_URL: url },
+      env: { ...process.env, DATABASE_URL: url, DIRECT_URL: url, CATALOG_PUBLICATION_GATE_DATABASE_URL: url, CATALOG_GATE_COMMIT_SHA: commitSha },
       stdio: "inherit",
     });
     if (result.status !== 0) throw new Error("Publication benchmark failed");

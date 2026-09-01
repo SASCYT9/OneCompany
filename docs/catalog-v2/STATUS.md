@@ -357,3 +357,8 @@ Data-loss/compatibility risks:
 Known follow-ups:
 Production actions performed: none
 ```
+## Commit-bound release evidence (2026-09-01)
+
+- Scale and commit-to-visible publication artifacts now include the exact 40-character Git commit and their Docker runners refuse a dirty worktree.
+- `shop:catalog:v2:release:evidence` assembles one short-lived activation document from all 14 source-coverage audits, current UA/EN projections, commit-specific shadow telemetry, and the two matching performance artifacts.
+- Collection is read-only and fail-closed; signing remains a separate secret-bearing step. No production read, write, deployment, or reader switch is performed automatically.

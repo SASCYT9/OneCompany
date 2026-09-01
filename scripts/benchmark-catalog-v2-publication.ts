@@ -77,6 +77,10 @@ async function mutate(client: PrismaClient, productId: string, expectedVersion: 
 }
 
 async function main() {
+  const commitSha = process.env.CATALOG_GATE_COMMIT_SHA?.trim().toLowerCase();
+  if (!commitSha || !/^[a-f0-9]{40}$/.test(commitSha)) {
+    throw new Error("CATALOG_GATE_COMMIT_SHA must be a full 40-character Git commit SHA");
+  }
   assertDisposableTarget(databaseUrl);
   const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   const prefix = `publication-gate-${Date.now()}`;
@@ -204,6 +208,7 @@ async function main() {
 
     const result = {
       version: 1,
+      commitSha,
       generatedAt: new Date().toISOString(),
       samples: latencies.length,
       p95Ms: Number(percentile(latencies, 95).toFixed(3)),
