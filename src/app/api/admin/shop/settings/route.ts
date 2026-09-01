@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { after, NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { assertAdminRequest } from "@/lib/adminAuth";
@@ -119,7 +119,6 @@ export async function PATCH(request: NextRequest) {
     });
     const settings = mutation.value;
 
-    revalidatePath("/[locale]/shop", "layout");
     revalidateTag("shop-settings", "max");
     after(async () => {
       try {
