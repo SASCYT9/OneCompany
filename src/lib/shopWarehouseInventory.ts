@@ -19,6 +19,7 @@ const warehouseSkuSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SKUS);
 
 const warehouseHeroImageBySku: Readonly<Record<string, string>> = {
   "EVE-G9X-CF-CHG": "/images/shop/eventuri/eve-g9x-cf-chg-hero.jpg",
+  "EVE-W192-FTR": "/images/shop/eventuri/eve-w192-ftr-hero.jpg",
 };
 
 export const isShopWarehouseInStockSku = (value: string | null | undefined) =>
