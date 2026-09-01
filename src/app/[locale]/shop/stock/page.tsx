@@ -2680,17 +2680,11 @@ function StockPageContent() {
           onMouseLeave={() => setHeroPaused(false)}
           onFocusCapture={() => setHeroPaused(true)}
           onBlurCapture={() => setHeroPaused(false)}
-          className="relative z-30 isolate mb-0 min-h-[390px] overflow-hidden rounded-[18px] border border-white/10 bg-[#050505] text-white shadow-[0_18px_55px_rgba(0,0,0,0.18)] lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
+          className="relative z-30 isolate mb-0 min-h-[590px] overflow-hidden rounded-[18px] border border-white/10 bg-[#050505] text-white shadow-[0_18px_55px_rgba(0,0,0,0.18)] lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
         >
+          <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]" />
-          <div className="relative z-10 grid min-h-[390px] grid-cols-1 px-5 pb-[110px] pt-7 sm:px-8 lg:min-h-[430px] lg:grid-cols-[0.78fr_1.12fr_0.92fr] lg:items-center lg:gap-5 lg:px-12 lg:pb-[112px] lg:pt-8 xl:px-16">
-            <div className="relative z-20 self-start lg:self-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#c6a657] sm:text-[11px]">ONE COMPANY</p>
-              <h1 className="mt-3 max-w-[480px] text-[34px] font-extralight leading-[0.98] tracking-[-0.045em] sm:text-[46px] lg:text-[52px] xl:text-[60px]">
-                {isUa ? "Каталог товарів" : "Product catalog"}
-              </h1>
-            </div>
-
+          <div className="relative z-10 grid min-h-[590px] grid-cols-1 content-start gap-5 px-5 pb-[110px] pt-5 sm:px-8 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-[112px] lg:pt-5 xl:px-16">
             {activeHeroProduct ? (
               <>
                 <motion.div
@@ -2698,10 +2692,10 @@ function StockPageContent() {
                   initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                  className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden items-center justify-center lg:flex"
+                  className="pointer-events-none relative flex h-[250px] min-w-0 items-center justify-center sm:h-[290px] lg:h-[300px]"
                 >
-                  <span className="relative block aspect-[16/10] w-full max-w-[390px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
-                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="390px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" />
+                  <span className="relative block aspect-[16/10] h-full max-h-[300px] w-full max-w-[600px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
+                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="(min-width: 1024px) 600px, 92vw" className="object-cover object-center mix-blend-multiply contrast-[1.04]" />
                   </span>
                 </motion.div>
                 <motion.div
@@ -2709,7 +2703,7 @@ function StockPageContent() {
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.42 }}
-                  className="relative z-20 mt-6 self-end lg:col-start-3 lg:mt-0 lg:self-center"
+                  className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
                 >
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-white/20">·</span>{activeHeroProduct.partNumber}</p>
                   <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogHeroProductTitle(activeHeroProduct)}</h2>
