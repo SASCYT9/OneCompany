@@ -92,6 +92,7 @@
     "shop:catalog:v2:remus:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-remus.ts",
     "shop:catalog:v2:ownership:audit": "tsx scripts/audit-catalog-v2-all-source-ownership.ts",
     "shop:catalog:v2:activation:check": "tsx scripts/check-catalog-v2-release-activation.ts",
+    "shop:catalog:v2:activation:sign": "tsx scripts/create-catalog-v2-release-marker.ts",
     "shop:catalog:v2:all-source:docker": "tsx scripts/run-catalog-v2-all-source-backfill-docker.ts",
     "shop:catalog:v2:girodisc:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-girodisc.ts",
     "shop:catalog:v2:racechip:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-racechip.ts",

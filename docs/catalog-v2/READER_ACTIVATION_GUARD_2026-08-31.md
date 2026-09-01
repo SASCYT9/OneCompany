@@ -14,3 +14,21 @@ Required evidence:
 - HMAC signing secret of at least 32 bytes and a full deployed commit SHA.
 
 Invalid, missing, stale, tampered, or commit-mismatched evidence blocks the build. Reader-off and non-production workflows remain unaffected. Unit tests cover valid activation, weak evidence, tampering, commit mismatch, and flag-off behavior. Production reader activation performed: none.
+
+## Marker creation
+
+Store the collected evidence as JSON matching `ShopCatalogReleaseEvidence`, then run:
+
+```powershell
+$env:SHOP_CATALOG_V2_RELEASE_GATE_SECRET = "<secret-from-password-manager>"
+npm run shop:catalog:v2:activation:sign -- --evidence .\path\to\release-evidence.json
+```
+
+The signer refuses weak secrets and any evidence that the production guard would reject. It emits
+only the signed marker; the evidence file and secret must not be committed. Set the emitted value as
+`SHOP_CATALOG_V2_RELEASE_GATE_MARKER` for the exact commit named by the evidence, then run
+`shop:catalog:v2:activation:check` in the deployment environment.
+
+Rollback is the independent, recoverable operation: set `SHOP_CATALOG_V2_READER_MODE=off` and
+redeploy the same known-good commit. The off decision does not require a marker and never mutates or
+deletes canonical data. The production decision owner still has to be named before activation.

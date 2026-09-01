@@ -119,6 +119,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P5-003 | Commit-to-visible latency and concurrency gate | Done        | 30 samples: p95 416 ms, p99 504 ms; exactly one same-version contention winner |
 | C2-P5-007 | Global settings and price-book publication     | Done        | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate |
 | C2-P6-021 | Shared canonical promotion lock protocol       | Done        | Page-wide stable advisory locks; two-client PostgreSQL contention regression |
+| C2-P7-001 | Reproducible signed activation marker          | Done        | Guard-validated signer CLI; weak/stale/lagging evidence fails closed |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,

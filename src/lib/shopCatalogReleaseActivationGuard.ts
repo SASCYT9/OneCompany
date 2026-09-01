@@ -14,3 +14,30 @@ export function evaluateShopCatalogReleaseActivation(input: { nodeEnv?: string; 
   return { allowed: reasons.length === 0, requested, reasons, evidence };
 }
 export function assertShopCatalogReleaseActivation(input: Parameters<typeof evaluateShopCatalogReleaseActivation>[0]) { const decision = evaluateShopCatalogReleaseActivation(input); if (!decision.allowed) throw new Error(`Catalog V2 production activation blocked: ${decision.reasons.join("; ")}`); return decision; }
+
+export function createShopCatalogReleaseMarker(input: {
+  evidence: ShopCatalogReleaseEvidence;
+  secret: string;
+  now?: Date;
+}) {
+  const decision = evaluateShopCatalogReleaseActivation({
+    nodeEnv: "production",
+    readerMode: "ssr",
+    deployedCommit: input.evidence.commitSha,
+    marker: (() => {
+      const payload = Buffer.from(JSON.stringify(input.evidence));
+      return `${payload.toString("base64url")}.${createHmac("sha256", input.secret)
+        .update(payload)
+        .digest("base64url")}`;
+    })(),
+    secret: input.secret,
+    now: input.now,
+  });
+  if (!decision.allowed) {
+    throw new TypeError(`Cannot sign invalid Catalog V2 evidence: ${decision.reasons.join("; ")}`);
+  }
+  const payload = Buffer.from(JSON.stringify(input.evidence));
+  return `${payload.toString("base64url")}.${createHmac("sha256", input.secret)
+    .update(payload)
+    .digest("base64url")}`;
+}
