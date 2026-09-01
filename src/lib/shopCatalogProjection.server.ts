@@ -243,17 +243,17 @@ function fail(message: string): never {
 function requiredText(
   value: string,
   field: string,
-  maxLength: number = SHOP_CATALOG_PROJECTION_LIMITS.identity
+  maxLength: number | null = SHOP_CATALOG_PROJECTION_LIMITS.identity
 ) {
   if (typeof value !== "string" || !value.trim()) fail(`${field} is required`);
-  if (value.length > maxLength) fail(`${field} exceeds ${maxLength} characters`);
+  if (maxLength !== null && value.length > maxLength) fail(`${field} exceeds ${maxLength} characters`);
   return value;
 }
 
 function optionalText(
   value: string | null | undefined,
   field: string,
-  maxLength: number = SHOP_CATALOG_PROJECTION_LIMITS.identity
+  maxLength: number | null = SHOP_CATALOG_PROJECTION_LIMITS.identity
 ) {
   if (value === null || value === undefined || value === "") return null;
   return requiredText(value, field, maxLength);
@@ -318,10 +318,12 @@ function compactSku(value: string | null | undefined) {
 function uniqueSortedText(
   values: readonly string[] | undefined,
   field: string,
-  maxItems: number,
-  maxLength: number = SHOP_CATALOG_PROJECTION_LIMITS.searchTerm
+  maxItems?: number,
+  maxLength: number | null = SHOP_CATALOG_PROJECTION_LIMITS.searchTerm
 ) {
-  if ((values?.length ?? 0) > maxItems) fail(`${field} exceeds ${maxItems} items`);
+  if (maxItems !== undefined && (values?.length ?? 0) > maxItems) {
+    fail(`${field} exceeds ${maxItems} items`);
+  }
   const result = new Set<string>();
   for (const [index, value] of (values ?? []).entries()) {
     const checked = requiredText(value, `${field}.${index}`, maxLength);
@@ -660,9 +662,6 @@ function buildSearchText(input: {
       .filter((value): value is string => typeof value === "string" && value.length > 0)
       .join(" ")
   );
-  if (text.length > SHOP_CATALOG_PROJECTION_LIMITS.searchText) {
-    fail(`locales.${input.locale}.searchText exceeds ${SHOP_CATALOG_PROJECTION_LIMITS.searchText}`);
-  }
   return text;
 }
 
@@ -693,17 +692,9 @@ export function buildShopCatalogProjection(
   const productKindKey = optionalText(source.productKindKey, "productKindKey");
   const categoryGroupKey = optionalText(source.categoryGroupKey, "categoryGroupKey");
   const primaryMedia = normalizedPrimaryMedia(source.primaryMedia);
-  const tags = uniqueSortedText(source.tags, "tags", SHOP_CATALOG_PROJECTION_LIMITS.tags);
-  const collectionKeys = uniqueSortedText(
-    source.collectionKeys,
-    "collectionKeys",
-    SHOP_CATALOG_PROJECTION_LIMITS.collections
-  );
-  const sharedSearchTerms = uniqueSortedText(
-    source.sharedSearchTerms,
-    "sharedSearchTerms",
-    SHOP_CATALOG_PROJECTION_LIMITS.sharedSearchTerms
-  );
+  const tags = uniqueSortedText(source.tags, "tags", undefined, null);
+  const collectionKeys = uniqueSortedText(source.collectionKeys, "collectionKeys", undefined, null);
+  const sharedSearchTerms = uniqueSortedText(source.sharedSearchTerms, "sharedSearchTerms", undefined, null);
   const variants = source.variants ?? [];
   const normalizedVariantResult = normalizedVariants(productId, sourceVersion, sku, variants);
   const compatibility = normalizedCompatibility({
@@ -724,17 +715,18 @@ export function buildShopCatalogProjection(
     const title = requiredText(
       localeInput.title,
       `locales.${locale}.title`,
-      SHOP_CATALOG_PROJECTION_LIMITS.title
+      null
     );
     const cardCopy = optionalText(
       localeInput.cardCopy,
       `locales.${locale}.cardCopy`,
-      SHOP_CATALOG_PROJECTION_LIMITS.cardCopy
+      null
     );
     const localeSearchTerms = uniqueSortedText(
       localeInput.searchTerms,
       `locales.${locale}.searchTerms`,
-      SHOP_CATALOG_PROJECTION_LIMITS.searchTermsPerLocale
+      undefined,
+      null
     );
     const base = {
       schemaVersion: SHOP_CATALOG_PROJECTION_SCHEMA_VERSION,

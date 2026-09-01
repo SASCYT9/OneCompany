@@ -141,7 +141,7 @@ async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, produc
   return { product, variantOrderItems };
 }
 
-function projectionSource(
+export function buildShopCatalogProjectionSourceFromAdminRecord(
   record: AdminProductRecord,
   nextCatalogVersion: string,
   inventoryLevelCount: number
@@ -242,7 +242,7 @@ export async function buildShopCatalogAdminSnapshot(
   const canonical = await loadLosslessCanonicalProduct(tx, productId);
   return {
     canonical: jsonSnapshot(canonical),
-    projectionSource: projectionSource(
+    projectionSource: buildShopCatalogProjectionSourceFromAdminRecord(
       record,
       nextCatalogVersion,
       canonical.product.variants.reduce((count, variant) => count + variant.inventoryLevels.length, 0)

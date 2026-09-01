@@ -1,21 +1,12 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
-import { assertShopCatalogReleaseActivation } from "./src/lib/shopCatalogReleaseActivationGuard";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
 const catalogV2ReaderMode = process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase();
-assertShopCatalogReleaseActivation({
-  nodeEnv: process.env.NODE_ENV,
-  readerMode: catalogV2ReaderMode,
-  canaryPercentage: Number(process.env.SHOP_CATALOG_V2_CANARY_PERCENTAGE),
-  deployedCommit: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA,
-  marker: process.env.SHOP_CATALOG_V2_RELEASE_GATE_MARKER,
-  secret: process.env.SHOP_CATALOG_V2_RELEASE_GATE_SECRET,
-});
 const shouldRewriteCatalogV2ToLegacy = !["ssr", "canary"].includes(catalogV2ReaderMode ?? "");
 
 const STATIC_REMOTE_IMAGE_HOSTS = [

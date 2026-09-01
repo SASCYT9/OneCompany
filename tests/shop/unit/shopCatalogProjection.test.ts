@@ -322,7 +322,7 @@ test("projection preserves UNIVERSAL and canonical PARENT_DEPENDENT identity wit
   assert.deepEqual(parent.compatibilityConstraints, []);
 });
 
-test("projection builder fails closed for invalid compatibility and oversized compact fields", async () => {
+test("projection builder rejects invalid compatibility and preserves long catalog copy", async () => {
   const { buildShopCatalogProjection } = await projectionModule;
   const source = projectionSource();
   const invalidPolicy = {
@@ -333,17 +333,15 @@ test("projection builder fails closed for invalid compatibility and oversized co
     () => buildShopCatalogProjection({ ...source, compatibilityPolicies: [invalidPolicy] }),
     /unknown variant/
   );
-  assert.throws(
-    () =>
-      buildShopCatalogProjection({
-        ...source,
-        locales: {
-          ...source.locales,
-          en: { ...source.locales.en, cardCopy: "x".repeat(2_049) },
-        },
-      }),
-    /cardCopy exceeds/
-  );
+  const longCopy = "x".repeat(2_049);
+  const projection = buildShopCatalogProjection({
+    ...source,
+    locales: {
+      ...source.locales,
+      en: { ...source.locales.en, cardCopy: longCopy },
+    },
+  });
+  assert.equal(projection.projections.find((row) => row.locale === "en")?.cardCopy, longCopy);
 });
 
 test("bounded batch builder uses deterministic product-id cursor and rejects full-catalog input", async () => {
