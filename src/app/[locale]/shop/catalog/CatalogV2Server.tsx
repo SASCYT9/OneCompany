@@ -8,12 +8,25 @@ import type {
 } from "@/lib/shopCatalogProjectionQuery.server";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import CatalogV2Filters from "./CatalogV2Filters";
+import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
+import type { ShopMoneySet } from "@/lib/shopCatalog";
+import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+
+type CatalogCardPrice = {
+  price: ShopMoneySet;
+  europePrice: ShopMoneySet | null;
+  b2bPrice: ShopMoneySet | null;
+  compareAt: ShopMoneySet | null;
+  brand: string | null;
+};
 
 type Props = {
   locale: "ua" | "en";
   result: ShopCatalogProjectionQueryResult;
   facets: ShopCatalogProjectionFacetResult["facets"];
   query: ShopCatalogProjectionQueryInput;
+  cardPrices: Record<string, CatalogCardPrice>;
+  pricingContext: ShopViewerPricingContext;
 };
 
 function nextPageHref(locale: Props["locale"], query: Props["query"], result: Props["result"]) {
@@ -37,20 +50,14 @@ function nextPageHref(locale: Props["locale"], query: Props["query"], result: Pr
   return `/${locale}/shop/catalog?${params.toString()}`;
 }
 
-function productPrice(
-  locale: Props["locale"],
-  item: ShopCatalogProjectionQueryResult["items"][number]
-) {
-  const amount = locale === "ua" ? item.minPriceUah : (item.minPriceEurEurope ?? item.minPriceEur);
-  if (!amount || Number(amount) <= 0) return null;
-  return new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-IE", {
-    style: "currency",
-    currency: locale === "ua" ? "UAH" : "EUR",
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
-
-export default function CatalogV2Server({ locale, result, facets, query }: Props) {
+export default function CatalogV2Server({
+  locale,
+  result,
+  facets,
+  query,
+  cardPrices,
+  pricingContext,
+}: Props) {
   const copy =
     locale === "ua"
       ? {
@@ -106,7 +113,7 @@ export default function CatalogV2Server({ locale, result, facets, query }: Props
                 slug: item.slug,
                 brand: item.brandLabel || item.brandKey,
               });
-              const price = productPrice(locale, item);
+              const pricing = cardPrices[item.productId];
               return (
                 <Link
                   key={item.productId}
@@ -132,7 +139,20 @@ export default function CatalogV2Server({ locale, result, facets, query }: Props
                   {item.categoryLabel ? (
                     <p className="mt-2 text-sm text-zinc-500">{item.categoryLabel}</p>
                   ) : null}
-                  {price ? <p className="mt-4 text-sm font-semibold">{price}</p> : null}
+                  {pricing ? (
+                    <div className="mt-4">
+                      <ShopCardPriceTag
+                        locale={locale}
+                        b2cPrice={pricing.price}
+                        europePrice={pricing.europePrice}
+                        b2bExplicit={pricing.b2bPrice}
+                        compareAt={pricing.compareAt}
+                        brand={pricing.brand}
+                        initialViewerContext={pricingContext}
+                        variant="minimal"
+                      />
+                    </div>
+                  ) : null}
                 </Link>
               );
             })}

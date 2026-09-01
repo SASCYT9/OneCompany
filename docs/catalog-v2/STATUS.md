@@ -127,6 +127,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P7-006 | Signed progressive rollout ceiling             | Done        | Evidence v2 caps canary percentage and requires separate explicit approval for full SSR |
 | C2-P7-007 | Unbypassable production build guard            | Done        | Next config blocks unsigned/over-scoped V2 before route selection; reader-off rollback remains buildable |
 | C2-P7-008 | Signed observation window and decision owner    | Done        | Canary requires 24h, full SSR 72h, and every activation names its responsible owner |
+| C2-P7-009 | Canonical regional/B2B card-price parity        | Done        | Fresh bounded page hydration; shared pricing engine; no projection price rendering |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -375,3 +376,9 @@ Production actions performed: none
   duration, outcome, locale, active filter dimension names, returned-row count, and the maximum DB
   query count. Raw search text, SKU/filter values, exception messages, and customer identifiers are
   excluded. Suggestion responses additionally expose standards-compatible `Server-Timing`.
+
+### P7-009 — Canonical card-price parity
+
+- Catalog V2 discovery remains projection-backed, then performs one fresh bounded canonical read for only the visible product IDs.
+- Cards now use the shared regional/B2B pricing engine, including Europe bands, explicit B2B prices, compare-at semantics, system/customer brand discounts, customer discounts, live currency selection, and current settings.
+- Projection min-price fields are no longer rendered as authoritative storefront prices, so admin price edits do not wait for an index refresh.

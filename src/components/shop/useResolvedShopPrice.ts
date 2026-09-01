@@ -3,6 +3,10 @@
 import { useMemo } from "react";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
+import {
+  resolveShopPriceBands,
+  type ShopViewerPricingContext,
+} from "@/lib/shopPricingAudience";
 
 export type ResolvedShopPrice = {
   /** The price the customer actually pays (dealer price for B2B, retail for B2C). */
@@ -16,10 +20,15 @@ export type ResolvedShopPrice = {
 type Params = {
   /** Canonical B2C / retail price. Required. */
   b2cPrice: ShopMoneySet;
+  /** Optional European retail band, selected from the viewer's active country. */
+  europePrice?: Partial<ShopMoneySet> | null;
+  /** Optional retail / MSRP band. */
+  compareAt?: Partial<ShopMoneySet> | null;
   /** Optional explicit B2B price from product fields (overrides percentage). */
   b2bExplicit?: Partial<ShopMoneySet> | null;
   /** Product brand — enables 4-tier per-brand discount lookup. */
   brand?: string | null;
+  initialViewerContext?: ShopViewerPricingContext;
 };
 
 /**
@@ -43,59 +52,36 @@ type Params = {
  * NOTE: caller MUST pass `b2cPrice` (the retail baseline). Discount % is
  * always applied to this baseline, never to a previously-discounted price.
  */
-export function useResolvedShopPrice({ b2cPrice, b2bExplicit, brand }: Params): ResolvedShopPrice {
-  const viewer = useShopViewerContext();
+export function useResolvedShopPrice({
+  b2cPrice,
+  europePrice,
+  compareAt,
+  b2bExplicit,
+  brand,
+  initialViewerContext,
+}: Params): ResolvedShopPrice {
+  const viewer = useShopViewerContext(initialViewerContext);
 
   return useMemo<ResolvedShopPrice>(() => {
-    // Guest / B2C — no discount path runs.
-    if (viewer.customerGroup !== "B2B_APPROVED") {
-      return { effective: b2cPrice, retail: null, discountPct: 0 };
-    }
-
-    // Explicit B2B override on the product wins outright. Strikethrough
-    // shows b2cPrice; no percentage badge (price is a flat override).
-    if (b2bExplicit && (b2bExplicit.eur || b2bExplicit.usd || b2bExplicit.uah)) {
-      const eff: ShopMoneySet = {
-        eur: Number(b2bExplicit.eur ?? 0) || b2cPrice.eur || 0,
-        usd: Number(b2bExplicit.usd ?? 0) || b2cPrice.usd || 0,
-        uah: Number(b2bExplicit.uah ?? 0) || b2cPrice.uah || 0,
-      };
-      return { effective: eff, retail: b2cPrice, discountPct: 0 };
-    }
-
-    // 4-tier percent lookup. Mirrors resolveEffectiveDiscountPercent
-    // in `src/lib/shopPricingAudience.ts`.
-    const key = String(brand ?? "")
-      .trim()
-      .toLowerCase();
-    let pct = 0;
-    if (key) {
-      const c = viewer.customerBrandDiscountMap?.get(key);
-      if (c != null) pct = c;
-      else {
-        const s = viewer.systemBrandDiscountMap?.get(key);
-        if (s != null) pct = s;
-      }
-    }
-    if (pct === 0) pct = Number(viewer.customerB2BDiscountPercent ?? 0);
-    if (pct <= 0) {
-      return { effective: b2cPrice, retail: null, discountPct: 0 };
-    }
-
-    const mul = 1 - pct / 100;
-    const eff: ShopMoneySet = {
-      eur: b2cPrice.eur > 0 ? Math.round(b2cPrice.eur * mul * 100) / 100 : 0,
-      usd: b2cPrice.usd > 0 ? Math.round(b2cPrice.usd * mul * 100) / 100 : 0,
-      uah: b2cPrice.uah > 0 ? Math.round(b2cPrice.uah * mul) : 0,
+    const pricing = resolveShopPriceBands({
+      b2cPrice,
+      europePrice,
+      b2cCompareAt: compareAt,
+      b2bPrice: b2bExplicit,
+      context: viewer,
+      brand,
+    });
+    return {
+      effective: pricing.effectivePrice,
+      retail: pricing.effectiveCompareAt,
+      discountPct: pricing.discountPercent ?? 0,
     };
-    return { effective: eff, retail: b2cPrice, discountPct: pct };
   }, [
     b2cPrice,
+    europePrice,
+    compareAt,
     b2bExplicit,
     brand,
-    viewer.customerGroup,
-    viewer.customerB2BDiscountPercent,
-    viewer.systemBrandDiscountMap,
-    viewer.customerBrandDiscountMap,
+    viewer,
   ]);
 }

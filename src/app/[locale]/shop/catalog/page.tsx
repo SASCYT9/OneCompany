@@ -18,6 +18,11 @@ import {
 } from "@/lib/shopCatalogStorefrontQuery";
 import { resolveLocale } from "@/lib/seo";
 import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
+import { getShopProductsByIdsServer } from "@/lib/shopCatalogServer";
+import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
+import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { prisma } from "@/lib/prisma";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -44,7 +49,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const [{ locale }, filters] = await Promise.all([params, searchParams]);
   const resolvedLocale = resolveLocale(locale);
   const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
-  const [listingRead, facetRead] = await Promise.all([
+  const [listingRead, facetRead, session] = await Promise.all([
     observeShopCatalogRead({
       operation: "listing", locale: resolvedLocale, filters: query, databaseQueriesUpperBound: 1,
       rows: (value) => value.items.length, execute: () => queryShopCatalogProjection(query),
@@ -54,9 +59,51 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       rows: (value) => Object.values(value.facets).reduce((sum, rows) => sum + rows.length, 0),
       execute: () => queryShopCatalogProjectionFacets(query),
     }),
+    getCurrentShopCustomerSession(),
   ]);
   const result = listingRead.value;
   const facetResult = facetRead.value;
+  // Projection rows keep discovery fast, while this single bounded canonical
+  // read makes admin price edits visible immediately and preserves regional /
+  // B2B bands that deliberately do not belong in the public search index.
+  const [canonicalProducts, settingsRecord, systemBrandDiscounts, customerBrandDiscounts] =
+    await Promise.all([
+      getShopProductsByIdsServer(result.items.map((item) => item.productId), { fresh: true }),
+      getOrCreateShopSettings(prisma),
+      prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
+      session
+        ? prisma.shopCustomerBrandDiscount.findMany({
+            where: { customerId: session.customerId },
+            select: { brand: true, discountPct: true },
+          })
+        : Promise.resolve([]),
+    ]);
+  const pricingContext = buildShopViewerPricingContext(
+    getShopSettingsRuntime(settingsRecord),
+    session?.group ?? null,
+    Boolean(session),
+    session?.b2bDiscountPercent ?? null,
+    {
+      systemBrandDiscountMap: new Map(
+        systemBrandDiscounts.map((row) => [row.brand.trim().toLowerCase(), Number(row.discountPct)])
+      ),
+      customerBrandDiscountMap: new Map(
+        customerBrandDiscounts.map((row) => [row.brand.trim().toLowerCase(), Number(row.discountPct)])
+      ),
+    }
+  );
+  const cardPrices = Object.fromEntries(
+    canonicalProducts.map((product) => [
+      product.id,
+      {
+        price: product.price,
+        europePrice: product.europePrice ?? null,
+        b2bPrice: product.b2bPrice ?? null,
+        compareAt: product.compareAt ?? null,
+        brand: product.brand ?? product.vendor ?? null,
+      },
+    ])
+  );
 
   return (
     <CatalogV2Server
@@ -64,6 +111,8 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       result={result}
       facets={facetResult.facets}
       query={query}
+      cardPrices={cardPrices}
+      pricingContext={pricingContext}
     />
   );
 }

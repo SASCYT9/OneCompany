@@ -3,6 +3,7 @@
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useResolvedShopPrice } from "@/components/shop/useResolvedShopPrice";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
+import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 
 type Locale = "ua" | "en";
 
@@ -23,6 +24,8 @@ type Props = {
   locale: Locale;
   /** Canonical retail / B2C price. Required. */
   b2cPrice: ShopMoneySet;
+  /** Optional European retail band, selected from the active country. */
+  europePrice?: Partial<ShopMoneySet> | null;
   /** Optional explicit B2B override (per-product fixed B2B price). */
   b2bExplicit?: Partial<ShopMoneySet> | null;
   /** Optional retail / MSRP from product fields. Used when no B2B discount is in effect. */
@@ -35,6 +38,7 @@ type Props = {
   classNames?: ClassNames;
   /** Label rendered when no valid price is available. */
   requestLabel?: string;
+  initialViewerContext?: ShopViewerPricingContext;
 };
 
 function formatPrice(locale: Locale, amount: number, currency: "EUR" | "USD" | "UAH") {
@@ -127,18 +131,27 @@ const VARIANT_DEFAULTS: Record<
 export function ShopCardPriceTag({
   locale,
   b2cPrice,
+  europePrice,
   b2bExplicit,
   compareAt,
   brand,
   variant = "compact",
   classNames,
   requestLabel,
+  initialViewerContext,
 }: Props) {
   const { currency, rates } = useShopCurrency();
   const isUa = locale === "ua";
   const fallbackLabel = requestLabel ?? (isUa ? "Ціна за запитом" : "Price on Request");
 
-  const resolved = useResolvedShopPrice({ b2cPrice, b2bExplicit, brand });
+  const resolved = useResolvedShopPrice({
+    b2cPrice,
+    europePrice,
+    compareAt,
+    b2bExplicit,
+    brand,
+    initialViewerContext,
+  });
 
   const effectiveAcross = deriveAcrossCurrencies(resolved.effective, rates);
   const displayAmount =
@@ -167,7 +180,7 @@ export function ShopCardPriceTag({
   // Resolve retail to render strikethrough. Priority:
   //   1. `resolved.retail` (computed when a B2B discount/override is active)
   //   2. `compareAt` prop (product-level MSRP if no B2B discount)
-  const retailSource = resolved.retail ?? compareAt ?? null;
+  const retailSource = resolved.retail;
   let retailDisplay: string | null = null;
 
   if (retailSource) {
