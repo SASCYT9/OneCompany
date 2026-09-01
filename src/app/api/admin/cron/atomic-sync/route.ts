@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import Papa from "papaparse";
 import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
@@ -11,6 +10,10 @@ import {
 } from "@/lib/shopCatalogImportWriter.server";
 import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import {
+  revalidateShopStorefrontProduct,
+  revalidateShopStorefrontProductDetail,
+} from "@/lib/shopStorefrontRevalidation";
 
 const atomicCronSession = {
   email: "cron@system.local",
@@ -75,6 +78,7 @@ export async function GET(request: Request) {
     const notFoundCount = 0;
     let createdCount = 0;
     const catalog: ShopCatalogCoordinatedMutationResult[] = [];
+    const createdProductIds = new Set<string>();
 
     function generateSlug(brand: string, sku: string): string {
       return `${brand.toLowerCase()}-${sku
@@ -161,8 +165,7 @@ export async function GET(request: Request) {
         const existingSlug = await prisma.shopProduct.findUnique({ where: { slug } });
         const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
 
-        catalog.push(
-          await publishShopCatalogImportCreation({
+        const creation = await publishShopCatalogImportCreation({
             createData: {
             slug: finalSlug,
             sku: mpn,
@@ -215,8 +218,9 @@ export async function GET(request: Request) {
             },
             session: atomicCronSession,
             reason: "sync.atomic.create",
-          })
-        );
+          });
+        catalog.push(creation);
+        createdProductIds.add(creation.productId);
         createdCount++;
       }
     }
@@ -241,11 +245,17 @@ export async function GET(request: Request) {
     });
 
     try {
-      // Force-clear the router layouts cache so changes instantly reflect
-      revalidatePath("/", "layout");
-      console.log("Next.js App Router cache cleared successfully after sync.");
+      const changedProducts = await prisma.shopProduct.findMany({
+        where: { id: { in: [...new Set(catalog.map((mutation) => mutation.productId))] } },
+        select: { id: true, slug: true, brand: true, vendor: true, tags: true },
+      });
+      for (const product of changedProducts) {
+        if (createdProductIds.has(product.id)) revalidateShopStorefrontProduct(product);
+        else revalidateShopStorefrontProductDetail(product);
+      }
+      console.log(`Targeted storefront revalidation completed for ${changedProducts.length} products.`);
     } catch (e) {
-      console.error("Failed to clear Next.js cache during atomic sync:", e);
+      console.error("Targeted storefront revalidation failed during atomic sync:", e);
     }
 
     return NextResponse.json({

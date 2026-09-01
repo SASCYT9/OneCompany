@@ -91,6 +91,9 @@ test("Atomic feed cron groups variant updates behind product catalog locks", () 
   assert.match(source, /publishShopCatalogImportUpdate/);
   assert.match(source, /publishShopCatalogImportCreation/);
   assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.match(source, /revalidateShopStorefrontProductDetail/);
+  assert.match(source, /createdProductIds\.has/);
+  assert.doesNotMatch(source, /revalidatePath\("\/",\s*"layout"\)/);
   assert.doesNotMatch(source, /prisma\.shopProduct(?:Variant)?\.(?:create|update|updateMany)\(/);
 });
 
