@@ -365,13 +365,20 @@ export async function persistCatalogSourceRecordPageWithClient<
         nextRecordKey: input.drafts.at(-1)?.sourceRecord.recordKey ?? null,
       };
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 }
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10_000,
+      timeout: 120_000,
+    }
   );
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await execute();
     } catch (error) {
-      const retryable = error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+      const retryable =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error.code === "P2034" ||
+          (error.code === "P2028" && /transaction (?:not found|already closed)|expired/i.test(error.message)));
       if (!retryable || attempt >= 5) throw error;
       await new Promise((resolve) => setTimeout(resolve, 20 * 2 ** (attempt - 1) + Math.floor(Math.random() * 20)));
     }
