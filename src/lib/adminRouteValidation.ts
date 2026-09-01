@@ -1,5 +1,5 @@
 export type AdminBulkProductStatus = 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
-export type AdminProductDeleteMode = 'archive' | 'hard';
+export type AdminProductDeleteMode = 'archive';
 
 export function parseAdminProductBulkStatusInput(input: unknown) {
   const payload = (input && typeof input === 'object' ? input : {}) as {
@@ -38,7 +38,10 @@ export function parseAdminProductBulkStatusInput(input: unknown) {
 
 export function parseAdminProductDeleteMode(input: unknown): AdminProductDeleteMode {
   const normalized = String(input ?? '').trim().toLowerCase();
-  return normalized === 'hard' ? 'hard' : 'archive';
+  if (normalized && normalized !== 'archive') {
+    throw new TypeError('Catalog products are retention-protected and can only be archived');
+  }
+  return 'archive';
 }
 
 export function buildAdminProductArchiveMutation() {

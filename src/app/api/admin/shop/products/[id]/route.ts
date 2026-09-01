@@ -518,57 +518,7 @@ export async function DELETE(
     const cookieStore = await cookies();
     const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
-    const deleteMode = parseAdminProductDeleteMode(request.nextUrl.searchParams.get("mode"));
-
-    if (deleteMode === "hard") {
-      const product = await prisma.shopProduct.findUnique({
-        where: { id },
-        select: { id: true, slug: true, status: true, brand: true, vendor: true, tags: true },
-      });
-      if (!product) {
-        return NextResponse.json({ error: "Product not found" }, { status: 404 });
-      }
-      if (product.status !== "ARCHIVED") {
-        return NextResponse.json(
-          { error: "Archive the product before requesting a hard delete." },
-          { status: 409 }
-        );
-      }
-
-      await prisma.$transaction(async (tx) => {
-        const deleted = await tx.shopProduct.delete({
-          where: { id },
-          select: { id: true, slug: true },
-        });
-
-        await writeAdminAuditLog(tx, session, {
-          scope: "shop",
-          action: "product.delete",
-          entityType: "shop.product",
-          entityId: deleted.id,
-          metadata: {
-            slug: deleted.slug,
-            mode: "hard",
-          },
-        });
-      });
-
-      try {
-        if (product) {
-          revalidateShopStorefrontProduct(product);
-          const pathUa = buildShopStorefrontProductPath("ua", product);
-          const pathEn = buildShopStorefrontProductPath("en", product);
-          revalidatePath(pathUa);
-          revalidatePath(pathEn);
-          revalidatePath(`/ua/shop/${product.slug}`);
-          revalidatePath(`/en/shop/${product.slug}`);
-        }
-      } catch (e) {
-        console.error("[revalidate] Error:", e);
-      }
-
-      return NextResponse.json({ success: true, mode: "hard" });
-    }
+    parseAdminProductDeleteMode(request.nextUrl.searchParams.get("mode"));
 
     const catalogMutation = await coordinateShopCatalogProductMutation({
       productId: id,
@@ -647,6 +597,12 @@ export async function DELETE(
     }
     if ((error as Error).message === "FORBIDDEN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if ((error as Error).message.includes("retention-protected")) {
+      return NextResponse.json(
+        { error: "Catalog products are retention-protected. Archive the product instead." },
+        { status: 409 }
+      );
     }
     if ((error as { code?: string }).code === "P2025") {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });

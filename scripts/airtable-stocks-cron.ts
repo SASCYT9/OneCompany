@@ -12,29 +12,34 @@
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import { fetchAirtableProductsWithStocks } from "../src/lib/airtable";
+import { syncAirtableStocksToCatalog } from "../src/lib/airtableStockCatalogSync.server";
+import { runShopCatalogOutboxRuntime } from "../src/lib/shopCatalogOutboxRuntime.server";
 
 dotenv.config({ path: ".env.local" });
 const prisma = new PrismaClient();
+const session = {
+  email: "airtable-stock-cron@system.local",
+  name: "Airtable stock cron",
+  permissions: ["*"],
+  issuedAt: 0,
+  nonce: "airtable-stock-cron",
+};
 
 async function run() {
   console.log("[Airtable Sync] Fetching products with stocks from Airtable...");
   const airtableProducts = await fetchAirtableProductsWithStocks();
   console.log(`[Airtable Sync] Fetched ${airtableProducts.length} items.`);
 
-  let updatedCount = 0;
-  for (const item of airtableProducts) {
-    if (!item.sku) continue;
-    const res = await prisma.shopProductVariant.updateMany({
-      where: { sku: item.sku },
-      data: { inventoryQty: item.quantity },
-    });
-    if (res.count > 0) {
-      updatedCount += res.count;
-    }
-  }
+  const result = await syncAirtableStocksToCatalog({ prisma, items: airtableProducts, session });
+  const publication = await runShopCatalogOutboxRuntime({
+    workerId: `catalog-airtable-stock-cli:${process.pid}`,
+    limit: Math.min(50, Math.max(10, result.productsUpdated)),
+  });
 
   console.log(
-    `[Airtable Sync] Done. Scanned: ${airtableProducts.length}, Updated: ${updatedCount}.`
+    `[Airtable Sync] Done. Scanned: ${result.scanned}, Updated: ${result.updated}, ` +
+      `Products: ${result.productsUpdated}, Unmatched SKUs: ${result.unmatchedSkus}, ` +
+      `Published: ${publication.completed}.`
   );
 }
 

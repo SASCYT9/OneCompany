@@ -165,12 +165,18 @@ test("AI SEO writes are validated and versioned through the catalog coordinator"
 
 test("Airtable stock cron rejects conflicting feed rows and publishes grouped inventory", () => {
   const source = readWorkspaceFile("src/app/api/admin/cron/airtable-stocks/route.ts");
-  assert.match(source, /Conflicting Airtable inventory quantities/);
-  assert.match(source, /const groups = new Map/);
-  assert.match(source, /coordinateShopCatalogProductMutation/);
-  assert.match(source, /changeDomains: \["INVENTORY"\]/);
+  const writer = readWorkspaceFile("src/lib/airtableStockCatalogSync.server.ts");
+  const cli = readWorkspaceFile("scripts/airtable-stocks-cron.ts");
+  assert.match(writer, /Conflicting Airtable inventory quantities/);
+  assert.match(writer, /const groups = new Map/);
+  assert.match(writer, /coordinateShopCatalogProductMutationWithClient/);
+  assert.match(writer, /changeDomains: \["INVENTORY"\]/);
+  assert.match(source, /syncAirtableStocksToCatalog/);
   assert.match(source, /runShopCatalogOutboxRuntime/);
+  assert.match(cli, /syncAirtableStocksToCatalog/);
+  assert.match(cli, /runShopCatalogOutboxRuntime/);
   assert.doesNotMatch(source, /prisma\.shopProductVariant\.updateMany\(/);
+  assert.doesNotMatch(cli, /prisma\.shopProductVariant\.updateMany\(/);
 });
 
 test("Brabus cleanup is authenticated, preview-first, and versioned", () => {

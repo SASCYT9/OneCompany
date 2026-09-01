@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   buildAdminProductArchiveMutation,
   parseAdminProductDeleteMode,
@@ -11,8 +12,23 @@ test('parseAdminProductDeleteMode defaults to archive', () => {
   assert.equal(parseAdminProductDeleteMode('ARCHIVE'), 'archive');
 });
 
-test('parseAdminProductDeleteMode allows explicit hard delete mode', () => {
-  assert.equal(parseAdminProductDeleteMode('hard'), 'hard');
+test('parseAdminProductDeleteMode rejects retention-breaking hard deletes', () => {
+  assert.throws(
+    () => parseAdminProductDeleteMode('hard'),
+    /retention-protected and can only be archived/
+  );
+});
+
+test('admin product DELETE has no physical product deletion path', () => {
+  const source = readFileSync(
+    'src/app/api/admin/shop/products/[id]/route.ts',
+    'utf8'
+  );
+  const deleteHandler = source.slice(source.indexOf('export async function DELETE'));
+  assert.doesNotMatch(deleteHandler, /shopProduct\.delete\(/);
+  assert.doesNotMatch(deleteHandler, /mode:\s*["']hard["']/);
+  assert.match(deleteHandler, /coordinateShopCatalogProductMutation/);
+  assert.match(deleteHandler, /changeDomains: \["VISIBILITY"\]/);
 });
 
 test('buildAdminProductArchiveMutation always disables publication', () => {
