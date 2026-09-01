@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { after, NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
-import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
@@ -167,12 +165,6 @@ export async function POST(request: NextRequest) {
     });
     try {
       revalidateShopStorefrontProduct(product);
-      const pathUa = buildShopStorefrontProductPath("ua", product);
-      const pathEn = buildShopStorefrontProductPath("en", product);
-      revalidatePath(pathUa);
-      revalidatePath(pathEn);
-      revalidatePath(`/ua/shop/${product.slug}`);
-      revalidatePath(`/en/shop/${product.slug}`);
     } catch (e) {
       console.error("[revalidate] Error:", e);
     }

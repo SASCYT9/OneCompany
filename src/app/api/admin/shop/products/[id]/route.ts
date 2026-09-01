@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
@@ -462,22 +460,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     try {
       revalidateShopStorefrontProduct(product);
-      const pathUa = buildShopStorefrontProductPath("ua", product);
-      const pathEn = buildShopStorefrontProductPath("en", product);
-      revalidatePath(pathUa);
-      revalidatePath(pathEn);
-      revalidatePath(`/ua/shop/${product.slug}`);
-      revalidatePath(`/en/shop/${product.slug}`);
 
       if (currentProduct.slug && currentProduct.slug !== product.slug) {
         const oldProductDummy = { ...product, slug: currentProduct.slug };
         revalidateShopStorefrontProduct(oldProductDummy);
-        const oldPathUa = buildShopStorefrontProductPath("ua", oldProductDummy);
-        const oldPathEn = buildShopStorefrontProductPath("en", oldProductDummy);
-        revalidatePath(oldPathUa);
-        revalidatePath(oldPathEn);
-        revalidatePath(`/ua/shop/${currentProduct.slug}`);
-        revalidatePath(`/en/shop/${currentProduct.slug}`);
       }
     } catch (e) {
       console.error("[revalidate] Error:", e);
@@ -569,12 +555,6 @@ export async function DELETE(
 
     try {
       revalidateShopStorefrontProduct(archived);
-      const pathUa = buildShopStorefrontProductPath("ua", archived);
-      const pathEn = buildShopStorefrontProductPath("en", archived);
-      revalidatePath(pathUa);
-      revalidatePath(pathEn);
-      revalidatePath(`/ua/shop/${archived.slug}`);
-      revalidatePath(`/en/shop/${archived.slug}`);
     } catch (e) {
       console.error("[revalidate] Error:", e);
     }

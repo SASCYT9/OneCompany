@@ -36,3 +36,15 @@ test("pricing and inventory mutations invalidate only affected PDP aliases", () 
     assert.match(source, /targeted PDP revalidation failed/);
   }
 });
+
+test("manual product mutations delegate storefront invalidation without duplicate path calls", () => {
+  for (const route of [
+    "src/app/api/admin/shop/products/route.ts",
+    "src/app/api/admin/shop/products/[id]/route.ts",
+  ]) {
+    const source = read(route);
+    assert.match(source, /revalidateShopStorefrontProduct\(/);
+    assert.doesNotMatch(source, /from "next\/cache"/);
+    assert.doesNotMatch(source, /buildShopStorefrontProductPath/);
+  }
+});
