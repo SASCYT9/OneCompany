@@ -21,6 +21,17 @@ export type ShopCatalogOutboxRuntimeResult = {
 };
 
 function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTargetHandlers {
+  // Global settings and price-book values are already committed to their
+  // canonical live tables in the same transaction as this outbox event. Their
+  // targeted publication step advances the durable receipt only; unlike a
+  // product event there is no product projection or catalog-wide fanout.
+  if (job.entityType !== "PRODUCT") {
+    const acknowledgeCanonicalGlobalState = async () => {};
+    return {
+      PRICE: acknowledgeCanonicalGlobalState,
+      SETTINGS: acknowledgeCanonicalGlobalState,
+    };
+  }
   let persisted: Promise<void> | null = null;
   const publish = async () => {
     if (!persisted) {

@@ -3596,6 +3596,17 @@ model ShopCatalogProductRevision {
   @@index([sourceRecordId])
 }
 
+model ShopCatalogGlobalVersion {
+  entityType     ShopCatalogPublicationEntityType
+  entityId       String
+  currentVersion BigInt                           @default(0)
+  createdAt      DateTime                         @default(now())
+  updatedAt      DateTime                         @updatedAt
+
+  @@id([entityType, entityId])
+  @@index([updatedAt])
+}
+
 model ShopCatalogOutbox {
   id               String                           @id @default(cuid())
   dedupeKey        String                           @unique

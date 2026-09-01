@@ -1,11 +1,15 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import { getOrCreateShopSettings } from "@/lib/shopAdminSettings";
 import { prisma } from "@/lib/prisma";
+import { coordinateShopCatalogGlobalMutationWithClient } from "@/lib/shopCatalogGlobalMutationCoordinator.server";
+import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 
 // ─── Validation Constants ───
 const ALLOWED_CURRENCIES = ["USD", "EUR", "UAH"] as const;
@@ -225,22 +229,60 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
-    const settings = await prisma.shopSettings.update({
-      where: { key: "shop" },
-      data: updateData,
-    });
-
-    await writeAdminAuditLog(prisma, session, {
-      scope: "admin",
-      action: "settings.app.update",
-      entityType: "app.settings",
-      entityId: "shop",
-      metadata: {
-        updatedFields: Object.keys(updateData),
+    const publications = [
+      {
+        entityType: "SETTINGS" as const,
+        entityId: "public-shop-settings",
+        changeDomains: ["SETTINGS" as const],
+      },
+      ...(Object.hasOwn(updateData, "defaultCurrency")
+        ? [
+            {
+              entityType: "PRICE_BOOK" as const,
+              entityId: "public-shop-price-book",
+              changeDomains: ["PRICE" as const, "SETTINGS" as const],
+            },
+          ]
+        : []),
+    ];
+    const mutation = await coordinateShopCatalogGlobalMutationWithClient(prisma, {
+      publications,
+      mutate: async (tx) => {
+        const settings = await tx.shopSettings.update({
+          where: { key: "shop" },
+          data: updateData,
+        });
+        await writeAdminAuditLog(tx, session, {
+          scope: "admin",
+          action: "settings.app.update",
+          entityType: "app.settings",
+          entityId: "shop",
+          metadata: {
+            updatedFields: Object.keys(updateData),
+          },
+        });
+        return settings;
       },
     });
+    revalidateTag("shop-settings", "max");
+    after(async () => {
+      try {
+        await runShopCatalogOutboxRuntime({
+          workerId: `settings-app:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[app-settings] immediate publication failed; cron recovery remains active", {
+          outboxIds: mutation.publications.map((entry) => entry.outboxId),
+          error,
+        });
+      }
+    });
 
-    return NextResponse.json(mapToResponse(settings));
+    return NextResponse.json({
+      ...mapToResponse(mutation.value),
+      catalogPublication: mutation.publications,
+    });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

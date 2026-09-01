@@ -1,6 +1,6 @@
 # Catalog V2 — live execution status
 
-Last updated: 2026-08-31  
+Last updated: 2026-09-01
 Working branch: `codex/catalog-v2-foundation`  
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
@@ -21,6 +21,7 @@ Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 | C2-P6-011 | iPE normalization/backfill                     | Done        | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof |
 | C2-P6-012 | CSF normalization/backfill                     | Done        | 297 records, tag quarantine, exact transmission, concurrency proof |
 | C2-P6-013 | GiroDisc normalization/backfill                | Done        | 958 records, dimension-safe parsing, parent quarantine, PostgreSQL proof |
+| C2-P6-020 | Full all-source backfill and replay gate        | Done        | 15,132 records, 665,508 provenance leaves, exact parity, 15,132/15,132 idempotent replay |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -116,6 +117,7 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 | C2-P5-001 | Version-specific publication status contract   | Done        | Saved/Publishing/Published/Failed resolver and authorized no-store API        |
 | C2-P5-002 | Product editor publication visibility          | Done        | Editor polls exact saved version; failed work is never presented as published |
 | C2-P5-003 | Commit-to-visible latency and concurrency gate | Done        | 30 samples: p95 416 ms, p99 504 ms; exactly one same-version contention winner |
+| C2-P5-007 | Global settings and price-book publication     | Done        | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -125,6 +127,11 @@ The admin editor displays target lag and polls only while the version is non-ter
 The reproducible disposable publication gate measures the complete commit-to-visible chain and
 passes the P5 SLO with p95 416.027 ms and p99 503.758 ms. Same-version contention admits exactly
 one writer. See [PUBLICATION_GATE_2026-08-31.md](./PUBLICATION_GATE_2026-08-31.md).
+The current 42-migration rerun passes at p95 81.713 ms and p99 123.739 ms. Settings and
+price-book changes now commit their canonical row, audit entry, monotonic global cursor, exact
+target receipts, and outbox events atomically. Two concurrent settings mutations produce versions
+2 and 3 after bounded serialization retry. Global events never rebuild product projections or fan
+out to product ISR. See [GLOBAL_PUBLICATION_GATE_2026-09-01.md](./GLOBAL_PUBLICATION_GATE_2026-09-01.md).
 
 ## Completed sprint: P3 indexed reads and P4 server-rendered storefront
 
@@ -217,8 +224,8 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 ## P1 completion checklist
 
 - [x] Catalog V2 schema is additive and the new reader remains disabled by default.
-- [x] All 40 migrations replay from an empty disposable PostgreSQL 17 database.
-- [x] Replayed database matches `prisma/schema.prisma` exactly (135 public tables).
+- [x] All 42 current migrations replay from an empty disposable PostgreSQL 17 database.
+- [x] Replayed database matches `prisma/schema.prisma`, including monotonic global publication cursors.
 - [x] Source records, bindings, revisions, provenance, review issues, and tombstones are explicit.
 - [x] Projection batches are bounded to 500 products and use deterministic product-ID cursors.
 - [x] Brand, make, model, generation, year, engine, and fuel facets are projected explicitly.
@@ -261,7 +268,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 ## Residual risks after P1
 
 - Atomic persistence, immutable-revision source loading, durable rebuild checkpoints, mutation coordination, and leased outbox processing exist. `/api/cron/shop-catalog` runs a bounded recovery batch every five minutes and rebuilds exclusively from the event's immutable revision. The full editor, soft archive, bulk visibility, inventory, and pricing writers schedule immediate publication after returning. Bulk visibility validates the complete ID set before writing and creates a versioned `VISIBILITY` event per product. Inventory and pricing keep variant values, product summaries, audit, lossless revision, and outbox in the same product-locked transaction. Import adoption plus retry/dead-letter operational drills remain.
-- The creation coordinator now atomically creates a new product aggregate at version `1` together with its first immutable revision, receipts, and outbox event. Its disposable PostgreSQL regression is present but the latest local run was blocked because Docker Desktop was not running; the injected CSV adapter is covered separately by mock-transaction regressions.
+- The creation coordinator now atomically creates a new product aggregate at version `1` together with its first immutable revision, receipts, and outbox event. Its disposable PostgreSQL regression and the injected CSV adapter's mock-transaction regressions remain part of the verification suite.
 - Central CSV commit now uses an injected catalog writer: production lazily loads the server-only creation/update coordinators, while dry-run and tests do not load publication runtime. Successful rows cannot be counted as created/updated without returning version, revision, and outbox metadata; partial-column and relation-ID preservation contracts remain green. The commit route schedules immediate bounded publication, with cron recovery. Supplier and brand-specific sync paths remain to migrate.
 - Manual product creation now uses the same atomic version-`1` creation coordinator as CSV imports. Admin audit, the lossless snapshot, initial revision, publication receipts, and outbox event commit together, and the response exposes publication metadata before scheduling immediate processing.
 - The live authenticated do88 batch route reuses the central catalog writer for both create and ID-preserving update paths, retains supplier fitment parent validation, returns publication metadata per successful product, and schedules immediate bounded processing.
@@ -303,7 +310,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - The do88 immutable-shard mapper retains 1,230 product identities and 50,859/50,859 raw-field provenance entries. It verifies 718 universal and 433 vehicle-specific records, persists 145 exact chassis applications, and quarantines 79 unresolved records including polluted `fits-make:clamp-kits` tags. Disposable PostgreSQL covers exact, universal, and review policy modes. No Production database backfill has been run. See [DO88_AUDIT_2026-08-31.md](./DO88_AUDIT_2026-08-31.md).
 - The Burger immutable-shard mapper retains all 666 product/slug identities and 35,506/35,506 raw-field provenance entries without merging 11 duplicated SKU values. It verifies 406 vehicle-specific and 81 universal records while quarantining 179 ambiguous products, including known BMW fitment pollution on other makes. PostgreSQL proves correlated model, chassis, and powertrain persistence. No Production database backfill has been run. See [BURGER_AUDIT_2026-08-31.md](./BURGER_AUDIT_2026-08-31.md).
 - The Ilmberger mapper retains all 339 product identities and 12,450/12,450 raw-field provenance entries, verifies 335 records, and leaves four model-unresolved records in review. It uses product-level `moto` policies because the immutable shard contains no variants, correlates model-specific years, and marks engine not applicable. No Production database backfill has been run. See [ILMBERGER_AUDIT_2026-08-31.md](./ILMBERGER_AUDIT_2026-08-31.md).
-- The Remus mapper deterministically selects all 3,849 Remus records from the generic shard and retains 160,191/160,191 raw-field provenance entries. It verifies 3,797 records, leaves 52 unresolved records in review, and preserves ordered make/model/year groups to prevent cross-brand year combinations. Product-level policies cover explicit OPF/GPF and universal semantics. No Production database backfill has been run. See [REMUS_AUDIT_2026-08-31.md](./REMUS_AUDIT_2026-08-31.md).
+- The Remus mapper deterministically selects all 3,849 Remus records from the generic shard and retains 160,191/160,191 raw-field provenance entries. It verifies 3,794 records and leaves 55 in review, including three corrupt supplier year expansions that are preserved raw but persisted as unknown rather than broadened. Product-level policies preserve ordered make/model/year groups and explicit OPF/GPF semantics. No Production database backfill has been run. See [REMUS_AUDIT_2026-08-31.md](./REMUS_AUDIT_2026-08-31.md).
 - The all-source ownership gate proves that all 15,132 manifest records have one logical owner, one globally unique product ID, and an installed normalization/audit/backfill path. It inventories 665,508 raw leaves and partitions `generic` exactly into Eventuri and Remus with no residue. See [ALL_SOURCE_OWNERSHIP_GATE_2026-08-31.md](./ALL_SOURCE_OWNERSHIP_GATE_2026-08-31.md).
 - Production Catalog V2 reader activation is now commit-bound and fail-closed. A signed, fresh marker must prove the current ownership fingerprint, complete persisted source coverage, zero projection lag, at least 1,000 mismatch-free shadow requests, bounded error rate, and both scale and publication latency SLOs. See [READER_ACTIVATION_GUARD_2026-08-31.md](./READER_ACTIVATION_GUARD_2026-08-31.md).
 - Live shop settings no longer reuse a 60-second process-local record that `revalidateTag` could not clear across serverless instances. Currency rates, regional pricing, tax regions, and shipping changes are read from the current database row on every subsequent request; concurrent reads remain promise-collapsed, and build/local snapshot behavior is unchanged.
@@ -312,7 +319,7 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 - No Production migration, backfill, reader switch, deployment, or database write has been performed.
 - Multi-writer activation requires a shared lock/advisory-lock protocol for polymorphic binding targets and compatibility clause promotion.
 - The current-branch 100k/500k PostgreSQL gate passes the compact projection: worst warm p95 is 91.760 ms for 90%-deep keyset pagination, correlated fitment is 24.950 ms, and autocomplete is 28.200 ms. Production-region canary traffic remains required by the signed reader activation guard.
-- Price-book and global settings version sources need their concrete persistence adapters in P2.
+- Price-book and global settings use concrete monotonic version sources and targeted publication; the historical hardcoded currency writer fails closed.
 - The current storefront still reads the legacy/local snapshot; therefore P1 alone does not remove its multi-second cold parse.
 
 ## Decision log

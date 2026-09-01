@@ -5,6 +5,7 @@ import { performance } from "node:perf_hooks";
 import { PrismaClient } from "@prisma/client";
 
 import { normalizeLegacyApplicationsToShopCatalogV2Policy } from "../src/lib/shopCatalogV2Compatibility";
+import { coordinateShopCatalogGlobalMutationWithClient } from "../src/lib/shopCatalogGlobalMutationCoordinator.server";
 import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "../src/lib/shopCatalogOutboxRuntime.server";
 import { getShopCatalogPublicationStatusWithClient } from "../src/lib/shopCatalogPublicationStatus.server";
@@ -61,7 +62,10 @@ async function mutate(client: PrismaClient, productId: string, expectedVersion: 
     expectedCatalogVersion: expectedVersion,
     changeDomains: ["CONTENT", "PRICE", "INVENTORY"],
     async mutateAndSnapshot(tx, nextVersion) {
-      await tx.shopProduct.update({ where: { id: productId }, data: { titleEn: `${productId}-${nextVersion}` } });
+      await tx.shopProduct.update({
+        where: { id: productId },
+        data: { titleEn: `${productId}-${nextVersion}` },
+      });
       return {
         canonical: { productId, version: nextVersion },
         projectionSource: source(productId, nextVersion),
@@ -80,12 +84,21 @@ async function main() {
     const latencies: number[] = [];
     for (let index = 0; index < sampleCount; index += 1) {
       const productId = `${prefix}-${index}`;
-      await client.shopProduct.create({ data: { id: productId, slug: productId, titleUa: productId, titleEn: productId } });
+      await client.shopProduct.create({
+        data: { id: productId, slug: productId, titleUa: productId, titleEn: productId },
+      });
       const started = performance.now();
       const mutation = await mutate(client, productId, "0");
-      const publication = await runShopCatalogOutboxRuntime({ workerId: `${prefix}-worker-${index}`, limit: 1 });
-      if (publication.completed !== 1) throw new Error(`Publication did not complete for ${productId}`);
-      const status = await getShopCatalogPublicationStatusWithClient(client, { productId, version: mutation.canonicalVersion });
+      const publication = await runShopCatalogOutboxRuntime({
+        workerId: `${prefix}-worker-${index}`,
+        limit: 1,
+      });
+      if (publication.completed !== 1)
+        throw new Error(`Publication did not complete for ${productId}`);
+      const status = await getShopCatalogPublicationStatusWithClient(client, {
+        productId,
+        version: mutation.canonicalVersion,
+      });
       if (status?.status !== "PUBLISHED" || status.maxVersionLag !== "0") {
         throw new Error(`Visibility was not verified for ${productId}`);
       }
@@ -93,13 +106,101 @@ async function main() {
     }
 
     const contentionId = `${prefix}-contention`;
-    await client.shopProduct.create({ data: { id: contentionId, slug: contentionId, titleUa: contentionId, titleEn: contentionId } });
+    await client.shopProduct.create({
+      data: { id: contentionId, slug: contentionId, titleUa: contentionId, titleEn: contentionId },
+    });
     const contention = await Promise.allSettled([
       mutate(client, contentionId, "0"),
       mutate(client, contentionId, "0"),
     ]);
     const contentionWinners = contention.filter((result) => result.status === "fulfilled").length;
-    if (contentionWinners !== 1) throw new Error(`Expected one contention winner, received ${contentionWinners}`);
+    if (contentionWinners !== 1)
+      throw new Error(`Expected one contention winner, received ${contentionWinners}`);
+    const contentionPublication = await runShopCatalogOutboxRuntime({
+      workerId: `${prefix}-contention-worker`,
+      limit: 1,
+    });
+    if (contentionPublication.completed !== 1) {
+      throw new Error("Contention winner publication did not complete");
+    }
+
+    const global = await coordinateShopCatalogGlobalMutationWithClient(client, {
+      publications: [
+        {
+          entityType: "SETTINGS",
+          entityId: "public-shop-settings",
+          changeDomains: ["SETTINGS"],
+        },
+        {
+          entityType: "PRICE_BOOK",
+          entityId: "public-shop-price-book",
+          changeDomains: ["PRICE", "SETTINGS"],
+        },
+      ],
+      mutate: (tx) =>
+        tx.shopSettings.upsert({
+          where: { key: "shop" },
+          create: { key: "shop", appCompanyName: "Publication gate v1" },
+          update: { appCompanyName: "Publication gate v1" },
+        }),
+    });
+    if (global.publications.some((entry) => entry.canonicalVersion !== "1")) {
+      throw new Error(
+        `Global versions did not start at one: ${JSON.stringify(global.publications)}`
+      );
+    }
+    const globalPublication = await runShopCatalogOutboxRuntime({
+      workerId: `${prefix}-global-worker`,
+      limit: 2,
+    });
+    if (globalPublication.completed !== 2) {
+      throw new Error(`Expected two global publications, received ${globalPublication.completed}`);
+    }
+    const globalReceipts = await client.shopCatalogPublicationReceipt.findMany({
+      where: {
+        entityId: { in: ["public-shop-settings", "public-shop-price-book"] },
+      },
+      select: { entityType: true, entityId: true, target: true, appliedVersion: true },
+    });
+    if (
+      globalReceipts.length !== 3 ||
+      globalReceipts.some((receipt) => receipt.appliedVersion !== BigInt(1))
+    ) {
+      throw new Error(
+        `Global receipts did not reach version one: ${JSON.stringify(globalReceipts, (_, value) => (typeof value === "bigint" ? value.toString() : value))}`
+      );
+    }
+
+    const concurrentGlobal = await Promise.all([
+      coordinateShopCatalogGlobalMutationWithClient(client, {
+        publications: [
+          { entityType: "SETTINGS", entityId: "public-shop-settings", changeDomains: ["SETTINGS"] },
+        ],
+        mutate: (tx) =>
+          tx.shopSettings.update({
+            where: { key: "shop" },
+            data: { appCompanyName: "Publication gate v2a" },
+          }),
+      }),
+      coordinateShopCatalogGlobalMutationWithClient(client, {
+        publications: [
+          { entityType: "SETTINGS", entityId: "public-shop-settings", changeDomains: ["SETTINGS"] },
+        ],
+        mutate: (tx) =>
+          tx.shopSettings.update({
+            where: { key: "shop" },
+            data: { appCompanyName: "Publication gate v2b" },
+          }),
+      }),
+    ]);
+    const concurrentGlobalVersions = concurrentGlobal
+      .map((entry) => Number(entry.publications[0]!.canonicalVersion))
+      .sort((left, right) => left - right);
+    if (concurrentGlobalVersions.join(",") !== "2,3") {
+      throw new Error(
+        `Global contention versions are not monotonic: ${concurrentGlobalVersions.join(",")}`
+      );
+    }
 
     const result = {
       version: 1,
@@ -109,6 +210,9 @@ async function main() {
       p99Ms: Number(percentile(latencies, 99).toFixed(3)),
       maxMs: Number(Math.max(...latencies).toFixed(3)),
       contentionWinners,
+      globalPublications: global.publications.length,
+      globalReceipts: globalReceipts.length,
+      concurrentGlobalVersions,
       limits: { p95Ms: 2_000, p99Ms: 5_000 },
     };
     if (result.p95Ms >= result.limits.p95Ms || result.p99Ms >= result.limits.p99Ms) {
@@ -116,7 +220,10 @@ async function main() {
     }
     const directory = path.resolve("artifacts", "catalog-v2-publication");
     await mkdir(directory, { recursive: true });
-    await writeFile(path.join(directory, "catalog-v2-publication-gate.json"), `${JSON.stringify(result, null, 2)}\n`);
+    await writeFile(
+      path.join(directory, "catalog-v2-publication-gate.json"),
+      `${JSON.stringify(result, null, 2)}\n`
+    );
     console.log(JSON.stringify(result, null, 2));
   } finally {
     await client.$disconnect();

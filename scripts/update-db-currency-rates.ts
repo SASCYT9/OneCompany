@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 import { PrismaClient } from "@prisma/client";
 
+throw new Error(
+  "Disabled legacy hardcoded currency writer. Use the authenticated NBU settings endpoint so price-book versions, audit, and catalog outbox commit atomically."
+);
+
 const prisma = new PrismaClient();
 
 async function main() {
