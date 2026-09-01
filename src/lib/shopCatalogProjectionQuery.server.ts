@@ -278,6 +278,16 @@ function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProject
   )`;
 }
 
+function canonicalProjectionBrandSql() {
+  return Prisma.sql`regexp_replace(lower(COALESCE(
+    (SELECT COALESCE(NULLIF(trim(brand_product."brand"), ''), NULLIF(trim(brand_product."vendor"), ''))
+     FROM "ShopProduct" brand_product
+     WHERE brand_product."id" = projection."productId"),
+    projection."brandLabel",
+    projection."brandKey"
+  )), '[^a-z0-9]+', '', 'g')`;
+}
+
 function textConstraint(
   dimension: ShopCatalogCompatibilityDimension,
   value: string
@@ -755,6 +765,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     )`);
   }
   const price = projectionPriceSql(input);
+  const canonicalBrand = canonicalProjectionBrandSql();
   const seed =
     input.orderSeed ??
     [
@@ -779,10 +790,10 @@ export function buildShopCatalogProjectionOrderedQuerySql(
           : input.order === "brand_interleave"
             ? Prisma.sql`
                 row_number() OVER (
-                  PARTITION BY regexp_replace(lower(projection."brandLabel"), '[^a-z0-9]+', '', 'g')
+                  PARTITION BY ${canonicalBrand}
                   ORDER BY ${price} DESC NULLS LAST, projection."stableRank" ASC, projection."productId" ASC
                 ) ASC,
-                md5(regexp_replace(lower(projection."brandLabel"), '[^a-z0-9]+', '', 'g') || ${seed}) ASC,
+                md5(${canonicalBrand} || ${seed}) ASC,
                 ${price} DESC NULLS LAST`
             : Prisma.sql`projection."stableRank" ASC, projection."productId" ASC`;
   return Prisma.sql`

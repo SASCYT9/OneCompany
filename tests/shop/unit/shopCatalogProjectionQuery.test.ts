@@ -125,7 +125,8 @@ test("vehicle storefront order interleaves brands by fresh canonical price", asy
   });
   assert.ok(query);
   assert.match(query.sql, /row_number\(\) OVER/);
-  assert.match(query.sql, /PARTITION BY regexp_replace\(lower\(projection\."brandLabel"\)/);
+  assert.match(query.sql, /PARTITION BY regexp_replace\(lower\(COALESCE/);
+  assert.match(query.sql, /FROM "ShopProduct" brand_product/);
   assert.match(query.sql, /FROM "ShopProduct" canonical_product/);
   assert.match(query.sql, /canonical_product\."priceEurEurope"/);
   assert.match(query.sql, /OFFSET/);
