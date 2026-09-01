@@ -17,8 +17,17 @@ const normalizeWarehouseSku = (value: string | null | undefined) =>
 
 const warehouseSkuSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SKUS);
 
+const warehouseHeroImageBySku: Readonly<Record<string, string>> = {
+  "EVE-G9X-CF-CHG": "/images/shop/eventuri/eve-g9x-cf-chg-hero.jpg",
+};
+
 export const isShopWarehouseInStockSku = (value: string | null | undefined) =>
   warehouseSkuSet.has(normalizeWarehouseSku(value));
 
 export const getShopWarehouseStockStatus = (value: string | null | undefined) =>
   isShopWarehouseInStockSku(value) ? ("inStock" as const) : ("preOrder" as const);
+
+export const resolveShopWarehouseHeroImage = (
+  sku: string | null | undefined,
+  fallback: string | null
+) => warehouseHeroImageBySku[normalizeWarehouseSku(sku)] ?? fallback;

@@ -49,6 +49,7 @@ import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
 import { SHOW_STOCK_BADGE, shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
 import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
+import { resolveShopWarehouseHeroImage } from "@/lib/shopWarehouseInventory";
 
 type StockItem = {
   id: string;
@@ -134,6 +135,14 @@ type StockSearchResponse = {
   };
   filterStats?: FilterStats;
   globalFilterStats?: FilterStats;
+};
+
+const getCatalogHeroProductTitle = (item: StockItem) => {
+  const name = item.name.trim();
+  const brand = item.brand.trim();
+  return brand && name.toLocaleLowerCase().startsWith(brand.toLocaleLowerCase())
+    ? name.slice(brand.length).trim()
+    : name;
 };
 
 const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {
@@ -2691,8 +2700,8 @@ function StockPageContent() {
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden items-center justify-center lg:flex"
                 >
-                  <span className="relative block aspect-[16/10] w-full max-w-[390px] overflow-hidden bg-[#090909] shadow-[0_28px_60px_rgba(0,0,0,0.52)]">
-                    <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="390px" className="object-cover object-center" />
+                  <span className="relative block aspect-[16/10] w-full max-w-[390px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
+                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="390px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" />
                   </span>
                 </motion.div>
                 <motion.div
@@ -2702,8 +2711,8 @@ function StockPageContent() {
                   transition={{ duration: 0.42 }}
                   className="relative z-20 mt-6 self-end lg:col-start-3 lg:mt-0 lg:self-center"
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#c6a657]">{activeHeroProduct.brand}</p>
-                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{activeHeroProduct.name}</h2>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-white/20">·</span>{activeHeroProduct.partNumber}</p>
+                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogHeroProductTitle(activeHeroProduct)}</h2>
                   <p className="mt-4 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
                   <div className="mt-3 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.17em] text-white/62">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#c6a657] shadow-[0_0_12px_rgba(198,166,87,0.9)]" />
@@ -2726,8 +2735,8 @@ function StockPageContent() {
             <div className="flex min-w-0 flex-1 overflow-x-auto">
               {heroRailProducts.map(({ product, index }) => (
                 <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-white/10 px-4 text-left transition hover:bg-white/[0.04] sm:min-w-[230px]">
-                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-white/[0.035]"><Image src={product.thumbnail!} alt="" fill unoptimized sizes="80px" className="object-cover object-center" /></span>
-                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c6a657]">{product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-white/68 group-hover:text-white">{product.name}</span></span>
+                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]"><Image src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!} alt="" fill unoptimized sizes="80px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" /></span>
+                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#c6a657]">{product.partNumber || product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-white/68 group-hover:text-white">{getCatalogHeroProductTitle(product)}</span></span>
                 </button>
               ))}
             </div>
