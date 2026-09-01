@@ -18,10 +18,12 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 import {
+  deleteBlob,
   isBlobStorageConfigured,
   listAllBlobsByPrefix,
   putPublicBlob,
 } from "@/lib/runtimeBlobStorage";
+import { getUnreferencedUploadedBlobUrls } from "@/lib/blobUploadRetention";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 
@@ -38,6 +40,24 @@ const CONCURRENCY = Math.max(
 
 const BLOB_PREFIX = "brabus-images/";
 const PUBLIC_DIR = path.resolve(process.cwd(), "public", "brabus-images");
+const uploadedThisRun = new Set<string>();
+
+async function cleanupUnreferencedUploads() {
+  if (!commit || uploadedThisRun.size === 0) return;
+  const candidates = [...uploadedThisRun];
+  const [products, media, variants] = await Promise.all([
+    prisma.shopProduct.findMany({ where: { image: { in: candidates } }, select: { image: true } }),
+    prisma.shopProductMedia.findMany({ where: { src: { in: candidates } }, select: { src: true } }),
+    prisma.shopProductVariant.findMany({ where: { image: { in: candidates } }, select: { image: true } }),
+  ]);
+  const retained = new Set<string>();
+  for (const value of [...products.map((row) => row.image), ...media.map((row) => row.src), ...variants.map((row) => row.image)]) {
+    if (value) retained.add(value);
+  }
+  const orphaned = getUnreferencedUploadedBlobUrls(uploadedThisRun, retained);
+  for (const url of orphaned) await deleteBlob(url);
+  console.log(`Orphan uploads removed: ${orphaned.length}`);
+}
 
 type LocalFile = {
   absolutePath: string;
@@ -164,6 +184,7 @@ async function main() {
           const buffer = await fs.readFile(file.absolutePath);
           const result = await putPublicBlob(file.blobPathname, buffer, file.contentType);
           existingBlobUrls.set(file.blobPathname, result.url);
+          uploadedThisRun.add(result.url);
           uploaded += 1;
         } catch (err) {
           uploadFailed += 1;
@@ -367,6 +388,10 @@ async function main() {
 main()
   .catch((err) => {
     console.error("\nFATAL:", err instanceof Error ? err.stack || err.message : err);
-    process.exit(1);
+    process.exitCode = 1;
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    try { await cleanupUnreferencedUploads(); }
+    catch (error) { console.error(`Orphan cleanup failed: ${error instanceof Error ? error.message : error}`); process.exitCode = 1; }
+    await prisma.$disconnect();
+  });

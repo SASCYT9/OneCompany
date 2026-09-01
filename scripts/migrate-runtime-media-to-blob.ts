@@ -6,10 +6,12 @@ import { readSiteMedia, writeSiteMedia } from "@/lib/siteMediaServer";
 import { readVideoConfig, writeVideoConfig } from "@/lib/videoConfig";
 import { MEDIA_LIBRARY_PATH_PREFIX, VIDEO_UPLOADS_PATH_PREFIX } from "@/lib/runtimeAssetPaths";
 import {
+  deleteBlob,
   isBlobStorageConfigured,
   listAllBlobsByPrefix,
   putPublicBlob,
 } from "@/lib/runtimeBlobStorage";
+import { collectReferencedBlobUrls, getUnreferencedUploadedBlobUrls } from "@/lib/blobUploadRetention";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 
@@ -20,6 +22,7 @@ const dryRun = !commit || args.has("--dry-run");
 
 const mediaRoot = path.join(process.cwd(), "public", "media");
 const videoUploadsRoot = path.join(process.cwd(), "public", "videos", "uploads");
+const uploadedThisRun = new Set<string>();
 
 type AssetKind = "media" | "video";
 
@@ -197,6 +200,7 @@ async function uploadAssets(assets: LocalAsset[], existingBlobUrls: Map<string, 
 
     const buffer = await fs.readFile(asset.absolutePath);
     const uploaded = await putPublicBlob(asset.blobPathname, buffer, asset.contentType);
+    uploadedThisRun.add(uploaded.url);
     existingBlobUrls.set(asset.blobPathname, uploaded.url);
 
     for (const reference of asset.oldReferences) {
@@ -507,6 +511,24 @@ async function main() {
   console.log(`Uploaded video files discovered: ${videoAssets.length}`);
 }
 
+async function cleanupUnreferencedUploads() {
+  if (!commit || uploadedThisRun.size === 0) return;
+  const candidates = [...uploadedThisRun];
+  const [products, media, variants, siteContent, siteMedia, videoConfig] = await Promise.all([
+    prisma.shopProduct.findMany({ where: { image: { in: candidates } }, select: { image: true } }),
+    prisma.shopProductMedia.findMany({ where: { src: { in: candidates } }, select: { src: true } }),
+    prisma.shopProductVariant.findMany({ where: { image: { in: candidates } }, select: { image: true } }),
+    readSiteContent(), readSiteMedia(), readVideoConfig(),
+  ]);
+  const retained = collectReferencedBlobUrls([siteContent, siteMedia, videoConfig], uploadedThisRun);
+  for (const value of [...products.map((row) => row.image), ...media.map((row) => row.src), ...variants.map((row) => row.image)]) {
+    if (value) retained.add(value);
+  }
+  const orphaned = getUnreferencedUploadedBlobUrls(uploadedThisRun, retained);
+  for (const url of orphaned) await deleteBlob(url);
+  console.log(`Orphan uploads removed: ${orphaned.length}`);
+}
+
 main()
   .catch((error) => {
     console.error("");
@@ -515,5 +537,7 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
+    try { await cleanupUnreferencedUploads(); }
+    catch (error) { console.error(`Orphan cleanup failed: ${error instanceof Error ? error.message : error}`); process.exitCode = 1; }
     await prisma.$disconnect();
   });
