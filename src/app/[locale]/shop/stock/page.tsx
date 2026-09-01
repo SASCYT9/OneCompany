@@ -2656,9 +2656,11 @@ function StockPageContent() {
                   initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                  className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden lg:block"
+                  className="pointer-events-none absolute inset-x-[30%] bottom-[94px] top-8 hidden items-center justify-center lg:flex"
                 >
-                  <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="46vw" className="object-contain object-center drop-shadow-[0_28px_42px_rgba(0,0,0,0.72)]" />
+                  <span className="relative block aspect-[16/10] w-full max-w-[520px] overflow-hidden bg-[#090909] shadow-[0_28px_60px_rgba(0,0,0,0.52)]">
+                    <Image src={activeHeroProduct.thumbnail!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="520px" className="object-cover object-center" />
+                  </span>
                 </motion.div>
                 <motion.div
                   key={`hero-copy-${activeHeroProduct.id}`}
@@ -2691,7 +2693,7 @@ function StockPageContent() {
             <div className="flex min-w-0 flex-1 overflow-x-auto">
               {heroRailProducts.map(({ product, index }) => (
                 <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-white/10 px-4 text-left transition hover:bg-white/[0.04] sm:min-w-[230px]">
-                  <span className="relative h-14 w-16 shrink-0"><Image src={product.thumbnail!} alt="" fill unoptimized sizes="64px" className="object-contain" /></span>
+                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-white/[0.035]"><Image src={product.thumbnail!} alt="" fill unoptimized sizes="80px" className="object-cover object-center" /></span>
                   <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c6a657]">{product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-white/68 group-hover:text-white">{product.name}</span></span>
                 </button>
               ))}
