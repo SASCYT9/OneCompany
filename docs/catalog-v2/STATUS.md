@@ -386,3 +386,4 @@ Production actions performed: none
 - Projection min-price fields are no longer rendered as authoritative storefront prices, so admin price edits do not wait for an index refresh.
 - The bounded canonical pricing phase emits the same privacy-safe duration, row-count, filter-dimension, and DB-query-bound telemetry as other V2 reads.
 - Its single product query selects only price/brand columns and one default variant (hard cap: 100 IDs); it does not hydrate media, collections, options, metafields, or the rest of the storefront graph.
+- Cart reads/writes, checkout quotes, public product APIs, stock search, AI hydration, PDP, and V2 cards now share the same four-tier brand-aware pricing context; checkout no longer falls back to a customer-global discount when a brand override exists.

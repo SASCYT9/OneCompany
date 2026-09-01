@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { prisma } from "@/lib/prisma";
+import { loadShopBrandDiscountMaps } from "@/lib/shopPricingContext.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,23 +22,17 @@ export async function GET() {
     );
   }
 
-  const [system, customer] = await Promise.all([
-    prisma.shopBrandB2bDiscount.findMany({
-      select: { brand: true, discountPct: true },
-      orderBy: { brand: "asc" },
-    }),
-    prisma.shopCustomerBrandDiscount.findMany({
-      where: { customerId: session.customerId },
-      select: { brand: true, discountPct: true },
-      orderBy: { brand: "asc" },
-    }),
-  ]);
+  const maps = await loadShopBrandDiscountMaps(prisma, session.customerId, session.group);
+  const serialize = (values: ReadonlyMap<string, number> | undefined) =>
+    [...(values ?? new Map()).entries()]
+      .map(([brand, discountPct]) => ({ brand, discountPct }))
+      .sort((left, right) => left.brand.localeCompare(right.brand, "en"));
 
   return NextResponse.json(
     {
       customerId: session.customerId,
-      system: system.map((row) => ({ brand: row.brand, discountPct: Number(row.discountPct) })),
-      customer: customer.map((row) => ({ brand: row.brand, discountPct: Number(row.discountPct) })),
+      system: serialize(maps?.systemBrandDiscountMap),
+      customer: serialize(maps?.customerBrandDiscountMap),
     },
     { headers: { "Cache-Control": "private, no-store" } }
   );

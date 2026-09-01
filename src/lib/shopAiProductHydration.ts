@@ -4,10 +4,8 @@ import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
-import {
-  buildShopViewerPricingContext,
-  resolveShopProductPricing,
-} from "@/lib/shopPricingAudience";
+import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import type {
   ShopAiContext,
@@ -70,14 +68,15 @@ export async function hydrateShopAiKnowledgeCandidates(
     ),
   ]);
   const settings = getShopSettingsRuntime(settingsRecord);
-  const pricingContext = buildShopViewerPricingContext(
+  const pricingContext = await buildShopViewerPricingContextServer({
+    prisma,
     settings,
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null,
-    undefined,
-    { priceCountry: context.country }
-  );
+    customerId: session?.customerId,
+    customerGroup: session?.group,
+    isAuthenticated: Boolean(session),
+    customerB2BDiscountPercent: session?.b2bDiscountPercent,
+    priceCountry: context.country,
+  });
 
   return loaded.flatMap(({ candidate, product }) => {
     if (!product?.id || product.id !== candidate.productId) return [];

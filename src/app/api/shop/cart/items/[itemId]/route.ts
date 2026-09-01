@@ -7,7 +7,7 @@ import {
   updateShopCartItemQuantity,
 } from "@/lib/shopCart";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
@@ -37,12 +37,14 @@ async function loadPricingContext() {
   return {
     session,
     settings,
-    context: buildShopViewerPricingContext(
+    context: await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null
-    ),
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+    }),
   };
 }
 

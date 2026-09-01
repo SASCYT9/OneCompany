@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { serializePublicShopProduct } from "@/lib/shopPublicProducts";
 import { prisma } from "@/lib/prisma";
@@ -21,14 +21,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     const settings = getShopSettingsRuntime(settingsRecord);
     const country = new URL(request.url).searchParams.get("country");
-    const pricingContext = buildShopViewerPricingContext(
+    const pricingContext = await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
 
     return NextResponse.json(serializePublicShopProduct(product, pricingContext));
   } catch (error) {

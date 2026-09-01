@@ -177,6 +177,7 @@ export async function serializeLocalShopCart(
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
           context,
+          brand: product.brand,
         })
       : resolveShopProductPricing(product, context);
     items.push({

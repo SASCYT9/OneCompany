@@ -35,7 +35,8 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 function resolveVariantPricing(
   variant: ShopProductVariantSummary,
-  viewerContext: ShopViewerPricingContext
+  viewerContext: ShopViewerPricingContext,
+  brand: string
 ) {
   return resolveShopPriceBands({
     b2cPrice: variant.price,
@@ -43,6 +44,7 @@ function resolveVariantPricing(
     b2bPrice: variant.b2bPrice ?? null,
     b2bCompareAt: variant.b2bCompareAt ?? null,
     context: viewerContext,
+    brand,
   });
 }
 
@@ -79,7 +81,7 @@ export default function RacechipShopProductDetailLayout({
   // Pricing Logic — compute all 3 currencies
   const getPricing = () => {
     const resolvedPricing = variant
-      ? resolveVariantPricing(variant, viewerContext)
+      ? resolveVariantPricing(variant, viewerContext, product.brand)
       : resolveShopProductPricing(product, viewerContext);
     const basePriceEur = resolvedPricing.effectivePrice.eur ?? 0;
     if (basePriceEur <= 0) return null;
@@ -116,7 +118,7 @@ export default function RacechipShopProductDetailLayout({
   // Independent ShopResolvedPricing for the B2B disclosure band — keeps the
   // existing display-formatted `pricing` untouched.
   const resolvedB2B = variant
-    ? resolveVariantPricing(variant, viewerContext)
+    ? resolveVariantPricing(variant, viewerContext, product.brand)
     : resolveShopProductPricing(product, viewerContext);
 
   const handleAddToCart = async () => {

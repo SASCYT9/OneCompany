@@ -12,12 +12,12 @@ import {
   type ShopTaxRegion,
 } from "@/lib/shopAdminSettings";
 import {
-  buildShopViewerPricingContext,
   resolveCheckoutAudience,
   resolveShopPriceBands,
   resolveShopProductPricing,
   type ShopPriceAudience,
 } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 
 type CheckoutRequestItem = {
   slug: string;
@@ -749,14 +749,15 @@ export async function buildCheckoutQuote(
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
   const currency = resolveRequestedCurrency(settings, input.currency);
-  const pricingContext = buildShopViewerPricingContext(
+  const pricingContext = await buildShopViewerPricingContextServer({
+    prisma,
     settings,
-    input.customerGroup ?? null,
-    Boolean(input.customerId),
-    input.customerB2BDiscountPercent ?? null,
-    undefined,
-    { priceCountry: input.shippingAddress.country }
-  );
+    customerId: input.customerId,
+    customerGroup: input.customerGroup,
+    isAuthenticated: Boolean(input.customerId),
+    customerB2BDiscountPercent: input.customerB2BDiscountPercent,
+    priceCountry: input.shippingAddress.country,
+  });
   const pricingAudience = resolveCheckoutAudience(pricingContext);
 
   const resolvedItems: ResolvedCheckoutItem[] = [];
@@ -779,6 +780,7 @@ export async function buildCheckoutQuote(
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
           context: pricingContext,
+          brand: product.brand,
         })
       : resolveShopProductPricing(product, pricingContext);
 

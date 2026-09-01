@@ -66,6 +66,7 @@ export function serializePublicShopProduct(
           b2bPrice: variant.b2bPrice ?? null,
           b2bCompareAt: variant.b2bCompareAt ?? null,
           context,
+          brand: product.brand,
         });
 
         return {

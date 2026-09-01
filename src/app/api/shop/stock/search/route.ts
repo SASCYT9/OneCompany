@@ -14,10 +14,8 @@ import {
   getShopSettingsRuntime,
   type ShopCurrencyCode,
 } from "@/lib/shopAdminSettings";
-import {
-  buildShopViewerPricingContext,
-  resolveShopProductPricing,
-} from "@/lib/shopPricingAudience";
+import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import {
   buildShopSearchText,
   tokenizeShopSearchQuery,
@@ -1074,14 +1072,15 @@ export async function GET(request: NextRequest) {
     };
 
     const settings = getShopSettingsRuntime(settingsRecord);
-    const pricingContext = buildShopViewerPricingContext(
+    const pricingContext = await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
 
     const pricingCache = new WeakMap<object, ReturnType<typeof resolveShopProductPricing>>();
     const priceSetCache = new WeakMap<object, ReturnType<typeof expandShopPrices>>();

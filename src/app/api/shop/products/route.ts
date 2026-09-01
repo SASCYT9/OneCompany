@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import { serializePublicShopProduct } from "@/lib/shopPublicProducts";
 import { prisma } from "@/lib/prisma";
@@ -15,14 +15,15 @@ export async function GET(request: NextRequest) {
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const country = request.nextUrl.searchParams.get("country");
-    const pricingContext = buildShopViewerPricingContext(
+    const pricingContext = await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
 
     const scope = request.nextUrl.searchParams.get("scope");
     const collectionHandle = request.nextUrl.searchParams.get("collection");

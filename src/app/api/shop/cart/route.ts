@@ -7,7 +7,7 @@ import {
   serializeResolvedShopCart,
 } from "@/lib/shopCart";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
@@ -36,14 +36,15 @@ export async function GET(request: NextRequest) {
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const country = request.nextUrl.searchParams.get("country");
-    const context = buildShopViewerPricingContext(
+    const context = await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
     if (isLocalStorefrontMode()) {
       const { cart, token } = resolveLocalShopCart({
         token: request.cookies.get(SHOP_CART_COOKIE)?.value,
@@ -96,14 +97,15 @@ export async function POST(request: NextRequest) {
     const settings = getShopSettingsRuntime(settingsRecord);
     const country =
       String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
-    const context = buildShopViewerPricingContext(
+    const context = await buildShopViewerPricingContextServer({
+      prisma,
       settings,
-      session?.group ?? null,
-      Boolean(session),
-      session?.b2bDiscountPercent ?? null,
-      undefined,
-      { priceCountry: country }
-    );
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
     if (isLocalStorefrontMode()) {
       const { cart, token } = replaceLocalShopCart(
         {
