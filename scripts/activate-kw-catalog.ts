@@ -47,6 +47,11 @@ async function main() {
       select: { productId: true, value: true },
     });
     const blocked = fitments.filter((field) => (JSON.parse(field.value) as { status?: string }).status === "needs_review").map((field) => field.productId);
+    const [uaProjections, enProjections, outboxGroups] = await Promise.all([
+      prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "ua", isPublished: true } }),
+      prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "en", isPublished: true } }),
+      prisma.shopCatalogOutbox.groupBy({ by: ["status"], where: { productId: { in: owned.map((entry) => entry.productId) } }, _count: true }),
+    ]);
     const report = {
       mode: commit ? "commit" : "dry-run",
       ownedProducts: owned.length,
@@ -54,6 +59,8 @@ async function main() {
       blockedFitments: blocked.length,
       unpublishedVersionZero: owned.filter((entry) => !entry.product.isPublished && entry.product.catalogVersion === BigInt(0)).length,
       alreadyPublished: owned.filter((entry) => entry.product.isPublished).length,
+      projections: { ua: uaProjections, en: enProjections },
+      outbox: Object.fromEntries(outboxGroups.map((group) => [group.status, group._count])),
       ready: owned.length === 1_999 && fitments.length === 1_999 && blocked.length === 0,
     };
     if (!report.ready) throw new Error(`KW activation preflight failed: ${JSON.stringify(report)}`);

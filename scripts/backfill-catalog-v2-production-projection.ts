@@ -88,11 +88,11 @@ async function main() {
         const policyRows = plans.flatMap((plan) => plan.policyRows);
         const clauseRows = plans.flatMap((plan) => plan.clauseRows);
         const constraintRows = plans.flatMap((plan) => plan.constraintRows);
-        if (projectionRows.length) await tx.shopCatalogProjection.createMany({ data: projectionRows as never[] });
-        if (skuRows.length) await tx.shopCatalogProjectionSku.createMany({ data: skuRows as never[] });
-        if (policyRows.length) await tx.shopCatalogProjectionPolicy.createMany({ data: policyRows as never[] });
-        if (clauseRows.length) await tx.shopCatalogProjectionClause.createMany({ data: clauseRows as never[] });
-        if (constraintRows.length) await tx.shopCatalogProjectionConstraint.createMany({ data: constraintRows as never[] });
+        if (projectionRows.length) await tx.shopCatalogProjection.createMany({ data: projectionRows as never[], skipDuplicates: true });
+        if (skuRows.length) await tx.shopCatalogProjectionSku.createMany({ data: skuRows as never[], skipDuplicates: true });
+        if (policyRows.length) await tx.shopCatalogProjectionPolicy.createMany({ data: policyRows as never[], skipDuplicates: true });
+        if (clauseRows.length) await tx.shopCatalogProjectionClause.createMany({ data: clauseRows as never[], skipDuplicates: true });
+        if (constraintRows.length) await tx.shopCatalogProjectionConstraint.createMany({ data: constraintRows as never[], skipDuplicates: true });
       });
       processed += products.length;
       applied += pendingProducts.length;
