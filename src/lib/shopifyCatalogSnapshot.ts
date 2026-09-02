@@ -240,3 +240,20 @@ export function auditShopifyProductTranslations(jsonl: string, locale: string): 
     missingBody: productCount - productsWithBody,
   };
 }
+
+export function parseShopifyProductTranslationMap(jsonl: string) {
+  const translations = new Map<string, Array<{ key?: string; value?: string; outdated?: boolean }>>();
+  for (const [index, sourceLine] of jsonl.split(/\r?\n/u).entries()) {
+    const line = sourceLine.trim();
+    if (!line) continue;
+    const row = JSON.parse(line) as { id?: string; translations?: unknown };
+    if (!row.id?.includes("/Product/")) throw new TypeError(`Translation snapshot line ${index + 1} is not a product`);
+    translations.set(
+      row.id,
+      Array.isArray(row.translations)
+        ? row.translations.filter((entry): entry is { key?: string; value?: string; outdated?: boolean } => Boolean(entry && typeof entry === "object"))
+        : []
+    );
+  }
+  return translations;
+}

@@ -102,6 +102,7 @@
     "shop:shopify:translations:audit": "tsx scripts/audit-shopify-translation-snapshot.ts",
     "shop:catalog:v2:kw:normalize:test": "tsx --test tests/shop/unit/shopCatalogKwNormalization.test.ts",
     "shop:catalog:v2:kw:audit": "tsx scripts/audit-kw-normalization.ts",
+    "shop:catalog:v2:kw:drafts:audit": "tsx scripts/audit-kw-product-drafts.ts",
     "shop:catalog:v2:activation:check": "tsx scripts/check-catalog-v2-release-activation.ts",
     "shop:catalog:v2:activation:sign": "tsx scripts/create-catalog-v2-release-marker.ts",
     "shop:catalog:v2:shadow:evidence": "tsx scripts/read-catalog-v2-shadow-evidence.ts",
