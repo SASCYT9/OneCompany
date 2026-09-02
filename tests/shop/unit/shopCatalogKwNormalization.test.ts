@@ -51,9 +51,9 @@ test("single-make evidence resolves vehicles in multi-brand products", () => {
   const normalized = normalizeKwShopifyProduct(target, evidence);
   assert.deepEqual(normalized.applications.map(({ make }) => make), ["Cupra", "Volkswagen"]);
   assert.ok(normalized.applications.every(({ engines }) => engines.length === 0));
-  assert.ok(normalized.applications.every(({ verification }) => verification === "VERIFIED"));
+  assert.ok(normalized.applications.every(({ verification }) => verification === "NEEDS_REVIEW"));
   assert.ok(normalized.issues.includes("engine_vehicle_correlation_ambiguous"));
-  assert.equal(buildKwCompatibilityPolicy("p3", normalized).mode, "VEHICLE_SPECIFIC");
+  assert.equal(buildKwCompatibilityPolicy("p3", normalized).mode, "NEEDS_REVIEW");
 });
 
 test("KW HAS title supplies the missing Shopify category without inventing fitment", () => {

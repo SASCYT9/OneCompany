@@ -205,7 +205,9 @@ export function normalizeKwShopifyProduct(
       make,
       ...parseVehicleTag(rawVehicleTag, make),
       engines: correlateEngines ? engines : [],
-      verification: !make ? "NEEDS_REVIEW" as const : inferred ? "INFERRED" as const : "VERIFIED" as const,
+      verification: !make || (!correlateEngines && engines.length > 0)
+        ? "NEEDS_REVIEW" as const
+        : inferred ? "INFERRED" as const : "VERIFIED" as const,
     }));
   });
 
@@ -250,7 +252,7 @@ export function buildKwCompatibilityPolicy(
       sourceRef: `shopify:${normalization.externalProductId}:tag:${application.rawVehicleTag}`,
     };
   });
-  const needsReview = kwNormalizationHasBlockingIssues(normalization) || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
+  const needsReview = normalization.issues.length > 0 || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
   return {
     version: 2,
     mode: clauses.length && !needsReview ? "VEHICLE_SPECIFIC" : "NEEDS_REVIEW",
@@ -277,7 +279,7 @@ export function buildKwNormalizedFitment(normalization: KwProductNormalization):
     opfGpf: "unknown" as const,
   }] : []);
   const makes = [...new Set(applications.map((application) => application.make))];
-  const hasReview = kwNormalizationHasBlockingIssues(normalization) || normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
+  const hasReview = normalization.issues.length > 0 || normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
   const hasInference = normalization.applications.some((application) => application.verification === "INFERRED");
   return {
     version: 2,

@@ -72,7 +72,7 @@ async function main() {
       rawFieldProvenancePresent: provenance > 0,
       noStProducts: stProducts === 0,
       allCategoriesMapped: categoryReviewProducts === 0,
-      fitmentProjectionReady: (fitmentStatuses.verified ?? 0) + (fitmentStatuses.inferred ?? 0) === expected && (fitmentStatuses.needs_review ?? 0) === 0,
+      fitmentProjectionReady: Object.values(fitmentStatuses).reduce((sum, count) => sum + count, 0) === expected,
     };
     const report = { expected: expectedTotals, actual, sourceRecords, bindings: { productBindings, variantBindings, productHeads, variantHeads }, unpublished, versionZero, provenance, issues, issueCounts: Object.fromEntries(issueGroups.map((group) => [group.code, group._count])), stProducts, categoryReviewProducts, fitmentStatuses, checks, passed: Object.values(checks).every(Boolean) };
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

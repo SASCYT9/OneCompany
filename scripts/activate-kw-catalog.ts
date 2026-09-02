@@ -46,7 +46,10 @@ async function main() {
       where: { productId: { in: owned.map((entry) => entry.productId) }, namespace: "onecompany", key: "normalized_fitment" },
       select: { productId: true, value: true },
     });
-    const blocked = fitments.filter((field) => (JSON.parse(field.value) as { status?: string }).status === "needs_review").map((field) => field.productId);
+    const blocked = fitments.filter((field) => {
+      const fitment = JSON.parse(field.value) as { status?: string; note?: string | null };
+      return fitment.status === "needs_review" && fitment.note !== "engine_vehicle_correlation_ambiguous";
+    }).map((field) => field.productId);
     const [uaProjections, enProjections, outboxGroups] = await Promise.all([
       prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "ua", isPublished: true } }),
       prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "en", isPublished: true } }),
