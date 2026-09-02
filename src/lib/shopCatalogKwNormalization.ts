@@ -198,6 +198,7 @@ export function normalizeKwShopifyProduct(
   const applicationCount = resolvedVehicles.reduce((count, vehicle) => count + Math.max(vehicle.makes.length, 1), 0);
   const correlateEngines = applicationCount === 1;
   if (!correlateEngines && engines.length) issues.push("engine_vehicle_correlation_ambiguous");
+  if (correlateEngines && engines.length) issues.push("engine_taxonomy_unresolved");
   const applications = resolvedVehicles.flatMap(({ rawVehicleTag, makes, rawParsed, inferred }) => {
     const resolvedMakes: Array<string | null> = makes.length ? makes : [null];
     return resolvedMakes.map((make) => ({
@@ -205,7 +206,7 @@ export function normalizeKwShopifyProduct(
       make,
       ...parseVehicleTag(rawVehicleTag, make),
       engines: correlateEngines ? engines : [],
-      verification: !make || (!correlateEngines && engines.length > 0)
+      verification: !make || engines.length > 0
         ? "NEEDS_REVIEW" as const
         : inferred ? "INFERRED" as const : "VERIFIED" as const,
     }));

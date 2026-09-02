@@ -48,7 +48,7 @@ async function main() {
     });
     const blocked = fitments.filter((field) => {
       const fitment = JSON.parse(field.value) as { status?: string; note?: string | null };
-      return fitment.status === "needs_review" && fitment.note !== "engine_vehicle_correlation_ambiguous";
+      return fitment.status === "needs_review" && !["engine_vehicle_correlation_ambiguous", "engine_taxonomy_unresolved"].includes(fitment.note ?? "");
     }).map((field) => field.productId);
     const [uaProjections, enProjections, outboxGroups] = await Promise.all([
       prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "ua", isPublished: true } }),

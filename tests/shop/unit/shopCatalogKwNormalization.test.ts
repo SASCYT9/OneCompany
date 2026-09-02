@@ -32,9 +32,9 @@ test("KW normalizer parses model, chassis, years, engines and canonical category
     yearFrom: 2018,
     yearTo: null,
     engines: ["320 i", "M3 Competition xDrive"],
-    verification: "VERIFIED",
+    verification: "NEEDS_REVIEW",
   }]);
-  assert.deepEqual(normalized.issues, []);
+  assert.deepEqual(normalized.issues, ["engine_taxonomy_unresolved"]);
 });
 
 test("single-make evidence resolves vehicles in multi-brand products", () => {
@@ -106,7 +106,7 @@ test("multi-brand make correlation can use explicit make+model evidence in the t
   row.title = "Койловерна підвіска V3 — SKODA OCTAVIA IV, VW ARTEON";
   const normalized = normalizeKwShopifyProduct(row, new Map());
   assert.equal(normalized.applications[0]!.make, "Skoda");
-  assert.equal(normalized.applications[0]!.verification, "INFERRED");
+  assert.equal(normalized.applications[0]!.verification, "NEEDS_REVIEW");
 });
 
 test("KW fitment becomes OR clauses without cross-joining vehicle engines", () => {
@@ -115,7 +115,7 @@ test("KW fitment becomes OR clauses without cross-joining vehicle engines", () =
   ];
   const normalization = normalizeKwShopifyCatalog(rows)[0]!;
   const policy = buildKwCompatibilityPolicy("local-product-id", normalization);
-  assert.equal(policy.mode, "VEHICLE_SPECIFIC");
+  assert.equal(policy.mode, "NEEDS_REVIEW");
   assert.equal(policy.clauses.length, 1);
   assert.deepEqual(
     policy.clauses[0]!.constraints.find((constraint) => constraint.dimension === "engine"),
@@ -123,7 +123,7 @@ test("KW fitment becomes OR clauses without cross-joining vehicle engines", () =
   );
   assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(policy), []);
   const metafield = buildKwNormalizedFitment(normalization);
-  assert.equal(metafield.status, "verified");
+  assert.equal(metafield.status, "needs_review");
   assert.equal(metafield.applications[0]!.make, "BMW");
   assert.deepEqual(metafield.applications[0]!.engines, ["320 i"]);
 });
