@@ -50,9 +50,10 @@ async function main() {
       const fitment = JSON.parse(field.value) as { status?: string; note?: string | null };
       return fitment.status === "needs_review" && !["engine_vehicle_correlation_ambiguous", "engine_taxonomy_unresolved"].includes(fitment.note ?? "");
     }).map((field) => field.productId);
-    const [uaProjections, enProjections, outboxGroups] = await Promise.all([
-      prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "ua", isPublished: true } }),
-      prisma.shopCatalogProjection.count({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "en", isPublished: true } }),
+    const canonicalVersionByProduct = new Map(owned.map((entry) => [entry.productId, entry.product.catalogVersion]));
+    const [uaProjectionRows, enProjectionRows, outboxGroups] = await Promise.all([
+      prisma.shopCatalogProjection.findMany({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "ua", isPublished: true }, select: { productId: true, catalogVersion: true } }),
+      prisma.shopCatalogProjection.findMany({ where: { productId: { in: owned.map((entry) => entry.productId) }, locale: "en", isPublished: true }, select: { productId: true, catalogVersion: true } }),
       prisma.shopCatalogOutbox.groupBy({ by: ["status"], where: { productId: { in: owned.map((entry) => entry.productId) } }, _count: true }),
     ]);
     const report = {
@@ -62,7 +63,12 @@ async function main() {
       blockedFitments: blocked.length,
       unpublishedVersionZero: owned.filter((entry) => !entry.product.isPublished && entry.product.catalogVersion === BigInt(0)).length,
       alreadyPublished: owned.filter((entry) => entry.product.isPublished).length,
-      projections: { ua: uaProjections, en: enProjections },
+      projections: {
+        ua: uaProjectionRows.length,
+        en: enProjectionRows.length,
+        currentUa: uaProjectionRows.filter((row) => canonicalVersionByProduct.get(row.productId) === row.catalogVersion).length,
+        currentEn: enProjectionRows.filter((row) => canonicalVersionByProduct.get(row.productId) === row.catalogVersion).length,
+      },
       outbox: Object.fromEntries(outboxGroups.map((group) => [group.status, group._count])),
       ready: owned.length === 1_999 && fitments.length === 1_999 && blocked.length === 0,
     };

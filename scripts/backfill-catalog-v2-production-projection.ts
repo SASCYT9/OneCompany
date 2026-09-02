@@ -4,6 +4,7 @@ import { adminProductInclude } from "../src/lib/shopAdminCatalog";
 import { buildShopCatalogProjectionSourceFromAdminRecord } from "../src/lib/shopCatalogAdminSnapshot.server";
 import { buildShopCatalogProjection } from "../src/lib/shopCatalogProjection.server";
 import { planShopCatalogProjectionPersistence } from "../src/lib/shopCatalogProjectionPersistence.server";
+import { projectionSourceFromRevision } from "../src/lib/shopCatalogProjectionSource.server";
 
 const PAGE_SIZE = 50;
 
@@ -25,6 +26,8 @@ function assertAuthorized() {
 async function main() {
   assertAuthorized();
   const brand = process.argv.find((argument) => argument.startsWith("--brand="))?.slice("--brand=".length).trim() || null;
+  const force = process.argv.includes("--force");
+  const fromRevisions = process.argv.includes("--from-revisions");
   const client = new PrismaClient();
   let afterId: string | undefined;
   let processed = 0;
@@ -57,7 +60,16 @@ async function main() {
         select: { productId: true },
       });
       const existingIds = new Set(existing.map((row) => row.productId));
-      const pendingProducts = products.filter((product) => !existingIds.has(product.id));
+      const pendingProducts = force ? products : products.filter((product) => !existingIds.has(product.id));
+
+      const revisions = fromRevisions && pendingProducts.length ? await client.shopCatalogProductRevision.findMany({
+        where: { productId: { in: pendingProducts.map((product) => product.id) } },
+        select: { id: true, productId: true, version: true, contentHash: true, createdAt: true, snapshot: true },
+      }) : [];
+      const currentRevisionByProduct = new Map(revisions
+        .filter((revision) => pendingProducts.some((product) => product.id === revision.productId && product.catalogVersion === revision.version))
+        .map((revision) => [revision.productId, revision]));
+      if (fromRevisions && currentRevisionByProduct.size !== pendingProducts.length) throw new Error("Current immutable revision is missing for projection backfill");
 
       const variantToProduct = new Map(
         pendingProducts.flatMap((product) => product.variants.map((variant) => [variant.id, product.id] as const))
@@ -76,14 +88,22 @@ async function main() {
       }
 
       const plans = pendingProducts.map((product) => {
-        const source = buildShopCatalogProjectionSourceFromAdminRecord(
-          product,
-          product.catalogVersion.toString(),
-          inventoryCounts.get(product.id) ?? 0
-        );
+        const revision = currentRevisionByProduct.get(product.id);
+        const source = revision ? projectionSourceFromRevision({
+          productId: product.id, catalogVersion: product.catalogVersion, revisionId: revision.id,
+          revisionVersion: revision.version, contentHash: revision.contentHash, createdAt: revision.createdAt, snapshot: revision.snapshot,
+        }) : buildShopCatalogProjectionSourceFromAdminRecord(product, product.catalogVersion.toString(), inventoryCounts.get(product.id) ?? 0);
         return planShopCatalogProjectionPersistence([], buildShopCatalogProjection(source));
       });
       await client.$transaction(async (tx) => {
+        if (force && pendingProducts.length) {
+          const productIds = pendingProducts.map((product) => product.id);
+          await tx.shopCatalogProjectionConstraint.deleteMany({ where: { productId: { in: productIds } } });
+          await tx.shopCatalogProjectionClause.deleteMany({ where: { productId: { in: productIds } } });
+          await tx.shopCatalogProjectionPolicy.deleteMany({ where: { productId: { in: productIds } } });
+          await tx.shopCatalogProjectionSku.deleteMany({ where: { productId: { in: productIds } } });
+          await tx.shopCatalogProjection.deleteMany({ where: { productId: { in: productIds } } });
+        }
         const projectionRows = plans.flatMap((plan) => plan.projectionRows);
         const skuRows = plans.flatMap((plan) => plan.skuRows);
         const policyRows = plans.flatMap((plan) => plan.policyRows);
