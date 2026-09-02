@@ -59,6 +59,8 @@
     "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
     "shop:eventuri:warehouse-copy:dry": "node scripts/run-react-server-tsx.mjs scripts/curate-eventuri-warehouse-copy.ts --dry-run",
     "shop:eventuri:warehouse-copy": "node scripts/run-react-server-tsx.mjs scripts/curate-eventuri-warehouse-copy.ts --commit",
+    "shop:eventuri:warehouse-prices:dry": "node scripts/run-react-server-tsx.mjs scripts/update-eventuri-warehouse-prices.ts --dry-run",
+    "shop:eventuri:warehouse-prices": "node scripts/run-react-server-tsx.mjs scripts/update-eventuri-warehouse-prices.ts --commit",
     "shop:fitment:audit": "tsx --env-file=.env.local scripts/audit-shop-fitment.ts",
     "shop:search:benchmark": "tsx --env-file=.env.local scripts/benchmark-shop-vehicle-search.ts",
     "shop:catalog:v2:scale": "tsx scripts/benchmark-catalog-v2-scale.ts",
