@@ -29,6 +29,7 @@ function assertProductionAuthorization() {
 
 async function main() {
   const commit = process.argv.includes("--commit");
+  const concurrency = 8;
   if (commit) assertProductionAuthorization();
   const prisma = new PrismaClient();
   try {
@@ -62,8 +63,8 @@ async function main() {
     }
     let activated = 0;
     let idempotent = 0;
-    for (let offset = 0; offset < owned.length; offset += 4) {
-      const results = await Promise.all(owned.slice(offset, offset + 4).map(async (entry) => {
+    for (let offset = 0; offset < owned.length; offset += concurrency) {
+      const results = await Promise.all(owned.slice(offset, offset + concurrency).map(async (entry) => {
         if (entry.product.isPublished) return "idempotent" as const;
         await retryTransient(() => coordinateShopCatalogProductMutationWithClient(prisma, {
         productId: entry.productId,
