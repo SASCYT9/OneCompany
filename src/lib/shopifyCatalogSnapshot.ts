@@ -32,10 +32,45 @@ export type ShopifySnapshotAudit = {
   duplicateSkus: string[];
   missingMediaCount: number;
   vendors: Record<string, number>;
+  importSelection: {
+    canonicalBrand: "KW Suspensions";
+    includedProducts: number;
+    excludedProducts: number;
+    excludedByReason: Record<string, number>;
+  };
   productTypes: Record<string, number>;
   vehicleTagCounts: { makes: number; vehicles: number; engines: number };
   fingerprint: string;
 };
+
+export type KwShopifyProductSelection = {
+  action: "IMPORT" | "IGNORE_WITH_REASON";
+  canonicalBrand: "KW Suspensions" | null;
+  reason: string;
+};
+
+const KW_VENDOR_ALIASES = new Set(["kw", "kw automotive ukraine"]);
+
+/** Source-scoped allow-list: ST shares the shop but is not part of this migration. */
+export function classifyKwShopifyProduct(product: Pick<ShopifySnapshotProduct, "vendor">): KwShopifyProductSelection {
+  const vendor = product.vendor?.trim().toLowerCase() ?? "";
+  if (KW_VENDOR_ALIASES.has(vendor)) {
+    return {
+      action: "IMPORT",
+      canonicalBrand: "KW Suspensions",
+      reason: vendor === "kw automotive ukraine" ? "legacy KW vendor alias" : "canonical KW vendor",
+    };
+  }
+  return {
+    action: "IGNORE_WITH_REASON",
+    canonicalBrand: null,
+    reason: vendor === "st" ? "ST products are outside the approved migration scope" : `vendor not approved: ${product.vendor || "(empty)"}`,
+  };
+}
+
+export function selectKwShopifyProducts(products: readonly ShopifySnapshotProduct[]) {
+  return products.filter((product) => classifyKwShopifyProduct(product).action === "IMPORT");
+}
 
 export type ShopifyTranslationAudit = {
   schemaVersion: 1;
@@ -113,10 +148,15 @@ export function auditShopifySnapshot(
   let makeTags = 0;
   let vehicleTags = 0;
   let engineTags = 0;
+  let includedProducts = 0;
+  const excludedByReason: Record<string, number> = {};
 
   for (const product of products) {
     increment(vendors, product.vendor);
     increment(productTypes, product.productType);
+    const selection = classifyKwShopifyProduct(product);
+    if (selection.action === "IMPORT") includedProducts += 1;
+    else increment(excludedByReason, selection.reason);
     if (product.status === "ACTIVE") activeCount += 1;
     else if (product.status === "DRAFT") draftCount += 1;
     else if (product.status === "ARCHIVED") archivedCount += 1;
@@ -156,6 +196,12 @@ export function auditShopifySnapshot(
     duplicateSkus,
     missingMediaCount,
     vendors,
+    importSelection: {
+      canonicalBrand: "KW Suspensions",
+      includedProducts,
+      excludedProducts: products.length - includedProducts,
+      excludedByReason,
+    },
     productTypes,
     vehicleTagCounts: { makes: makeTags, vehicles: vehicleTags, engines: engineTags },
     fingerprint,

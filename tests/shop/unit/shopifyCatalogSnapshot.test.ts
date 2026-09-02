@@ -4,7 +4,9 @@ import test from "node:test";
 import {
   auditShopifyProductTranslations,
   auditShopifySnapshot,
+  classifyKwShopifyProduct,
   parseShopifyProductJsonl,
+  selectKwShopifyProducts,
 } from "../../../src/lib/shopifyCatalogSnapshot";
 
 const product = {
@@ -62,7 +64,29 @@ test("snapshot audit is deterministic and exposes migration blockers", () => {
   assert.equal(report.missingSkuCount, 1);
   assert.deepEqual(report.duplicateSkus, ["DUP"]);
   assert.equal(report.missingMediaCount, 2);
+  assert.equal(report.importSelection.includedProducts, 2);
   assert.deepEqual(report.vehicleTagCounts, { makes: 2, vehicles: 2, engines: 2 });
   assert.match(report.fingerprint, /^[a-f0-9]{64}$/u);
   assert.equal(report.fingerprint, auditShopifySnapshot([...input].reverse()).fingerprint);
+});
+
+test("KW migration includes the legacy KW vendor alias and excludes ST with an explicit reason", () => {
+  const products = [
+    { ...product, id: "gid://shopify/Product/1", vendor: "KW", variants: [], media: [], metafields: [] },
+    { ...product, id: "gid://shopify/Product/2", vendor: "KW Automotive Ukraine", variants: [], media: [], metafields: [] },
+    { ...product, id: "gid://shopify/Product/3", vendor: "ST", variants: [], media: [], metafields: [] },
+  ];
+  assert.deepEqual(selectKwShopifyProducts(products).map((entry) => entry.id), [
+    "gid://shopify/Product/1",
+    "gid://shopify/Product/2",
+  ]);
+  assert.deepEqual(classifyKwShopifyProduct(products[1]!), {
+    action: "IMPORT",
+    canonicalBrand: "KW Suspensions",
+    reason: "legacy KW vendor alias",
+  });
+  assert.match(classifyKwShopifyProduct(products[2]!).reason, /outside the approved migration scope/u);
+  const report = auditShopifySnapshot(products, "shopify-kw-suspensions");
+  assert.equal(report.importSelection.includedProducts, 2);
+  assert.equal(report.importSelection.excludedProducts, 1);
 });
