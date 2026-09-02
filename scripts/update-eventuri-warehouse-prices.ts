@@ -24,8 +24,8 @@ async function main() {
       ],
     },
     select: {
-      id: true, slug: true, sku: true, priceUsd: true, catalogVersion: true,
-      variants: { select: { id: true, sku: true, priceUsd: true } },
+      id: true, slug: true, sku: true, priceUsd: true, priceEur: true, priceEurEurope: true, priceUah: true, catalogVersion: true,
+      variants: { select: { id: true, sku: true, priceUsd: true, priceEur: true, priceEurEurope: true, priceUah: true } },
     },
     orderBy: { slug: "asc" },
   });
@@ -36,7 +36,8 @@ async function main() {
     if (!sku || nextPrice == null) throw new Error(`Cannot resolve approved SKU for ${row.slug}`);
     const variantIds = row.variants.filter((variant) => variant.sku?.trim().toUpperCase() === sku).map((variant) => variant.id);
     if (!variantIds.length) throw new Error(`No exact ${sku} variant for ${row.slug}`);
-    return { ...row, sku, nextPrice, variantIds, changed: Number(row.priceUsd) !== nextPrice || row.variants.some((variant) => variantIds.includes(variant.id) && Number(variant.priceUsd) !== nextPrice) };
+    const hasStaleRegionalPrice = Boolean(row.priceEur || row.priceEurEurope || row.priceUah) || row.variants.some((variant) => variantIds.includes(variant.id) && Boolean(variant.priceEur || variant.priceEurEurope || variant.priceUah));
+    return { ...row, sku, nextPrice, variantIds, changed: Number(row.priceUsd) !== nextPrice || hasStaleRegionalPrice || row.variants.some((variant) => variantIds.includes(variant.id) && Number(variant.priceUsd) !== nextPrice) };
   }).filter((row) => row.changed);
 
   const foundSkus = new Set(rows.flatMap((row) => [row.sku, ...row.variants.map((variant) => variant.sku)]).map((sku) => sku?.trim().toUpperCase()).filter(Boolean));
@@ -53,8 +54,9 @@ async function main() {
       expectedCatalogVersion: row.catalogVersion.toString(),
       changeDomains: ["PRICE"],
       async mutateAndSnapshot(tx, nextCatalogVersion) {
-        await tx.shopProduct.update({ where: { id: row.id }, data: { priceUsd } });
-        const variants = await tx.shopProductVariant.updateMany({ where: { productId: row.id, id: { in: row.variantIds } }, data: { priceUsd } });
+        const canonicalPrice = { priceUsd, priceEur: null, priceEurEurope: null, priceUah: null };
+        await tx.shopProduct.update({ where: { id: row.id }, data: canonicalPrice });
+        const variants = await tx.shopProductVariant.updateMany({ where: { productId: row.id, id: { in: row.variantIds } }, data: canonicalPrice });
         if (variants.count !== row.variantIds.length) throw new Error(`Variant ownership changed for ${row.slug}`);
         return buildShopCatalogAdminSnapshot(tx, row.id, nextCatalogVersion, { type: "IMPORT", id: "eventuri-warehouse-prices@system.local", reason: "eventuri.warehouse-price.correct" });
       },
