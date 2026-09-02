@@ -136,5 +136,5 @@ export async function insertKwDraftWithClient(input: {
       details: { externalProductId: draft.source.externalProductId, sku: draft.product.sku } as Prisma.InputJsonValue,
     })) });
     return { status: "inserted" as const, productId: product.id };
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 });
 }
