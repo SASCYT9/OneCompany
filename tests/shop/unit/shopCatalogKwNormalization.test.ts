@@ -64,6 +64,20 @@ test("KW HAS title supplies the missing Shopify category without inventing fitme
   assert.ok(!normalized.issues.includes("category_unmapped"));
 });
 
+test("shared legacy vehicle tags expand into distinct make applications", () => {
+  const row = product("p9", ["brand:CUPRA", "brand:SEAT", "veh:ATECA (5FP KH7) 04/2016-"]);
+  const normalized = normalizeKwShopifyProduct(row, new Map());
+  assert.deepEqual(normalized.applications.map(({ make }) => make), ["Cupra", "Seat"]);
+  assert.ok(normalized.applications.every(({ verification }) => verification === "INFERRED"));
+  assert.ok(!normalized.issues.includes("vehicle_make_correlation_ambiguous"));
+});
+
+test("chassis evidence separates Cupra Leon from Seat Leon", () => {
+  const row = product("p10", ["brand:CUPRA", "brand:SEAT", "veh:LEON (KL1 KU1 KUG) 09/2020-"]);
+  const normalized = normalizeKwShopifyProduct(row, new Map());
+  assert.deepEqual(normalized.applications.map(({ make }) => make), ["Cupra"]);
+});
+
 test("unresolved multi-brand correlations are quarantined instead of cross-joined", () => {
   const target = product("p4", ["brand:AUDI", "brand:VW", "veh:UNKNOWN (X1) 01/2020-", "eng:2.0 TSI"]);
   const normalized = normalizeKwShopifyProduct(target, new Map());

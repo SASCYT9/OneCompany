@@ -117,6 +117,28 @@ function parseVehicleTag(rawVehicleTag: string, make: string | null) {
   return { model, chassisCodes, yearFrom, yearTo };
 }
 
+function curatedVehicleMakes(model: string, chassisCodes: readonly string[]) {
+  const label = model.toUpperCase();
+  const chassis = new Set(chassisCodes.map((value) => value.toUpperCase()));
+  if (/^LEON(?:\s|$)/u.test(label)) {
+    if (["KU1", "KUG", "KU8", "KUD"].some((code) => chassis.has(code))) return ["Cupra"];
+    if (["KLG", "KLD"].some((code) => chassis.has(code))) return ["Seat"];
+  }
+  if (label === "ATECA") return ["Cupra", "Seat"];
+  if (label === "124 SPIDER") return ["Abarth", "Fiat"];
+  if (label === "PUNTO EVO") return ["Abarth", "Fiat"];
+  if (label === "BRZ") return ["Subaru"];
+  if (/^(?:GR 86|GT 86)/u.test(label)) return ["Toyota"];
+  if (label.startsWith("FR-S")) return ["Scion"];
+  if (/^(?:MINI COUNTRYMAN|MINI CLUBMAN)/u.test(label)) return ["MINI"];
+  if (/^(?:X2|2 GRAN COUPE|Z4 ROADSTER)/u.test(label)) return ["BMW"];
+  if (/^(?:PASSAT|GOLF|POLO|ID\.|TIGUAN|UP(?:\s|$))/u.test(label)) return ["Volkswagen"];
+  if (/^(?:SUPERB|KODIAQ|KAROQ|FABIA|ENYAQ)/u.test(label)) return ["Skoda"];
+  if (/^(?:TARRACO|IBIZA|ALHAMBRA)/u.test(label)) return ["Seat"];
+  if (/^Q4 E-TRON/u.test(label)) return ["Audi"];
+  return [];
+}
+
 function titleMakeEvidence(product: ShopifySnapshotProduct, rawMakes: readonly string[], rawVehicleTag: string) {
   if (typeof product.title !== "string" || !product.title.trim()) return null;
   const dateIndex = rawVehicleTag.search(/\b(?:0[1-9]|1[0-2])\/(?:19|20)\d{2}/u);
@@ -160,28 +182,31 @@ export function normalizeKwShopifyProduct(
   if (categoryKey === "needs-review") issues.push("category_unmapped");
   if (!vehicleTags.length) issues.push("vehicle_tags_missing");
 
-  const correlateEngines = vehicleTags.length === 1;
-  if (!correlateEngines && engines.length) issues.push("engine_vehicle_correlation_ambiguous");
-  const applications = vehicleTags.map((rawVehicleTag) => {
+  const resolvedVehicles = vehicleTags.map((rawVehicleTag) => {
     const candidates = makeEvidence.get(vehicleEvidenceKey(rawVehicleTag)) ?? new Set<string>();
     const withinProduct = [...candidates].filter((make) => rawMakes.includes(make));
     const evidenceMake = withinProduct.length === 1 ? withinProduct[0]! : null;
     const singleMake = rawMakes.length === 1 ? rawMakes[0]! : null;
     const inferredMake = evidenceMake || singleMake ? null : titleMakeEvidence(product, rawMakes, rawVehicleTag);
-    const make = evidenceMake ?? singleMake ?? inferredMake;
-    if (!make) issues.push("vehicle_make_correlation_ambiguous");
-    const parsed = parseVehicleTag(rawVehicleTag, make);
-    return {
+    const initialMake = evidenceMake ?? singleMake ?? inferredMake;
+    const rawParsed = parseVehicleTag(rawVehicleTag, null);
+    const curatedMakes = initialMake ? [] : curatedVehicleMakes(rawParsed.model, rawParsed.chassisCodes).filter((make) => !rawMakes.length || rawMakes.includes(make));
+    const makes = initialMake ? [initialMake] : curatedMakes;
+    if (!makes.length) issues.push("vehicle_make_correlation_ambiguous");
+    return { rawVehicleTag, makes, rawParsed, inferred: Boolean(inferredMake) || curatedMakes.length > 0 };
+  });
+  const applicationCount = resolvedVehicles.reduce((count, vehicle) => count + Math.max(vehicle.makes.length, 1), 0);
+  const correlateEngines = applicationCount === 1;
+  if (!correlateEngines && engines.length) issues.push("engine_vehicle_correlation_ambiguous");
+  const applications = resolvedVehicles.flatMap(({ rawVehicleTag, makes, rawParsed, inferred }) => {
+    const resolvedMakes: Array<string | null> = makes.length ? makes : [null];
+    return resolvedMakes.map((make) => ({
       rawVehicleTag,
       make,
-      ...parsed,
+      ...parseVehicleTag(rawVehicleTag, make),
       engines: correlateEngines ? engines : [],
-      verification: !make
-        ? "NEEDS_REVIEW" as const
-        : inferredMake
-          ? "INFERRED" as const
-          : "VERIFIED" as const,
-    };
+      verification: !make ? "NEEDS_REVIEW" as const : inferred ? "INFERRED" as const : "VERIFIED" as const,
+    }));
   });
 
   return {

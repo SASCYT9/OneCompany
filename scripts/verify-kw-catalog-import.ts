@@ -38,7 +38,7 @@ async function main() {
     const source = await prisma.shopCatalogSource.findUniqueOrThrow({ where: { key: "shopify-kw-suspensions" } });
     const brand = await prisma.shopBrand.findUniqueOrThrow({ where: { key: "kw-suspensions" } });
     const productWhere = { brandId: brand.id };
-    const [productsCount, variants, media, metafields, unpublished, versionZero, sourceRecords, productBindings, variantBindings, productHeads, variantHeads, provenance, issues, stProducts] = await Promise.all([
+    const [productsCount, variants, media, metafields, unpublished, versionZero, sourceRecords, productBindings, variantBindings, productHeads, variantHeads, provenance, issues, stProducts, categoryReviewProducts, fitmentMetafields, issueGroups] = await Promise.all([
       prisma.shopProduct.count({ where: productWhere }),
       prisma.shopProductVariant.count({ where: { product: productWhere } }),
       prisma.shopProductMedia.count({ where: { product: productWhere } }),
@@ -53,7 +53,15 @@ async function main() {
       prisma.shopCatalogFieldProvenance.count({ where: { sourceRecord: { sourceId: source.id } } }),
       prisma.shopCatalogNormalizationIssue.count({ where: { sourceRecord: { sourceId: source.id } } }),
       prisma.shopProduct.count({ where: { ...productWhere, OR: [{ vendor: { equals: "ST", mode: "insensitive" } }, { brand: { equals: "ST", mode: "insensitive" } }] } }),
+      prisma.shopProduct.count({ where: { ...productWhere, category: { slug: "needs-review" } } }),
+      prisma.shopProductMetafield.findMany({ where: { product: productWhere, namespace: "onecompany", key: "normalized_fitment" }, select: { value: true } }),
+      prisma.shopCatalogNormalizationIssue.groupBy({ by: ["code"], where: { sourceRecord: { sourceId: source.id } }, _count: true }),
     ]);
+    const fitmentStatuses = fitmentMetafields.reduce<Record<string, number>>((counts, metafield) => {
+      const status = String((JSON.parse(metafield.value) as { status?: unknown }).status ?? "missing");
+      counts[status] = (counts[status] ?? 0) + 1;
+      return counts;
+    }, {});
     const actual = { products: productsCount, variants, media, metafields };
     const checks = {
       exactEntityParity: JSON.stringify(actual) === JSON.stringify(expectedTotals),
@@ -63,8 +71,10 @@ async function main() {
       allCatalogVersionZero: versionZero === expected,
       rawFieldProvenancePresent: provenance > 0,
       noStProducts: stProducts === 0,
+      allCategoriesMapped: categoryReviewProducts === 0,
+      fitmentProjectionReady: (fitmentStatuses.verified ?? 0) + (fitmentStatuses.inferred ?? 0) === expected && (fitmentStatuses.needs_review ?? 0) === 0,
     };
-    const report = { expected: expectedTotals, actual, sourceRecords, bindings: { productBindings, variantBindings, productHeads, variantHeads }, unpublished, versionZero, provenance, issues, stProducts, checks, passed: Object.values(checks).every(Boolean) };
+    const report = { expected: expectedTotals, actual, sourceRecords, bindings: { productBindings, variantBindings, productHeads, variantHeads }, unpublished, versionZero, provenance, issues, issueCounts: Object.fromEntries(issueGroups.map((group) => [group.code, group._count])), stProducts, categoryReviewProducts, fitmentStatuses, checks, passed: Object.values(checks).every(Boolean) };
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     if (!report.passed) process.exitCode = 1;
   } finally {

@@ -11,7 +11,7 @@ async function main() {
   const selected = selectKwShopifyProducts(parseShopifyProductJsonl(await readFile(resolve(sourcePath), "utf8")));
   const normalized = normalizeKwShopifyCatalog(selected);
   const issueCounts: Record<string, number> = {};
-  const issueSamples: Record<string, Array<{ id: string; title: string; productType: string | null; tags: string[] }>> = {};
+  const issueSamples: Record<string, Array<{ id: string; title: string; productType: string | null; tags: string[]; applications: typeof normalized[number]["applications"] }>> = {};
   for (let index = 0; index < normalized.length; index += 1) {
     const product = normalized[index]!;
     for (const issue of product.issues) {
@@ -19,7 +19,7 @@ async function main() {
       const samples = issueSamples[issue] ?? [];
       if (samples.length < 20) {
         const source = selected[index]!;
-        samples.push({ id: source.id, title: String(source.title ?? ""), productType: source.productType ?? null, tags: source.tags ?? [] });
+        samples.push({ id: source.id, title: String(source.title ?? ""), productType: source.productType ?? null, tags: source.tags ?? [], applications: product.applications });
         issueSamples[issue] = samples;
       }
     }
