@@ -19,8 +19,9 @@ import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 import {
-  isShopWarehouseInStockSku,
+  isShopWarehouseInStockProduct,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
+  SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "@/lib/shopWarehouseInventory";
 
 const PAGE_SIZE = 24;
@@ -114,6 +115,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       OR: [
         { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } },
         { variants: { some: { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } } } },
+        { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
       ],
     },
     select: { id: true },
@@ -212,7 +214,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       thumbnail: cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null,
-      inStock: isShopWarehouseInStockSku(cardPrice?.sku ?? item.normalizedSku),
+      inStock: isShopWarehouseInStockProduct(cardPrice?.sku ?? item.normalizedSku, item.slug),
       price: displayPrice,
       priceUsd: priceSet.usd,
       priceEur: priceSet.eur,

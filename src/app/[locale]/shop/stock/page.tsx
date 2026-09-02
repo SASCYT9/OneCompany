@@ -149,7 +149,7 @@ const getCatalogProductPresentation = (item: StockItem, locale: "ua" | "en") => 
   return resolveShopWarehouseProductCopy(item.partNumber, locale, {
     title: cleanTitle,
     description: item.description.trim(),
-  });
+  }, item.slug);
 };
 
 const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {

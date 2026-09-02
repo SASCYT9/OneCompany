@@ -21,6 +21,7 @@ async function main() {
     select: {
       id: true, slug: true, vendor: true, titleUa: true, titleEn: true,
       shortDescUa: true, shortDescEn: true, longDescUa: true, longDescEn: true,
+      seoTitleUa: true, seoTitleEn: true, seoDescriptionUa: true, seoDescriptionEn: true,
       catalogVersion: true, variants: { select: { sku: true } },
     },
     orderBy: { slug: "asc" },

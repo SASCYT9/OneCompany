@@ -3,16 +3,33 @@ import assert from "node:assert/strict";
 
 import {
   getShopWarehouseStockStatus,
+  isShopWarehouseInStockProduct,
   isShopWarehouseInStockSku,
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
+  SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "../../../src/lib/shopWarehouseInventory";
 
-test("warehouse inventory contains the eleven confirmed Eventuri SKUs", () => {
-  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 11);
-  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 11);
+test("warehouse inventory contains eleven Eventuri SKUs and one iPE SKU", () => {
+  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 12);
+  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 12);
   assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.every(isShopWarehouseInStockSku), true);
+});
+
+test("iPE X5 M / X6 M LCI product is matched by canonical SKU and exact slug", () => {
+  assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_SLUGS, ["ipe-bmw-x5m-x6m-f95-f96-exhaust-system"]);
+  assert.equal(isShopWarehouseInStockProduct(null, SHOP_WAREHOUSE_IN_STOCK_SLUGS[0]), true);
+  assert.equal(isShopWarehouseInStockProduct("0WX595-NVNM0-2", null), true);
+  assert.equal(isShopWarehouseInStockProduct(null, "bmw-x5m-x6m-f95-f96-exhaust"), false);
+  const copy = resolveShopWarehouseProductCopy(
+    null,
+    "ua",
+    { title: "fallback", description: "fallback" },
+    SHOP_WAREHOUSE_IN_STOCK_SLUGS[0]
+  );
+  assert.match(copy.title, /LCI/);
+  assert.match(copy.description, /iPE/);
 });
 
 test("every confirmed warehouse SKU has curated bilingual storefront copy", () => {

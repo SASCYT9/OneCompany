@@ -1,4 +1,4 @@
-export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
+export const SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS = [
   "EVE-G9X-CF-INT",
   "EVE-G9X-CF-CHG",
   "EVE-F9XM5M8-CF-INT",
@@ -12,10 +12,20 @@ export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
   "EVE-FLC",
 ] as const;
 
+export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
+  ...SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS,
+  "0WX595-NVNM0-2",
+] as const;
+
+export const SHOP_WAREHOUSE_IN_STOCK_SLUGS = [
+  "ipe-bmw-x5m-x6m-f95-f96-exhaust-system",
+] as const;
+
 const normalizeWarehouseSku = (value: string | null | undefined) =>
   value?.trim().toUpperCase() ?? "";
 
 const warehouseSkuSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SKUS);
+const warehouseSlugSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SLUGS);
 
 const warehouseHeroImageBySku: Readonly<Record<string, string>> = {
   "EVE-G9X-CF-CHG": "/images/shop/eventuri/eve-g9x-cf-chg-hero.jpg",
@@ -27,7 +37,7 @@ type WarehouseProductCopy = {
   description: { ua: string; en: string };
 };
 
-const warehouseProductCopyBySku: Readonly<Record<string, WarehouseProductCopy>> = {
+const warehouseProductCopyBySku: Record<string, WarehouseProductCopy> = {
   "EVE-G9X-CF-INT": {
     title: { ua: "Карбонова впускна система для BMW M5 G90 / G99", en: "Carbon intake system for BMW M5 G90 / G99" },
     description: { ua: "Повний карбоновий впуск для нового BMW M5 із двигуном S68: точна посадка, швидший відгук і виразніший звук.", en: "A complete carbon intake for the new S68-powered BMW M5, engineered for precise fitment, sharper response and a richer sound." },
@@ -74,8 +84,28 @@ const warehouseProductCopyBySku: Readonly<Record<string, WarehouseProductCopy>> 
   },
 };
 
+const warehouseProductCopyBySlug: Readonly<Record<string, WarehouseProductCopy>> = {
+  "ipe-bmw-x5m-x6m-f95-f96-exhaust-system": {
+    title: {
+      ua: "Клапанна вихлопна система iPE для BMW X5 M F95 / X6 M F96 LCI",
+      en: "iPE valvetronic exhaust for BMW X5 M F95 / X6 M F96 LCI",
+    },
+    description: {
+      ua: "Повна клапанна система iPE з нержавіючої сталі T304 для рестайлінгових BMW X5 M та X6 M: керований звук, точна посадка й комплектна конфігурація cat-back.",
+      en: "A complete T304 stainless-steel iPE valvetronic system for the LCI BMW X5 M and X6 M, with controllable sound, precise fitment and a full cat-back configuration.",
+    },
+  },
+};
+
+warehouseProductCopyBySku["0WX595-NVNM0-2"] = warehouseProductCopyBySlug["ipe-bmw-x5m-x6m-f95-f96-exhaust-system"];
+
 export const isShopWarehouseInStockSku = (value: string | null | undefined) =>
   warehouseSkuSet.has(normalizeWarehouseSku(value));
+
+export const isShopWarehouseInStockProduct = (
+  sku: string | null | undefined,
+  slug: string | null | undefined
+) => isShopWarehouseInStockSku(sku) || warehouseSlugSet.has(slug?.trim().toLowerCase() ?? "");
 
 export const getShopWarehouseStockStatus = (value: string | null | undefined) =>
   isShopWarehouseInStockSku(value) ? ("inStock" as const) : ("preOrder" as const);
@@ -88,9 +118,12 @@ export const resolveShopWarehouseHeroImage = (
 export const resolveShopWarehouseProductCopy = (
   sku: string | null | undefined,
   locale: "ua" | "en",
-  fallback: { title: string; description: string }
+  fallback: { title: string; description: string },
+  slug?: string | null
 ) => {
-  const copy = warehouseProductCopyBySku[normalizeWarehouseSku(sku)];
+  const copy =
+    warehouseProductCopyBySku[normalizeWarehouseSku(sku)] ??
+    warehouseProductCopyBySlug[slug?.trim().toLowerCase() ?? ""];
   return copy
     ? { title: copy.title[locale], description: copy.description[locale] }
     : fallback;
