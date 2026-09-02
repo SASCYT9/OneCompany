@@ -234,12 +234,8 @@ export async function buildShopCatalogAdminSnapshot(
   nextCatalogVersion: string,
   actor: { type: string; id?: string | null; reason?: string | null }
 ): Promise<ShopCatalogCoordinatedMutationSnapshot> {
-  const record = await tx.shopProduct.findUnique({
-    where: { id: productId },
-    include: adminProductInclude,
-  });
-  if (!record) throw new Error(`Cannot snapshot missing product ${productId}`);
   const canonical = await loadLosslessCanonicalProduct(tx, productId);
+  const record = canonical.product;
   return {
     canonical: jsonSnapshot(canonical),
     projectionSource: buildShopCatalogProjectionSourceFromAdminRecord(
