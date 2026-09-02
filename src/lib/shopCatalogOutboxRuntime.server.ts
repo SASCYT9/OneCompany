@@ -10,6 +10,7 @@ import {
   type ShopCatalogOutboxProcessResult,
   type ShopCatalogOutboxTargetHandlers,
 } from "./shopCatalogOutboxWorker.server";
+import { prisma } from "./prisma";
 
 export type ShopCatalogOutboxRuntimeResult = {
   claimed: number;
@@ -36,6 +37,12 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
   const publish = async () => {
     if (!persisted) {
       persisted = (async () => {
+        const canonical = await prisma.shopProduct.findUnique({
+          where: { id: job.productId ?? job.entityId },
+          select: { catalogVersion: true },
+        });
+        if (!canonical) throw new Error(`Cannot publish missing catalog product ${job.productId ?? job.entityId}`);
+        if (canonical.catalogVersion > job.canonicalVersion) return;
         const source = projectionSourceFromRevision({
           productId: job.productId ?? job.entityId,
           catalogVersion: job.canonicalVersion,
