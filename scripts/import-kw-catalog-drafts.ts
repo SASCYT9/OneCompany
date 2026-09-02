@@ -12,6 +12,9 @@ async function main() {
   const commit = process.argv.includes("--commit-draft");
   const limitArg = process.argv.find((value) => value.startsWith("--limit="));
   const limit = limitArg ? Number(limitArg.slice(8)) : Number.POSITIVE_INFINITY;
+  const concurrencyArg = process.argv.find((value) => value.startsWith("--concurrency="));
+  const concurrency = concurrencyArg ? Number(concurrencyArg.slice(14)) : 4;
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 8) throw new TypeError("--concurrency must be between 1 and 8");
   const productsPath = resolve("backups/shopify/kw-suspensions/2026-09-02/products.jsonl");
   const translationsPath = resolve("backups/shopify/kw-suspensions/2026-09-02/translations-en.jsonl");
   const products = selectKwShopifyProducts(parseShopifyProductJsonl(await readFile(productsPath, "utf8")));
@@ -27,11 +30,19 @@ async function main() {
     const dependencies = await ensureKwImportDependencies(prisma);
     let inserted = 0;
     let idempotent = 0;
-    for (const entry of prepared.slice(0, limit)) {
-      const result = await insertKwDraftWithClient({ client: prisma, rawProduct: entry.product, draft: entry.draft, dependencies });
-      if (result.status === "inserted") inserted += 1;
-      else idempotent += 1;
-      if ((inserted + idempotent) % 50 === 0) console.log(JSON.stringify({ processed: inserted + idempotent, inserted, idempotent }));
+    const selected = prepared.slice(0, limit);
+    for (let offset = 0; offset < selected.length; offset += concurrency) {
+      const results = await Promise.all(selected.slice(offset, offset + concurrency).map((entry) => insertKwDraftWithClient({
+        client: prisma,
+        rawProduct: entry.product,
+        draft: entry.draft,
+        dependencies,
+      })));
+      for (const result of results) {
+        if (result.status === "inserted") inserted += 1;
+        else idempotent += 1;
+      }
+      if ((inserted + idempotent) % 100 === 0) console.log(JSON.stringify({ processed: inserted + idempotent, inserted, idempotent }));
     }
     console.log(JSON.stringify({ mode: "commit-draft", inserted, idempotent, published: 0 }, null, 2));
   } finally {
