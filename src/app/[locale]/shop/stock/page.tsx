@@ -2674,7 +2674,7 @@ function StockPageContent() {
         </AnimatePresence>
       </CatalogOverlayPortal>
 
-      <div className="relative w-full max-w-none px-3 pb-32 sm:px-5 lg:px-6 2xl:px-8">
+      <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
         <section
           onMouseEnter={() => setHeroPaused(true)}
           onMouseLeave={() => setHeroPaused(false)}
