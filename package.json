@@ -107,6 +107,8 @@
     "shop:catalog:v2:kw:import:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/import-kw-catalog-drafts.ts",
     "shop:catalog:v2:kw:import:drafts": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/import-kw-catalog-drafts.ts --commit-draft",
     "shop:catalog:v2:kw:import:verify": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/verify-kw-catalog-import.ts",
+    "shop:catalog:v2:kw:reconcile:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/reconcile-kw-catalog-drafts.ts",
+    "shop:catalog:v2:kw:reconcile:drafts": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/reconcile-kw-catalog-drafts.ts --commit-draft",
     "shop:catalog:v2:activation:check": "tsx scripts/check-catalog-v2-release-activation.ts",
     "shop:catalog:v2:activation:sign": "tsx scripts/create-catalog-v2-release-marker.ts",
     "shop:catalog:v2:shadow:evidence": "tsx scripts/read-catalog-v2-shadow-evidence.ts",

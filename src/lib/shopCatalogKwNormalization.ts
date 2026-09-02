@@ -38,6 +38,24 @@ const CATEGORY_KEYS: Readonly<Record<string, string>> = {
   "Верхня опора підвіски": "top-mount",
 };
 
+const BLOCKING_NORMALIZATION_ISSUES = new Set([
+  "vehicle_tags_missing",
+  "vehicle_make_correlation_ambiguous",
+  "category_unmapped",
+]);
+
+export function kwNormalizationHasBlockingIssues(normalization: Pick<KwProductNormalization, "issues">) {
+  return normalization.issues.some((issue) => BLOCKING_NORMALIZATION_ISSUES.has(issue));
+}
+
+function categoryKeyFor(product: ShopifySnapshotProduct) {
+  const explicit = CATEGORY_KEYS[product.productType ?? ""];
+  if (explicit) return explicit;
+  const title = typeof product.title === "string" ? product.title : "";
+  if (/\bKW\s+HAS\b|комплект\s+пружин|height[ -]?adjustable\s+spring/iu.test(title)) return "springs-and-sport-suspension";
+  return "needs-review";
+}
+
 function prefixedTags(product: ShopifySnapshotProduct, prefix: string) {
   const normalizedPrefix = prefix.toLowerCase();
   return (product.tags ?? [])
@@ -138,7 +156,7 @@ export function normalizeKwShopifyProduct(
   const rawMakes = [...new Set(sourceMakes(product).map(canonicalMake))];
   const vehicleTags = [...new Set(sourceVehicles(product))];
   const engines = [...new Set(prefixedTags(product, "eng:").map((value) => value.replace(/\s+/gu, " ").trim()))];
-  const categoryKey = CATEGORY_KEYS[product.productType ?? ""] ?? "needs-review";
+  const categoryKey = categoryKeyFor(product);
   if (categoryKey === "needs-review") issues.push("category_unmapped");
   if (!vehicleTags.length) issues.push("vehicle_tags_missing");
 
@@ -158,7 +176,7 @@ export function normalizeKwShopifyProduct(
       make,
       ...parsed,
       engines: correlateEngines ? engines : [],
-      verification: !make || (!correlateEngines && engines.length > 0)
+      verification: !make
         ? "NEEDS_REVIEW" as const
         : inferredMake
           ? "INFERRED" as const
@@ -207,7 +225,7 @@ export function buildKwCompatibilityPolicy(
       sourceRef: `shopify:${normalization.externalProductId}:tag:${application.rawVehicleTag}`,
     };
   });
-  const needsReview = normalization.issues.length > 0 || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
+  const needsReview = kwNormalizationHasBlockingIssues(normalization) || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
   return {
     version: 2,
     mode: clauses.length && !needsReview ? "VEHICLE_SPECIFIC" : "NEEDS_REVIEW",
@@ -234,7 +252,7 @@ export function buildKwNormalizedFitment(normalization: KwProductNormalization):
     opfGpf: "unknown" as const,
   }] : []);
   const makes = [...new Set(applications.map((application) => application.make))];
-  const hasReview = normalization.issues.length > 0 || normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
+  const hasReview = kwNormalizationHasBlockingIssues(normalization) || normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
   const hasInference = normalization.applications.some((application) => application.verification === "INFERRED");
   return {
     version: 2,

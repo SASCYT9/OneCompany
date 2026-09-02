@@ -51,7 +51,17 @@ test("single-make evidence resolves vehicles in multi-brand products", () => {
   const normalized = normalizeKwShopifyProduct(target, evidence);
   assert.deepEqual(normalized.applications.map(({ make }) => make), ["Cupra", "Volkswagen"]);
   assert.ok(normalized.applications.every(({ engines }) => engines.length === 0));
+  assert.ok(normalized.applications.every(({ verification }) => verification === "VERIFIED"));
   assert.ok(normalized.issues.includes("engine_vehicle_correlation_ambiguous"));
+  assert.equal(buildKwCompatibilityPolicy("p3", normalized).mode, "VEHICLE_SPECIFIC");
+});
+
+test("KW HAS title supplies the missing Shopify category without inventing fitment", () => {
+  const row = product("p8", ["brand:BMW", "veh:5 (G90) 07/2023-"], "");
+  row.title = "Комплект пружин з регулюванням висоти KW HAS для BMW M5 (G90) 2024+";
+  const normalized = normalizeKwShopifyCatalog([row])[0]!;
+  assert.equal(normalized.categoryKey, "springs-and-sport-suspension");
+  assert.ok(!normalized.issues.includes("category_unmapped"));
 });
 
 test("unresolved multi-brand correlations are quarantined instead of cross-joined", () => {
