@@ -18,6 +18,7 @@ function expectedCount() {
 
 async function main() {
   const expected = expectedCount();
+  const activated = process.argv.includes("--activated");
   if (!Number.isInteger(expected) || expected < 1 || expected > 1_999) throw new TypeError("--expected must be between 1 and 1999");
   const products = selectKwShopifyProducts(parseShopifyProductJsonl(await readFile(PRODUCTS_PATH, "utf8"))).slice(0, expected);
   const translations = parseShopifyProductTranslationMap(await readFile(TRANSLATIONS_PATH, "utf8"));
@@ -67,8 +68,8 @@ async function main() {
       exactEntityParity: JSON.stringify(actual) === JSON.stringify(expectedTotals),
       exactSourceRecords: sourceRecords === expected,
       exactBindings: productBindings === expected && productHeads === expected && variantBindings === expectedTotals.variants && variantHeads === expectedTotals.variants,
-      allUnpublished: unpublished === expected,
-      allCatalogVersionZero: versionZero === expected,
+      publicationState: activated ? unpublished === 0 : unpublished === expected,
+      catalogVersionState: activated ? versionZero === 0 : versionZero === expected,
       rawFieldProvenancePresent: provenance > 0,
       noStProducts: stProducts === 0,
       allCategoriesMapped: categoryReviewProducts === 0,
