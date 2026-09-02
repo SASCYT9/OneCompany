@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { auditShopifySnapshot, parseShopifyProductJsonl } from "../../../src/lib/shopifyCatalogSnapshot";
+import {
+  auditShopifyProductTranslations,
+  auditShopifySnapshot,
+  parseShopifyProductJsonl,
+} from "../../../src/lib/shopifyCatalogSnapshot";
 
 const product = {
   id: "gid://shopify/Product/1",
@@ -23,6 +27,28 @@ test("ungrouped Shopify JSONL retains product children and unknown source fields
   assert.equal(parsed!.variants[0]!.custom, true);
   assert.equal(parsed!.media.length, 1);
   assert.equal(parsed!.metafields.length, 1);
+});
+
+test("translation audit never treats missing or outdated localized copy as complete", () => {
+  const jsonl = [
+    { id: "gid://shopify/Product/1", translations: [] },
+    { id: "gid://shopify/Product/2", translations: [{ key: "title", value: "KW V3", outdated: false }] },
+    { id: "gid://shopify/Product/3", translations: [
+      { key: "title", value: "ST X", outdated: true },
+      { key: "body_html", value: "<p>Body</p>", outdated: true },
+    ] },
+  ].map((value) => JSON.stringify(value)).join("\n");
+  assert.deepEqual(auditShopifyProductTranslations(jsonl, "en"), {
+    schemaVersion: 1,
+    locale: "en",
+    productCount: 3,
+    productsWithAnyTranslation: 2,
+    productsWithTitle: 2,
+    productsWithBody: 1,
+    productsWithOutdatedTranslation: 1,
+    missingTitle: 1,
+    missingBody: 2,
+  });
 });
 
 test("snapshot audit is deterministic and exposes migration blockers", () => {

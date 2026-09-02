@@ -99,6 +99,7 @@
     "shop:catalog:v2:remus:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-remus.ts",
     "shop:catalog:v2:ownership:audit": "tsx scripts/audit-catalog-v2-all-source-ownership.ts",
     "shop:shopify:snapshot:audit": "tsx scripts/audit-shopify-catalog-snapshot.ts",
+    "shop:shopify:translations:audit": "tsx scripts/audit-shopify-translation-snapshot.ts",
     "shop:catalog:v2:activation:check": "tsx scripts/check-catalog-v2-release-activation.ts",
     "shop:catalog:v2:activation:sign": "tsx scripts/create-catalog-v2-release-marker.ts",
     "shop:catalog:v2:shadow:evidence": "tsx scripts/read-catalog-v2-shadow-evidence.ts",

@@ -37,6 +37,18 @@ export type ShopifySnapshotAudit = {
   fingerprint: string;
 };
 
+export type ShopifyTranslationAudit = {
+  schemaVersion: 1;
+  locale: string;
+  productCount: number;
+  productsWithAnyTranslation: number;
+  productsWithTitle: number;
+  productsWithBody: number;
+  productsWithOutdatedTranslation: number;
+  missingTitle: number;
+  missingBody: number;
+};
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -147,5 +159,38 @@ export function auditShopifySnapshot(
     productTypes,
     vehicleTagCounts: { makes: makeTags, vehicles: vehicleTags, engines: engineTags },
     fingerprint,
+  };
+}
+
+export function auditShopifyProductTranslations(jsonl: string, locale: string): ShopifyTranslationAudit {
+  let productCount = 0;
+  let productsWithAnyTranslation = 0;
+  let productsWithTitle = 0;
+  let productsWithBody = 0;
+  let productsWithOutdatedTranslation = 0;
+  for (const [index, sourceLine] of jsonl.split(/\r?\n/u).entries()) {
+    const line = sourceLine.trim();
+    if (!line) continue;
+    const row = JSON.parse(line) as { id?: string; translations?: unknown };
+    if (!row.id?.includes("/Product/")) throw new TypeError(`Translation snapshot line ${index + 1} is not a product`);
+    productCount += 1;
+    const translations = Array.isArray(row.translations)
+      ? row.translations.filter((entry): entry is { key?: string; value?: string; outdated?: boolean } => Boolean(entry && typeof entry === "object"))
+      : [];
+    if (translations.some((entry) => Boolean(entry.value?.trim()))) productsWithAnyTranslation += 1;
+    if (translations.some((entry) => entry.key === "title" && Boolean(entry.value?.trim()))) productsWithTitle += 1;
+    if (translations.some((entry) => entry.key === "body_html" && Boolean(entry.value?.trim()))) productsWithBody += 1;
+    if (translations.some((entry) => entry.outdated === true)) productsWithOutdatedTranslation += 1;
+  }
+  return {
+    schemaVersion: 1,
+    locale,
+    productCount,
+    productsWithAnyTranslation,
+    productsWithTitle,
+    productsWithBody,
+    productsWithOutdatedTranslation,
+    missingTitle: productCount - productsWithTitle,
+    missingBody: productCount - productsWithBody,
   };
 }
