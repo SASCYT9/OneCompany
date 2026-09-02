@@ -17,7 +17,7 @@ async function retryTransient<T>(action: () => Promise<T>) {
       return await action();
     } catch (error) {
       const code = typeof error === "object" && error !== null && "code" in error ? error.code : null;
-      if (!["P1017", "P2024", "P2034"].includes(String(code)) || attempt === 5) throw error;
+      if (!["P1017", "P2024", "P2028", "P2034"].includes(String(code)) || attempt === 5) throw error;
       await new Promise((resolveRetry) => setTimeout(resolveRetry, attempt * 250));
     }
   }
@@ -61,8 +61,8 @@ async function main() {
       return;
     }
     let updated = 0;
-    for (let offset = 0; offset < pending.length; offset += 8) {
-      await Promise.all(pending.slice(offset, offset + 8).map(async (draft) => {
+    for (let offset = 0; offset < pending.length; offset += 4) {
+      await Promise.all(pending.slice(offset, offset + 4).map(async (draft) => {
         const binding = ownership.get(draft.source.externalProductId);
         const categoryId = categoryIds.get(draft.normalization.categoryKey);
         const normalizedFitment = draft.metafields.find((field) => field.namespace === "onecompany" && field.key === "normalized_fitment");
