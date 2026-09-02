@@ -62,12 +62,10 @@ async function main() {
     }
     let activated = 0;
     let idempotent = 0;
-    for (const entry of owned) {
-      if (entry.product.isPublished) {
-        idempotent += 1;
-        continue;
-      }
-      await retryTransient(() => coordinateShopCatalogProductMutationWithClient(prisma, {
+    for (let offset = 0; offset < owned.length; offset += 4) {
+      const results = await Promise.all(owned.slice(offset, offset + 4).map(async (entry) => {
+        if (entry.product.isPublished) return "idempotent" as const;
+        await retryTransient(() => coordinateShopCatalogProductMutationWithClient(prisma, {
         productId: entry.productId,
         expectedCatalogVersion: entry.product.catalogVersion.toString(),
         changeDomains: CHANGE_DOMAINS,
@@ -76,8 +74,11 @@ async function main() {
           const snapshot = await buildShopCatalogAdminSnapshot(tx, entry.productId, nextCatalogVersion, { type: "IMPORT", id: "kw-shopify-import@system.local", reason: "kw.initial-activation" });
           return { ...snapshot, sourceRecordId: entry.sourceRecordId };
         },
+        }));
+        return "activated" as const;
       }));
-      activated += 1;
+      activated += results.filter((result) => result === "activated").length;
+      idempotent += results.filter((result) => result === "idempotent").length;
       if ((activated + idempotent) % 100 === 0) process.stdout.write(`${JSON.stringify({ processed: activated + idempotent, activated, idempotent })}\n`);
     }
     let publicationCompleted = 0;
