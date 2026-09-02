@@ -24,6 +24,7 @@ function assertAuthorized() {
 
 async function main() {
   assertAuthorized();
+  const brand = process.argv.find((argument) => argument.startsWith("--brand="))?.slice("--brand=".length).trim() || null;
   const client = new PrismaClient();
   let afterId: string | undefined;
   let processed = 0;
@@ -43,7 +44,7 @@ async function main() {
 
     while (!process.argv.includes("--facets-only")) {
       const products = await client.shopProduct.findMany({
-        where: { isPublished: true, status: "ACTIVE" },
+        where: { isPublished: true, status: "ACTIVE", ...(brand ? { brand } : {}) },
         orderBy: { id: "asc" },
         take: PAGE_SIZE,
         ...(afterId ? { cursor: { id: afterId }, skip: 1 } : {}),
