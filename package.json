@@ -57,6 +57,8 @@
     "shop:urban:gp-only": "tsx scripts/reconcile-urban-catalog.ts --commit --gp-only",
     "shop:urban:ua-copy:dry": "tsx scripts/curate-urban-ua-copy.ts --dry-run",
     "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
+    "shop:eventuri:warehouse-copy:dry": "node scripts/run-react-server-tsx.mjs scripts/curate-eventuri-warehouse-copy.ts --dry-run",
+    "shop:eventuri:warehouse-copy": "node scripts/run-react-server-tsx.mjs scripts/curate-eventuri-warehouse-copy.ts --commit",
     "shop:fitment:audit": "tsx --env-file=.env.local scripts/audit-shop-fitment.ts",
     "shop:search:benchmark": "tsx --env-file=.env.local scripts/benchmark-shop-vehicle-search.ts",
     "shop:catalog:v2:scale": "tsx scripts/benchmark-catalog-v2-scale.ts",
