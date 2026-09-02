@@ -49,7 +49,10 @@ import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
 import { SHOW_STOCK_BADGE, shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
 import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
-import { resolveShopWarehouseHeroImage } from "@/lib/shopWarehouseInventory";
+import {
+  resolveShopWarehouseHeroImage,
+  resolveShopWarehouseProductCopy,
+} from "@/lib/shopWarehouseInventory";
 
 type StockItem = {
   id: string;
@@ -137,12 +140,16 @@ type StockSearchResponse = {
   globalFilterStats?: FilterStats;
 };
 
-const getCatalogHeroProductTitle = (item: StockItem) => {
+const getCatalogProductPresentation = (item: StockItem, locale: "ua" | "en") => {
   const name = item.name.trim();
   const brand = item.brand.trim();
-  return brand && name.toLocaleLowerCase().startsWith(brand.toLocaleLowerCase())
+  const cleanTitle = brand && name.toLocaleLowerCase().startsWith(brand.toLocaleLowerCase())
     ? name.slice(brand.length).trim()
     : name;
+  return resolveShopWarehouseProductCopy(item.partNumber, locale, {
+    title: cleanTitle,
+    description: item.description.trim(),
+  });
 };
 
 const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {
@@ -2680,10 +2687,10 @@ function StockPageContent() {
           onMouseLeave={() => setHeroPaused(false)}
           onFocusCapture={() => setHeroPaused(true)}
           onBlurCapture={() => setHeroPaused(false)}
-          className="relative z-30 isolate mb-0 min-h-[590px] overflow-hidden rounded-[18px] border border-white/10 bg-[#050505] text-white shadow-[0_18px_55px_rgba(0,0,0,0.18)] lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
+          className="relative z-30 isolate mb-0 min-h-[590px] overflow-hidden rounded-[18px] border border-black/10 bg-[#eeeae2] text-[#11110f] shadow-[0_18px_55px_rgba(0,0,0,0.14)] dark:border-white/10 dark:bg-[#050505] dark:text-white lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
         >
           <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.85),transparent_34%),linear-gradient(105deg,#e8e3da_0%,#f6f3ed_55%,#ded8cd_100%)] dark:bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]" />
           <div className="relative z-10 grid min-h-[590px] grid-cols-1 content-start gap-5 px-5 pb-[110px] pt-5 sm:px-8 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-[112px] lg:pt-5 xl:px-16">
             {activeHeroProduct ? (
               <>
@@ -2705,36 +2712,37 @@ function StockPageContent() {
                   transition={{ duration: 0.42 }}
                   className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-white/20">·</span>{activeHeroProduct.partNumber}</p>
-                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogHeroProductTitle(activeHeroProduct)}</h2>
-                  <p className="mt-4 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
-                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.08)]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.95)]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f6f24] dark:text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-black/20 dark:text-white/20">·</span>{activeHeroProduct.partNumber}</p>
+                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en").title}</h2>
+                  <p className="mt-2 line-clamp-2 max-w-[430px] text-[11px] font-light leading-relaxed text-black/55 dark:text-white/52 sm:text-xs">{getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en").description}</p>
+                  <p className="mt-3 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
+                  <div className="mt-2 flex w-fit items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-700 shadow-[0_0_16px_rgba(16,185,129,0.07)] dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
+                    <span className="h-1 w-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] dark:bg-emerald-400" />
                     {isUa ? "В наявності · готово до відправлення" : "In stock · ready to ship"}
                   </div>
-                  <Link href={resolveShopCatalogProductHref(locale, activeHeroProduct.href, activeHeroProduct.slug)} className="mt-5 inline-flex h-11 items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                  <Link href={resolveShopCatalogProductHref(locale, activeHeroProduct.href, activeHeroProduct.slug)} className="mt-4 flex h-11 w-fit items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-[#eeeae2] dark:focus-visible:ring-offset-black">
                     {isUa ? "Детальніше" : "View product"}<ArrowRight className="h-3.5 w-3.5" />
                   </Link>
-                  <div className="mt-4 flex max-w-[250px] items-center justify-between border-b border-white/12 pb-2">
-                    <button type="button" aria-label={isUa ? "Попередній товар" : "Previous product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current - 1 + heroProducts.length) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-white/70 transition hover:text-[#c6a657] disabled:opacity-25"><ArrowLeft className="h-4 w-4" /></button>
-                    <span className="text-[10px] tracking-[0.16em] text-white/45">{String(heroProducts.length ? heroProductIndex + 1 : 0).padStart(2, "0")} / {String(heroProducts.length).padStart(2, "0")}</span>
-                    <button type="button" aria-label={isUa ? "Наступний товар" : "Next product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current + 1) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-white/70 transition hover:text-[#c6a657] disabled:opacity-25"><ArrowRight className="h-4 w-4" /></button>
+                  <div className="mt-3 flex max-w-[250px] items-center justify-between border-b border-black/12 pb-2 dark:border-white/12">
+                    <button type="button" aria-label={isUa ? "Попередній товар" : "Previous product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current - 1 + heroProducts.length) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"><ArrowLeft className="h-4 w-4" /></button>
+                    <span className="text-[10px] tracking-[0.16em] text-black/42 dark:text-white/45">{String(heroProducts.length ? heroProductIndex + 1 : 0).padStart(2, "0")} / {String(heroProducts.length).padStart(2, "0")}</span>
+                    <button type="button" aria-label={isUa ? "Наступний товар" : "Next product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current + 1) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"><ArrowRight className="h-4 w-4" /></button>
                   </div>
                 </motion.div>
               </>
             ) : null}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-white/10 bg-black/72 backdrop-blur-xl">
+          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-black/10 bg-white/72 backdrop-blur-xl dark:border-white/10 dark:bg-black/72">
             <div className="flex min-w-0 flex-1 overflow-x-auto">
               {heroRailProducts.map(({ product, index }) => (
-                <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-white/10 px-4 text-left transition hover:bg-white/[0.04] sm:min-w-[230px]">
+                <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-black/10 px-4 text-left transition hover:bg-black/[0.035] dark:border-white/10 dark:hover:bg-white/[0.04] sm:min-w-[230px]">
                   <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]"><Image src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!} alt="" fill unoptimized sizes="80px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" /></span>
-                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#c6a657]">{product.partNumber || product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-white/68 group-hover:text-white">{getCatalogHeroProductTitle(product)}</span></span>
+                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8f6f24] dark:text-[#c6a657]">{product.partNumber || product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-black/62 group-hover:text-black dark:text-white/68 dark:group-hover:text-white">{getCatalogProductPresentation(product, isUa ? "ua" : "en").title}</span></span>
                 </button>
               ))}
             </div>
-            <Link href={`/${locale}/shop/catalog?stock=inStock`} className="hidden w-[245px] shrink-0 items-center justify-center gap-4 px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#c6a657] transition hover:bg-white/[0.04] hover:text-[#dfc06d] xl:flex">
+            <Link href={`/${locale}/shop/catalog?stock=inStock`} className="hidden w-[245px] shrink-0 items-center justify-center gap-4 px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8f6f24] transition hover:bg-black/[0.035] hover:text-[#705514] dark:text-[#c6a657] dark:hover:bg-white/[0.04] dark:hover:text-[#dfc06d] xl:flex">
               {isUa ? "Усі товари в наявності" : "All in-stock products"}<ArrowRight className="h-4 w-4" />
             </Link>
           </div>

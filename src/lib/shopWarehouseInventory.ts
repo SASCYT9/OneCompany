@@ -22,6 +22,58 @@ const warehouseHeroImageBySku: Readonly<Record<string, string>> = {
   "EVE-W192-FTR": "/images/shop/eventuri/eve-w192-ftr-hero.jpg",
 };
 
+type WarehouseProductCopy = {
+  title: { ua: string; en: string };
+  description: { ua: string; en: string };
+};
+
+const warehouseProductCopyBySku: Readonly<Record<string, WarehouseProductCopy>> = {
+  "EVE-G9X-CF-INT": {
+    title: { ua: "Карбонова впускна система для BMW M5 G90 / G99", en: "Carbon intake system for BMW M5 G90 / G99" },
+    description: { ua: "Повний карбоновий впуск для нового BMW M5 із двигуном S68: точна посадка, швидший відгук і виразніший звук.", en: "A complete carbon intake for the new S68-powered BMW M5, engineered for precise fitment, sharper response and a richer sound." },
+  },
+  "EVE-G9X-CF-CHG": {
+    title: { ua: "Карбонові турбоінлети для BMW M5 G90 / G99", en: "Carbon turbo inlets for BMW M5 G90 / G99" },
+    description: { ua: "Комплект турбоінлетів із препрег-карбону для двигуна S68, створений для вільнішого потоку повітря до турбін.", en: "Pre-preg carbon turbo inlets for the S68 engine, designed to deliver a cleaner, less restricted airflow path to the turbos." },
+  },
+  "EVE-F9XM5M8-CF-INT": {
+    title: { ua: "Карбонова впускна система V2 для BMW M5 F90 / M8 F9X", en: "V2 carbon intake for BMW M5 F90 / M8 F9X" },
+    description: { ua: "Друге покоління впуску Eventuri з оптимізованими повітроводами для стабільного потоку, нижчих температур і насиченого звуку.", en: "Eventuri's second-generation intake with optimized ducts for stable airflow, lower temperatures and a more purposeful induction sound." },
+  },
+  "EVE-F9XM5M8-CHG": {
+    title: { ua: "Карбонові турбоінлети для BMW M5 F90 / M8 F9X", en: "Carbon turbo inlets for BMW M5 F90 / M8 F9X" },
+    description: { ua: "Прямі карбонові канали до турбін зменшують опір і доповнюють штатну або Eventuri впускну систему.", en: "Direct carbon airflow paths reduce restriction at the turbos and complement either the factory or Eventuri intake system." },
+  },
+  "EVE-X56M-CHG": {
+    title: { ua: "Карбонові турбоінлети для BMW X5 M F95 / X6 M F96", en: "Carbon turbo inlets for BMW X5 M F95 / X6 M F96" },
+    description: { ua: "Точні препрег-карбонові інлети для S63, розраховані на штатні й тюнінговані конфігурації до рестайлінгу.", en: "Precision pre-preg carbon inlets for the S63, developed for stock and tuned pre-LCI applications." },
+  },
+  "EVE-G8XMV2-CF-INT": {
+    title: { ua: "Карбонова впускна система V2 для BMW M2 G87 / M3 G8X / M4 G8X", en: "V2 carbon intake for BMW M2 G87 / M3 G8X / M4 G8X" },
+    description: { ua: "Флагманський впуск Eventuri для двигуна S58 з великими фільтрами, карбоновими корпусами та продуманим холодним потоком.", en: "Eventuri's flagship S58 intake with large filters, carbon housings and a carefully managed cold-air path." },
+  },
+  "EVE-G8XM-CF-SC": {
+    title: { ua: "Карбонові повітрозабірники для BMW M3 G8X / M4 G8X", en: "Carbon air scoops for BMW M3 G8X / M4 G8X" },
+    description: { ua: "Комплект карбонових направляючих, що подає більше зовнішнього повітря до впускної системи та акуратно інтегрується за решіткою.", en: "Carbon air guides that channel more outside air toward the intake system while integrating neatly behind the grille." },
+  },
+  "EVE-4V8TT-CF-INT": {
+    title: { ua: "Карбонова впускна система для Audi RSQ8 / Lamborghini Urus", en: "Carbon intake for Audi RSQ8 / Lamborghini Urus" },
+    description: { ua: "Високопродуктивний впуск для 4.0 TFSI V8 із великими карбоновими каналами та оптимізованою подачею повітря до двох турбін.", en: "A high-performance 4.0 TFSI V8 intake with large carbon ducts and optimized airflow to both turbochargers." },
+  },
+  "EVE-AMGGT-CF-INT": {
+    title: { ua: "Карбонова впускна система для Mercedes-AMG GT C190 / R190", en: "Carbon intake for Mercedes-AMG GT C190 / R190" },
+    description: { ua: "Повний карбоновий впуск для AMG GT, GTS і GTR із точним компонуванням, ефективним потоком і виразною презентацією під капотом.", en: "A complete carbon intake for AMG GT, GTS and GTR with precise packaging, efficient airflow and a striking engine-bay presentation." },
+  },
+  "EVE-W192-FTR": {
+    title: { ua: "Змінний повітряний фільтр Eventuri Type D2", en: "Eventuri Type D2 replacement air filter" },
+    description: { ua: "Оригінальний сухий фільтрувальний елемент Type D2 для планового обслуговування сумісних впускних систем Eventuri.", en: "A genuine dry Type D2 filter element for routine servicing of compatible Eventuri intake systems." },
+  },
+  "EVE-FLC": {
+    title: { ua: "Набір для очищення фільтрів Eventuri", en: "Eventuri air-filter cleaning kit" },
+    description: { ua: "Фірмовий комплект для делікатного очищення та відновлення багаторазових повітряних фільтрів Eventuri.", en: "The genuine care kit for safely cleaning and refreshing reusable Eventuri air filters." },
+  },
+};
+
 export const isShopWarehouseInStockSku = (value: string | null | undefined) =>
   warehouseSkuSet.has(normalizeWarehouseSku(value));
 
@@ -32,3 +84,14 @@ export const resolveShopWarehouseHeroImage = (
   sku: string | null | undefined,
   fallback: string | null
 ) => warehouseHeroImageBySku[normalizeWarehouseSku(sku)] ?? fallback;
+
+export const resolveShopWarehouseProductCopy = (
+  sku: string | null | undefined,
+  locale: "ua" | "en",
+  fallback: { title: string; description: string }
+) => {
+  const copy = warehouseProductCopyBySku[normalizeWarehouseSku(sku)];
+  return copy
+    ? { title: copy.title[locale], description: copy.description[locale] }
+    : fallback;
+};
