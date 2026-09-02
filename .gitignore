@@ -68,6 +68,7 @@ temp_env.txt
 *.sql
 !prisma/migrations/**/migration.sql
 backups/ops-preflight/
+backups/shopify/
 backups/europe-price-migration-2026-06-23T10-15-41-202Z.json
 .env*.local
 .shop-products-dev-cache.json
