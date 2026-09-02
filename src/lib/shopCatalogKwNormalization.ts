@@ -1,4 +1,5 @@
 import { canonicalVehicleModelLabel } from "./shopVehicleTaxonomy";
+import type { ShopCatalogV2CompatibilityPolicy } from "./shopCatalogV2Compatibility";
 import type { ShopifySnapshotProduct } from "./shopifyCatalogSnapshot";
 
 export type KwVehicleApplication = {
@@ -176,4 +177,42 @@ export function normalizeKwShopifyProduct(
 export function normalizeKwShopifyCatalog(products: readonly ShopifySnapshotProduct[]) {
   const evidence = buildKwVehicleMakeEvidence(products);
   return products.map((product) => normalizeKwShopifyProduct(product, evidence));
+}
+
+export function buildKwCompatibilityPolicy(
+  productId: string,
+  normalization: KwProductNormalization
+): ShopCatalogV2CompatibilityPolicy {
+  const clauses = normalization.applications.map((application, index) => {
+    const constraints: ShopCatalogV2CompatibilityPolicy["clauses"][number]["constraints"] = [
+      { dimension: "scope", state: "EXACT", values: ["auto"] },
+      ...(application.make ? [{ dimension: "make", state: "EXACT", values: [application.make] } as const] : [{ dimension: "make", state: "UNKNOWN" } as const]),
+      { dimension: "model", state: "EXACT", values: [application.model] },
+      ...(application.chassisCodes.length ? [
+        { dimension: "generation", state: "EXACT", values: application.chassisCodes },
+        { dimension: "chassis", state: "EXACT", values: application.chassisCodes },
+      ] as const : [{ dimension: "generation", state: "UNKNOWN" } as const]),
+      ...(application.yearFrom !== null || application.yearTo !== null
+        ? [{ dimension: "year", state: "EXACT", values: [{ from: application.yearFrom, to: application.yearTo }] } as const]
+        : [{ dimension: "year", state: "UNKNOWN" } as const]),
+      ...(application.engines.length
+        ? [{ dimension: "engine", state: "EXACT", values: application.engines } as const]
+        : [{ dimension: "engine", state: "UNKNOWN" } as const]),
+    ];
+    return {
+      id: `kw-${index + 1}`,
+      constraints,
+      verification: application.verification,
+      sourceRef: `shopify:${normalization.externalProductId}:tag:${application.rawVehicleTag}`,
+    };
+  });
+  const needsReview = normalization.issues.length > 0 || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
+  return {
+    version: 2,
+    mode: clauses.length && !needsReview ? "VEHICLE_SPECIFIC" : "NEEDS_REVIEW",
+    target: { productId },
+    requiredDimensions: ["make", "model"],
+    dimensionDefaults: { engine: "UNKNOWN", fuel: "UNKNOWN" },
+    clauses,
+  };
 }

@@ -3,9 +3,11 @@ import test from "node:test";
 
 import {
   buildKwVehicleMakeEvidence,
+  buildKwCompatibilityPolicy,
   normalizeKwShopifyCatalog,
   normalizeKwShopifyProduct,
 } from "../../../src/lib/shopCatalogKwNormalization";
+import { validateShopCatalogV2CompatibilityPolicy } from "../../../src/lib/shopCatalogV2Compatibility";
 import type { ShopifySnapshotProduct } from "../../../src/lib/shopifyCatalogSnapshot";
 
 function product(id: string, tags: string[], productType = "Койловерна підвіска"): ShopifySnapshotProduct {
@@ -80,4 +82,19 @@ test("multi-brand make correlation can use explicit make+model evidence in the t
   const normalized = normalizeKwShopifyProduct(row, new Map());
   assert.equal(normalized.applications[0]!.make, "Skoda");
   assert.equal(normalized.applications[0]!.verification, "INFERRED");
+});
+
+test("KW fitment becomes OR clauses without cross-joining vehicle engines", () => {
+  const rows = [
+    product("p7", ["brand:BMW", "veh:3 (G20 G80) 11/2018-", "eng:320 i"]),
+  ];
+  const normalization = normalizeKwShopifyCatalog(rows)[0]!;
+  const policy = buildKwCompatibilityPolicy("local-product-id", normalization);
+  assert.equal(policy.mode, "VEHICLE_SPECIFIC");
+  assert.equal(policy.clauses.length, 1);
+  assert.deepEqual(
+    policy.clauses[0]!.constraints.find((constraint) => constraint.dimension === "engine"),
+    { dimension: "engine", state: "EXACT", values: ["320 i"] }
+  );
+  assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(policy), []);
 });
