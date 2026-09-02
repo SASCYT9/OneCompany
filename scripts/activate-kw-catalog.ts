@@ -84,10 +84,10 @@ async function main() {
     }
     let publicationCompleted = 0;
     for (;;) {
-      const publication = await runShopCatalogOutboxRuntime({ workerId: `kw-activation-cli:${process.pid}`, limit: 50 });
+      const publication = await runShopCatalogOutboxRuntime({ workerId: `kw-activation-cli:${process.pid}`, limit: 10 });
       publicationCompleted += publication.completed;
       if (!publication.claimed) break;
-      if (publication.retried || publication.deadLettered || publication.lostLease) throw new Error(`KW publication failed: ${JSON.stringify(publication)}`);
+      if (publication.retried || publication.deadLettered) throw new Error(`KW publication failed: ${JSON.stringify(publication)}`);
     }
     process.stdout.write(`${JSON.stringify({ ...report, activated, idempotent, publicationCompleted }, null, 2)}\n`);
   } finally {
