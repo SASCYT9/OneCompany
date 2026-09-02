@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
-import { coordinateShopCatalogProductMutationWithClient } from "../src/lib/shopCatalogMutationCoordinator.server";
+import { coordinateShopCatalogProductMutationInTransaction } from "../src/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "../src/lib/shopCatalogOutboxRuntime.server";
 
 const CHANGE_DOMAINS = ["CONTENT", "SEO", "MEDIA", "PRICE", "INVENTORY", "FITMENT", "TAXONOMY", "VISIBILITY"] as const;
@@ -66,7 +66,7 @@ async function main() {
     for (let offset = 0; offset < owned.length; offset += concurrency) {
       const results = await Promise.all(owned.slice(offset, offset + concurrency).map(async (entry) => {
         if (entry.product.isPublished) return "idempotent" as const;
-        await retryTransient(() => coordinateShopCatalogProductMutationWithClient(prisma, {
+        await retryTransient(() => prisma.$transaction((tx) => coordinateShopCatalogProductMutationInTransaction(tx, {
         productId: entry.productId,
         expectedCatalogVersion: entry.product.catalogVersion.toString(),
         changeDomains: CHANGE_DOMAINS,
@@ -75,7 +75,7 @@ async function main() {
           const snapshot = await buildShopCatalogAdminSnapshot(tx, entry.productId, nextCatalogVersion, { type: "IMPORT", id: "kw-shopify-import@system.local", reason: "kw.initial-activation" });
           return { ...snapshot, sourceRecordId: entry.sourceRecordId };
         },
-        }));
+        }), { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 }));
         return "activated" as const;
       }));
       activated += results.filter((result) => result === "activated").length;
