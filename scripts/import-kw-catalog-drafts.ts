@@ -8,6 +8,19 @@ import { ensureKwImportDependencies, insertKwDraftWithClient } from "../src/lib/
 import { buildKwVehicleMakeEvidence, normalizeKwShopifyProduct } from "../src/lib/shopCatalogKwNormalization";
 import { parseShopifyProductJsonl, parseShopifyProductTranslationMap, selectKwShopifyProducts } from "../src/lib/shopifyCatalogSnapshot";
 
+async function insertWithRetry(input: Parameters<typeof insertKwDraftWithClient>[0]) {
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      return await insertKwDraftWithClient(input);
+    } catch (error) {
+      const code = typeof error === "object" && error !== null && "code" in error ? error.code : null;
+      if (code !== "P2034" || attempt === 5) throw error;
+      await new Promise((resolveRetry) => setTimeout(resolveRetry, attempt * 100));
+    }
+  }
+  throw new Error("KW import retry loop exhausted");
+}
+
 async function main() {
   const commit = process.argv.includes("--commit-draft");
   const limitArg = process.argv.find((value) => value.startsWith("--limit="));
@@ -32,7 +45,7 @@ async function main() {
     let idempotent = 0;
     const selected = prepared.slice(0, limit);
     for (let offset = 0; offset < selected.length; offset += concurrency) {
-      const results = await Promise.all(selected.slice(offset, offset + concurrency).map((entry) => insertKwDraftWithClient({
+      const results = await Promise.all(selected.slice(offset, offset + concurrency).map((entry) => insertWithRetry({
         client: prisma,
         rawProduct: entry.product,
         draft: entry.draft,
