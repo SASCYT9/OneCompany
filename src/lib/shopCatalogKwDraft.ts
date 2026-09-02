@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type { KwProductNormalization } from "./shopCatalogKwNormalization";
+import { buildKwNormalizedFitment, type KwProductNormalization } from "./shopCatalogKwNormalization";
 import type { ShopifySnapshotNode, ShopifySnapshotProduct } from "./shopifyCatalogSnapshot";
 
 export type ShopifyProductTranslation = { key?: string; value?: string; outdated?: boolean };
@@ -160,6 +160,13 @@ export function buildKwCanonicalProductDraft(input: {
       value,
       valueType: stringValue(entry.type) ?? "single_line_text_field",
     }];
+  });
+  metafields.push({
+    externalMetafieldId: `derived:${product.id}:onecompany.normalized_fitment`,
+    namespace: "onecompany",
+    key: "normalized_fitment",
+    value: JSON.stringify(buildKwNormalizedFitment(normalization)),
+    valueType: "json",
   });
   const euroPrice = decimalValue(productMetafield(product, "custom", "custom_price_eur")?.value);
   if (!euroPrice) issues.push("product_price_eur_missing");

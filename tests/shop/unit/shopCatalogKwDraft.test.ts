@@ -43,6 +43,8 @@ test("KW draft losslessly maps variants, regional prices, media, options and met
   assert.equal(draft.variants[0]!.externalVariantId, "v1");
   assert.equal(draft.media[0]!.src, "https://cdn.example/kw.jpg");
   assert.equal(draft.metafields[0]!.valueType, "number_decimal");
+  assert.equal(draft.metafields.at(-1)!.namespace, "onecompany");
+  assert.equal(draft.metafields.at(-1)!.key, "normalized_fitment");
   assert.deepEqual(draft.issues, []);
 });
 

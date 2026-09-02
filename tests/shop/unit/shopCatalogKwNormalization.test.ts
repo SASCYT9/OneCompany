@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildKwVehicleMakeEvidence,
   buildKwCompatibilityPolicy,
+  buildKwNormalizedFitment,
   normalizeKwShopifyCatalog,
   normalizeKwShopifyProduct,
 } from "../../../src/lib/shopCatalogKwNormalization";
@@ -97,4 +98,8 @@ test("KW fitment becomes OR clauses without cross-joining vehicle engines", () =
     { dimension: "engine", state: "EXACT", values: ["320 i"] }
   );
   assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(policy), []);
+  const metafield = buildKwNormalizedFitment(normalization);
+  assert.equal(metafield.status, "verified");
+  assert.equal(metafield.applications[0]!.make, "BMW");
+  assert.deepEqual(metafield.applications[0]!.engines, ["320 i"]);
 });
