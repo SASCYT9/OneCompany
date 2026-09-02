@@ -2742,9 +2742,6 @@ function StockPageContent() {
                 </button>
               ))}
             </div>
-            <Link href={`/${locale}/shop/catalog?stock=inStock`} className="hidden w-[245px] shrink-0 items-center justify-center gap-4 px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8f6f24] transition hover:bg-black/[0.035] hover:text-[#705514] dark:text-[#c6a657] dark:hover:bg-white/[0.04] dark:hover:text-[#dfc06d] xl:flex">
-              {isUa ? "Усі товари в наявності" : "All in-stock products"}<ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
         </section>
 
