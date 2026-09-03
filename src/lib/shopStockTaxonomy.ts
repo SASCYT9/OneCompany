@@ -608,10 +608,27 @@ function corpusIncludesKeyword(corpus: string, keyword: string) {
 const EXTERIOR_AERO_PATTERN =
   /(?:\b(?:diffuser|splitter|spoiler|rear wing|body kit|bodykit|widebody|side skirt|bumper|bonnet|hood|grille)\b|дифузор|спліттер|спойлер|обвіс|бампер|пороги|решітка)/;
 
+function isKwSuspensionProduct(item: ShopStockTaxonomyItem) {
+  const brandIdentity = normalizeShopSearchText(
+    [item.product.brand, item.product.vendor].filter(Boolean).join(" ")
+  );
+  return (
+    brandIdentity === "kw" ||
+    brandIdentity.includes("kw suspensions") ||
+    brandIdentity.includes("kw automotive ukraine")
+  );
+}
+
 export function getShopStockCategoryGroupForProduct(
   item: ShopStockTaxonomyItem,
   locale: string
 ): ShopStockCategoryGroup {
+  // KW's imported assortment is suspension-only. Resolve it from canonical
+  // brand identity before generic title keywords: vehicle names such as
+  // "CLA Shooting Brake" must never classify a coilover as a brake product.
+  if (isKwSuspensionProduct(item)) {
+    return GROUP_BY_ID.get("suspension")!;
+  }
   const corpus = getCategoryCorpus(item, locale);
   if (EXTERIOR_AERO_PATTERN.test(corpus)) {
     return GROUP_BY_ID.get("carbonAero")!;
