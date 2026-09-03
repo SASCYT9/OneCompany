@@ -58,6 +58,7 @@ import {
 } from "@/lib/urbanImageUtils";
 import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import { ShopProductGallery } from "./ShopProductGallery";
+import { ShopProductVideos } from "./ShopProductVideos";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { Do88CompatibleVehiclesBlock } from "./Do88CompatibleVehiclesBlock";
 import { Do88VehicleCompatibilityAlert } from "./Do88VehicleCompatibilityAlert";
@@ -901,6 +902,13 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 isUa={isUa}
                 compatibleVehicles={do88CompatibleVehicles}
               />
+              {product.externalVideos?.length ? (
+                <ShopProductVideos
+                  videos={product.externalVideos}
+                  title={productTitle}
+                  isUa={isUa}
+                />
+              ) : null}
             </div>
 
             <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">

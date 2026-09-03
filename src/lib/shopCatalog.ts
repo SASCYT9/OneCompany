@@ -48,6 +48,12 @@ export type ShopProductVariantSummary = {
   height?: number | null;
 };
 
+export type ShopProductExternalVideo = {
+  src: string;
+  provider: "youtube";
+  videoId: string;
+};
+
 export type ShopBundleComponentSummary = {
   id: string;
   quantity: number;
@@ -101,6 +107,7 @@ export interface ShopProduct {
   height?: number | null;
   image: string;
   gallery?: string[];
+  externalVideos?: ShopProductExternalVideo[];
   /**
    * Per-image material tag aligned with `gallery` order. Only set on iPE
    * products that have both Titanium and Stainless Steel variants AND a

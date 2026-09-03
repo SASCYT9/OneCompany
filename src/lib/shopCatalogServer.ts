@@ -36,6 +36,7 @@ import { resolveBundleInventory } from "@/lib/shopBundles";
 import { prisma } from "@/lib/prisma";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
@@ -1445,7 +1446,12 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     : [];
   const primaryVariant = row.variants.find((variant) => variant.isDefault) ?? row.variants[0];
   const sortedMedia = [...row.media].sort((a, b) => a.position - b.position);
-  const galleryFromMedia = sortedMedia.map((item) => item.src);
+  const galleryFromMedia = sortedMedia
+    .filter((item) => item.mediaType === "IMAGE")
+    .map((item) => item.src);
+  const externalVideos = sortedMedia.flatMap((item) =>
+    item.mediaType === "EXTERNAL_VIDEO" ? [parseSupportedExternalVideo(item.src)] : []
+  ).filter((item): item is NonNullable<typeof item> => Boolean(item));
   const legacyGallery = Array.isArray(row.gallery)
     ? row.gallery.filter((item): item is string => typeof item === "string")
     : [];
@@ -1770,6 +1776,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
         : undefined,
     image: resolvedPrimaryImage,
     gallery: productGallery,
+    externalVideos: externalVideos.length ? externalVideos : undefined,
     galleryMaterials,
     highlights: highlightsArr,
     options: (row.options ?? []).map((option) => ({
@@ -3026,6 +3033,7 @@ const storefrontProductInclude = {
     orderBy: { position: "asc" as const },
     select: {
       id: true,
+      mediaType: true,
       src: true,
       position: true,
     },
