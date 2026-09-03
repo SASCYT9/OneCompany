@@ -102,6 +102,7 @@
     "shop:shopify:translations:audit": "tsx scripts/audit-shopify-translation-snapshot.ts",
     "shop:fi:snapshot": "tsx scripts/fetch-fi-exhaust-shopify-snapshot.ts",
     "shop:fi:audit": "tsx scripts/audit-fi-exhaust-snapshot.ts",
+    "shop:fi:fitment:map": "tsx scripts/build-fi-exhaust-fitment-map.ts",
     "shop:catalog:v2:kw:normalize:test": "tsx --test tests/shop/unit/shopCatalogKwNormalization.test.ts",
     "shop:catalog:v2:kw:audit": "tsx scripts/audit-kw-normalization.ts",
     "shop:catalog:v2:kw:drafts:audit": "tsx scripts/audit-kw-product-drafts.ts",
