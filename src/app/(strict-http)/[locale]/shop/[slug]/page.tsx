@@ -197,6 +197,10 @@ export default async function ShopProductPage({ params }: Props) {
               </MobileProductDisclosure>
             ) : null}
 
+            {product.externalVideos?.length ? (
+              <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
+            ) : null}
+
             <ShopProductVariantPurchaseSection
               product={product}
               ssrViewerContext={viewerContext}
@@ -218,10 +222,6 @@ export default async function ShopProductPage({ params }: Props) {
             </ShopProductVariantPurchaseSection>
           </div>
         </section>
-
-        {product.externalVideos?.length ? (
-          <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
-        ) : null}
 
         <Suspense fallback={null}>
           <RelatedProductsSection

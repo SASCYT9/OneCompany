@@ -1034,6 +1034,14 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 />
               ) : null}
 
+              {product.externalVideos?.length ? (
+                <ShopProductVideos
+                  videos={product.externalVideos}
+                  title={productTitle}
+                  isUa={isUa}
+                />
+              ) : null}
+
               <ShopProductVariantPurchaseSection
                 product={product}
                 ssrViewerContext={viewerContext}
@@ -1085,9 +1093,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
             </div>
           </section>
 
-          {product.externalVideos?.length ? (
-            <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
-          ) : null}
         </div>
       )}
 
