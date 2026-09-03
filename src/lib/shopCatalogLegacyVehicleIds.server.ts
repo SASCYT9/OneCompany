@@ -33,7 +33,7 @@ async function getCachedFitmentProducts() {
  */
 export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) {
   if (!input.make && !input.model && !input.generation && !input.year) return null;
-  const [products, canonicalApplications] = await Promise.all([
+  const [products, canonicalApplications, projectionClauses] = await Promise.all([
     getCachedFitmentProducts(),
     input.make
       ? prisma.shopVehicleApplication.findMany({
@@ -50,6 +50,33 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
             chassisCode: true,
             yearFrom: true,
             yearTo: true,
+          },
+        })
+      : Promise.resolve([]),
+    input.make
+      ? prisma.shopCatalogProjectionClause.findMany({
+          where: {
+            policy: { mode: { not: "UNIVERSAL" } },
+            product: { isPublished: true, status: "ACTIVE" },
+            constraints: {
+              some: {
+                dimension: "MAKE",
+                state: "EXACT",
+                textValue: { equals: input.make, mode: "insensitive" },
+              },
+            },
+          },
+          select: {
+            productId: true,
+            constraints: {
+              select: {
+                dimension: true,
+                state: true,
+                textValue: true,
+                yearFrom: true,
+                yearTo: true,
+              },
+            },
           },
         })
       : Promise.resolve([]),
@@ -85,6 +112,57 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
       continue;
     }
     ids.add(application.productId);
+  }
+  for (const clause of projectionClauses) {
+    const exactTextValues = (dimension: "MAKE" | "MODEL" | "GENERATION") =>
+      clause.constraints
+        .filter(
+          (constraint) =>
+            constraint.dimension === dimension &&
+            constraint.state === "EXACT" &&
+            Boolean(constraint.textValue)
+        )
+        .map((constraint) => constraint.textValue!);
+    if (
+      input.make &&
+      !exactTextValues("MAKE").some(
+        (value) => normalizeShopSearchText(value) === normalizeShopSearchText(input.make)
+      )
+    ) {
+      continue;
+    }
+    if (
+      input.model &&
+      !exactTextValues("MODEL").some(
+        (value) => vehicleModelKey(value) === vehicleModelKey(input.model!)
+      )
+    ) {
+      continue;
+    }
+    if (
+      input.generation &&
+      !exactTextValues("GENERATION").some(
+        (value) => normalizeShopSearchText(value) === normalizeShopSearchText(input.generation)
+      )
+    ) {
+      continue;
+    }
+    if (input.year) {
+      const yearConstraints = clause.constraints.filter(
+        (constraint) => constraint.dimension === "YEAR" && constraint.state === "EXACT"
+      );
+      if (
+        yearConstraints.length === 0 ||
+        !yearConstraints.some(
+          (constraint) =>
+            (constraint.yearFrom == null || constraint.yearFrom <= input.year!) &&
+            (constraint.yearTo == null || constraint.yearTo >= input.year!)
+        )
+      ) {
+        continue;
+      }
+    }
+    ids.add(clause.productId);
   }
   return [...ids];
 }
