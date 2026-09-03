@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
-import { isExpectedChassisForMakeModel, isKnownVehicleModelForMake } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
@@ -21,39 +20,6 @@ const cachedJson = (body: unknown) =>
     },
   });
 
-let canonicalCoverageCache: { expiresAt: number; ready: boolean } | null = null;
-
-async function hasCanonicalCatalogCoverage() {
-  if (isLocalStorefrontMode()) return false;
-
-  const now = Date.now();
-  if (canonicalCoverageCache && canonicalCoverageCache.expiresAt > now) {
-    return canonicalCoverageCache.ready;
-  }
-  const [publishedProducts, indexedProducts, activeApplications] = await Promise.all([
-    prisma.shopProduct.count({ where: { isPublished: true, status: "ACTIVE" } }),
-    prisma.shopProductKnowledge.count({
-      where: {
-        schemaVersion: { gte: 2 },
-        activeRevision: { gt: 0 },
-        status: { in: ["READY", "NEEDS_REVIEW"] },
-        product: { isPublished: true, status: "ACTIVE" },
-      },
-    }),
-    prisma.shopVehicleApplication.count({
-      where: {
-        isActive: true,
-        verificationStatus: { not: "BLOCKED" },
-        product: { isPublished: true, status: "ACTIVE" },
-      },
-    }),
-  ]);
-  const ready =
-    publishedProducts > 0 && indexedProducts / publishedProducts >= 0.95 && activeApplications > 0;
-  canonicalCoverageCache = { expiresAt: now + 5 * 60_000, ready };
-  return ready;
-}
-
 async function getCanonicalFitmentOptions(input: {
   make: string | null;
   model: string | null;
@@ -61,7 +27,7 @@ async function getCanonicalFitmentOptions(input: {
   brand: string | null;
   scope: "auto" | "moto" | null;
 }) {
-  if (!(await hasCanonicalCatalogCoverage())) return null;
+  if (isLocalStorefrontMode()) return null;
   const productWhere: Prisma.ShopProductWhereInput = {
     isPublished: true,
     status: "ACTIVE",
@@ -74,119 +40,103 @@ async function getCanonicalFitmentOptions(input: {
         }
       : {}),
   };
-  const baseWhere = {
-    isActive: true,
-    isUniversal: false,
-    verificationStatus: { not: "BLOCKED" as const },
-    ...(input.scope ? { scope: input.scope } : {}),
+  const clauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
     product: productWhere,
   };
-  const available = await prisma.shopVehicleApplication.findFirst({
-    where: baseWhere,
-    select: { id: true },
-  });
-  if (!available) return null;
+  const scopeClausePredicate: Prisma.ShopCatalogProjectionClauseWhereInput | null = input.scope
+    ? { constraints: { some: { dimension: "SCOPE", state: "EXACT", textValue: input.scope } } }
+    : null;
+  if (scopeClausePredicate) clauseWhere.AND = [scopeClausePredicate];
+
+  const exactValues = async (
+    dimension: "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE",
+    where: Prisma.ShopCatalogProjectionClauseWhereInput
+  ) => {
+    const rows = await prisma.shopCatalogProjectionConstraint.findMany({
+      where: {
+        dimension,
+        state: "EXACT",
+        textValue: { not: null },
+        clause: where,
+      },
+      distinct: ["textValue"],
+      select: { textValue: true },
+      orderBy: { textValue: "asc" },
+    });
+    return rows.map((row) => row.textValue).filter((value): value is string => Boolean(value));
+  };
 
   if (!input.make) {
-    const rows = await prisma.shopVehicleApplication.findMany({
-      where: { ...baseWhere, make: { not: null } },
-      distinct: ["make"],
-      select: { make: true },
-      orderBy: { make: "asc" },
-    });
+    const rows = await exactValues("MAKE", clauseWhere);
+    if (!rows.length) return null;
     return {
       type: "makes" as const,
-      data: rows
-        .map((row) => row.make)
-        .filter((value): value is string => Boolean(value))
-        .filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope)),
+      data: rows.filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope)),
     };
   }
 
+  const makeClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
+    ...clauseWhere,
+    AND: [
+      ...(scopeClausePredicate ? [scopeClausePredicate] : []),
+      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { equals: input.make, mode: "insensitive" } } } },
+    ],
+  };
+
   if (!input.model) {
-    const rows = await prisma.shopVehicleApplication.findMany({
-      where: {
-        ...baseWhere,
-        make: { equals: input.make, mode: "insensitive" },
-        model: { not: null },
-      },
-      distinct: ["model"],
-      select: { model: true },
-      orderBy: { model: "asc" },
-    });
-    let data = canonicalizeVehicleModels(
-      input.make,
-      rows
-        .map((row) => row.model)
-        .filter((value): value is string => Boolean(value))
-        .filter((value) => isKnownVehicleModelForMake(input.make ?? "", value))
-    );
-    if (
-      input.make.toLowerCase() === "porsche" &&
-      data.some((modelName) => /^911\s+\S/i.test(modelName))
-    ) {
-      data = data.filter((modelName) => modelName.toLowerCase() !== "911");
-    }
+    const rows = await exactValues("MODEL", makeClauseWhere);
+    if (!rows.length) return null;
+    const data = canonicalizeVehicleModels(input.make, rows);
     return { type: "models" as const, make: input.make, data };
   }
 
-  const modelRows = await prisma.shopVehicleApplication.findMany({
-    where: {
-      ...baseWhere,
-      make: { equals: input.make, mode: "insensitive" },
-      model: { not: null },
-    },
-    distinct: ["model"],
-    select: { model: true },
-  });
+  const modelRows = await exactValues("MODEL", makeClauseWhere);
   const requestedModelKey = vehicleModelKey(input.model);
   const modelAliases = modelRows
-    .map((row) => row.model)
-    .filter((value): value is string => Boolean(value))
     .filter((value) => vehicleModelKey(value) === requestedModelKey);
   if (!modelAliases.length) modelAliases.push(input.model);
 
+  const modelClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
+    ...clauseWhere,
+    AND: [
+      ...(scopeClausePredicate ? [scopeClausePredicate] : []),
+      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { equals: input.make, mode: "insensitive" } } } },
+      { constraints: { some: { dimension: "MODEL", state: "EXACT", textValue: { in: modelAliases, mode: "insensitive" } } } },
+    ],
+  };
+
   if (input.chassis) {
-    const rows = await prisma.shopVehicleApplication.findMany({
-      where: {
-        ...baseWhere,
-        make: { equals: input.make, mode: "insensitive" },
-        model: { in: modelAliases, mode: "insensitive" },
-        chassisCode: { equals: input.chassis, mode: "insensitive" },
-        engine: { not: null },
-      },
-      distinct: ["engine"],
-      select: { engine: true },
-      orderBy: { engine: "asc" },
-    });
+    const chassisClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
+      ...modelClauseWhere,
+      AND: [
+        ...((modelClauseWhere.AND as Prisma.ShopCatalogProjectionClauseWhereInput[]) ?? []),
+        {
+          OR: [
+            { constraints: { some: { dimension: "CHASSIS", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
+            { constraints: { some: { dimension: "GENERATION", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
+          ],
+        },
+      ],
+    };
+    const rows = await exactValues("ENGINE", chassisClauseWhere);
     return {
       type: "engines" as const,
       make: input.make,
       model: input.model,
       chassis: input.chassis,
-      data: rows.map((row) => row.engine).filter((value): value is string => Boolean(value)),
+      data: rows,
     };
   }
 
-  const rows = await prisma.shopVehicleApplication.findMany({
-    where: {
-      ...baseWhere,
-      make: { equals: input.make, mode: "insensitive" },
-      model: { in: modelAliases, mode: "insensitive" },
-      chassisCode: { not: null },
-    },
-    distinct: ["chassisCode"],
-    select: { chassisCode: true },
-    orderBy: { chassisCode: "asc" },
-  });
+  const rows = [
+    ...(await exactValues("CHASSIS", modelClauseWhere)),
+    ...(await exactValues("GENERATION", modelClauseWhere)),
+  ];
   return {
     type: "chassis" as const,
     make: input.make,
     model: input.model,
-    data: rows
-      .map((row) => row.chassisCode)
-      .filter((value): value is string => Boolean(value))
-      .filter((value) => isExpectedChassisForMakeModel(input.make ?? "", input.model ?? "", value)),
+    data: [...new Set(rows)].sort((a, b) => a.localeCompare(b)),
   };
 }
 
@@ -253,20 +203,12 @@ export async function GET(request: NextRequest) {
         for (const fitment of item.fitments) {
           if (shopVehicleMakesMatch(fitment.make, make)) {
             for (const modelVal of fitment.models) {
-              if (isKnownVehicleModelForMake(make, modelVal)) modelsSet.add(modelVal);
+              modelsSet.add(modelVal);
             }
           }
         }
       }
       let models = canonicalizeVehicleModels(make, Array.from(modelsSet));
-      if (
-        make.toLowerCase() === "porsche" &&
-        models.some((modelName) => /^911\s+\S/i.test(modelName))
-      ) {
-        // A generic 911 choice mixes Carrera, Turbo and GT fitments. Once
-        // product-family evidence exists, require the customer to choose it.
-        models = models.filter((modelName) => modelName.toLowerCase() !== "911");
-      }
       return cachedJson({ type: "models", make, data: models });
     }
 
@@ -283,9 +225,7 @@ export async function GET(request: NextRequest) {
             fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model))
           ) {
             for (const code of fitment.chassisCodes) {
-              if (isExpectedChassisForMakeModel(make, model, code)) {
-                chassisSet.add(code);
-              }
+              chassisSet.add(code);
             }
           }
         }

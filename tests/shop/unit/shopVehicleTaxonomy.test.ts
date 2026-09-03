@@ -33,3 +33,10 @@ test("catalog-wide punctuation and casing aliases keep official labels", () => {
   assert.deepEqual(canonicalizeVehicleModels("Nissan", ["Gt-R", "gt-r"]), ["GT-R"]);
   assert.deepEqual(canonicalizeVehicleModels("Toyota", ["GR YARIS", "GR Yaris"]), ["GR Yaris"]);
 });
+
+test("Shopify Mercedes casing aliases have one deterministic label", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("Mercedes-Benz", ["C-CLASS T-MODEL", "C-CLASS T-Model"]),
+    ["C-Class T-Model"]
+  );
+});

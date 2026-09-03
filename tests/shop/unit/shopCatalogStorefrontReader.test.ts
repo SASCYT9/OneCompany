@@ -152,6 +152,20 @@ test("vehicle filtering reads canonical projection clauses without depending on 
   );
 });
 
+test("fitment selectors read the same projection clauses as vehicle search", () => {
+  const api = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
+  const canonicalStart = api.indexOf("async function getCanonicalFitmentOptions");
+  const canonicalEnd = api.indexOf("export async function GET", canonicalStart);
+  const canonical = api.slice(canonicalStart, canonicalEnd);
+
+  assert.match(canonical, /shopCatalogProjectionConstraint\.findMany/);
+  for (const dimension of ["MAKE", "MODEL", "CHASSIS", "GENERATION", "ENGINE"]) {
+    assert.match(canonical, new RegExp(`exactValues\\("${dimension}"`));
+  }
+  assert.doesNotMatch(canonical, /shopProductKnowledge|shopVehicleApplication/);
+  assert.doesNotMatch(api, /hasCanonicalCatalogCoverage/);
+});
+
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
   const client = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Filters.tsx", "utf8");
