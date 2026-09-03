@@ -45,10 +45,12 @@ async function main() {
     }
     let publicationCompleted = 0;
     for (;;) {
-      const publication = await runShopCatalogOutboxRuntime({ workerId: `fi-activation-cli:${process.pid}`, limit: 10 });
+      // Facet counters are shared across products; serial publication avoids
+      // PostgreSQL write conflicts during a large first-time brand activation.
+      const publication = await runShopCatalogOutboxRuntime({ workerId: `fi-activation-cli:${process.pid}`, limit: 1 });
       publicationCompleted += publication.completed;
       if (!publication.claimed) break;
-      if (publication.retried || publication.deadLettered) throw new Error(`Fi publication failed: ${JSON.stringify(publication)}`);
+      if (publication.deadLettered) throw new Error(`Fi publication failed: ${JSON.stringify(publication)}`);
     }
     process.stdout.write(`${JSON.stringify({ ...report, activated, idempotent, publicationCompleted }, null, 2)}\n`);
   } finally { await prisma.$disconnect(); }
