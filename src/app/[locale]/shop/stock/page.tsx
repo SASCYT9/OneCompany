@@ -982,8 +982,11 @@ function StockPageContent() {
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [chassisCodes, setChassisCodes] = useState<string[]>([]);
+  const [fitmentYears, setFitmentYears] = useState<number[]>([]);
+  const [fitmentEngines, setFitmentEngines] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [submodelsLoading, setSubmodelsLoading] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState("");
@@ -1014,6 +1017,8 @@ function StockPageContent() {
       setMakes([]);
       setModels([]);
       setChassisCodes([]);
+      setFitmentYears([]);
+      setFitmentEngines([]);
       setModelsLoading(false);
       setSubmodelsLoading(false);
       setSuggestions([]);
@@ -1212,6 +1217,10 @@ function StockPageContent() {
   // Brand is a single standardized catalog dimension. Combining several
   // brands here used to be silently reduced by the projection reader.
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands.slice(0, 1));
+  const activeFitmentBrand = selectedBrands[0]?.trim() ?? "";
+  const fitmentBrandParam = activeFitmentBrand
+    ? `&brand=${encodeURIComponent(activeFitmentBrand)}`
+    : "";
 
   const handleToggleBrand = (brandName: string) => {
     setSelectedBrands((current) => (current.includes(brandName) ? [] : [brandName]));
@@ -1332,7 +1341,9 @@ function StockPageContent() {
   // Fitment values do not depend on locale, country, or currency.
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}`, { signal: controller.signal })
+    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}${fitmentBrandParam}`, {
+      signal: controller.signal,
+    })
       .then((response) => response.json())
       .then((fitmentRes) => {
         const nextMakes = Array.isArray(fitmentRes.data) ? fitmentRes.data : [];
@@ -1351,11 +1362,13 @@ function StockPageContent() {
           setChassis("");
           setModels([]);
           setChassisCodes([]);
+          setFitmentYears([]);
+          setFitmentEngines([]);
         }
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [make, vehicleMode]);
+  }, [fitmentBrandParam, make, vehicleMode]);
 
   // Cascading: Make → Models
   useEffect(() => {
@@ -1364,11 +1377,13 @@ function StockPageContent() {
       setModel("");
       setChassis("");
       setChassisCodes([]);
+      setFitmentYears([]);
+      setFitmentEngines([]);
       return;
     }
     setModelsLoading(true);
     const controller = new AbortController();
-    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}`, {
+    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}${fitmentBrandParam}`, {
       signal: controller.signal,
     })
       .then((r) => r.json())
@@ -1391,19 +1406,21 @@ function StockPageContent() {
     }
     setChassisCodes([]);
     return () => controller.abort();
-  }, [make, vehicleMode]);
+  }, [fitmentBrandParam, make, vehicleMode]);
 
   // Cascading: Model → Chassis
   useEffect(() => {
     if (!make || !model) {
       setChassisCodes([]);
       setChassis("");
+      setFitmentYears([]);
+      setFitmentEngines([]);
       return;
     }
     setSubmodelsLoading(true);
     const controller = new AbortController();
     fetch(
-      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`,
+      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}${fitmentBrandParam}`,
       { signal: controller.signal }
     )
       .then((r) => r.json())
@@ -1424,7 +1441,43 @@ function StockPageContent() {
       setChassis("");
     }
     return () => controller.abort();
-  }, [make, model, vehicleMode]);
+  }, [fitmentBrandParam, make, model, vehicleMode]);
+
+  // Model/chassis → valid years and engines from the same correlated clauses.
+  useEffect(() => {
+    if (!make || !model) {
+      setFitmentYears([]);
+      setFitmentEngines([]);
+      return;
+    }
+    setDetailsLoading(true);
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      scope: vehicleMode,
+      make,
+      model,
+      details: "1",
+    });
+    if (chassis) params.set("chassis", chassis);
+    if (activeFitmentBrand) params.set("brand", activeFitmentBrand);
+    fetch(`/api/shop/stock/fitment?${params.toString()}`, { signal: controller.signal })
+      .then((response) => response.json())
+      .then((response) => {
+        const details = response?.type === "details" ? response.data : null;
+        setFitmentYears(Array.isArray(details?.years) ? details.years : []);
+        setFitmentEngines(Array.isArray(details?.engines) ? details.engines : []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setFitmentYears([]);
+          setFitmentEngines([]);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDetailsLoading(false);
+      });
+    return () => controller.abort();
+  }, [activeFitmentBrand, chassis, make, model, vehicleMode]);
 
   // Search handler
   const doSearch = useCallback(
@@ -1980,6 +2033,8 @@ function StockPageContent() {
               initialChassisRef.current = "";
               setModel(event.target.value);
               setChassis("");
+              setRequestedYear(null);
+              setEngineFilter("");
             }}
             className={`h-11 w-full appearance-none truncate border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${vehicleFieldSurface}`}
           >
@@ -2018,7 +2073,11 @@ function StockPageContent() {
           <select
             value={chassis}
             disabled={!model || submodelsLoading}
-            onChange={(event) => setChassis(event.target.value)}
+            onChange={(event) => {
+              setChassis(event.target.value);
+              setRequestedYear(null);
+              setEngineFilter("");
+            }}
             className={`h-11 w-full appearance-none truncate border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${vehicleFieldSurface}`}
           >
             <option value="" className="bg-card text-foreground dark:bg-[#121216]">
@@ -2051,34 +2110,73 @@ function StockPageContent() {
       ? "rounded-[8px] bg-card/90 shadow-[0_8px_24px_rgba(0,0,0,0.055)] backdrop-blur-xl dark:bg-black/55 dark:shadow-none"
       : "bg-foreground/[0.035]";
     const fieldClass = `h-11 w-full border border-foreground/15 px-3 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${surface}`;
-
     return (
       <div className={horizontal ? "contents" : "grid grid-cols-1 gap-2"}>
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Рік" : "Year"}</span>
-          <input
-            type="number"
-            min={1886}
-            max={new Date().getFullYear() + 2}
-            value={requestedYear ?? ""}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              setRequestedYear(Number.isInteger(value) && value >= 1886 ? value : null);
-            }}
-            placeholder={isUa ? "Рік" : "Year"}
-            className={fieldClass}
-          />
+          {fitmentYears.length > 0 ? (
+            <select
+              value={requestedYear ?? ""}
+              onChange={(event) => setRequestedYear(event.target.value ? Number(event.target.value) : null)}
+              disabled={detailsLoading}
+              className={`${fieldClass} appearance-none pr-9`}
+            >
+              <option value="" className="bg-card text-foreground dark:bg-[#121216]">
+                {isUa ? "Будь-який рік" : "Any year"}
+              </option>
+              {fitmentYears.map((year) => (
+                <option key={year} value={year} className="bg-card text-foreground dark:bg-[#121216]">
+                  {year}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="number"
+              min={1886}
+              max={new Date().getFullYear() + 2}
+              value={requestedYear ?? ""}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                setRequestedYear(Number.isInteger(value) && value >= 1886 ? value : null);
+              }}
+              placeholder={isUa ? "Рік" : "Year"}
+              disabled={!model || detailsLoading}
+              className={fieldClass}
+            />
+          )}
+          {fitmentYears.length > 0 ? <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" /> : null}
         </label>
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Двигун" : "Engine"}</span>
-          <input
-            type="text"
-            value={engineFilter}
-            maxLength={80}
-            onChange={(event) => setEngineFilter(event.target.value)}
-            placeholder={isUa ? "Двигун: S58, 3.0 TFSI…" : "Engine: S58, 3.0 TFSI…"}
-            className={fieldClass}
-          />
+          {fitmentEngines.length > 0 ? (
+            <select
+              value={engineFilter}
+              onChange={(event) => setEngineFilter(event.target.value)}
+              disabled={detailsLoading}
+              className={`${fieldClass} appearance-none pr-9`}
+            >
+              <option value="" className="bg-card text-foreground dark:bg-[#121216]">
+                {isUa ? "Будь-який двигун" : "Any engine"}
+              </option>
+              {fitmentEngines.map((engine) => (
+                <option key={engine} value={engine} className="bg-card text-foreground dark:bg-[#121216]">
+                  {engine}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={engineFilter}
+              maxLength={80}
+              onChange={(event) => setEngineFilter(event.target.value)}
+              placeholder={isUa ? "Двигун: S58, 3.0 TFSI…" : "Engine: S58, 3.0 TFSI…"}
+              disabled={!model || detailsLoading}
+              className={fieldClass}
+            />
+          )}
+          {fitmentEngines.length > 0 ? <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" /> : null}
         </label>
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Паливо" : "Fuel"}</span>

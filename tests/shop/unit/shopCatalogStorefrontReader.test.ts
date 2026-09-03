@@ -154,6 +154,7 @@ test("vehicle filtering reads canonical projection clauses without depending on 
 
 test("fitment selectors read the same projection clauses as vehicle search", () => {
   const api = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
+  const page = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
   const canonicalStart = api.indexOf("async function getCanonicalFitmentOptions");
   const canonicalEnd = api.indexOf("export async function GET", canonicalStart);
   const canonical = api.slice(canonicalStart, canonicalEnd);
@@ -164,6 +165,13 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   }
   assert.doesNotMatch(canonical, /shopProductKnowledge|shopVehicleApplication/);
   assert.doesNotMatch(api, /hasCanonicalCatalogCoverage/);
+  assert.match(canonical, /dimension: "YEAR"/);
+  assert.match(canonical, /detailClauseWhere/);
+  assert.match(api, /searchParams\.get\("details"\) === "1"/);
+  assert.match(page, /fitmentBrandParam/);
+  assert.match(page, /details: "1"/);
+  assert.match(page, /fitmentYears\.map/);
+  assert.match(page, /fitmentEngines\.map/);
 });
 
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {

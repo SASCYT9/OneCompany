@@ -26,6 +26,7 @@ async function getCanonicalFitmentOptions(input: {
   chassis: string | null;
   brand: string | null;
   scope: "auto" | "moto" | null;
+  details: boolean;
 }) {
   if (isLocalStorefrontMode()) return null;
   const productWhere: Prisma.ShopProductWhereInput = {
@@ -105,6 +106,48 @@ async function getCanonicalFitmentOptions(input: {
     ],
   };
 
+  if (input.details) {
+    const detailClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = input.chassis
+      ? {
+          ...modelClauseWhere,
+          AND: [
+            ...((modelClauseWhere.AND as Prisma.ShopCatalogProjectionClauseWhereInput[]) ?? []),
+            {
+              OR: [
+                { constraints: { some: { dimension: "CHASSIS", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
+                { constraints: { some: { dimension: "GENERATION", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
+              ],
+            },
+          ],
+        }
+      : modelClauseWhere;
+    const [engines, ranges] = await Promise.all([
+      exactValues("ENGINE", detailClauseWhere),
+      prisma.shopCatalogProjectionConstraint.findMany({
+        where: { dimension: "YEAR", state: "EXACT", clause: detailClauseWhere },
+        distinct: ["yearFrom", "yearTo"],
+        select: { yearFrom: true, yearTo: true },
+      }),
+    ]);
+    const maxYear = new Date().getFullYear() + 2;
+    const years = new Set<number>();
+    for (const range of ranges) {
+      const from = Math.max(1886, range.yearFrom ?? 1886);
+      const to = Math.min(maxYear, range.yearTo ?? maxYear);
+      for (let year = from; year <= to; year += 1) years.add(year);
+    }
+    return {
+      type: "details" as const,
+      make: input.make,
+      model: input.model,
+      chassis: input.chassis,
+      data: {
+        years: [...years].sort((left, right) => right - left),
+        engines,
+      },
+    };
+  }
+
   if (input.chassis) {
     const chassisClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
       ...modelClauseWhere,
@@ -147,6 +190,7 @@ export async function GET(request: NextRequest) {
     const model = searchParams.get("model");
     const chassis = searchParams.get("chassis");
     const brand = searchParams.get("brand")?.trim() || null;
+    const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
     const canonical = await getCanonicalFitmentOptions({
@@ -155,6 +199,7 @@ export async function GET(request: NextRequest) {
       chassis,
       brand,
       scope: vehicleScope,
+      details,
     });
     if (canonical) return cachedJson(canonical);
 
@@ -172,6 +217,36 @@ export async function GET(request: NextRequest) {
       brandScopedProducts,
       vehicleScope
     );
+
+    if (details && make && model) {
+      const matchingFitments = productsWithFitments.flatMap((item) =>
+        item.fitments.filter(
+          (fitment) =>
+            shopVehicleMakesMatch(fitment.make, make) &&
+            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model)) &&
+            (!chassis ||
+              fitment.chassisCodes.some(
+                (candidate: string) => candidate.toLocaleLowerCase() === chassis.toLocaleLowerCase()
+              ))
+        )
+      );
+      const maxYear = new Date().getFullYear() + 2;
+      const years = new Set<number>();
+      for (const fitment of matchingFitments) {
+        for (const range of fitment.yearRanges) {
+          const from = Math.max(1886, range.from ?? 1886);
+          const to = Math.min(maxYear, range.to ?? maxYear);
+          for (let year = from; year <= to; year += 1) years.add(year);
+        }
+      }
+      return cachedJson({
+        type: "details",
+        make,
+        model,
+        chassis,
+        data: { years: [...years].sort((left, right) => right - left), engines: [] },
+      });
+    }
 
     // Legacy fitment does not have a dependable engine field. Keep the
     // selector precise rather than reusing the chassis response at this level.
