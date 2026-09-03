@@ -31,6 +31,14 @@ function buildProviderHref(provider: ProductAiProvider, prompt: string) {
 
 function buildPrompt(locale: SupportedLocale, product: ShopProduct) {
   const isUa = locale === "ua";
+  const localizedCategory = localizeShopText(locale, product.category);
+  const localizedProductType = product.productType
+    ? locale === "en" && /[\u0400-\u04ff]/u.test(product.productType)
+      ? localizedCategory
+      : locale === "ua" && !/[\u0400-\u04ff]/u.test(product.productType)
+        ? localizedCategory
+        : product.productType
+    : "";
   const description =
     localizeShopDescription(locale, product.longDescription) ||
     localizeShopDescription(locale, product.shortDescription);
@@ -38,11 +46,8 @@ function buildPrompt(locale: SupportedLocale, product: ShopProduct) {
   return buildProductAiPrompt(locale, {
     title: localizeShopProductTitle(locale, product),
     brand: product.brand,
-    category: localizeShopText(locale, product.category),
-    productType: localizeShopText(locale, {
-      ua: product.productType ?? "",
-      en: product.productType ?? "",
-    }),
+    category: localizedCategory,
+    productType: localizedProductType,
     sku: product.sku,
     description,
     highlights: product.highlights.map((item) => localizeShopText(locale, item)).filter(Boolean),
