@@ -24,6 +24,11 @@ export type FiCanonicalDraft = ReturnType<typeof buildFiCanonicalDraft>;
 
 const CYRILLIC_RE = /[\u0400-\u04ff]/u;
 
+const OFFICIAL_MEDIA_ENRICHMENT: Readonly<Record<string, readonly string[]>> = {
+  "fi-exhaust-valvetronic-exhaust-system-toyota-gr86": ["https://www.fi-exhaust.com/uploads/product-detail/en/ZN8-GR86.jpg"],
+  "fi-exhaust-valvetronic-exhaust-system-ferrari-roma": Array.from({ length: 8 }, (_, index) => `https://www.fi-exhaust.com/uploads/gallery/en/ferrari_roma_exhaust_${8 - index}.jpg`),
+};
+
 function stripIframes(html: string) {
   return html.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe\s*>/giu, "").replace(/<p[^>]*>\s*<\/p>/giu, "").trim();
 }
@@ -112,11 +117,13 @@ export function buildFiCanonicalDraft(product: FiSourceProduct, fitment: FiFitme
   if (fitment.status === "REVIEW_REQUIRED") issues.push("fitment_review_required");
   if (!variant?.sku) issues.push("sku_missing");
   if (!variant?.price || !/^\d+(?:\.\d+)?$/u.test(variant.price)) issues.push("price_uah_missing");
-  if (!product.images.length) issues.push("images_missing");
+  const officialImages = product.images.length ? [] : [...(OFFICIAL_MEDIA_ENRICHMENT[product.handle] ?? [])];
+  if (!product.images.length && !officialImages.length) issues.push("images_missing");
   if (CYRILLIC_RE.test(englishTitle) || CYRILLIC_RE.test(englishBody)) issues.push("english_contains_cyrillic");
   const media = [
     ...product.images.sort((a, b) => a.position - b.position).map((image) => ({ externalMediaId: String(image.id), mediaType: "IMAGE" as const, src: image.src, altText: englishTitle, position: image.position })),
-    ...videos.map((video, index) => ({ externalMediaId: `video:${product.id}:${video.videoId}`, mediaType: "EXTERNAL_VIDEO" as const, src: video.src, altText: `${englishTitle} sound video`, position: product.images.length + index + 1 })),
+    ...officialImages.map((src, index) => ({ externalMediaId: `official:${product.id}:${index + 1}`, mediaType: "IMAGE" as const, src, altText: englishTitle, position: index + 1 })),
+    ...videos.map((video, index) => ({ externalMediaId: `video:${product.id}:${video.videoId}`, mediaType: "EXTERNAL_VIDEO" as const, src: video.src, altText: `${englishTitle} sound video`, position: product.images.length + officialImages.length + index + 1 })),
   ];
   const fitmentJson = JSON.stringify(normalizedFitment(fitment.applications));
   return {
@@ -127,7 +134,7 @@ export function buildFiCanonicalDraft(product: FiSourceProduct, fitment: FiFitme
       seoTitleUa: product.title, seoTitleEn: englishTitle, seoDescriptionUa: null, seoDescriptionEn: null,
       productType: product.product_type || "Вихлопна система", productCategory: "exhaust-systems", tags: [...new Set(product.tags)],
       stock: "preOrder" as const, status: "ACTIVE" as const, isPublished: false as const,
-      priceUah: variant?.price ?? null, priceEur: null, compareAtUah: variant?.compare_at_price ?? null, image: product.images[0]?.src ?? null,
+      priceUah: variant?.price ?? null, priceEur: null, compareAtUah: variant?.compare_at_price ?? null, image: product.images[0]?.src ?? officialImages[0] ?? null,
     },
     variants: variant ? [{ externalVariantId: String(variant.id), title: null, sku: variant.sku, barcode: null, position: 1, optionValues: [], inventoryQty: 0, inventoryPolicy: "CONTINUE" as const, priceUah: variant.price, compareAtUah: variant.compare_at_price, isDefault: true }] : [],
     media,
@@ -136,6 +143,7 @@ export function buildFiCanonicalDraft(product: FiSourceProduct, fitment: FiFitme
       { externalMetafieldId: `derived:${product.id}:onecompany.normalized_fitment`, namespace: "onecompany", key: "normalized_fitment", value: fitmentJson, valueType: "json" },
       { externalMetafieldId: `derived:${product.id}:fi.source_vendor`, namespace: "fi", key: "source_vendor", value: product.vendor, valueType: "single_line_text_field" },
       ...(extractKitContents(product.body_html) ? [{ externalMetafieldId: `derived:${product.id}:fi.kit_contents`, namespace: "fi", key: "kit_contents", value: extractKitContents(product.body_html), valueType: "multi_line_text_field" }] : []),
+      ...(officialImages.length ? [{ externalMetafieldId: `derived:${product.id}:fi.official_media_source`, namespace: "fi", key: "official_media_source", value: "https://www.fi-exhaust.com/", valueType: "url" }] : []),
     ],
     applications: fitment.applications,
     issues: [...new Set(issues)].sort(),
