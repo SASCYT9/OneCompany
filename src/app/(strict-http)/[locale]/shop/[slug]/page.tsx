@@ -27,6 +27,7 @@ import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
+import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
@@ -137,6 +138,13 @@ export default async function ShopProductPage({ params }: Props) {
     .map(normalizeImage)
     .filter((item): item is string => Boolean(item));
   const safeGallery = gallery.length ? gallery : ["/images/placeholders/product-fallback.svg"];
+  const localizedProductType = product.productType
+    ? resolvedLocale === "en" && /[\u0400-\u04ff]/u.test(product.productType)
+      ? productCategory
+      : resolvedLocale === "ua" && !/[\u0400-\u04ff]/u.test(product.productType)
+        ? productCategory
+        : product.productType
+    : null;
 
   return (
     <div className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
@@ -164,6 +172,9 @@ export default async function ShopProductPage({ params }: Props) {
               isInStock={product.stock === "inStock"}
               isUa={isUa}
             />
+            {product.externalVideos?.length ? (
+              <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
+            ) : null}
           </div>
 
           <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/15 bg-foreground/5 p-6 backdrop-blur-xl sm:p-7">
@@ -201,9 +212,9 @@ export default async function ShopProductPage({ params }: Props) {
                 <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
                   {localizeShopText(resolvedLocale, product.collection)}
                 </span>
-                {product.productType ? (
+                {localizedProductType ? (
                   <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
-                    {product.productType}
+                    {localizedProductType}
                   </span>
                 ) : null}
               </div>

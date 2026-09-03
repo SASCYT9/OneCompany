@@ -112,6 +112,7 @@
     "shop:fi:media:reconcile": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/reconcile-fi-exhaust-official-media.ts --commit",
     "shop:fi:activate:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/activate-fi-exhaust-catalog.ts",
     "shop:fi:activate": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/activate-fi-exhaust-catalog.ts --commit",
+    "shop:fi:filters:audit": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/audit-fi-exhaust-filter-smoke.ts",
     "shop:catalog:v2:kw:normalize:test": "tsx --test tests/shop/unit/shopCatalogKwNormalization.test.ts",
     "shop:catalog:v2:kw:audit": "tsx scripts/audit-kw-normalization.ts",
     "shop:catalog:v2:kw:drafts:audit": "tsx scripts/audit-kw-product-drafts.ts",
