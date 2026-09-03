@@ -109,6 +109,8 @@
     "shop:fi:import:drafts": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/import-fi-exhaust-catalog-drafts.ts --commit-draft",
     "shop:fi:import:verify": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/verify-fi-exhaust-catalog-import.ts",
     "shop:fi:media:reconcile": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/reconcile-fi-exhaust-official-media.ts --commit",
+    "shop:fi:activate:dry": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/activate-fi-exhaust-catalog.ts",
+    "shop:fi:activate": "node scripts/run-react-server-tsx.mjs --env-file=.env.local scripts/activate-fi-exhaust-catalog.ts --commit",
     "shop:catalog:v2:kw:normalize:test": "tsx --test tests/shop/unit/shopCatalogKwNormalization.test.ts",
     "shop:catalog:v2:kw:audit": "tsx scripts/audit-kw-normalization.ts",
     "shop:catalog:v2:kw:drafts:audit": "tsx scripts/audit-kw-product-drafts.ts",
