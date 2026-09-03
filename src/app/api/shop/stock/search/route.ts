@@ -724,6 +724,26 @@ async function resolveCanonicalVehicleProductIds(input: {
       state: "EXACT" as const,
       textValue: { equals: value, mode: "insensitive" as const },
     });
+    const modelAliases = input.model
+      ? [
+          input.model,
+          ...(await prisma.shopCatalogProjectionConstraint.findMany({
+            where: {
+              dimension: "MODEL",
+              state: "EXACT",
+              textValue: { not: null },
+            },
+            distinct: ["textValue"],
+            select: { textValue: true },
+          }))
+            .map((row) => row.textValue)
+            .filter(
+              (value): value is string =>
+                Boolean(value) && shopVehicleModelsMatch(value!, input.model)
+            ),
+        ]
+      : [];
+    const uniqueModelAliases = [...new Set(modelAliases)];
     const chassisAliases = input.chassis
       ? [
           input.chassis,
@@ -750,7 +770,13 @@ async function resolveCanonicalVehicleProductIds(input: {
     const canonicalClauseConstraints = [
       ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
       ...(input.make ? [exactTextConstraint("MAKE", input.make)] : []),
-      ...(input.model ? [exactTextConstraint("MODEL", input.model)] : []),
+      ...(input.model
+        ? [{
+            dimension: "MODEL" as const,
+            state: "EXACT" as const,
+            textValue: { in: uniqueModelAliases, mode: "insensitive" as const },
+          }]
+        : []),
       ...(input.chassis
         ? [{
             OR: [
@@ -788,7 +814,9 @@ async function resolveCanonicalVehicleProductIds(input: {
           verificationStatus: { not: "BLOCKED" },
           ...(input.scope ? { scope: input.scope } : {}),
           ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
-          ...(input.model ? { model: { equals: input.model, mode: "insensitive" } } : {}),
+          ...(input.model
+            ? { model: { in: uniqueModelAliases, mode: "insensitive" } }
+            : {}),
           ...(input.chassis ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } } : {}),
           ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
           ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
