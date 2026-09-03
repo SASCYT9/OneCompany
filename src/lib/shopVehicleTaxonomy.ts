@@ -77,3 +77,35 @@ export function canonicalizeVehicleModels(make: string, values: readonly string[
     left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })
   );
 }
+
+/**
+ * Turns supplier groups such as `G90-G99`, `G90/G99`, or `G90 G99` into
+ * selectable chassis codes. Descriptive generations stay intact.
+ */
+export function splitVehicleChassisCodes(value: string) {
+  const normalized = value.trim().replace(/\s+/g, " ").toUpperCase();
+  if (!normalized) return [];
+
+  const delimited = normalized.split(/\s*[,/;]\s*/g).filter(Boolean);
+  const result: string[] = [];
+  for (const part of delimited) {
+    const range = /^([A-Z]{1,4}\d{1,4}(?:\.\d+)?)\s*-\s*([A-Z]{1,4}\d{1,4}(?:\.\d+)?)$/u.exec(part);
+    if (range) {
+      result.push(range[1]!, range[2]!);
+      continue;
+    }
+    const spaced = part.split(" ");
+    if (spaced.length > 1 && spaced.every((token) => /^(?=.*\d)[A-Z0-9.]+$/u.test(token))) {
+      result.push(...spaced);
+      continue;
+    }
+    result.push(part);
+  }
+  return [...new Set(result)];
+}
+
+export function canonicalizeVehicleChassisCodes(values: readonly string[]) {
+  return [...new Set(values.flatMap(splitVehicleChassisCodes))].sort((left, right) =>
+    left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })
+  );
+}

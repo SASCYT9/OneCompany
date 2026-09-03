@@ -87,6 +87,7 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
+import { splitVehicleChassisCodes } from "@/lib/shopVehicleTaxonomy";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -723,6 +724,29 @@ async function resolveCanonicalVehicleProductIds(input: {
       state: "EXACT" as const,
       textValue: { equals: value, mode: "insensitive" as const },
     });
+    const chassisAliases = input.chassis
+      ? [
+          input.chassis,
+          ...(await prisma.shopCatalogProjectionConstraint.findMany({
+            where: {
+              dimension: { in: ["GENERATION", "CHASSIS"] },
+              state: "EXACT",
+              textValue: { contains: input.chassis, mode: "insensitive" },
+            },
+            distinct: ["textValue"],
+            select: { textValue: true },
+          }))
+            .map((row) => row.textValue)
+            .filter(
+              (value): value is string =>
+                Boolean(value) &&
+                splitVehicleChassisCodes(value!).some(
+                  (code) => code.toLocaleLowerCase() === input.chassis.toLocaleLowerCase()
+                )
+            ),
+        ]
+      : [];
+    const uniqueChassisAliases = [...new Set(chassisAliases)];
     const canonicalClauseConstraints = [
       ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
       ...(input.make ? [exactTextConstraint("MAKE", input.make)] : []),
@@ -730,8 +754,16 @@ async function resolveCanonicalVehicleProductIds(input: {
       ...(input.chassis
         ? [{
             OR: [
-              exactTextConstraint("GENERATION", input.chassis),
-              exactTextConstraint("CHASSIS", input.chassis),
+              {
+                dimension: "GENERATION" as const,
+                state: "EXACT" as const,
+                textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
+              },
+              {
+                dimension: "CHASSIS" as const,
+                state: "EXACT" as const,
+                textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
+              },
             ],
           }]
         : []),
@@ -757,7 +789,7 @@ async function resolveCanonicalVehicleProductIds(input: {
           ...(input.scope ? { scope: input.scope } : {}),
           ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
           ...(input.model ? { model: { equals: input.model, mode: "insensitive" } } : {}),
-          ...(input.chassis ? { chassisCode: { equals: input.chassis, mode: "insensitive" } } : {}),
+          ...(input.chassis ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } } : {}),
           ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
           ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
           ...(input.year

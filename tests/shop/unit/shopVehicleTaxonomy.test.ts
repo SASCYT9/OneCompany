@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   canonicalVehicleModelLabel,
+  canonicalizeVehicleChassisCodes,
   canonicalizeVehicleModels,
+  splitVehicleChassisCodes,
   vehicleModelKey,
 } from "../../../src/lib/shopVehicleTaxonomy";
 
@@ -39,4 +41,15 @@ test("Shopify Mercedes casing aliases have one deterministic label", () => {
     canonicalizeVehicleModels("Mercedes-Benz", ["C-CLASS T-MODEL", "C-CLASS T-Model"]),
     ["C-Class T-Model"]
   );
+});
+
+test("compound supplier chassis values become exact selectable codes", () => {
+  assert.deepEqual(splitVehicleChassisCodes("g90-g99"), ["G90", "G99"]);
+  assert.deepEqual(splitVehicleChassisCodes("F90 / G90, G99"), ["F90", "G90", "G99"]);
+  assert.deepEqual(canonicalizeVehicleChassisCodes(["g90-g99", "G90", "F90"]), [
+    "F90",
+    "G90",
+    "G99",
+  ]);
+  assert.deepEqual(splitVehicleChassisCodes("8V Facelift"), ["8V FACELIFT"]);
 });

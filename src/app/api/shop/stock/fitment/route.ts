@@ -9,7 +9,11 @@ import {
   parseShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
-import { canonicalizeVehicleModels, vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
+import {
+  canonicalizeVehicleChassisCodes,
+  canonicalizeVehicleModels,
+  vehicleModelKey,
+} from "@/lib/shopVehicleTaxonomy";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -64,7 +68,10 @@ async function getCanonicalFitmentOptions(input: {
       select: { textValue: true },
       orderBy: { textValue: "asc" },
     });
-    return rows.map((row) => row.textValue).filter((value): value is string => Boolean(value));
+    const values = rows.map((row) => row.textValue).filter((value): value is string => Boolean(value));
+    return dimension === "CHASSIS" || dimension === "GENERATION"
+      ? canonicalizeVehicleChassisCodes(values)
+      : values;
   };
 
   if (!input.make) {
