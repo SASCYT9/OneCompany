@@ -137,6 +137,21 @@ test("premium catalog adapter keeps projection failures recoverable in the stock
   assert.match(api, /NextResponse\.json\(\{ error: error\.message \}, \{ status: 500 \}\)/);
 });
 
+test("vehicle filtering reads canonical projection clauses without depending on AI coverage", () => {
+  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const resolverStart = api.indexOf("async function resolveCanonicalVehicleProductIds");
+  const resolverEnd = api.indexOf("async function resolveStrictCatalogMatches", resolverStart);
+  const resolver = api.slice(resolverStart, resolverEnd);
+
+  assert.match(resolver, /shopCatalogProjectionClause\.findMany/);
+  assert.match(resolver, /canonicalClauseConstraints/);
+  assert.doesNotMatch(resolver, /hasStrictCatalogCoverage/);
+  assert.match(
+    api,
+    /canonicalVehicleProductIds === null[\s\S]*?shopFitmentMatchesVehicleConstraints/
+  );
+});
+
 test("SSR catalog exposes progressive GET filters and keyset continuation without client fetch", () => {
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
   const client = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Filters.tsx", "utf8");

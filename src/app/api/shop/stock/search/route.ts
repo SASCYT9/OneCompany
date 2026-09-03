@@ -713,34 +713,79 @@ async function resolveCanonicalVehicleProductIds(input: {
   ) {
     return null;
   }
-  if (!(await hasStrictCatalogCoverage())) return null;
-
+  if (isLocalStorefrontMode()) return null;
   try {
-    const rows = await prisma.shopVehicleApplication.findMany({
-      where: {
-        isActive: true,
-        isUniversal: false,
-        verificationStatus: { not: "BLOCKED" },
-        ...(input.scope ? { scope: input.scope } : {}),
-        ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
-        ...(input.model ? { model: { equals: input.model, mode: "insensitive" } } : {}),
-        ...(input.chassis ? { chassisCode: { equals: input.chassis, mode: "insensitive" } } : {}),
-        ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
-        ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
-        ...(input.year
-          ? {
-              AND: [
-                { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
-                { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
-              ],
-            }
-          : {}),
-        product: { isPublished: true, status: "ACTIVE" },
-      },
-      distinct: ["productId"],
-      select: { productId: true },
+    const exactTextConstraint = (
+      dimension: "SCOPE" | "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE" | "OPF_GPF",
+      value: string
+    ) => ({
+      dimension,
+      state: "EXACT" as const,
+      textValue: { equals: value, mode: "insensitive" as const },
     });
-    return rows.map((row) => row.productId);
+    const canonicalClauseConstraints = [
+      ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
+      ...(input.make ? [exactTextConstraint("MAKE", input.make)] : []),
+      ...(input.model ? [exactTextConstraint("MODEL", input.model)] : []),
+      ...(input.chassis
+        ? [{
+            OR: [
+              exactTextConstraint("GENERATION", input.chassis),
+              exactTextConstraint("CHASSIS", input.chassis),
+            ],
+          }]
+        : []),
+      ...(input.engine ? [exactTextConstraint("ENGINE", input.engine)] : []),
+      ...(input.opfGpf ? [exactTextConstraint("OPF_GPF", input.opfGpf)] : []),
+      ...(input.year
+        ? [{
+            dimension: "YEAR" as const,
+            state: "EXACT" as const,
+            AND: [
+              { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+              { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+            ],
+          }]
+        : []),
+    ];
+    const [applicationRows, policyRows] = await Promise.all([
+      prisma.shopVehicleApplication.findMany({
+        where: {
+          isActive: true,
+          isUniversal: false,
+          verificationStatus: { not: "BLOCKED" },
+          ...(input.scope ? { scope: input.scope } : {}),
+          ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
+          ...(input.model ? { model: { equals: input.model, mode: "insensitive" } } : {}),
+          ...(input.chassis ? { chassisCode: { equals: input.chassis, mode: "insensitive" } } : {}),
+          ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
+          ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
+          ...(input.year
+            ? {
+                AND: [
+                  { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+                  { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+                ],
+              }
+            : {}),
+          product: { isPublished: true, status: "ACTIVE" },
+        },
+        distinct: ["productId"],
+        select: { productId: true },
+      }),
+      prisma.shopCatalogProjectionClause.findMany({
+        where: {
+          policy: { mode: { not: "UNIVERSAL" } },
+          product: { isPublished: true, status: "ACTIVE" },
+          AND: canonicalClauseConstraints.map((constraint) => ({
+            constraints: { some: constraint },
+          })),
+        },
+        distinct: ["productId"],
+        select: { productId: true },
+      }),
+    ]);
+    return [...new Set([...applicationRows, ...policyRows].map((row) => row.productId))];
   } catch (error) {
     if (isMissingStrictCatalogSchema(error)) return null;
     throw error;
@@ -1169,7 +1214,11 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter(matchesPriceRange);
     }
 
-    if ((make || model || chassis || requestedYear) && !strictCatalogEffective) {
+    if (
+      (make || model || chassis || requestedYear) &&
+      !strictCatalogEffective &&
+      canonicalVehicleProductIds === null
+    ) {
       if (
         (make && !isVehicleMakeCompatibleWithScope(make, vehicleScope)) ||
         (make && model && chassis && !isExpectedChassisForMakeModel(make, model, chassis))
