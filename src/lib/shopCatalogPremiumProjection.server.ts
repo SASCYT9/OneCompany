@@ -114,8 +114,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       isPublished: true,
       status: "ACTIVE",
       OR: [
-        { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } },
-        { variants: { some: { sku: { in: [...SHOP_WAREHOUSE_IN_STOCK_SKUS] } } } },
+        ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
+          { sku: { equals: sku, mode: "insensitive" as const } },
+          { variants: { some: { sku: { equals: sku, mode: "insensitive" as const } } } },
+        ]),
         { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
       ],
     },

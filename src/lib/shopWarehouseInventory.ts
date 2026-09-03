@@ -12,8 +12,18 @@ export const SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS = [
   "EVE-FLC",
 ] as const;
 
+export const SHOP_WAREHOUSE_IN_STOCK_KW_SKUS = [
+  "253200EB",
+  "253200CC",
+  "253200ED",
+  "253200CW",
+  "2532500Y",
+  "253200GG",
+] as const;
+
 export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
   ...SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS,
+  ...SHOP_WAREHOUSE_IN_STOCK_KW_SKUS,
   "0WX595-NVNM0-2",
 ] as const;
 
@@ -81,6 +91,30 @@ const warehouseProductCopyBySku: Record<string, WarehouseProductCopy> = {
   "EVE-FLC": {
     title: { ua: "Набір для очищення фільтрів Eventuri", en: "Eventuri air-filter cleaning kit" },
     description: { ua: "Фірмовий комплект для делікатного очищення та відновлення багаторазових повітряних фільтрів Eventuri.", en: "The genuine care kit for safely cleaning and refreshing reusable Eventuri air filters." },
+  },
+  "253200EB": {
+    title: { ua: "Регульовані пружини KW HAS для BMW M3 / M4 G8X", en: "KW HAS adjustable springs for BMW M3 / M4 G8X" },
+    description: { ua: "Комплект пружин KW Height Adjustable Spring для BMW M3 та M4 покоління G8X із регулюванням висоти та збереженням штатної логіки підвіски.", en: "KW Height Adjustable Spring kit for the G8X BMW M3 and M4, with adjustable ride height while retaining the factory suspension layout." },
+  },
+  "253200CC": {
+    title: { ua: "Регульовані пружини KW HAS для BMW M5 F90", en: "KW HAS adjustable springs for BMW M5 F90" },
+    description: { ua: "Комплект регульованих за висотою пружин KW HAS для BMW M5 F90, створений для точного налаштування посадки автомобіля.", en: "KW HAS height-adjustable spring kit for the BMW M5 F90, designed for precise control of the vehicle's ride height and stance." },
+  },
+  "253200ED": {
+    title: { ua: "Регульовані пружини KW HAS для BMW X5 M F95 / X6 M F96", en: "KW HAS adjustable springs for BMW X5 M F95 / X6 M F96" },
+    description: { ua: "Комплект пружин KW HAS для BMW X5 M F95 та X6 M F96 із можливістю індивідуального регулювання висоти підвіски.", en: "KW HAS spring kit for the BMW X5 M F95 and X6 M F96, providing individual adjustment of the suspension ride height." },
+  },
+  "253200CW": {
+    title: { ua: "Регульовані пружини KW HAS для BMW M8 F92 / F93", en: "KW HAS adjustable springs for BMW M8 F92 / F93" },
+    description: { ua: "Комплект регульованих пружин KW HAS для BMW M8 Coupe F92 та Cabriolet F93 для точної й акуратної зміни висоти автомобіля.", en: "KW HAS adjustable spring kit for the BMW M8 Coupe F92 and Convertible F93, enabling a precise and balanced ride-height adjustment." },
+  },
+  "2532500Y": {
+    title: { ua: "Регульовані пружини KW HAS для Mercedes-AMG G 63", en: "KW HAS adjustable springs for Mercedes-AMG G 63" },
+    description: { ua: "Комплект регульованих за висотою пружин KW HAS для Mercedes-AMG G 63 зі збереженням продуманої заводської архітектури підвіски.", en: "KW HAS height-adjustable spring kit for the Mercedes-AMG G 63, engineered around the vehicle's original suspension architecture." },
+  },
+  "253200GG": {
+    title: { ua: "Регульовані пружини KW HAS для BMW M5 G90", en: "KW HAS adjustable springs for BMW M5 G90" },
+    description: { ua: "Комплект пружин KW Height Adjustable Spring для нового BMW M5 G90 із регулюванням висоти та точною відповідністю платформі.", en: "KW Height Adjustable Spring kit for the new BMW M5 G90, offering adjustable ride height and platform-specific fitment." },
   },
 };
 

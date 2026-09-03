@@ -7,13 +7,22 @@ import {
   isShopWarehouseInStockSku,
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
+  SHOP_WAREHOUSE_IN_STOCK_KW_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "../../../src/lib/shopWarehouseInventory";
 
-test("warehouse inventory contains eleven Eventuri SKUs and one iPE SKU", () => {
-  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 12);
-  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 12);
+test("warehouse inventory contains the confirmed Eventuri, KW, and iPE SKUs", () => {
+  assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_KW_SKUS, [
+    "253200EB",
+    "253200CC",
+    "253200ED",
+    "253200CW",
+    "2532500Y",
+    "253200GG",
+  ]);
+  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 18);
+  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 18);
   assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.every(isShopWarehouseInStockSku), true);
 });
 
