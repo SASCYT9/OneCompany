@@ -16,18 +16,15 @@ export function ShopProductVideos({ videos, title, isUa }: Props) {
   if (videos.length === 0) return null;
 
   return (
-    <section className="space-y-3 rounded-3xl border border-foreground/12 bg-card p-4 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center justify-between gap-3 px-1">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground/75 dark:text-foreground/65">
-          {isUa ? "Відео звучання" : "Sound video"}
-        </h2>
-        <span className="text-[10px] uppercase tracking-[0.16em] text-foreground/45">{videos.length}</span>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+    <section
+      className="-mx-2 space-y-3 sm:mx-0"
+      aria-label={isUa ? "Відео звучання" : "Sound video"}
+    >
+      <div className="grid gap-3">
         {videos.map((video, index) => {
           const isActive = activeIndex === index;
           return (
-            <div key={video.src} className="overflow-hidden rounded-2xl border border-foreground/12 bg-black">
+            <div key={video.src} className="overflow-hidden rounded-xl bg-black">
               <div className="relative aspect-video">
                 {isActive ? (
                   <iframe
