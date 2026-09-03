@@ -10,6 +10,7 @@ import {
   queryShopCatalogProjectionFacets,
   type ShopCatalogProjectionQueryInput,
 } from "@/lib/shopCatalogProjectionQuery.server";
+import { getKwCardTitle } from "@/lib/shopKwCardPresentation";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
@@ -208,7 +209,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
             : 0;
     return {
       id: item.productId,
-      name: item.title,
+      name: getKwCardTitle({
+        brand: item.brandLabel || item.brandKey,
+        title: item.title,
+        locale,
+      }),
       brand: item.brandLabel || item.brandKey,
       partNumber: item.normalizedSku ?? "",
       description: item.cardCopy ?? "",

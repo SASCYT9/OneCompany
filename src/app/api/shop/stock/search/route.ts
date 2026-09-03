@@ -38,6 +38,7 @@ import {
   getShopStockCategoryLabelForProduct,
   matchesShopStockCategory,
 } from "@/lib/shopStockTaxonomy";
+import { getKwCardTitle } from "@/lib/shopKwCardPresentation";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import {
@@ -1609,10 +1610,14 @@ export async function GET(request: NextRequest) {
 
         return {
           id: product.id,
-          name:
-            locale === "en"
-              ? product.title.en || product.title.ua
-              : product.title.ua || product.title.en,
+          name: getKwCardTitle({
+            brand: getProductDisplayBrand(product.brand),
+            title:
+              locale === "en"
+                ? product.title.en || product.title.ua
+                : product.title.ua || product.title.en,
+            locale,
+          }),
           brand: getProductDisplayBrand(product.brand),
           partNumber: product.sku || "",
           description:
