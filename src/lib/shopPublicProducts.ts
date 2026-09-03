@@ -45,6 +45,7 @@ export function serializePublicShopProduct(
       : null,
     image: product.image,
     gallery: product.gallery ?? [product.image],
+    externalVideos: product.externalVideos ?? [],
     highlights: product.highlights,
     pricing: {
       audience: pricing.audience,

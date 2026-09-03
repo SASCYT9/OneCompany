@@ -890,7 +890,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           </div>
 
           <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="min-w-0 space-y-4 lg:sticky lg:top-32">
+            <div className="min-w-0 lg:sticky lg:top-32">
               <ShopProductGallery
                 images={[
                   safeImageUrl,
@@ -902,13 +902,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 isUa={isUa}
                 compatibleVehicles={do88CompatibleVehicles}
               />
-              {product.externalVideos?.length ? (
-                <ShopProductVideos
-                  videos={product.externalVideos}
-                  title={productTitle}
-                  isUa={isUa}
-                />
-              ) : null}
             </div>
 
             <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
@@ -1091,6 +1084,10 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
               </ShopProductVariantPurchaseSection>
             </div>
           </section>
+
+          {product.externalVideos?.length ? (
+            <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
+          ) : null}
         </div>
       )}
 

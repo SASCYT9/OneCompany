@@ -164,7 +164,7 @@ export default async function ShopProductPage({ params }: Props) {
         </Link>
 
         <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="sticky top-32 min-w-0 space-y-4">
+          <div className="sticky top-32 min-w-0">
             <ShopProductGallery
               images={safeGallery}
               productTitle={productTitle}
@@ -172,9 +172,6 @@ export default async function ShopProductPage({ params }: Props) {
               isInStock={product.stock === "inStock"}
               isUa={isUa}
             />
-            {product.externalVideos?.length ? (
-              <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
-            ) : null}
           </div>
 
           <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/15 bg-foreground/5 p-6 backdrop-blur-xl sm:p-7">
@@ -221,6 +218,10 @@ export default async function ShopProductPage({ params }: Props) {
             </ShopProductVariantPurchaseSection>
           </div>
         </section>
+
+        {product.externalVideos?.length ? (
+          <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
+        ) : null}
 
         <Suspense fallback={null}>
           <RelatedProductsSection
