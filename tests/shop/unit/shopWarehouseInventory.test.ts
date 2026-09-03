@@ -7,12 +7,13 @@ import {
   isShopWarehouseInStockSku,
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
+  SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_KW_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "../../../src/lib/shopWarehouseInventory";
 
-test("warehouse inventory contains the confirmed Eventuri, KW, and iPE SKUs", () => {
+test("warehouse inventory contains the confirmed Eventuri, KW, Fi EXHAUST, and iPE SKUs", () => {
   assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_KW_SKUS, [
     "253200EB",
     "253200CC",
@@ -21,8 +22,11 @@ test("warehouse inventory contains the confirmed Eventuri, KW, and iPE SKUs", ()
     "2532500Y",
     "253200GG",
   ]);
-  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 18);
-  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 18);
+  assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS, [
+    "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2",
+  ]);
+  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 19);
+  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 19);
   assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.every(isShopWarehouseInStockSku), true);
 });
 

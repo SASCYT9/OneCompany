@@ -21,9 +21,14 @@ export const SHOP_WAREHOUSE_IN_STOCK_KW_SKUS = [
   "253200GG",
 ] as const;
 
+export const SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS = [
+  "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2",
+] as const;
+
 export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
   ...SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS,
   ...SHOP_WAREHOUSE_IN_STOCK_KW_SKUS,
+  ...SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS,
   "0WX595-NVNM0-2",
 ] as const;
 
@@ -115,6 +120,16 @@ const warehouseProductCopyBySku: Record<string, WarehouseProductCopy> = {
   "253200GG": {
     title: { ua: "Регульовані пружини KW HAS для BMW M5 G90", en: "KW HAS adjustable springs for BMW M5 G90" },
     description: { ua: "Комплект пружин KW Height Adjustable Spring для нового BMW M5 G90 із регулюванням висоти та точною відповідністю платформі.", en: "KW Height Adjustable Spring kit for the new BMW M5 G90, offering adjustable ride height and platform-specific fitment." },
+  },
+  "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2": {
+    title: {
+      ua: "Клапанна вихлопна система Fi EXHAUST для BMW M3 / M4 G8x",
+      en: "Fi EXHAUST valvetronic exhaust for BMW M3 / M4 G8x",
+    },
+    description: {
+      ua: "Клапанна вихлопна система Fi EXHAUST для BMW M3 G80 та M4 G82 із керованим звучанням, точною посадкою і комплектом карбонових насадок.",
+      en: "A Fi EXHAUST valvetronic system for the BMW M3 G80 and M4 G82, combining controllable sound, precise fitment and a set of carbon exhaust tips.",
+    },
   },
 };
 
