@@ -17,6 +17,9 @@ import type {
 } from "./shopCatalogV2Compatibility";
 
 type AdminProductRecord = Prisma.ShopProductGetPayload<{ include: typeof adminProductInclude }>;
+type ProjectionAdminProductRecord = Omit<AdminProductRecord, "bundle"> & {
+  bundle: null | { items: readonly unknown[] };
+};
 
 function exact(dimension: string, values: readonly unknown[]) {
   const cleaned = [...new Set(values.filter((value) => value !== null && value !== ""))];
@@ -142,7 +145,7 @@ async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, produc
 }
 
 export function buildShopCatalogProjectionSourceFromAdminRecord(
-  record: AdminProductRecord,
+  record: ProjectionAdminProductRecord,
   nextCatalogVersion: string,
   inventoryLevelCount: number
 ): ShopCatalogProjectionSource {
