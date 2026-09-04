@@ -37,7 +37,7 @@ test("BMW model aliases collapse to canonical labels", () => {
 test("BMW trim-shaped legacy models collapse to their selectable model", () => {
   assert.deepEqual(
     canonicalizeVehicleModels("BMW", ["1 Series M", "M340i/M340d", "M550i", "I4", "Z Series", "Z4"]),
-    ["1M", "3 Series", "5 Series", "i4", "Z4"]
+    ["1 Series M Coupé", "3 Series", "5 Series", "i4", "Z4"]
   );
   assert.ok(vehicleModelAliases("BMW", "3 Series").includes("M340i/M340d"));
   assert.ok(vehicleModelAliases("BMW", "Z4").includes("Z Series"));
@@ -116,4 +116,15 @@ test("compound supplier chassis values become exact selectable codes", () => {
     "G99",
   ]);
   assert.deepEqual(splitVehicleChassisCodes("8V Facelift"), ["8V FACELIFT"]);
+});
+
+test("BMW chassis options stay inside the selected official model", () => {
+  assert.deepEqual(
+    canonicalizeVehicleChassisCodes(["E30", "E85", "E86", "E89", "F90", "G29"], "BMW", "Z4"),
+    ["E85", "E86", "E89", "G29"]
+  );
+  assert.deepEqual(
+    canonicalizeVehicleChassisCodes(["F87N", "F90", "G87", "G90"], "BMW", "M2"),
+    ["F87", "G87"]
+  );
 });

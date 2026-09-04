@@ -55,7 +55,7 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     "Flying Spur": ["Flying Spur", "Continental Flying Spur"],
   },
   bmw: {
-    "1M": ["1M", "1 Series M"],
+    "1 Series M Coupé": ["1 Series M Coupé", "1M", "1 Series M"],
     "1 Series": ["1 Series", "M135i/M140i"],
     "2 Series": ["2 Series", "M235i/M240i"],
     "2 Series Active Tourer": ["2 Series Active Tourer", "2 Active Tourer"],
@@ -266,8 +266,54 @@ export function splitVehicleChassisCodes(value: string) {
   return [...new Set(result)];
 }
 
-export function canonicalizeVehicleChassisCodes(values: readonly string[]) {
-  return [...new Set(values.flatMap(splitVehicleChassisCodes))].sort((left, right) =>
+const BMW_CHASSIS_BY_MODEL: Readonly<Record<string, readonly string[]>> = {
+  "1 Series": ["E81", "E82", "E87", "E88", "F20", "F21", "F40", "F70"],
+  "1 Series M Coupé": ["E82"],
+  "2 Series": ["F22", "F23", "F44", "G42"],
+  "2 Series Active Tourer": ["F45", "F46", "U06"],
+  "3 Series": ["E21", "E30", "E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21", "G28"],
+  "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
+  "5 Series": ["E12", "E28", "E34", "E39", "E60", "E61", "F07", "F10", "F11", "G30", "G31", "G60", "G61"],
+  "6 Gran Turismo": ["G32"],
+  "6 Series": ["E24", "E63", "E64", "F06", "F12", "F13"],
+  "7 Series": ["E23", "E32", "E38", "E65", "E66", "F01", "F02", "G11", "G12", "G70"],
+  "8 Series": ["E31", "G14", "G15", "G16"],
+  i4: ["G26"],
+  i8: ["I12", "I15"],
+  M2: ["F87", "G87"],
+  M3: ["E30", "E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
+  M4: ["F82", "F83", "G82", "G83"],
+  M5: ["E28", "E34", "E39", "E60", "E61", "F10", "F90", "G90", "G99"],
+  M8: ["F91", "F92", "F93"],
+  X1: ["E84", "F48", "U11"],
+  X2: ["F39", "U10"],
+  X3: ["E83", "F25", "G01", "G45"],
+  "X3 M": ["F97"],
+  X4: ["F26", "G02"],
+  "X4 M": ["F98"],
+  X5: ["E53", "E70", "F15", "G05"],
+  "X5 M": ["E70", "F85", "F95"],
+  X6: ["E71", "F16", "G06"],
+  "X6 M": ["E71", "F86", "F96"],
+  X7: ["G07"],
+  XM: ["G09"],
+  Z4: ["E85", "E86", "E89", "G29"],
+};
+
+export function canonicalizeVehicleChassisCodes(
+  values: readonly string[],
+  make?: string | null,
+  model?: string | null
+) {
+  const normalized = [...new Set(values.flatMap(splitVehicleChassisCodes))];
+  const canonicalMake = canonicalVehicleMakeLabel(make ?? "");
+  const canonicalModel = model ? canonicalVehicleModelLabel(canonicalMake, model) : "";
+  const allowed = canonicalMake === "BMW" ? BMW_CHASSIS_BY_MODEL[canonicalModel] : null;
+  const filtered = allowed
+    ? normalized.filter((value) => allowed.includes(value === "F87N" ? "F87" : value))
+        .map((value) => value === "F87N" ? "F87" : value)
+    : normalized;
+  return [...new Set(filtered)].sort((left, right) =>
     left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })
   );
 }

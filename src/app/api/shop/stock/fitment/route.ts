@@ -73,9 +73,7 @@ async function getCanonicalFitmentOptions(input: {
       orderBy: { textValue: "asc" },
     });
     const values = rows.map((row) => row.textValue).filter((value): value is string => Boolean(value));
-    return dimension === "CHASSIS" || dimension === "GENERATION"
-      ? canonicalizeVehicleChassisCodes(values)
-      : values;
+    return values;
   };
 
   if (!input.make) {
@@ -195,7 +193,7 @@ async function getCanonicalFitmentOptions(input: {
     type: "chassis" as const,
     make: input.make,
     model: input.model,
-    data: [...new Set(rows)].sort((a, b) => a.localeCompare(b)),
+    data: canonicalizeVehicleChassisCodes(rows, canonicalMake, input.model),
   };
 }
 
@@ -321,7 +319,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const chassis = Array.from(chassisSet).sort((a, b) => a.localeCompare(b));
+      const chassis = canonicalizeVehicleChassisCodes(Array.from(chassisSet), make, model);
       return cachedJson({ type: "chassis", make, model, data: chassis });
     }
 
