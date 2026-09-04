@@ -61,6 +61,7 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     "8 Series": ["8 Series", "8-series", "M850i"],
     i4: ["i4", "I4"],
     i8: ["i8", "I8"],
+    Z4: ["Z4", "Z Series"],
   },
   "land rover": {
     Defender: ["Defender", "Defender Oem Black", "Urban Leather Defender"],

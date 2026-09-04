@@ -36,10 +36,11 @@ test("BMW model aliases collapse to canonical labels", () => {
 
 test("BMW trim-shaped legacy models collapse to their selectable model", () => {
   assert.deepEqual(
-    canonicalizeVehicleModels("BMW", ["1 Series M", "M340i/M340d", "M550i", "I4"]),
-    ["1M", "3 Series", "5 Series", "i4"]
+    canonicalizeVehicleModels("BMW", ["1 Series M", "M340i/M340d", "M550i", "I4", "Z Series", "Z4"]),
+    ["1M", "3 Series", "5 Series", "i4", "Z4"]
   );
   assert.ok(vehicleModelAliases("BMW", "3 Series").includes("M340i/M340d"));
+  assert.ok(vehicleModelAliases("BMW", "Z4").includes("Z Series"));
 });
 
 test("Land Rover product-title fragments collapse to real models", () => {
