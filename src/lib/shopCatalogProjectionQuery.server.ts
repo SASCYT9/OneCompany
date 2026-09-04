@@ -11,6 +11,10 @@ import {
 import { prisma } from "./prisma";
 import type { ShopCatalogShadowFlag } from "./shopCatalogShadowFlag.server";
 import { canonicalVehicleModelLabel, vehicleModelKey } from "./shopVehicleTaxonomy";
+import {
+  isUrbanProductBrand,
+  URBAN_PRODUCT_BRAND_ALIASES,
+} from "./shopProductDisplayBrand";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
   defaultPageSize: 24,
@@ -409,9 +413,7 @@ function projectionFacetBaseConditions(
   if (input.maxPrice != null) conditions.push(Prisma.sql`${price} <= ${input.maxPrice}`);
   if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
   if (includeBrand && input.brand) {
-    conditions.push(
-      Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
-    );
+    conditions.push(projectionBrandConditionSql(input.brand));
   }
   if (includeCategory && input.category) {
     conditions.push(
@@ -424,6 +426,16 @@ function projectionFacetBaseConditions(
     );
   }
   return conditions;
+}
+
+function projectionBrandConditionSql(brand: string): Prisma.Sql {
+  if (isUrbanProductBrand(brand)) {
+    return Prisma.sql`(
+      lower(projection."brandKey") IN (${Prisma.join(URBAN_PRODUCT_BRAND_ALIASES)})
+      OR lower(projection."brandLabel") IN (${Prisma.join(URBAN_PRODUCT_BRAND_ALIASES)})
+    )`;
+  }
+  return Prisma.sql`(lower(projection."brandKey") = lower(${brand}) OR lower(projection."brandLabel") = lower(${brand}))`;
 }
 
 function selectedVehicleFacetConstraints(
@@ -572,7 +584,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
   // aggregating every compatibility dimension across the whole catalog.
   if (input.brand) {
     branches.push(
-      input.text
+      input.text || isUrbanProductBrand(input.brand)
         ? vehicleFacetBranch(input, "make")
         : Prisma.sql`
             (SELECT
@@ -690,9 +702,7 @@ export function buildShopCatalogProjectionVehicleQuerySql(
   ];
   if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
   if (input.brand) {
-    projectionConditions.push(
-      Prisma.sql`(lower(projection."brandKey") = lower(${input.brand}) OR lower(projection."brandLabel") = lower(${input.brand}))`
-    );
+    projectionConditions.push(projectionBrandConditionSql(input.brand));
   }
   if (input.category) {
     projectionConditions.push(
@@ -836,11 +846,19 @@ export function buildShopCatalogProjectionWhere(
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));
   if (input.brand) {
+    const urbanAliases = isUrbanProductBrand(input.brand)
+      ? [...URBAN_PRODUCT_BRAND_ALIASES]
+      : null;
     and.push({
-      OR: [
-        { brandKey: { equals: input.brand, mode: "insensitive" } },
-        { brandLabel: { equals: input.brand, mode: "insensitive" } },
-      ],
+      OR: urbanAliases
+        ? [
+            { brandKey: { in: urbanAliases, mode: "insensitive" } },
+            { brandLabel: { in: urbanAliases, mode: "insensitive" } },
+          ]
+        : [
+            { brandKey: { equals: input.brand, mode: "insensitive" } },
+            { brandLabel: { equals: input.brand, mode: "insensitive" } },
+          ],
     });
   }
   if (input.category) {

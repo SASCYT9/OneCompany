@@ -30,6 +30,7 @@ import {
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
+import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 
 const PAGE_SIZE = 24;
 
@@ -209,6 +210,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const priceByProduct = new Map(prices.map((price) => [price.productId, price]));
 
   const data = items.map((item) => {
+    const displayBrand = getProductDisplayBrand(item.brandLabel || item.brandKey);
     const cardPrice = priceByProduct.get(item.productId);
     const pricing = cardPrice
       ? resolveShopProductPricing(cardPrice as never, pricingContext)
@@ -232,11 +234,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     return {
       id: item.productId,
       name: getKwCardTitle({
-        brand: item.brandLabel || item.brandKey,
+        brand: displayBrand,
         title: item.title,
         locale,
       }),
-      brand: item.brandLabel || item.brandKey,
+      brand: displayBrand,
       partNumber: item.normalizedSku ?? "",
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
@@ -257,7 +259,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       slug: item.slug,
       href: buildShopStorefrontProductPath(locale, {
         slug: item.slug,
-        brand: item.brandLabel || item.brandKey,
+        brand: displayBrand,
       }),
       variantId: cardPrice?.defaultVariantId ?? null,
       turn14Id: "",
@@ -266,8 +268,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   });
 
   const pricesOnPage = data.map((item) => item.price).filter((price) => price > 0);
+  const brandCounts = new Map<string, number>();
+  for (const { label, count } of facetResult.facets.brand) {
+    const displayBrand = getProductDisplayBrand(label);
+    brandCounts.set(displayBrand, (brandCounts.get(displayBrand) ?? 0) + count);
+  }
   const filterStats = {
-    brands: facetResult.facets.brand.map(({ label, count }) => ({ label, count })),
+    brands: [...brandCounts.entries()]
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label)),
     categories: facetResult.facets.category.map(({ label, count }) => ({ label, count })),
     stock: {
       all: totalItems,

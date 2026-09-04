@@ -94,19 +94,8 @@ import {
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
-
-const URBAN_VEHICLE_BRANDS = new Set([
-  "land rover",
-  "lamborghini",
-  "rolls-royce",
-  "mercedes-benz",
-  "audi",
-  "range rover",
-  "bentley",
-  "volkswagen",
-  "urban",
-  "urban automotive",
-]);
+import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+export { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 
 type StockSearchSort = "default" | "price_asc" | "price_desc" | "name_asc";
 type StockSearchStock = "all" | "inStock" | "preOrder";
@@ -140,15 +129,6 @@ const CATALOG_BRAND_PRIORITY = [
   "ADRO",
   "Ilmberger Carbon",
 ].map(normalizeShopSearchText);
-
-export function getProductDisplayBrand(brand: string | null | undefined): string {
-  if (!brand) return "";
-  const lower = brand.trim().toLowerCase();
-  if (URBAN_VEHICLE_BRANDS.has(lower)) {
-    return "Urban Automotive";
-  }
-  return brand.trim();
-}
 
 let cachedProductsWithFitment: Array<{
   product: any;

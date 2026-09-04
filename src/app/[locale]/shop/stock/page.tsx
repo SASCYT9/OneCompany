@@ -640,14 +640,18 @@ function SafeProductImage({
   });
 
   return (
-    // This fallback intentionally uses a native image element because product media
-    // URLs are remote/tenant-defined and may not be present in next/image config.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={cleanSrc}
       alt={alt}
+      width={720}
+      height={480}
+      sizes={
+        isMini
+          ? "80px"
+          : "(min-width: 2400px) 18vw, (min-width: 1900px) 23vw, (min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
+      }
+      quality={75}
       loading="lazy"
-      decoding="async"
       onError={() => setError(true)}
       className={className}
     />
@@ -2770,7 +2774,7 @@ function StockPageContent() {
                   className="pointer-events-none relative flex h-[230px] min-w-0 items-center justify-center sm:h-[265px] lg:h-[275px]"
                 >
                   <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
-                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill unoptimized priority={heroProductIndex === 0} sizes="(min-width: 1024px) 550px, 88vw" className="object-contain object-center p-4 mix-blend-multiply contrast-[1.04] sm:p-5" />
+                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill priority={heroProductIndex === 0} quality={75} sizes="(min-width: 1024px) 550px, 88vw" className="object-contain object-center p-4 mix-blend-multiply contrast-[1.04] sm:p-5" />
                   </span>
                 </motion.div>
                 <motion.div
@@ -2805,7 +2809,7 @@ function StockPageContent() {
             <div className="flex min-w-0 flex-1 overflow-x-auto">
               {heroRailProducts.map(({ product, index }) => (
                 <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-black/10 px-4 text-left transition hover:bg-black/[0.035] dark:border-white/10 dark:hover:bg-white/[0.04] sm:min-w-[230px]">
-                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]"><Image src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!} alt="" fill unoptimized sizes="80px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" /></span>
+                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]"><Image src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!} alt="" fill quality={75} sizes="80px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" /></span>
                   <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8f6f24] dark:text-[#c6a657]">{product.partNumber || product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-black/62 group-hover:text-black dark:text-white/68 dark:group-hover:text-white">{getCatalogProductPresentation(product, isUa ? "ua" : "en").title}</span></span>
                 </button>
               ))}
@@ -2821,7 +2825,7 @@ function StockPageContent() {
                 : "Пошук і підбір за мото"
               : "Search and vehicle finder"
           }
-          className="relative z-40 mx-2 mt-4 rounded-[16px] border border-foreground/10 bg-card/98 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.13)] backdrop-blur-2xl dark:bg-[#08090b]/98 sm:mx-0 sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5"
+          className="relative z-40 mx-2 mt-4 rounded-[16px] border border-foreground/10 bg-card p-3 shadow-[0_24px_70px_rgba(0,0,0,0.13)] dark:bg-[#08090b] sm:mx-0 sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5"
         >
           <div className="space-y-2 self-end sm:space-y-3">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -3114,13 +3118,13 @@ function StockPageContent() {
           className="grid gap-3 sm:gap-4 lg:grid-cols-[292px_minmax(0,1fr)] xl:grid-cols-[308px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]"
         >
           <aside className="hidden lg:block">
-            <div className="sticky top-24 h-[calc(100dvh-7rem)] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-[14px] border border-foreground/10 bg-card/78 shadow-[0_16px_42px_rgba(0,0,0,0.075)] backdrop-blur-3xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)]">
+            <div className="sticky top-24 h-[calc(100dvh-7rem)] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-[14px] border border-foreground/10 bg-card shadow-[0_16px_42px_rgba(0,0,0,0.075)] dark:bg-[#08090b] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)]">
               {renderFilterPanel()}
             </div>
           </aside>
 
           <div className="min-w-0">
-            <div className="mb-4 rounded-[14px] border border-foreground/10 bg-card/78 p-3 shadow-[0_16px_42px_rgba(0,0,0,0.075)] backdrop-blur-3xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:mb-4 sm:p-4">
+            <div className="mb-4 rounded-[14px] border border-foreground/10 bg-card p-3 shadow-[0_16px_42px_rgba(0,0,0,0.075)] dark:bg-[#08090b] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:mb-4 sm:p-4">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <div className="hidden items-center gap-2 text-[9px] font-light text-foreground/48 sm:flex">
