@@ -40,6 +40,12 @@ import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import {
+  EVENTURI_SHARED_V8_INTAKE_COPY,
+  EVENTURI_SHARED_V8_INTAKE_SLUG,
+  EVENTURI_SHARED_V8_INTAKE_SLUGS,
+  isEventuriSharedV8Intake,
+} from "@/lib/eventuriSharedIntake";
 
 let prismaCached: ReturnType<typeof createPrismaCachedClient> | null = null;
 
@@ -3323,7 +3329,33 @@ export const getShopProductBySlugServer = cache(async function getShopProductByS
   slug: string
 ): Promise<ShopProduct | undefined> {
   const result = await lookupShopProductBySlugServer(slug);
-  if (result.kind === "found") return result.product;
+  if (result.kind === "found") {
+    const product = result.product;
+    if (
+      isEventuriSharedV8Intake(product.sku) ||
+      EVENTURI_SHARED_V8_INTAKE_SLUGS.includes(
+        product.slug as (typeof EVENTURI_SHARED_V8_INTAKE_SLUGS)[number]
+      )
+    ) {
+      return {
+        ...product,
+        slug: EVENTURI_SHARED_V8_INTAKE_SLUG,
+        title: {
+          ua: EVENTURI_SHARED_V8_INTAKE_COPY.titleUa,
+          en: EVENTURI_SHARED_V8_INTAKE_COPY.titleEn,
+        },
+        shortDescription: {
+          ua: EVENTURI_SHARED_V8_INTAKE_COPY.shortDescUa,
+          en: EVENTURI_SHARED_V8_INTAKE_COPY.shortDescEn,
+        },
+        longDescription: {
+          ua: EVENTURI_SHARED_V8_INTAKE_COPY.longDescUa,
+          en: EVENTURI_SHARED_V8_INTAKE_COPY.longDescEn,
+        },
+      };
+    }
+    return product;
+  }
   if (result.kind === "missing") return undefined;
   throw new ShopCatalogUnavailableError(result.code, { cause: result.cause });
 });

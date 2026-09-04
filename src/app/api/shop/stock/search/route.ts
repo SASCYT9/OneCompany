@@ -88,6 +88,12 @@ import {
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
 import { splitVehicleChassisCodes } from "@/lib/shopVehicleTaxonomy";
+import {
+  EVENTURI_SHARED_V8_INTAKE_COPY,
+  EVENTURI_SHARED_V8_INTAKE_SLUG,
+  isEventuriSharedV8Intake,
+  matchesEventuriSharedV8Application,
+} from "@/lib/eventuriSharedIntake";
 
 const URBAN_VEHICLE_BRANDS = new Set([
   "land rover",
@@ -158,6 +164,15 @@ let cachedProductsWithFitment: Array<{
   fitmentText: string;
   yearRanges: Fitment["yearRanges"];
   fitmentMake: string | null;
+  fitmentItems?: Array<{
+    searchText: string;
+    titleText: string;
+    skuText: string;
+    compactSkuText: string;
+    fitmentText: string;
+    yearRanges: Fitment["yearRanges"];
+    fitmentMake: string | null;
+  }>;
 }> | null = null;
 let cachedTimestamp = 0;
 let cachedFitmentOverrideUpdatedAt = 0;
@@ -270,6 +285,99 @@ function indexProductWithFitment(
       fitmentMake: value.make,
     })),
   };
+}
+
+function consolidateEventuriSharedV8IntakeItems(
+  items: NonNullable<typeof cachedProductsWithFitment>
+): NonNullable<typeof cachedProductsWithFitment> {
+  const sharedItems = items.filter((item) => isEventuriSharedV8Intake(item.product.sku));
+  if (sharedItems.length === 0) return items;
+
+  const representative =
+    sharedItems.find((item) => item.product.slug === EVENTURI_SHARED_V8_INTAKE_SLUG) ??
+    sharedItems[0];
+  const fitmentKeys = new Set<string>();
+  const fitments = sharedItems
+    .flatMap((item) => item.fitments)
+    .map((fitment) =>
+      normalizeShopSearchText(fitment.make) === "audi"
+        ? { ...fitment, models: [...new Set([...fitment.models, "RSQ8"])] }
+        : fitment
+    )
+    .filter((fitment) => {
+      const key = JSON.stringify([
+        fitment.make,
+        fitment.models,
+        fitment.chassisCodes,
+        fitment.yearRanges,
+      ]);
+      if (fitmentKeys.has(key)) return false;
+      fitmentKeys.add(key);
+      return true;
+    });
+  const product = {
+    ...representative.product,
+    slug: EVENTURI_SHARED_V8_INTAKE_SLUG,
+    title: {
+      ua: EVENTURI_SHARED_V8_INTAKE_COPY.titleUa,
+      en: EVENTURI_SHARED_V8_INTAKE_COPY.titleEn,
+    },
+    shortDescription: {
+      ua: EVENTURI_SHARED_V8_INTAKE_COPY.shortDescUa,
+      en: EVENTURI_SHARED_V8_INTAKE_COPY.shortDescEn,
+    },
+    longDescription: {
+      ua: EVENTURI_SHARED_V8_INTAKE_COPY.longDescUa,
+      en: EVENTURI_SHARED_V8_INTAKE_COPY.longDescEn,
+    },
+    tags: [
+      ...new Set([
+        ...(representative.product.tags ?? []),
+        "Audi RSQ8",
+        "Audi SQ8",
+        "Audi SQ7",
+        "Lamborghini Urus",
+        "Porsche Cayenne",
+        "Bentley Bentayga",
+        "4.0 V8 twin-turbo",
+      ]),
+    ],
+  };
+  const consolidated = indexProductWithFitment(product);
+  const fitmentText = buildShopSearchText(
+    fitments.flatMap((fitment) => [
+      fitment.make,
+      ...fitment.models,
+      ...fitment.chassisCodes,
+    ])
+  );
+
+  Object.assign(consolidated, {
+    fitment: fitments[0] ?? consolidated.fitment,
+    fitments,
+    fitmentText,
+    yearRanges: fitments.flatMap((fitment) => fitment.yearRanges),
+    fitmentMake: fitments[0]?.make ?? consolidated.fitmentMake,
+    fitmentItems: fitments.map((fitment) => ({
+      searchText: consolidated.searchText,
+      titleText: consolidated.titleText,
+      skuText: consolidated.skuText,
+      compactSkuText: consolidated.compactSkuText,
+      fitmentText: buildShopSearchText([
+        fitment.make,
+        ...fitment.models,
+        ...fitment.chassisCodes,
+      ]),
+      yearRanges: fitment.yearRanges,
+      fitmentMake: fitment.make,
+    })),
+  });
+
+  const firstSharedIndex = items.findIndex((item) => isEventuriSharedV8Intake(item.product.sku));
+  return items.flatMap((item, index) => {
+    if (!isEventuriSharedV8Intake(item.product.sku)) return [item];
+    return index === firstSharedIndex ? [consolidated] : [];
+  });
 }
 
 async function getShopProductsWithFitmentsByIds(productIds: string[]) {
@@ -627,6 +735,32 @@ function buildFilterStats(
       currency: priceCurrency ?? "USD",
     },
   };
+}
+
+const globalFilterStatsCache = new Map<
+  string,
+  { expiresAt: number; value: ReturnType<typeof buildFilterStats> }
+>();
+
+function readGlobalFilterStatsCache(key: string) {
+  const cached = globalFilterStatsCache.get(key);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    globalFilterStatsCache.delete(key);
+    return null;
+  }
+  return cached.value;
+}
+
+function writeGlobalFilterStatsCache(
+  key: string,
+  value: ReturnType<typeof buildFilterStats>
+) {
+  if (globalFilterStatsCache.size >= 32) {
+    const oldestKey = globalFilterStatsCache.keys().next().value;
+    if (oldestKey) globalFilterStatsCache.delete(oldestKey);
+  }
+  globalFilterStatsCache.set(key, { expiresAt: Date.now() + 60_000, value });
 }
 
 function nullableStrictApplicationEquals(column: Prisma.Sql, value: string | null) {
@@ -1152,19 +1286,37 @@ export async function GET(request: NextRequest) {
       canonicalVehicleProductIds === null
         ? await getShopProductsWithFitments()
         : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
-    const scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
+    let scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
       allProductsWithFitments,
       vehicleScope
     );
+    if (
+      canonicalVehicleProductIds !== null &&
+      matchesEventuriSharedV8Application(make, model)
+    ) {
+      const sharedIntakeItems = filterShopStockItemsByVehicleScope(
+        (await getShopProductsWithFitments()).filter((item) =>
+          isEventuriSharedV8Intake(item.product.sku)
+        ),
+        vehicleScope
+      );
+      scopedProductsWithFitments = [
+        ...scopedProductsWithFitments.filter(
+          (item) => !isEventuriSharedV8Intake(item.product.sku)
+        ),
+        ...sharedIntakeItems,
+      ];
+    }
     const strictCatalogEffective =
       strictCatalogApplied && strictCatalogResolution?.available === true;
     const strictCatalogMatches = strictCatalogEffective
       ? (strictCatalogResolution?.matches ?? null)
       : null;
-    const productsWithFitments =
+    const productsWithFitments = consolidateEventuriSharedV8IntakeItems(
       strictCatalogEffective && strictCatalogMatches
         ? scopedProductsWithFitments.filter((item) => strictCatalogMatches.has(item.product.id))
-        : scopedProductsWithFitments;
+        : scopedProductsWithFitments
+    );
     const matchesProductKind = (item: (typeof productsWithFitments)[number]) => {
       if (!productKind || productKind === "any") return true;
       const categoryGroup = getShopStockCategoryGroupForProduct(item, locale);
@@ -1774,18 +1926,49 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const globalFilterStats = buildFilterStats(
-      productsWithFitments,
-      locale,
-      getProductPriceForFilter,
-      priceCurrency
-    );
-    const filterStats = buildFilterStats(
-      statsItems,
-      locale,
-      getProductPriceForFilter,
-      priceCurrency
-    );
+    const canCacheGlobalFilterStats =
+      canonicalVehicleProductIds === null && !strictCatalogEffective;
+    const globalFilterStatsCacheKey = canCacheGlobalFilterStats
+      ? JSON.stringify({
+          locale,
+          priceCurrency,
+          country: country ?? "",
+          customerId: session?.customerId ?? "",
+          group: session?.group ?? "",
+          b2bDiscountPercent: session?.b2bDiscountPercent ?? 0,
+          rates: settings.currencyRates,
+          catalogTimestamp: cachedTimestamp,
+          fitmentVersion: cachedFitmentOverrideUpdatedAt,
+        })
+      : "";
+    let globalFilterStats = globalFilterStatsCacheKey
+      ? readGlobalFilterStatsCache(globalFilterStatsCacheKey)
+      : null;
+    if (!globalFilterStats) {
+      globalFilterStats = buildFilterStats(
+        productsWithFitments,
+        locale,
+        getProductPriceForFilter,
+        priceCurrency
+      );
+      if (globalFilterStatsCacheKey) {
+        writeGlobalFilterStatsCache(globalFilterStatsCacheKey, globalFilterStats);
+      }
+    }
+    const filterPopulationIsGlobal =
+      !q &&
+      !hasBrandFilter &&
+      !category &&
+      !productType &&
+      (!productKind || productKind === "any") &&
+      stock === "all" &&
+      !hasPriceFilter &&
+      !hasVehicleConstraints &&
+      !strictCatalogEffective &&
+      fallbackApplied === null;
+    const filterStats = filterPopulationIsGlobal
+      ? globalFilterStats
+      : buildFilterStats(statsItems, locale, getProductPriceForFilter, priceCurrency);
 
     // Extract all unique brands and curated product groups for filter menus
     const brands = globalFilterStats.brands.map((entry) => entry.label);

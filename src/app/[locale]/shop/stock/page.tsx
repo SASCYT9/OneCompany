@@ -232,38 +232,8 @@ function SmartScrollArea({
   className: string;
   children: React.ReactNode;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const element = scrollRef.current;
-    if (!element) return;
-
-    const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-
-      const deltaMultiplier =
-        event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? element.clientHeight : 1;
-      const delta = event.deltaY * deltaMultiplier;
-      const canScrollUp = delta < 0 && element.scrollTop > 0;
-      const canScrollDown =
-        delta > 0 && element.scrollTop + element.clientHeight < element.scrollHeight - 1;
-
-      if (!canScrollUp && !canScrollDown) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      element.scrollTop = Math.max(
-        0,
-        Math.min(element.scrollHeight - element.clientHeight, element.scrollTop + delta)
-      );
-    };
-
-    element.addEventListener("wheel", handleWheel, { passive: false });
-    return () => element.removeEventListener("wheel", handleWheel);
-  }, []);
-
   return (
-    <div ref={scrollRef} className={className}>
+    <div className={`${className} overscroll-contain`}>
       {children}
     </div>
   );
@@ -812,7 +782,7 @@ function StockPageContent() {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [stockFilter, setStockFilter] = useState<StockFilter>(
-    SHOW_STOCK_BADGE && (initialStock === "inStock" || initialStock === "preOrder")
+    initialStock === "inStock" || initialStock === "preOrder"
       ? initialStock
       : "all"
   );
@@ -1244,7 +1214,7 @@ function StockPageContent() {
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
       if (vehicleMode === "moto") params.set("scope", "moto");
-      if (SHOW_STOCK_BADGE && stockFilter !== "all") params.set("stock", stockFilter);
+      if (stockFilter !== "all") params.set("stock", stockFilter);
       const minPriceParam = normalizeStockPriceParam(minPriceFilter);
       const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
       if (minPriceParam) params.set("minPrice", minPriceParam);
@@ -1505,7 +1475,7 @@ function StockPageContent() {
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
       params.set("scope", vehicleMode);
-      if (SHOW_STOCK_BADGE && stockFilter !== "all") params.set("stock", stockFilter);
+      if (stockFilter !== "all") params.set("stock", stockFilter);
       const minPriceParam = normalizeStockPriceParam(minPriceFilter);
       const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
       if (minPriceParam) params.set("minPrice", minPriceParam);
@@ -1863,7 +1833,7 @@ function StockPageContent() {
     Boolean(opfGpfFilter) ||
     Boolean(productKindFilter) ||
     vehicleMode === "moto" ||
-    (SHOW_STOCK_BADGE && stockFilter !== "all") ||
+    stockFilter !== "all" ||
     hasPriceFilter;
 
   const activeFilterCount =
@@ -1880,7 +1850,7 @@ function StockPageContent() {
     (opfGpfFilter ? 1 : 0) +
     (productKindFilter ? 1 : 0) +
     (vehicleMode === "moto" ? 1 : 0) +
-    (SHOW_STOCK_BADGE && stockFilter !== "all" ? 1 : 0) +
+    (stockFilter !== "all" ? 1 : 0) +
     (hasPriceFilter ? 1 : 0);
 
   const totalCatalogCount = filterStats?.stock.all ?? totalItems;
@@ -3194,31 +3164,53 @@ function StockPageContent() {
                     ) : null}
                   </button>
 
-                  <label className="relative order-3 col-span-3 h-9 min-w-0 sm:order-none sm:col-span-1 sm:h-10">
-                    <span className="sr-only">{isUa ? "Сортування" : "Sort"}</span>
-                    <select
-                      value={sortOrder}
-                      onChange={(event) => setSortOrder(event.target.value as StockSort)}
-                      className="h-9 w-full min-w-0 appearance-none truncate rounded-[8px] border border-foreground/15 bg-foreground/[0.035] pl-3 pr-8 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 sm:h-10 sm:pr-9 xl:w-[190px]"
-                    >
-                      {(Object.keys(SORT_LABELS) as StockSort[]).map((value) => (
-                        <option
-                          key={value}
-                          value={value}
-                          className="bg-card text-foreground dark:bg-[#121216]"
-                        >
-                          {value === "default" && query.trim()
-                            ? isUa
-                              ? "Релевантність"
-                              : "Relevance"
-                            : isUa
-                              ? SORT_LABELS[value].ua
-                              : SORT_LABELS[value].en}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
-                  </label>
+                  <div className="order-3 col-span-3 grid min-w-0 grid-cols-2 gap-2 sm:order-none sm:col-span-1 xl:w-[388px]">
+                    <label className="relative h-9 min-w-0 sm:h-10">
+                      <span className="sr-only">{isUa ? "Наявність" : "Availability"}</span>
+                      <select
+                        value={stockFilter}
+                        onChange={(event) => setStockFilter(event.target.value as StockFilter)}
+                        className="h-9 w-full min-w-0 appearance-none truncate rounded-[8px] border border-foreground/15 bg-foreground/[0.035] pl-3 pr-8 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 sm:h-10 sm:pr-9"
+                      >
+                        {(Object.keys(STOCK_LABELS) as StockFilter[]).map((value) => (
+                          <option
+                            key={value}
+                            value={value}
+                            className="bg-card text-foreground dark:bg-[#121216]"
+                          >
+                            {isUa ? STOCK_LABELS[value].ua : STOCK_LABELS[value].en}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
+                    </label>
+
+                    <label className="relative h-9 min-w-0 sm:h-10">
+                      <span className="sr-only">{isUa ? "Сортування" : "Sort"}</span>
+                      <select
+                        value={sortOrder}
+                        onChange={(event) => setSortOrder(event.target.value as StockSort)}
+                        className="h-9 w-full min-w-0 appearance-none truncate rounded-[8px] border border-foreground/15 bg-foreground/[0.035] pl-3 pr-8 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/30 focus:border-foreground/45 sm:h-10 sm:pr-9"
+                      >
+                        {(Object.keys(SORT_LABELS) as StockSort[]).map((value) => (
+                          <option
+                            key={value}
+                            value={value}
+                            className="bg-card text-foreground dark:bg-[#121216]"
+                          >
+                            {value === "default" && query.trim()
+                              ? isUa
+                                ? "Релевантність"
+                                : "Relevance"
+                              : isUa
+                                ? SORT_LABELS[value].ua
+                                : SORT_LABELS[value].en}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
+                    </label>
+                  </div>
 
                   <div className="flex h-9 rounded-[8px] border border-foreground/10 bg-foreground/[0.035] p-0.5 sm:h-10">
                     <button
@@ -3403,7 +3395,7 @@ function StockPageContent() {
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ) : null}
-                  {SHOW_STOCK_BADGE && stockFilter !== "all" ? (
+                  {stockFilter !== "all" ? (
                     <button
                       type="button"
                       onClick={() => setStockFilter("all")}
@@ -3535,7 +3527,7 @@ function StockPageContent() {
                     animate={{ opacity: 1 }}
                     className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3 [@media(min-width:1900px)]:grid-cols-4 [@media(min-width:2400px)]:grid-cols-5"
                   >
-                    {items.map((item, index) => {
+                    {items.map((item) => {
                       const logoPath = getBrandLogoPath(item.brand);
                       const compareAtLabel = formatItemCompareAt(item);
                       const priceLabel = formatItemPrice(item);
@@ -3555,16 +3547,12 @@ function StockPageContent() {
 
                       return (
                         <motion.div
-                          layout
                           key={item.id}
-                          initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.42,
-                            delay: shouldReduceMotion ? 0 : Math.min(index * 0.035, 0.28),
-                            ease: [0.22, 1, 0.36, 1],
-                          }}
                           className="group relative flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-foreground/[0.1] bg-card/78 p-3 shadow-[0_12px_34px_rgba(0,0,0,0.055)] transition-[border-color,background-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/24 hover:bg-card hover:shadow-[0_18px_44px_rgba(0,0,0,0.09)] dark:bg-black/15 dark:shadow-none dark:hover:bg-foreground/[0.018] md:min-h-[410px] md:p-3.5"
+                          style={{
+                            contentVisibility: "auto",
+                            containIntrinsicSize: "410px",
+                          }}
                         >
                           <Link
                             href={resolveShopCatalogProductHref(locale, item.href, item.slug)}

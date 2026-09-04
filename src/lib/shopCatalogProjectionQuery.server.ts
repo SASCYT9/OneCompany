@@ -34,6 +34,7 @@ export type ShopCatalogProjectionQueryInput = {
   engine?: string | null;
   fuel?: string | null;
   productIds?: readonly string[] | null;
+  excludeProductIds?: readonly string[] | null;
   minPrice?: number | null;
   maxPrice?: number | null;
   priceCurrency?: "EUR" | "USD" | "UAH" | null;
@@ -215,6 +216,9 @@ export function normalizeShopCatalogProjectionQuery(
     engine: optionalBounded(input.engine, "engine", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     fuel: optionalBounded(input.fuel, "fuel", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     productIds: input.productIds ? [...new Set(input.productIds.filter(Boolean))] : null,
+    excludeProductIds: input.excludeProductIds
+      ? [...new Set(input.excludeProductIds.filter(Boolean))]
+      : null,
     minPrice: input.minPrice ?? null,
     maxPrice: input.maxPrice ?? null,
     priceCurrency: input.priceCurrency ?? "USD",
@@ -393,6 +397,11 @@ function projectionFacetBaseConditions(
       input.productIds.length
         ? Prisma.sql`projection."productId" IN (${Prisma.join(input.productIds)})`
         : Prisma.sql`false`
+    );
+  }
+  if (input.excludeProductIds?.length) {
+    conditions.push(
+      Prisma.sql`projection."productId" NOT IN (${Prisma.join(input.excludeProductIds)})`
     );
   }
   const price = projectionPriceSql(input);

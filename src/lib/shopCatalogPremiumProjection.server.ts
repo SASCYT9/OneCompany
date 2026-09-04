@@ -24,6 +24,12 @@ import {
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "@/lib/shopWarehouseInventory";
+import {
+  EVENTURI_SHARED_V8_INTAKE_SLUG,
+  EVENTURI_SHARED_V8_INTAKE_SLUGS,
+  isEventuriSharedV8Intake,
+  matchesEventuriSharedV8Application,
+} from "@/lib/eventuriSharedIntake";
 
 const PAGE_SIZE = 24;
 
@@ -121,9 +127,19 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
       ],
     },
-    select: { id: true },
+    select: { id: true, sku: true, slug: true },
   });
   const warehouseProductIds = warehouseProducts.map((product) => product.id);
+  const sharedEventuriSlugs = new Set<string>(EVENTURI_SHARED_V8_INTAKE_SLUGS);
+  const sharedEventuriProducts = warehouseProducts.filter(
+    (product) => isEventuriSharedV8Intake(product.sku) || sharedEventuriSlugs.has(product.slug)
+  );
+  const canonicalSharedEventuriId = sharedEventuriProducts.find(
+    (product) => product.slug === EVENTURI_SHARED_V8_INTAKE_SLUG
+  )?.id;
+  query.excludeProductIds = sharedEventuriProducts
+    .filter((product) => product.id !== canonicalSharedEventuriId)
+    .map((product) => product.id);
   if (requestedStock === "inStock") query.productIds = warehouseProductIds;
 
   const hasVehicleSelection = Boolean(query.make || query.model || query.generation || query.year);
@@ -159,9 +175,13 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       year: query.year,
     });
     if (vehicleProductIds) {
+      const effectiveVehicleProductIds =
+        canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
+          ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
+          : vehicleProductIds;
       query.productIds = query.productIds
-        ? vehicleProductIds.filter((productId) => query.productIds?.includes(productId))
-        : vehicleProductIds;
+        ? effectiveVehicleProductIds.filter((productId) => query.productIds?.includes(productId))
+        : effectiveVehicleProductIds;
     }
     query.make = null;
     query.model = null;

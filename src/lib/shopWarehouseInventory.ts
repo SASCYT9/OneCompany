@@ -82,8 +82,8 @@ const warehouseProductCopyBySku: Record<string, WarehouseProductCopy> = {
     description: { ua: "Комплект карбонових направляючих, що подає більше зовнішнього повітря до впускної системи та акуратно інтегрується за решіткою.", en: "Carbon air guides that channel more outside air toward the intake system while integrating neatly behind the grille." },
   },
   "EVE-4V8TT-CF-INT": {
-    title: { ua: "Карбонова впускна система для Audi RSQ8 / Lamborghini Urus", en: "Carbon intake for Audi RSQ8 / Lamborghini Urus" },
-    description: { ua: "Високопродуктивний впуск для 4.0 TFSI V8 із великими карбоновими каналами та оптимізованою подачею повітря до двох турбін.", en: "A high-performance 4.0 TFSI V8 intake with large carbon ducts and optimized airflow to both turbochargers." },
+    title: { ua: "Карбонова впускна система Eventuri 4.0 V8 для Audi, Lamborghini, Porsche та Bentley", en: "Eventuri 4.0 V8 carbon intake for Audi, Lamborghini, Porsche and Bentley" },
+    description: { ua: "Єдина карбонова система для Audi RSQ8 / SQ8 / SQ7, Lamborghini Urus, Porsche Cayenne та Bentley Bentayga з оптимізованою подачею повітря до обох турбін.", en: "One carbon intake for Audi RSQ8 / SQ8 / SQ7, Lamborghini Urus, Porsche Cayenne and Bentley Bentayga, with optimized airflow to both turbochargers." },
   },
   "EVE-AMGGT-CF-INT": {
     title: { ua: "Карбонова впускна система для Mercedes-AMG GT C190 / R190", en: "Carbon intake for Mercedes-AMG GT C190 / R190" },

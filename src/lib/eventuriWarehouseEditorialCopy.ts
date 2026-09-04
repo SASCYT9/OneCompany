@@ -1,3 +1,9 @@
+import {
+  EVENTURI_SHARED_V8_INTAKE_COPY,
+  EVENTURI_SHARED_V8_INTAKE_SKU,
+  EVENTURI_SHARED_V8_INTAKE_SLUG,
+} from "@/lib/eventuriSharedIntake";
+
 export type EventuriWarehouseEditorialCopy = {
   sku: string;
   titleUa: string;
@@ -29,10 +35,10 @@ const inlets = (sku: string, fitmentUa: string, fitmentEn: string): EventuriWare
 });
 
 export const EVENTURI_WAREHOUSE_EDITORIAL_BY_SLUG = {
-  "4-0tfsi-twin-turbo-v8-black-carbon-intake-system": intake("EVE-4V8TT-CF-INT", "Audi RSQ8 (2019–2024)", "Audi RSQ8 (2019–2024)"),
-  "eventuri-bentley-bentayga-carbon-intake-2019": intake("EVE-4V8TT-CF-INT", "Bentley Bentayga 4.0 V8", "Bentley Bentayga 4.0 V8"),
-  "eventuri-lamborghini-urus-carbon-intake": intake("EVE-4V8TT-CF-INT", "Lamborghini Urus 4.0 V8", "Lamborghini Urus 4.0 V8"),
-  "eventuri-porsche-cayenne-carbon-intake": intake("EVE-4V8TT-CF-INT", "Porsche Cayenne 4.0 V8", "Porsche Cayenne 4.0 V8"),
+  [EVENTURI_SHARED_V8_INTAKE_SLUG]: {
+    sku: EVENTURI_SHARED_V8_INTAKE_SKU,
+    ...EVENTURI_SHARED_V8_INTAKE_COPY,
+  },
   "c190-r190-amg-gt-black-carbon-intake-engine-cover-gloss": {
     ...intake("EVE-AMGGT-CF-INT", "Mercedes-AMG GT C190 / R190", "Mercedes-AMG GT C190 / R190"),
     titleUa: "Карбоновий впуск Eventuri для Mercedes-AMG GT C190 / R190 — глянець",

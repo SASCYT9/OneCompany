@@ -316,11 +316,11 @@
     }
   }
 
-  /* GPU-accelerated layers for animated elements */
+  /* Only continuously animated marquees need a dedicated compositor layer.
+     Promoting every element whose class contains `transition` created hundreds
+     of GPU layers on catalog pages and made scrolling less stable. */
   .animate-scroll-left,
-  .animate-scroll-right,
-  [class*="transition"],
-  [class*="animate-"] {
+  .animate-scroll-right {
     will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
