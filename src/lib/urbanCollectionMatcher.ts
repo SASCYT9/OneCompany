@@ -21,7 +21,7 @@ const MERCEDES_G_WAGON_HANDLES = new Set([
 ]);
 
 const PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX =
-  /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит)/i;
+  /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|rear spoiler|upper spoiler|roof spoiler|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит|задній спойлер|верхній спойлер|даховий спойлер)/i;
 
 /**
  * Base-handle ↔ variant pairings. When a customer opens a *base* collection

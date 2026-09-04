@@ -4,6 +4,7 @@ import type { ShopProduct } from '../../../src/lib/shopCatalog';
 import {
   getProductsForUrbanCollection,
   getUrbanCollectionHandleForProduct,
+  sortUrbanCollectionProducts,
 } from '../../../src/lib/urbanCollectionMatcher';
 
 function buildUrbanProduct(overrides: Partial<ShopProduct>): ShopProduct {
@@ -249,6 +250,29 @@ test('includes a shared Defender 90/110/130/OCTA spoiler in the standard Defende
   );
 
   assert.deepEqual(matches.map((product) => product.slug), ['urb-spo-25353093-v1']);
+});
+
+test('keeps a Defender rear spoiler inside a 16-card curated collection grid', () => {
+  const spoiler = buildUrbanProduct({
+    slug: 'urb-spo-25353093-v1',
+    title: {
+      ua: 'Задній спойлер Urban для Land Rover Defender',
+      en: 'Urban rear spoiler for Land Rover Defender',
+    },
+    price: { eur: 100, usd: 0, uah: 0 },
+    bundle: null,
+  });
+  const expensiveAccessories = Array.from({ length: 16 }, (_, index) =>
+    buildUrbanProduct({
+      slug: `urban-accessory-${index}`,
+      title: { ua: `Аксесуар ${index}`, en: `Accessory ${index}` },
+      price: { eur: 10_000 - index, usd: 0, uah: 0 },
+      bundle: null,
+    })
+  );
+
+  const visible = sortUrbanCollectionProducts([...expensiveAccessories, spoiler]).slice(0, 16);
+  assert.equal(visible.some((product) => product.slug === spoiler.slug), true);
 });
 
 test('includes shared Urus S / Performante parts in the Urus S collection', () => {
