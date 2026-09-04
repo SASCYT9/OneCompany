@@ -10,8 +10,11 @@ import {
 } from "@/lib/shopStockVehicleScope";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
+  canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
   canonicalizeVehicleModels,
+  canonicalVehicleMakeLabel,
+  vehicleMakeAliases,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
 
@@ -79,23 +82,28 @@ async function getCanonicalFitmentOptions(input: {
     if (!rows.length) return null;
     return {
       type: "makes" as const,
-      data: rows.filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope)),
+      data: canonicalizeVehicleMakes(
+        rows.filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope))
+      ),
     };
   }
+
+  const canonicalMake = canonicalVehicleMakeLabel(input.make);
+  const makeAliases = vehicleMakeAliases(canonicalMake);
 
   const makeClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
     ...clauseWhere,
     AND: [
       ...(scopeClausePredicate ? [scopeClausePredicate] : []),
-      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { equals: input.make, mode: "insensitive" } } } },
+      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { in: makeAliases, mode: "insensitive" } } } },
     ],
   };
 
   if (!input.model) {
     const rows = await exactValues("MODEL", makeClauseWhere);
     if (!rows.length) return null;
-    const data = canonicalizeVehicleModels(input.make, rows);
-    return { type: "models" as const, make: input.make, data };
+    const data = canonicalizeVehicleModels(canonicalMake, rows);
+    return { type: "models" as const, make: canonicalMake, data };
   }
 
   const modelRows = await exactValues("MODEL", makeClauseWhere);
@@ -108,7 +116,7 @@ async function getCanonicalFitmentOptions(input: {
     ...clauseWhere,
     AND: [
       ...(scopeClausePredicate ? [scopeClausePredicate] : []),
-      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { equals: input.make, mode: "insensitive" } } } },
+      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { in: makeAliases, mode: "insensitive" } } } },
       { constraints: { some: { dimension: "MODEL", state: "EXACT", textValue: { in: modelAliases, mode: "insensitive" } } } },
     ],
   };
@@ -271,7 +279,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const makes = Array.from(makesSet).sort((a, b) => a.localeCompare(b));
+      const makes = canonicalizeVehicleMakes(Array.from(makesSet));
       return cachedJson({ type: "makes", data: makes });
     }
 

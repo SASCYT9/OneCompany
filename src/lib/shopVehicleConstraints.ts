@@ -1,7 +1,7 @@
 import type { Fitment } from "@/lib/crossShopFitment";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
-import { vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
+import { canonicalVehicleMakeLabel, vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
 
 export type ShopVehicleConstraints = {
   make?: string | null;
@@ -11,11 +11,7 @@ export type ShopVehicleConstraints = {
 };
 
 function normalizedMakeFamily(value: string | null | undefined) {
-  const normalized = normalizeShopSearchText(value ?? "");
-  if (normalized === "mercedes amg" || normalized === "mercedes benz") {
-    return "mercedes";
-  }
-  return normalized;
+  return normalizeShopSearchText(canonicalVehicleMakeLabel(value ?? ""));
 }
 
 export function shopVehicleMakesMatch(

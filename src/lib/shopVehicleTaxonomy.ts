@@ -1,5 +1,49 @@
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 
+const VEHICLE_MAKE_ALIAS_GROUPS = {
+  "Alfa Romeo": ["alfa romeo", "alfa-romeo"],
+  BMW: ["bmw"],
+  BYD: ["byd"],
+  Citroën: ["citroen", "citroën"],
+  DS: ["ds"],
+  Ford: ["ford", "ford usa"],
+  GMC: ["gmc"],
+  INEOS: ["ineos"],
+  "Land Rover": ["land rover", "land-rover", "range rover"],
+  LDV: ["ldv"],
+  McLaren: ["mclaren"],
+  "Mercedes-Benz": ["mercedes benz", "mercedes-benz", "mercedes amg", "mercedes-amg"],
+  MINI: ["mini"],
+  NIO: ["nio"],
+  "Rolls-Royce": ["rolls royce", "rolls-royce"],
+  SEAT: ["seat"],
+  Volkswagen: ["volkswagen", "vw"],
+} as const;
+
+const CANONICAL_VEHICLE_MAKE_BY_ALIAS = new Map<string, string>();
+for (const [canonical, aliases] of Object.entries(VEHICLE_MAKE_ALIAS_GROUPS)) {
+  for (const alias of aliases) CANONICAL_VEHICLE_MAKE_BY_ALIAS.set(normalizeShopSearchText(alias), canonical);
+}
+
+export function canonicalVehicleMakeLabel(value: string) {
+  const trimmed = value.trim().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
+  if (!trimmed) return "";
+  return CANONICAL_VEHICLE_MAKE_BY_ALIAS.get(normalizeShopSearchText(trimmed)) ??
+    trimmed.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export function vehicleMakeAliases(value: string) {
+  const canonical = canonicalVehicleMakeLabel(value);
+  const aliases = VEHICLE_MAKE_ALIAS_GROUPS[canonical as keyof typeof VEHICLE_MAKE_ALIAS_GROUPS];
+  return aliases ? [...new Set([canonical, ...aliases])] : [canonical];
+}
+
+export function canonicalizeVehicleMakes(values: readonly string[]) {
+  return [...new Set(values.map(canonicalVehicleMakeLabel).filter(Boolean))].sort((left, right) =>
+    left.localeCompare(right, "en", { sensitivity: "base" })
+  );
+}
+
 /** Stable identity for vehicle aliases such as `RS Q8`/`RSQ8` and `3-series`/`3 Series`. */
 export function vehicleModelKey(value: string) {
   return normalizeShopSearchText(value).replace(/[^a-z0-9]+/g, "");

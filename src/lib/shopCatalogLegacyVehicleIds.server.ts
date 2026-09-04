@@ -5,7 +5,11 @@ import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
 import { prisma } from "@/lib/prisma";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
-import { vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
+import {
+  canonicalVehicleMakeLabel,
+  vehicleMakeAliases,
+  vehicleModelKey,
+} from "@/lib/shopVehicleTaxonomy";
 
 type LegacyVehicleQuery = {
   make?: string | null;
@@ -33,6 +37,8 @@ async function getCachedFitmentProducts() {
  */
 export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) {
   if (!input.make && !input.model && !input.generation && !input.year) return null;
+  const canonicalMake = canonicalVehicleMakeLabel(input.make ?? "");
+  const makeAliases = input.make ? vehicleMakeAliases(canonicalMake) : [];
   const [products, canonicalApplications, projectionClauses] = await Promise.all([
     getCachedFitmentProducts(),
     input.make
@@ -41,7 +47,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
             isActive: true,
             isUniversal: false,
             verificationStatus: { not: "BLOCKED" },
-            make: { equals: input.make, mode: "insensitive" },
+            make: { in: makeAliases, mode: "insensitive" },
             product: { isPublished: true, status: "ACTIVE" },
           },
           select: {
@@ -62,7 +68,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
               some: {
                 dimension: "MAKE",
                 state: "EXACT",
-                textValue: { equals: input.make, mode: "insensitive" },
+                textValue: { in: makeAliases, mode: "insensitive" },
               },
             },
           },
@@ -85,7 +91,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
     products
       .filter((product) => {
         return shopFitmentMatchesVehicleConstraints(extractProductFitment(product), {
-          make: input.make,
+          make: canonicalMake,
           model: input.model,
           chassis: input.generation,
           year: input.year,
@@ -126,7 +132,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
     if (
       input.make &&
       !exactTextValues("MAKE").some(
-        (value) => normalizeShopSearchText(value) === normalizeShopSearchText(input.make)
+        (value) => canonicalVehicleMakeLabel(value) === canonicalMake
       )
     ) {
       continue;

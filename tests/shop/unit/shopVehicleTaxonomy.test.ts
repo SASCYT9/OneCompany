@@ -2,12 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  canonicalVehicleMakeLabel,
   canonicalVehicleModelLabel,
+  canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
   canonicalizeVehicleModels,
   splitVehicleChassisCodes,
   vehicleModelKey,
 } from "../../../src/lib/shopVehicleTaxonomy";
+
+test("vehicle make aliases collapse without losing their legacy query values", () => {
+  assert.equal(canonicalVehicleMakeLabel("Range Rover"), "Land Rover");
+  assert.equal(canonicalVehicleMakeLabel("land-rover"), "Land Rover");
+  assert.equal(canonicalVehicleMakeLabel("vw"), "Volkswagen");
+  assert.deepEqual(
+    canonicalizeVehicleMakes(["Land Rover", "Range Rover", "land-rover", "BMW", "bmw"]),
+    ["BMW", "Land Rover"]
+  );
+});
 
 test("vehicle model aliases share one stable identity", () => {
   assert.equal(vehicleModelKey("RS Q8"), vehicleModelKey("RSQ8"));

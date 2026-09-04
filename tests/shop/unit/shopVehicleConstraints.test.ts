@@ -13,6 +13,11 @@ test("Mercedes-Benz and Mercedes-AMG share the same vehicle make family", () => 
   assert.equal(shopVehicleMakesMatch("BMW", "Mercedes-AMG"), false);
 });
 
+test("Land Rover legacy aliases share the same vehicle make family", () => {
+  assert.equal(shopVehicleMakesMatch("Range Rover", "Land Rover"), true);
+  assert.equal(shopVehicleMakesMatch("land-rover", "Range Rover"), true);
+});
+
 test("selected chassis does not accept platform siblings or generic generations", () => {
   assert.equal(shopVehicleChassisMatches("MK7", "MK7"), true);
   assert.equal(shopVehicleChassisMatches("MK8", "MK7"), false);
