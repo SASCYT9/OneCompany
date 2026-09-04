@@ -344,6 +344,41 @@ function getUrbanMatchScore(
     return 500;
   }
 
+  // GP Portal can assign universal Defender accessories to the OCTA collection only
+  // when the source title lists 90/110/130/OCTA together. Keep those shared parts on
+  // the standard Defender page as well, even before the next supplier sync repairs
+  // the explicit collection relations in the database.
+  if (
+    handle === "land-rover-defender" &&
+    supportCandidates.some(
+      (candidate) =>
+        /\bdefender\b/.test(candidate) && /\b(90|110|130)\b/.test(candidate)
+    )
+  ) {
+    return 75;
+  }
+
+  // Some GP titles describe cross-variant parts without attaching every matching
+  // collection relation. Keep those products discoverable until a later sync repairs
+  // the database relations.
+  if (
+    handle === "lamborghini-urus-s" &&
+    supportCandidates.some((candidate) => /\burus s\b/.test(candidate))
+  ) {
+    return 75;
+  }
+
+  if (
+    handle === "rolls-royce-cullinan-series-ii" &&
+    supportCandidates.some(
+      (candidate) =>
+        /\bcullinan series (?:ii|2)\b/.test(candidate) ||
+        /\bcullinan series (?:i|1) (?:ii|2)\b/.test(candidate)
+    )
+  ) {
+    return 75;
+  }
+
   let score = 0;
 
   aliases.forEach((alias) => {

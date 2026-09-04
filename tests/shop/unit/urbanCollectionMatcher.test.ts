@@ -218,3 +218,87 @@ test('includes shared W465 accessories in both aerokit and widetrack collections
   assert.deepEqual(aerokitMatches.map((product) => product.slug), ['urb-roo-25358202-v1']);
   assert.deepEqual(widetrackMatches.map((product) => product.slug), ['urb-roo-25358202-v1']);
 });
+
+test('includes a shared Defender 90/110/130/OCTA spoiler in the standard Defender collection', () => {
+  const spoiler = buildUrbanProduct({
+    slug: 'urb-spo-25353093-v1',
+    title: {
+      ua: 'Задній спойлер Urban для Land Rover Defender 90 / 110 / 130 / OCTA',
+      en: 'Urban rear spoiler for Land Rover Defender 90 / 110 / 130 / OCTA - Gloss Black',
+    },
+    collection: {
+      ua: 'Defender 90 / Defender 110 / Defender 130 / Defender Octa',
+      en: 'Defender 90 / Defender 110 / Defender 130 / Defender Octa',
+    },
+    collections: [
+      {
+        handle: 'land-rover-defender-110-octa',
+        title: {
+          ua: 'Defender Octa',
+          en: 'Defender Octa',
+        },
+      },
+    ],
+  });
+
+  const matches = getProductsForUrbanCollection(
+    [spoiler],
+    'land-rover-defender',
+    'Defender 90 / 110 / 130',
+    'Land Rover'
+  );
+
+  assert.deepEqual(matches.map((product) => product.slug), ['urb-spo-25353093-v1']);
+});
+
+test('includes shared Urus S / Performante parts in the Urus S collection', () => {
+  const bonnet = buildUrbanProduct({
+    slug: 'urb-hoo-25358180-v1',
+    title: {
+      ua: 'Карбоновий капот Urban для Lamborghini Urus S / Performante',
+      en: 'Urban Carbon Fibre Bonnet for Lamborghini Urus S / Performante',
+    },
+    collection: { ua: 'Urus Performante', en: 'Urus Performante' },
+    collections: [
+      {
+        handle: 'lamborghini-urus-performante',
+        title: { ua: 'Urus Performante', en: 'Urus Performante' },
+      },
+    ],
+  });
+
+  const matches = getProductsForUrbanCollection(
+    [bonnet],
+    'lamborghini-urus-s',
+    'Urus S',
+    'Lamborghini'
+  );
+
+  assert.deepEqual(matches.map((product) => product.slug), ['urb-hoo-25358180-v1']);
+});
+
+test('includes Cullinan Series 1 / 2 parts in the Cullinan Series II collection', () => {
+  const spoiler = buildUrbanProduct({
+    slug: 'urb-spo-25358145-v1',
+    title: {
+      ua: 'Верхній задній спойлер Urban для Rolls-Royce Cullinan Series 1 / 2',
+      en: 'Urban upper rear spoiler for Rolls-Royce Cullinan Series 1 / 2',
+    },
+    collection: { ua: 'Cullinan', en: 'Cullinan' },
+    collections: [
+      {
+        handle: 'rolls-royce-cullinan',
+        title: { ua: 'Cullinan', en: 'Cullinan' },
+      },
+    ],
+  });
+
+  const matches = getProductsForUrbanCollection(
+    [spoiler],
+    'rolls-royce-cullinan-series-ii',
+    'Cullinan Series II',
+    'Rolls-Royce'
+  );
+
+  assert.deepEqual(matches.map((product) => product.slug), ['urb-spo-25358145-v1']);
+});

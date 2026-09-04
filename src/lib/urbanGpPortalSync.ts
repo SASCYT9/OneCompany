@@ -518,7 +518,9 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
     });
     defenderHandles.forEach(add);
 
-    if (!defenderHandles.length) {
+    // Shared accessories often name every supported body variant, including OCTA.
+    // They belong to both the standard Defender and OCTA collections.
+    if (!defenderHandles.length || /\b(90|110|130)\b/.test(haystack)) {
       add("land-rover-defender");
     }
   }
@@ -531,13 +533,15 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
 
   if (/\bdiscovery\b/.test(haystack) && /\b5\b/.test(haystack)) add("land-rover-discovery-5");
   if (/\burus\b/.test(haystack)) {
-    if (/\bperformante\b/.test(haystack)) {
-      add("lamborghini-urus-performante");
-    } else if (/\bse\b/.test(haystack)) {
-      add("lamborghini-urus-se");
-    } else if (/\burus s\b|\bs urus\b/.test(haystack)) {
-      add("lamborghini-urus-s");
-    } else {
+    const hasPerformante = /\bperformante\b/.test(haystack);
+    const hasUrusSe = /\burus se\b|\bse urus\b/.test(haystack);
+    const hasUrusS = /\burus s\b|\bs urus\b/.test(haystack);
+
+    if (hasPerformante) add("lamborghini-urus-performante");
+    if (hasUrusSe) add("lamborghini-urus-se");
+    if (hasUrusS) add("lamborghini-urus-s");
+
+    if (!hasPerformante && !hasUrusSe && !hasUrusS) {
       add("lamborghini-urus");
     }
   }
@@ -545,7 +549,11 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
   if (/\baventador\b/.test(haystack)) add("lamborghini-aventador-s");
 
   if (/\bcullinan\b/.test(haystack)) {
-    add(/\bseries ii\b/.test(haystack) ? "rolls-royce-cullinan-series-ii" : "rolls-royce-cullinan");
+    const isSeriesTwo = /\bseries (?:ii|2)\b/.test(haystack);
+    const spansSeriesOneAndTwo = /\bseries (?:i|1) (?:ii|2)\b/.test(haystack);
+
+    if (isSeriesTwo || spansSeriesOneAndTwo) add("rolls-royce-cullinan-series-ii");
+    if (!isSeriesTwo || spansSeriesOneAndTwo) add("rolls-royce-cullinan");
   }
 
   if (/\bghost\b/.test(haystack) && /\bseries ii\b/.test(haystack))
@@ -975,7 +983,7 @@ export function usdImportFloorToEur(usdAmount: number, currencyRates: CurrencyRa
 }
 
 export function buildUrbanGpPortalPriceSet(sourcePriceEur: number, currencyRates: CurrencyRates) {
-  const markedUpEur = roundWhole(sourcePriceEur * 1.2);
+  const markedUpEur = roundWhole(sourcePriceEur * 1.2 * 1.1);
   return {
     eur: markedUpEur,
     usd: roundWhole(markedUpEur * currencyRates.USD),

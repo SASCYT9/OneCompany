@@ -49,11 +49,11 @@ test("isGpPortalPlaceholderImage detects known placeholders and accepts real ima
   );
 });
 
-test("buildUrbanGpPortalPriceSet applies markup, whole-number rounding, and cross-currency prices", () => {
+test("buildUrbanGpPortalPriceSet applies 20% and 10% markups, whole-number rounding, and cross-currency prices", () => {
   assert.deepEqual(buildUrbanGpPortalPriceSet(975, CURRENCY_RATES), {
-    eur: 1170,
-    usd: 1287,
-    uah: 52650,
+    eur: 1287,
+    usd: 1416,
+    uah: 57915,
   });
 });
 
@@ -130,7 +130,10 @@ test("prepareUrbanGpPortalProducts uses the consolidated Defender programme and 
   assert.equal(prepared.importableItems.length, 1);
 
   const item = prepared.importableItems[0];
-  assert.deepEqual(item.collectionHandles, ["land-rover-defender-110-octa"]);
+  assert.deepEqual(item.collectionHandles, [
+    "land-rover-defender-110-octa",
+    "land-rover-defender",
+  ]);
   assert.equal(item.primaryModelHandle, "land-rover-defender-110-octa");
   assert.equal(item.brand, "Urban Automotive");
   assert.equal(item.vendor, "Urban Automotive");
@@ -144,8 +147,57 @@ test("prepareUrbanGpPortalProducts uses the consolidated Defender programme and 
     "/images/shop/urban/gallery/models/defenderOcta/webp/urban-automotive-defender-octa-2-2560.webp"
   );
   assert.deepEqual(item.gallery, [item.image]);
-  assert.equal(item.priceEur, 1170);
-  assert.equal(item.compareAtEur, 1200);
+  assert.equal(item.priceEur, 1287);
+  assert.equal(item.compareAtEur, 1320);
+});
+
+test("prepareUrbanGpPortalProducts preserves every supported Urus and Cullinan collection", () => {
+  const products: GpPortalProduct[] = [
+    {
+      id: 20,
+      handle: "urb-hoo-25358180-v1",
+      title: "Lamborghini Urus S / Performante Carbon Fibre Bonnet Assembly",
+      vendor: "Urban",
+      description: "<p>Shared Urus bonnet.</p>",
+      price: 100000,
+      compare_at_price: null,
+      featured_image: "https://cdn.shopify.com/s/files/urus-bonnet.jpg?v=1",
+      images: ["https://cdn.shopify.com/s/files/urus-bonnet.jpg?v=1"],
+      tags: ["Urus S", "Performante"],
+      product_type: "Bonnets",
+      options: [],
+      variants: [],
+    },
+    {
+      id: 21,
+      handle: "urb-spo-25358145-v1",
+      title: "Rolls Royce Cullinan Series 1 / 2 Upper Rear Spoiler",
+      vendor: "Urban",
+      description: "<p>Shared Cullinan spoiler.</p>",
+      price: 100000,
+      compare_at_price: null,
+      featured_image: "https://cdn.shopify.com/s/files/cullinan-spoiler.jpg?v=1",
+      images: ["https://cdn.shopify.com/s/files/cullinan-spoiler.jpg?v=1"],
+      tags: ["Cullinan", "Series 1", "Series 2"],
+      product_type: "Spoilers",
+      options: [],
+      variants: [],
+    },
+  ];
+
+  const prepared = prepareUrbanGpPortalProducts(products, {
+    currencyRates: CURRENCY_RATES,
+  });
+
+  assert.equal(prepared.blockers.length, 0);
+  assert.deepEqual(prepared.importableItems[0]?.collectionHandles, [
+    "lamborghini-urus-performante",
+    "lamborghini-urus-s",
+  ]);
+  assert.deepEqual(prepared.importableItems[1]?.collectionHandles, [
+    "rolls-royce-cullinan-series-ii",
+    "rolls-royce-cullinan",
+  ]);
 });
 
 test("prepareUrbanGpPortalProducts hides unmatched high-value products instead of blocking the sync", () => {
