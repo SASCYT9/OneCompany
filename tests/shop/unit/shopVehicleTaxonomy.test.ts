@@ -63,6 +63,23 @@ test("combined Volvo supplier fitments expand into real selectable models", () =
   assert.ok(vehicleModelAliases("Volvo", "V50").includes("C30 C70 S40 V50 P1"));
 });
 
+test("combined Porsche 718 fitments expand into both official models", () => {
+  assert.deepEqual(canonicalizeVehicleModels("Porsche", ["718 Boxster/Cayman"]), [
+    "718 Boxster",
+    "718 Cayman",
+  ]);
+  assert.ok(vehicleModelAliases("Porsche", "718 Cayman").includes("718 Boxster/Cayman"));
+});
+
+test("performance model labels use official casing and spacing", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("Mercedes-Benz", ["190e", "A45", "C43 Amg", "G63", "S63"]),
+    ["190 E", "AMG A 45", "AMG C 43", "AMG G 63", "AMG S 63"]
+  );
+  assert.deepEqual(canonicalizeVehicleModels("Volkswagen", ["Jetta Gli"]), ["Jetta GLI"]);
+  assert.deepEqual(canonicalizeVehicleModels("Ford", ["Gt"]), ["GT"]);
+});
+
 test("supplier style and engine fragments collapse into their real model", () => {
   assert.deepEqual(
     canonicalizeVehicleModels("Volkswagen", ["Polo 2 0 Tsi Ea888", "Transporter T6 1 Urban"]),
