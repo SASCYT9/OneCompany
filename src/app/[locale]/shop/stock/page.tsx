@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,7 +26,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
-import { StockAiAssistant } from "@/components/shop/StockAiAssistant";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { DEFAULT_CURRENCY_RATES } from "@/lib/shopAdminSettings";
@@ -53,6 +53,20 @@ import {
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
 } from "@/lib/shopWarehouseInventory";
+
+const StockAiAssistant = dynamic(
+  () =>
+    import("@/components/shop/StockAiAssistant").then((module) => module.StockAiAssistant),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden="true"
+        className="h-10 w-[102px] rounded-[8px] border border-foreground/10 bg-foreground/[0.035]"
+      />
+    ),
+  }
+);
 
 type StockItem = {
   id: string;
@@ -739,6 +753,8 @@ function StockPageContent() {
   const [warehouseHeroItems, setWarehouseHeroItems] = useState<StockItem[]>([]);
   const [heroProductIndex, setHeroProductIndex] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
+  const [heroInView, setHeroInView] = useState(true);
+  const heroSectionRef = useRef<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(initialPage);
@@ -873,12 +889,23 @@ function StockPageContent() {
   }, [heroProducts.length]);
 
   useEffect(() => {
-    if (heroPaused || heroProducts.length < 2 || shouldReduceMotion) return;
+    if (heroPaused || !heroInView || heroProducts.length < 2 || shouldReduceMotion) return;
     const interval = window.setInterval(() => {
       setHeroProductIndex((current) => (current + 1) % heroProducts.length);
     }, 7000);
     return () => window.clearInterval(interval);
-  }, [heroPaused, heroProducts.length, shouldReduceMotion]);
+  }, [heroInView, heroPaused, heroProducts.length, shouldReduceMotion]);
+
+  useEffect(() => {
+    const hero = heroSectionRef.current;
+    if (!hero || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroInView(entry.isIntersecting),
+      { rootMargin: "120px 0px", threshold: 0.01 }
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleOpenCatalogFilters = () => setMobileFiltersOpen(true);
@@ -1958,7 +1985,7 @@ function StockPageContent() {
 
   const renderVehicleFitmentFields = (horizontal = false) => {
     const vehicleFieldSurface = horizontal
-      ? "rounded-[8px] bg-card/90 shadow-[0_8px_24px_rgba(0,0,0,0.055)] backdrop-blur-xl dark:bg-black/55 dark:shadow-none"
+      ? "rounded-[8px] bg-card shadow-[0_8px_24px_rgba(0,0,0,0.055)] dark:bg-[#08090b] dark:shadow-none"
       : "bg-foreground/[0.035]";
 
     return (
@@ -2755,6 +2782,7 @@ function StockPageContent() {
 
       <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
         <section
+          ref={heroSectionRef}
           onMouseEnter={() => setHeroPaused(true)}
           onMouseLeave={() => setHeroPaused(false)}
           onFocusCapture={() => setHeroPaused(true)}
@@ -2805,7 +2833,7 @@ function StockPageContent() {
             ) : null}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-black/10 bg-white/72 backdrop-blur-xl dark:border-white/10 dark:bg-black/72">
+          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-black/10 bg-white/95 dark:border-white/10 dark:bg-black/95">
             <div className="flex min-w-0 flex-1 overflow-x-auto">
               {heroRailProducts.map(({ product, index }) => (
                 <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-black/10 px-4 text-left transition hover:bg-black/[0.035] dark:border-white/10 dark:hover:bg-white/[0.04] sm:min-w-[230px]">
@@ -2838,7 +2866,7 @@ function StockPageContent() {
                   }
                 }}
               >
-                <label className="relative flex min-h-11 items-center border border-foreground/18 bg-card/88 px-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)] backdrop-blur-xl transition focus-within:border-foreground/40 focus-within:bg-card dark:border-white/18 dark:bg-black/65 dark:shadow-none dark:focus-within:border-white/45 dark:focus-within:bg-black/80 sm:min-h-12 sm:px-4">
+                <label className="relative flex min-h-11 items-center border border-foreground/18 bg-card px-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition focus-within:border-foreground/40 dark:border-white/18 dark:bg-[#08090b] dark:shadow-none dark:focus-within:border-white/45 sm:min-h-12 sm:px-4">
                   <Search className="h-4 w-4 shrink-0 text-foreground/45" />
                   <input
                     type="text"
@@ -3014,7 +3042,7 @@ function StockPageContent() {
                 data-catalog-filter-trigger
                 aria-controls="catalog-mobile-filters"
                 aria-expanded={mobileFiltersOpen}
-                className="flex h-11 w-full min-w-0 items-center gap-3 border border-foreground/15 bg-card/90 px-3 text-left shadow-[0_12px_35px_rgba(0,0,0,0.08)] backdrop-blur-xl transition hover:border-foreground/35 hover:bg-card dark:border-white/18 dark:bg-black/55 dark:shadow-none dark:hover:border-white/35 dark:hover:bg-black/70"
+                className="flex h-11 w-full min-w-0 items-center gap-3 border border-foreground/15 bg-card px-3 text-left shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition hover:border-foreground/35 dark:border-white/18 dark:bg-[#08090b] dark:shadow-none dark:hover:border-white/35"
               >
                 <SlidersHorizontal className="h-4 w-4 shrink-0 text-foreground/65" />
                 <span className="min-w-0 flex-1">
@@ -3550,12 +3578,13 @@ function StockPageContent() {
                             : "Car fitment");
 
                       return (
-                        <motion.div
+                        <div
                           key={item.id}
                           className="group relative flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-foreground/[0.1] bg-card/78 p-3 shadow-[0_12px_34px_rgba(0,0,0,0.055)] transition-[border-color,background-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/24 hover:bg-card hover:shadow-[0_18px_44px_rgba(0,0,0,0.09)] dark:bg-black/15 dark:shadow-none dark:hover:bg-foreground/[0.018] md:min-h-[410px] md:p-3.5"
                           style={{
                             contentVisibility: "auto",
                             containIntrinsicSize: "410px",
+                            contain: "layout paint style",
                           }}
                         >
                           <Link
@@ -3711,7 +3740,7 @@ function StockPageContent() {
                               isUa={isUa}
                             />
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     })}
                   </motion.div>
