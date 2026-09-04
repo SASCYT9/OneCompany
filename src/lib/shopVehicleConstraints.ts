@@ -4,6 +4,7 @@ import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
 import {
   canonicalVehicleMakeLabel,
   canonicalVehicleModelLabel,
+  vehicleModelAliases,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
 
@@ -33,6 +34,10 @@ export function shopVehicleModelsMatch(
   make?: string | null
 ) {
   if (!requested) return true;
+  if (make) {
+    const requestedKeys = new Set(vehicleModelAliases(make, requested).map(vehicleModelKey));
+    if (requestedKeys.has(vehicleModelKey(candidate))) return true;
+  }
   return make
     ? vehicleModelKey(canonicalVehicleModelLabel(make, candidate)) ===
         vehicleModelKey(canonicalVehicleModelLabel(make, requested))

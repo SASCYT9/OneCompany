@@ -55,6 +55,36 @@ test("Land Rover product-title fragments collapse to real models", () => {
   );
 });
 
+test("combined Volvo supplier fitments expand into real selectable models", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("Volvo", ["C30 C70 S40 V50 P1"]),
+    ["C30", "C70", "S40", "V50"]
+  );
+  assert.ok(vehicleModelAliases("Volvo", "V50").includes("C30 C70 S40 V50 P1"));
+});
+
+test("supplier style and engine fragments collapse into their real model", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("Volkswagen", ["Polo 2 0 Tsi Ea888", "Transporter T6 1 Urban"]),
+    ["Polo", "Transporter"]
+  );
+  assert.deepEqual(canonicalizeVehicleModels("Lamborghini", ["Urus Urus", "Urus Se Urban"]), [
+    "Urus",
+    "Urus SE",
+  ]);
+  assert.deepEqual(canonicalizeVehicleModels("Mercedes-Benz", ["GLA", "GLA-Class", "Eqc Gloss"]), [
+    "EQC",
+    "GLA-Class",
+  ]);
+  assert.deepEqual(canonicalizeVehicleModels("Volvo", ["740 940", "960 S90 V90"]), [
+    "740",
+    "940",
+    "960",
+    "S90",
+    "V90",
+  ]);
+});
+
 test("Audi performance models use canonical spacing", () => {
   assert.equal(canonicalVehicleModelLabel("Audi", "RS Q8"), "RSQ8");
   assert.equal(canonicalVehicleModelLabel("Audi", "RS 3"), "RS3");

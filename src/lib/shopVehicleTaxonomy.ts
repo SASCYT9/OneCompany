@@ -50,6 +50,10 @@ export function vehicleModelKey(value: string) {
 }
 
 const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+  bentley: {
+    "Continental GT": ["Continental GT", "Continental Gt Urban"],
+    "Flying Spur": ["Flying Spur", "Continental Flying Spur"],
+  },
   bmw: {
     "1M": ["1M", "1 Series M"],
     "1 Series": ["1 Series", "M135i/M140i"],
@@ -69,22 +73,91 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     "Discovery 5": ["Discovery 5", "Discovery 5 5", "Discovery 5 Black", "Discovery 5 Urban"],
     "Range Rover Sport": ["Range Rover Sport", "Sport", "Sport Linear", "Sport Matrix", "Sport Pur", "Sport Sv"],
   },
+  lamborghini: {
+    Urus: ["Urus", "Urus Urus"],
+    "Urus SE": ["Urus SE", "Urus Se Urban"],
+    "Urus S": ["Urus S", "Urus S Without"],
+  },
+  maserati: {
+    Ghibli: ["Ghibli", "Ghibli Iii", "Ghibli Iii S", "Ghibli Iii S Q4"],
+  },
+  "mercedes benz": {
+    "AMG GT": ["AMG GT", "Amg Gt"],
+    "AMG GT C": ["AMG GT C", "Amg Gt C"],
+    "AMG GT R": ["AMG GT R", "Amg Gt R"],
+    "AMG GT 4-Door Coupé": ["AMG GT 4-Door Coupé", "Amg Gt 4 Door"],
+    "C43 AMG": ["C43 AMG", "C43", "C43 Amg"],
+    "CL-Class": ["CL-Class", "CL", "Cl Class"],
+    "CLA-Class": ["CLA-Class", "CLA"],
+    "CLK-Class": ["CLK-Class", "Clk Class"],
+    EQC: ["EQC", "Eqc Visual Carbon", "Eqc Gloss"],
+    "GLA-Class": ["GLA-Class", "GLA"],
+    "GLA 35": ["GLA 35", "Gla 35"],
+    "GLB-Class": ["GLB-Class", "Glb", "Glb Class"],
+    "GLK-Class": ["GLK-Class", "Glk Class"],
+    "GLS-Class": ["GLS-Class", "Gls"],
+    "M-Class": ["M-Class", "M Class"],
+    "SL-Class": ["SL-Class", "SL", "Sl Class"],
+    SLC: ["SLC", "Slc"],
+    "SLK-Class": ["SLK-Class", "SLK", "Slk Class"],
+  },
+  nissan: {
+    Armada: ["Armada", "Armada Infiniti Qx56 04-1"],
+  },
+  seat: {
+    Ibiza: ["Ibiza", "Ibiza Cupra 1 8 Tsi"],
+  },
+  volkswagen: {
+    Polo: ["Polo", "Polo 2 0 Tsi Ea888", "Polo 5", "Polo 6"],
+    Scirocco: ["Scirocco", "Scirocco 3"],
+    Transporter: [
+      "Transporter",
+      "T6",
+      "T6 1 Black Lower",
+      "Transporter T6 1",
+      "Transporter T6 1 Black",
+      "Transporter T6 1 Lwb",
+      "Transporter T6 1 Urban",
+    ],
+  },
+  volvo: {
+    "740": ["740", "740 940"],
+    "940": ["940", "740 940"],
+    "850": ["850", "850 S70 V70 C70 P80"],
+    C30: ["C30", "C30 C70 S40 V50 P1"],
+    C70: ["C70", "850 S70 V70 C70 P80", "C30 C70 S40 V50 P1", "S70 V70 C70 Xc70 P80"],
+    "960": ["960", "960 S90 V90"],
+    S40: ["S40", "C30 C70 S40 V50 P1", "S40 V40"],
+    S60: ["S60", "S60 V70 S80 Xc70 P2", "S60 V70 Xc60 P3", "Sv60 Sv90 Xc60 Xc90 Spa"],
+    S70: ["S70", "850 S70 V70 C70 P80", "S70 V70 C70 Xc70 P80"],
+    S80: ["S80", "S60 V70 S80 Xc70 P2", "V70 S80 Xc70 P3"],
+    S90: ["S90", "960 S90 V90", "Sv60 Sv90 Xc60 Xc90 Spa"],
+    V40: ["V40", "V40 P1", "S40 V40"],
+    V50: ["V50", "C30 C70 S40 V50 P1"],
+    V60: ["V60", "Sv60 Sv90 Xc60 Xc90 Spa"],
+    V70: ["V70", "850 S70 V70 C70 P80", "S60 V70 S80 Xc70 P2", "S60 V70 Xc60 P3", "S70 V70 C70 Xc70 P80", "V70 S80 Xc70 P3"],
+    V90: ["V90", "960 S90 V90"],
+    XC60: ["XC60", "S60 V70 Xc60 P3", "Sv60 Sv90 Xc60 Xc90 Spa"],
+    XC70: ["XC70", "S60 V70 S80 Xc70 P2", "S70 V70 C70 Xc70 P80", "V70 S80 Xc70 P3"],
+    XC90: ["XC90", "Sv60 Sv90 Xc60 Xc90 Spa"],
+  },
 };
 
 function modelAliasGroups(make: string) {
   return VEHICLE_MODEL_ALIAS_GROUPS[normalizeShopSearchText(canonicalVehicleMakeLabel(make))] ?? {};
 }
 
-function knownCanonicalVehicleModelLabel(make: string, value: string) {
+function knownCanonicalVehicleModelLabels(make: string, value: string) {
   const requestedKey = vehicleModelKey(value);
+  const labels: string[] = [];
   for (const [canonical, aliases] of Object.entries(modelAliasGroups(make))) {
-    if (aliases.some((alias) => vehicleModelKey(alias) === requestedKey)) return canonical;
+    if (aliases.some((alias) => vehicleModelKey(alias) === requestedKey)) labels.push(canonical);
   }
-  return null;
+  return labels;
 }
 
 export function vehicleModelAliases(make: string, value: string) {
-  const canonical = knownCanonicalVehicleModelLabel(make, value) ?? value.trim();
+  const canonical = knownCanonicalVehicleModelLabels(make, value)[0] ?? value.trim();
   const aliases = modelAliasGroups(make)[canonical];
   return aliases ? [...new Set([canonical, ...aliases])] : [canonical];
 }
@@ -129,7 +202,7 @@ const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {
 export function canonicalVehicleModelLabel(make: string, value: string) {
   const key = vehicleModelKey(value);
   const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
-  const aliasLabel = knownCanonicalVehicleModelLabel(make, value);
+  const aliasLabel = knownCanonicalVehicleModelLabels(make, value)[0];
   if (aliasLabel) return aliasLabel;
   const knownLabel = CANONICAL_MODEL_LABELS[`${makeKey}:${key}`];
   if (knownLabel) return knownLabel;
@@ -155,10 +228,12 @@ export function canonicalVehicleModelLabel(make: string, value: string) {
 export function canonicalizeVehicleModels(make: string, values: readonly string[]) {
   const byKey = new Map<string, string>();
   for (const value of values) {
-    const canonical = canonicalVehicleModelLabel(make, value);
-    const key = vehicleModelKey(canonical);
-    if (!key) continue;
-    byKey.set(key, canonical);
+    const canonicals = knownCanonicalVehicleModelLabels(make, value);
+    for (const canonical of canonicals.length ? canonicals : [canonicalVehicleModelLabel(make, value)]) {
+      const key = vehicleModelKey(canonical);
+      if (!key) continue;
+      byKey.set(key, canonical);
+    }
   }
   return [...byKey.values()].sort((left, right) =>
     left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })
