@@ -552,9 +552,15 @@ const STOCK_CATEGORY_RESOLUTION_ORDER: ShopStockCategoryGroupId[] = [
   "accessories",
 ];
 
-const STOCK_CATEGORY_RESOLUTION_GROUPS = STOCK_CATEGORY_RESOLUTION_ORDER.map(
-  (groupId) => GROUP_BY_ID.get(groupId)!
-);
+// The keyword dictionary is static. Normalize once rather than hundreds of
+// times per product during each catalog facet calculation.
+const STOCK_CATEGORY_RESOLUTION_GROUPS = STOCK_CATEGORY_RESOLUTION_ORDER.map((groupId) => {
+  const group = GROUP_BY_ID.get(groupId)!;
+  return {
+    group,
+    keywords: group.keywords.map(normalizeShopSearchText).filter(Boolean).map((word) => ` ${word} `),
+  };
+});
 
 const GROUP_LABEL_LOOKUP = new Map(
   SHOP_STOCK_CATEGORY_GROUPS.flatMap((group) => [
@@ -600,11 +606,6 @@ function getCategoryCorpus(item: ShopStockTaxonomyItem, locale: string) {
   return ` ${fieldText} `;
 }
 
-function corpusIncludesKeyword(corpus: string, keyword: string) {
-  const normalizedKeyword = normalizeShopSearchText(keyword);
-  return normalizedKeyword.length > 0 && corpus.includes(` ${normalizedKeyword} `);
-}
-
 const EXTERIOR_AERO_PATTERN =
   /(?:\b(?:diffuser|splitter|spoiler|rear wing|body kit|bodykit|widebody|side skirt|bumper|bonnet|hood|grille)\b|дифузор|спліттер|спойлер|обвіс|бампер|пороги|решітка)/;
 
@@ -634,9 +635,9 @@ export function getShopStockCategoryGroupForProduct(
     return GROUP_BY_ID.get("carbonAero")!;
   }
   return (
-    STOCK_CATEGORY_RESOLUTION_GROUPS.find((group) =>
-      group.keywords.some((keyword) => corpusIncludesKeyword(corpus, keyword))
-    ) ?? GROUP_BY_ID.get("other")!
+    STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
+      keywords.some((keyword) => corpus.includes(keyword))
+    )?.group ?? GROUP_BY_ID.get("other")!
   );
 }
 

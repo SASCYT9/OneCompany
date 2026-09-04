@@ -65,6 +65,16 @@ const firstBrand = (params: URLSearchParams) =>
  * descriptions, media galleries, metafields, or variants graph are loaded.
  */
 export async function queryPremiumCatalogProjection(params: URLSearchParams) {
+  const startedAt = performance.now();
+  const timings: string[] = [];
+  async function measure<T>(name: string, operation: Promise<T>): Promise<T> {
+    const start = performance.now();
+    try {
+      return await operation;
+    } finally {
+      timings.push(`${name};dur=${(performance.now() - start).toFixed(1)}`);
+    }
+  }
   const locale = params.get("locale") === "en" ? "en" : "ua";
   const page = positiveInteger(params.get("page"), 1);
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
@@ -80,7 +90,28 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
   const requestedSort = params.get("sort");
   const requestedStock = params.get("stock") === "inStock" ? "inStock" : null;
-  const settingsRecord = await getOrCreateShopSettings(prisma);
+  const warehouseProductsPromise = measure(
+    "warehouse",
+    prisma.shopProduct.findMany({
+      where: {
+        isPublished: true,
+        status: "ACTIVE",
+        OR: [
+          ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
+            { sku: { equals: sku, mode: "insensitive" as const } },
+            { variants: { some: { sku: { equals: sku, mode: "insensitive" as const } } } },
+          ]),
+          { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
+        ],
+      },
+      select: { id: true, sku: true, slug: true },
+    })
+  );
+  const [settingsRecord, warehouseProducts, session] = await Promise.all([
+    measure("settings", getOrCreateShopSettings(prisma)),
+    warehouseProductsPromise,
+    measure("session", getCurrentShopCustomerSession()),
+  ]);
   const settings = getShopSettingsRuntime(settingsRecord);
   const useEuropePrice = isEuropePricingCountry(params.get("country"));
   if (useEuropePrice) {
@@ -116,20 +147,6 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     useEuropePrice,
     offset: (page - 1) * requestedLimit,
   };
-  const warehouseProducts = await prisma.shopProduct.findMany({
-    where: {
-      isPublished: true,
-      status: "ACTIVE",
-      OR: [
-        ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
-          { sku: { equals: sku, mode: "insensitive" as const } },
-          { variants: { some: { sku: { equals: sku, mode: "insensitive" as const } } } },
-        ]),
-        { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
-      ],
-    },
-    select: { id: true, sku: true, slug: true },
-  });
   const warehouseProductIds = warehouseProducts.map((product) => product.id);
   const sharedEventuriSlugs = new Set<string>(EVENTURI_SHARED_V8_INTAKE_SLUGS);
   const sharedEventuriProducts = warehouseProducts.filter(
@@ -169,12 +186,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // preserve the complete product-owned vehicle coverage. Engine/fuel remain
   // projection-native because legacy evidence does not model them reliably.
   if (query.make || query.model || query.generation || query.year) {
-    const vehicleProductIds = await resolveLegacyVehicleProductIds({
-      make: query.make,
-      model: query.model,
-      generation: query.generation,
-      year: query.year,
-    });
+    const vehicleProductIds = await measure(
+      "vehicle",
+      resolveLegacyVehicleProductIds({
+        make: query.make,
+        model: query.model,
+        generation: query.generation,
+        year: query.year,
+      })
+    );
     if (vehicleProductIds) {
       const effectiveVehicleProductIds =
         canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
@@ -191,13 +211,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   }
 
   const [result, facetResult, totalItems] = await Promise.all([
-    queryShopCatalogProjection(query),
-    queryShopCatalogProjectionFacets(query),
-    countShopCatalogProjection(query),
+    measure("products", queryShopCatalogProjection(query)),
+    measure("facets", queryShopCatalogProjectionFacets(query)),
+    measure("count", countShopCatalogProjection(query)),
   ]);
-  const session = await getCurrentShopCustomerSession();
   const items = result.items;
-  const prices = await getShopCatalogCardPricingByIds(items.map((item) => item.productId));
+  const prices = await measure(
+    "prices",
+    getShopCatalogCardPricingByIds(items.map((item) => item.productId))
+  );
   const pricingContext = await buildShopViewerPricingContextServer({
     prisma,
     settings,
@@ -281,7 +303,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     stock: {
       all: totalItems,
       inStock: requestedStock === "inStock" ? totalItems : warehouseProductIds.length,
-      preOrder: requestedStock === "inStock" ? 0 : Math.max(0, totalItems - warehouseProductIds.length),
+      preOrder:
+        requestedStock === "inStock" ? 0 : Math.max(0, totalItems - warehouseProductIds.length),
     },
     price: {
       min: pricesOnPage.length ? Math.floor(Math.min(...pricesOnPage)) : 0,
@@ -309,6 +332,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   response.headers.set(
     "Cache-Control",
     session ? "private, no-store" : "public, s-maxage=60, stale-while-revalidate=300"
+  );
+  response.headers.set(
+    "Server-Timing",
+    [...timings, `total;dur=${(performance.now() - startedAt).toFixed(1)}`].join(", ")
   );
   return response;
 }

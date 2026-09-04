@@ -37,6 +37,7 @@ const STATIC_REMOTE_IMAGE_HOSTS = [
   "d1sfhav1wboke3.azureedge.net",
   "cdn.sanity.io",
   "houseofurban.co.uk",
+  "ind-distribution.com",
 ];
 
 function parseHostname(value: string | null | undefined) {

@@ -1259,7 +1259,9 @@ function StockPageContent() {
       const nextUrl = queryString
         ? `${window.location.pathname}?${queryString}`
         : window.location.pathname;
-      window.history.replaceState(window.history.state, "", nextUrl);
+      if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+        window.history.replaceState(window.history.state, "", nextUrl);
+      }
     },
     [
       chassis,
@@ -1579,13 +1581,17 @@ function StockPageContent() {
   );
 
   // Auto-search for filters and queries
+  const searchTextKey = JSON.stringify([query, engineFilter, minPriceFilter, maxPriceFilter]);
+  const previousSearchTextRef = useRef(searchTextKey);
   useEffect(() => {
     const isInitialSearch = initialSearchRef.current;
     const searchPage = isInitialSearch ? initialPage : 1;
     const delay = resolveShopStockSearchDelay({
       isInitialSearch,
       isScopeSearchImmediate: scopeSearchImmediateRef.current,
+      isTextChange: previousSearchTextRef.current !== searchTextKey,
     });
+    previousSearchTextRef.current = searchTextKey;
     scopeSearchImmediateRef.current = false;
     autoSearchTimerRef.current = setTimeout(() => {
       if (isInitialSearch) initialSearchRef.current = false;
@@ -1617,6 +1623,7 @@ function StockPageContent() {
     maxPriceFilter,
     doSearch,
     initialPage,
+    searchTextKey,
   ]);
 
   useEffect(() => {
@@ -2610,6 +2617,199 @@ function StockPageContent() {
     </form>
   );
 
+  // Keep card subtrees stable while typing or rotating the warehouse hero.
+  const gridCards = useMemo(
+    () =>
+      items.map((item) => {
+        const logoPath = getBrandLogoPath(item.brand);
+        const compareAtLabel = formatItemCompareAt(item);
+        const priceLabel = formatItemPrice(item);
+        const showEventuriAvailability = shouldShowEventuriStockBadge(
+          item.brand,
+          item.inStock ? "inStock" : "preOrder",
+        );
+        const vehicleLabel =
+          [make, model, chassis].filter(Boolean).join(" ") ||
+          (isUa
+            ? vehicleMode === "moto"
+              ? "Підбір по мото"
+              : "Підбір по авто"
+            : vehicleMode === "moto"
+              ? "Motorcycle fitment"
+              : "Car fitment");
+
+        return (
+          <div
+            key={item.id}
+            className="group relative flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-foreground/[0.1] bg-card/78 p-3 shadow-[0_12px_34px_rgba(0,0,0,0.055)] transition-[border-color,background-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/24 hover:bg-card hover:shadow-[0_18px_44px_rgba(0,0,0,0.09)] dark:bg-black/15 dark:shadow-none dark:hover:bg-foreground/[0.018] md:min-h-[410px] md:p-3.5"
+            style={{
+              contentVisibility: "auto",
+              containIntrinsicSize: "410px",
+              contain: "layout paint style",
+            }}
+          >
+            <Link
+              href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+              prefetch={false}
+              className="flex min-w-0 cursor-pointer flex-col md:flex-1"
+            >
+              <div className="relative mb-3 flex aspect-[1.55] items-center justify-center overflow-hidden rounded-[9px] border border-foreground/[0.07] bg-background/55 md:aspect-[1.5] dark:bg-[#090a0c]">
+                <SafeProductImage
+                  src={item.thumbnail}
+                  alt={item.name}
+                  className={`h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
+                    item.brand === "Eventuri"
+                      ? "p-6 mix-blend-multiply dark:mix-blend-normal md:p-7"
+                      : "p-3 md:p-3.5"
+                  }`}
+                />
+              </div>
+
+              <div className="mb-2.5 grid grid-cols-[minmax(64px,1fr)_minmax(0,44%)] items-center gap-2">
+                <div className="min-w-0 overflow-hidden">
+                  <div className="flex min-h-5 min-w-0 items-center">
+                    {logoPath ? (
+                      <>
+                        <BrandLogoTile brandName={item.brand} logoPath={logoPath} size="sm" />
+                        <span className="sr-only">{item.brand}</span>
+                      </>
+                    ) : (
+                      <span className="truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/65">
+                        {item.brand}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="w-full min-w-0 justify-self-end overflow-hidden text-right">
+                  <SkuCopy sku={item.partNumber} isUa={isUa} />
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-1">
+                <h3 className="line-clamp-2 min-h-[40px] overflow-hidden text-[14px] font-normal leading-[1.35] text-foreground/90 [overflow-wrap:anywhere] transition-colors group-hover:text-foreground">
+                  {item.name}
+                </h3>
+                <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
+                  {item.category}
+                </div>
+                {make || model || chassis ? (
+                  <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
+                    {vehicleLabel}
+                  </div>
+                ) : null}
+              </div>
+            </Link>
+
+            <div className="mt-3 space-y-2.5 border-t border-foreground/[0.07] pt-3 md:mt-auto">
+              {isB2B ? (
+                <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
+                  {compareAtLabel ? (
+                    <div className="min-w-0 pb-0.5">
+                      <div className="mb-0.5 text-[8px] font-light uppercase tracking-[0.18em] text-foreground/35">
+                        {isUa ? "РРЦ" : "MSRP"}
+                      </div>
+                      <div
+                        className="truncate font-mono text-[11px] text-foreground/45 line-through decoration-foreground/35"
+                        suppressHydrationWarning={true}
+                      >
+                        {compareAtLabel}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="ml-auto min-w-0 text-right">
+                    <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
+                      {isUa ? "Ціна" : "Price"}
+                    </div>
+                    <div
+                      className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
+                      suppressHydrationWarning={true}
+                    >
+                      {priceLabel}
+                    </div>
+                    <div className="mt-1 text-[10px] font-light uppercase tracking-[0.1em] text-foreground/45">
+                      {isUa ? "за одиницю" : "per unit"}
+                    </div>
+                  </div>
+                  {showEventuriAvailability ? (
+                    <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
+                      {isUa ? "Ціна" : "Price"}
+                    </div>
+                    <div
+                      className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
+                      suppressHydrationWarning={true}
+                    >
+                      {priceLabel}
+                    </div>
+                  </div>
+                  {showEventuriAvailability ? (
+                    <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                  ) : null}
+                </div>
+              )}
+
+              {item.matchStatus ? (
+                <div
+                  className={`flex min-h-9 items-center gap-2 rounded-[7px] border px-2.5 text-[9px] ${
+                    item.matchStatus === "exact"
+                      ? "border-emerald-500/25 bg-emerald-500/[0.055] text-foreground/70"
+                      : "border-amber-500/30 bg-amber-500/[0.06] text-foreground/72"
+                  }`}
+                  title={
+                    item.missingFacts?.length
+                      ? `${item.matchReason ?? ""}: ${item.missingFacts.join(", ")}`
+                      : item.matchReason
+                  }
+                >
+                  {item.matchStatus === "exact" ? (
+                    <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate">
+                    {item.matchStatus === "exact"
+                      ? isUa
+                        ? "Сумісність підтверджена"
+                        : "Confirmed fitment"
+                      : isUa
+                        ? "Сумісність потребує перевірки"
+                        : "Fitment needs verification"}
+                  </span>
+                  {item.matchStatus === "requires_verification" ? (
+                    <Link
+                      href={`/${locale}/contact?source=one-ai&product=${encodeURIComponent(item.slug)}`}
+                      className="shrink-0 font-semibold text-foreground/75 underline-offset-2 hover:underline"
+                    >
+                      {isUa ? "Перевірити" : "Verify"}
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <StockCardCartControl item={item} locale={locale as string} isUa={isUa} />
+            </div>
+          </div>
+        );
+      }),
+    [
+      items,
+      formatItemCompareAt,
+      formatItemPrice,
+      make,
+      model,
+      chassis,
+      isUa,
+      isB2B,
+      vehicleMode,
+      locale,
+    ],
+  );
+
   return (
     <div className="relative min-h-screen overflow-x-clip bg-background text-foreground selection:bg-foreground/20">
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-foreground/[0.02] to-foreground/[0.045] dark:via-black/45 dark:to-black/75" />
@@ -3559,190 +3759,7 @@ function StockPageContent() {
                     animate={{ opacity: 1 }}
                     className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3 [@media(min-width:1900px)]:grid-cols-4 [@media(min-width:2400px)]:grid-cols-5"
                   >
-                    {items.map((item) => {
-                      const logoPath = getBrandLogoPath(item.brand);
-                      const compareAtLabel = formatItemCompareAt(item);
-                      const priceLabel = formatItemPrice(item);
-                      const showEventuriAvailability = shouldShowEventuriStockBadge(
-                        item.brand,
-                        item.inStock ? "inStock" : "preOrder"
-                      );
-                      const vehicleLabel =
-                        [make, model, chassis].filter(Boolean).join(" ") ||
-                        (isUa
-                          ? vehicleMode === "moto"
-                            ? "Підбір по мото"
-                            : "Підбір по авто"
-                          : vehicleMode === "moto"
-                            ? "Motorcycle fitment"
-                            : "Car fitment");
-
-                      return (
-                        <div
-                          key={item.id}
-                          className="group relative flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-foreground/[0.1] bg-card/78 p-3 shadow-[0_12px_34px_rgba(0,0,0,0.055)] transition-[border-color,background-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/24 hover:bg-card hover:shadow-[0_18px_44px_rgba(0,0,0,0.09)] dark:bg-black/15 dark:shadow-none dark:hover:bg-foreground/[0.018] md:min-h-[410px] md:p-3.5"
-                          style={{
-                            contentVisibility: "auto",
-                            containIntrinsicSize: "410px",
-                            contain: "layout paint style",
-                          }}
-                        >
-                          <Link
-                            href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
-                            prefetch={false}
-                            className="flex min-w-0 cursor-pointer flex-col md:flex-1"
-                          >
-                            <div className="relative mb-3 flex aspect-[1.55] items-center justify-center overflow-hidden rounded-[9px] border border-foreground/[0.07] bg-background/55 md:aspect-[1.5] dark:bg-[#090a0c]">
-                              <SafeProductImage
-                                src={item.thumbnail}
-                                alt={item.name}
-                                className={`h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
-                                  item.brand === "Eventuri"
-                                    ? "p-6 mix-blend-multiply dark:mix-blend-normal md:p-7"
-                                    : "p-3 md:p-3.5"
-                                }`}
-                              />
-                            </div>
-
-                            <div className="mb-2.5 grid grid-cols-[minmax(64px,1fr)_minmax(0,44%)] items-center gap-2">
-                              <div className="min-w-0 overflow-hidden">
-                                <div className="flex min-h-5 min-w-0 items-center">
-                                  {logoPath ? (
-                                    <>
-                                      <BrandLogoTile
-                                        brandName={item.brand}
-                                        logoPath={logoPath}
-                                        size="sm"
-                                      />
-                                      <span className="sr-only">{item.brand}</span>
-                                    </>
-                                  ) : (
-                                    <span className="truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/65">
-                                      {item.brand}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="w-full min-w-0 justify-self-end overflow-hidden text-right">
-                                <SkuCopy sku={item.partNumber} isUa={isUa} />
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col md:flex-1">
-                              <h3 className="line-clamp-2 min-h-[40px] overflow-hidden text-[14px] font-normal leading-[1.35] text-foreground/90 [overflow-wrap:anywhere] transition-colors group-hover:text-foreground">
-                                {item.name}
-                              </h3>
-                              <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
-                                {item.category}
-                              </div>
-                              {make || model || chassis ? (
-                                <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
-                                  {vehicleLabel}
-                                </div>
-                              ) : null}
-                            </div>
-                          </Link>
-
-                          <div className="mt-3 space-y-2.5 border-t border-foreground/[0.07] pt-3 md:mt-auto">
-                            {isB2B ? (
-                              <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
-                                {compareAtLabel ? (
-                                  <div className="min-w-0 pb-0.5">
-                                    <div className="mb-0.5 text-[8px] font-light uppercase tracking-[0.18em] text-foreground/35">
-                                      {isUa ? "РРЦ" : "MSRP"}
-                                    </div>
-                                    <div
-                                      className="truncate font-mono text-[11px] text-foreground/45 line-through decoration-foreground/35"
-                                      suppressHydrationWarning={true}
-                                    >
-                                      {compareAtLabel}
-                                    </div>
-                                  </div>
-                                ) : null}
-                                <div className="ml-auto min-w-0 text-right">
-                                  <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
-                                    {isUa ? "Ціна" : "Price"}
-                                  </div>
-                                  <div
-                                    className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
-                                    suppressHydrationWarning={true}
-                                  >
-                                    {priceLabel}
-                                  </div>
-                                  <div className="mt-1 text-[10px] font-light uppercase tracking-[0.1em] text-foreground/45">
-                                    {isUa ? "за одиницю" : "per unit"}
-                                  </div>
-                                </div>
-                                {showEventuriAvailability ? (
-                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
-                                ) : null}
-                              </div>
-                            ) : (
-                              <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
-                                <div className="min-w-0">
-                                  <div className="mb-0.5 text-[9px] font-light uppercase tracking-[0.14em] text-foreground/50">
-                                    {isUa ? "Ціна" : "Price"}
-                                  </div>
-                                  <div
-                                    className="whitespace-nowrap font-mono text-[22px] font-semibold leading-none tracking-tight text-foreground"
-                                    suppressHydrationWarning={true}
-                                  >
-                                    {priceLabel}
-                                  </div>
-                                </div>
-                                {showEventuriAvailability ? (
-                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
-                                ) : null}
-                              </div>
-                            )}
-
-                            {item.matchStatus ? (
-                              <div
-                                className={`flex min-h-9 items-center gap-2 rounded-[7px] border px-2.5 text-[9px] ${
-                                  item.matchStatus === "exact"
-                                    ? "border-emerald-500/25 bg-emerald-500/[0.055] text-foreground/70"
-                                    : "border-amber-500/30 bg-amber-500/[0.06] text-foreground/72"
-                                }`}
-                                title={
-                                  item.missingFacts?.length
-                                    ? `${item.matchReason ?? ""}: ${item.missingFacts.join(", ")}`
-                                    : item.matchReason
-                                }
-                              >
-                                {item.matchStatus === "exact" ? (
-                                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                ) : (
-                                  <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                                )}
-                                <span className="min-w-0 flex-1 truncate">
-                                  {item.matchStatus === "exact"
-                                    ? isUa
-                                      ? "Сумісність підтверджена"
-                                      : "Confirmed fitment"
-                                    : isUa
-                                      ? "Сумісність потребує перевірки"
-                                      : "Fitment needs verification"}
-                                </span>
-                                {item.matchStatus === "requires_verification" ? (
-                                  <Link
-                                    href={`/${locale}/contact?source=one-ai&product=${encodeURIComponent(item.slug)}`}
-                                    className="shrink-0 font-semibold text-foreground/75 underline-offset-2 hover:underline"
-                                  >
-                                    {isUa ? "Перевірити" : "Verify"}
-                                  </Link>
-                                ) : null}
-                              </div>
-                            ) : null}
-
-                            <StockCardCartControl
-                              item={item}
-                              locale={locale as string}
-                              isUa={isUa}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {gridCards}
                   </motion.div>
                 ) : (
                   /* Premium marketplace table/list layout */

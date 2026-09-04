@@ -6,6 +6,25 @@ import {
   resolveShopStockSearchDelay,
 } from "../../../src/lib/shopStockSearchTiming";
 
+test("discrete filters do not wait for the text debounce", () => {
+  assert.equal(
+    resolveShopStockSearchDelay({
+      isInitialSearch: false,
+      isScopeSearchImmediate: false,
+      isTextChange: false,
+    }),
+    0
+  );
+  assert.equal(
+    resolveShopStockSearchDelay({
+      isInitialSearch: false,
+      isScopeSearchImmediate: false,
+      isTextChange: true,
+    }),
+    SHOP_STOCK_TEXT_SEARCH_DEBOUNCE_MS
+  );
+});
+
 test("the first unified catalog search starts immediately", () => {
   assert.equal(
     resolveShopStockSearchDelay({

@@ -95,6 +95,7 @@ import {
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { singleFlight } from "@/lib/singleFlight";
 export { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 
 type StockSearchSort = "default" | "price_asc" | "price_desc" | "name_asc";
@@ -390,7 +391,9 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
   );
 }
 
-export async function getShopProductsWithFitments() {
+export const getShopProductsWithFitments = singleFlight(loadShopProductsWithFitments);
+
+async function loadShopProductsWithFitments() {
   const now = Date.now();
   if (isLocalStorefrontMode()) {
     if (cachedProductsWithFitment && now - cachedTimestamp < 5 * 60 * 1000) {
@@ -1158,6 +1161,14 @@ async function resolveStrictCatalogMatches(
 }
 
 export async function GET(request: NextRequest) {
+  const startedAt = performance.now();
+  const timings: string[] = [];
+  let stageStartedAt = startedAt;
+  const mark = (name: string) => {
+    const now = performance.now();
+    timings.push(`${name};dur=${(now - stageStartedAt).toFixed(1)}`);
+    stageStartedAt = now;
+  };
   try {
     const { searchParams } = new URL(request.url);
     if (process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr") {
@@ -1264,10 +1275,12 @@ export async function GET(request: NextRequest) {
         }),
         strictCatalogPromise,
       ]);
+    mark("context");
     const allProductsWithFitments =
       canonicalVehicleProductIds === null
         ? await getShopProductsWithFitments()
         : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
+    mark("catalog");
     let scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
       allProductsWithFitments,
       vehicleScope
@@ -1913,6 +1926,7 @@ export async function GET(request: NextRequest) {
     const globalFilterStatsCacheKey = canCacheGlobalFilterStats
       ? JSON.stringify({
           locale,
+          vehicleScope,
           priceCurrency,
           country: country ?? "",
           customerId: session?.customerId ?? "",
@@ -1956,6 +1970,7 @@ export async function GET(request: NextRequest) {
     const brands = globalFilterStats.brands.map((entry) => entry.label);
     const categories = globalFilterStats.categories.map((entry) => entry.label);
 
+    mark("filter_rank_price");
     if (shadowPromise) {
       const shadow = await shadowPromise;
       const shadowDurationMs = Date.now() - shadowStartedAt;
@@ -2015,6 +2030,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    mark("shadow");
     const response = NextResponse.json({
       data: sanitizedItems,
       meta: {
@@ -2049,6 +2065,7 @@ export async function GET(request: NextRequest) {
       "Cache-Control",
       session ? "private, no-store" : "public, s-maxage=60, stale-while-revalidate=300"
     );
+    response.headers.set("Server-Timing", [...timings, `total;dur=${(performance.now() - startedAt).toFixed(1)}`].join(", "));
     return response;
   } catch (error: any) {
     console.error("[Stock Search API Error]", error);
