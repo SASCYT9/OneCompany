@@ -22,7 +22,8 @@ export function convertShopCurrencyAmount(
   amount: number,
   source: ShopCurrencyCode,
   target: ShopCurrencyCode,
-  rates: ShopCurrencyRates | null | undefined
+  rates: ShopCurrencyRates | null | undefined,
+  fractionDigits?: number
 ): number {
   if (!Number.isFinite(amount) || amount < 0) return 0;
   if (source === target) return amount;
@@ -32,7 +33,8 @@ export function convertShopCurrencyAmount(
   if (sourceRate <= 0 || targetRate <= 0) return amount;
 
   const converted = (amount / sourceRate) * targetRate;
-  return target === "UAH" ? Math.round(converted) : Math.round(converted * 100) / 100;
+  const scale = 10 ** (fractionDigits ?? (target === "UAH" ? 0 : 2));
+  return Math.round(converted * scale) / scale;
 }
 
 /**

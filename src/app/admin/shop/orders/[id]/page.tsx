@@ -578,8 +578,8 @@ export default function AdminOrderDetailPage() {
             <a href="#payment">Оплата</a>
             <a href="#shipping">Доставка</a>
             <a href="#order-status">Статус</a>
-            <a href={`/api/admin/pdf/invoice/${order.id}`} target="_blank" rel="noreferrer">
-              <FileText size={15} /> Рахунок
+            <a href={`/api/admin/pdf/proforma/${order.id}`} target="_blank" rel="noreferrer">
+              <FileText size={15} /> Проформа
             </a>
           </div>
         </div>
@@ -1096,6 +1096,14 @@ export default function AdminOrderDetailPage() {
               description="Рахунок і пакувальний лист для друку або збереження у PDF."
             >
               <div className="space-y-2">
+                <a
+                  href={`/api/admin/pdf/proforma/${order.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm"
+                >
+                  <FileText className="h-4 w-4" /> Проформа · PDF
+                </a>
                 <a
                   href={`/api/admin/pdf/invoice/${order.id}`}
                   target="_blank"

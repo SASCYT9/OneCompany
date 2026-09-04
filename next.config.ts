@@ -239,7 +239,13 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false, // Security: remove X-Powered-By header
   // Local media libraries live on disk and can exceed Vercel's 250 MB function limit.
-  outputFileTracingIncludes: fileBackedMediaTracingIncludes,
+  outputFileTracingIncludes: {
+    ...fileBackedMediaTracingIncludes,
+    "/api/admin/pdf/proforma/*": [
+      "./public/fonts/proforma/**/*",
+      "./public/branding/proforma-logo.png",
+    ],
+  },
   outputFileTracingExcludes: fileBackedMediaTracingExcludes,
 
   // Images configuration - optimized for SEO & performance
