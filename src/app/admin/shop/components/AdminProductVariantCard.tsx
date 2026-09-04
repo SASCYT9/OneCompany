@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, GripVertical, Star, Trash2 } from "lucide-react";
+import { ChevronDown, Star, Trash2 } from "lucide-react";
 
 import {
   AdminCheckboxField as CheckboxField,
@@ -99,7 +99,7 @@ export function AdminProductVariantCard({
       ? `€${variant.priceEur}`
       : variant.priceUsd
         ? `$${variant.priceUsd}`
-        : "—";
+        : "Ціна товару";
 
   const stock = variant.inventoryQty ? Number(variant.inventoryQty) : null;
   const stockTone = stock == null ? "stone" : stock <= 0 ? "red" : stock < 5 ? "amber" : "emerald";
@@ -119,7 +119,7 @@ export function AdminProductVariantCard({
   return (
     <div
       className={cn(
-        "group rounded-none border bg-linear-to-b from-[#141B33] to-[#0E1325] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_1px_2px_rgba(0,0,0,0.4)] transition-all",
+        "group rounded-lg border bg-[#15171b] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_1px_2px_rgba(0,0,0,0.4)] transition-all",
         variant.isDefault ? "border-blue-500/30" : "border-white/[0.07]",
         open && "shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_30px_rgba(0,0,0,0.4)]"
       )}
@@ -129,11 +129,9 @@ export function AdminProductVariantCard({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={`${open ? "Collapse" : "Expand"} variant ${variant.title || `#${index + 1}`}`}
+        aria-label={`${open ? "Згорнути" : "Редагувати"} варіант ${variant.title || `#${index + 1}`}`}
         className="flex w-full items-center gap-3 px-4 py-3.5 text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset"
       >
-        <GripVertical className="h-4 w-4 shrink-0 text-zinc-600" aria-hidden="true" />
-
         {/* Image preview */}
         <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-none border border-white/[0.07] bg-black/40">
           {variantImageSrc ? (
@@ -147,19 +145,21 @@ export function AdminProductVariantCard({
               }}
             />
           ) : (
-            <div className="text-[10px] uppercase tracking-wider text-zinc-600">No img</div>
+            <div className="text-[10px] uppercase tracking-wider text-zinc-600">Без фото</div>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate text-sm font-semibold text-zinc-50">
-              {variant.title || optionSummary || `Variant #${index + 1}`}
+              {variant.title === "Default Title"
+                ? "Основний варіант"
+                : variant.title || optionSummary || `Варіант ${index + 1}`}
             </span>
             {variant.isDefault ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-300">
                 <Star className="h-2.5 w-2.5 fill-blue-400 text-blue-300" />
-                Default
+                Основний
               </span>
             ) : null}
           </div>
@@ -176,7 +176,7 @@ export function AdminProductVariantCard({
               stockColor
             )}
           >
-            {stock == null ? "—" : `${stock} in stock`}
+            {stock == null ? "Не задано" : `${stock} шт.`}
           </span>
           <span className="hidden text-sm font-semibold text-zinc-100 sm:inline">
             {priceSummary}
@@ -207,7 +207,7 @@ export function AdminProductVariantCard({
                   className="inline-flex h-8 items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 text-xs font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
                 >
                   <Star className="h-3.5 w-3.5" />
-                  Make default
+                  Зробити основним
                 </button>
               ) : null}
             </div>
@@ -221,7 +221,7 @@ export function AdminProductVariantCard({
                 className="inline-flex h-8 items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-950/20 px-3 text-xs font-medium text-red-200 transition hover:border-blue-500/50 hover:bg-blue-950/40"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Delete variant
+                Видалити варіант
               </button>
             ) : null}
           </div>
@@ -229,12 +229,19 @@ export function AdminProductVariantCard({
           {/* Tabs */}
           <div
             role="tablist"
-            aria-label="Variant sections"
+            aria-label="Розділи варіанта"
             className="mb-4 flex gap-1 rounded-none border border-white/6 bg-black/30 p-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
           >
             {(["general", "pricing", "inventory", "shipping"] as Tab[]).map((t) => (
               <button
-                key={t}
+                key={
+                  {
+                    general: "Загальне",
+                    pricing: "Ціни",
+                    inventory: "Залишки",
+                    shipping: "Доставка",
+                  }[t]
+                }
                 type="button"
                 role="tab"
                 aria-selected={tab === t}
@@ -250,7 +257,14 @@ export function AdminProductVariantCard({
                     : "text-zinc-400 hover:text-zinc-200"
                 )}
               >
-                {t}
+                {
+                  {
+                    general: "Загальне",
+                    pricing: "Ціни",
+                    inventory: "Залишки",
+                    shipping: "Доставка",
+                  }[t]
+                }
               </button>
             ))}
           </div>
@@ -259,7 +273,7 @@ export function AdminProductVariantCard({
           {tab === "general" ? (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               <InputField
-                label="Title"
+                label="Назва варіанта"
                 value={variant.title}
                 onChange={(v) => onUpdate({ title: v })}
               />
@@ -270,14 +284,14 @@ export function AdminProductVariantCard({
                 onChange={(v) => onUpdate({ sku: v })}
               />
               <InputField
-                label="Position"
+                label="Порядок"
                 type="number"
                 value={variant.position}
                 onChange={(v) => onUpdate({ position: v })}
               />
 
               <SelectField
-                label="Linked product media"
+                label="Фото з медіа товару"
                 value={isLinked ? variantImageSrc : "__custom__"}
                 onChange={(v) => onUpdate({ image: v === "__custom__" ? "" : v })}
                 options={[
@@ -290,38 +304,38 @@ export function AdminProductVariantCard({
                 className="md:col-span-2 xl:col-span-2"
               />
               <InputField
-                label="Custom image URL"
+                label="Власне фото · URL"
                 value={variant.image}
                 onChange={(v) => onUpdate({ image: v })}
               />
 
               <InputField
-                label="Option 1 value"
+                label="Значення опції 1"
                 value={variant.option1Value}
                 onChange={(v) => onUpdate({ option1Value: v })}
               />
               <InputField
-                label="Option 2 value"
+                label="Значення опції 2"
                 value={variant.option2Value}
                 onChange={(v) => onUpdate({ option2Value: v })}
               />
               <InputField
-                label="Option 3 value"
+                label="Значення опції 3"
                 value={variant.option3Value}
                 onChange={(v) => onUpdate({ option3Value: v })}
               />
               <InputField
-                label="Option 1 linked to"
+                label="Прив’язка опції 1"
                 value={variant.option1LinkedTo}
                 onChange={(v) => onUpdate({ option1LinkedTo: v })}
               />
               <InputField
-                label="Option 2 linked to"
+                label="Прив’язка опції 2"
                 value={variant.option2LinkedTo}
                 onChange={(v) => onUpdate({ option2LinkedTo: v })}
               />
               <InputField
-                label="Option 3 linked to"
+                label="Прив’язка опції 3"
                 value={variant.option3LinkedTo}
                 onChange={(v) => onUpdate({ option3LinkedTo: v })}
               />
@@ -396,7 +410,7 @@ export function AdminProductVariantCard({
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField
-                  label="Cost per item"
+                  label="Собівартість"
                   type="number"
                   step="0.01"
                   value={variant.costPerItem}
@@ -404,7 +418,7 @@ export function AdminProductVariantCard({
                   helper="Used for margin calculation"
                 />
                 <InputField
-                  label="Tax code"
+                  label="Код податку"
                   value={variant.taxCode}
                   onChange={(v) => onUpdate({ taxCode: v })}
                 />
@@ -417,13 +431,13 @@ export function AdminProductVariantCard({
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-3">
                 <InputField
-                  label="Quantity in stock"
+                  label="Кількість у наявності"
                   type="number"
                   value={variant.inventoryQty}
                   onChange={(v) => onUpdate({ inventoryQty: v })}
                 />
                 <SelectField
-                  label="Inventory policy"
+                  label="Продаж без залишку"
                   value={variant.inventoryPolicy}
                   onChange={(v) => onUpdate({ inventoryPolicy: v as InventoryPolicy })}
                   options={[
@@ -432,7 +446,7 @@ export function AdminProductVariantCard({
                   ]}
                 />
                 <InputField
-                  label="Inventory tracker"
+                  label="Облік залишків"
                   value={variant.inventoryTracker}
                   onChange={(v) => onUpdate({ inventoryTracker: v })}
                   helper="e.g. shopify, manual, turn14"
@@ -440,12 +454,12 @@ export function AdminProductVariantCard({
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField
-                  label="Barcode (ISBN, UPC, GTIN)"
+                  label="Штрихкод (ISBN, UPC, GTIN)"
                   value={variant.barcode}
                   onChange={(v) => onUpdate({ barcode: v })}
                 />
                 <InputField
-                  label="Fulfillment service"
+                  label="Служба виконання замовлень"
                   value={variant.fulfillmentService}
                   onChange={(v) => onUpdate({ fulfillmentService: v })}
                 />
@@ -458,7 +472,7 @@ export function AdminProductVariantCard({
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-4">
                 <InputField
-                  label="Weight"
+                  label="Вага"
                   type="number"
                   step="0.01"
                   value={variant.weight}
@@ -466,7 +480,7 @@ export function AdminProductVariantCard({
                   onChange={(v) => onUpdate({ weight: v })}
                 />
                 <InputField
-                  label="Length"
+                  label="Довжина"
                   type="number"
                   step="0.1"
                   value={variant.length}
@@ -474,7 +488,7 @@ export function AdminProductVariantCard({
                   onChange={(v) => onUpdate({ length: v })}
                 />
                 <InputField
-                  label="Width"
+                  label="Ширина"
                   type="number"
                   step="0.1"
                   value={variant.width}
@@ -482,7 +496,7 @@ export function AdminProductVariantCard({
                   onChange={(v) => onUpdate({ width: v })}
                 />
                 <InputField
-                  label="Height"
+                  label="Висота"
                   type="number"
                   step="0.1"
                   value={variant.height}
@@ -492,13 +506,13 @@ export function AdminProductVariantCard({
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField
-                  label="Grams (override)"
+                  label="Вага в грамах (перевизначення)"
                   type="number"
                   value={variant.grams}
                   onChange={(v) => onUpdate({ grams: v })}
                 />
                 <InputField
-                  label="Weight unit"
+                  label="Одиниця ваги"
                   value={variant.weightUnit}
                   onChange={(v) => onUpdate({ weightUnit: v })}
                   placeholder="kg / lb / g"
@@ -506,17 +520,17 @@ export function AdminProductVariantCard({
               </div>
               <div className="flex flex-wrap gap-6 rounded-none border border-white/6 bg-black/30 p-4">
                 <CheckboxField
-                  label="Requires shipping"
+                  label="Потрібна доставка"
                   checked={variant.requiresShipping}
                   onChange={(c) => onUpdate({ requiresShipping: c })}
                 />
                 <CheckboxField
-                  label="Taxable"
+                  label="Оподатковується"
                   checked={variant.taxable}
                   onChange={(c) => onUpdate({ taxable: c })}
                 />
                 <CheckboxField
-                  label="Dimensions estimated"
+                  label="Орієнтовні габарити"
                   checked={variant.isDimensionsEstimated}
                   onChange={(c) => onUpdate({ isDimensionsEstimated: c })}
                   helper="Marks dimensions as AI-estimated, not measured"

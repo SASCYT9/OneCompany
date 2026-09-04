@@ -6,6 +6,7 @@ import { getCatalogQualitySummary } from "@/lib/admin/catalogQuality";
 import { getDashboardDataQuality } from "@/lib/dashboard/dataQuality";
 import { getGa4Metrics } from "@/lib/dashboard/ga4";
 import { OrderStatus } from "@prisma/client";
+import { getDashboardOverview } from "@/lib/admin/dashboardOverview.server";
 
 type RevenuePeriod = "monthly" | "weekly" | "daily";
 
@@ -20,6 +21,11 @@ export async function GET(request: NextRequest) {
     await assertCurrentAdminAccess(ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ);
 
     const { searchParams } = new URL(request.url);
+    if (searchParams.get("view") === "overview") {
+      return NextResponse.json(await getDashboardOverview(), {
+        headers: { "Cache-Control": "private, no-store" },
+      });
+    }
     const period = (searchParams.get("period") as RevenuePeriod) || "monthly";
 
     const [shop, crm, system, analytics] = await Promise.all([
