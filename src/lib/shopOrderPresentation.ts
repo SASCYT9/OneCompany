@@ -44,3 +44,76 @@ export function shopOrderStatusBadgeClass(status: string) {
       return "border-white/15 bg-white/5 text-white/70";
   }
 }
+
+export type OrderProductReference = {
+  productSlug: string;
+  productId?: string | null;
+  variantId?: string | null;
+};
+
+export function orderItemSnapshotDetails(snapshot: unknown, item: OrderProductReference) {
+  const data =
+    snapshot && typeof snapshot === "object" ? (snapshot as Record<string, unknown>) : {};
+  const entries = Array.isArray(data.items) ? data.items : [];
+  const match = entries.find(
+    (value) =>
+      value &&
+      typeof value === "object" &&
+      value.slug === item.productSlug &&
+      (!value.variantId || value.variantId === item.variantId)
+  );
+  const string = (value: unknown) =>
+    typeof value === "string" && value.trim() ? value.trim() : null;
+  return { sku: string(match?.sku), variantTitle: string(match?.variantTitle) };
+}
+
+export function orderProductLinks(item: OrderProductReference, locale = "ua") {
+  const slug = item.productSlug.trim();
+  const external = /^(crm-|turn14-|preview-)/i.test(slug);
+  return {
+    storefront:
+      slug && !external
+        ? `/${locale === "en" ? "en" : "ua"}/shop/${encodeURIComponent(slug)}`
+        : null,
+    admin: item.productId ? `/admin/shop/${encodeURIComponent(item.productId)}` : null,
+  };
+}
+
+export function orderAddressText(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const address = value as Record<string, unknown>;
+  return ["country", "region", "city", "line1", "line2", "postcode"]
+    .map((key) => (typeof address[key] === "string" ? address[key].trim() : ""))
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function orderPaymentLabel(status: string) {
+  return (
+    (
+      {
+        UNPAID: "Не оплачено",
+        PAID: "Оплачено",
+        PARTIALLY_PAID: "Частково оплачено",
+        REFUNDED: "Повернено",
+        PARTIALLY_REFUNDED: "Частково повернено",
+        PENDING: "Очікує оплату",
+        FAILED: "Помилка оплати",
+      } as Record<string, string>
+    )[status] || status
+  );
+}
+
+export function orderPaymentMethodLabel(method: string | null | undefined) {
+  return (
+    (
+      {
+        FOP: "Переказ на рахунок ФОП",
+        WHITEBIT: "Криптовалюта · Whitepay",
+        WHITEPAY_FIAT: "Картка · Whitepay",
+      } as Record<string, string>
+    )[method || ""] ||
+    method ||
+    "Не вказано"
+  );
+}

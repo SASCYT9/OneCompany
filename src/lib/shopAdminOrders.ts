@@ -1,24 +1,25 @@
-import { OrderStatus, Prisma, PrismaClient } from '@prisma/client';
-import { serializeAdminShipment } from '@/lib/shopAdminShipments';
+import { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
+import { serializeAdminShipment } from "@/lib/shopAdminShipments";
+import { orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
 
 export const ALL_ORDER_STATUSES: OrderStatus[] = [
-  'PENDING_PAYMENT',
-  'PENDING_REVIEW',
-  'CONFIRMED',
-  'PROCESSING',
-  'SHIPPED',
-  'DELIVERED',
-  'CANCELLED',
-  'REFUNDED',
+  "PENDING_PAYMENT",
+  "PENDING_REVIEW",
+  "CONFIRMED",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+  "REFUNDED",
 ];
 
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  PENDING_PAYMENT: ['CONFIRMED', 'CANCELLED'],
-  PENDING_REVIEW: ['CONFIRMED', 'CANCELLED'],
-  CONFIRMED: ['PROCESSING', 'CANCELLED'],
-  PROCESSING: ['SHIPPED', 'CANCELLED'],
-  SHIPPED: ['DELIVERED', 'REFUNDED'],
-  DELIVERED: ['REFUNDED'],
+  PENDING_PAYMENT: ["CONFIRMED", "CANCELLED"],
+  PENDING_REVIEW: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "REFUNDED"],
+  DELIVERED: ["REFUNDED"],
   CANCELLED: [],
   REFUNDED: [],
 };
@@ -27,10 +28,10 @@ export const adminOrderInclude = {
   customer: true,
   items: true,
   shipments: {
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ createdAt: "desc" }],
   },
   events: {
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ createdAt: "desc" }],
   },
 } satisfies Prisma.ShopOrderInclude;
 
@@ -51,18 +52,20 @@ function decimalToNumber(value: Prisma.Decimal | number | null | undefined): num
 }
 
 function asObject(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
   return value as Record<string, unknown>;
 }
 
 function stringValue(value: unknown): string | null {
-  const normalized = String(value ?? '').trim();
+  const normalized = String(value ?? "").trim();
   return normalized || null;
 }
 
-export function getOrderOperationalMetadata(pricingSnapshot: Prisma.JsonValue | null | undefined): OrderOperationalMetadata {
+export function getOrderOperationalMetadata(
+  pricingSnapshot: Prisma.JsonValue | null | undefined
+): OrderOperationalMetadata {
   const snapshot = asObject(pricingSnapshot);
   const shippingZone = asObject(snapshot?.shippingZone);
   const taxRegion = asObject(snapshot?.taxRegion);
@@ -89,13 +92,31 @@ export function serializeAdminOrderSummary(record: AdminShopOrderRecord) {
     status: record.status,
     email: record.email,
     customerName: record.customerName,
+    phone: record.phone,
+    companyName: record.customer?.companyName ?? null,
+    shippingAddress: record.shippingAddress,
+    paymentMethod: record.paymentMethod,
+    items: record.items.map((item) => ({
+      ...orderItemSnapshotDetails(record.pricingSnapshot, item),
+      id: item.id,
+      productId: item.productId,
+      productSlug: item.productSlug,
+      variantId: item.variantId,
+      title: item.title,
+      quantity: item.quantity,
+      image: item.image,
+      total: decimalToNumber(item.total) ?? 0,
+    })),
     customerId: record.customerId,
     customerGroupSnapshot: record.customerGroupSnapshot,
     currency: record.currency,
     total: decimalToNumber(record.total) ?? 0,
     paymentStatus: record.paymentStatus,
     amountPaid: decimalToNumber(record.amountPaid) ?? 0,
-    outstandingAmount: Math.max(0, (decimalToNumber(record.total) ?? 0) - (decimalToNumber(record.amountPaid) ?? 0)),
+    outstandingAmount: Math.max(
+      0,
+      (decimalToNumber(record.total) ?? 0) - (decimalToNumber(record.amountPaid) ?? 0)
+    ),
     createdAt: record.createdAt.toISOString(),
     itemCount: record.items.reduce((sum, item) => sum + item.quantity, 0),
     shipmentsCount: record.shipments.length,
@@ -124,6 +145,9 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     status: record.status,
     email: record.email,
     customerName: record.customerName,
+    customerId: record.customerId,
+    companyName: record.customer?.companyName ?? null,
+    paymentMethod: record.paymentMethod,
     phone: record.phone,
     customerGroupSnapshot: record.customerGroupSnapshot,
     b2bDiscountPercent: record.customer?.b2bDiscountPercent || null,
@@ -148,14 +172,15 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     items: record.items.map((item) => {
-      let sku: string | null = null;
+      const snapshotDetails = orderItemSnapshotDetails(record.pricingSnapshot, item);
+      let sku: string | null = snapshotDetails.sku;
       let brand: string | null = null;
       let turn14Id: string | null = null;
       let baseCostUsd: number | null = null;
       let markupPct: number | null = null;
 
       const snap = record.pricingSnapshot as any;
-      if (snap?.source === 'turn14_catalog') {
+      if (snap?.source === "turn14_catalog") {
         sku = snap.partNumber || null;
         brand = snap.brandName || null;
         turn14Id = snap.turn14Id || null;
@@ -163,25 +188,28 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
         markupPct = snap.markupPct || null;
       } else if (snap?.items) {
         const d = (snap.items as any[]).find((i) => i.slug === item.productSlug);
-        if (d?.slug?.startsWith('turn14-')) {
-          sku = d.slug.replace('turn14-', '');
+        if (d?.slug?.startsWith("turn14-")) {
+          sku = d.slug.replace("turn14-", "");
           const brandMatch = item.title.match(/\((.*?)\)$/);
           if (brandMatch) brand = brandMatch[1];
         }
       }
 
-      if (!sku && item.productSlug?.startsWith('turn14-')) {
-        sku = item.productSlug.replace('turn14-', '');
+      if (!sku && item.productSlug?.startsWith("turn14-")) {
+        sku = item.productSlug.replace("turn14-", "");
         const brandMatch = item.title.match(/\((.*?)\)$/);
         if (brandMatch) brand = brandMatch[1];
       }
-      
-      if (!sku && item.productSlug?.startsWith('crm-')) {
-        sku = item.productSlug.replace('crm-', '');
+
+      if (!sku && item.productSlug?.startsWith("crm-")) {
+        sku = item.productSlug.replace("crm-", "");
       }
 
       return {
         id: item.id,
+        productId: item.productId,
+        variantId: item.variantId,
+        variantTitle: snapshotDetails.variantTitle,
         productSlug: item.productSlug,
         title: item.title,
         quantity: item.quantity,
@@ -222,10 +250,10 @@ export async function createInitialOrderEvent(prisma: PrismaClient, orderId: str
     data: {
       orderId,
       fromStatus: null,
-      toStatus: 'PENDING_REVIEW',
-      actorType: 'system',
-      actorName: 'checkout',
-      note: 'Order created from storefront checkout.',
+      toStatus: "PENDING_REVIEW",
+      actorType: "system",
+      actorName: "checkout",
+      note: "Order created from storefront checkout.",
     },
   });
 }

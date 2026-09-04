@@ -8,7 +8,6 @@ import {
   DollarSign,
   ExternalLink,
   FileText,
-  Package,
   PackageCheck,
   Printer,
   Save,
@@ -16,17 +15,11 @@ import {
 } from "lucide-react";
 
 import {
-  AdminEntityToolbar,
   AdminInspectorCard,
   AdminKeyValueGrid,
-  AdminMetricCard,
-  AdminMetricGrid,
   AdminPage,
-  AdminPageHeader,
-  AdminResponsiveTable,
   AdminSplitDetailShell,
   AdminStatusBadge,
-  AdminTableShell,
   AdminTimelineList,
 } from "@/components/admin/AdminPrimitives";
 import {
@@ -39,7 +32,15 @@ import { useToast } from "@/components/admin/AdminToast";
 import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
-import { AdminMobileBottomBar, AdminMobileCard } from "@/components/admin/AdminMobileCard";
+import { AdminMobileBottomBar } from "@/components/admin/AdminMobileCard";
+
+import styles from "./orderDetail.module.css";
+import { buildOrderPaymentUpdate } from "@/lib/admin/orderPaymentDraft";
+import {
+  orderAddressText,
+  orderPaymentLabel,
+  orderPaymentMethodLabel,
+} from "@/lib/shopOrderPresentation";
 
 type OrderStatus =
   | "PENDING_PAYMENT"
@@ -79,12 +80,17 @@ type ShipmentDraft = {
   deliveredAt: string;
 };
 
+import { OrderProductLinks } from "@/components/admin/OrderProductLinks";
+import { OrderCustomerBlock } from "@/components/admin/OrderCustomerBlock";
+
 type OrderDetail = {
   id: string;
   orderNumber: string;
   status: OrderStatus;
   email: string;
   customerName: string;
+  customerId?: string | null;
+  companyName?: string | null;
   phone: string | null;
   customerGroupSnapshot?: string;
   b2bDiscountPercent?: number | null;
@@ -96,6 +102,7 @@ type OrderDetail = {
   taxAmount: number;
   total: number;
   paymentStatus: string;
+  paymentMethod?: string;
   amountPaid: number;
   deliveryMethod: string | null;
   ttnNumber: string | null;
@@ -113,6 +120,10 @@ type OrderDetail = {
   items: Array<{
     id: string;
     productSlug: string;
+    productId?: string | null;
+    variantId?: string | null;
+    variantTitle?: string | null;
+    sku?: string | null;
     title: string;
     quantity: number;
     price: number;
@@ -315,6 +326,20 @@ export default function AdminOrderDetailPage() {
 
   async function handlePaymentAndFulfillmentSave() {
     if (!id || !order) return;
+    let patch;
+    try {
+      patch = buildOrderPaymentUpdate(order, {
+        paymentStatus,
+        amountPaid,
+        deliveryMethod,
+        ttnNumber,
+        shippingCalculatedCost,
+      });
+    } catch (cause) {
+      setError((cause as Error).message);
+      return;
+    }
+    if (!Object.keys(patch).length) return;
     setUpdating(true);
     setError("");
     setSuccess("");
@@ -322,15 +347,7 @@ export default function AdminOrderDetailPage() {
       const response = await fetch(`/api/admin/shop/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentStatus,
-          amountPaid: parseFloat(amountPaid) || 0,
-          deliveryMethod,
-          ttnNumber,
-          shippingCalculatedCost: shippingCalculatedCost
-            ? parseFloat(shippingCalculatedCost)
-            : null,
-        }),
+        body: JSON.stringify(patch),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -338,7 +355,7 @@ export default function AdminOrderDetailPage() {
         return;
       }
       await load();
-      setSuccess("Оплату та fulfillment збережено.");
+      setSuccess("Оплату та доставку збережено.");
     } finally {
       setUpdating(false);
     }
@@ -515,7 +532,7 @@ export default function AdminOrderDetailPage() {
           href="/admin/shop/orders"
           className="inline-block text-sm text-zinc-300 hover:text-zinc-100"
         >
-          Back to orders
+          До списку замовлень
         </Link>
       </AdminPage>
     );
@@ -523,99 +540,52 @@ export default function AdminOrderDetailPage() {
 
   if (!order) return null;
 
-  const address = order.shippingAddress as Record<string, string>;
   const outstanding = Math.max(0, order.total - order.amountPaid);
+  const paymentDirty =
+    paymentStatus !== order.paymentStatus ||
+    amountPaid !== String(order.amountPaid) ||
+    deliveryMethod !== (order.deliveryMethod || "") ||
+    ttnNumber !== (order.ttnNumber || "") ||
+    shippingCalculatedCost !==
+      (order.shippingCalculatedCost == null ? "" : String(order.shippingCalculatedCost));
 
   return (
-    <AdminPage className="space-y-6">
-      <AdminPageHeader
-        eyebrow="Order Detail"
-        title={order.orderNumber}
-        description={`${order.customerName} · ${order.email}`}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <AdminStatusBadge tone={statusTone(order.status)}>
-              {statusLabel(order.status)}
-            </AdminStatusBadge>
-            <AdminStatusBadge tone={outstanding > 0 ? "warning" : "success"}>
-              {outstanding > 0
-                ? `Outstanding ${formatMoney(outstanding, order.currency)}`
-                : "Paid or balanced"}
-            </AdminStatusBadge>
-            <Link
-              href={`/admin/shop/returns/new?orderId=${order.id}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/8 px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:border-amber-500/40 hover:bg-amber-500/12"
-            >
-              <Package className="h-3.5 w-3.5" />
-              Create return
-            </Link>
+    <AdminPage wide className={`space-y-5 ${styles.page}`}>
+      <header className={styles.header}>
+        <Link href="/admin/shop/orders" className={styles.back}>
+          ← Усі замовлення
+        </Link>
+        <div className={styles.headingRow}>
+          <div>
+            <div className={styles.titleRow}>
+              <h1>{order.orderNumber}</h1>
+              <AdminStatusBadge tone={statusTone(order.status)}>
+                {statusLabel(order.status)}
+              </AdminStatusBadge>
+            </div>
+            <p>
+              {new Date(order.createdAt).toLocaleString("uk-UA", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              · {order.customerName}
+            </p>
           </div>
-        }
-      />
-
-      <AdminEntityToolbar>
-        <div className="grid flex-1 gap-3 lg:grid-cols-[220px_minmax(0,1fr)]">
-          <AdminSelectField
-            label="Status"
-            value={newStatus}
-            onChange={setNewStatus}
-            options={[order.status, ...order.allowedTransitions].map((status) => ({
-              value: status,
-              label: statusLabel(status),
-            }))}
-          />
-          <AdminTextareaField
-            label="Status note"
-            value={statusNote}
-            onChange={setStatusNote}
-            rows={2}
-          />
+          <div className={styles.headerActions}>
+            <a href="#payment">Оплата</a>
+            <a href="#shipping">Доставка</a>
+            <a href="#order-status">Статус</a>
+            <a href={`/api/admin/pdf/invoice/${order.id}`} target="_blank" rel="noreferrer">
+              <FileText size={15} /> Рахунок
+            </a>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void handleStatusChange()}
-            disabled={updating || newStatus === order.status}
-            className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
-          >
-            <PackageCheck className="h-4 w-4" />
-            Apply status
-          </button>
-          {order.allowedTransitions.map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => void handleStatusChange(status)}
-              disabled={updating}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
-            >
-              {statusLabel(status)}
-            </button>
-          ))}
-        </div>
-      </AdminEntityToolbar>
-
-      <AdminMetricGrid>
-        <AdminMetricCard label="Subtotal" value={formatMoney(order.subtotal, order.currency)} />
-        <AdminMetricCard
-          label="Shipping"
-          value={formatMoney(order.shippingCost, order.currency)}
-          meta={order.shippingZoneName || "No zone"}
-        />
-        <AdminMetricCard
-          label="Tax"
-          value={formatMoney(order.taxAmount, order.currency)}
-          meta={order.taxRegionName || "No tax rule"}
-        />
-        <AdminMetricCard
-          label="Total"
-          value={formatMoney(order.total, order.currency)}
-          meta={`${order.items.length} items`}
-          tone="accent"
-        />
-      </AdminMetricGrid>
-
+      </header>
       <AdminSplitDetailShell
+        className={styles.layout}
         main={
           <>
             {(error || success) && (
@@ -626,156 +596,149 @@ export default function AdminOrderDetailPage() {
               </div>
             )}
 
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">
-                  Customer and shipping snapshot
-                </h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Контакт, B2B context і адреса доставки для поточного fulfillment.
-                </p>
-              </div>
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                    Customer
-                  </div>
-                  <div className="mt-3 space-y-2 text-sm text-zinc-300">
-                    <div className="text-lg font-medium text-zinc-100">{order.customerName}</div>
-                    <div>{order.email}</div>
-                    {order.phone ? <div>{order.phone}</div> : null}
-                    {order.customerGroupSnapshot ? (
-                      <div className="text-xs text-zinc-500">
-                        {order.customerGroupSnapshot}
-                        {order.b2bDiscountPercent ? ` · ${order.b2bDiscountPercent}% discount` : ""}
-                        {order.discountNotes ? ` · ${order.discountNotes}` : ""}
-                      </div>
-                    ) : null}
-                  </div>
+            <div className={styles.mobileBuyer}>
+              <AdminInspectorCard title="Покупець" description="Контакти з цього замовлення.">
+                <OrderCustomerBlock order={order} />
+                {(order.b2bDiscountPercent || order.discountNotes) && (
+                  <p className="mt-3 text-xs text-zinc-400">
+                    {order.b2bDiscountPercent ? `B2B знижка: ${order.b2bDiscountPercent}%` : ""}{" "}
+                    {order.discountNotes}
+                  </p>
+                )}
+                <div className={styles.address}>
+                  <span>Адреса доставки</span>
+                  <p>{orderAddressText(order.shippingAddress) || "Адресу не вказано"}</p>
                 </div>
-                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                    Shipping address
-                  </div>
-                  <div className="mt-3 space-y-1 text-sm text-zinc-300">
-                    <div>{address.line1 || "—"}</div>
-                    {address.line2 ? <div>{address.line2}</div> : null}
-                    <div>
-                      {[address.city, address.region, address.postcode]
-                        .filter(Boolean)
-                        .join(", ") || "—"}
+              </AdminInspectorCard>
+            </div>
+            <section className={styles.card} id="items">
+              <div className={styles.sectionHeading}>
+                <h2>Замовлені товари</h2>
+                <span>{order.items.reduce((sum, item) => sum + item.quantity, 0)} шт.</span>
+              </div>
+              <div className={styles.itemList}>
+                {order.items.map((item) => (
+                  <div key={item.id} className={styles.item}>
+                    <OrderProductLinks item={item} thumbnail />
+                    <div className={styles.itemPrice}>
+                      <strong>{formatMoney(item.total, order.currency)}</strong>
+                      <span>
+                        {item.quantity} × {formatMoney(item.price, order.currency)}
+                      </span>
                     </div>
-                    <div>{address.country || "—"}</div>
                   </div>
-                </div>
+                ))}
               </div>
+              {!order.items.length && (
+                <p className="text-sm text-zinc-400">Товарів у замовленні немає.</p>
+              )}
+            </section>
+            <section className={styles.card} id="payment">
+              <div className={styles.sectionHeading}>
+                <h2>Оплата</h2>
+                <AdminStatusBadge tone={order.paymentStatus === "PAID" ? "success" : "warning"}>
+                  {orderPaymentLabel(order.paymentStatus)}
+                </AdminStatusBadge>
+              </div>
+              <p className="mb-4 text-xs text-zinc-400">
+                {orderPaymentMethodLabel(order.paymentMethod)}
+              </p>
+              <dl className={styles.totals}>
+                <div>
+                  <dt>Товари</dt>
+                  <dd>{formatMoney(order.subtotal, order.currency)}</dd>
+                </div>
+                <div>
+                  <dt>Доставка</dt>
+                  <dd>{formatMoney(order.shippingCost, order.currency)}</dd>
+                </div>
+                <div>
+                  <dt>Податки</dt>
+                  <dd>{formatMoney(order.taxAmount, order.currency)}</dd>
+                </div>
+                <div className={styles.total}>
+                  <dt>Разом</dt>
+                  <dd>{formatMoney(order.total, order.currency)}</dd>
+                </div>
+                <div>
+                  <dt>Сплачено</dt>
+                  <dd>{formatMoney(order.amountPaid, order.currency)}</dd>
+                </div>
+                <div className={styles.balance}>
+                  <dt>До сплати</dt>
+                  <dd>{formatMoney(outstanding, order.currency)}</dd>
+                </div>
+              </dl>
+              <details className={styles.editPanel}>
+                <summary>Редагувати оплату й умови доставки</summary>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <AdminSelectField
+                    label="Статус оплати"
+                    value={paymentStatus}
+                    onChange={setPaymentStatus}
+                    options={[
+                      { value: "UNPAID", label: "Не оплачено" },
+                      { value: "PARTIALLY_PAID", label: "Оплачено частково" },
+                      { value: "PAID", label: "Оплачено повністю" },
+                    ]}
+                  />
+                  <AdminInputField
+                    label="Сплачена сума"
+                    value={amountPaid}
+                    onChange={setAmountPaid}
+                    type="number"
+                    step="0.01"
+                  />
+                  <AdminSelectField
+                    label="Спосіб доставки"
+                    value={deliveryMethod}
+                    onChange={setDeliveryMethod}
+                    options={[
+                      { value: "", label: "Не обрано" },
+                      { value: "NOVA_POSHTA", label: "Нова Пошта" },
+                      { value: "SPECIAL_DELIVERY", label: "Спецдоставка (OneCompany)" },
+                      { value: "PICKUP", label: "Самовивіз" },
+                    ]}
+                  />
+                  <AdminInputField label="Номер ТТН" value={ttnNumber} onChange={setTtnNumber} />
+                  <AdminInputField
+                    label="Вартість доставки вручну"
+                    value={shippingCalculatedCost}
+                    onChange={setShippingCalculatedCost}
+                    type="number"
+                    step="0.01"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handlePaymentAndFulfillmentSave()}
+                    disabled={updating || !paymentDirty}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4" />
+                    Зберегти оплату й доставку
+                  </button>
+                  {paymentDirty && (
+                    <p className="text-xs text-amber-200" role="status">
+                      Є незбережені зміни оплати або доставки.
+                    </p>
+                  )}
+                </div>
+              </details>{" "}
             </section>
 
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
+            <section id="shipping" className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Items</h2>
+                <h2 className="text-xl font-semibold text-zinc-100">Відправлення</h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  Current order composition and pricing at line level.
+                  Відстеження посилок і статуси доставки.
                 </p>
               </div>
-              <AdminResponsiveTable
-                mobile={
-                  <div className="space-y-2">
-                    {order.items.map((item) => (
-                      <AdminMobileCard
-                        key={item.id}
-                        leading={
-                          item.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="h-12 w-12 rounded-none border border-white/10 object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-none border border-white/10 bg-black/25">
-                              <Package className="h-5 w-5 text-zinc-600" />
-                            </div>
-                          )
-                        }
-                        title={item.title}
-                        subtitle={item.productSlug || undefined}
-                        rows={[
-                          { label: "Qty", value: item.quantity },
-                          { label: "Price", value: formatMoney(item.price, order.currency) },
-                          { label: "Total", value: formatMoney(item.total, order.currency) },
-                        ]}
-                      />
-                    ))}
-                  </div>
-                }
-                desktop={
-                  <AdminTableShell>
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[720px] text-left text-sm">
-                        <thead>
-                          <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                            <th className="px-4 py-4 font-medium">Item</th>
-                            <th className="px-4 py-4 font-medium">SKU</th>
-                            <th className="px-4 py-4 font-medium">Qty</th>
-                            <th className="px-4 py-4 font-medium">Price</th>
-                            <th className="px-4 py-4 font-medium">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/6">
-                          {order.items.map((item) => (
-                            <tr key={item.id} className="transition hover:bg-white/3">
-                              <td className="px-4 py-4">
-                                <div className="flex items-center gap-3">
-                                  {item.image ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                      src={item.image}
-                                      alt={item.title}
-                                      className="h-10 w-10 rounded-none border border-white/10 object-cover"
-                                    />
-                                  ) : (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-none border border-white/10 bg-black/25">
-                                      <Package className="h-4 w-4 text-zinc-600" />
-                                    </div>
-                                  )}
-                                  <div>
-                                    <div className="font-medium text-zinc-100">{item.title}</div>
-                                    {item.productSlug ? (
-                                      <div className="mt-1 text-xs text-zinc-500">
-                                        {item.productSlug}
-                                      </div>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 font-mono text-xs text-zinc-400">
-                                {item.productSlug || "—"}
-                              </td>
-                              <td className="px-4 py-4 text-zinc-300">{item.quantity}</td>
-                              <td className="px-4 py-4 text-zinc-300">
-                                {formatMoney(item.price, order.currency)}
-                              </td>
-                              <td className="px-4 py-4 font-medium text-zinc-100">
-                                {formatMoney(item.total, order.currency)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </AdminTableShell>
-                }
-              />
-            </section>
-
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Shipments</h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Tracking records and shipment state transitions tied to the order.
+              {!order.shipments.length && (
+                <p className={styles.empty}>
+                  Відправлень ще немає. Після передачі перевізнику додайте трек-номер для
+                  відстеження.
                 </p>
-              </div>
+              )}
               <div className="space-y-4">
                 {order.shipments.map((shipment) => {
                   const draft = shipmentDrafts[shipment.id];
@@ -802,7 +765,7 @@ export default function AdminOrderDetailPage() {
                             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
                           >
                             <Save className="h-3.5 w-3.5" />
-                            Save
+                            Зберегти
                           </button>
                           <button
                             type="button"
@@ -816,7 +779,7 @@ export default function AdminOrderDetailPage() {
                       </div>
                       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <AdminInputField
-                          label="Carrier"
+                          label="Перевізник"
                           value={draft.carrier}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -826,7 +789,7 @@ export default function AdminOrderDetailPage() {
                           }
                         />
                         <AdminInputField
-                          label="Service level"
+                          label="Тип доставки"
                           value={draft.serviceLevel}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -836,7 +799,7 @@ export default function AdminOrderDetailPage() {
                           }
                         />
                         <AdminInputField
-                          label="Tracking number"
+                          label="Трек-номер"
                           value={draft.trackingNumber}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -846,7 +809,7 @@ export default function AdminOrderDetailPage() {
                           }
                         />
                         <AdminInputField
-                          label="Tracking URL"
+                          label="Посилання відстеження"
                           value={draft.trackingUrl}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -856,7 +819,7 @@ export default function AdminOrderDetailPage() {
                           }
                         />
                         <AdminSelectField
-                          label="Shipment status"
+                          label="Статус відправлення"
                           value={draft.status}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -867,7 +830,7 @@ export default function AdminOrderDetailPage() {
                           options={SHIPMENT_STATUS_OPTIONS}
                         />
                         <AdminInputField
-                          label="Shipped at"
+                          label="Дата відправлення"
                           value={draft.shippedAt}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -891,7 +854,7 @@ export default function AdminOrderDetailPage() {
                       </div>
                       <div className="mt-4">
                         <AdminTextareaField
-                          label="Shipment notes"
+                          label="Коментар до відправлення"
                           value={draft.notes}
                           onChange={(value) =>
                             setShipmentDrafts((current) => ({
@@ -906,42 +869,43 @@ export default function AdminOrderDetailPage() {
                   );
                 })}
 
-                <div className="rounded-none border border-dashed border-white/10 px-4 py-4">
+                <details className={styles.editPanel}>
+                  <summary>Додати відправлення</summary>
                   <div className="mb-4 flex items-center gap-2 text-zinc-100">
                     <Truck className="h-4 w-4 text-blue-300/60" />
-                    <span className="font-medium">Create shipment</span>
+                    <span className="font-medium">Створити відправлення</span>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <AdminInputField
-                      label="Carrier"
+                      label="Перевізник"
                       value={newShipment.carrier}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, carrier: value }))
                       }
                     />
                     <AdminInputField
-                      label="Service level"
+                      label="Тип доставки"
                       value={newShipment.serviceLevel}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, serviceLevel: value }))
                       }
                     />
                     <AdminInputField
-                      label="Tracking number"
+                      label="Трек-номер"
                       value={newShipment.trackingNumber}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, trackingNumber: value }))
                       }
                     />
                     <AdminInputField
-                      label="Tracking URL"
+                      label="Посилання відстеження"
                       value={newShipment.trackingUrl}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, trackingUrl: value }))
                       }
                     />
                     <AdminSelectField
-                      label="Shipment status"
+                      label="Статус відправлення"
                       value={newShipment.status}
                       onChange={(value) =>
                         setNewShipment((current) => ({
@@ -952,7 +916,7 @@ export default function AdminOrderDetailPage() {
                       options={SHIPMENT_STATUS_OPTIONS}
                     />
                     <AdminInputField
-                      label="Shipped at"
+                      label="Дата відправлення"
                       value={newShipment.shippedAt}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, shippedAt: value }))
@@ -962,7 +926,7 @@ export default function AdminOrderDetailPage() {
                   </div>
                   <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
                     <AdminTextareaField
-                      label="Shipment notes"
+                      label="Коментар до відправлення"
                       value={newShipment.notes}
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, notes: value }))
@@ -976,32 +940,30 @@ export default function AdminOrderDetailPage() {
                         disabled={shipmentSavingId === "new"}
                         className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                       >
-                        Create shipment
+                        Створити відправлення
                       </button>
                     </div>
                   </div>
-                </div>
+                </details>
               </div>
             </section>
 
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Pricing snapshot</h2>
+            <details className="rounded-none border border-white/10 bg-[#171717] p-6">
+              <summary className="cursor-pointer">
+                <h2 className="text-xl font-semibold text-zinc-100">Дані розрахунку ціни</h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  Stored pricing snapshot for audit and manual review.
+                  Технічні дані для перевірки розрахунку.
                 </p>
-              </div>
+              </summary>
               <pre className="overflow-x-auto rounded-none border border-white/10 bg-black/25 p-4 text-[11px] text-zinc-400">
                 {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
               </pre>
-            </section>
+            </details>
 
             <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Timeline</h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Status transitions and admin notes captured on the order.
-                </p>
+                <h2 className="text-xl font-semibold text-zinc-100">Історія замовлення</h2>
+                <p className="mt-1 text-sm text-zinc-500">Зміни статусу та коментарі менеджерів.</p>
               </div>
               <AdminTimelineList
                 items={order.events.map((event) => ({
@@ -1016,114 +978,122 @@ export default function AdminOrderDetailPage() {
                         ? "danger"
                         : "warning",
                 }))}
-                empty="No order events yet."
+                empty="Історія поки порожня."
               />
             </section>
           </>
         }
         sidebar={
           <>
-            <AdminInspectorCard
-              title="Order meta"
-              description="Identifiers, created dates and routing context."
-            >
-              <AdminKeyValueGrid
-                rows={[
-                  { label: "Order id", value: order.id },
-                  { label: "Created", value: new Date(order.createdAt).toLocaleString() },
-                  { label: "Updated", value: new Date(order.updatedAt).toLocaleString() },
-                  { label: "Shipping zone", value: order.shippingZoneName || "—" },
-                  { label: "Tax rule", value: order.taxRegionName || "—" },
-                ]}
-              />
-            </AdminInspectorCard>
+            <div className={styles.desktopBuyer}>
+              <AdminInspectorCard title="Покупець" description="Контакти з цього замовлення.">
+                <OrderCustomerBlock order={order} />
+                {(order.b2bDiscountPercent || order.discountNotes) && (
+                  <p className="mt-3 text-xs text-zinc-400">
+                    {order.b2bDiscountPercent ? `B2B знижка: ${order.b2bDiscountPercent}%` : ""}{" "}
+                    {order.discountNotes}
+                  </p>
+                )}
+                <div className={styles.address}>
+                  <span>Адреса доставки</span>
+                  <p>{orderAddressText(order.shippingAddress) || "Адресу не вказано"}</p>
+                </div>
+              </AdminInspectorCard>
+            </div>
 
-            <AdminInspectorCard
-              title="Payment and fulfillment"
-              description="Manager-controlled payment state and manual logistics override."
-            >
-              <div className="space-y-4">
-                <AdminSelectField
-                  label="Payment status"
-                  value={paymentStatus}
-                  onChange={setPaymentStatus}
-                  options={[
-                    { value: "UNPAID", label: "Не оплачено" },
-                    { value: "PARTIALLY_PAID", label: "Оплачено частково" },
-                    { value: "PAID", label: "Оплачено повністю" },
+            <div id="order-status" className={styles.statusPanel}>
+              <AdminInspectorCard
+                title="Статус замовлення"
+                description="Оберіть наступний етап і підтвердьте зміну."
+              >
+                <div className="grid flex-1 gap-3 ">
+                  <AdminSelectField
+                    label="Статус"
+                    value={newStatus}
+                    onChange={setNewStatus}
+                    options={[order.status, ...order.allowedTransitions].map((status) => ({
+                      value: status,
+                      label: statusLabel(status),
+                    }))}
+                  />
+                  <AdminTextareaField
+                    label="Коментар до зміни статусу"
+                    value={statusNote}
+                    onChange={setStatusNote}
+                    rows={2}
+                  />
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleStatusChange()}
+                    disabled={updating || newStatus === order.status}
+                    className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                  >
+                    <PackageCheck className="h-4 w-4" />
+                    Застосувати статус
+                  </button>
+                </div>
+              </AdminInspectorCard>
+            </div>
+            <details className={styles.card}>
+              <summary>Дані замовлення</summary>
+              <div className="mt-4">
+                <AdminKeyValueGrid
+                  rows={[
+                    { label: "ID замовлення", value: order.id },
+                    { label: "Створено", value: new Date(order.createdAt).toLocaleString() },
+                    { label: "Оновлено", value: new Date(order.updatedAt).toLocaleString() },
+                    { label: "Зона доставки", value: order.shippingZoneName || "—" },
+                    { label: "Податкове правило", value: order.taxRegionName || "—" },
                   ]}
                 />
-                <AdminInputField
-                  label="Amount paid"
-                  value={amountPaid}
-                  onChange={setAmountPaid}
-                  type="number"
-                  step="0.01"
-                />
-                <AdminSelectField
-                  label="Delivery method"
-                  value={deliveryMethod}
-                  onChange={setDeliveryMethod}
-                  options={[
-                    { value: "", label: "Не обрано" },
-                    { value: "NOVA_POSHTA", label: "Нова Пошта" },
-                    { value: "SPECIAL_DELIVERY", label: "Спецдоставка (OneCompany)" },
-                    { value: "PICKUP", label: "Самовивіз" },
-                  ]}
-                />
-                <AdminInputField label="TTN number" value={ttnNumber} onChange={setTtnNumber} />
-                <AdminInputField
-                  label="Shipping override"
-                  value={shippingCalculatedCost}
-                  onChange={setShippingCalculatedCost}
-                  type="number"
-                  step="0.01"
-                />
-                <button
-                  type="button"
-                  onClick={() => void handlePaymentAndFulfillmentSave()}
-                  disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" />
-                  Save payment & fulfillment
-                </button>
               </div>
-            </AdminInspectorCard>
+            </details>
 
-            <AdminInspectorCard
-              title="Tags"
-              description="Internal labels for filtering and ops workflows."
-            >
-              <AdminTagInput
-                entityType="shop.order"
-                entityId={order.id}
-                suggestions={["priority", "wholesale", "fragile", "gift", "rush", "review-needed"]}
-              />
-            </AdminInspectorCard>
+            <details className={styles.card}>
+              <summary>Теги</summary>
+              <div className="mt-4">
+                <AdminTagInput
+                  entityType="shop.order"
+                  entityId={order.id}
+                  suggestions={[
+                    "priority",
+                    "wholesale",
+                    "fragile",
+                    "gift",
+                    "rush",
+                    "review-needed",
+                  ]}
+                />
+              </div>
+            </details>
 
-            <AdminInspectorCard
-              title="Notes"
-              description="Internal notes (visible to admins only)."
-            >
+            <AdminInspectorCard title="Нотатки" description="Внутрішні нотатки команди.">
               <AdminNotes entityType="shop.order" entityId={order.id} />
             </AdminInspectorCard>
 
-            <AdminInspectorCard
-              title="Activity"
-              description="All admin mutations on this order, newest first."
-            >
-              <AdminActivityTimeline
-                entityType="shop.order"
-                entityId={order.id}
-                emptyTitle="No activity logged"
-                emptyDescription="Status changes, payment edits and shipment updates will appear here."
-              />
-            </AdminInspectorCard>
+            <details className={styles.card}>
+              <summary>Історія змін</summary>
+              <div className="mt-4">
+                <AdminActivityTimeline
+                  entityType="shop.order"
+                  entityId={order.id}
+                  emptyTitle="No activity logged"
+                  emptyDescription="Status changes, payment edits and shipment updates will appear here."
+                />
+              </div>
+            </details>
 
+            <Link
+              href={`/admin/shop/returns/new?orderId=${order.id}`}
+              className={styles.returnLink}
+            >
+              Створити повернення ↗
+            </Link>
             <AdminInspectorCard
-              title="Documents"
-              description="Print-ready invoice and packing slip. Use browser Save as PDF."
+              title="Документи"
+              description="Рахунок і пакувальний лист для друку або збереження у PDF."
             >
               <div className="space-y-2">
                 <a
@@ -1133,7 +1103,7 @@ export default function AdminOrderDetailPage() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/6 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/12"
                 >
                   <FileText className="h-4 w-4" />
-                  Invoice (PDF)
+                  Рахунок (PDF)
                 </a>
                 <a
                   href={`/api/admin/pdf/packing-slip/${order.id}`}
@@ -1142,14 +1112,14 @@ export default function AdminOrderDetailPage() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
                 >
                   <Printer className="h-4 w-4" />
-                  Packing slip
+                  Пакувальний лист
                 </a>
               </div>
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Customer link"
-              description="Customer-facing order confirmation and payment shortcuts."
+              title="Посилання для покупця"
+              description="Сторінка підтвердження замовлення та оплати."
             >
               <div className="space-y-3">
                 <button
@@ -1158,7 +1128,7 @@ export default function AdminOrderDetailPage() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
                 >
                   <Copy className="h-4 w-4" />
-                  {copyState || "Copy customer link"}
+                  {copyState || "Копіювати посилання покупця"}
                 </button>
                 <a
                   href={confirmationUrl}
@@ -1167,7 +1137,7 @@ export default function AdminOrderDetailPage() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Open customer view
+                  Відкрити сторінку покупця
                 </a>
                 <button
                   type="button"
@@ -1192,26 +1162,16 @@ export default function AdminOrderDetailPage() {
         }
       />
 
-      {/* Mobile bottom bar — primary save action follows scroll */}
       <AdminMobileBottomBar>
-        <button
-          type="button"
-          onClick={() => void handlePaymentAndFulfillmentSave()}
-          disabled={updating}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] disabled:opacity-50"
-        >
-          <Save className="h-4 w-4" />
-          {updating ? "Saving…" : "Save"}
-        </button>
-        <a
-          href={`/api/admin/pdf/invoice/${order.id}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/3 text-zinc-200"
-          aria-label="Invoice PDF"
-        >
-          <FileText className="h-4 w-4" />
+        <a href="#payment" className={styles.mobileAction}>
+          Оплата
         </a>
+        <a href="#shipping" className={styles.mobileAction}>
+          Доставка
+        </a>
+        <Link href="/admin/shop/orders" className={styles.mobileAction}>
+          До списку
+        </Link>
       </AdminMobileBottomBar>
     </AdminPage>
   );

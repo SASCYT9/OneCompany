@@ -1,0 +1,254 @@
+.page {
+  max-width: 1400px;
+  container-type: inline-size;
+}
+.page :is(h1, h2, h3, div, p, span, a, button, input, select, textarea, summary, dt, dd) {
+  font-family: Arial, sans-serif;
+}
+.page h2 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+.page section,
+.page details {
+  border-radius: 12px;
+  border-color: #ffffff12;
+  scroll-margin-top: 90px;
+}
+.page :is(button, input, select, textarea) {
+  border-radius: 7px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.page :is(input, select, textarea) {
+  background: #111419;
+  border-color: #ffffff26;
+}
+.header {
+  padding: 4px 0 8px;
+}
+.back {
+  font-size: 12px;
+  color: #9aa8bb;
+}
+.back:hover {
+  color: white;
+}
+.headingRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+.headingRow p {
+  font-size: 12px;
+  color: #9da6b4;
+  margin-top: 9px;
+}
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.titleRow h1 {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+}
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+.headerActions a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #ffffff20;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #d5deeb;
+}
+.layout {
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 22px;
+}
+.card {
+  padding: 22px;
+  background: #191c21;
+  border: 1px solid #ffffff12;
+}
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.sectionHeading > span {
+  font-size: 12px;
+  color: #a2adbc;
+}
+.itemList {
+  display: grid;
+  gap: 18px;
+}
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 15px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #ffffff0d;
+}
+.item:last-child {
+  border: 0;
+  padding-bottom: 0;
+}
+.itemPrice {
+  text-align: right;
+  font-size: 14px;
+}
+.itemPrice strong {
+  display: block;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.itemPrice span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #97a3b5;
+}
+.totals {
+  display: grid;
+  gap: 12px;
+  font-size: 13px;
+}
+.totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.totals dt {
+  color: #a8b1be;
+}
+.totals dd {
+  color: #e7edf5;
+  font-variant-numeric: tabular-nums;
+}
+.totals .total {
+  border-top: 1px solid #ffffff15;
+  padding-top: 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.totals .balance {
+  padding: 14px;
+  background: #ffffff04;
+  border-radius: 8px;
+}
+.balance dd {
+  font-size: 17px;
+  font-weight: 600;
+}
+.editPanel {
+  margin-top: 20px;
+  border: 1px solid #ffffff18;
+  padding: 15px;
+  background: #14171b;
+}
+.page summary {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #c5d2e4;
+}
+.address {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ffffff14;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.address span {
+  display: block;
+  font-size: 11px;
+  color: #97a3b5;
+  margin-bottom: 6px;
+}
+.empty {
+  padding: 16px;
+  background: #ffffff03;
+  border: 1px dashed #ffffff20;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #a4afbf;
+}
+.returnLink {
+  display: block;
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  border: 1px solid #ffffff15;
+  border-radius: 8px;
+  color: #acb9cb;
+}
+.mobileAction {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 13px;
+  border: 1px solid #ffffff20;
+  border-radius: 7px;
+}
+@container (max-width: 720px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .layout > aside {
+    display: grid;
+    gap: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card {
+    padding: 18px;
+  }
+  .titleRow h1 {
+    font-size: 22px;
+  }
+  .headerActions {
+    width: 100%;
+  }
+  .itemPrice {
+    padding-left: 56px;
+    text-align: left;
+  }
+}
+
+.mobileBuyer {
+  display: none;
+}
+@container (max-width: 720px) {
+  .mobileBuyer {
+    display: block;
+  }
+  .desktopBuyer {
+    display: none;
+  }
+}
+
+.statusPanel {
+  scroll-margin-top: 90px;
+}
+.headerActions {
+  flex-wrap: wrap;
+}

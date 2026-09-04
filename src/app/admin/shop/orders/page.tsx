@@ -3,16 +3,12 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ChevronRight,
   Columns3,
   Download,
   ExternalLink,
   Eye,
   FileClock,
   List,
-  Mail as MailIcon,
-  Package,
-  Phone,
   RefreshCcw,
   Save,
   Search,
@@ -43,6 +39,15 @@ import { AdminSavedViewsBar, useSavedViews } from "@/components/admin/AdminSaved
 import { useToast } from "@/components/admin/AdminToast";
 import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 
+import { OrderProductLinks, type OrderProductItem } from "@/components/admin/OrderProductLinks";
+import { OrderCustomerBlock } from "@/components/admin/OrderCustomerBlock";
+import {
+  orderAddressText,
+  orderPaymentLabel,
+  orderPaymentMethodLabel,
+} from "@/lib/shopOrderPresentation";
+import styles from "./orders.module.css";
+
 type OrderStatus =
   | "PENDING_PAYMENT"
   | "PENDING_REVIEW"
@@ -59,6 +64,12 @@ type OrderSummary = {
   status: OrderStatus;
   email: string;
   customerName: string;
+  phone: string | null;
+  companyName: string | null;
+  shippingAddress: unknown;
+  paymentMethod: string;
+  items: Array<OrderProductItem & { total: number }>;
+
   customerId: string | null;
   customerGroupSnapshot: string;
   currency: string;
@@ -82,7 +93,7 @@ type OrderSummary = {
   taxRegionName: string | null;
 };
 
-type OrderDetail = OrderSummary & {
+type OrderDetail = Omit<OrderSummary, "items"> & {
   phone: string | null;
   customerGroupSnapshot?: string;
   b2bDiscountPercent?: number | null;
@@ -98,6 +109,8 @@ type OrderDetail = OrderSummary & {
   items: Array<{
     id: string;
     productSlug: string;
+    productId?: string | null;
+    variantId?: string | null;
     title: string;
     quantity: number;
     price: number;
@@ -164,16 +177,6 @@ const STATUS_OPTIONS = [
   { value: "REFUNDED", label: "Повернено" },
 ] as const;
 
-const SMART_FILTER_LABELS: Record<string, { label: string; description: string }> = {
-  all: { label: "Усі", description: "Поточна черга" },
-  unpaid: { label: "Неоплачено", description: "Залишок до сплати" },
-  no_shipment: { label: "Без відправлення", description: "Потребує відправки" },
-  no_customer: { label: "Без клієнта", description: "Гість або без акаунта" },
-  b2b: { label: "B2B", description: "B2B-група" },
-  high_value: { label: "Високий чек", description: ">= 1 000 у валюті замовлення" },
-  delayed: { label: "Затримано", description: "Поза SLA" },
-};
-
 const ORDER_STATUS_LABELS: Record<string, string> = {
   PENDING_PAYMENT: "Очікує оплату",
   PENDING_REVIEW: "На перевірці",
@@ -186,13 +189,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 };
 
 type SmartFilterKey =
-  | "all"
-  | "unpaid"
-  | "no_shipment"
-  | "no_customer"
-  | "b2b"
-  | "high_value"
-  | "delayed";
+  "all" | "unpaid" | "no_shipment" | "no_customer" | "b2b" | "high_value" | "delayed";
 
 const SMART_FILTERS: Array<{ key: SmartFilterKey; label: string; description: string }> = [
   { key: "all", label: "Усі", description: "Поточна черга" },
@@ -423,8 +420,9 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
     async function run() {
-      setLoading(true);
       setError("");
       try {
         const params = new URLSearchParams();
@@ -435,11 +433,13 @@ export default function AdminOrdersPage() {
         if (query.trim()) params.set("q", query.trim());
 
         const response = await fetch(
-          `/api/admin/shop/orders${params.toString() ? `?${params.toString()}` : ""}`
+          `/api/admin/shop/orders${params.toString() ? `?${params.toString()}` : ""}`,
+          { signal: controller.signal }
         );
         const data = (await response.json().catch(() => ({}))) as Partial<OrdersResponse> & {
           error?: string;
         };
+        if (cancelled) return;
         if (response.status === 401) {
           setError("Unauthorized");
           return;
@@ -464,12 +464,19 @@ export default function AdminOrdersPage() {
             taxRegions: [],
           }
         );
+      } catch (cause) {
+        if (!cancelled) setError((cause as Error).message || "Не вдалося завантажити замовлення");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    void run();
+    const timer = setTimeout(() => void run(), query.trim() ? 250 : 0);
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
   }, [currency, query, reloadKey, shippingZone, status, taxRegion]);
 
   useEffect(() => {
@@ -531,19 +538,6 @@ export default function AdminOrdersPage() {
   const visibleOrders = useMemo(
     () => orders.filter((order) => matchesSmartFilter(order, smartFilter)),
     [orders, smartFilter]
-  );
-
-  const hotQueue = useMemo(
-    () =>
-      orders
-        .filter(
-          (order) =>
-            matchesSmartFilter(order, "unpaid") ||
-            matchesSmartFilter(order, "no_shipment") ||
-            matchesSmartFilter(order, "delayed")
-        )
-        .sort((left, right) => statusAgeHours(right) - statusAgeHours(left)),
-    [orders]
   );
 
   const commonBulkStatuses = useMemo(() => {
@@ -625,7 +619,7 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <AdminPage className="space-y-6">
+      <AdminPage wide className={`space-y-5 ${styles.page}`}>
         <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
           <span className="sr-only">Завантаження замовлень…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
@@ -644,11 +638,11 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <AdminPage className="space-y-6">
+    <AdminPage wide className={`space-y-5 ${styles.page}`}>
       <AdminPageHeader
         eyebrow="Замовлення"
         title="Центр замовлень"
-        description="Робоча черга замовлень: від перевірки і оплати до виконання, відправлення та контролю винятків."
+        description="Покупці, товари й оплата — усе потрібне для обробки замовлення."
         actions={
           <>
             <AdminSavedViewsBar {...savedViews} />
@@ -677,30 +671,26 @@ export default function AdminOrdersPage() {
         }
       />
 
-      <AdminMetricGrid>
-        <AdminMetricCard
-          label="Видимі замовлення"
-          value={visibleOrders.length}
-          meta={`${selectedIds.length} вибрано`}
-        />
-        <AdminMetricCard
-          label="Гаряча черга"
-          value={hotQueue.length}
-          meta="Потребує дії зараз"
-          tone="accent"
-        />
-        <AdminMetricCard
-          label="Очікують оплату"
-          value={stats.statusCounts.PENDING_PAYMENT || 0}
-          meta="Потребують контролю оплати"
-          tone="accent"
-        />
-        <AdminMetricCard
-          label="На перевірці"
-          value={stats.statusCounts.PENDING_REVIEW || 0}
-          meta="Потребують підтвердження менеджером"
-        />
-      </AdminMetricGrid>
+      <div className={styles.summary}>
+        <div>
+          <span>Знайдено замовлень</span>
+          <strong>{visibleOrders.length}</strong>
+        </div>
+        <div>
+          <span>На перевірці</span>
+          <strong>{stats.statusCounts.PENDING_REVIEW || 0}</strong>
+        </div>
+        <div>
+          <span>Очікують оплату</span>
+          <strong>{stats.statusCounts.PENDING_PAYMENT || 0}</strong>
+        </div>
+        <div>
+          <span>У роботі</span>
+          <strong>
+            {(stats.statusCounts.CONFIRMED || 0) + (stats.statusCounts.PROCESSING || 0)}
+          </strong>
+        </div>
+      </div>
 
       <AdminActionBar>
         <div className="flex flex-wrap items-center gap-3">
@@ -738,9 +728,6 @@ export default function AdminOrdersPage() {
             </button>
           </div>
         </div>
-        <div className="text-sm text-zinc-500">
-          Масові дії обмежені переходами, що дозволені для всіх вибраних замовлень.
-        </div>
       </AdminActionBar>
 
       <AdminFilterBar
@@ -752,7 +739,7 @@ export default function AdminOrdersPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Пошук за номером, клієнтом або email"
+              placeholder="Номер, ім’я, телефон, email або товар"
               className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
             />
           </label>
@@ -763,7 +750,7 @@ export default function AdminOrdersPage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Пошук за номером, клієнтом або email"
+            placeholder="Номер, ім’я, телефон, email або товар"
             className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
           />
         </label>
@@ -811,32 +798,36 @@ export default function AdminOrdersPage() {
         />
       </AdminFilterBar>
 
-      <div className="flex flex-wrap gap-2">
-        {SMART_FILTERS.map((filter) => {
-          const count =
-            filter.key === "all"
-              ? orders.length
-              : orders.filter((order) => matchesSmartFilter(order, filter.key)).length;
-          return (
-            <button
-              key={filter.key}
-              type="button"
-              onClick={() => setSmartFilter(filter.key)}
-              className={`rounded-none border px-3 py-2 text-left transition ${
-                smartFilter === filter.key
-                  ? "border-blue-500/30 bg-blue-500/8 text-blue-300"
-                  : "border-white/10 bg-white/3 text-zinc-300 hover:bg-white/6"
-              }`}
-            >
-              <span className="block text-sm font-medium">
-                {filter.label} · {count}
-              </span>
-              <span className="block text-[11px] text-zinc-500">{filter.description}</span>
-            </button>
-          );
-        })}
-      </div>
-
+      <details className="rounded-lg border border-white/10 p-3">
+        <summary className="cursor-pointer text-sm text-zinc-400">
+          Додаткові добірки · {SMART_FILTERS.find((filter) => filter.key === smartFilter)?.label}
+        </summary>
+        <div className="flex flex-wrap gap-2">
+          {SMART_FILTERS.map((filter) => {
+            const count =
+              filter.key === "all"
+                ? orders.length
+                : orders.filter((order) => matchesSmartFilter(order, filter.key)).length;
+            return (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setSmartFilter(filter.key)}
+                className={`rounded-none border px-3 py-2 text-left transition ${
+                  smartFilter === filter.key
+                    ? "border-blue-500/30 bg-blue-500/8 text-blue-300"
+                    : "border-white/10 bg-white/3 text-zinc-300 hover:bg-white/6"
+                }`}
+              >
+                <span className="block text-sm font-medium">
+                  {filter.label} · {count}
+                </span>
+                <span className="block text-[11px] text-zinc-500">{filter.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </details>
       {selectedOrders.length ? (
         <AdminActionBar className="relative z-30 bg-[#171717]">
           <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-300">
@@ -919,8 +910,9 @@ export default function AdminOrdersPage() {
       ) : (
         <>
           <AdminResponsiveTable
+            breakpoint="xl"
             mobile={
-              <div className="space-y-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 {visibleOrders.map((order) => (
                   <AdminMobileCard
                     key={order.id}
@@ -929,7 +921,7 @@ export default function AdminOrdersPage() {
                         <span className="font-mono text-xs">{order.orderNumber}</span>
                       </span>
                     }
-                    subtitle={`${order.customerName} · ${order.email}`}
+                    subtitle={<OrderCustomerBlock order={order} />}
                     badge={
                       <AdminStatusBadge tone={statusTone(order.status)}>
                         {statusLabel(order.status)}
@@ -945,25 +937,35 @@ export default function AdminOrdersPage() {
                         label: "Позицій",
                         value: `${order.itemCount} · ${order.shipmentsCount} відпр.`,
                       },
-                      { label: "SLA", value: `${statusAgeHours(order)}год` },
+                      { label: "Оплата", value: orderPaymentLabel(order.paymentStatus) },
                     ]}
                     footer={
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setQuickViewId(order.id)}
-                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/8 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          Швидкий перегляд
-                        </button>
-                        <Link
-                          href={`/admin/shop/orders/${order.id}`}
-                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
-                        >
-                          Відкрити
-                          <ExternalLink className="h-3 w-3" />
-                        </Link>
+                      <div className="space-y-4">
+                        {(order.items || []).slice(0, 2).map((item) => (
+                          <OrderProductLinks key={item.id} item={item} thumbnail />
+                        ))}
+                        {(order.items || []).length > 2 && (
+                          <p className="text-xs text-zinc-400">
+                            Ще {(order.items || []).length - 2} позицій у швидкому перегляді
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewId(order.id)}
+                            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/8 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Швидкий перегляд
+                          </button>
+                          <Link
+                            href={`/admin/shop/orders/${order.id}`}
+                            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                          >
+                            Відкрити
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        </div>
                       </div>
                     }
                   />
@@ -973,54 +975,68 @@ export default function AdminOrdersPage() {
             desktop={
               <AdminTableShell>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1180px] text-left text-sm">
+                  <table className={styles.table}>
                     <thead>
-                      <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                        <th className="px-4 py-4">
+                      <tr>
+                        <th>
                           <input
                             type="checkbox"
+                            aria-label="Вибрати всі замовлення"
                             checked={
                               visibleOrders.length > 0 &&
                               selectedIds.length === visibleOrders.length
                             }
                             onChange={toggleSelectAll}
-                            className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                           />
                         </th>
-                        <th className="px-4 py-4 font-medium">Замовлення</th>
-                        <th className="px-4 py-4 font-medium">Статус</th>
-                        <th className="px-4 py-4 font-medium">Оплата</th>
-                        <th className="px-4 py-4 font-medium">Логістика</th>
-                        <th className="px-4 py-4 font-medium">Сума</th>
-                        <th className="px-4 py-4 font-medium">Остання активність</th>
-                        <th className="px-4 py-4 font-medium">Створено</th>
-                        <th className="px-4 py-4 font-medium">Відкрити</th>
+                        <th>Замовлення / покупець</th>
+                        <th>Що замовили</th>
+                        <th>Статус / оплата</th>
+                        <th>Сума / дата</th>
+                        <th>Дії</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/6">
                       {visibleOrders.map((order) => (
                         <Fragment key={order.id}>
-                          <tr
-                            className={`align-top transition hover:bg-white/3 ${activeOrderId === order.id ? "bg-amber-100/3" : ""}`}
-                          >
-                            <td className="px-4 py-4">
+                          <tr>
+                            <td>
                               <input
                                 type="checkbox"
+                                aria-label={`Вибрати ${order.orderNumber}`}
                                 checked={selectedIds.includes(order.id)}
                                 onChange={() => toggleSelected(order.id)}
-                                className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                               />
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="font-mono text-xs font-semibold tracking-wide text-zinc-100">
+                            <td>
+                              <Link
+                                href={`/admin/shop/orders/${order.id}`}
+                                className={styles.orderLink}
+                              >
                                 {order.orderNumber}
-                              </div>
-                              <div className="mt-1 text-sm font-medium text-zinc-200">
-                                {order.customerName}
-                              </div>
-                              <div className="mt-1 text-xs text-zinc-500">{order.email}</div>
+                              </Link>
+                              <OrderCustomerBlock order={order} />
                             </td>
-                            <td className="px-4 py-4">
+                            <td>
+                              <div className={styles.items}>
+                                {(order.items || []).slice(0, 2).map((item) => (
+                                  <OrderProductLinks key={item.id} item={item} thumbnail />
+                                ))}
+                                {!(order.items || []).length && (
+                                  <span className="text-xs text-zinc-500">Товари не додано</span>
+                                )}
+                                {(order.items || []).length > 2 && (
+                                  <button
+                                    type="button"
+                                    className="text-left text-xs text-blue-300"
+                                    onClick={() => setQuickViewId(order.id)}
+                                  >
+                                    Ще {(order.items || []).length - 2} позицій →
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                            <td>
                               <AdminInlineSelect<OrderStatus>
                                 value={order.status}
                                 display={
@@ -1036,109 +1052,61 @@ export default function AdminOrdersPage() {
                                   })),
                                 ]}
                                 onSave={(next) => changeOrderStatus(order.id, next)}
-                                disabled={order.allowedTransitions.length === 0}
+                                disabled={!order.allowedTransitions.length}
                               />
-                              <div className="mt-2 text-xs text-zinc-500">
-                                {order.allowedTransitions.length
-                                  ? `Клікніть на статус щоб змінити · ${order.allowedTransitions.length} переходів доступно`
-                                  : "Немає доступних переходів"}
-                              </div>
-                              <div className="mt-2">
+                              <div className="mt-3">
                                 <AdminStatusBadge
-                                  tone={slaTone(statusAgeHours(order), order.status)}
+                                  tone={paymentTone(order.paymentStatus, order.outstandingAmount)}
                                 >
-                                  SLA {statusAgeHours(order)}h
+                                  {orderPaymentLabel(order.paymentStatus)}
                                 </AdminStatusBadge>
                               </div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <AdminStatusBadge
-                                tone={paymentTone(order.paymentStatus, order.outstandingAmount)}
-                              >
-                                {order.paymentStatus.replace(/_/g, " ")}
-                              </AdminStatusBadge>
                               <div className="mt-2 text-xs text-zinc-500">
-                                Сплачено {formatMoney(order.amountPaid, order.currency)}
-                              </div>
-                              <div
-                                className={`mt-1 text-xs ${order.outstandingAmount > 0 ? "text-amber-200" : "text-emerald-300"}`}
-                              >
-                                Залишок {formatMoney(order.outstandingAmount, order.currency)}
+                                {orderPaymentMethodLabel(order.paymentMethod)}
                               </div>
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="text-zinc-200">
-                                {order.shippingZoneName || "Без зони"}
+                            <td>
+                              <div className="whitespace-nowrap font-semibold text-zinc-100">
+                                {formatMoney(order.total, order.currency)}
                               </div>
-                              <div className="mt-1 text-xs text-zinc-500">
-                                {order.taxRegionName || "Без правила"}
-                              </div>
-                              <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-zinc-600">
-                                {order.itemCount} позицій · {order.shipmentsCount} відправлень
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 font-medium text-zinc-100">
-                              {formatMoney(order.total, order.currency)}
-                            </td>
-                            <td className="px-4 py-4">
-                              {order.latestEvent ? (
-                                <div className="max-w-[180px]">
-                                  <div className="text-xs font-medium text-zinc-300">
-                                    {statusLabel(order.latestEvent.toStatus)}
-                                  </div>
-                                  <div className="mt-1 truncate text-xs text-zinc-500">
-                                    {order.latestEvent.note || "Зміна статусу"}
-                                  </div>
-                                  <div className="mt-1 text-[11px] text-zinc-600">
-                                    {new Date(order.latestEvent.createdAt).toLocaleDateString()}
-                                  </div>
+                              {order.outstandingAmount > 0 && (
+                                <div className="mt-2 text-xs text-amber-200">
+                                  До сплати {formatMoney(order.outstandingAmount, order.currency)}
                                 </div>
-                              ) : (
-                                <span className="text-xs text-zinc-600">Немає історії</span>
                               )}
+                              <div className={styles.date}>
+                                {new Date(order.createdAt).toLocaleString("uk-UA", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </div>
                             </td>
-                            <td className="px-4 py-4 text-xs text-zinc-500">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="flex flex-col gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => setQuickViewId(order.id)}
-                                  className="inline-flex items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/8 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/12"
-                                  title="Швидкий перегляд (без переходу)"
-                                >
-                                  <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                                  Швидкий перегляд
+                            <td>
+                              <div className={styles.actions}>
+                                <button type="button" onClick={() => setQuickViewId(order.id)}>
+                                  Переглянути
                                 </button>
+                                <Link href={`/admin/shop/orders/${order.id}`}>Відкрити ↗</Link>
                                 <button
                                   type="button"
+                                  aria-expanded={activeOrderId === order.id}
                                   onClick={() =>
                                     setActiveOrderId((current) =>
                                       current === order.id ? null : order.id
                                     )
                                   }
-                                  className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
                                 >
-                                  Робоча панель
-                                  <ChevronRight
-                                    className={`h-3.5 w-3.5 transition ${activeOrderId === order.id ? "rotate-90" : ""}`}
-                                    aria-hidden="true"
-                                  />
+                                  Обробити
                                 </button>
-                                <Link
-                                  href={`/admin/shop/orders/${order.id}`}
-                                  className="inline-flex items-center gap-1.5 rounded-none border border-white/8 bg-white/3 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/6"
-                                >
-                                  Детально
-                                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                                </Link>
                               </div>
                             </td>
                           </tr>
                           {activeOrderId === order.id ? (
                             <tr>
-                              <td colSpan={9} className="bg-black/20 px-4 py-5">
+                              <td colSpan={6} className="bg-black/20 px-4 py-5">
                                 {activeOrderLoading ? (
                                   <div className="rounded-none border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
                                     Завантаження робочої панелі замовлення…
@@ -1228,34 +1196,36 @@ function OrderQuickView({
               {statusLabel(order.status)}
             </AdminStatusBadge>
             <AdminStatusBadge tone={paymentTone(order.paymentStatus, order.outstandingAmount)}>
-              {order.paymentStatus.replace(/_/g, " ")}
+              {orderPaymentLabel(order.paymentStatus)}
             </AdminStatusBadge>
             <AdminStatusBadge tone={slaTone(statusAgeHours(order), order.status)}>
               SLA {statusAgeHours(order)}год
             </AdminStatusBadge>
           </div>
 
-          {/* Customer */}
-          <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Клієнт
+          <section className="rounded-lg border border-white/10 bg-white/2 p-4">
+            <h3 className="mb-3 text-xs text-zinc-500">Покупець і контакти</h3>
+            <OrderCustomerBlock order={order} />
+            <div className="mt-4 border-t border-white/10 pt-3 text-sm text-zinc-300">
+              <span className="mb-1 block text-xs text-zinc-500">Адреса доставки</span>
+              {orderAddressText(order.shippingAddress) || "Адресу не вказано"}
             </div>
-            <div className="rounded-none border border-white/5 bg-[#171717] p-4">
-              <div className="text-base font-semibold text-zinc-50">{order.customerName}</div>
-              <div className="mt-2 space-y-1 text-sm">
-                <div className="flex items-center gap-2 text-zinc-400">
-                  <MailIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
-                  <span className="truncate">{order.email}</span>
+          </section>
+          <section className="space-y-4 rounded-lg border border-white/10 p-4">
+            <h3 className="text-sm font-medium text-zinc-100">
+              Замовлені товари · {order.itemCount} шт.
+            </h3>
+            {(order.items || []).map((item) => (
+              <div key={item.id}>
+                <OrderProductLinks item={item} thumbnail />
+                <div className="mt-2 text-right text-sm text-zinc-300">
+                  {formatMoney(item.total, order.currency)}
                 </div>
-                {order.customerGroupSnapshot ? (
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    <span className="rounded-full border border-white/8 bg-white/4 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                      {order.customerGroupSnapshot}
-                    </span>
-                  </div>
-                ) : null}
               </div>
-            </div>
+            ))}
+            {!(order.items || []).length && (
+              <p className="text-sm text-zinc-500">Товари не додано.</p>
+            )}
           </section>
 
           {/* Totals */}
@@ -1381,7 +1351,7 @@ function QvStat({
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         {label}
       </div>
-      <div className="mt-1 truncate text-base font-semibold tabular-nums text-zinc-50">{value}</div>
+      <div className="mt-1 break-words text-sm font-semibold tabular-nums text-zinc-50">{value}</div>
     </div>
   );
 }
@@ -1725,10 +1695,10 @@ function OrderInlineWorkbench({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/6">
-                {order.items.map((item) => (
+                {(order.items || []).map((item) => (
                   <tr key={item.id} className="transition hover:bg-white/3">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-zinc-100">{item.title}</div>
+                      <OrderProductLinks item={item} thumbnail />
                       <div className="mt-1 text-xs text-zinc-500">
                         {item.brand || item.productSlug}
                       </div>

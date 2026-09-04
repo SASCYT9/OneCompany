@@ -35,6 +35,8 @@ export type CheckoutShippingAddress = {
 };
 
 type ResolvedCheckoutItem = {
+  sku?: string | null;
+  variantTitle?: string | null;
   productSlug: string;
   productId: string | null;
   variantId: string | null;
@@ -507,6 +509,10 @@ function buildPricingSnapshot(params: {
     },
     items: items.map((item) => ({
       slug: item.productSlug,
+      variantId: item.variantId,
+      sku: item.sku ?? null,
+      variantTitle: item.variantTitle ?? null,
+      brandName: item.brandName,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       total: item.total,
@@ -792,6 +798,8 @@ export async function buildCheckoutQuote(
         : String(product.title);
 
     resolvedItems.push({
+      sku: variant?.sku || product.sku || null,
+      variantTitle: variant?.title || null,
       productSlug: rawItem.slug,
       productId: product.id ?? null,
       variantId: variant?.id ?? rawItem.variantId ?? null,

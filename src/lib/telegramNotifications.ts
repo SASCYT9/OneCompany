@@ -1,3 +1,5 @@
+import { buildShopOrderTelegram, type ShopOrderNotification } from "./shopOrderTelegram";
+
 type TelegramInlineButton = { text: string; url: string };
 
 type TelegramReplyMarkup = {
@@ -130,29 +132,19 @@ export function getConfiguredContactTopicDestination(): TelegramDestination | nu
 }
 
 /** Notify admin about new shop order. Uses TELEGRAM_SHOP_ORDERS_CHAT_ID or TELEGRAM_CHAT_ID. */
-export async function notifyAdminNewShopOrder(params: {
-  orderNumber: string;
-  customerName: string;
-  email: string;
-  currency: string;
-  total: number;
-  itemCount: number;
-}): Promise<{ ok: boolean; error?: string }> {
+export async function notifyAdminNewShopOrder(
+  params: ShopOrderNotification
+): Promise<{ ok: boolean; error?: string }> {
   const chatId =
     normalizeTelegramChatId(process.env.TELEGRAM_SHOP_ORDERS_CHAT_ID) ||
     normalizeTelegramChatId(process.env.TELEGRAM_CHAT_ID);
   if (!chatId) return { ok: false, error: "No Telegram chat configured for shop orders" };
 
-  const message = [
-    "<b>🛒 New shop order</b>",
-    `Order: <code>${escapeHtml(params.orderNumber)}</code>`,
-    `Customer: ${escapeHtml(params.customerName)}`,
-    `Email: ${escapeHtml(params.email)}`,
-    `Total: ${params.currency} ${params.total.toFixed(0)} (${params.itemCount} item${params.itemCount !== 1 ? "s" : ""})`,
-  ].join("\n");
+  const { message, replyMarkup } = buildShopOrderTelegram(params, process.env.NEXT_PUBLIC_SITE_URL);
 
   return sendTelegramToDestinations({
     message,
+    replyMarkup,
     destinations: [{ chatId }],
     context: "shop order notification",
     requiredChatEnv: ["TELEGRAM_SHOP_ORDERS_CHAT_ID", "TELEGRAM_CHAT_ID"],

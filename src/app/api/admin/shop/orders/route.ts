@@ -89,6 +89,18 @@ export async function GET(request: NextRequest) {
               { orderNumber: { contains: query, mode: "insensitive" } },
               { email: { contains: query, mode: "insensitive" } },
               { customerName: { contains: query, mode: "insensitive" } },
+              { phone: { contains: query, mode: "insensitive" } },
+              { customer: { companyName: { contains: query, mode: "insensitive" } } },
+              {
+                items: {
+                  some: {
+                    OR: [
+                      { title: { contains: query, mode: "insensitive" } },
+                      { productSlug: { contains: query, mode: "insensitive" } },
+                    ],
+                  },
+                },
+              },
             ],
           }
         : {}),
