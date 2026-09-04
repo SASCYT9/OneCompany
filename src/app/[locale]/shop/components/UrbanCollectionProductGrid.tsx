@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
@@ -120,6 +120,10 @@ export default function UrbanCollectionProductGrid({
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
+  const pageSize = Math.max(1, settings.productsPerPage);
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+  const visibleProducts = products.slice(0, visibleCount);
+  const hasMoreProducts = visibleCount < products.length;
 
   return (
     <section
@@ -171,7 +175,7 @@ export default function UrbanCollectionProductGrid({
             viewport={{ once: true, amount: 0.1 }}
             className="urban-product-grid__cards"
           >
-            {products.map((product) => {
+            {visibleProducts.map((product) => {
               const pricing = viewerContext
                 ? resolveShopProductPricing(product, viewerContext)
                 : {
@@ -303,6 +307,19 @@ export default function UrbanCollectionProductGrid({
             </Link>
           </motion.div>
         )}
+        {hasMoreProducts ? (
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((count) => Math.min(count + pageSize, products.length))}
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-foreground/5 px-8 text-xs font-semibold uppercase tracking-[0.15em] text-foreground transition hover:border-foreground/40 hover:bg-foreground/10 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/10"
+            >
+              {isUa
+                ? `Показати ще (${products.length - visibleCount})`
+                : `Show more (${products.length - visibleCount})`}
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

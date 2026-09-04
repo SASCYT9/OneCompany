@@ -130,10 +130,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
   );
 
   const matchedProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand);
-  const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext).slice(
-    0,
-    config.productGrid.productsPerPage
-  );
+  const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);
   const collectionImages = buildUrbanCollectionImagePool(config, [handle]);
   const structuredData = {
     "@context": "https://schema.org",
