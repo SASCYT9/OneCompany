@@ -1,12 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { UrbanCollectionPageConfig } from "../../../src/app/[locale]/shop/data/urbanCollectionPages";
+import { getUrbanVerifiedProductMedia } from "../../../src/lib/urbanVerifiedProductMedia";
+import verifiedMedia from "../../../src/lib/urbanVerifiedProductMedia.json";
 import {
   buildUrbanCollectionImagePool,
   isUrbanPlaceholderImage,
   resolveUrbanCollectionCardImage,
   resolveUrbanProductImage,
+  resolveUrbanProductGallery,
 } from "../../../src/lib/urbanImageUtils";
+
+test("verified SKU media wins consistently on product, collection and gallery surfaces", () => {
+  for (const [slug, media] of Object.entries(verifiedMedia)) {
+    assert.ok(media.source.length > 20);
+    assert.equal(media.image, media.gallery[0]);
+    assert.equal(new Set(media.gallery).size, media.gallery.length);
+    assert.deepEqual(getUrbanVerifiedProductMedia(slug.toUpperCase()), media);
+    assert.equal(resolveUrbanProductImage('/wrong.jpg', [], slug), media.image);
+    assert.equal(resolveUrbanCollectionCardImage('/wrong.jpg', [], [], slug), media.image);
+    assert.deepEqual(resolveUrbanProductGallery({ slug, image: '/wrong.jpg', gallery: ['/wrong.jpg'],
+      title: { en: 'Urban part', ua: '' }, category: { en: '', ua: '' }, productType: undefined,
+      tags: [], bundle: null }, [], null), media.gallery);
+  }
+  assert.equal(getUrbanVerifiedProductMedia('unknown-sku'), null);
+});
+
+test("preserves required Shopify UUIDs in verified Range Rover spoiler galleries", () => {
+  const gallery = getUrbanVerifiedProductMedia('urb-spo-26006220-v1')!.gallery;
+  assert.ok(gallery.some(url => url.includes('Detail_1_80ee2c0e-a503-4055-aa0b-b89f94392efd')));
+  assert.ok(!gallery.some(url => url.includes('/Detail_1.png')));
+});
+
+test("keeps real Defender Widetrack arch photos despite the legacy Urus import folder", () => {
+  const image = '/images/shop/urban/products/urus-se/Urban_Widetrack_Arch_Set_1.webp';
+  assert.equal(resolveUrbanCollectionCardImage(image, ['land-rover-defender'], [], 'urb-arc-26006231-v1'), image);
+});
 
 const W465_PROGRAM_FALLBACK =
   "/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp";

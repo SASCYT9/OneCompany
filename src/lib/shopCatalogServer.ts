@@ -6,6 +6,7 @@
 
 import fs from "fs";
 import path from "path";
+import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 
 import { cache } from "react";
 
@@ -1205,6 +1206,10 @@ function normalizeShopifyImageUrl(url: string | null | undefined): string {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
+  const verifiedUrbanMedia = getUrbanVerifiedProductMedia(product.sku) ?? getUrbanVerifiedProductMedia(product.slug);
+  if (verifiedUrbanMedia) {
+    return { ...product, image: verifiedUrbanMedia.image, gallery: [...verifiedUrbanMedia.gallery] };
+  }
   const override = getShopProductImageOverrideForSku(product.sku);
   const hasGirodiscPlaceholder =
     isGirodiscCatalogProduct(product) &&

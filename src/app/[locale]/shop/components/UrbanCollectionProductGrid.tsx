@@ -158,8 +158,8 @@ export default function UrbanCollectionProductGrid({
                   ? `Підібрані позиції для колекції ${title}.`
                   : `Curated parts currently mapped to the ${title} collection.`
                 : isUa
-                  ? "Найближчим часом колекція буде доступна в каталозі."
-                  : "This collection will be available in the catalog shortly."}
+                  ? "Зверніться до нас для підбору деталей цієї програми Urban."
+                  : "Contact us for help selecting parts from this Urban programme."}
             </p>
           </div>
           <Link href={`/${locale}/shop/urban/collections`} className="urban-product-grid__all-link">
@@ -292,12 +292,12 @@ export default function UrbanCollectionProductGrid({
             className="urban-product-grid__empty"
           >
             <p className="urban-product-grid__empty-title">
-              {isUa ? "Колекція незабаром у каталозі" : "Collection coming to the catalog"}
+              {isUa ? "Підбір деталей за запитом" : "Parts selection on request"}
             </p>
             <p className="urban-product-grid__empty-copy">
               {isUa
-                ? `Ми завершуємо формування асортименту для ${title}. Залиште запит, і менеджер підбере комплект під ваш автомобіль.`
-                : `We are finalizing the assortment for ${title}. Leave a request and our team will curate a package for your car.`}
+                ? `У каталозі поки немає товарів для ${title}. Залиште запит, щоб уточнити доступні деталі та сумісність із вашим автомобілем.`
+                : `There are currently no catalog products for ${title}. Contact us to check available parts and compatibility with your vehicle.`}
             </p>
             <Link
               href={`/${locale}/contact`}

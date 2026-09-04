@@ -6,6 +6,7 @@
 import type { UrbanCollectionPageConfig } from "@/app/[locale]/shop/data/urbanCollectionPages";
 import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 import {
   getUrbanCanonicalCollectionHandleOverride,
   getUrbanCollectionMediaRoleOverrides,
@@ -112,7 +113,7 @@ const URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE: Record<string, string[]> = {
 };
 const ALL_URBAN_MODEL_IMAGE_MARKERS = Array.from(
   new Set(Object.values(URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE).flat())
-);
+).filter((marker) => !["widetrack", "aerokit", "aero-kit", "softkit", "soft-kit", "series-ii", "seriesii"].includes(marker));
 
 type UrbanMediaSelectionProduct = Pick<
   ShopProduct,
@@ -507,6 +508,8 @@ export function resolveUrbanProductImage(
   modelHandles: string[],
   slug?: string | null
 ): string {
+  const verified = getUrbanVerifiedProductMedia(slug);
+  if (verified) return verified.image;
   const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, slug);
   const raw = normalizeUrbanImageUrl(image);
 
@@ -548,6 +551,8 @@ export function resolveUrbanCollectionCardImage(
   gallery: Array<string | null | undefined> = [],
   product?: UrbanMediaSelectionProduct
 ): string {
+  const verified = getUrbanVerifiedProductMedia(product?.slug ?? seed);
+  if (verified) return verified.image;
   const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, product?.slug ?? seed);
   const ownImages = uniqueNonPlaceholderImages([image, ...gallery]).filter((url) =>
     isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
@@ -556,7 +561,7 @@ export function resolveUrbanCollectionCardImage(
   // product photos; treat them as last-resort fallback rather than authoritative
   // own images so role-tagged collection media can win for products with a
   // strong visual intent (rear/front/side/detail).
-  const realOwnImages = ownImages.filter((url) => !isUrbanGenericCarouselImage(url));
+  const realOwnImages = ownImages.filter((url) => !isUrbanGenericCarouselImage(url) && !isUrbanBlueprintImage(url));
   const genericOwnCarousel = ownImages.filter((url) => isUrbanGenericCarouselImage(url));
   const intent = product ? resolveUrbanCardVisualIntent(product) : "detail";
   const matchingRealOwnImages = realOwnImages.filter((url) => ownImageMatchesIntent(url, intent));
@@ -564,6 +569,13 @@ export function resolveUrbanCollectionCardImage(
   if (matchingRealOwnImages.length > 0) {
     return matchingRealOwnImages[0]!;
   }
+
+  // A filename heuristic must never replace a real product photo with a
+  // collection shot (e.g. mirror detail / rear wheel / front diffuser).
+  const productPhoto = realOwnImages.find((url) =>
+    !/\/(?:hero|carousel|gallery|banners?|overview)\/|\/(?:hero|banner|overview)[-_]/i.test(url)
+  );
+  if (productPhoto) return productPhoto;
 
   if (!product) {
     if (realOwnImages.length > 0) {
@@ -619,6 +631,8 @@ export function resolveUrbanProductGallery(
   modelHandles: string[],
   config: UrbanCollectionPageConfig | null | undefined
 ) {
+  const verified = getUrbanVerifiedProductMedia(product.slug);
+  if (verified) return verified.gallery;
   const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, product.slug);
   const ownImages = uniqueNonPlaceholderImages([product.image, ...(product.gallery ?? [])]).filter(
     (url) => isUrbanImageCompatibleWithModel(url, resolvedModelHandles)

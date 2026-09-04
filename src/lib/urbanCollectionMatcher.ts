@@ -288,7 +288,31 @@ function getUrbanMatchScore(
   title?: string,
   brand?: string
 ) {
+  // Imported collection relations can mix the full-size L460 with Sport L461.
+  // An explicit chassis in the product title is more precise; dual-fit products
+  // mentioning both chassis retain both collections.
+  const productTitle = normalizeUrbanValue(product.title.en || product.title.ua);
+  // "Pre-Facelift" contains the word facelift: strip it before testing the
+  // newer generation. Explicit Facelift / Pre-Facelift parts retain both.
+  if (handle === "audi-rsq8" || handle === "audi-rsq8-facelift") {
+    const hasPreFacelift = /\bpre facelift\b/.test(productTitle);
+    const hasFacelift = /\bfacelift\b/.test(productTitle.replace(/\bpre facelift\b/g, ""));
+    if (handle === "audi-rsq8" && hasFacelift && !hasPreFacelift) return 0;
+    if (handle === "audi-rsq8-facelift" && hasPreFacelift && !hasFacelift) return 0;
+  }
+  const rangeRoverChassis = /\bl460\b/.test(productTitle) ? "l460" : /\bl461\b/.test(productTitle) ? "l461" : null;
+  if (rangeRoverChassis && !( /\bl460\b/.test(productTitle) && /\bl461\b/.test(productTitle))) {
+    if (handle === "range-rover-l460" && rangeRoverChassis !== "l460") return 0;
+    if (handle === "range-rover-sport-l461" && rangeRoverChassis !== "l461") return 0;
+  }
   const canonicalMercedesGwagonHandle = inferCanonicalMercedesGwagonHandle(product);
+  // GP manufacturer parts 460-0061 / 460-0059 explicitly fit W463A and W465.
+  // Their legacy primary collection remains Softkit, but must not hide them
+  // from either W465 programme. Do not broaden fitment for other G-Wagon parts.
+  if (MERCEDES_G_WAGON_HANDLES.has(handle) &&
+      ["urb-mir-25358193-v1", "urb-mir-25358194-v1"].includes(product.slug.toLowerCase())) {
+    return 700;
+  }
   if (canonicalMercedesGwagonHandle && MERCEDES_G_WAGON_HANDLES.has(handle)) {
     if (canonicalMercedesGwagonHandle === handle) {
       return 700;
@@ -334,7 +358,13 @@ function getUrbanMatchScore(
         handle === "land-rover-defender" &&
         supportCandidates.some((candidate) => /\b(90|110|130)\b/.test(candidate));
 
-      if (!isUniversalDefenderPart) {
+      // Slash-delimited fitment explicitly includes the original Urus:
+      // "Urus / S / Performante" and "Urus / Urus S". Variant-only titles
+      // such as "Urus S / Performante" must still be excluded from the base.
+      const isSharedOriginalUrusPart = handle === "lamborghini-urus" &&
+        /\burus\s*\/\s*(?:urus\s+)?(?:s\b|performante\b)/i.test(product.title.en);
+
+      if (!isUniversalDefenderPart && !isSharedOriginalUrusPart) {
         return 0;
       }
     }

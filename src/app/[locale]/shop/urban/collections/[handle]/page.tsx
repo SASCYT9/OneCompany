@@ -62,7 +62,15 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
   const config = getUrbanCollectionPageConfig(handle);
   const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
   if (!card) notFound();
-  const products = config ? await getUrbanProductsServer() : [];
+  const [products, settingsRecord] = await Promise.all([
+    getUrbanProductsServer(),
+    getOrCreateShopSettings(prisma),
+  ]);
+  const viewerContext = buildShopViewerPricingContext(
+    getShopSettingsRuntime(settingsRecord), null, false, null
+  );
+  const matchedProducts = getProductsForUrbanCollection(products, handle, card.title, card.brand);
+  const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);
 
   if (!config) {
     return (
@@ -87,8 +95,8 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
             </h1>
             <p className="max-w-2xl text-balance text-lg font-light text-white/50">
               {isUa
-                ? "Детальна сторінка цієї колекції наразі розробляється. Ви можете скористатися загальним каталогом бази Urban для перегляду усіх товарів."
-                : "The detailed showcase for this collection is currently under development. You can browse the general Urban catalog database for products."}
+                ? `Деталі Urban для ${card.title}. Перегляньте доступні товари або зверніться до нас для підбору.`
+                : `Urban parts for ${card.title}. Browse available products or contact us for fitment advice.`}
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <Link
@@ -116,21 +124,20 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
             </div>
           )}
         </section>
+        <UrbanCollectionProductGrid
+          locale={resolvedLocale}
+          title={card.title}
+          brand={card.brand}
+          collectionHandle={handle}
+          collectionImages={[]}
+          products={collectionProducts}
+          viewerContext={viewerContext}
+          settings={{ productsPerPage: 16, columnsDesktop: 3, columnsMobile: 1, enableFiltering: false, enableSorting: false, paddingTop: 48, paddingBottom: 64 }}
+        />
       </div>
     );
   }
 
-  const [settingsRecord] = await Promise.all([getOrCreateShopSettings(prisma)]);
-
-  const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
-    null,
-    false,
-    null
-  );
-
-  const matchedProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand);
-  const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);
   const collectionImages = buildUrbanCollectionImagePool(config, [handle]);
   const structuredData = {
     "@context": "https://schema.org",

@@ -42,6 +42,43 @@ function buildUrbanProduct(overrides: Partial<ShopProduct>): ShopProduct {
   } as ShopProduct;
 }
 
+test('separates RSQ8 generations while retaining explicitly shared spoilers', () => {
+  const collections = ['audi-rsq8', 'audi-rsq8-facelift'].map(handle => ({ handle, title: { en: 'Audi RSQ8', ua: '' } }));
+  const products = ['Pre-Facelift', 'Facelift', 'Facelift / Pre-Facelift'].map((generation, i) =>
+    buildUrbanProduct({ slug: String(i), collections, title: { en: `Audi RSQ8 ${generation} Spoiler`, ua: '' } }));
+  assert.deepEqual(getProductsForUrbanCollection(products, 'audi-rsq8').map(p => p.slug).sort(), ['0', '2']);
+  assert.deepEqual(getProductsForUrbanCollection(products, 'audi-rsq8-facelift').map(p => p.slug).sort(), ['1', '2']);
+});
+
+test('keeps verified shared G-Wagon accessories in both chassis programmes', () => {
+  const shared = buildUrbanProduct({ slug: 'urb-mir-25358193-v1', collection: { en: 'Mercedes G-Wagon Softkit', ua: '' } });
+  const specific = buildUrbanProduct({ slug: 'urb-spo-25358190-v1', collection: { en: 'Mercedes G-Wagon Softkit', ua: '' } });
+  for (const handle of ['mercedes-g-wagon-w465-aerokit', 'mercedes-g-wagon-w465-widetrack']) {
+    assert.deepEqual(getProductsForUrbanCollection([shared, specific], handle).map(p => p.slug), [shared.slug]);
+  }
+  assert.equal(getProductsForUrbanCollection([shared, specific], 'mercedes-g-wagon-softkit').length, 2);
+});
+
+test('keeps explicitly shared original Urus parts but excludes S-only parts', () => {
+  const common = { collection: { ua: 'Urus S', en: 'Urus S' } };
+  const shared = buildUrbanProduct({ ...common, title: { ua: '', en: 'Wing Mirror Covers for Lamborghini Urus / S / Performante' } });
+  const variantOnly = buildUrbanProduct({ ...common, title: { ua: '', en: 'Bonnet for Lamborghini Urus S / Performante' } });
+  assert.equal(getProductsForUrbanCollection([shared, variantOnly], 'lamborghini-urus').length, 1);
+  assert.equal(getProductsForUrbanCollection([shared], 'lamborghini-urus')[0], shared);
+});
+
+test('respects explicit Range Rover chassis without losing shared L460/L461 accessories', () => {
+  const relations = ['range-rover-l460', 'range-rover-sport-l461'].map(handle => ({
+    id: handle, handle, title: { ua: handle, en: handle }, brand: 'Range Rover', isUrban: true, sortOrder: 0,
+  }));
+  const l460 = buildUrbanProduct({ slug: 'l460', collections: relations, title: { ua: '', en: 'Matrix Fixed Side Steps for Range Rover L460 LWB' } });
+  const l461 = buildUrbanProduct({ slug: 'l461', collections: relations, title: { ua: '', en: 'Branding Package for Range Rover Sport L461' } });
+  const shared = buildUrbanProduct({ slug: 'shared', collections: relations, title: { ua: '', en: 'Wing Mirror Covers for Range Rover L460/L461' } });
+  const products = [l460, l461, shared];
+  assert.deepEqual(getProductsForUrbanCollection(products, 'range-rover-l460').map(p => p.slug).sort(), ['l460', 'shared']);
+  assert.deepEqual(getProductsForUrbanCollection(products, 'range-rover-sport-l461').map(p => p.slug).sort(), ['l461', 'shared']);
+});
+
 test('routes the W463A bundle to softkit even if stale collection data says W465 Widetrack', () => {
   const product = buildUrbanProduct({
     slug: 'urb-bun-25358198-v1',

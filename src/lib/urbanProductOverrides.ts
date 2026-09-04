@@ -12,6 +12,22 @@ const URBAN_CANONICAL_COLLECTION_HANDLE_OVERRIDES: Record<string, string> = {
 };
 
 const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> = {
+  'urb-mir-25358193-v1': {
+    ua: 'Карбонові накладки дзеркал Urban для Mercedes-Benz G-Wagon W463A / W465, пара',
+    en: 'Urban Carbon Fibre Wing Mirror Covers for Mercedes-Benz G-Wagon W463A / W465, Pair',
+  },
+  'urb-mir-25358194-v1': {
+    ua: 'Карбонові обрамлення покажчиків повороту Urban для Mercedes-Benz G-Wagon W463A / W465, пара',
+    en: 'Urban Carbon Fibre Indicator Surrounds for Mercedes-Benz G-Wagon W463A / W465, Pair',
+  },
+  'urb-tri-25358195-v1': {
+    ua: 'Карбонові накладки задніх стійок D-pillar Urban для Mercedes-Benz G-Wagon W463A, пара',
+    en: 'Urban Carbon Fibre D-Pillar Trims for Mercedes-Benz G-Wagon W463A, Pair',
+  },
+  'urb-tri-25358196-v1': {
+    ua: 'Карбонові накладки повітрозабірників штатного бампера G63 Urban для Mercedes-Benz G-Wagon W463A, пара',
+    en: 'Urban Carbon Fibre OEM G63 Bumper Intake Trims for Mercedes-Benz G-Wagon W463A, Pair',
+  },
   'urb-dif-25358211-v1': {
     ua: 'Задній дифузор Urban Visual Carbon Fibre для Audi RS3 8Y Hatchback',
     en: 'Urban Visual Carbon Fibre Rear Diffuser for Audi RS3 8Y Hatchback',
