@@ -1,9 +1,7 @@
 import { Logo } from "./Logo";
 import styles from "./BrandedLoadingScreen.module.css";
 
-type BrandedLoadingScreenProps = {
-  exiting?: boolean;
-};
+type BrandedLoadingScreenProps = { exiting?: boolean };
 
 export function BrandedLoadingScreen({ exiting = false }: BrandedLoadingScreenProps) {
   return (
@@ -16,28 +14,20 @@ export function BrandedLoadingScreen({ exiting = false }: BrandedLoadingScreenPr
     >
       <div className={styles.wheelReveal} aria-hidden="true">
         <div className={styles.wheelMotion} />
+        <div className={styles.wheelLight} />
       </div>
-
       <div className={styles.content} aria-hidden="true">
-        <div className={styles.orbit}>
-          <span className={styles.orbitPoint} />
-        </div>
-
-        <div className={styles.logoStage}>
-          <Logo tone="auto" className={styles.logoAsset} priority />
-          <span className={styles.logoReflection} />
-          <span className={styles.logoMark} />
-          <span className={styles.logoSweep} />
-        </div>
-
+        <Logo tone="light" className={styles.logoAsset} priority />
         <div className={styles.progress}>
-          <span className={styles.progressSegment} />
-          <span className={styles.progressSegment} />
-          <span className={styles.progressSegment} />
+          <span />
+          <span />
+          <span />
         </div>
       </div>
+      <p className={styles.caption} aria-hidden="true">
+        Performance in every detail
+      </p>
     </div>
   );
 }
-
 export default BrandedLoadingScreen;
