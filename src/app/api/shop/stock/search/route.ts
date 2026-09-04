@@ -575,7 +575,9 @@ function narrowVehicleSearchResults<
           const modelMatches =
             expandedQuery.models.length === 0 ||
             fitment.models.some((model) =>
-              expandedQuery.models.some((queryModel) => shopVehicleModelsMatch(model, queryModel))
+              expandedQuery.models.some((queryModel) =>
+                shopVehicleModelsMatch(model, queryModel, fitment.make)
+              )
             );
           if (!modelMatches) return false;
           const chassisMatches =
@@ -853,7 +855,7 @@ async function resolveCanonicalVehicleProductIds(input: {
             .map((row) => row.textValue)
             .filter(
               (value): value is string =>
-                Boolean(value) && shopVehicleModelsMatch(value!, input.model)
+                Boolean(value) && shopVehicleModelsMatch(value!, input.model, input.make)
             ),
         ]
       : [];

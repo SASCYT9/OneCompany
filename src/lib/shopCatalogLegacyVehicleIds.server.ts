@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 import {
   canonicalVehicleMakeLabel,
+  canonicalVehicleModelLabel,
   vehicleMakeAliases,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
@@ -140,7 +141,9 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
     if (
       input.model &&
       !exactTextValues("MODEL").some(
-        (value) => vehicleModelKey(value) === vehicleModelKey(input.model!)
+        (value) =>
+          vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)) ===
+          vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, input.model!))
       )
     ) {
       continue;

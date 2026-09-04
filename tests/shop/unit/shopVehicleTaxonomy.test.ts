@@ -9,6 +9,7 @@ import {
   canonicalizeVehicleModels,
   splitVehicleChassisCodes,
   vehicleModelKey,
+  vehicleModelAliases,
 } from "../../../src/lib/shopVehicleTaxonomy";
 
 test("vehicle make aliases collapse without losing their legacy query values", () => {
@@ -31,6 +32,26 @@ test("BMW model aliases collapse to canonical labels", () => {
     "3 Series",
     "XM",
   ]);
+});
+
+test("BMW trim-shaped legacy models collapse to their selectable model", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("BMW", ["1 Series M", "M340i/M340d", "M550i", "I4"]),
+    ["1M", "3 Series", "5 Series", "i4"]
+  );
+  assert.ok(vehicleModelAliases("BMW", "3 Series").includes("M340i/M340d"));
+});
+
+test("Land Rover product-title fragments collapse to real models", () => {
+  assert.deepEqual(
+    canonicalizeVehicleModels("Land Rover", [
+      "Defender Oem Black",
+      "Urban Leather Defender",
+      "Discovery 5 5",
+      "Sport Linear",
+    ]),
+    ["Defender", "Discovery 5", "Range Rover Sport"]
+  );
 });
 
 test("Audi performance models use canonical spacing", () => {

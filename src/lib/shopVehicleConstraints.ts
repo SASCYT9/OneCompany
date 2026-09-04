@@ -1,7 +1,11 @@
 import type { Fitment } from "@/lib/crossShopFitment";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
-import { canonicalVehicleMakeLabel, vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
+import {
+  canonicalVehicleMakeLabel,
+  canonicalVehicleModelLabel,
+  vehicleModelKey,
+} from "@/lib/shopVehicleTaxonomy";
 
 export type ShopVehicleConstraints = {
   make?: string | null;
@@ -23,9 +27,16 @@ export function shopVehicleMakesMatch(
   return normalizedMakeFamily(candidate) === normalizedMakeFamily(requested);
 }
 
-export function shopVehicleModelsMatch(candidate: string, requested: string | null | undefined) {
+export function shopVehicleModelsMatch(
+  candidate: string,
+  requested: string | null | undefined,
+  make?: string | null
+) {
   if (!requested) return true;
-  return vehicleModelKey(candidate) === vehicleModelKey(requested);
+  return make
+    ? vehicleModelKey(canonicalVehicleModelLabel(make, candidate)) ===
+        vehicleModelKey(canonicalVehicleModelLabel(make, requested))
+    : vehicleModelKey(candidate) === vehicleModelKey(requested);
 }
 
 /**
@@ -53,7 +64,7 @@ export function shopFitmentMatchesVehicleConstraints(
   if (!shopVehicleMakesMatch(fitment.make, constraints.make)) return false;
   if (
     constraints.model &&
-    !fitment.models.some((model) => shopVehicleModelsMatch(model, constraints.model))
+    !fitment.models.some((model) => shopVehicleModelsMatch(model, constraints.model, fitment.make))
   ) {
     return false;
   }

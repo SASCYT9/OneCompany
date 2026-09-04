@@ -49,6 +49,45 @@ export function vehicleModelKey(value: string) {
   return normalizeShopSearchText(value).replace(/[^a-z0-9]+/g, "");
 }
 
+const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+  bmw: {
+    "1M": ["1M", "1 Series M"],
+    "1 Series": ["1 Series", "M135i/M140i"],
+    "2 Series": ["2 Series", "M235i/M240i"],
+    "2 Series Active Tourer": ["2 Series Active Tourer", "2 Active Tourer"],
+    "3 Series": ["3 Series", "3-series", "M340i/M340d"],
+    "4 Series": ["4 Series", "4-series", "M440i/M440d"],
+    "5 Series": ["5 Series", "5-series", "M550i"],
+    "8 Series": ["8 Series", "8-series", "M850i"],
+    i4: ["i4", "I4"],
+    i8: ["i8", "I8"],
+  },
+  "land rover": {
+    Defender: ["Defender", "Defender Oem Black", "Urban Leather Defender"],
+    "Defender 110": ["Defender 110", "Defender 110 Wide"],
+    "Discovery 5": ["Discovery 5", "Discovery 5 5", "Discovery 5 Black", "Discovery 5 Urban"],
+    "Range Rover Sport": ["Range Rover Sport", "Sport", "Sport Linear", "Sport Matrix", "Sport Pur", "Sport Sv"],
+  },
+};
+
+function modelAliasGroups(make: string) {
+  return VEHICLE_MODEL_ALIAS_GROUPS[normalizeShopSearchText(canonicalVehicleMakeLabel(make))] ?? {};
+}
+
+function knownCanonicalVehicleModelLabel(make: string, value: string) {
+  const requestedKey = vehicleModelKey(value);
+  for (const [canonical, aliases] of Object.entries(modelAliasGroups(make))) {
+    if (aliases.some((alias) => vehicleModelKey(alias) === requestedKey)) return canonical;
+  }
+  return null;
+}
+
+export function vehicleModelAliases(make: string, value: string) {
+  const canonical = knownCanonicalVehicleModelLabel(make, value) ?? value.trim();
+  const aliases = modelAliasGroups(make)[canonical];
+  return aliases ? [...new Set([canonical, ...aliases])] : [canonical];
+}
+
 const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {
   "cupra:formentor": "Formentor",
   "honda:civic": "Civic",
@@ -88,7 +127,9 @@ const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {
 
 export function canonicalVehicleModelLabel(make: string, value: string) {
   const key = vehicleModelKey(value);
-  const makeKey = normalizeShopSearchText(make);
+  const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  const aliasLabel = knownCanonicalVehicleModelLabel(make, value);
+  if (aliasLabel) return aliasLabel;
   const knownLabel = CANONICAL_MODEL_LABELS[`${makeKey}:${key}`];
   if (knownLabel) return knownLabel;
   if (makeKey === "bmw") {
@@ -113,9 +154,10 @@ export function canonicalVehicleModelLabel(make: string, value: string) {
 export function canonicalizeVehicleModels(make: string, values: readonly string[]) {
   const byKey = new Map<string, string>();
   for (const value of values) {
-    const key = vehicleModelKey(value);
+    const canonical = canonicalVehicleModelLabel(make, value);
+    const key = vehicleModelKey(canonical);
     if (!key) continue;
-    byKey.set(key, canonicalVehicleModelLabel(make, byKey.get(key) ?? value));
+    byKey.set(key, canonical);
   }
   return [...byKey.values()].sort((left, right) =>
     left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })

@@ -5,6 +5,7 @@ import {
   shopFitmentMatchesVehicleConstraints,
   shopVehicleChassisMatches,
   shopVehicleMakesMatch,
+  shopVehicleModelsMatch,
   shopVehicleYearAllows,
 } from "../../../src/lib/shopVehicleConstraints";
 
@@ -16,6 +17,12 @@ test("Mercedes-Benz and Mercedes-AMG share the same vehicle make family", () => 
 test("Land Rover legacy aliases share the same vehicle make family", () => {
   assert.equal(shopVehicleMakesMatch("Range Rover", "Land Rover"), true);
   assert.equal(shopVehicleMakesMatch("land-rover", "Range Rover"), true);
+});
+
+test("legacy model labels match their canonical selectable model", () => {
+  assert.equal(shopVehicleModelsMatch("M340i/M340d", "3 Series", "BMW"), true);
+  assert.equal(shopVehicleModelsMatch("Sport Matrix", "Range Rover Sport", "Land Rover"), true);
+  assert.equal(shopVehicleModelsMatch("M3", "3 Series", "BMW"), false);
 });
 
 test("selected chassis does not accept platform siblings or generic generations", () => {

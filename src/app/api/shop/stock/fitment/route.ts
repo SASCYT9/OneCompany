@@ -15,6 +15,7 @@ import {
   canonicalizeVehicleModels,
   canonicalVehicleMakeLabel,
   vehicleMakeAliases,
+  vehicleModelAliases,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
 
@@ -107,9 +108,9 @@ async function getCanonicalFitmentOptions(input: {
   }
 
   const modelRows = await exactValues("MODEL", makeClauseWhere);
-  const requestedModelKey = vehicleModelKey(input.model);
-  const modelAliases = modelRows
-    .filter((value) => vehicleModelKey(value) === requestedModelKey);
+  const requestedModelAliases = vehicleModelAliases(canonicalMake, input.model);
+  const requestedModelKeys = new Set(requestedModelAliases.map(vehicleModelKey));
+  const modelAliases = modelRows.filter((value) => requestedModelKeys.has(vehicleModelKey(value)));
   if (!modelAliases.length) modelAliases.push(input.model);
 
   const modelClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
@@ -238,7 +239,7 @@ export async function GET(request: NextRequest) {
         item.fitments.filter(
           (fitment) =>
             shopVehicleMakesMatch(fitment.make, make) &&
-            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model)) &&
+            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model, fitment.make)) &&
             (!chassis ||
               fitment.chassisCodes.some(
                 (candidate: string) => candidate.toLocaleLowerCase() === chassis.toLocaleLowerCase()
@@ -312,7 +313,7 @@ export async function GET(request: NextRequest) {
         for (const fitment of item.fitments) {
           if (
             shopVehicleMakesMatch(fitment.make, make) &&
-            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model))
+            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model, fitment.make))
           ) {
             for (const code of fitment.chassisCodes) {
               chassisSet.add(code);
