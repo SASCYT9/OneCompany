@@ -3,6 +3,8 @@ import { registerHooks } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
+import productionModels from "./production-vehicle-models.fixture.json";
+import { canonicalizeVehicleModels, vehicleModelKey } from "../../../src/lib/shopVehicleTaxonomy";
 
 const serverOnlyStub = pathToFileURL(
   path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
@@ -16,6 +18,32 @@ registerHooks({
 });
 
 const queryModule = import("../../../src/lib/shopCatalogProjectionQuery.server");
+
+test("all selectable production models keep supplier aliases in both SQL search paths", async () => {
+  const { buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql } = await queryModule;
+  for (const { make, models } of productionModels) {
+    for (const raw of models) {
+      for (const model of canonicalizeVehicleModels(make, [raw])) {
+        for (const build of [buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql]) {
+          const query = build({ locale: "ua", make, model, order: "price_asc" });
+          assert.ok(query);
+          assert.ok(query.values.includes(vehicleModelKey(raw)), `${make} ${raw} remains reachable from ${model}`);
+          assert.match(query.sql, /compatibility_constraint\."clauseKey" = clause\."clauseKey"/);
+        }
+      }
+    }
+  }
+});
+
+test("ORM and cascading facets use the same aliases as catalog results", async () => {
+  const { buildShopCatalogProjectionWhere, buildShopCatalogProjectionFacetQuerySql } = await queryModule;
+  const input = { locale: "ua" as const, brand: "Eventuri", make: "Mercedes-Benz", model: "AMG G 63" };
+  const where = JSON.stringify(buildShopCatalogProjectionWhere(input));
+  assert.ok(where.includes("G63 AMG"));
+  const facets = buildShopCatalogProjectionFacetQuerySql(input);
+  assert.ok(facets.values.includes("g63amg"));
+  assert.ok(facets.values.includes("mercedes-amg"));
+});
 
 test("query normalization is bounded and fail-closed", async () => {
   const { normalizeShopCatalogProjectionQuery } = await queryModule;
@@ -95,7 +123,7 @@ test("vehicle query is product-first, clause-correlated, and planner-fenced", as
   assert.match(sql, /compatibility_constraint\."sourceVersion" = clause\."sourceVersion"/);
   assert.match(sql, /OFFSET 0/);
   assert.match(sql, /ORDER BY projection\."stableRank" ASC/);
-  assert.equal(query.values.includes("BMW"), true);
+  assert.equal(query.values.includes("bmw"), true);
   assert.equal(query.values.includes("intake"), true);
   assert.equal(query.values.includes("m2"), true);
   assert.equal(query.values.includes("N55"), true);
@@ -173,7 +201,7 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
     true
   );
   assert.equal(query.values.includes("Eventuri"), true);
-  assert.equal(query.values.includes("BMW"), true);
+  assert.equal(query.values.includes("bmw"), true);
   assert.equal(query.values.includes("m2"), true);
   assert.equal(query.values.includes("G87"), true);
   assert.equal(query.values.includes(2024), true);

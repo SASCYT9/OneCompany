@@ -1,4 +1,6 @@
 import { normalizeShopSearchText } from "@/lib/shopSearch";
+import { SHOP_VEHICLE_MODEL_CORRECTIONS, formatVehicleModelLabel } from "./shopVehicleModelCorrections";
+import generationAliases from "./shopVehicleGenerationAliases.json";
 
 const VEHICLE_MAKE_ALIAS_GROUPS = {
   "Alfa Romeo": ["alfa romeo", "alfa-romeo"],
@@ -183,8 +185,33 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
   },
 };
 
+const MODEL_GROUP_CACHE = new Map<string, Record<string, string[]>>();
 function modelAliasGroups(make: string) {
-  return VEHICLE_MODEL_ALIAS_GROUPS[normalizeShopSearchText(canonicalVehicleMakeLabel(make))] ?? {};
+  const key = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  const cached = MODEL_GROUP_CACHE.get(key);
+  if (cached) return cached;
+  const groups: Record<string, string[]> = Object.fromEntries(
+    Object.entries(VEHICLE_MODEL_ALIAS_GROUPS[key] ?? {}).map(([label, aliases]) => [label, [...aliases]])
+  );
+  for (const [raw, labels] of Object.entries(SHOP_VEHICLE_MODEL_CORRECTIONS[key] ?? {})) {
+    for (const label of labels) groups[label] = [...new Set([...(groups[label] ?? []), label, raw])];
+  }
+  // Generation remains available through the separate chassis/year selectors.
+  // Keep supplier values for queries, while presenting a single model family.
+  for (const [raw, family] of Object.entries(generationAliases[canonicalVehicleMakeLabel(make) as keyof typeof generationAliases] ?? {})) {
+    if (!isSelectableVehicleModel(make, raw)) continue;
+    const label = formatVehicleModelLabel(family);
+    groups[label] = [...new Set([...(groups[label] ?? []), label, label.replace(/\s+/g, "-"), raw])];
+  }
+  MODEL_GROUP_CACHE.set(key, groups);
+  return groups;
+}
+
+export function isSelectableVehicleModel(make: string, value: string) {
+  const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  return !Object.entries(SHOP_VEHICLE_MODEL_CORRECTIONS[makeKey] ?? {}).some(
+    ([raw, labels]) => labels.length === 0 && vehicleModelKey(raw) === vehicleModelKey(value)
+  );
 }
 
 function knownCanonicalVehicleModelLabels(make: string, value: string) {
@@ -197,9 +224,9 @@ function knownCanonicalVehicleModelLabels(make: string, value: string) {
 }
 
 export function vehicleModelAliases(make: string, value: string) {
-  const canonical = knownCanonicalVehicleModelLabels(make, value)[0] ?? value.trim();
-  const aliases = modelAliasGroups(make)[canonical];
-  return aliases ? [...new Set([canonical, ...aliases])] : [canonical];
+  const canonicals = knownCanonicalVehicleModelLabels(make, value);
+  const labels = canonicals.length ? canonicals : [value.trim()];
+  return [...new Set([value.trim(), value.trim().replace(/\s+/g, "-"), ...labels.flatMap(label => modelAliasGroups(make)[label] ?? [label])])];
 }
 
 const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {
@@ -262,12 +289,13 @@ export function canonicalVehicleModelLabel(make: string, value: string) {
     if (sq) return `SQ${sq[1]}`;
     if (key === "ttrs") return "TTRS";
   }
-  return value.trim().replace(/\s+/g, " ");
+  return formatVehicleModelLabel(value);
 }
 
 export function canonicalizeVehicleModels(make: string, values: readonly string[]) {
   const byKey = new Map<string, string>();
   for (const value of values) {
+    if (!isSelectableVehicleModel(make, value)) continue;
     const canonicals = knownCanonicalVehicleModelLabels(make, value);
     for (const canonical of canonicals.length ? canonicals : [canonicalVehicleModelLabel(make, value)]) {
       const key = vehicleModelKey(canonical);

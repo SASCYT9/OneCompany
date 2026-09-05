@@ -10,7 +10,7 @@ import {
 
 import { prisma } from "./prisma";
 import type { ShopCatalogShadowFlag } from "./shopCatalogShadowFlag.server";
-import { canonicalVehicleModelLabel, vehicleModelKey } from "./shopVehicleTaxonomy";
+import { canonicalizeVehicleModels, vehicleModelAliases, vehicleMakeAliases, vehicleModelKey } from "./shopVehicleTaxonomy";
 import {
   isUrbanProductBrand,
   URBAN_PRODUCT_BRAND_ALIASES,
@@ -85,7 +85,7 @@ export async function countShopCatalogProjection(
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
     if (value) {
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
     }
   }
   if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
@@ -301,7 +301,8 @@ function canonicalProjectionBrandSql() {
 
 function textConstraint(
   dimension: ShopCatalogCompatibilityDimension,
-  value: string
+  value: string,
+  make?: string | null
 ): Prisma.ShopCatalogProjectionConstraintWhereInput {
   return {
     dimension,
@@ -311,7 +312,9 @@ function textConstraint(
       },
       {
         state: ShopCatalogConstraintState.EXACT,
-        textValue: { equals: value, mode: "insensitive" },
+        textValue: { in: dimension === ShopCatalogCompatibilityDimension.MODEL && make
+          ? vehicleModelAliases(make, value)
+          : dimension === ShopCatalogCompatibilityDimension.MAKE ? vehicleMakeAliases(value) : [value], mode: "insensitive" },
       },
     ],
   };
@@ -339,11 +342,13 @@ function escapeLike(value: string) {
   return value.replace(/([\\%_])/g, "\\$1");
 }
 
-function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimension, value: string) {
+function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimension, value: string, make?: string | null) {
   const exactMatch =
     dimension === ShopCatalogCompatibilityDimension.MODEL
-      ? Prisma.sql`regexp_replace(lower(compatibility_constraint."textValue"), '[^a-z0-9]+', '', 'g') = ${vehicleModelKey(value)}`
-      : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
+      ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join([...new Set((make ? vehicleModelAliases(make, value) : [value]).map(vehicleModelKey))])})`
+      : dimension === ShopCatalogCompatibilityDimension.MAKE
+        ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map(alias => alias.toLowerCase()))})`
+        : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
   return Prisma.sql`
     EXISTS (
       SELECT 1
@@ -457,7 +462,7 @@ function selectedVehicleFacetConstraints(
       continue;
     }
     const value = input[field];
-    if (value) constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+    if (value) constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
   }
   return constraints;
 }
@@ -658,14 +663,11 @@ export async function queryShopCatalogProjectionFacets(
   if (raw.make && facets.model.length) {
     const canonicalModels = new Map<string, ShopCatalogProjectionFacetItem>();
     for (const item of facets.model) {
-      const key = vehicleModelKey(item.label);
-      const existing = canonicalModels.get(key);
-      canonicalModels.set(key, {
-        ...item,
-        key,
-        label: canonicalVehicleModelLabel(raw.make, item.label),
-        count: (existing?.count ?? 0) + item.count,
-      });
+      for (const label of canonicalizeVehicleModels(raw.make, [item.label])) {
+        const key = vehicleModelKey(label);
+        const existing = canonicalModels.get(key);
+        canonicalModels.set(key, { ...item, key, label, count: (existing?.count ?? 0) + item.count });
+      }
     }
     facets.model = [...canonicalModels.values()].sort((left, right) =>
       left.label.localeCompare(right.label, "en", { numeric: true, sensitivity: "base" })
@@ -689,7 +691,7 @@ export function buildShopCatalogProjectionVehicleQuerySql(
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
     if (value) {
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
     }
   }
   if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
@@ -770,7 +772,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
     if (value)
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value));
+      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
   }
   if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
   if (vehicleConstraints.length) {
@@ -842,7 +844,7 @@ export function buildShopCatalogProjectionWhere(
   const and: Prisma.ShopCatalogProjectionWhereInput[] = [];
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
-    if (value) constraints.push(textConstraint(VEHICLE_DIMENSIONS[field], value));
+    if (value) constraints.push(textConstraint(VEHICLE_DIMENSIONS[field], value, input.make));
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));
   if (input.brand) {

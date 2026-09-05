@@ -1,0 +1,123 @@
+{
+  "Alpine": {
+    "A110 II": "A110"
+  },
+  "Citroën": {
+    "C3 II": "C3"
+  },
+  "Dodge": {
+    "NEON II": "NEON"
+  },
+  "Ford": {
+    "FIESTA VI": "FIESTA",
+    "FIESTA VII": "FIESTA",
+    "FOCUS II Stufenheck": "FOCUS Stufenheck",
+    "FOCUS III": "FOCUS",
+    "FOCUS III Saloon": "FOCUS Saloon",
+    "FOCUS III Turnier": "FOCUS Turnier",
+    "FOCUS IV": "FOCUS",
+    "FOCUS IV Saloon": "FOCUS Saloon",
+    "FOCUS IV Turnier": "FOCUS Turnier",
+    "KUGA II": "KUGA",
+    "MONDEO V Hatchback": "MONDEO Hatchback",
+    "MONDEO V Saloon": "MONDEO Saloon",
+    "MONDEO V Turnier": "MONDEO Turnier"
+  },
+  "Honda": {
+    "CIVIC XI Hatchback": "CIVIC Hatchback",
+    "JAZZ III": "JAZZ",
+    "NSX II Coupe": "NSX Coupe",
+    "CIVIC X Hatchback": "CIVIC Hatchback",
+    "CIVIC X Saloon": "CIVIC Saloon"
+  },
+  "Hyundai": {
+    "i20 III": "i20"
+  },
+  "Iveco": {
+    "DAILY VI Platform/Chassis": "DAILY Platform/Chassis",
+    "DAILY VI Van": "DAILY Van"
+  },
+  "Jeep": {
+    "GRAND CHEROKEE IV": "GRAND CHEROKEE"
+  },
+  "Lexus": {
+    "IS III": "IS"
+  },
+  "Maserati": {
+    "QUATTROPORTE V": "QUATTROPORTE",
+    "QUATTROPORTE VI": "QUATTROPORTE"
+  },
+  "Mazda": {
+    "MX-5 IV": "MX-5"
+  },
+  "Mitsubishi": {
+    "LANCER VIII": "LANCER",
+    "LANCER VIII Sportback": "LANCER Sportback"
+  },
+  "Peugeot": {
+    "208 II": "208",
+    "308 II": "308",
+    "308 III": "308"
+  },
+  "Renault": {
+    "CLIO IV": "CLIO",
+    "CLIO IV Grandtour": "CLIO Grandtour",
+    "MEGANE II Saloon": "MEGANE Saloon",
+    "MEGANE III Hatchback": "MEGANE Hatchback",
+    "MEGANE IV Hatchback": "MEGANE Hatchback",
+    "TWINGO III": "TWINGO"
+  },
+  "SEAT": {
+    "IBIZA Mk IV SC": "IBIZA SC",
+    "IBIZA Mk V": "IBIZA",
+    "TOLEDO IV": "TOLEDO"
+  },
+  "Skoda": {
+    "FABIA III": "FABIA",
+    "FABIA IV": "FABIA",
+    "KODIAQ I": "KODIAQ",
+    "OCTAVIA III": "OCTAVIA",
+    "OCTAVIA III Combi": "OCTAVIA Combi",
+    "OCTAVIA IV": "OCTAVIA",
+    "OCTAVIA IV Combi": "OCTAVIA Combi",
+    "SUPERB III": "SUPERB",
+    "SUPERB III Estate": "SUPERB Estate"
+  },
+  "Subaru": {
+    "LEGACY V": "LEGACY"
+  },
+  "Suzuki": {
+    "SWIFT III": "SWIFT",
+    "SWIFT V": "SWIFT"
+  },
+  "Volkswagen": {
+    "CADDY IV Box Body/MPV": "CADDY Box Body/MPV",
+    "CADDY IV Estate": "CADDY Estate",
+    "CADDY V Box Body/MPV": "CADDY Box Body/MPV",
+    "CADDY V MPV": "CADDY MPV",
+    "CARAVELLE Mk VI": "CARAVELLE",
+    "GOLF VII": "GOLF",
+    "GOLF VII Estate": "GOLF Estate",
+    "GOLF VIII": "GOLF",
+    "GOLF VIII Estate": "GOLF Estate",
+    "JETTA IV": "JETTA",
+    "POLO Saloon IV": "POLO Saloon",
+    "POLO V": "POLO",
+    "POLO VI": "POLO",
+    "SCIROCCO III": "SCIROCCO",
+    "TIGUAN I": "TIGUAN",
+    "TIGUAN II": "TIGUAN",
+    "TRANSPORTER CARAVELLE Mk VI Bus": "TRANSPORTER CARAVELLE Bus",
+    "TRANSPORTER Mk V Box": "TRANSPORTER Box",
+    "TRANSPORTER Mk VI Box": "TRANSPORTER Box"
+  },
+  "Volvo": {
+    "S60 II": "S60",
+    "S60 II Cross Country": "S60 Cross Country",
+    "S60 III": "S60",
+    "S90 II": "S90",
+    "V60 I Cross Country": "V60 Cross Country",
+    "V60 II": "V60",
+    "V90 II Estate": "V90 Estate"
+  }
+}
