@@ -87,7 +87,7 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
-import { splitVehicleChassisCodes } from "@/lib/shopVehicleTaxonomy";
+import { splitVehicleChassisCodes, vehicleMakeAliases, vehicleModelAliases } from "@/lib/shopVehicleTaxonomy";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
@@ -841,11 +841,11 @@ async function resolveCanonicalVehicleProductIds(input: {
     ) => ({
       dimension,
       state: "EXACT" as const,
-      textValue: { equals: value, mode: "insensitive" as const },
+      textValue: { in: dimension === "MAKE" ? vehicleMakeAliases(value) : [value], mode: "insensitive" as const },
     });
     const modelAliases = input.model
       ? [
-          input.model,
+          ...vehicleModelAliases(input.make, input.model),
           ...(await prisma.shopCatalogProjectionConstraint.findMany({
             where: {
               dimension: "MODEL",
@@ -932,7 +932,7 @@ async function resolveCanonicalVehicleProductIds(input: {
           isUniversal: false,
           verificationStatus: { not: "BLOCKED" },
           ...(input.scope ? { scope: input.scope } : {}),
-          ...(input.make ? { make: { equals: input.make, mode: "insensitive" } } : {}),
+          ...(input.make ? { make: { in: vehicleMakeAliases(input.make), mode: "insensitive" } } : {}),
           ...(input.model
             ? { model: { in: uniqueModelAliases, mode: "insensitive" } }
             : {}),
