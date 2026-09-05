@@ -23,13 +23,10 @@ const line = {
 async function productImage(src: string | null | undefined): Promise<Buffer | null> {
   if (!src) return null;
   try {
-    if (src.startsWith("/") && !src.startsWith("//")) {
-      const root = path.resolve(process.cwd(), "public");
-      const file = path.resolve(root, src.slice(1));
-      if (!file.startsWith(root + path.sep) || !/\.(png|jpe?g)$/i.test(file)) return null;
-      return await readFile(file);
-    }
-    const url = new URL(src);
+    // Product media is served by the CDN, never bundled from the whole public tree.
+    // Only the fixed logo/font paths below belong in the serverless function.
+    if (src.startsWith("//") || src.includes("\\")) return null;
+    const url = src.startsWith("/") ? new URL(src, "https://onecompany.global") : new URL(src);
     if (
       url.protocol !== "https:" ||
       !(
