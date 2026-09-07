@@ -32,6 +32,12 @@ Commit `b63d41ac` centralizes bounded catalog URL parsing for SSR hydration and
 history state. Invalid page, year, sort, stock, currency, and vehicle values
 fall back deterministically; the focused URL suite passes 2/2.
 
+Commit `43be32e5` centralizes the Catalog V2 storefront query DTO. Page/limit,
+keyset cursor, brands, category, scope, stock, prices, currency, sorting,
+product filters, facets, OPF/GPF, and vehicle dimensions now have one bounded
+parser for records and `URLSearchParams`. The storefront reader suite passes
+12/12, with TypeScript and commit hooks passing.
+
 R02 coverage work is in commits `319ec361` and `0216429f`: a deterministic
 source-revision coverage manifest records immutable revision heads and blocks
 selector publication for missing, partial, unexpected, duplicate, or tampered
