@@ -19,6 +19,7 @@ import {
   vehicleMakeAliases,
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
+import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
@@ -415,6 +416,52 @@ function escapeLike(value: string) {
   return value.replace(/([\\%_])/g, "\\$1");
 }
 
+function compactSearchCode(value: string) {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function isStructuredSearchCode(value: string) {
+  return value.length >= 4 && /[a-z]/u.test(value) && /\d/u.test(value);
+}
+
+/**
+ * Projection search text is normalized at build time. Matching the raw query
+ * as one contiguous phrase made valid vehicle searches order-sensitive (for
+ * example, `G90 BMW M5`) and missed SKUs whose separators differ from the
+ * stored value. Keep all query tokens mandatory, while allowing an exact
+ * normalized product or variant SKU to win independently.
+ */
+function projectionSearchConditionSql(text: string) {
+  const tokens = tokenizeShopSearchQuery(text);
+  const normalized = normalizeShopSearchText(text);
+  const tokenCondition = tokens.length
+    ? Prisma.sql`(${Prisma.join(
+        tokens.map(
+          (token) =>
+            Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(token)}%`} ESCAPE '\\'`
+        ),
+        " AND "
+      )})`
+    : Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(normalized)}%`} ESCAPE '\\'`;
+  const compact = compactSearchCode(text);
+  if (!isStructuredSearchCode(compact)) return tokenCondition;
+  return Prisma.sql`(
+    lower(coalesce(projection."normalizedSku", '')) = lower(${compact})
+    OR EXISTS (
+      SELECT 1
+      FROM "ShopCatalogProjectionSku" projection_sku
+      WHERE projection_sku."productId" = projection."productId"
+        AND projection_sku."sourceVersion" = projection."sourceVersion"
+        AND lower(projection_sku."normalizedSku") = lower(${compact})
+      OFFSET 0
+    )
+    OR ${tokenCondition}
+  )`;
+}
+
 function correlatedTextConstraintSql(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
@@ -504,9 +551,7 @@ function projectionFacetBaseConditions(
     );
   }
   if (input.text) {
-    conditions.push(
-      Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(input.text)}%`} ESCAPE '\\'`
-    );
+    conditions.push(projectionSearchConditionSql(input.text));
   }
   return conditions;
 }
@@ -1040,6 +1085,27 @@ export function buildShopCatalogProjectionWhere(
     and.push({ productId: { notIn: [...input.excludeProductIds] } });
   }
 
+  if (input.text) {
+    const tokens = tokenizeShopSearchQuery(input.text);
+    const normalized = normalizeShopSearchText(input.text);
+    const compact = compactSearchCode(input.text);
+    const tokenCondition = tokens.length
+      ? {
+          AND: tokens.map((token) => ({
+            searchText: { contains: token, mode: "insensitive" as const },
+          })),
+        }
+      : { searchText: { contains: normalized, mode: "insensitive" as const } };
+    and.push({
+      OR: [
+        ...(isStructuredSearchCode(compact)
+          ? [{ normalizedSku: { equals: compact, mode: "insensitive" as const } }]
+          : []),
+        tokenCondition,
+      ],
+    });
+  }
+
   return {
     locale: input.locale,
     isPublished: true,
@@ -1047,11 +1113,6 @@ export function buildShopCatalogProjectionWhere(
     ...(input.productIds ? { productId: { in: [...input.productIds] } } : {}),
     ...(input.scope ? { scopeKey: input.scope } : {}),
     ...(and.length ? { AND: and } : {}),
-    ...(input.text
-      ? {
-          searchText: { contains: input.text, mode: "insensitive" },
-        }
-      : {}),
     ...(constraints.length
       ? {
           product: {

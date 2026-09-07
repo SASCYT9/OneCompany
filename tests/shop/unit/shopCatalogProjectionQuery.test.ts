@@ -187,6 +187,33 @@ test("vehicle query is product-first, clause-correlated, and planner-fenced", as
   assert.equal(query.values.includes(2019), true);
 });
 
+test("projection text search accepts reordered vehicle tokens and exact variant SKUs", async () => {
+  const { buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionWhere } =
+    await queryModule;
+  const query = buildShopCatalogProjectionVehicleQuerySql({
+    locale: "en",
+    text: "G90 BMW M5 S68",
+    make: "BMW",
+    model: "M5",
+    generation: "G90",
+    engine: "S68",
+  });
+  assert.ok(query);
+  assert.equal(query.values.includes("%g90%"), true);
+  assert.equal(query.values.includes("%bmw%"), true);
+  assert.equal(query.values.includes("%m5%"), true);
+  assert.equal(query.values.includes("%s68%"), true);
+  assert.match(query.sql, /ShopCatalogProjectionSku/);
+  assert.doesNotMatch(query.sql, /%G90 BMW M5 S68%/);
+
+  const where = buildShopCatalogProjectionWhere({ locale: "en", text: "G90 BMW M5" });
+  const serialized = JSON.stringify(where);
+  assert.match(serialized, /"contains":"g90"/);
+  assert.match(serialized, /"contains":"bmw"/);
+  assert.match(serialized, /"contains":"m5"/);
+  assert.doesNotMatch(serialized, /G90 BMW M5/);
+});
+
 test("vehicle SQL path stays disabled when no compatibility filter is selected", async () => {
   const { buildShopCatalogProjectionVehicleQuerySql } = await queryModule;
   assert.equal(
