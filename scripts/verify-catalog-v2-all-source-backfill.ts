@@ -134,25 +134,40 @@ async function load() {
     manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
       stores: Record<string, { file: string; count: number }>;
     },
-    sources: Array<{ name: keyof typeof builders; products: Snapshot[]; revision: string }> = [];
+    sources: Array<{ name: keyof typeof builders; products: Snapshot[]; revision: string }> = [],
+    unsupportedSources: Array<{ name: string; records: number; revision: string }> = [];
+  let manifestRecords = 0;
   for (const [name, descriptor] of Object.entries(manifest.stores)) {
     const raw = await readFile(resolve(dirname(manifestPath), descriptor.file), "utf8"),
       revision = createHash("sha256").update(raw).digest("hex").slice(0, 12),
       products = JSON.parse(raw) as Snapshot[];
     if (products.length !== descriptor.count || !descriptor.file.includes(`.${revision}.json`))
       throw new Error(`${name} immutable shard mismatch`);
+    manifestRecords += products.length;
     if (name === "generic") {
       const eventuri = products.filter((product) => product.brand?.toLowerCase() === "eventuri"),
         remus = products.filter((product) => product.brand?.toLowerCase() === "remus");
-      if (eventuri.length + remus.length !== products.length)
-        throw new Error("Generic partition is incomplete");
+      const unsupported = new Map<string, number>();
+      for (const product of products) {
+        if (["eventuri", "remus"].includes(product.brand?.toLowerCase() ?? "")) continue;
+        const brand = product.brand || "<missing brand>";
+        unsupported.set(brand, (unsupported.get(brand) ?? 0) + 1);
+      }
+      for (const [brand, records] of unsupported)
+        unsupportedSources.push({ name: brand, records, revision });
       sources.push(
         { name: "eventuri", products: eventuri, revision },
         { name: "remus", products: remus, revision }
       );
-    } else sources.push({ name: name as keyof typeof builders, products, revision });
+    } else if (Object.hasOwn(builders, name)) {
+      sources.push({ name: name as keyof typeof builders, products, revision });
+    } else unsupportedSources.push({ name, records: products.length, revision });
   }
-  return sources.sort((left, right) => left.name.localeCompare(right.name));
+  return {
+    sources: sources.sort((left, right) => left.name.localeCompare(right.name)),
+    unsupportedSources,
+    manifestRecords,
+  };
 }
 async function main() {
   const startedAt = Date.now(),
@@ -160,9 +175,13 @@ async function main() {
   if (!commitSha || !/^[a-f0-9]{40}$/.test(commitSha))
     throw new Error("CATALOG_GATE_COMMIT_SHA must be a full 40-character Git commit SHA");
   const client = new PrismaClient({ datasources: { db: { url: assertDatabaseUrl() } } }),
-    sources = await load(),
+    { sources, unsupportedSources, manifestRecords } = await load(),
     products = sources.flatMap((source) => source.products),
     draftsBySource = new Map<string, Draft[]>();
+  if (unsupportedSources.length)
+    process.stdout.write(
+      `[all-source-gate] UNVERIFIED sources (overall gate will fail): ${JSON.stringify(unsupportedSources)}\n`
+    );
   try {
     for (const page of pages(products, 500))
       await client.shopProduct.createMany({
@@ -343,6 +362,9 @@ async function main() {
     );
     const report = {
       version: 5,
+      passed: selectorCoverage.passed && unsupportedSources.length === 0,
+      manifestRecords,
+      unsupportedSources,
       selectorCoverage,
       commitSha,
       generatedAt: new Date().toISOString(),
@@ -383,6 +405,10 @@ async function main() {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     if (!selectorCoverage.passed)
       throw new Error("Selector coverage failed; see the commit-bound all-source gate report");
+    if (unsupportedSources.length)
+      throw new Error(
+        "Some current manifest sources have no persistence coverage adapter; see unsupportedSources in the gate report"
+      );
   } finally {
     await client.$disconnect();
   }
