@@ -93,7 +93,7 @@ test("Atomic feed cron groups variant updates behind product catalog locks", () 
   assert.match(source, /runShopCatalogOutboxRuntime/);
   assert.match(
     source,
-    /revalidateShopStorefrontProducts\(changedProducts\.filter\(\(product\) => !createdProductIds\.has\(product\.id\)\), true\)/
+    /revalidateShopStorefrontProducts\(\s*changedProducts\.filter\(\(product\) => !createdProductIds\.has\(product\.id\)\),\s*true\s*\)/
   );
   assert.match(source, /createdProductIds\.has/);
   assert.doesNotMatch(source, /revalidatePath\("\/",\s*"layout"\)/);
