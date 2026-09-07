@@ -22,6 +22,14 @@ before persistence while allowing explicit review state. It is not yet wired to
 the live import coordinator or fitment route; that integration remains part of
 R01/R03.
 
+The R10/R05 cost and search pass is included in commit `3a90621d` (with the
+deterministic install change in `08835e1c`). Build snapshot generation now
+reuses the shared Prisma singleton, while ordinary product/SKU searches skip
+vehicle-fitment enrichment and vehicle resolution retains only the fields it
+needs. Focused vehicle-search tests (20/20) and TypeScript pass. Full catalog
+snapshot generation on every production build remains the largest build-cost
+item and needs a separately published artifact/cache design.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
