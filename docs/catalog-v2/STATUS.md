@@ -854,3 +854,5 @@ The storefront browser gate now accepts bounded viewport dimensions so mobile ev
 Commit `bcc87f84` closes the unsafe projection selector fallback: when `ssr` or an authorized canary request lacks a complete versioned selector artifact, the fitment endpoint returns bounded `503 SELECTOR_NOT_READY` with `Retry-After` instead of loading the full catalog. Reader-off preserves the legacy fallback until the all-source artifact is published.
 
 Commit `014bfeda` includes filter indexes in the content-addressed build artifact. A keyed, complete artifact restores all eight indexes atomically; missing, stale, wrong-key, malformed, or tampered bundles regenerate from the database and are never served partially. The authoritative build pipeline still needs to provide the immutable artifact key.
+
+Current R03 safety state: commit `bcc87f84` prevents enabled `ssr/canary` fitment requests from entering the legacy full-catalog fallback and returns `SELECTOR_NOT_READY` until a complete selector artifact is published. This removes the unsafe request path; it does not claim A4/Q5 completeness. Reader-off remains the intentional legacy compatibility mode.
