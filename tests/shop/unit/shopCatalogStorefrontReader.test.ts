@@ -45,35 +45,51 @@ test("Catalog V2 storefront reader is fail-closed and requires explicit SSR mode
 
 test("storefront query maps bounded progressive filters and a complete keyset cursor", async () => {
   const { parseShopCatalogStorefrontQuery } = await queryModule;
-  assert.deepEqual(
-    parseShopCatalogStorefrontQuery("ua", {
-      q: "  intake  ",
-      brand: ["Eventuri", "ignored"],
-      make: "BMW",
-      model: "M2",
-      generation: "G87",
-      year: "2024",
-      engine: "S58",
-      fuel: "petrol",
-      afterRank: "12.50",
-      afterProduct: "product-42",
-    }),
-    {
-      locale: "ua",
-      limit: 24,
-      after: { stableRank: "12.50", productId: "product-42" },
-      text: "intake",
-      scope: null,
-      brand: "Eventuri",
-      category: null,
-      make: "BMW",
-      model: "M2",
-      generation: "G87",
-      year: 2024,
-      engine: "S58",
-      fuel: "petrol",
-    }
-  );
+  const parsed = parseShopCatalogStorefrontQuery("ua", {
+    q: "  intake  ",
+    brand: ["Eventuri", "ignored"],
+    make: "BMW",
+    model: "M2",
+    generation: "G87",
+    year: "2024",
+    engine: "S58",
+    fuel: "petrol",
+    afterRank: "12.50",
+    afterProduct: "product-42",
+  });
+  assert.deepEqual(parsed, {
+    locale: "ua",
+    limit: 24,
+    offset: 0,
+    page: 1,
+    after: { stableRank: "12.50", productId: "product-42" },
+    text: "intake",
+    scope: null,
+    brands: ["Eventuri", "ignored"],
+    brand: "Eventuri",
+    category: null,
+    make: "BMW",
+    model: "M2",
+    generation: "G87",
+    year: 2024,
+    engine: "S58",
+    fuel: "petrol",
+    opfGpf: null,
+    productIds: null,
+    excludeProductIds: null,
+    minPrice: null,
+    maxPrice: null,
+    priceCurrency: "USD",
+    order: "default",
+    orderSeed: null,
+    useEuropePrice: false,
+    stock: "all",
+    productType: null,
+    productKind: null,
+    strict: false,
+    facetMode: "filtered",
+    country: null,
+  });
 });
 
 test("storefront query ignores malformed optional filters instead of broadening compatibility", async () => {
@@ -87,6 +103,52 @@ test("storefront query ignores malformed optional filters instead of broadening 
   assert.equal(parsed.text, null);
   assert.equal(parsed.year, null);
   assert.equal(parsed.after, null);
+});
+
+test("storefront DTO carries bounded price, stock, scope, facets and product filters", async () => {
+  const { parseShopCatalogStorefrontQuery } = await queryModule;
+  const params = new URLSearchParams([
+    ["page", "3"],
+    ["limit", "40"],
+    ["brand", "BMW"],
+    ["brand", " BMW "],
+    ["brand", "Audi"],
+    ["category", "downpipe"],
+    ["productType", "Exhaust"],
+    ["productKind", "downpipe"],
+    ["scope", "MOTO"],
+    ["stock", "inStock"],
+    ["sort", "price_desc"],
+    ["currency", "EUR"],
+    ["europePrice", "true"],
+    ["minPrice", "900"],
+    ["maxPrice", "100"],
+    ["strict", "1"],
+    ["facetMode", "global"],
+    ["country", "DE"],
+    ["chassis", "G90"],
+    ["opfGpf", " WITH "],
+  ]);
+  const parsed = parseShopCatalogStorefrontQuery("en", params);
+  assert.equal(parsed.page, 3);
+  assert.equal(parsed.limit, 40);
+  assert.equal(parsed.offset, 80);
+  assert.deepEqual(parsed.brands, ["BMW", "Audi"]);
+  assert.equal(parsed.brand, "BMW");
+  assert.equal(parsed.scope, "moto");
+  assert.equal(parsed.stock, "inStock");
+  assert.equal(parsed.order, "price_desc");
+  assert.equal(parsed.priceCurrency, "EUR");
+  assert.equal(parsed.useEuropePrice, true);
+  assert.equal(parsed.minPrice, 100);
+  assert.equal(parsed.maxPrice, 900);
+  assert.equal(parsed.productType, "Exhaust");
+  assert.equal(parsed.productKind, "downpipe");
+  assert.equal(parsed.strict, true);
+  assert.equal(parsed.facetMode, "global");
+  assert.equal(parsed.country, "DE");
+  assert.equal(parsed.generation, "G90");
+  assert.equal(parsed.opfGpf, "with");
 });
 
 test("catalog page keeps the premium UI while its API reads the bounded projection", () => {
