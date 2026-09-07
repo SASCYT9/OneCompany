@@ -18,7 +18,7 @@ const artifactModule = import("../../../src/lib/shopCatalogSelectorArtifact.serv
 
 const state = {
   canonicalVersion: "7",
-  projectionVersion: 7n,
+  projectionVersion: BigInt(7),
   fingerprint: "a".repeat(64),
 };
 const checkpoint = { status: "COMPLETED", projectionSchemaVersion: 1 };

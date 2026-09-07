@@ -125,6 +125,34 @@ function missingSchema(error: unknown) {
 export async function readShopCatalogSelectorArtifactReadiness(
   client: SelectorArtifactClient = prisma
 ): Promise<ShopCatalogSelectorArtifactReadiness> {
+  if (client === prisma) {
+    const now = Date.now();
+    if (readinessCache && readinessCache.expiresAt > now) return readinessCache.value;
+    if (readinessInFlight) return readinessInFlight;
+    readinessInFlight = readShopCatalogSelectorArtifactReadinessUncached(client)
+      .then((value) => {
+        readinessCache = { value, expiresAt: Date.now() + SHOP_CATALOG_SELECTOR_READINESS_TTL_MS };
+        return value;
+      })
+      .finally(() => {
+        readinessInFlight = null;
+      });
+    return readinessInFlight;
+  }
+  return readShopCatalogSelectorArtifactReadinessUncached(client);
+}
+
+/** Keep the release check short-lived and single-flight in warm server isolates. */
+export const SHOP_CATALOG_SELECTOR_READINESS_TTL_MS = 15_000 as const;
+let readinessCache: {
+  value: ShopCatalogSelectorArtifactReadiness;
+  expiresAt: number;
+} | null = null;
+let readinessInFlight: Promise<ShopCatalogSelectorArtifactReadiness> | null = null;
+
+async function readShopCatalogSelectorArtifactReadinessUncached(
+  client: SelectorArtifactClient
+): Promise<ShopCatalogSelectorArtifactReadiness> {
   try {
     const [stateRows, checkpointRows] = await Promise.all([
       client.$queryRaw<
@@ -186,19 +214,25 @@ export async function readShopCatalogSelectorArtifactReadiness(
       ),
       current_policies AS (
         SELECT DISTINCT policy."productId"
-        FROM "ShopCatalogProjectionPolicy" policy
-        WHERE policy."sourceVersion" = ${BigInt(projectionVersion)}
+        FROM active
+        JOIN "ShopCatalogProjectionPolicy" policy
+          ON policy."productId" = active."productId"
+         AND policy."sourceVersion" = ${BigInt(projectionVersion)}
       ),
       bad_clauses AS (
         SELECT DISTINCT clause."productId"
-        FROM "ShopCatalogProjectionClause" clause
-        WHERE clause."sourceVersion" = ${BigInt(projectionVersion)}
+        FROM active
+        JOIN "ShopCatalogProjectionClause" clause
+          ON clause."productId" = active."productId"
+         AND clause."sourceVersion" = ${BigInt(projectionVersion)}
           AND clause."verification" <> 'VERIFIED'
       ),
       unknown_constraints AS (
         SELECT DISTINCT constraint_row."productId"
-        FROM "ShopCatalogProjectionConstraint" constraint_row
-        WHERE constraint_row."sourceVersion" = ${BigInt(projectionVersion)}
+        FROM active
+        JOIN "ShopCatalogProjectionConstraint" constraint_row
+          ON constraint_row."productId" = active."productId"
+         AND constraint_row."sourceVersion" = ${BigInt(projectionVersion)}
           AND constraint_row."state" = 'UNKNOWN'
       )
       SELECT
