@@ -565,7 +565,7 @@ export function buildVehicleSearchDebug(expandedQuery: ShopVehicleSearchExpansio
   };
 }
 
-type CatalogVehicleResolutionItem = {
+export type CatalogVehicleResolutionItem = {
   fitment: {
     make: string | null;
     models: string[];
@@ -574,6 +574,35 @@ type CatalogVehicleResolutionItem = {
   };
   titleText: string;
 };
+
+/**
+ * Catalog enrichment only resolves vehicle-shaped queries.  Product and SKU
+ * searches already have all required lexical fields and should not pay for a
+ * full fitment scan before scoring.
+ */
+export function shouldEnrichVehicleSearchFromCatalog(
+  expandedQuery: Pick<ShopVehicleSearchExpansion, "intent">
+) {
+  return expandedQuery.intent === "vehicle" || expandedQuery.intent === "mixed";
+}
+
+/**
+ * Keep the catalog-to-search boundary small.  The resolver reads only these
+ * two fields; copying the complete product/index entry for every fitment
+ * needlessly retains prices, variants, and the nested fitment array.
+ */
+export function projectCatalogVehicleResolutionItems<
+  T extends CatalogVehicleResolutionItem & {
+    fitments?: Array<CatalogVehicleResolutionItem["fitment"]>;
+  },
+>(items: T[]): CatalogVehicleResolutionItem[] {
+  return items.flatMap((item) =>
+    (item.fitments ?? [item.fitment]).map((fitment) => ({
+      fitment,
+      titleText: item.titleText,
+    }))
+  );
+}
 
 export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutionItem>(
   expandedQuery: ShopVehicleSearchExpansion,

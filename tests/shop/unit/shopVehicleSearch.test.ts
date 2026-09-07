@@ -5,9 +5,43 @@ import {
   enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
   parseVehicleSearchQuery,
+  projectCatalogVehicleResolutionItems,
   scoreVehicleSearchItem,
+  shouldEnrichVehicleSearchFromCatalog,
 } from "../../../src/lib/shopVehicleSearch";
 import { extractVehicleYearRanges } from "../../../src/lib/shopVehicleYears";
+
+test("catalog enrichment skips ordinary product and SKU queries", () => {
+  assert.equal(
+    shouldEnrichVehicleSearchFromCatalog(expandVehicleAliases("Burger Motorsports")),
+    false
+  );
+  assert.equal(shouldEnrichVehicleSearchFromCatalog(expandVehicleAliases("S-PO/T/8")), false);
+  assert.equal(shouldEnrichVehicleSearchFromCatalog(expandVehicleAliases("BMW M5 G90")), true);
+});
+
+test("catalog enrichment projection keeps only fitment and title fields", () => {
+  const fitment = {
+    make: "BMW",
+    models: ["M5"],
+    chassisCodes: ["G90"],
+    yearRanges: [{ from: 2024, to: null }],
+  };
+  assert.deepEqual(
+    projectCatalogVehicleResolutionItems([
+      {
+        titleText: "burger motorsports m5",
+        fitment,
+        fitments: [fitment, { ...fitment, chassisCodes: ["G99"] }],
+        product: { variants: new Array(1000).fill({}) },
+      },
+    ]),
+    [
+      { titleText: "burger motorsports m5", fitment },
+      { titleText: "burger motorsports m5", fitment: { ...fitment, chassisCodes: ["G99"] } },
+    ]
+  );
+});
 
 test("G8X expands to BMW M cars and G8x chassis aliases", () => {
   const expanded = expandVehicleAliases("G8X");

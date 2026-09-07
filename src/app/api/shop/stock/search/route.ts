@@ -34,7 +34,9 @@ import {
   enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
   isStructuredPartQuery,
+  projectCatalogVehicleResolutionItems,
   scoreVehicleSearchItem,
+  shouldEnrichVehicleSearchFromCatalog,
   type ShopVehicleSearchExpansion,
 } from "@/lib/shopVehicleSearch";
 import {
@@ -1293,12 +1295,10 @@ export async function GET(request: NextRequest) {
     // 2. Search query with relevance scoring
     const queryTokens = tokenizeShopSearchQuery(q);
     let expandedQuery = q ? expandVehicleAliases(q) : null;
-    if (expandedQuery) {
+    if (expandedQuery && shouldEnrichVehicleSearchFromCatalog(expandedQuery)) {
       expandedQuery = enrichVehicleSearchFromCatalog(
         expandedQuery,
-        productsWithFitments.flatMap((item) =>
-          item.fitments.map((fitment) => ({ ...item, fitment }))
-        ),
+        projectCatalogVehicleResolutionItems(productsWithFitments),
         {
           isExpectedChassis: isExpectedChassisForMakeModel,
         }

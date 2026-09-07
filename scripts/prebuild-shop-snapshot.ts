@@ -21,15 +21,14 @@
  */
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
-import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 import crypto from "node:crypto";
 
-import {
-  getShopProductsBySlugsServer,
-  getShopProductsServer,
-} from "../src/lib/shopCatalogServer";
+import { getShopProductsBySlugsServer, getShopProductsServer } from "../src/lib/shopCatalogServer";
+// Reuse the shared singleton: shopCatalogServer uses the same client, and
+// opening a second pool during a Vercel build can exhaust the database cap.
+import { prisma } from "../src/lib/prisma";
 import { resolveShopStorefrontSegment } from "../src/lib/shopStorefrontRouting";
 import {
   assertSafeCatalogReplacement,
@@ -61,7 +60,6 @@ async function recoverProductsWithRetry(slugs: string[]) {
 }
 
 async function main() {
-  const prisma = new PrismaClient();
   let stagedFallbackDirectory: string | null = null;
   try {
     console.log("[prebuild-shop-snapshot] fetching settings and product count...");
