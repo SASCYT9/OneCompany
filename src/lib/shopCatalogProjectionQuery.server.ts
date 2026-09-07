@@ -966,7 +966,8 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     input.order === "default" &&
     input.offset === 0 &&
     input.minPrice == null &&
-    input.maxPrice == null
+    input.maxPrice == null &&
+    input.text == null
   )
     return null;
   const reuseEffectivePrice = Boolean(

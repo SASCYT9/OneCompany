@@ -214,6 +214,23 @@ test("projection text search accepts reordered vehicle tokens and exact variant 
   assert.doesNotMatch(serialized, /G90 BMW M5/);
 });
 
+test("default text search uses the SQL path so variant SKUs remain searchable", async () => {
+  const { buildShopCatalogProjectionOrderedQuerySql, buildShopCatalogProjectionVehicleQuerySql } =
+    await queryModule;
+  const query = buildShopCatalogProjectionOrderedQuerySql({
+    locale: "en",
+    text: "burger-bm5-g90",
+  });
+  assert.ok(query);
+  assert.match(query.sql, /ShopCatalogProjectionSku/);
+  assert.equal(query.values.includes("%burger%"), true);
+  assert.equal(query.values.includes("%bm5%"), true);
+  assert.equal(
+    buildShopCatalogProjectionVehicleQuerySql({ locale: "en", text: "burger-bm5-g90" }),
+    null
+  );
+});
+
 test("vehicle SQL path stays disabled when no compatibility filter is selected", async () => {
   const { buildShopCatalogProjectionVehicleQuerySql } = await queryModule;
   assert.equal(
