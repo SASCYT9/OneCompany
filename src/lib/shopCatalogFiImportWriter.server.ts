@@ -10,6 +10,8 @@ import {
   type FiFitmentEntry,
 } from "./shopCatalogFiDraft";
 import { buildFiPolicyEvidence } from "./shopCatalogFiPolicyEvidence";
+import { buildFiCompatibilityPolicy } from "./shopCatalogFiPolicyEvidence";
+import { persistCanonicalPolicyInTransaction } from "./shopCatalogCanonicalPolicyPersistence.server";
 import { buildShopCatalogImportProvenance } from "./shopCatalogImportProvenance";
 import {
   acquireCatalogCanonicalLocks,
@@ -266,6 +268,17 @@ export async function insertFiDraftWithClient(input: {
             } as Prisma.InputJsonValue,
           })),
         });
+      // Persist FI's paired fitment policy atomically with the source record.
+      // The policy carries UNKNOWN for dimensions FI does not provide and the
+      // product remains unpublished until the normal Catalog V2 coordinator
+      // validates and publishes a complete revision.
+      await persistCanonicalPolicyInTransaction({
+        tx,
+        sourceId: dependencies.sourceId,
+        sourceRecordId: sourceRecord.id,
+        policy: buildFiCompatibilityPolicy(product.id, input.fitment),
+        label: "FI",
+      });
       return { status: "inserted" as const, productId: product.id };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 }

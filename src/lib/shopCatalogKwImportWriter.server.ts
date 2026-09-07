@@ -5,7 +5,8 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { hashKwSourceProduct, type KwCanonicalProductDraft } from "./shopCatalogKwDraft";
 import type { ShopifySnapshotProduct } from "./shopifyCatalogSnapshot";
 import { buildKwPolicyEvidence } from "./shopCatalogKwPolicyEvidence";
-import { buildKwNormalizedFitment } from "./shopCatalogKwNormalization";
+import { buildKwCompatibilityPolicy, buildKwNormalizedFitment } from "./shopCatalogKwNormalization";
+import { persistCanonicalPolicyInTransaction } from "./shopCatalogCanonicalPolicyPersistence.server";
 import { buildShopCatalogImportProvenance } from "./shopCatalogImportProvenance";
 import {
   acquireCatalogCanonicalLocks,
@@ -304,6 +305,18 @@ export async function insertKwDraftWithClient(input: {
             } as Prisma.InputJsonValue,
           })),
         });
+      // Persist the V2 policy from the complete source evidence in this same
+      // transaction. Unknown make and multi-chassis clauses are represented by
+      // UNKNOWN/text values and retain their INFERRED/NEEDS_REVIEW status; the
+      // lossless validator rejects any accidental exact null or raw VERIFIED
+      // engine before a row can become active.
+      await persistCanonicalPolicyInTransaction({
+        tx,
+        sourceId: dependencies.sourceId,
+        sourceRecordId: sourceRecord.id,
+        policy: buildKwCompatibilityPolicy(product.id, draft.normalization),
+        label: "KW",
+      });
       return { status: "inserted" as const, productId: product.id };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 }

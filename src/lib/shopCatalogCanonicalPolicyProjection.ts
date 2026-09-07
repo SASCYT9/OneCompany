@@ -99,7 +99,11 @@ export function canonicalPoliciesToProjectionV2(
             return value.textValue;
           }
           if (mapped === "make") return value.make?.name ?? null;
-          if (mapped === "model") return value.model?.name ?? null;
+          // A source may know a model while its make correlation is unresolved
+          // (KW is the concrete case). Keep the source text instead of forcing
+          // a fabricated taxonomy node; reviewed canonical clauses can still be
+          // projected and remain visibly non-verified.
+          if (mapped === "model") return value.model?.name ?? value.textValue ?? null;
           if (mapped === "generation")
             return value.generation?.generationName ?? value.generation?.chassisCode ?? null;
           if (mapped === "chassis") return value.textValue ?? value.generation?.chassisCode ?? null;
