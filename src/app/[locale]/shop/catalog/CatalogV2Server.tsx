@@ -11,6 +11,7 @@ import CatalogV2Filters from "./CatalogV2Filters";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { getShopCatalogImageLoading } from "@/lib/shopCatalogImageLoading";
 
 type CatalogCardPrice = {
   price: ShopMoneySet;
@@ -131,7 +132,7 @@ export default function CatalogV2Server({
                         src={item.primaryMediaUrl}
                         alt={item.title}
                         fill
-                        priority={index < 4}
+                        {...getShopCatalogImageLoading(index)}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         className="object-contain p-5 transition-transform duration-500 group-hover:scale-[1.03]"
                       />
