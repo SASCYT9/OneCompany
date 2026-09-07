@@ -53,6 +53,26 @@ test("G8X expands to BMW M cars and G8x chassis aliases", () => {
   assert.deepEqual(expanded.platforms, ["G8X"]);
 });
 
+test("BMW M5 G90 keeps the current chassis and S68 powertrain correlated", () => {
+  const expanded = expandVehicleAliases("BMW M5 G90");
+
+  assert.equal(expanded.intent, "mixed");
+  assert.deepEqual(expanded.makes, ["BMW"]);
+  assert.deepEqual(expanded.models, ["M5"]);
+  assert.deepEqual(expanded.chassis, ["G90"]);
+  assert.deepEqual(expanded.engines, ["S68"]);
+  assert.equal(expanded.aliasIds.includes("bmw-m5-g90"), true);
+});
+
+test("BMW M5 without a generation stays broad instead of assuming G90", () => {
+  const expanded = expandVehicleAliases("BMW M5");
+
+  assert.deepEqual(expanded.models, ["M5"]);
+  assert.deepEqual(expanded.chassis, []);
+  assert.deepEqual(expanded.engines, []);
+  assert.equal(expanded.aliasIds.includes("bmw-m5-g90"), false);
+});
+
 test("BMW X6 G06 aliases resolve the regular X6 without broadening to X6 M", () => {
   const expanded = expandVehicleAliases("BMW X6 G06 30d mild hybrid 2020");
 

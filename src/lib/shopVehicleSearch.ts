@@ -53,6 +53,17 @@ type VehicleAliasGroup = {
 
 const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
   {
+    // The current M5 generation is a compound vehicle identity. Keep the
+    // chassis and powertrain together so a G90 query cannot drift into the
+    // older F90 M5 (or the broader BMW M range).
+    id: "bmw-m5-g90",
+    aliases: ["m5 g90", "g90 m5", "bmw m5 g90", "bmw g90"],
+    makes: ["BMW"],
+    models: ["M5"],
+    chassis: ["G90"],
+    engines: ["S68"],
+  },
+  {
     id: "bmw-g8x",
     aliases: ["g8x", "g80", "g81", "g82", "g83", "g87", "m3 g80", "m4 g82", "m2 g87"],
     makes: ["BMW"],
