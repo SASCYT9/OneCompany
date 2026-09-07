@@ -74,10 +74,14 @@ test("every variant pricing path supplies its owning product brand", () => {
 
 test("Catalog V2 SSR uses the shared B2B-gated pricing context", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  assert.match(source, /buildShopViewerPricingContextServer\(\{/);
-  assert.match(source, /customerId: session\?\.customerId/);
+  // Catalog V2 intentionally reuses the Stock page shell; pricing is resolved
+  // by the shared server/API context used by that shell and product routes.
+  assert.match(source, /PremiumCatalogPage from "\.\.\/stock\/page"/);
   assert.doesNotMatch(source, /prisma\.shopBrandB2bDiscount\.findMany/);
   assert.doesNotMatch(source, /prisma\.shopCustomerBrandDiscount\.findMany/);
+  const pricingRoute = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  assert.match(pricingRoute, /buildShopViewerPricingContextServer\(\{/);
+  assert.match(pricingRoute, /customerId: session\?\.customerId/);
 });
 
 test("client viewer context deduplicates and applies four-tier brand discounts", () => {
