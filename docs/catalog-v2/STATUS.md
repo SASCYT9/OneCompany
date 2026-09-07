@@ -862,3 +862,8 @@ Commit `43e7375d` adds mutation-safe storefront cache invalidation: local cache 
 Commit `db56c974` adds the clean-commit storefront acceptance runner covering UA/EN, 390×844 and 1440×1000 browser gates, runtime/build gates, and HTTP JSON contracts. In `ssr`, the expected bounded `SELECTOR_NOT_READY` response is accepted as fail-closed behavior until the selector artifact is published.
 
 The new acceptance matrix was executed on a clean local SSR preview at commit `4727a1b8`: build gate, UA/EN runtime gates, UA/EN browser gates at 390×844 and 1440×1000, and fitment/suggestion HTTP contracts all passed. Runtime TTFB p95 stayed below 300 ms and first response stayed below 100 KiB gzip; the acceptance artifact is `artifacts/catalog-v2-storefront/catalog-v2-storefront-acceptance.json` (ignored, reproducible).
+
+## Immutable source evidence verification (2026-09-07)
+
+- Commit `3524ca81` makes source coverage activation evidence cryptographically self-checking: the persisted SHA-256 is compared with the immutable raw payload, `sourceRevision` is required, and both fields participate in the coverage fingerprint. Missing, malformed, or mismatched evidence fails closed; blob-only payloads report hash availability as unknown rather than inventing a mismatch.
+- Source coverage tests pass locally. The all-source gate remains blocked by the known unverified KW/FI inventory (1,999 KW and 223 FI records); no production backfill, migration, or activation was performed.
