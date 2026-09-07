@@ -106,6 +106,11 @@ cached for 15 seconds; incomplete releases return `null` and retain the legacy
 fallback. The remaining R02 integration is making source coverage markers
 authoritative in the release pipeline.
 
+Commit `2b266327` narrows the readiness unknown-dimension check to canonical
+MAKE gaps. Optional UNKNOWN values such as engine, fuel, or body style remain
+absent from selector options without blocking otherwise valid published
+fitments; missing make identity still fails closed.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
