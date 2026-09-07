@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `4bbf4fec` (guarded projection SSR route)
+Release commit: `ed116c29` (guarded SSR, search, and media optimizations)
 
 ## Included behavior
 
