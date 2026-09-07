@@ -18,9 +18,9 @@ fingerprints, and bounded fingerprint-bound slices. Unknown engine values and
 review clauses fail closed; omitted non-selector dimensions do not hide valid
 vehicle options. The package has 8/8 focused tests, TypeScript, scoped ESLint,
 and `git diff --check` passing. The publication gate blocks excluded clauses
-before persistence while allowing explicit review state. It is not yet wired to
-the live import coordinator or fitment route; that integration remains part of
-R01/R03.
+before persistence while allowing explicit review state. KW/FI import writers
+now persist through this contract; fitment serving remains guarded by published
+readiness metadata.
 
 Commit `c6697b89` adds the pure route adapter for makes, models, chassis,
 details, and engines. It preserves clause correlation and returns `null` for
@@ -103,8 +103,9 @@ and `f17f0dfd`. The canonical fitment reader checks active state, version and
 fingerprint parity, completed rebuild checkpoint, both locales, and bounded
 projection aggregates before serving selectors. The check is single-flight and
 cached for 15 seconds; incomplete releases return `null` and retain the legacy
-fallback. The remaining R02 integration is making source coverage markers
-authoritative in the release pipeline.
+fallback. The checkpointed rebuild coordinator now accepts an explicit complete
+source manifest and persists its source coverage marker atomically with
+finalization; existing callers remain marker-free until they opt in.
 
 Commit `2b266327` narrows the readiness unknown-dimension check to canonical
 MAKE gaps. Optional UNKNOWN values such as engine, fuel, or body style remain
@@ -116,9 +117,10 @@ writers now validate and persist the full V2 policy in the same transaction,
 including review/unknown states and lossless multi-clause evidence; canonical
 projection preserves model text when make taxonomy is unresolved. The same
 commit adds a monotonic source-coverage marker using existing `ShopCatalogState`
-columns, with 4/4 marker tests and 22/22 KW/FI evidence tests passing. Marker
-publication still must be invoked by the source release coordinator before any
-production reader activation.
+columns, with 4/4 marker tests and 22/22 KW/FI evidence tests passing. The marker
+is now available to the release coordinator through checkpoint finalization;
+production reader activation still requires a real complete manifest and signed
+release evidence.
 
 The checkpointed projection coordinator now exposes an explicit
 `sourceCoverage` opt-in on its final empty-page call. When supplied, it marks
