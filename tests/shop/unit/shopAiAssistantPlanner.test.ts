@@ -462,13 +462,14 @@ test("planner recognizes Ukrainian без OPF without relying on ASCII word boun
   assert.equal(plan.requiredDetails?.includes("opfGpf"), false);
 });
 
-test("planner requests engine evidence for chip tuning", () => {
+test("planner resolves the BMW M5 G90 engine for chip tuning", () => {
   const plan = buildFallbackShopAiPlan("RaceChip for BMW M5 G90", {
     locale: "en",
     currency: "EUR",
   });
   assert.equal(plan.category, "chipTuning");
-  assert.ok(plan.requiredDetails?.includes("engine"));
+  assert.equal(plan.vehicle.engine, "S68");
+  assert.equal(plan.requiredDetails?.includes("engine"), false);
 });
 
 test("fallback planner extracts a structured engine code", () => {
