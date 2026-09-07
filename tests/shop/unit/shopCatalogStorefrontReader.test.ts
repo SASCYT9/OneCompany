@@ -229,6 +229,12 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   }
   assert.doesNotMatch(canonical, /shopProductKnowledge|shopVehicleApplication/);
   assert.doesNotMatch(api, /hasCanonicalCatalogCoverage/);
+  assert.match(api, /SELECTOR_NOT_READY/);
+  assert.match(api, /isShopCatalogReaderRequestEnabled\([\s\S]*?\)\s*\)\s*\{[\s\S]*?status: 503/);
+  assert.match(
+    api,
+    /if \(canonical\) return cachedJson\(canonical\);[\s\S]*?SELECTOR_NOT_READY[\s\S]*?getShopProductsWithFitments\(\)/
+  );
   assert.match(canonical, /dimension: "YEAR"/);
   assert.match(canonical, /detailClauseWhere/);
   assert.match(api, /searchParams\.get\("details"\) === "1"/);

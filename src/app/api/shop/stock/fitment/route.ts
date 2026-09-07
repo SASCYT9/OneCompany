@@ -1,6 +1,12 @@
 import { getCanonicalFitmentOptions } from "@/lib/shopCanonicalFitmentOptions.server";
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
+import {
+  isShopCatalogReaderRequestEnabled,
+  resolveShopCatalogReaderFlag,
+  SHOP_CATALOG_V2_READER_MODE_ENV,
+} from "@/lib/shopCatalogReaderFlag.server";
+import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
   filterShopStockItemsByVehicleScope,
@@ -55,6 +61,34 @@ export async function GET(request: NextRequest) {
       details,
     });
     if (canonical) return cachedJson(canonical);
+
+    // An enabled projection reader must never fall through to the legacy
+    // whole-catalog loader.  A complete selector artifact is the release
+    // contract; until its versioned coverage marker is published, return a
+    // retryable bounded response and keep the customer on the legacy reader
+    // through the normal route flag/proxy path.
+    const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
+    if (
+      isShopCatalogReaderRequestEnabled(
+        reader,
+        request.headers.get(SHOP_CATALOG_CANARY_REQUEST_HEADER)
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "Catalog fitment selector is temporarily unavailable",
+          code: "SELECTOR_NOT_READY",
+          data: [],
+        },
+        {
+          status: 503,
+          headers: {
+            "Cache-Control": "no-store, max-age=0",
+            "Retry-After": "15",
+          },
+        }
+      );
+    }
 
     // Transitional fallback until a category has completed its Knowledge V2
     // backfill. It remains deterministic and never relaxes selected values.
