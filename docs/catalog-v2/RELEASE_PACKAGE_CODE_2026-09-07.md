@@ -35,9 +35,10 @@ rollback. Investigate lag/dead-letter/failed-receipt evidence before retrying.
 
 - `npm run typecheck` — pass.
 - Node 22.14.0 selected catalog suite — 344/344 catalog tests and 63/63 stock/pricing tests pass.
-- `npm run shop:catalog:v2:publication:docker` — 30 samples, p95 86.198 ms, p99 132.736 ms, one contention winner.
-- `artifacts/catalog-v2-scale/catalog-v2-scale-gate.json` — 100k/500k query scale evidence tied to commit `18bec8bcf2c4fc8d1dfec7f1ac8e02d09c43522c` (code-equivalent predecessor; rerun after any code change).
-- Local Next production build with readers off passed previously; repeat the clean-commit build gate immediately before release.
+- `npm run shop:catalog:v2:publication:docker` — exact audit baseline `675d829670f5402e99a1c92f63d77afed99f5a63`, 30 samples, p95 83.672 ms, p99 140.939 ms, one contention winner; all 44 migrations replayed.
+- `artifacts/catalog-v2-scale/catalog-v2-scale-gate.json` — exact audit baseline `675d829670f5402e99a1c92f63d77afed99f5a63`, 100k/500k query scale evidence, maximum warm p95 75.541 ms.
+- The executable release code is `43e7375d4592fcb60490ac83a33e9f3c873fb0a`; the audit baseline contains only documentation commits after that code commit. Re-run all commit-bound storefront/build gates after the final release commit is created.
+- The checked-in storefront acceptance artifact is historical (`4727a1b8f600af19a20a7e0bf1544c7ce17145a2`) and is not current release evidence; regenerate it on the final clean commit.
 
 ## Open approval gates
 

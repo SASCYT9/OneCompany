@@ -1,7 +1,7 @@
 # Catalog V2 data/release package
 
 Date: 2026-09-07  
-Code package: `abfa7c79d4c78760dc31ca6705caf02c42451a8f`
+Code package: `43e7375d4592fcb60490ac83a33e9f3c873fb0a`
 
 This document is a runbook for a separately approved production operation. No
 production database was read or written while preparing it.
