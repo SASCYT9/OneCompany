@@ -867,3 +867,5 @@ The new acceptance matrix was executed on a clean local SSR preview at commit `4
 
 - Commit `3524ca81` makes source coverage activation evidence cryptographically self-checking: the persisted SHA-256 is compared with the immutable raw payload, `sourceRevision` is required, and both fields participate in the coverage fingerprint. Missing, malformed, or mismatched evidence fails closed; blob-only payloads report hash availability as unknown rather than inventing a mismatch.
 - Source coverage tests pass locally. The all-source gate remains blocked by the known unverified KW/FI inventory (1,999 KW and 223 FI records); no production backfill, migration, or activation was performed.
+
+The full clean-commit storefront acceptance matrix was regenerated at `c7f2c469`: build, UA/EN runtime, UA/EN browser gates at 390×844 and 1440×1000, and all fitment/suggestion HTTP contracts passed. Runtime TTFB p95 was 25.534 ms (UA) and 23.930 ms (EN); browser filter-navigation p95 stayed below 500 ms and mobile LCP p95 stayed below 136 ms. The artifact is `artifacts/catalog-v2-storefront/catalog-v2-storefront-acceptance.json` (ignored, reproducible).
