@@ -10,15 +10,17 @@ this link does not mark any remaining implementation or release gate complete.
 
 ## Latest local wave: lossless policy and selector contracts (R01/R03 foundation)
 
-Commit `28173047` adds pure, dependency-free contracts for canonical policy
-imports and the versioned selector read model. Unsupported KW/FI clauses remain
+Commits `28173047` and `ee399df3` add pure, dependency-free contracts for canonical policy
+imports, publication gating, and the versioned selector read model. Unsupported KW/FI clauses remain
 explicitly excluded with their raw evidence, while verified clauses produce
 deduplicated, clause-correlated options, coverage metadata, deterministic
 fingerprints, and bounded fingerprint-bound slices. Unknown engine values and
 review clauses fail closed; omitted non-selector dimensions do not hide valid
 vehicle options. The package has 8/8 focused tests, TypeScript, scoped ESLint,
-and `git diff --check` passing. It is not yet wired to production publication or
-the fitment route; that integration remains part of R01/R03.
+and `git diff --check` passing. The publication gate blocks excluded clauses
+before persistence while allowing explicit review state. It is not yet wired to
+the live import coordinator or fitment route; that integration remains part of
+R01/R03.
 
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
