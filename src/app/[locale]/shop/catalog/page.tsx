@@ -25,6 +25,11 @@ import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { prisma } from "@/lib/prisma";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
+import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
+import {
+  SHOP_WAREHOUSE_IN_STOCK_SKUS,
+  SHOP_WAREHOUSE_IN_STOCK_SLUGS,
+} from "@/lib/shopWarehouseInventory";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -115,24 +120,74 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
   let renderProps: ComponentProps<typeof CatalogV2Server> | undefined;
   try {
-    const [listingRead, facetRead, session] = await Promise.all([
+    const warehouseProductsPromise =
+      query.stock === "all"
+        ? Promise.resolve([] as Array<{ id: string }>)
+        : prisma.shopProduct.findMany({
+            where: {
+              isPublished: true,
+              status: "ACTIVE",
+              OR: [
+                ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
+                  { sku: { equals: sku, mode: "insensitive" as const } },
+                  {
+                    variants: {
+                      some: { sku: { equals: sku, mode: "insensitive" as const } },
+                    },
+                  },
+                ]),
+                { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
+              ],
+            },
+            select: { id: true },
+          });
+    const [settingsRecord, session, warehouseProducts] = await Promise.all([
+      getOrCreateShopSettings(prisma),
+      getCurrentShopCustomerSession(),
+      warehouseProductsPromise,
+    ]);
+    const settings = getShopSettingsRuntime(settingsRecord);
+    const pricingContext = await buildShopViewerPricingContextServer({
+      prisma,
+      settings,
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: query.country,
+    });
+    const effectivePriceContext = buildShopCatalogEffectivePriceContext({
+      viewer: pricingContext,
+      currency: query.priceCurrency,
+      currencyRates: settings.currencyRates,
+    });
+    const warehouseProductIds = warehouseProducts.map((product) => product.id);
+    const projectionQuery = {
+      ...query,
+      effectivePriceContext,
+      ...(query.stock === "inStock"
+        ? { productIds: warehouseProductIds }
+        : query.stock === "preOrder"
+          ? { excludeProductIds: warehouseProductIds }
+          : {}),
+    };
+    const [listingRead, facetRead] = await Promise.all([
       observeShopCatalogRead({
         operation: "listing",
         locale: resolvedLocale,
-        filters: query,
+        filters: projectionQuery,
         databaseQueriesUpperBound: 1,
         rows: (value) => value.items.length,
-        execute: () => queryShopCatalogProjection(query),
+        execute: () => queryShopCatalogProjection(projectionQuery),
       }),
       observeShopCatalogRead({
         operation: "facets",
         locale: resolvedLocale,
-        filters: query,
+        filters: projectionQuery,
         databaseQueriesUpperBound: 1,
         rows: (value) => Object.values(value.facets).reduce((sum, rows) => sum + rows.length, 0),
-        execute: () => queryShopCatalogProjectionFacets(query),
+        execute: () => queryShopCatalogProjectionFacets(projectionQuery),
       }),
-      getCurrentShopCustomerSession(),
     ]);
     const result = listingRead.value;
     const facetResult = facetRead.value;
@@ -142,28 +197,19 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     const pricingRead = await observeShopCatalogRead({
       operation: "pricing",
       locale: resolvedLocale,
-      filters: query,
-      // Canonical products (1), settings read/create (up to 2), system rules
-      // (1), and authenticated customer rules (1).
-      databaseQueriesUpperBound: 5,
+      filters: projectionQuery,
+      // Canonical products (1); settings and viewer discount maps were resolved
+      // before listing/facet reads so their effective price SQL is request-correct.
+      databaseQueriesUpperBound: 1,
       rows: (value) => value.canonicalProducts.length,
       execute: async () => {
-        const [canonicalProducts, settingsRecord] = await Promise.all([
-          getShopCatalogCardPricingByIds(result.items.map((item) => item.productId)),
-          getOrCreateShopSettings(prisma),
-        ]);
-        const pricingContext = await buildShopViewerPricingContextServer({
-          prisma,
-          settings: getShopSettingsRuntime(settingsRecord),
-          customerId: session?.customerId,
-          customerGroup: session?.group,
-          isAuthenticated: Boolean(session),
-          customerB2BDiscountPercent: session?.b2bDiscountPercent,
-        });
+        const canonicalProducts = await getShopCatalogCardPricingByIds(
+          result.items.map((item) => item.productId)
+        );
         return { canonicalProducts, pricingContext };
       },
     });
-    const { canonicalProducts, pricingContext } = pricingRead.value;
+    const { canonicalProducts } = pricingRead.value;
     const cardPrices = Object.fromEntries(
       canonicalProducts.map((product) => [
         product.productId,

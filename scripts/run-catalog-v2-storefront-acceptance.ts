@@ -188,6 +188,7 @@ async function checkHttpContracts(origin: URL, readerMode: string): Promise<Gate
         if (name.startsWith("http-fitment-") && result.status === 503) {
           const blocked = result.value as { code?: unknown; error?: unknown; data?: unknown };
           if (
+            argument("allow-unavailable-selectors", "0") === "1" &&
             readerMode === "ssr" &&
             blocked.code === "SELECTOR_NOT_READY" &&
             result.retryAfter === "15" &&
@@ -310,6 +311,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     target: origin.toString(),
     readerMode,
+    selectorAvailabilityRequired: argument("allow-unavailable-selectors", "0") !== "1",
     matrix,
     samples: { browser: browserSamples, runtime: runtimeSamples, runtimeWarmups },
     results,

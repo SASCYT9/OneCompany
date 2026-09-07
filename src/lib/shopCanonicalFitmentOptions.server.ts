@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { isVehicleMakeCompatibleWithScope } from "@/lib/shopStockVehicleScope";
 import { readShopCatalogSelectorArtifactReadiness } from "@/lib/shopCatalogSelectorArtifact.server";
+import { SHOP_CATALOG_PROJECTION_SCHEMA_VERSION } from "@/lib/shopCatalogProjection.server";
 import {
   canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
@@ -29,7 +30,9 @@ export async function getCanonicalFitmentOptions(input: {
   // release marker, rebuild checkpoint, locale rows, and policy constraints all
   // describe one complete projection.
   const readiness = await readShopCatalogSelectorArtifactReadiness();
-  if (!readiness.ready) return null;
+  if (!readiness.ready) {
+    return getBoundedPublishedFitmentOptions(input);
+  }
   const withSelectedYear = (
     where: Prisma.ShopCatalogProjectionClauseWhereInput
   ): Prisma.ShopCatalogProjectionClauseWhereInput =>
@@ -274,5 +277,222 @@ export async function getCanonicalFitmentOptions(input: {
     make: input.make,
     model: input.model,
     data: canonicalizeVehicleChassisCodes(rows, canonicalMake, input.model),
+  };
+}
+
+const BOUNDED_SELECTOR_VALUE_LIMIT = 2_001;
+
+/**
+ * Serves a selector slice while the global publication marker is unavailable.
+ * Every returned value still comes from a current, published projection target
+ * with a VERIFIED clause. UNKNOWN dimensions are naturally excluded from exact
+ * option reads; the response remains explicitly partial. The extra row lets us
+ * detect overflow and fail closed instead of returning a misleading prefix.
+ */
+export async function getBoundedPublishedFitmentOptions(
+  input: {
+    make: string | null;
+    model: string | null;
+    chassis: string | null;
+    year: number | null;
+    brand: string | null;
+    scope: "auto" | "moto" | null;
+    details: boolean;
+  },
+  client: Pick<typeof prisma, "$queryRaw"> = prisma
+) {
+  const meta = {
+    source: "catalog_v2_current_product_projection" as const,
+    coverage: "partial" as const,
+    complete: false as const,
+  };
+  const brandPredicate = input.brand
+    ? Prisma.sql`AND (lower(product."brand") = lower(${input.brand}) OR lower(product."vendor") = lower(${input.brand}))`
+    : Prisma.empty;
+  const scopePredicate = input.scope
+    ? Prisma.sql`AND EXISTS (
+        SELECT 1 FROM "ShopCatalogProjectionConstraint" scope_constraint
+        WHERE scope_constraint."targetKey" = clause."targetKey"
+          AND scope_constraint."clauseKey" = clause."clauseKey"
+          AND scope_constraint."productId" = clause."productId"
+          AND scope_constraint."sourceVersion" = clause."sourceVersion"
+          AND scope_constraint."dimension" = 'SCOPE'
+          AND scope_constraint."state" = 'EXACT'
+          AND lower(scope_constraint."textValue") = lower(${input.scope})
+      )`
+    : Prisma.empty;
+  const currentClause = (extra: Prisma.Sql = Prisma.empty) => Prisma.sql`
+    FROM "ShopCatalogProjectionConstraint" option_constraint
+    JOIN "ShopCatalogProjectionClause" clause
+      ON clause."targetKey" = option_constraint."targetKey"
+     AND clause."clauseKey" = option_constraint."clauseKey"
+     AND clause."productId" = option_constraint."productId"
+     AND clause."sourceVersion" = option_constraint."sourceVersion"
+    JOIN "ShopCatalogProjectionPolicy" policy
+      ON policy."targetKey" = clause."targetKey"
+     AND policy."productId" = clause."productId"
+     AND policy."sourceVersion" = clause."sourceVersion"
+    JOIN "ShopProduct" product ON product."id" = clause."productId"
+    JOIN "ShopCatalogProjection" projection
+      ON projection."productId" = clause."productId"
+     AND projection."schemaVersion" = ${SHOP_CATALOG_PROJECTION_SCHEMA_VERSION}
+     AND projection."catalogVersion" = product."catalogVersion"
+     AND projection."locale" = 'en'
+     AND projection."isPublished" = true
+     AND projection."statusKey" = 'ACTIVE'
+    WHERE option_constraint."sourceVersion" = policy."sourceVersion"
+      AND policy."sourceVersion" = projection."sourceVersion"
+      AND clause."verification" = 'VERIFIED'
+      AND option_constraint."state" = 'EXACT'
+      AND product."isPublished" = true
+      AND product."status" = 'ACTIVE'
+      ${brandPredicate}
+      ${scopePredicate}
+      ${extra}
+  `;
+  const exactValues = async (
+    dimension: "MAKE" | "MODEL" | "CHASSIS" | "GENERATION" | "ENGINE",
+    extra = Prisma.empty
+  ) => {
+    const rows = await client.$queryRaw<Array<{ value: string | null }>>(Prisma.sql`
+      SELECT option_constraint."textValue" AS value
+      ${currentClause(Prisma.sql`AND option_constraint."dimension" = ${dimension} ${extra}`)}
+      GROUP BY option_constraint."textValue"
+      ORDER BY option_constraint."textValue" ASC
+      LIMIT ${BOUNDED_SELECTOR_VALUE_LIMIT}
+    `);
+    if (rows.length >= BOUNDED_SELECTOR_VALUE_LIMIT) return null;
+    return rows.map((row) => row.value).filter((value): value is string => Boolean(value?.trim()));
+  };
+  const make = input.make;
+  if (!make) {
+    const rows = await exactValues("MAKE");
+    if (!rows) return null;
+    const data = canonicalizeVehicleMakes(
+      rows.filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope))
+    );
+    return data.length ? { type: "makes" as const, data, meta } : null;
+  }
+  const canonicalMake = canonicalVehicleMakeLabel(make);
+  const makeAliases = vehicleMakeAliases(canonicalMake);
+  const makeFilter = Prisma.sql`AND EXISTS (
+    SELECT 1 FROM "ShopCatalogProjectionConstraint" make_constraint
+    WHERE make_constraint."targetKey" = clause."targetKey"
+      AND make_constraint."clauseKey" = clause."clauseKey"
+      AND make_constraint."productId" = clause."productId"
+      AND make_constraint."sourceVersion" = clause."sourceVersion"
+      AND make_constraint."dimension" = 'MAKE'
+      AND make_constraint."state" = 'EXACT'
+      AND lower(make_constraint."textValue") IN (${Prisma.join(makeAliases.map((value) => Prisma.sql`${value.toLowerCase()}`))})
+  )`;
+  if (!input.model) {
+    const rows = await exactValues("MODEL", makeFilter);
+    return rows
+      ? {
+          type: "models" as const,
+          make: canonicalMake,
+          data: canonicalizeVehicleModels(canonicalMake, rows),
+          meta,
+        }
+      : null;
+  }
+  const modelAliases = vehicleModelAliases(canonicalMake, input.model);
+  const modelFilter = Prisma.sql`AND EXISTS (
+    SELECT 1 FROM "ShopCatalogProjectionConstraint" model_constraint
+    WHERE model_constraint."targetKey" = clause."targetKey"
+      AND model_constraint."clauseKey" = clause."clauseKey"
+      AND model_constraint."productId" = clause."productId"
+      AND model_constraint."sourceVersion" = clause."sourceVersion"
+      AND model_constraint."dimension" = 'MODEL'
+      AND model_constraint."state" = 'EXACT'
+      AND lower(model_constraint."textValue") IN (${Prisma.join(modelAliases.map((value) => Prisma.sql`${value.toLowerCase()}`))})
+  )`;
+  const selected = Prisma.sql`${makeFilter} ${modelFilter}`;
+  const yearFilter =
+    input.year == null
+      ? Prisma.empty
+      : Prisma.sql`AND EXISTS (
+    SELECT 1 FROM "ShopCatalogProjectionConstraint" year_constraint
+    WHERE year_constraint."targetKey" = clause."targetKey" AND year_constraint."clauseKey" = clause."clauseKey"
+      AND year_constraint."productId" = clause."productId" AND year_constraint."sourceVersion" = clause."sourceVersion"
+      AND year_constraint."dimension" = 'YEAR'
+      AND (year_constraint."state" IN ('ANY', 'NOT_APPLICABLE') OR
+        (year_constraint."state" = 'EXACT' AND (year_constraint."yearFrom" IS NULL OR year_constraint."yearFrom" <= ${input.year})
+          AND (year_constraint."yearTo" IS NULL OR year_constraint."yearTo" >= ${input.year})))
+  )`;
+  if (input.details) {
+    const chassisFilter = input.chassis
+      ? Prisma.sql`AND EXISTS (
+      SELECT 1 FROM "ShopCatalogProjectionConstraint" chassis_constraint
+      WHERE chassis_constraint."targetKey" = clause."targetKey" AND chassis_constraint."clauseKey" = clause."clauseKey"
+        AND chassis_constraint."productId" = clause."productId" AND chassis_constraint."sourceVersion" = clause."sourceVersion"
+        AND chassis_constraint."dimension" IN ('CHASSIS', 'GENERATION') AND chassis_constraint."state" = 'EXACT'
+        AND lower(chassis_constraint."textValue") = lower(${input.chassis})
+    )`
+      : Prisma.empty;
+    const engines = await exactValues(
+      "ENGINE",
+      Prisma.sql`${selected} ${chassisFilter} ${yearFilter}`
+    );
+    if (!engines) return null;
+    const ranges = await client.$queryRaw<
+      Array<{ yearFrom: number | null; yearTo: number | null }>
+    >(Prisma.sql`
+      SELECT option_constraint."yearFrom" AS "yearFrom", option_constraint."yearTo" AS "yearTo"
+      ${currentClause(Prisma.sql`AND option_constraint."dimension" = 'YEAR' ${selected} ${chassisFilter}`)}
+      GROUP BY option_constraint."yearFrom", option_constraint."yearTo"
+      LIMIT ${BOUNDED_SELECTOR_VALUE_LIMIT}
+    `);
+    if (ranges.length >= BOUNDED_SELECTOR_VALUE_LIMIT) return null;
+    const years = new Set<number>();
+    const maxYear = new Date().getFullYear() + 2;
+    for (const range of ranges)
+      for (
+        let year = Math.max(1886, range.yearFrom ?? 1886);
+        year <= Math.min(maxYear, range.yearTo ?? maxYear);
+        year += 1
+      )
+        years.add(year);
+    return {
+      type: "details" as const,
+      make,
+      model: input.model,
+      chassis: input.chassis,
+      data: { years: [...years].sort((a, b) => b - a), engines },
+      meta,
+    };
+  }
+  if (input.chassis) {
+    const chassisFilter = Prisma.sql`AND EXISTS (SELECT 1 FROM "ShopCatalogProjectionConstraint" c WHERE c."targetKey" = clause."targetKey" AND c."clauseKey" = clause."clauseKey" AND c."productId" = clause."productId" AND c."sourceVersion" = clause."sourceVersion" AND c."dimension" IN ('CHASSIS', 'GENERATION') AND c."state" = 'EXACT' AND lower(c."textValue") = lower(${input.chassis}))`;
+    const rows = await exactValues(
+      "ENGINE",
+      Prisma.sql`${selected} ${chassisFilter} ${yearFilter}`
+    );
+    return rows
+      ? {
+          type: "engines" as const,
+          make,
+          model: input.model,
+          chassis: input.chassis,
+          data: rows,
+          meta,
+        }
+      : null;
+  }
+  const [chassisRows, generationRows] = await Promise.all([
+    exactValues("CHASSIS", selected),
+    exactValues("GENERATION", selected),
+  ]);
+  if (!chassisRows || !generationRows) return null;
+  return {
+    type: "chassis" as const,
+    make,
+    model: input.model,
+    data: canonicalizeVehicleChassisCodes(
+      [...chassisRows, ...generationRows],
+      canonicalMake,
+      input.model
+    ),
+    meta,
   };
 }

@@ -1,12 +1,41 @@
 # Catalog V2 — live execution status
 
-Last updated: 2026-09-07
+Last updated: 2026-09-08
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
 Current continuation/handoff: [IMPLEMENTATION_HANDOFF_2026-09-07.md](./IMPLEMENTATION_HANDOFF_2026-09-07.md).
 It lists the complete remaining R01–R12 sequence after code commit `7077a0c1`;
 this link does not mark any remaining implementation or release gate complete.
+
+## Practical rollout review — 2026-09-08
+
+Commit `2bcae2be` passed 426 selected regressions and the local UA/EN mobile/desktop
+acceptance matrix. That historical matrix explicitly accepted `503 SELECTOR_NOT_READY`;
+its PASS demonstrates the unavailable-selector response contract, not working vehicle
+selectors or complete source coverage. The acceptance runner now requires selector
+availability by default. `--allow-unavailable-selectors=1` is a diagnostic-only opt-in
+and records `selectorAvailabilityRequired: false`; it is not release readiness evidence.
+
+Direct SSR now applies the stock DTO to both listing and facet queries and resolves
+the viewer's effective price context before querying. The ordinary stock=all path
+avoids a warehouse lookup. An executable page test captures the actual query arguments
+for all/in-stock/pre-order and B2B/Europe pricing. Sorted listings now preserve next-page
+navigation using page offsets; default ordering retains its keyset cursor.
+
+When global selector coverage is incomplete, the selector helper can read bounded
+options from individually current published products. It joins policy/source versions
+to the product's projection and catalog version, requires the supported schema and
+VERIFIED clauses, and returns explicit partial coverage. UNKNOWN engines do not hide
+known makes/models and do not become engine options. A real local PostgreSQL test
+uses temporary tables to prove older unchanged products remain visible, stale products
+are excluded, and unknown engines are not suggested. This does not manufacture missing
+KW/FI data or enable the V2 production reader. With no usable projection, existing
+reader-off fallback remains available; enabled V2 can still report unavailable.
+
+Selected regressions: 432/432. PostgreSQL partial-selector integration: 1/1.
+The historical browser artifact above predates these changes and is not evidence for
+their final runtime behavior. Production activation and all-source completion remain open.
 
 ## Latest local wave: lossless policy and selector contracts (R01/R03 foundation)
 

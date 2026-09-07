@@ -271,8 +271,10 @@ test("SSR catalog exposes progressive GET filters and keyset continuation withou
   ]) {
     assert.match(client, new RegExp(`name=[{\"]+${field}`));
   }
-  assert.match(server, /afterRank/);
-  assert.match(server, /afterProduct/);
+  const pagination = readFileSync("src/lib/shopCatalogPagination.ts", "utf8");
+  assert.match(server, /nextPageHref/);
+  assert.match(pagination, /afterRank/);
+  assert.match(pagination, /afterProduct/);
   assert.match(server, /rel="next"/);
   assert.doesNotMatch(server, /useEffect|fetch\(/);
   assert.match(client, /useTransition/);
