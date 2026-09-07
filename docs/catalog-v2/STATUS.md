@@ -136,6 +136,12 @@ the hero/reel remains eager and the media-loading regression test passes 1/1.
 This complements the existing first-card preload limit and does not alter remote
 image optimization or CDN behavior.
 
+The disposable all-source runner was re-run after the local waves and remains
+fail-closed: the fixture manifest still marks FI EXHAUST (223) and KW Suspensions
+(1,999) unverified, and its historical selector fixture reports source-specific
+parity differences. This is evidence that production source promotion is still
+required; no fallback or synthetic exact matches were introduced to force PASS.
+
 The R05 stock suggestion path now has a bounded Catalog V2 projection fast path when the
 reader explicitly serves `ssr` (or an authorized canary request). It returns the same
 brand/vehicle/product suggestion shape, records privacy-safe `catalog_v2_read` telemetry, and
