@@ -111,6 +111,15 @@ MAKE gaps. Optional UNKNOWN values such as engine, fuel, or body style remain
 absent from selector options without blocking otherwise valid published
 fitments; missing make identity still fails closed.
 
+Commit `8bbc5b22` completes the local R01 persistence boundary for KW/FI. Both
+writers now validate and persist the full V2 policy in the same transaction,
+including review/unknown states and lossless multi-clause evidence; canonical
+projection preserves model text when make taxonomy is unresolved. The same
+commit adds a monotonic source-coverage marker using existing `ShopCatalogState`
+columns, with 4/4 marker tests and 22/22 KW/FI evidence tests passing. Marker
+publication still must be invoked by the source release coordinator before any
+production reader activation.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
