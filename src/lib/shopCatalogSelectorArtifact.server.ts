@@ -234,6 +234,7 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
           ON constraint_row."productId" = active."productId"
          AND constraint_row."sourceVersion" = ${BigInt(projectionVersion)}
           AND constraint_row."state" = 'UNKNOWN'
+          AND constraint_row."dimension" = 'MAKE'
       )
       SELECT
         (SELECT count(*)::bigint FROM active) AS "activePublishedProducts",
