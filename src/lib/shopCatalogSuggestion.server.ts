@@ -7,7 +7,11 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
-import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
+import {
+  matchesShopSearchQuery,
+  normalizeShopSearchText,
+  tokenizeShopSearchQuery,
+} from "./shopSearch";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
 import { compactShopCode } from "./shopVehicleSearch";
 
@@ -117,7 +121,10 @@ export function collectShopCatalogVehicleSuggestions(
 
   const matches = new Map<string, { make: string; model?: string; products: Set<string> }>();
   const add = (label: string, make: string, model: string | undefined, productId: string) => {
-    if (!normalizeShopSearchText(label).includes(normalizedQuery)) return;
+    // Keep vehicle suggestions consistent with projection product matching:
+    // query token order is presentation-only (`M5 BMW` still means BMW M5),
+    // while code-like tokens remain exact in `matchesShopSearchQuery`.
+    if (!matchesShopSearchQuery(label, normalizedQuery)) return;
     const key = normalizeShopSearchText(label);
     const current = matches.get(key) ?? { make, model, products: new Set<string>() };
     current.products.add(productId);

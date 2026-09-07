@@ -155,6 +155,12 @@ now use a compatibility harness (`18bec8bc`) so the selected catalog suite can r
 runtime without relying on the unavailable Node 24 `registerHooks` API. No production flag, database
 write, or deployment was performed.
 
+The R05 vehicle suggestion collector now uses the same token-aware, order-independent matcher as
+projection product suggestions. A query such as `M5 BMW` therefore returns the correlated `BMW M5`
+vehicle option without creating cross-clause make/model pairs. The focused suggestion and projection
+contract tests pass 6/6; the legacy full-fitment reader remains unchanged behind reader-off/local
+fallback semantics.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and

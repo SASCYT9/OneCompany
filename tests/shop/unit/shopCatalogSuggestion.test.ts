@@ -70,6 +70,26 @@ test("vehicle suggestions never cross-pair makes and models from different claus
   );
 });
 
+test("vehicle suggestions accept reordered normalized query tokens", async () => {
+  const { collectShopCatalogVehicleSuggestions } = await suggestionModule;
+  const row = (
+    clauseKey: string,
+    dimension: ShopCatalogCompatibilityDimension,
+    textValue: string
+  ) => ({ productId: "p1", targetKey: "product:p1", clauseKey, dimension, textValue });
+  const suggestions = collectShopCatalogVehicleSuggestions(
+    [
+      row("m5", ShopCatalogCompatibilityDimension.MAKE, "BMW"),
+      row("m5", ShopCatalogCompatibilityDimension.MODEL, "M5"),
+    ],
+    "M5 BMW"
+  );
+  assert.deepEqual(
+    suggestions.map((item) => item.label),
+    ["BMW M5"]
+  );
+});
+
 test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached", () => {
   const service = readFileSync("src/lib/shopCatalogSuggestion.server.ts", "utf8");
   const route = readFileSync("src/app/api/shop/catalog/suggest/route.ts", "utf8");
