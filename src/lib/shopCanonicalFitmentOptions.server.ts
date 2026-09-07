@@ -24,6 +24,12 @@ export async function getCanonicalFitmentOptions(input: {
   details: boolean;
 }) {
   if (isLocalStorefrontMode()) return null;
+  // A non-empty projection is not proof that every source was published. The
+  // readiness check is cached/single-flight and fails closed until the active
+  // release marker, rebuild checkpoint, locale rows, and policy constraints all
+  // describe one complete projection.
+  const readiness = await readShopCatalogSelectorArtifactReadiness();
+  if (!readiness.ready) return null;
   // Projection rows are not evidence of a complete selector artifact.  Keep
   // the existing bounded legacy fallback until the publisher has completed a
   // release and the persisted coverage gate agrees with its version.
