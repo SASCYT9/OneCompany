@@ -45,6 +45,10 @@ cache policy contract that only shares public responses when publication,
 source coverage, and canonical/projection versions all align. Cache tests pass
 5/5, and the PDP changes pass TypeScript and scoped lint.
 
+Commit `e9c0d371` limits catalog media preloading to the first card for mobile
+LCP; subsequent cards use native lazy loading. The image policy suite passes
+2/2 with TypeScript and lint.
+
 R02 coverage work is in commits `319ec361` and `0216429f`: a deterministic
 source-revision coverage manifest records immutable revision heads and blocks
 selector publication for missing, partial, unexpected, duplicate, or tampered
