@@ -19,6 +19,9 @@ export type ShopCatalogCoverageProvenance = {
 
 export type ShopCatalogSourceRecordCoverage = {
   recordKey: string;
+  sourceRevision: string | null;
+  payloadHash: string | null;
+  payloadHashMatches: boolean | null;
   leafCount: number;
   accountedLeafCount: number;
   mappedLeafCount: number;
@@ -77,6 +80,10 @@ export function flattenShopCatalogRawPayload(payload: unknown): ShopCatalogRawLe
 export function buildShopCatalogSourceRecordCoverage(input: {
   recordKey: string;
   rawPayload: unknown;
+  /** The immutable source revision that produced this payload, when known. */
+  sourceRevision?: string | null;
+  /** SHA-256 of the exact persisted raw payload, when known. */
+  payloadHash?: string | null;
   provenance: readonly ShopCatalogCoverageProvenance[];
 }): ShopCatalogSourceRecordCoverage {
   const leaves = flattenShopCatalogRawPayload(input.rawPayload);
@@ -97,17 +104,29 @@ export function buildShopCatalogSourceRecordCoverage(input: {
     if (evidence.mappingStatus === "MAPPED") {
       mappedLeafCount += 1;
       if (!evidence.canonicalEntityId?.trim() || !evidence.canonicalField?.trim()) {
-        invalid.push({ fieldPath: leaf.fieldPath, ordinal: leaf.ordinal, reason: "mapped_without_canonical_target" });
+        invalid.push({
+          fieldPath: leaf.fieldPath,
+          ordinal: leaf.ordinal,
+          reason: "mapped_without_canonical_target",
+        });
       }
     } else if (evidence.mappingStatus === "QUARANTINED") {
       quarantinedLeafCount += 1;
       if (!evidence.issueCount) {
-        invalid.push({ fieldPath: leaf.fieldPath, ordinal: leaf.ordinal, reason: "quarantined_without_issue" });
+        invalid.push({
+          fieldPath: leaf.fieldPath,
+          ordinal: leaf.ordinal,
+          reason: "quarantined_without_issue",
+        });
       }
     } else {
       ignoredLeafCount += 1;
       if (!evidence.reason?.trim()) {
-        invalid.push({ fieldPath: leaf.fieldPath, ordinal: leaf.ordinal, reason: "ignored_without_reason" });
+        invalid.push({
+          fieldPath: leaf.fieldPath,
+          ordinal: leaf.ordinal,
+          reason: "ignored_without_reason",
+        });
       }
     }
   }
@@ -115,11 +134,43 @@ export function buildShopCatalogSourceRecordCoverage(input: {
   const coveragePercent = leaves.length
     ? Math.round((accountedLeafCount / leaves.length) * 10_000) / 100
     : 100;
+  // Source rows carry a hash for the immutable envelope.  Include it and the
+  // revision in the coverage fingerprint so a report cannot accidentally be
+  // reused after the evidence envelope changes while the raw leaves happen to
+  // remain the same.  The optional fields preserve the pure raw-coverage API
+  // used by normalization tests; the persisted report always supplies them.
+  const sourceRevision = input.sourceRevision?.trim() || null;
+  const payloadHash = input.payloadHash?.trim().toLowerCase() || null;
+  const serializedPayload = JSON.stringify(input.rawPayload);
+  const computedPayloadHash =
+    serializedPayload === undefined
+      ? null
+      : createHash("sha256").update(serializedPayload).digest("hex");
+  const payloadHashMatches =
+    payloadHash == null
+      ? null
+      : /^[a-f0-9]{64}$/iu.test(payloadHash) &&
+        computedPayloadHash !== null &&
+        computedPayloadHash === payloadHash;
   const fingerprint = createHash("sha256")
-    .update(stableJson({ recordKey: input.recordKey, leaves: leaves.map(({ fieldPath, ordinal, valueHash }) => ({ fieldPath, ordinal, valueHash })) }))
+    .update(
+      stableJson({
+        recordKey: input.recordKey,
+        sourceRevision,
+        payloadHash,
+        leaves: leaves.map(({ fieldPath, ordinal, valueHash }) => ({
+          fieldPath,
+          ordinal,
+          valueHash,
+        })),
+      })
+    )
     .digest("hex");
   return {
     recordKey: input.recordKey,
+    sourceRevision,
+    payloadHash,
+    payloadHashMatches,
     leafCount: leaves.length,
     accountedLeafCount,
     mappedLeafCount,
@@ -128,7 +179,7 @@ export function buildShopCatalogSourceRecordCoverage(input: {
     missing,
     invalid,
     coveragePercent,
-    activationReady: missing.length === 0 && invalid.length === 0,
+    activationReady: missing.length === 0 && invalid.length === 0 && payloadHashMatches !== false,
     fingerprint,
   };
 }

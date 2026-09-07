@@ -9,6 +9,9 @@ test("source coverage reporting is bounded, current-record-only, and fail closed
   assert.match(report, /supersededBy: null/);
   assert.match(report, /take: limit \+ 1/);
   assert.match(report, /payload_not_inline_auditable/);
+  assert.match(report, /payload_hash_mismatch/);
+  assert.match(report, /invalid_payload_hash/);
+  assert.match(report, /missing_source_revision/);
   assert.match(report, /missing_current_binding/);
   assert.match(report, /quarantined_fields/);
   assert.match(report, /open_issues/);

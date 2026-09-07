@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
@@ -34,7 +35,13 @@ test("activation requires every raw leaf mapped, quarantined with issue, or igno
     recordKey: "racechip:RC-1",
     rawPayload,
     provenance: [
-      { fieldPath: "sku", ordinal: 0, mappingStatus: "MAPPED", canonicalEntityId: "p1", canonicalField: "sku" },
+      {
+        fieldPath: "sku",
+        ordinal: 0,
+        mappingStatus: "MAPPED",
+        canonicalEntityId: "p1",
+        canonicalField: "sku",
+      },
       { fieldPath: "obsolete", ordinal: 0, mappingStatus: "IGNORED_WITH_REASON" },
     ],
   });
@@ -47,8 +54,19 @@ test("activation requires every raw leaf mapped, quarantined with issue, or igno
     recordKey: "racechip:RC-1",
     rawPayload,
     provenance: [
-      { fieldPath: "sku", ordinal: 0, mappingStatus: "MAPPED", canonicalEntityId: "p1", canonicalField: "sku" },
-      { fieldPath: "obsolete", ordinal: 0, mappingStatus: "IGNORED_WITH_REASON", reason: "supplier legacy flag" },
+      {
+        fieldPath: "sku",
+        ordinal: 0,
+        mappingStatus: "MAPPED",
+        canonicalEntityId: "p1",
+        canonicalField: "sku",
+      },
+      {
+        fieldPath: "obsolete",
+        ordinal: 0,
+        mappingStatus: "IGNORED_WITH_REASON",
+        reason: "supplier legacy flag",
+      },
       { fieldPath: "engine", ordinal: 0, mappingStatus: "QUARANTINED", issueCount: 1 },
     ],
   });
@@ -64,7 +82,64 @@ test("coverage fingerprint is stable across object key order", () => {
     { fieldPath: "a", ordinal: 0, mappingStatus: "IGNORED_WITH_REASON" as const, reason: "test" },
     { fieldPath: "b", ordinal: 0, mappingStatus: "IGNORED_WITH_REASON" as const, reason: "test" },
   ];
-  const left = buildShopCatalogSourceRecordCoverage({ recordKey: "x", rawPayload: { a: 1, b: 2 }, provenance });
-  const right = buildShopCatalogSourceRecordCoverage({ recordKey: "x", rawPayload: { b: 2, a: 1 }, provenance });
+  const left = buildShopCatalogSourceRecordCoverage({
+    recordKey: "x",
+    rawPayload: { a: 1, b: 2 },
+    provenance,
+  });
+  const right = buildShopCatalogSourceRecordCoverage({
+    recordKey: "x",
+    rawPayload: { b: 2, a: 1 },
+    provenance,
+  });
   assert.equal(left.fingerprint, right.fingerprint);
+});
+
+test("persisted payload hash and source revision are part of activation evidence", () => {
+  const rawPayload = { sku: "RC-1", engine: "S55" };
+  const provenance = [
+    {
+      fieldPath: "sku",
+      ordinal: 0,
+      mappingStatus: "MAPPED" as const,
+      canonicalEntityId: "p1",
+      canonicalField: "sku",
+    },
+    {
+      fieldPath: "engine",
+      ordinal: 0,
+      mappingStatus: "MAPPED" as const,
+      canonicalEntityId: "p1",
+      canonicalField: "engine",
+    },
+  ];
+  const payloadHash = createHash("sha256").update(JSON.stringify(rawPayload)).digest("hex");
+  const complete = buildShopCatalogSourceRecordCoverage({
+    recordKey: "racechip:RC-1",
+    rawPayload,
+    sourceRevision: "racechip-snapshot-v2",
+    payloadHash,
+    provenance,
+  });
+  assert.equal(complete.payloadHashMatches, true);
+  assert.equal(complete.activationReady, true);
+
+  const tampered = buildShopCatalogSourceRecordCoverage({
+    recordKey: "racechip:RC-1",
+    rawPayload,
+    sourceRevision: "racechip-snapshot-v2",
+    payloadHash: "f".repeat(64),
+    provenance,
+  });
+  assert.equal(tampered.payloadHashMatches, false);
+  assert.equal(tampered.activationReady, false);
+  assert.notEqual(complete.fingerprint, tampered.fingerprint);
+
+  const unavailable = buildShopCatalogSourceRecordCoverage({
+    recordKey: "racechip:RC-1",
+    rawPayload,
+    provenance,
+  });
+  assert.equal(unavailable.payloadHashMatches, null);
+  assert.equal(unavailable.activationReady, true);
 });

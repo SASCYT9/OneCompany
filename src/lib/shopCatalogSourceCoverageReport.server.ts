@@ -11,6 +11,7 @@ export type ShopCatalogSourceCoverageRecordReport = {
   recordKey: string;
   sourceRevision: string;
   payloadHash: string;
+  payloadHashMatches: boolean | null;
   hasImmutablePayload: boolean;
   payloadAuditable: boolean;
   productId: string | null;
@@ -46,6 +47,9 @@ export type ShopCatalogSourceCoveragePage = {
     accountedLeaves: number;
     missingLeaves: number;
     invalidProvenance: number;
+    payloadHashMismatches: number;
+    invalidPayloadHashes: number;
+    missingSourceRevisions: number;
     openIssues: number;
     unmappedRecords: number;
   };
@@ -53,7 +57,11 @@ export type ShopCatalogSourceCoveragePage = {
 
 function boundedLimit(value: number | undefined) {
   const limit = value ?? 250;
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > SHOP_CATALOG_SOURCE_COVERAGE_PAGE_LIMIT) {
+  if (
+    !Number.isSafeInteger(limit) ||
+    limit < 1 ||
+    limit > SHOP_CATALOG_SOURCE_COVERAGE_PAGE_LIMIT
+  ) {
     throw new TypeError(`limit must be between 1 and ${SHOP_CATALOG_SOURCE_COVERAGE_PAGE_LIMIT}`);
   }
   return limit;
@@ -121,6 +129,8 @@ export async function readShopCatalogSourceCoveragePage(
       ? buildShopCatalogSourceRecordCoverage({
           recordKey: row.recordKey,
           rawPayload: row.rawPayload,
+          sourceRevision: row.sourceRevision,
+          payloadHash: row.payloadHash,
           provenance: row.fieldProvenance.map((entry) => ({
             ...entry,
             mappingStatus: entry.mappingStatus,
@@ -137,12 +147,17 @@ export async function readShopCatalogSourceCoveragePage(
     const tombstones = currentBindings.filter((binding) => binding.action === "TOMBSTONE");
     const bindingReady =
       Boolean(row.productId || row.variantId) || mappedBindings.length > 0 || tombstones.length > 0;
+    const sourceRevisionReady = Boolean(row.sourceRevision.trim());
+    const payloadHashValid = /^[a-f0-9]{64}$/iu.test(row.payloadHash.trim());
     const blockers: string[] = [];
+    if (!sourceRevisionReady) blockers.push("missing_source_revision");
+    if (!payloadHashValid) blockers.push("invalid_payload_hash");
     if (!hasImmutablePayload) blockers.push("missing_immutable_payload");
     if (!payloadAuditable) blockers.push("payload_not_inline_auditable");
     if (!bindingReady) blockers.push("missing_current_binding");
     if (coverage?.missing.length) blockers.push("unaccounted_raw_fields");
     if (coverage?.invalid.length) blockers.push("invalid_provenance");
+    if (coverage?.payloadHashMatches === false) blockers.push("payload_hash_mismatch");
     if (coverage?.quarantinedLeafCount) blockers.push("quarantined_fields");
     if (row.issues.length) blockers.push("open_issues");
     return {
@@ -150,6 +165,7 @@ export async function readShopCatalogSourceCoveragePage(
       recordKey: row.recordKey,
       sourceRevision: row.sourceRevision,
       payloadHash: row.payloadHash,
+      payloadHashMatches: coverage?.payloadHashMatches ?? null,
       hasImmutablePayload,
       payloadAuditable,
       productId: row.productId,
@@ -173,7 +189,7 @@ export async function readShopCatalogSourceCoveragePage(
     version: 1,
     source: { ...source, kind: source.kind },
     afterRecordId: input.afterRecordId ?? null,
-    nextRecordId: hasMore ? records.at(-1)?.id ?? null : null,
+    nextRecordId: hasMore ? (records.at(-1)?.id ?? null) : null,
     complete: !hasMore,
     records,
     totals: {
@@ -185,8 +201,15 @@ export async function readShopCatalogSourceCoveragePage(
       accountedLeaves: records.reduce((sum, record) => sum + record.accountedLeafCount, 0),
       missingLeaves: records.reduce((sum, record) => sum + record.missingLeafCount, 0),
       invalidProvenance: records.reduce((sum, record) => sum + record.invalidProvenanceCount, 0),
+      payloadHashMismatches: records.filter((record) => record.payloadHashMatches === false).length,
+      invalidPayloadHashes: records.filter(
+        (record) => !/^[a-f0-9]{64}$/iu.test(record.payloadHash.trim())
+      ).length,
+      missingSourceRevisions: records.filter((record) => !record.sourceRevision.trim()).length,
       openIssues: records.reduce((sum, record) => sum + record.openIssueCount, 0),
-      unmappedRecords: records.filter((record) => record.blockers.includes("missing_current_binding")).length,
+      unmappedRecords: records.filter((record) =>
+        record.blockers.includes("missing_current_binding")
+      ).length,
     },
   };
 }

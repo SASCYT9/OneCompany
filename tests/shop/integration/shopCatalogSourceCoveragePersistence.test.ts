@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { registerHooks } from "../unit/testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
@@ -29,6 +29,8 @@ test(
     const suffix = Date.now().toString();
     const productId = `source-coverage-product-${suffix}`;
     const sourceKey = `source-coverage-${suffix}`;
+    const rawPayload = { sku: "RC-1", engine: "S55", obsolete: false };
+    const payloadHash = createHash("sha256").update(JSON.stringify(rawPayload)).digest("hex");
     try {
       const product = await client.shopProduct.create({
         data: { id: productId, slug: productId, titleUa: productId, titleEn: productId },
@@ -41,8 +43,8 @@ test(
           sourceId: source.id,
           recordKey: "RC-1",
           sourceRevision: "1",
-          rawPayload: { sku: "RC-1", engine: "S55", obsolete: false },
-          payloadHash: "a".repeat(64),
+          rawPayload,
+          payloadHash,
           productId: product.id,
         },
       });
@@ -124,6 +126,41 @@ test(
       assert.equal(complete?.totals.activationReady, 1);
       assert.equal(complete?.totals.missingLeaves, 0);
       assert.equal(complete?.totals.unmappedRecords, 0);
+
+      const hashMismatchRecord = await client.shopCatalogSourceRecord.create({
+        data: {
+          sourceId: source.id,
+          recordKey: "RC-2",
+          sourceRevision: "2",
+          rawPayload,
+          payloadHash: "b".repeat(64),
+          productId: product.id,
+        },
+      });
+      const hashMismatch = await readShopCatalogSourceCoveragePage(client, { sourceKey });
+      const hashMismatchReport = hashMismatch?.records.find(
+        ({ id }) => id === hashMismatchRecord.id
+      );
+      assert.equal(hashMismatchReport?.payloadHashMatches, false);
+      assert.equal(hashMismatchReport?.activationReady, false);
+      assert.ok(hashMismatchReport?.blockers.includes("payload_hash_mismatch"));
+
+      const missingRevisionRecord = await client.shopCatalogSourceRecord.create({
+        data: {
+          sourceId: source.id,
+          recordKey: "RC-3",
+          sourceRevision: "",
+          rawPayload,
+          payloadHash,
+          productId: product.id,
+        },
+      });
+      const missingRevision = await readShopCatalogSourceCoveragePage(client, { sourceKey });
+      const missingRevisionReport = missingRevision?.records.find(
+        ({ id }) => id === missingRevisionRecord.id
+      );
+      assert.equal(missingRevisionReport?.activationReady, false);
+      assert.ok(missingRevisionReport?.blockers.includes("missing_source_revision"));
     } finally {
       await client.$disconnect();
     }
