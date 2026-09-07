@@ -38,6 +38,13 @@ product filters, facets, OPF/GPF, and vehicle dimensions now have one bounded
 parser for records and `URLSearchParams`. The storefront reader suite passes
 12/12, with TypeScript and commit hooks passing.
 
+Commit `9aff1a24` narrows PDP related-product reads to the fields required by
+three recommendation cards, with request coalescing and a production-safe
+brand query; local/build modes retain the existing fallback. It also adds a
+cache policy contract that only shares public responses when publication,
+source coverage, and canonical/projection versions all align. Cache tests pass
+5/5, and the PDP changes pass TypeScript and scoped lint.
+
 R02 coverage work is in commits `319ec361` and `0216429f`: a deterministic
 source-revision coverage manifest records immutable revision heads and blocks
 selector publication for missing, partial, unexpected, duplicate, or tampered
