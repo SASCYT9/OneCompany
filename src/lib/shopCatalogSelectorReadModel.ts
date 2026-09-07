@@ -82,6 +82,7 @@ export type ShopCatalogSelectorCoverage = {
     complete: boolean;
     expectedPolicyCount: number | null;
     observedPolicyCount: number;
+    revisions: readonly { sourceId: string; revision: string }[];
   };
 };
 
@@ -248,6 +249,7 @@ export function buildShopCatalogSelectorReadModel(input: {
   const excludedPolicies = new Set<string>();
   const observedScopes = new Set<ShopCatalogSelectorScope>();
   const observedBrands = new Set<string>();
+  const sourceRevisions = new Map<string, string>();
   let unknownScopes = 0;
   let unknownBrands = 0;
   let unknownVisibility = 0;
@@ -264,6 +266,15 @@ export function buildShopCatalogSelectorReadModel(input: {
       issue(
         reasons,
         `source coverage incomplete for ${source.sourceId}@${revision(source.revision)}`
+      );
+      sourceRevisions.set(
+        `${source.sourceId}@${revision(source.revision)}`,
+        revision(source.revision)
+      );
+    } else {
+      sourceRevisions.set(
+        `${source.sourceId}@${revision(source.revision)}`,
+        revision(source.revision)
       );
     }
     const brand = text(entry.brand);
@@ -313,14 +324,8 @@ export function buildShopCatalogSelectorReadModel(input: {
     }
     let acceptedForPolicy = false;
     for (const clause of entry.policy.clauses) {
-      // Normalization emits UNKNOWN for dimensions that were not supplied by a
-      // source (for example fuel/body style). Those defaults must not make an
-      // otherwise usable selector disappear. Engine is different: an explicit
-      // unknown engine would produce misleading fitment results, so it fails
-      // closed. Other selector dimensions are accepted when absent and simply
-      // do not contribute an option.
       const unknownConstraint = clause.constraints.find(
-        (constraint) => constraint.state === "UNKNOWN" && constraint.dimension === "engine"
+        (constraint) => constraint.state === "UNKNOWN"
       );
       if (clause.verification === "NEEDS_REVIEW") {
         issue(reasons, `clause ${policyKey}/${clause.id} is NEEDS_REVIEW`);
@@ -410,6 +415,13 @@ export function buildShopCatalogSelectorReadModel(input: {
           sourceCoverage.expectedPolicyCount === input.policies.length),
       expectedPolicyCount: sourceCoverage?.expectedPolicyCount ?? null,
       observedPolicyCount: input.policies.length,
+      revisions: [...sourceRevisions.entries()]
+        .map(([key, value]) => ({ sourceId: key.slice(0, key.lastIndexOf("@")), revision: value }))
+        .sort(
+          (left, right) =>
+            left.sourceId.localeCompare(right.sourceId, "en") ||
+            left.revision.localeCompare(right.revision, "en")
+        ),
     },
   };
   const normalized = {
@@ -419,7 +431,7 @@ export function buildShopCatalogSelectorReadModel(input: {
     applications,
     coverage,
   };
-  const coverageFingerprint = hash(normalized);
+  const coverageFingerprint = hash({ ...normalized, reasons: [...reasons].sort() });
   const complete = reasons.length === 0 && coverage.source.complete;
   return freeze({
     ...normalized,
