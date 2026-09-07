@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `ed116c29` (guarded SSR, search, and media optimizations)
+Release commit: `62be4c4a` (guarded SSR, search, media, and viewport gates)
 
 ## Included behavior
 

@@ -848,3 +848,5 @@ Commit `eb9463ae` adds bounded Shopify CDN responsive variants (320–2400px) fo
 Commit `ed116c29` makes projection text search token-aware and order-independent across SQL and ORM paths. Structured SKUs receive exact normalized matching, including version-scoped variant SKUs; BMW M5 G90/S68 regression coverage passes. The selected Catalog V2/stock/pricing suite now passes 408/408.
 
 The full shop unit command was rerun after the catalog changes. Three remaining failures are pre-existing admin redesign structural contracts (commits `951e30a5` and `19b0b586`), outside R01–R12 and unchanged by this work: order detail header markers, product editor tab markers, and overview/system shared primitive markers. Catalog-focused tests remain 408/408; these admin contracts need a separate UI decision rather than compatibility shims.
+
+The storefront browser gate now accepts bounded viewport dimensions so mobile evidence can be reproduced without changing the application. The same BMW M5 G90 scenario passed at 390×844: LCP p75 136 ms, LCP p95 344 ms, filter p95 619.792 ms, with no application errors or unexpected failed responses.
