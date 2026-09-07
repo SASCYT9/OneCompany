@@ -850,3 +850,7 @@ Commit `ed116c29` makes projection text search token-aware and order-independent
 The full shop unit command was rerun after the catalog changes. Three remaining failures are pre-existing admin redesign structural contracts (commits `951e30a5` and `19b0b586`), outside R01–R12 and unchanged by this work: order detail header markers, product editor tab markers, and overview/system shared primitive markers. Catalog-focused tests remain 408/408; these admin contracts need a separate UI decision rather than compatibility shims.
 
 The storefront browser gate now accepts bounded viewport dimensions so mobile evidence can be reproduced without changing the application. The same BMW M5 G90 scenario passed at 390×844: LCP p75 136 ms, LCP p95 344 ms, filter p95 619.792 ms, with no application errors or unexpected failed responses.
+
+Commit `bcc87f84` closes the unsafe projection selector fallback: when `ssr` or an authorized canary request lacks a complete versioned selector artifact, the fitment endpoint returns bounded `503 SELECTOR_NOT_READY` with `Retry-After` instead of loading the full catalog. Reader-off preserves the legacy fallback until the all-source artifact is published.
+
+Commit `014bfeda` includes filter indexes in the content-addressed build artifact. A keyed, complete artifact restores all eight indexes atomically; missing, stale, wrong-key, malformed, or tampered bundles regenerate from the database and are never served partially. The authoritative build pipeline still needs to provide the immutable artifact key.
