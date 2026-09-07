@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `b757eefa` (SSR, search, media, viewport, artifact reuse, freshness, acceptance, and immutable source-evidence verification)
+Release commit: `d7bb2166` (SSR, search, media, viewport, artifact reuse, freshness, acceptance, immutable source evidence, and bounded recommendations)
 
 ## Included behavior
 
@@ -37,7 +37,7 @@ rollback. Investigate lag/dead-letter/failed-receipt evidence before retrying.
 - Node 22.14.0 selected catalog suite — 344/344 catalog tests and 63/63 stock/pricing tests pass.
 - `npm run shop:catalog:v2:publication:docker` — final local disposable-DB baseline `b757eefa`, 30 samples, p95 82.926 ms, p99 126.240 ms, one contention winner; all 44 migrations replayed.
 - `artifacts/catalog-v2-scale/catalog-v2-scale-gate.json` — exact audit baseline `675d829670f5402e99a1c92f63d77afed99f5a63`, 100k/500k query scale evidence, maximum warm p95 75.541 ms.
-- The executable release code is `3524ca81`; source evidence now includes and verifies the immutable payload hash and source revision. The final documentation/evidence commit is `b757eefa`.
+- The executable release code is `d7bb2166` plus source-evidence hardening `139f3e08`; source evidence now includes and verifies the immutable payload hash and source revision, provenance duplicates/orphans fail closed, and SSR recommendations use bounded projection candidates. The final documentation/evidence commit is updated after validation.
 - The checked-in storefront acceptance artifact is historical (`4727a1b8f600af19a20a7e0bf1544c7ce17145a2`) and is not current release evidence; regenerate it on the final clean commit.
 
 ## Open approval gates
