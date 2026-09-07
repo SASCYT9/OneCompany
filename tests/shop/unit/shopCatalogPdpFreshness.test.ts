@@ -56,3 +56,24 @@ test("storefront invalidation takes legacy listing behavior from the shared rout
   assert.match(source, /route\.paginated/);
   assert.doesNotMatch(source, /LISTING_SURFACE_BY_SEGMENT|PAGINATED_SEGMENTS/);
 });
+
+test("catalog invalidation evicts local and tagged Accelerate caches", () => {
+  const server = read("src/lib/shopCatalogServer.ts");
+  assert.match(server, /export function invalidateShopCatalogMemoryCaches/);
+  assert.match(server, /shopCatalogMemoryCacheGeneration \+= 1/);
+  assert.match(server, /brandProductsCache\.clear\(\)/);
+  assert.match(server, /relatedProductsCache\.clear\(\)/);
+  assert.match(server, /\$accelerate\.invalidate\(\{ tags: \["shop-products"\] \}\)/);
+  assert.match(server, /tags: \["shop-products"\]/);
+  // A query that started before invalidation may finish afterwards. It must
+  // not win the cache race or erase a newer in-flight promise.
+  assert.match(server, /cached\.generation === generation/);
+  assert.match(server, /if \(shopCatalogMemoryCacheGeneration === generation\)/);
+  assert.match(server, /brandProductsPromise\.get\(cacheKey\)\?\.promise === promise/);
+  assert.match(server, /relatedProductsPromise\.get\(cacheKey\)\?\.promise === promise/);
+  assert.match(server, /Accelerate cache invalidation failed/);
+
+  const helper = read("src/lib/shopStorefrontRevalidation.ts");
+  assert.match(helper, /invalidateShopCatalogCaches/);
+  assert.match(helper, /void invalidateShopCatalogCaches\(\)/);
+});

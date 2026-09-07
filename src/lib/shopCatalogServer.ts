@@ -63,6 +63,31 @@ function getPrismaCachedClient() {
   return prismaCached;
 }
 
+/**
+ * The in-process catalog caches are intentionally bounded for read performance,
+ * but Next's revalidateTag cannot reach another Lambda/process. A mutation must
+ * therefore advance this generation as well as invalidating the shared caches.
+ * The generation is checked by every cache and by in-flight work, so an older
+ * request cannot repopulate a cache after a newer catalog mutation.
+ */
+let shopCatalogMemoryCacheGeneration = 0;
+
+export async function invalidateShopCatalogAccelerateCache(): Promise<boolean> {
+  if (!isAccelerateEnabled) return false;
+  try {
+    await getPrismaCachedClient().$accelerate.invalidate({ tags: ["shop-products"] });
+    return true;
+  } catch (error) {
+    // Next/path and process-local invalidation still run when Accelerate's
+    // invalidation endpoint is temporarily unavailable. The next fresh query
+    // remains authoritative and will repopulate the tagged entry.
+    console.error("[shopCatalogServer] Accelerate cache invalidation failed", {
+      errorType: error instanceof Error ? error.name : "UnknownError",
+    });
+    return false;
+  }
+}
+
 const CATALOG_FALLBACK_DIR = path.join(process.cwd(), "public", "catalog-fallback");
 const CATALOG_FALLBACK_VERSION = 2;
 const LOCAL_CATALOG_SNAPSHOT_ENABLED = isLocalStorefrontMode();
@@ -1989,22 +2014,28 @@ function createCatalogLoader(recommendationsOnly: boolean) {
       : products;
   let globalProductsCache: ShopProduct[] | null = null;
   let lastCacheTime = 0;
-  let globalProductsPromise: Promise<ShopProduct[]> | null = null;
+  let cacheGeneration = -1;
+  let globalProductsPromise: { generation: number; promise: Promise<ShopProduct[]> } | null = null;
   return async function loadCatalog(): Promise<ShopProduct[]> {
     const now = Date.now();
+    const generation = shopCatalogMemoryCacheGeneration;
     // Memory cache: lifted from 45s to 5 min. Original 45s was tuned for build-
     // time OOM avoidance, but in steady-state prod the short TTL causes every
     // cold Lambda to re-run a ~30k row catalog query + heavy includes. Brand
     // pages now use `getShopProductsByBrandServer` so this all-products cache
     // is hit mainly by sitemap, feed, and cross-shop-fitment paths (PDP
     // related-products), all of which tolerate 5 min staleness.
-    if (globalProductsCache && now - lastCacheTime < 5 * 60 * 1000) {
+    if (
+      globalProductsCache &&
+      cacheGeneration === generation &&
+      now - lastCacheTime < 5 * 60 * 1000
+    ) {
       // Overrides are applied when filling the cache. Preserve product identity
       // for derived fitment caches, but give callers their own sortable array.
       return globalProductsCache.slice();
     }
-    if (globalProductsPromise) {
-      return globalProductsPromise;
+    if (globalProductsPromise?.generation === generation) {
+      return globalProductsPromise.promise;
     }
 
     // Build workers and DB-less local verification use the public, versioned
@@ -2013,9 +2044,13 @@ function createCatalogLoader(recommendationsOnly: boolean) {
       try {
         const products = await getAllCatalogFallbackProducts();
         if (products.length > 0) {
-          globalProductsCache = selectCandidates(products).map(applyShopProductImageOverrides);
-          lastCacheTime = Date.now();
-          return globalProductsCache.slice();
+          const selected = selectCandidates(products).map(applyShopProductImageOverrides);
+          if (shopCatalogMemoryCacheGeneration === generation) {
+            globalProductsCache = selected;
+            cacheGeneration = generation;
+            lastCacheTime = Date.now();
+          }
+          return selected.slice();
         }
       } catch (err) {
         console.warn("[shopCatalogServer] failed to load product fallback shards:", err);
@@ -2059,11 +2094,15 @@ function createCatalogLoader(recommendationsOnly: boolean) {
               : null;
 
           if (cachedProducts) {
-            globalProductsCache = normalizeCatalogProducts(cachedProducts).map(
+            const selected = normalizeCatalogProducts(cachedProducts).map(
               applyShopProductImageOverrides
             );
-            lastCacheTime = stat.mtimeMs;
-            return globalProductsCache as ShopProduct[];
+            if (shopCatalogMemoryCacheGeneration === generation) {
+              globalProductsCache = selected;
+              cacheGeneration = generation;
+              lastCacheTime = stat.mtimeMs;
+            }
+            return selected;
           }
         }
       } catch {
@@ -2071,7 +2110,7 @@ function createCatalogLoader(recommendationsOnly: boolean) {
       }
     }
 
-    globalProductsPromise = (async () => {
+    const promise = (async () => {
       let dbRows: CatalogDbRecord[] = [];
       const hiddenDbSlugs = new Set<string>();
       try {
@@ -2169,31 +2208,36 @@ function createCatalogLoader(recommendationsOnly: boolean) {
         if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
       });
 
-      globalProductsCache = selectCandidates(Array.from(bySlug.values())).map(
+      const selected = selectCandidates(Array.from(bySlug.values())).map(
         applyShopProductImageOverrides
       );
-      lastCacheTime = Date.now();
+      if (shopCatalogMemoryCacheGeneration === generation) {
+        globalProductsCache = selected;
+        cacheGeneration = generation;
+        lastCacheTime = Date.now();
+      }
 
-      if (isDev && cachePath) {
+      if (isDev && cachePath && shopCatalogMemoryCacheGeneration === generation) {
         try {
           fs.writeFileSync(
             cachePath,
             JSON.stringify({
               version: SHOP_PRODUCTS_DEV_CACHE_VERSION,
-              products: globalProductsCache,
+              products: selected,
             }),
             "utf8"
           );
         } catch {}
       }
 
-      return globalProductsCache;
+      return selected;
     })();
 
+    globalProductsPromise = { generation, promise };
     try {
-      return await globalProductsPromise;
+      return await promise;
     } finally {
-      globalProductsPromise = null;
+      if (globalProductsPromise?.promise === promise) globalProductsPromise = null;
     }
   };
 }
@@ -2203,8 +2247,16 @@ function createCatalogLoader(recommendationsOnly: boolean) {
 // cold-Lambda re-fetches, short enough that admin edits show up promptly via the
 // brand `revalidateTag` flow.
 const BRAND_PRODUCTS_CACHE_TTL_MS = 5 * 60 * 1000;
-const brandProductsCache = new Map<string, { products: ShopProduct[]; ts: number }>();
-const brandProductsPromise = new Map<string, Promise<ShopProduct[]>>();
+type ShopCatalogMemoryCacheEntry = {
+  products: ShopProduct[];
+  ts: number;
+  generation: number;
+};
+const brandProductsCache = new Map<string, ShopCatalogMemoryCacheEntry>();
+const brandProductsPromise = new Map<
+  string,
+  { generation: number; promise: Promise<ShopProduct[]> }
+>();
 
 type ShopProductPredicate = (p: ShopProduct) => boolean;
 
@@ -2252,9 +2304,10 @@ export async function getShopProductsByBrandServer(
 
   const { cacheKey, where, predicate } = options;
   const now = Date.now();
+  const generation = shopCatalogMemoryCacheGeneration;
 
   const cached = brandProductsCache.get(cacheKey);
-  if (cached && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
+  if (cached && cached.generation === generation && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
     return cached.products.map(applyShopProductImageOverrides);
   }
 
@@ -2263,12 +2316,14 @@ export async function getShopProductsByBrandServer(
     const products = snapshotProducts.filter((product) =>
       predicate ? predicate(product) : defaultBrandMatch(product, cacheKey)
     );
-    brandProductsCache.set(cacheKey, { products, ts: now });
+    if (shopCatalogMemoryCacheGeneration === generation) {
+      brandProductsCache.set(cacheKey, { products, ts: now, generation });
+    }
     return products.map(applyShopProductImageOverrides);
   }
 
   const inflight = brandProductsPromise.get(cacheKey);
-  if (inflight) return inflight;
+  if (inflight?.generation === generation) return inflight.promise;
 
   const promise = (async () => {
     let dbRows: AdminShopProductRecord[] = [];
@@ -2384,7 +2439,7 @@ export async function getShopProductsByBrandServer(
           },
         };
         if (isAccelerateEnabled) {
-          queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+          queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
         }
         dbRows = (await getPrismaCachedClient().shopProduct.findMany(
           queryParams
@@ -2415,15 +2470,23 @@ export async function getShopProductsByBrandServer(
     });
 
     const out = Array.from(bySlug.values()).map(applyShopProductImageOverrides);
-    brandProductsCache.set(cacheKey, { products: out, ts: Date.now() });
+    if (shopCatalogMemoryCacheGeneration === generation) {
+      brandProductsCache.set(cacheKey, {
+        products: out,
+        ts: Date.now(),
+        generation,
+      });
+    }
     return out;
   })();
 
-  brandProductsPromise.set(cacheKey, promise);
+  brandProductsPromise.set(cacheKey, { generation, promise });
   try {
     return await promise;
   } finally {
-    brandProductsPromise.delete(cacheKey);
+    if (brandProductsPromise.get(cacheKey)?.promise === promise) {
+      brandProductsPromise.delete(cacheKey);
+    }
   }
 }
 
@@ -2436,14 +2499,37 @@ export async function getShopProductsByBrandServer(
  * relation for the whole brand before scoring three cards. This path keeps the
  * same brand predicate and scoring input while selecting only the card fields.
  */
-const relatedProductsCache = new Map<string, { products: ShopProduct[]; ts: number }>();
-const relatedProductsPromise = new Map<string, Promise<ShopProduct[]>>();
+const relatedProductsCache = new Map<string, ShopCatalogMemoryCacheEntry>();
+const relatedProductsPromise = new Map<
+  string,
+  { generation: number; promise: Promise<ShopProduct[]> }
+>();
+
+/**
+ * Drop mutable storefront read-model caches after a catalog mutation. The
+ * generation check in each loader also prevents an older in-flight query from
+ * repopulating these maps after this function returns.
+ */
+export function invalidateShopCatalogMemoryCaches() {
+  shopCatalogMemoryCacheGeneration += 1;
+  brandProductsCache.clear();
+  brandProductsPromise.clear();
+  relatedProductsCache.clear();
+  relatedProductsPromise.clear();
+}
+
+/** Invalidate both the local process caches and tagged Accelerate entries. */
+export async function invalidateShopCatalogCaches(): Promise<boolean> {
+  invalidateShopCatalogMemoryCaches();
+  return invalidateShopCatalogAccelerateCache();
+}
 
 export async function getShopRelatedProductsByBrandServer(brand: string): Promise<ShopProduct[]> {
   const cacheKey = `related:${brand.trim().toLowerCase()}`;
   const now = Date.now();
+  const generation = shopCatalogMemoryCacheGeneration;
   const cached = relatedProductsCache.get(cacheKey);
-  if (cached && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
+  if (cached && cached.generation === generation && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
     return cached.products.map(applyShopProductImageOverrides);
   }
 
@@ -2452,7 +2538,7 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
   }
 
   const inflight = relatedProductsPromise.get(cacheKey);
-  if (inflight) return inflight;
+  if (inflight?.generation === generation) return inflight.promise;
 
   const promise = (async () => {
     try {
@@ -2503,7 +2589,13 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
           applyShopProductImageOverrides(projectShopRelatedProduct(row as ShopRelatedProductRow))
         )
         .filter(shouldExposeCatalogProduct);
-      relatedProductsCache.set(cacheKey, { products, ts: Date.now() });
+      if (shopCatalogMemoryCacheGeneration === generation) {
+        relatedProductsCache.set(cacheKey, {
+          products,
+          ts: Date.now(),
+          generation,
+        });
+      }
       return products;
     } catch (error) {
       if (process.env.NODE_ENV === "production") throw error;
@@ -2511,11 +2603,13 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
     }
   })();
 
-  relatedProductsPromise.set(cacheKey, promise);
+  relatedProductsPromise.set(cacheKey, { generation, promise });
   try {
     return await promise;
   } finally {
-    relatedProductsPromise.delete(cacheKey);
+    if (relatedProductsPromise.get(cacheKey)?.promise === promise) {
+      relatedProductsPromise.delete(cacheKey);
+    }
   }
 }
 
@@ -2570,14 +2664,15 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
     return (await getRacechipProductsServer()).map(projectShopProductForListGrid);
   }
   const now = Date.now();
+  const generation = shopCatalogMemoryCacheGeneration;
 
   const cached = brandProductsCache.get(RACECHIP_LIGHT_CACHE_KEY);
-  if (cached && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
+  if (cached && cached.generation === generation && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
     return cached.products;
   }
 
   const inflight = brandProductsPromise.get(RACECHIP_LIGHT_CACHE_KEY);
-  if (inflight) return inflight;
+  if (inflight?.generation === generation) return inflight.promise;
 
   const promise = (async () => {
     // Mirror exactly the shape projectShopProductForVehicleCatalog emits:
@@ -2646,7 +2741,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         orderBy: { updatedAt: "desc" },
       };
       if (isAccelerateEnabled) {
-        queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
       }
       rows = (await getPrismaCachedClient().shopProduct.findMany(
         queryParams
@@ -2741,15 +2836,23 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
     });
 
     const out = Array.from(bySlug.values());
-    brandProductsCache.set(RACECHIP_LIGHT_CACHE_KEY, { products: out, ts: Date.now() });
+    if (shopCatalogMemoryCacheGeneration === generation) {
+      brandProductsCache.set(RACECHIP_LIGHT_CACHE_KEY, {
+        products: out,
+        ts: Date.now(),
+        generation,
+      });
+    }
     return out;
   })();
 
-  brandProductsPromise.set(RACECHIP_LIGHT_CACHE_KEY, promise);
+  brandProductsPromise.set(RACECHIP_LIGHT_CACHE_KEY, { generation, promise });
   try {
     return await promise;
   } finally {
-    brandProductsPromise.delete(RACECHIP_LIGHT_CACHE_KEY);
+    if (brandProductsPromise.get(RACECHIP_LIGHT_CACHE_KEY)?.promise === promise) {
+      brandProductsPromise.delete(RACECHIP_LIGHT_CACHE_KEY);
+    }
   }
 }
 
@@ -3026,7 +3129,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
       },
     };
     if (isAccelerateEnabled) {
-      queryParams.cacheStrategy = { ttl: 3600, swr: 300 };
+      queryParams.cacheStrategy = { ttl: 3600, swr: 300, tags: ["shop-products"] };
     }
     const raw = await getPrismaCachedClient().shopProduct.findMany(queryParams);
     rows = raw.map((r) => ({
@@ -3320,7 +3423,7 @@ export async function getShopProductsBySlugsServer(slugs: string[]): Promise<Sho
     include: storefrontProductInclude,
   };
   if (isAccelerateEnabled) {
-    queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
   }
 
   const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
@@ -3345,7 +3448,7 @@ export async function getShopProductsByIdsServer(ids: string[]): Promise<ShopPro
     include: storefrontProductInclude,
   };
   if (isAccelerateEnabled) {
-    queryParams.cacheStrategy = { ttl: 300, swr: 60 };
+    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
   }
 
   const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
