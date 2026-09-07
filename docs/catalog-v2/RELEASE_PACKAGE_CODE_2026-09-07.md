@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `2a7cd32f8d8bfa6205915d031a27329bbf909914`
+Release commit: `abfa7c79d4c78760dc31ca6705caf02c42451a8f`
 
 ## Included behavior
 
@@ -42,4 +42,3 @@ rollback. Investigate lag/dead-letter/failed-receipt evidence before retrying.
 
 Production-region canary, signed activation evidence, real production source
 coverage/backfill, and post-release measurements remain outside this package.
-

@@ -1,7 +1,7 @@
 # Catalog V2 data/release package
 
 Date: 2026-09-07  
-Code package: `2a7cd32f8d8bfa6205915d031a27329bbf909914`
+Code package: `abfa7c79d4c78760dc31ca6705caf02c42451a8f`
 
 This document is a runbook for a separately approved production operation. No
 production database was read or written while preparing it.
@@ -47,4 +47,3 @@ UA/EN projection counts, media/provenance parity, outbox and receipt status,
 shadow sample count/mismatch rate, and commit-to-visible latency. The historical
 local fixture counts (15,163 legacy + 1,999 KW + 223 FI) are planning references,
 not production assertions; recompute them from the current source manifest.
-
