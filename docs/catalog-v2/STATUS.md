@@ -8,6 +8,18 @@ Current continuation/handoff: [IMPLEMENTATION_HANDOFF_2026-09-07.md](./IMPLEMENT
 It lists the complete remaining R01–R12 sequence after code commit `7077a0c1`;
 this link does not mark any remaining implementation or release gate complete.
 
+## Latest local wave: lossless policy and selector contracts (R01/R03 foundation)
+
+Commit `28173047` adds pure, dependency-free contracts for canonical policy
+imports and the versioned selector read model. Unsupported KW/FI clauses remain
+explicitly excluded with their raw evidence, while verified clauses produce
+deduplicated, clause-correlated options, coverage metadata, deterministic
+fingerprints, and bounded fingerprint-bound slices. Unknown engine values and
+review clauses fail closed; omitted non-selector dimensions do not hide valid
+vehicle options. The package has 8/8 focused tests, TypeScript, scoped ESLint,
+and `git diff --check` passing. It is not yet wired to production publication or
+the fitment route; that integration remains part of R01/R03.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
