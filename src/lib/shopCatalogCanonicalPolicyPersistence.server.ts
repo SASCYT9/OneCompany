@@ -180,9 +180,13 @@ function valueRows(
       booleanValue: typeof value === "boolean" ? value : null,
       yearFrom: typeof value === "object" && value !== null && "from" in value ? value.from : null,
       yearTo: typeof value === "object" && value !== null && "to" in value ? value.to : null,
-      makeId: dimension === "MAKE" ? taxonomy.makeId : null,
-      modelId: dimension === "MODEL" ? taxonomy.modelId : null,
-      generationId: dimension === "GENERATION" ? taxonomy.generationId : null,
+      // A taxonomy relation is safe only when it identifies this single
+      // canonical value. For multi-value clauses retain each source value as
+      // text rather than attaching the first ID to every ordinal.
+      makeId: dimension === "MAKE" && constraint.values.length === 1 ? taxonomy.makeId : null,
+      modelId: dimension === "MODEL" && constraint.values.length === 1 ? taxonomy.modelId : null,
+      generationId:
+        dimension === "GENERATION" && constraint.values.length === 1 ? taxonomy.generationId : null,
       powertrainId:
         dimension === "ENGINE" && typeof value === "object" && value !== null && "kind" in value
           ? taxonomy.powertrainId
@@ -206,6 +210,7 @@ export async function persistCanonicalPolicyInTransaction(input: {
   tx: Prisma.TransactionClient;
   sourceRecordId: string;
   sourceId: string;
+  evidenceHash?: string | null;
   policy: ShopCatalogV2CompatibilityPolicy;
   label?: string;
 }) {
@@ -301,7 +306,7 @@ export async function persistCanonicalPolicyInTransaction(input: {
       verification: clause.verification,
       sourceRecordId: input.sourceRecordId,
       sourceRef: clause.sourceRef ?? null,
-      evidenceHash: null,
+      evidenceHash: input.evidenceHash ?? null,
     });
     for (const constraint of clause.constraints) {
       const dimension = (Object.entries(dimensions).find(

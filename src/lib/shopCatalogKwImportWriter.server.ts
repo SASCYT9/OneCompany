@@ -138,7 +138,7 @@ export async function insertKwDraftWithClient(input: {
           currentBinding: {
             select: {
               productId: true,
-              sourceRecord: { select: { payloadHash: true, sourceRevision: true } },
+              sourceRecord: { select: { id: true, payloadHash: true, sourceRevision: true } },
             },
           },
         },
@@ -151,6 +151,18 @@ export async function insertKwDraftWithClient(input: {
         )
           throw new Error(
             "KW source evidence changed or predates policy evidence; use a reviewed source revision promotion"
+          );
+        const canonicalPolicy = await tx.shopCatalogCompatibilityPolicy.findFirst({
+          where: {
+            targetKey: `product:${existing.currentBinding.productId}`,
+            sourceRecordId: previous?.id,
+            isActive: true,
+          },
+          select: { id: true },
+        });
+        if (!canonicalPolicy)
+          throw new Error(
+            "KW immutable replay is missing its canonical policy; use a reviewed source revision promotion"
           );
         return { status: "idempotent" as const, productId: existing.currentBinding.productId };
       }
@@ -314,6 +326,7 @@ export async function insertKwDraftWithClient(input: {
         tx,
         sourceId: dependencies.sourceId,
         sourceRecordId: sourceRecord.id,
+        evidenceHash: evidence.payloadHash,
         policy: buildKwCompatibilityPolicy(product.id, draft.normalization),
         label: "KW",
       });

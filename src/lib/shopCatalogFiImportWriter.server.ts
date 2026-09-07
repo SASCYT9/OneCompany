@@ -116,7 +116,7 @@ export async function insertFiDraftWithClient(input: {
           currentBinding: {
             select: {
               productId: true,
-              sourceRecord: { select: { payloadHash: true, sourceRevision: true } },
+              sourceRecord: { select: { id: true, payloadHash: true, sourceRevision: true } },
             },
           },
         },
@@ -129,6 +129,18 @@ export async function insertFiDraftWithClient(input: {
         )
           throw new Error(
             "FI source evidence changed or predates policy evidence; use a reviewed source revision promotion"
+          );
+        const canonicalPolicy = await tx.shopCatalogCompatibilityPolicy.findFirst({
+          where: {
+            targetKey: `product:${existing.currentBinding.productId}`,
+            sourceRecordId: previous?.id,
+            isActive: true,
+          },
+          select: { id: true },
+        });
+        if (!canonicalPolicy)
+          throw new Error(
+            "FI immutable replay is missing its canonical policy; use a reviewed source revision promotion"
           );
         return { status: "idempotent" as const, productId: existing.currentBinding.productId };
       }
@@ -276,6 +288,7 @@ export async function insertFiDraftWithClient(input: {
         tx,
         sourceId: dependencies.sourceId,
         sourceRecordId: sourceRecord.id,
+        evidenceHash: evidence.payloadHash,
         policy: buildFiCompatibilityPolicy(product.id, input.fitment),
         label: "FI",
       });
