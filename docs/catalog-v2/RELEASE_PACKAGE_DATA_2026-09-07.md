@@ -1,7 +1,7 @@
 # Catalog V2 data/release package
 
 Date: 2026-09-07  
-Code package: `d7bb2166` (final evidence/documentation commit: `0c00696b`)
+Code package: `7d0bdb11` (final evidence/documentation commit updated after final acceptance)
 
 This document is a runbook for a separately approved production operation. No
 production database was read or written while preparing it.
