@@ -16,8 +16,28 @@ The real projection builder is checked independently for retained policy rules,
 clause identity and canonical powertrain identity. Bounded mismatch samples are
 written to the version-5 all-source report before a failed gate exits nonzero.
 
-This checkpoint contains local unit/type verification; the all-source database
-run is next. This gate covers normalized evidence -> persisted canonical policies
+The first database run exposed an outdated generic-shard assumption: the current
+manifest has 17,385 products, including 1,999 KW and 223 Fi EXHAUST without adapters
+in this gate. They are now reported as unsupported and make the overall gate fail.
+Both import writers currently save legacy normalized-fitment metafields rather
+than canonical compatibility policies; adding them requires source-policy and
+publication evidence, not dropping them from the denominator.
+
+On `1a4ef094`, all 15,163 supported-source records persisted and replayed, and the
+first three selector sources passed (ADRO 261, Akrapovic 425, Brabus 977). The large
+Burger nested Prisma read then exceeded PostgreSQL's stack limit. The audit now
+loads each relation in bounded keyset pages instead of expanding a whole target
+page into one nested include; the CLI also persists an aborted/failing audit in
+its report. A complete rerun is still required at this checkpoint.
+
+Fi's draft builder also marked review/unknown/empty/incomplete fitment as verified.
+It now keeps source applications but marks them needs_review/unknown-confidence;
+all three established correlated statuses retain verified behavior. A regression
+failed on the old status and passes after the fix. Complete draft hashes for all
+223 current local FI records remain identical; those records contain no current
+review-required or incomplete applications. No existing database rows were changed.
+
+This gate covers normalized evidence -> persisted canonical policies
 -> in-memory projection build. Raw-source extraction completeness, persisted
 projection publication, storefront option endpoint coverage and production
 activation remain separate, open gates. It does not change request-time behavior.

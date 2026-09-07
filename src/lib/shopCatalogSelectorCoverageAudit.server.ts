@@ -1,5 +1,6 @@
 import "server-only";
 import type { PrismaClient } from "@prisma/client";
+import { readCoveragePoliciesWithClient } from "./shopCatalogCoveragePolicyReader.server";
 import { canonicalPoliciesToProjectionV2 } from "./shopCatalogCanonicalPolicyProjection";
 import { buildShopCatalogProjection } from "./shopCatalogProjection.server";
 import {
@@ -43,27 +44,10 @@ export async function auditShopCatalogSelectorCoverageWithClient(
         : `product:${normalization.productId}`;
     for (let start = 0; start < drafts.length; start += 50) {
       const page = drafts.slice(start, start + 50);
-      const rows = await client.shopCatalogCompatibilityPolicy.findMany({
-        where: {
-          isActive: true,
-          targetKey: { in: page.map((draft) => targetOf(draft.normalization)) },
-        },
-        include: {
-          sourceRecord: { select: { recordKey: true, source: { select: { key: true } } } },
-          dimensionRules: true,
-          clauses: {
-            include: {
-              constraints: {
-                include: {
-                  values: {
-                    include: { make: true, model: true, generation: true, powertrain: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
+      const rows = await readCoveragePoliciesWithClient(
+        client,
+        page.map((draft) => targetOf(draft.normalization))
+      );
       for (const draft of page) {
         const target = targetOf(draft.normalization);
         let failed = false;

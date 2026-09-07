@@ -87,6 +87,29 @@ values.
    range. Real PostgreSQL tests cover early/late engines on one product, a different
    chassis and explicit year states. Invalid nonempty year returns HTTP 400.
 
+## Current source coverage findings
+
+The immutable manifest now contains 17,385 products. The original 14-source gate
+supports 15,163; KW Suspensions (1,999) and Fi EXHAUST (223) appear in the generic
+shard and have no canonical compatibility persistence adapters in that gate.
+Their import writers save normalized-fitment metafields instead of canonical
+policies. The extended gate reports unsupported sources and fails overall rather
+than silently omitting them. This is an additional concrete dependency of item 6.
+
+The new offline audit compares correlated clauses from normalization to canonical
+storage and the real in-memory projection builder; engine identity, verification,
+source reference and explicit states are checked separately from record counts.
+It does not certify persisted projection publication or actual option endpoints.
+Execution details, including the bounded-reader correction after PostgreSQL's
+stack-depth failure, are tracked in [STATUS.md](STATUS.md).
+
+FI draft normalization formerly marked review-required/unknown/empty/incomplete
+fitment verified. It now retains the source applications but quarantines those
+states. Parser/policy regressions pass; all 223 current source draft hashes remain
+identical, with no existing DB rewrites. KW still needs its pure source policy
+connected to canonical persistence; FI also needs immutable fitment-entry evidence
+alongside its Shopify product payload before source replay can be certified.
+
 ## Product type, product kind, and strict implementation contract
 
 `productTypeKey` and `productKindKey` are present in the persisted projection,

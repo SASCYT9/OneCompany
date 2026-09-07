@@ -359,7 +359,11 @@ async function main() {
     const selectorCoverage = await auditShopCatalogSelectorCoverageWithClient(
       client,
       draftsBySource
-    );
+    ).catch((error: unknown) => ({
+      passed: false,
+      aborted: true,
+      error: error instanceof Error ? error.message : String(error),
+    }));
     const report = {
       version: 5,
       passed: selectorCoverage.passed && unsupportedSources.length === 0,
