@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `014bfeda` (guarded SSR, search, media, viewport, and artifact reuse)
+Release commit: `43e7375d` (SSR, search, media, viewport, artifact reuse, freshness, and acceptance)
 
 ## Included behavior
 

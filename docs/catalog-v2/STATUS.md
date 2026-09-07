@@ -856,3 +856,7 @@ Commit `bcc87f84` closes the unsafe projection selector fallback: when `ssr` or 
 Commit `014bfeda` includes filter indexes in the content-addressed build artifact. A keyed, complete artifact restores all eight indexes atomically; missing, stale, wrong-key, malformed, or tampered bundles regenerate from the database and are never served partially. The authoritative build pipeline still needs to provide the immutable artifact key.
 
 Current R03 safety state: commit `bcc87f84` prevents enabled `ssr/canary` fitment requests from entering the legacy full-catalog fallback and returns `SELECTOR_NOT_READY` until a complete selector artifact is published. This removes the unsafe request path; it does not claim A4/Q5 completeness. Reader-off remains the intentional legacy compatibility mode.
+
+Commit `43e7375d` adds mutation-safe storefront cache invalidation: local cache generations, in-flight promise ownership, and the `shop-products` Accelerate tag are invalidated together. A PDP freshness regression verifies stale in-flight reads cannot repopulate caches after a mutation.
+
+Commit `db56c974` adds the clean-commit storefront acceptance runner covering UA/EN, 390×844 and 1440×1000 browser gates, runtime/build gates, and HTTP JSON contracts. In `ssr`, the expected bounded `SELECTOR_NOT_READY` response is accepted as fail-closed behavior until the selector artifact is published.
