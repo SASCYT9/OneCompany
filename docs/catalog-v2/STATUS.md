@@ -92,6 +92,12 @@ the focused artifact suite passes 4/4. The key must come from the authoritative
 publication pipeline before enabling it on Vercel, so the default build remains
 unchanged until that integration is configured.
 
+Commit `018bb8ec` adds a 30-second browser `max-age` for public fitment
+responses, reducing repeated mobile back-navigation scans while retaining the
+existing CDN stale policy. Its focused contract suite passes 10/10. Commit
+`ab038628` also parallelizes the independent chassis/generation GROUP BY reads
+at the final selector level; TypeScript and scoped lint pass.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
