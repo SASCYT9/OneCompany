@@ -18,7 +18,11 @@ const cachedJson = (body: unknown) =>
     headers: {
       // Keep selector data fast while bounding stale fitment exposure after a
       // controlled Knowledge V2 reindex.
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
+      // Selector responses are public and keyed entirely by the request URL.
+      // Give mobile back/forward and repeated filter opens a short browser hit
+      // as well as the CDN hit; this avoids re-running a slow fallback scan
+      // while preserving the existing bounded staleness window.
+      "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=60",
     },
   });
 

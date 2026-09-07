@@ -57,6 +57,13 @@ test("fitment selectors skip canonical Prisma coverage in local snapshot mode", 
   assert.ok(firstDatabaseRead > localGuard, "the local guard must precede canonical Prisma reads");
 });
 
+test("fitment responses are browser-cacheable for repeated mobile filter opens", () => {
+  assert.match(
+    fitmentRoute,
+    /Cache-Control[\s\S]*public, max-age=30, s-maxage=60, stale-while-revalidate=60/
+  );
+});
+
 test("initial search remains immediate across React Strict Mode effect replay", () => {
   const effect = stockPage.indexOf("// Auto-search for filters and queries");
   const timer = stockPage.indexOf("autoSearchTimerRef.current = setTimeout", effect);
