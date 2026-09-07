@@ -1,20 +1,27 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { registerHooks } from "node:module";
+import { registerHooks } from "./testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 
-const serverOnlyStub = pathToFileURL(path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")).href;
-registerHooks({ resolve(specifier, context, nextResolve) {
-  if (specifier === "server-only") return { url: serverOnlyStub, shortCircuit: true };
-  return nextResolve(specifier, context);
-} });
+const serverOnlyStub = pathToFileURL(
+  path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
+).href;
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") return { url: serverOnlyStub, shortCircuit: true };
+    return nextResolve(specifier, context);
+  },
+});
 const telemetryModule = import("../../../src/lib/shopCatalogShadowTelemetry.server");
 
 test("shadow telemetry accepts only full immutable deployment commits", async () => {
   const { resolveShopCatalogDeploymentCommit } = await telemetryModule;
-  assert.equal(resolveShopCatalogDeploymentCommit({ VERCEL_GIT_COMMIT_SHA: "a".repeat(40) }), "a".repeat(40));
+  assert.equal(
+    resolveShopCatalogDeploymentCommit({ VERCEL_GIT_COMMIT_SHA: "a".repeat(40) }),
+    "a".repeat(40)
+  );
   assert.equal(resolveShopCatalogDeploymentCommit({ GITHUB_SHA: "B".repeat(40) }), "b".repeat(40));
   assert.equal(resolveShopCatalogDeploymentCommit({ VERCEL_GIT_COMMIT_SHA: "main" }), null);
 });

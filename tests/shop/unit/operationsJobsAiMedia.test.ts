@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { registerHooks } from "node:module";
+import { registerHooks } from "./testHooks.mjs";
 import { pathToFileURL } from "node:url";
 import {
   OpsAutomationStatus,

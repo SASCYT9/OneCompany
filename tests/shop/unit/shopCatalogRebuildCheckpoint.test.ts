@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { registerHooks } from "node:module";
+import { registerHooks } from "./testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";

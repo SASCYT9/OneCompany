@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { registerHooks } from "node:module";
+import { registerHooks } from "../unit/testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
@@ -144,7 +144,9 @@ test(
       assert.ok(policies[0]?.retiredAt);
       assert.equal(policies[1]?.revision, 2);
       assert.equal(policies[1]?.isActive, true);
-      const source = await client.shopCatalogSource.findUniqueOrThrow({ where: { key: sourceKey } });
+      const source = await client.shopCatalogSource.findUniqueOrThrow({
+        where: { key: sourceKey },
+      });
       const records = await client.shopCatalogSourceRecord.findMany({
         where: { sourceId: source.id },
         include: { supersededBy: true },

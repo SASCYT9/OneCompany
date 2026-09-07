@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { registerHooks } from "node:module";
+import { registerTestModuleHooks } from "./testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
@@ -28,16 +28,9 @@ const mockedAliases = new Set([
   "@/lib/shopProductDisplayBrand",
 ]);
 
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (specifier === "server-only") return { url: serverOnlyStub, shortCircuit: true };
-    if (
-      mockedAliases.has(specifier) ||
-      [...mockedAliases].some((alias) => specifier.endsWith(alias.slice(1)))
-    )
-      return { url: mocks, shortCircuit: true };
-    return nextResolve(specifier, context);
-  },
+registerTestModuleHooks({
+  mockUrl: mocks,
+  mockedAliases: [...mockedAliases],
 });
 
 const modulePromise = import("../../../src/lib/shopCatalogPremiumProjection.server");

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { registerHooks } from "node:module";
+import { registerHooks } from "../unit/testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
@@ -13,7 +13,9 @@ import {
 
 const databaseUrl =
   process.env.CATALOG_EPHEMERAL_TEST === "1" ? process.env.OPS_TEST_DATABASE_URL : undefined;
-const serverOnlyStub = pathToFileURL(path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")).href;
+const serverOnlyStub = pathToFileURL(
+  path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
+).href;
 registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: serverOnlyStub, shortCircuit: true };
@@ -24,7 +26,12 @@ registerHooks({
 const backfillModule = import("../../../src/lib/shopCatalogAdroBackfill.server");
 const reportModule = import("../../../src/lib/shopCatalogSourceCoverageReport.server");
 
-function snapshot(input: { productId: string; variantId: string; sku: string; title: string }): AdroSnapshotProduct {
+function snapshot(input: {
+  productId: string;
+  variantId: string;
+  sku: string;
+  title: string;
+}): AdroSnapshotProduct {
   return {
     id: input.productId,
     slug: input.productId,
@@ -38,7 +45,12 @@ function snapshot(input: { productId: string; variantId: string; sku: string; ti
   };
 }
 
-async function createProduct(client: PrismaClient, productId: string, variantId: string, sku: string) {
+async function createProduct(
+  client: PrismaClient,
+  productId: string,
+  variantId: string,
+  sku: string
+) {
   await client.shopProduct.create({
     data: {
       id: productId,
@@ -73,7 +85,10 @@ test(
       });
       assert.equal(draft.normalization.verification, "VERIFIED");
       const { persistAdroSourceRecordPageWithClient } = await backfillModule;
-      const first = await persistAdroSourceRecordPageWithClient(client, { sourceKey, drafts: [draft] });
+      const first = await persistAdroSourceRecordPageWithClient(client, {
+        sourceKey,
+        drafts: [draft],
+      });
       assert.equal(first.inserted, 1);
       assert.equal(first.provenanceInserted, draft.provenance.length);
       const policy = await client.shopCatalogCompatibilityPolicy.findFirstOrThrow({
@@ -89,15 +104,32 @@ test(
       assert.ok(policy.clauses.every((clause) => clause.verification === "VERIFIED"));
       for (const clause of policy.clauses) {
         assert.equal(clause.constraints.length, 13);
-        assert.equal(clause.constraints.find((entry) => entry.dimension === "ENGINE")?.state, "NOT_APPLICABLE");
-        assert.equal(clause.constraints.find((entry) => entry.dimension === "FUEL")?.state, "NOT_APPLICABLE");
-        assert.equal(clause.constraints.find((entry) => entry.dimension === "CHASSIS")?.state, "EXACT");
+        assert.equal(
+          clause.constraints.find((entry) => entry.dimension === "ENGINE")?.state,
+          "NOT_APPLICABLE"
+        );
+        assert.equal(
+          clause.constraints.find((entry) => entry.dimension === "FUEL")?.state,
+          "NOT_APPLICABLE"
+        );
+        assert.equal(
+          clause.constraints.find((entry) => entry.dimension === "CHASSIS")?.state,
+          "EXACT"
+        );
       }
-      assert.equal(await client.vehicleTaxonomyAlias.count({ where: { sourceId: first.sourceId } }), 7);
-      const replay = await persistAdroSourceRecordPageWithClient(client, { sourceKey, drafts: [draft] });
+      assert.equal(
+        await client.vehicleTaxonomyAlias.count({ where: { sourceId: first.sourceId } }),
+        7
+      );
+      const replay = await persistAdroSourceRecordPageWithClient(client, {
+        sourceKey,
+        drafts: [draft],
+      });
       assert.equal(replay.idempotent, 1);
       assert.equal(
-        await client.shopCatalogCompatibilityPolicy.count({ where: { targetKey: `variant:${variantId}` } }),
+        await client.shopCatalogCompatibilityPolicy.count({
+          where: { targetKey: `variant:${variantId}` },
+        }),
         1
       );
       const { readShopCatalogSourceCoveragePage } = await reportModule;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
-import { registerHooks } from "node:module";
+import { registerHooks } from "./testHooks.mjs";
 import { pathToFileURL } from "node:url";
 
 import type { ShopAiTelemetryRepository } from "../../../src/lib/shopAiTelemetry";
