@@ -4,7 +4,25 @@ Last updated: 2026-09-07
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Latest local wave: shared facet pricing and year-aware engine choices
+## Latest local wave: normalized selector coverage gate (T4)
+
+Starting from `5f140cb9`. Added an offline oracle for all 14 source normalization
+shapes and a bounded, 50-target-page canonical coverage audit to the existing
+clean-commit all-source Docker gate. It compares whole per-target clauses, including
+verification, source reference, explicit states, year bounds, engines, fuel,
+transmission and OPF. Missing options, invented cross-clause combinations and
+product/variant reassignment fail even when aggregate counts stay unchanged.
+The real projection builder is checked independently for retained policy rules,
+clause identity and canonical powertrain identity. Bounded mismatch samples are
+written to the version-5 all-source report before a failed gate exits nonzero.
+
+This checkpoint contains local unit/type verification; the all-source database
+run is next. This gate covers normalized evidence -> persisted canonical policies
+-> in-memory projection build. Raw-source extraction completeness, persisted
+projection publication, storefront option endpoint coverage and production
+activation remain separate, open gates. It does not change request-time behavior.
+
+## Previous local wave: shared facet pricing and year-aware engine choices
 
 Starting from `13f59354`. Root implemented T3 shared facet pricing and integrated
 Terra's actual-query scale harness. Luna audited selector completeness and added
@@ -53,7 +71,8 @@ The concrete offline extension point is `scripts/verify-catalog-v2-all-source-ba
 `shop:catalog:v2:all-source:docker` runner. Compare normalized source application
 tuples with persisted canonical and projected clauses. Current raw-leaf coverage,
 ownership and policy-count assertions do not establish selector option completeness;
-this tuple gate is planned, not implemented or executed by this wave.
+the tuple gate is implemented in the latest wave above, with execution evidence
+tracked there. Selector endpoint completeness remains open.
 
 ## Previous local wave: effective prices, stock summaries and fuel
 
