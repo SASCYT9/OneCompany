@@ -39,7 +39,6 @@ import {
   readCatalogBuildArtifactKey,
   resolveCatalogBuildCacheDir,
   restoreCatalogBuildArtifact,
-  saveCatalogBuildArtifact,
 } from "./lib/catalog-build-artifact";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
@@ -260,25 +259,6 @@ async function main() {
     console.log(
       `[prebuild-shop-snapshot] wrote simplified products to ${path.relative(process.cwd(), PRODUCTS_OUTPUT)}`
     );
-    if (artifactKey) {
-      const cacheDir = resolveCatalogBuildCacheDir({
-        configuredDir: process.env.CATALOG_BUILD_CACHE_DIR,
-      });
-      saveCatalogBuildArtifact({
-        cacheDir,
-        key: artifactKey,
-        paths: {
-          productsOutput: PRODUCTS_OUTPUT,
-          settingsOutput: SETTINGS_OUTPUT,
-          fallbackOutputDir: FALLBACK_OUTPUT_DIR,
-        },
-        productCount: simplifiedProducts.length,
-        activeDatabaseCount: productCount,
-      });
-      console.log(
-        `[prebuild-shop-snapshot] cached catalog artifact in ${path.relative(process.cwd(), cacheDir)}`
-      );
-    }
   } finally {
     if (stagedFallbackDirectory) {
       fs.rmSync(stagedFallbackDirectory, { recursive: true, force: true });

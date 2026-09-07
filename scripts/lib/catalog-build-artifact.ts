@@ -16,6 +16,16 @@ import {
  * build cost this helper is meant to avoid.
  */
 export const CATALOG_BUILD_ARTIFACT_VERSION = 1 as const;
+export const CATALOG_FILTER_INDEX_KEYS = [
+  "adro",
+  "brabus",
+  "burger",
+  "csf",
+  "girodisc",
+  "ipe",
+  "ohlins",
+  "racechip",
+] as const;
 export const DEFAULT_CATALOG_BUILD_CACHE_DIR = path.join(
   ".next",
   "cache",
@@ -41,6 +51,8 @@ export type CatalogBuildArtifactPaths = {
   productsOutput: string;
   settingsOutput: string;
   fallbackOutputDir: string;
+  /** Generated filter indexes are part of the same immutable build bundle. */
+  indexOutputDir?: string;
 };
 
 type CacheResult = {
@@ -157,7 +169,8 @@ function readManifest(cacheDir: string): CatalogBuildArtifactManifest | null {
 function verifyArtifactFiles(
   cacheDir: string,
   manifest: CatalogBuildArtifactManifest,
-  expectedKey: string
+  expectedKey: string,
+  options?: { requireIndexes?: boolean }
 ) {
   if (manifest.key !== expectedKey) return false;
   const names = new Set<string>();
@@ -176,12 +189,15 @@ function verifyArtifactFiles(
     if (stat.size !== file.bytes || sha256File(absolute) !== file.sha256) return false;
   }
   const products = manifest.files.find(
-    (file) => file.relativePath === "data/shop-products.snapshot.json"
+    (file) => canonicalRelativePath(file.relativePath) === "data/shop-products.snapshot.json"
   );
   const fallbackManifest = manifest.files.find(
     (file) => canonicalRelativePath(file.relativePath) === "public/catalog-fallback/manifest.json"
   );
-  return !!products && !!fallbackManifest;
+  const indexManifest = manifest.files.find(
+    (file) => canonicalRelativePath(file.relativePath) === "public/catalog-index/manifest.json"
+  );
+  return !!products && !!fallbackManifest && (!options?.requireIndexes || !!indexManifest);
 }
 
 function validateSnapshotShape(cacheDir: string, manifest: CatalogBuildArtifactManifest) {
@@ -212,6 +228,56 @@ function validateSnapshotShape(cacheDir: string, manifest: CatalogBuildArtifactM
       if (!Array.isArray(shard) || shard.length !== count) return false;
     }
     return true;
+  } catch {
+    return false;
+  }
+}
+
+function validateIndexShape(cacheDir: string, manifest: CatalogBuildArtifactManifest) {
+  try {
+    const manifestPath = assertContained(cacheDir, "public/catalog-index/manifest.json");
+    const parsed = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
+      indexes?: Record<string, { file?: string; count?: number }>;
+    };
+    const indexes = parsed.indexes;
+    if (
+      !indexes ||
+      typeof indexes !== "object" ||
+      Object.keys(indexes).length !== CATALOG_FILTER_INDEX_KEYS.length ||
+      CATALOG_FILTER_INDEX_KEYS.some((key) => !Object.prototype.hasOwnProperty.call(indexes, key))
+    )
+      return false;
+
+    for (const entry of Object.values(indexes)) {
+      if (
+        !entry ||
+        typeof entry.file !== "string" ||
+        !isSafeInteger(entry.count) ||
+        entry.count < 0
+      )
+        return false;
+      const shardPath = assertContained(cacheDir, path.join("public/catalog-index", entry.file));
+      if (!fs.existsSync(shardPath) || !fs.statSync(shardPath).isFile()) return false;
+      const shard = JSON.parse(fs.readFileSync(shardPath, "utf8")) as unknown;
+      if (!Array.isArray(shard) || shard.length !== entry.count) return false;
+      const expectedHash = crypto
+        .createHash("sha256")
+        .update(JSON.stringify(shard))
+        .digest("hex")
+        .slice(0, 12);
+      if (!entry.file.endsWith(`.${expectedHash}.json`)) return false;
+    }
+
+    // Every file declared by the index manifest must be included in the
+    // outer content-addressed manifest. This prevents restoring an index that
+    // was written after the artifact manifest or was copied only partially.
+    const artifactFiles = new Set(
+      manifest.files.map((file) => canonicalRelativePath(file.relativePath))
+    );
+    if (!artifactFiles.has("public/catalog-index/manifest.json")) return false;
+    return Object.values(indexes).every((entry) =>
+      artifactFiles.has(`public/catalog-index/${entry.file}`)
+    );
   } catch {
     return false;
   }
@@ -268,6 +334,57 @@ export function restoreCatalogBuildArtifact(input: {
   return { manifest, cacheDir };
 }
 
+/**
+ * Restore only the generated filter indexes from a complete artifact.
+ *
+ * The snapshot stage runs first and owns the products/settings/fallback
+ * outputs. Keeping this operation separate avoids copying the large snapshot
+ * a second time just to reuse the indexes.
+ */
+export function restoreCatalogBuildArtifactIndexes(input: {
+  cacheDir: string;
+  key: string;
+  outputDir: string;
+}): CacheResult | null {
+  const key = normalizedKey(input.key);
+  if (!key) return null;
+  const cacheDir = path.resolve(input.cacheDir);
+  const manifest = readManifest(cacheDir);
+  if (
+    !manifest ||
+    !verifyArtifactFiles(cacheDir, manifest, key, { requireIndexes: true }) ||
+    !validateSnapshotShape(cacheDir, manifest) ||
+    !validateIndexShape(cacheDir, manifest)
+  ) {
+    return null;
+  }
+
+  const staged = stageDirectoryFromCache(
+    cacheDir,
+    "public/catalog-index",
+    path.dirname(path.resolve(input.outputDir))
+  );
+  try {
+    // The staged directory has already passed the manifest/hash checks. Use
+    // a sibling rename so readers never observe a half-written index set.
+    const target = path.resolve(input.outputDir);
+    const backup = `${target}.backup-${process.pid}-${Date.now()}`;
+    const hadTarget = fs.existsSync(target);
+    try {
+      if (hadTarget) fs.renameSync(target, backup);
+      fs.renameSync(staged, target);
+      if (hadTarget) fs.rmSync(backup, { recursive: true, force: true });
+    } catch (error) {
+      if (!fs.existsSync(target) && hadTarget && fs.existsSync(backup))
+        fs.renameSync(backup, target);
+      throw error;
+    }
+  } finally {
+    if (fs.existsSync(staged)) fs.rmSync(staged, { recursive: true, force: true });
+  }
+  return { manifest, cacheDir };
+}
+
 /** Save outputs after the database-backed generation succeeded. */
 export function saveCatalogBuildArtifact(input: {
   cacheDir: string;
@@ -293,6 +410,14 @@ export function saveCatalogBuildArtifact(input: {
       canonicalRelativePath(path.join("public/catalog-fallback", relative)),
       path.join(input.paths.fallbackOutputDir, relative),
     ]);
+  }
+  if (input.paths.indexOutputDir && fs.existsSync(input.paths.indexOutputDir)) {
+    for (const relative of relativeFiles(input.paths.indexOutputDir)) {
+      entries.push([
+        canonicalRelativePath(path.join("public/catalog-index", relative)),
+        path.join(input.paths.indexOutputDir, relative),
+      ]);
+    }
   }
   const files: ArtifactFile[] = [];
   for (const [relativePath, source] of entries) {

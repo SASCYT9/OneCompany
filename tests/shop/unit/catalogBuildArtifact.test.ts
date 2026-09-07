@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -7,6 +8,7 @@ import test from "node:test";
 import {
   readCatalogBuildArtifactKey,
   restoreCatalogBuildArtifact,
+  restoreCatalogBuildArtifactIndexes,
   saveCatalogBuildArtifact,
 } from "../../../scripts/lib/catalog-build-artifact";
 
@@ -18,9 +20,11 @@ function fixture() {
     productsOutput: path.join(root, "data", "shop-products.snapshot.json"),
     settingsOutput: path.join(root, "data", "shop-settings.snapshot.json"),
     fallbackOutputDir: path.join(root, "public", "catalog-fallback"),
+    indexOutputDir: path.join(root, "public", "catalog-index"),
   };
   mkdirSync(path.dirname(paths.productsOutput), { recursive: true });
   mkdirSync(paths.fallbackOutputDir, { recursive: true });
+  mkdirSync(paths.indexOutputDir, { recursive: true });
   writeFileSync(
     paths.productsOutput,
     JSON.stringify(Array.from({ length: PRODUCT_COUNT }, (_, id) => ({ id })))
@@ -41,7 +45,29 @@ function fixture() {
       slugToStore: {},
     })
   );
+  const indexRows = [{ slug: "fixture-product" }];
+  const indexJson = JSON.stringify(indexRows);
+  const indexHash = awaitableHash(indexJson);
+  const indexKeys = ["adro", "brabus", "burger", "csf", "girodisc", "ipe", "ohlins", "racechip"];
+  const indexes = Object.fromEntries(
+    indexKeys.map((key) => {
+      const file = `${key}.${indexHash}.json`;
+      writeFileSync(path.join(paths.indexOutputDir, file), indexJson);
+      return [key, { file, count: 1 }];
+    })
+  );
+  writeFileSync(
+    path.join(paths.indexOutputDir, "manifest.json"),
+    JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      indexes,
+    })
+  );
   return { root, paths };
+}
+
+function awaitableHash(value: string) {
+  return createHash("sha256").update(value).digest("hex").slice(0, 12);
 }
 
 test("artifact cache is opt-in and rejects an absent key", () => {
@@ -64,6 +90,7 @@ test("a keyed artifact restores verified snapshots without a database read", () 
     rmSync(source.paths.productsOutput);
     rmSync(source.paths.settingsOutput);
     rmSync(source.paths.fallbackOutputDir, { recursive: true });
+    rmSync(source.paths.indexOutputDir, { recursive: true });
 
     const restored = restoreCatalogBuildArtifact({
       cacheDir,
@@ -76,6 +103,13 @@ test("a keyed artifact restores verified snapshots without a database read", () 
       PRODUCT_COUNT
     );
     assert.equal(existsSync(path.join(source.paths.fallbackOutputDir, "manifest.json")), true);
+    const restoredIndexes = restoreCatalogBuildArtifactIndexes({
+      cacheDir,
+      key: "sha256:catalog-v1",
+      outputDir: source.paths.indexOutputDir,
+    });
+    assert.equal(restoredIndexes?.manifest.key, "sha256:catalog-v1");
+    assert.equal(existsSync(path.join(source.paths.indexOutputDir, "manifest.json")), true);
   } finally {
     rmSync(source.root, { recursive: true, force: true });
   }
@@ -99,6 +133,31 @@ test("wrong keys and tampered shards are cache misses", () => {
     writeFileSync(path.join(cacheDir, "public", "catalog-fallback", "generic.json"), "tampered");
     assert.equal(
       restoreCatalogBuildArtifact({ cacheDir, key: "sha256:catalog-v1", paths: source.paths }),
+      null
+    );
+  } finally {
+    rmSync(source.root, { recursive: true, force: true });
+  }
+});
+
+test("missing or tampered filter indexes never restore", () => {
+  const source = fixture();
+  const cacheDir = path.join(source.root, "cache");
+  try {
+    saveCatalogBuildArtifact({
+      cacheDir,
+      key: "sha256:catalog-v1",
+      paths: source.paths,
+      productCount: PRODUCT_COUNT,
+      activeDatabaseCount: PRODUCT_COUNT,
+    });
+    rmSync(path.join(cacheDir, "public", "catalog-index", "manifest.json"));
+    assert.equal(
+      restoreCatalogBuildArtifactIndexes({
+        cacheDir,
+        key: "sha256:catalog-v1",
+        outputDir: source.paths.indexOutputDir,
+      }),
       null
     );
   } finally {
