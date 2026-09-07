@@ -4,7 +4,54 @@ Last updated: 2026-09-07
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Latest local wave: normalized selector coverage gate (T4)
+## Latest local wave: preserve KW/FI import evidence (T4)
+
+Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
+the separately correlated fitment entry together. KW imports retain the raw
+product plus the complete normalization used at ingestion, including unresolved
+makes, multiple chassis and inferred correlations. Versioned envelope hashes
+cover both commerce source data and compatibility evidence; record keys remain
+the stable external product IDs. Existing draft source hashes still describe the
+original supplier product, while persisted source-record hashes describe the new
+envelope. Both writers verify that the draft's supplier hash/revision and its
+normalized-fitment metafield agree with current inputs before opening a transaction.
+
+An identical import replays without duplicate rows. Changed evidence and old
+pre-envelope records now fail with an explicit source-revision promotion error
+instead of silently claiming idempotency. Binding locks serialize concurrent
+imports of the same product. No existing source record or published product is
+rewritten by these changes.
+
+Raw variant provenance now resolves ownership using external variant IDs and
+per-field occurrences. Nested selected-option arrays and missing optional fields
+no longer shift ownership to another variant; FI variant provenance also uses
+the variant's canonical ID rather than the product ID. Every source leaf remains
+accounted for, including the additional compatibility evidence.
+
+Validation evidence is in `artifacts/storefront-wave7-*`: both import CLIs pass
+read-only preparation for 223 FI and 1,999 KW products; the selected catalog/stock/
+pricing suite has 363 passing tests. Two real disposable PostgreSQL tests passed after
+all 44 migrations and cover
+envelope retention, unchanged replay, changed evidence rejection, stale drafts,
+nested variant ownership and concurrent identical import. Final check results are
+recorded in the corresponding integration, TypeScript and lint logs. TypeScript
+passes; full ESLint has zero errors and the same 550 existing warnings. Tests
+retain immutable history until the exact disposable container is removed; they
+do not disable retention triggers to clean up individual source records.
+
+This closes the evidence-retention prerequisite, not KW/FI canonical policy
+publication or public selector completeness. The shared vehicle writer cannot
+losslessly represent KW clauses with unknown make but known model, or preserve
+all multi-value/per-clause verification semantics. Do not squeeze these records
+through that adapter or treat them as supported by the 14-source gate yet.
+The public fitment endpoint still has a partial-canonical early-return gap; its
+legacy fallback loads the complete catalog and is not an acceptable new merge
+strategy. Next: a lossless canonical persistence contract for these clauses and
+a complete selector read model with source coverage/version evidence.
+
+Production actions performed: none. Local branch commits only.
+
+## Previous local wave: normalized selector coverage gate (T4)
 
 Starting from `5f140cb9`. Added an offline oracle for all 14 source normalization
 shapes and a bounded, 50-target-page canonical coverage audit to the existing
