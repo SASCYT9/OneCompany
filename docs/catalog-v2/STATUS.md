@@ -860,3 +860,5 @@ Current R03 safety state: commit `bcc87f84` prevents enabled `ssr/canary` fitmen
 Commit `43e7375d` adds mutation-safe storefront cache invalidation: local cache generations, in-flight promise ownership, and the `shop-products` Accelerate tag are invalidated together. A PDP freshness regression verifies stale in-flight reads cannot repopulate caches after a mutation.
 
 Commit `db56c974` adds the clean-commit storefront acceptance runner covering UA/EN, 390×844 and 1440×1000 browser gates, runtime/build gates, and HTTP JSON contracts. In `ssr`, the expected bounded `SELECTOR_NOT_READY` response is accepted as fail-closed behavior until the selector artifact is published.
+
+The new acceptance matrix was executed on a clean local SSR preview at commit `4727a1b8`: build gate, UA/EN runtime gates, UA/EN browser gates at 390×844 and 1440×1000, and fitment/suggestion HTTP contracts all passed. Runtime TTFB p95 stayed below 300 ms and first response stayed below 100 KiB gzip; the acceptance artifact is `artifacts/catalog-v2-storefront/catalog-v2-storefront-acceptance.json` (ignored, reproducible).
