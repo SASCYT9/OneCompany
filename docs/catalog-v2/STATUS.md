@@ -22,6 +22,12 @@ before persistence while allowing explicit review state. It is not yet wired to
 the live import coordinator or fitment route; that integration remains part of
 R01/R03.
 
+Commit `c6697b89` adds the pure route adapter for makes, models, chassis,
+details, and engines. It preserves clause correlation and returns `null` for
+incomplete artifacts, so a future route can switch only after persisted
+readiness metadata exists. Direct route wiring is intentionally still blocked
+until that artifact is published and coverage is proven.
+
 The R10/R05 cost and search pass is included in commit `3a90621d` (with the
 deterministic install change in `08835e1c`). Build snapshot generation now
 reuses the shared Prisma singleton, while ordinary product/SKU searches skip

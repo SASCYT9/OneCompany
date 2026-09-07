@@ -172,3 +172,15 @@ test("all required source revisions allow publication", () => {
   assert.equal(decision.sourceCoverageFingerprint, value.fingerprint);
   assert.deepEqual(decision.reasons, []);
 });
+
+test("publication rejects a tampered coverage manifest", () => {
+  const value = manifest();
+  const tampered = structuredClone(value);
+  tampered.sources[0]!.complete = false;
+  const decision = evaluateShopCatalogSelectorPublication({
+    manifest: tampered,
+    requiredSourceIds,
+  });
+  assert.equal(decision.status, "BLOCKED");
+  assert.match(decision.reasons.join("\n"), /fingerprint does not match manifest contents/);
+});

@@ -75,6 +75,21 @@ function stableCoverageValue(value: ShopCatalogSourceRevisionCoverage) {
   ].join("\u0000");
 }
 
+function coverageManifestFingerprint(input: {
+  projectionVersion: string;
+  selectorFingerprint: string;
+  sources: readonly ShopCatalogSourceRevisionCoverage[];
+}) {
+  return sha256(
+    [
+      String(SHOP_CATALOG_SOURCE_REVISION_COVERAGE_VERSION),
+      input.projectionVersion,
+      input.selectorFingerprint.toLowerCase(),
+      ...input.sources.map(stableCoverageValue),
+    ].join("\n")
+  );
+}
+
 function normalizeCoverage(
   input: ShopCatalogSourceRevisionCoverageInput
 ): ShopCatalogSourceRevisionCoverage {
@@ -126,18 +141,16 @@ export function buildShopCatalogSourceRevisionCoverageManifest(input: {
     (source, index) => source.sourceId === sources[index - 1]?.sourceId
   );
   if (duplicate) throw new TypeError(`duplicate source coverage entry: ${duplicate.sourceId}`);
-  const body = [
-    String(SHOP_CATALOG_SOURCE_REVISION_COVERAGE_VERSION),
-    projectionVersion,
-    input.selectorFingerprint.toLowerCase(),
-    ...sources.map(stableCoverageValue),
-  ].join("\n");
   return Object.freeze({
     version: SHOP_CATALOG_SOURCE_REVISION_COVERAGE_VERSION,
     projectionVersion,
     selectorFingerprint: input.selectorFingerprint.toLowerCase(),
     sources: Object.freeze(sources.map((source) => Object.freeze(source))),
-    fingerprint: sha256(body),
+    fingerprint: coverageManifestFingerprint({
+      projectionVersion,
+      selectorFingerprint: input.selectorFingerprint,
+      sources,
+    }),
   });
 }
 
@@ -162,19 +175,64 @@ export function evaluateShopCatalogSelectorPublication(input: {
   if (manifest.version !== SHOP_CATALOG_SOURCE_REVISION_COVERAGE_VERSION) {
     reasons.push("source revision coverage manifest version is unsupported");
   }
-  if (!manifest.projectionVersion.trim()) reasons.push("projectionVersion is required");
-  if (!/^[a-f0-9]{64}$/iu.test(manifest.selectorFingerprint)) {
+  if (typeof manifest.projectionVersion !== "string" || !manifest.projectionVersion.trim()) {
+    reasons.push("projectionVersion is required");
+  }
+  if (
+    typeof manifest.selectorFingerprint !== "string" ||
+    !/^[a-f0-9]{64}$/iu.test(manifest.selectorFingerprint)
+  ) {
     reasons.push("selectorFingerprint is invalid");
+  }
+  if (typeof manifest.fingerprint !== "string" || !/^[a-f0-9]{64}$/iu.test(manifest.fingerprint)) {
+    reasons.push("source coverage fingerprint is invalid");
+  } else if (
+    typeof manifest.projectionVersion === "string" &&
+    typeof manifest.selectorFingerprint === "string" &&
+    Array.isArray(manifest.sources) &&
+    manifest.fingerprint !==
+      coverageManifestFingerprint({
+        projectionVersion: manifest.projectionVersion,
+        selectorFingerprint: manifest.selectorFingerprint,
+        sources: manifest.sources,
+      })
+  ) {
+    reasons.push("source coverage fingerprint does not match manifest contents");
   }
   const seen = new Set<string>();
   for (const source of manifest.sources) {
-    if (seen.has(source.sourceId))
-      reasons.push(`duplicate source coverage entry: ${source.sourceId}`);
-    seen.add(source.sourceId);
-    if (!source.revision.trim()) reasons.push(`missing source revision for ${source.sourceId}`);
-    if (!source.complete) {
+    const sourceId =
+      typeof source.sourceId === "string" ? source.sourceId.trim().toLowerCase() : "";
+    const sourceRevision = typeof source.revision === "string" ? source.revision.trim() : "";
+    if (!sourceId) {
+      reasons.push("source coverage entry has no sourceId");
+      continue;
+    }
+    if (seen.has(sourceId)) reasons.push(`duplicate source coverage entry: ${sourceId}`);
+    seen.add(sourceId);
+    if (!sourceRevision) reasons.push(`missing source revision for ${sourceId}`);
+    const validCounts = [source.expectedRecords, source.observedRecords, source.readyRecords].every(
+      (value) => Number.isSafeInteger(value) && value >= 0
+    );
+    if (!validCounts) {
+      reasons.push(`invalid record counts for ${sourceId}@${sourceRevision}`);
+      continue;
+    }
+    if (source.observedRecords > source.expectedRecords) {
+      reasons.push(`${sourceId}@${sourceRevision} observed records exceed expected records`);
+    }
+    if (source.readyRecords > source.observedRecords) {
+      reasons.push(`${sourceId}@${sourceRevision} ready records exceed observed records`);
+    }
+    const expectedComplete =
+      source.observedRecords === source.expectedRecords &&
+      source.readyRecords === source.expectedRecords;
+    if (source.complete !== expectedComplete) {
+      reasons.push(`${sourceId}@${sourceRevision} complete flag does not match record counts`);
+    }
+    if (!expectedComplete) {
       reasons.push(
-        `${source.sourceId}@${source.revision} coverage is incomplete (${source.observedRecords}/${source.expectedRecords} records, ${source.readyRecords} ready)`
+        `${sourceId}@${sourceRevision} coverage is incomplete (${source.observedRecords}/${source.expectedRecords} records, ${source.readyRecords} ready)`
       );
     }
   }
