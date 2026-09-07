@@ -2,20 +2,15 @@
 
 ## Scope and status
 
-This is a read-only, source-level audit of the stock catalog flow on branch
-`codex/storefront-cost-optimization`: the visible controls and URL state in
-`src/app/[locale]/shop/stock/page.tsx`, the legacy/SSR split in
-`src/app/api/shop/stock/search/route.ts`, and the premium adapter and projection
-query in `src/lib/shopCatalogPremiumProjection.server.ts` and
-`src/lib/shopCatalogProjectionQuery.server.ts`.
+Source audit and subsequent local fixes for the stock catalog on branch
+`codex/storefront-cost-optimization`: stock UI/URL state, legacy/SSR search route,
+premium adapter, canonical vehicle resolver and projection query.
 
-The source audit used no production, network, or database access. Its first two
-fixes are now verified locally: SSR `preOrder` excludes warehouse products, and
-OPF/GPF remains in the same compatibility clause for results, counts and vehicle
-facets. Root validation passed 32 unit tests, TypeScript, scoped ESLint, and two
-serial integration tests on disposable localhost PostgreSQL after replaying all
-44 migrations. The vehicle regression passed again after the live make-counter
-fix. These checks do not establish all-source production coverage or pricing parity.
+The initial audit used no production access. Follow-up patches now have local
+unit and disposable-PostgreSQL evidence for preorder exclusions, correlated OPF
+and fuel, viewer-effective pricing, requested-currency sorting and filtered stock
+summaries. See [STATUS.md](STATUS.md) for exact final checks. These fixtures do not
+certify current production coverage, large-catalog latency or complete reader parity.
 
 ## Control and URL inventory
 
@@ -31,52 +26,82 @@ values.
 
 ## Matrix
 
-| Dimension                             | Legacy reader                                                                                      | Premium SSR projection                                                                                                                                               | Contract finding                                                                                                                                                                                                                             |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `q`                                   | Relevance scoring, SKU handling, and vehicle alias narrowing                                       | `searchText ILIKE` only                                                                                                                                              | Supported, but ranking and vehicle-query semantics diverge. Validate vehicle-text cases before parity promotion.                                                                                                                             |
-| `make` / `model` / `chassis` / `year` | Canonical ID bridge plus fitment filtering; strict mode can use same application row               | Native mode retains all constraints; default bridge replaces these constraints with its resolved product IDs                                                         | Native engine/fuel/OPF requests retain the whole vehicle clause. Broad native mode remains opt-in pending coverage.                                                                                                                          |
-| `engine`                              | Canonical path; strict application matching                                                        | Projection-native correlated `ENGINE` constraint                                                                                                                     | Supported and intentionally native.                                                                                                                                                                                                          |
-| `fuel`                                | Sent only to the shadow query (`route.ts:1270`), with no fuel predicate in the serving legacy path | Projection-native correlated `FUEL` constraint                                                                                                                       | Actual visible fuel select is ignored by the legacy serving reader. Fix this separately; shadow support does not filter customer results.                                                                                                    |
-| `opfGpf`                              | Canonical application/strict matching                                                              | Correlated `OPF_GPF` predicate; accepts with/without and rejects unsupported values                                                                                  | Implemented and locally tested, including OPF-only selection, same-product cross-clause negatives, and live make/model facets. Production data coverage remains open.                                                                        |
-| `productKind`                         | Inferred taxonomy filter; strict knowledge/application path when enabled                           | No query input or predicate                                                                                                                                          | Ignored in SSR. This is URL/chip state, not a standalone visible select. Gate or implement before release.                                                                                                                                   |
-| `productType`                         | Exact normalized product `productType` equality                                                    | No query input or predicate (projection stores `productTypeKey`)                                                                                                     | Ignored in SSR. URL/chip state; gate or implement before release.                                                                                                                                                                            |
-| `strict=1`                            | Enables trusted knowledge/application validation and invalid-input handling                        | Not parsed by the premium adapter                                                                                                                                    | URL state semantics are not preserved in SSR. Canonical clause correlation alone does not prove equivalent trust/unknown handling.                                                                                                           |
-| `stock=inStock`                       | Warehouse SKU/slug predicate                                                                       | Converts to bounded warehouse product IDs                                                                                                                            | Supported, subject to facet-count correctness.                                                                                                                                                                                               |
-| `stock=preOrder`                      | Warehouse predicate complement                                                                     | Excludes warehouse IDs in results, facets and count queries                                                                                                          | Selection fixed and adapter-tested in native and bridge modes. Summary stock counts remain a separate open issue below.                                                                                                                      |
-| `brand`                               | Multiple values are OR; display-brand normalization                                                | `firstBrand` only; Urban aliases handled                                                                                                                             | Single-brand UI is supported. Multi-brand URL behavior diverges and is URL-only legacy compatibility.                                                                                                                                        |
-| `category`                            | Taxonomy group IDs/labels and keyword-derived classification                                       | Exact projection `categoryKey` or `categoryLabel`                                                                                                                    | Open parity risk: derived groups such as exhaust, brakes, and carbon aero need projection-key/data verification.                                                                                                                             |
-| `scope=moto`                          | Filters resolved product scope to moto                                                             | Exact `scopeKey=moto`                                                                                                                                                | Supported where projection scope is normalized.                                                                                                                                                                                              |
-| `scope=auto`                          | Filters resolved product scope to auto, including legacy `SHOP` fallback behavior                  | Adapter intentionally maps auto to null for legacy scope coverage; the diagnostic snapshot contains 6,137 rows outside normalized auto/moto, including legacy `SHOP` | Explicit compatibility debt. Mapping auto to exact auto would drop coverage until scope mapping/migration is complete; null can leak moto rows if projection contains them. Snapshot counts do not certify current canonical scope coverage. |
-| `currency` / `minPrice` / `maxPrice`  | Effective viewer price after B2B/customer/brand pricing; bounds and sort use that price            | Raw canonical product/variant price in SQL, then viewer pricing is hydrated for cards                                                                                | Highest release blocker: B2B/discounted users can get wrong inclusion and ordering. Europe pricing also needs combined verification.                                                                                                         |
-| `sort`                                | Effective viewer prices or localized title                                                         | Raw canonical prices/title; default uses stable projection rank/brand interleave                                                                                     | Price sort diverges for discounted audiences.                                                                                                                                                                                                |
-| `page` / `limit`                      | Offset pagination after all filtering/ranking                                                      | Bounded projection query/count with offset                                                                                                                           | Mechanically supported; projection count must remain aligned with filters.                                                                                                                                                                   |
+| Dimension                             | Legacy reader                                                                        | Premium SSR projection                                                                                                                                               | Contract finding                                                                                                                                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`                                   | Relevance scoring, SKU handling, and vehicle alias narrowing                         | `searchText ILIKE` only                                                                                                                                              | Supported, but ranking and vehicle-query semantics diverge. Validate vehicle-text cases before parity promotion.                                                                                                                             |
+| `make` / `model` / `chassis` / `year` | Canonical ID bridge plus fitment filtering; strict mode can use same application row | Native mode retains all constraints; default bridge replaces these constraints with its resolved product IDs                                                         | Native engine/fuel/OPF requests retain the whole vehicle clause. Broad native mode remains opt-in pending coverage.                                                                                                                          |
+| `engine`                              | Canonical path; strict application matching                                          | Projection-native correlated `ENGINE` constraint                                                                                                                     | Supported and intentionally native.                                                                                                                                                                                                          |
+| `fuel`                                | Canonical application/clause fuel predicate; missing canonical evidence fails closed | Correlated `FUEL` constraint                                                                                                                                         | Locally verified with same-product cross-application negatives. DB-less fuel selection returns zero without semantic fallback.                                                                                                               |
+| `opfGpf`                              | Canonical application/strict matching                                                | Correlated `OPF_GPF` predicate; accepts with/without and rejects unsupported values                                                                                  | Implemented and locally tested, including OPF-only selection, same-product cross-clause negatives, and live make/model facets. Production data coverage remains open.                                                                        |
+| `productKind`                         | Inferred taxonomy filter                                                             | Non-`any` requests explicitly use legacy                                                                                                                             | Silent omission prevented; native normalized product-kind implementation remains open.                                                                                                                                                       |
+| `productType`                         | Exact normalized type equality                                                       | Requests explicitly use legacy                                                                                                                                       | Silent omission prevented; native normalized key/index/backfill remains open.                                                                                                                                                                |
+| `strict=1`                            | Trusted evidence and coverage rules                                                  | Requests explicitly use legacy                                                                                                                                       | Native equivalent trust/unknown semantics remain open.                                                                                                                                                                                       |
+| `stock=inStock`                       | Warehouse SKU/slug predicate                                                         | Converts to bounded warehouse product IDs                                                                                                                            | Supported, subject to facet-count correctness.                                                                                                                                                                                               |
+| `stock=preOrder`                      | Warehouse complement                                                                 | Warehouse IDs excluded from results/facets/summary                                                                                                                   | Selection and selected-population stock counts verified locally.                                                                                                                                                                             |
+| `brand`                               | Multiple values are OR                                                               | Single brand supported; multiple distinct brands use legacy                                                                                                          | URL behavior is preserved by fallback; native multi-brand semantics remain open.                                                                                                                                                             |
+| `category`                            | Taxonomy group IDs/labels and keyword-derived classification                         | Exact projection `categoryKey` or `categoryLabel`                                                                                                                    | Open parity risk: derived groups such as exhaust, brakes, and carbon aero need projection-key/data verification.                                                                                                                             |
+| `scope=moto`                          | Filters resolved product scope to moto                                               | Exact `scopeKey=moto`                                                                                                                                                | Supported where projection scope is normalized.                                                                                                                                                                                              |
+| `scope=auto`                          | Filters resolved product scope to auto, including legacy `SHOP` fallback behavior    | Adapter intentionally maps auto to null for legacy scope coverage; the diagnostic snapshot contains 6,137 rows outside normalized auto/moto, including legacy `SHOP` | Explicit compatibility debt. Mapping auto to exact auto would drop coverage until scope mapping/migration is complete; null can leak moto rows if projection contains them. Snapshot counts do not certify current canonical scope coverage. |
+| `currency` / `minPrice` / `maxPrice`  | Effective viewer amount                                                              | Premium passes one viewer context to SQL and card hydration                                                                                                          | Differential PostgreSQL checks cover B2C/B2B, discounts, Europe, three currencies, default variants and null/zero. Other V2 callers without this context retain their previous price path. Scale evidence remains open.                      |
+| `sort`                                | Explicit price sort now uses requested currency; quote-only items last               | Effective viewer price in Premium filters and ordering                                                                                                               | Locally verified. Default ranking and title collation parity remain separate work.                                                                                                                                                           |
+| `page` / `limit`                      | Offset pagination after all filtering/ranking                                        | Bounded projection query/count with offset                                                                                                                           | Mechanically supported; projection count must remain aligned with filters.                                                                                                                                                                   |
 
 ## Open correctness and latency notes
 
-1. **Raw-price filtering and sorting is the release blocker.** The projection
-   SQL filters/sorts before `resolveShopProductPricing` applies viewer discounts.
-   A B2B or brand-discount customer can therefore see a product omitted by a
-   minimum/maximum bound or ordered incorrectly. The bounded next patch is an
-   audience-price read model/query path, or an explicit SSR gate for price
-   filtering/sorting until such a path exists.
-2. **Active URL/chip filters must not be silently ignored.** Add
-   `productType`, `productKind`, and strict semantics to the projection contract,
-   or explicitly gate unsupported requests. OPF/GPF is now implemented and tested
-   locally; that does not resolve the other filters or legacy fuel omission.
+1. **Effective-price correctness is locally verified; scale remains open.**
+   Premium SQL now uses the same audience, region, currency, default variant and
+   discount priority as card pricing. Ordered queries share one price evaluation
+   between both bounds and sorting. On four fixtures, EXPLAIN reduced canonical
+   product subplans from three to one and reads from eight to four. This is not a
+   production latency benchmark. Facet branches still evaluate price separately;
+   representative data, query plans and B2B-map cost need measurement. Other V2
+   callers without the context are outside this patch's pricing parity claim.
+2. **Unsupported URL/chip filters now explicitly use legacy.** `productType`,
+   non-`any` `productKind`, `strict=1` and multiple brands no longer enter a reader
+   that ignores them. Native versions still need the contracts described below.
 3. **Category mapping needs fixture evidence.** Legacy classification derives
    taxonomy groups from broad product text, while projection uses stored key or
    label. Confirm all customer-facing category IDs map to the same projection
    keys before enabling category parity claims.
-4. **Facet statistics are not yet equivalent.** The projection adapter derives
-   stock counts from the global warehouse ID set and filtered total, and derives
-   price bounds from prices on the returned page. Legacy computes filtered
-   population statistics. Counts can be wrong under brand/category/vehicle/price
-   filters and price sliders can become page-dependent. Recompute from the
-   filtered candidate population or provide a bounded facet read model.
+4. **Selected-population stock/price statistics are fixed locally.** One SQL
+   aggregate shares the listing predicate, ignores pagination, intersects stock
+   IDs and returns effective price bounds in the requested currency. Global
+   discovery semantics remain open: Premium still aliases `globalFilterStats`
+   to filtered statistics; legacy's global price range uses a broader population.
 5. **Scope requires data cleanup before a strict auto predicate.** The current
    `auto -> null` behavior is an intentional coverage bridge for legacy `SHOP`
    rows, not a correctness proof. Measure and quarantine moto leakage, then
    normalize scope keys/migrate the legacy rows before changing it to exact auto.
+
+## Product type, product kind, and strict implementation contract
+
+`productTypeKey` and `productKindKey` are present in the persisted projection,
+but the snapshot writer maps them directly from `record.productType` and
+`record.productCategory`. Its `optionalText` validation checks emptiness and
+length; it does not apply the storefront `normalizeShopSearchText` transform.
+Legacy `productType` matching does apply that transform. Consequently, the
+smallest safe projection predicate is not currently an indexed exact equality:
+`lower(trim(productTypeKey))` would still differ on accents, punctuation, and
+internal whitespace and would not use the existing ordinary indexes. First
+define a canonical product-type key, backfill/rebuild projections, add an index,
+then compare that key exactly. Until then, gate `productType` requests to the
+legacy reader.
+
+`productKindKey` is populated from the broad product-category field (often a
+category slug). Legacy `inferShopAiProductKind` classifies the whole evidence
+corpus (title, category, product type, SKU, tags, and localized terms) into
+fine-grained kinds such as `downpipe`, `tips`, `coilover_kit`, and
+`intercooler`. Therefore `productKindKey = requestedKind` would silently change
+semantics and omit valid products. Product kind needs a versioned canonical
+derived field, provenance, and fixtures against the current taxonomy before it
+can be queried by projection.
+
+`strict=1` is a fail-closed evidence mode. Legacy requires valid strict input,
+ready coverage, active non-blocked knowledge/application rows, and trusted
+same-application verification with explicit unknown handling. The premium
+entry gate now routes `strict=1` requests to legacy until projection stores the
+same evidence, trust/source rules, coverage gate, and version correlation.
+Projection text or product-kind matches are not strict evidence.
 
 ## Suggested acceptance checks
 

@@ -8,6 +8,10 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import {
+  buildShopCatalogEffectivePriceSql,
+  type ShopCatalogEffectivePriceContext,
+} from "./shopCatalogEffectivePrice.server";
 import type { ShopCatalogShadowFlag } from "./shopCatalogShadowFlag.server";
 import {
   canonicalizeVehicleModels,
@@ -48,6 +52,7 @@ export type ShopCatalogProjectionQueryInput = {
   order?: "default" | "price_asc" | "price_desc" | "name_asc" | "brand_interleave";
   orderSeed?: string | null;
   useEuropePrice?: boolean;
+  effectivePriceContext?: ShopCatalogEffectivePriceContext | null;
 };
 
 export type ShopCatalogProjectionQueryItem = {
@@ -95,6 +100,67 @@ export async function countShopCatalogProjection(
 }
 
 export const SHOP_CATALOG_PROJECTION_FACET_LIMIT = 100 as const;
+
+/** One aggregate over the exact listing predicate, independent of pagination. */
+export async function queryShopCatalogProjectionStockSummary(
+  raw: ShopCatalogProjectionQueryInput,
+  inStockProductIds: readonly string[]
+): Promise<{
+  totalItems: number;
+  inStock: number;
+  preOrder: number;
+  price?: { min: number; max: number; currency: string };
+}> {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  const price = input.effectivePriceContext ? projectionPriceSql(input) : Prisma.sql`NULL::numeric`;
+  const conditions = projectionFacetBaseConditions(
+    input,
+    true,
+    true,
+    input.effectivePriceContext ? Prisma.sql`summary_price.amount` : undefined
+  );
+  const vehicleCondition = selectedVehicleCondition(input);
+  if (vehicleCondition) conditions.push(vehicleCondition);
+  const ids = [...new Set(inStockProductIds)];
+  const inStock = ids.length
+    ? Prisma.sql`projection."productId" IN (${Prisma.join(ids)})`
+    : Prisma.sql`FALSE`;
+  const rows = await prisma.$queryRaw<
+    Array<{ totalItems: bigint; inStock: bigint; minPrice: number | null; maxPrice: number | null }>
+  >(Prisma.sql`
+    SELECT count(*)::bigint AS "totalItems",
+           count(*) FILTER (WHERE ${inStock})::bigint AS "inStock",
+           min(summary_price.amount)::float8 AS "minPrice",
+           max(summary_price.amount)::float8 AS "maxPrice"
+    FROM "ShopCatalogProjection" projection
+    CROSS JOIN LATERAL (SELECT ${price} AS amount OFFSET 0) summary_price
+    WHERE ${Prisma.join(conditions, " AND ")}
+  `);
+  const totalItems = Number(rows[0]?.totalItems ?? 0);
+  const stockItems = Number(rows[0]?.inStock ?? 0);
+  if (
+    !Number.isSafeInteger(totalItems) ||
+    !Number.isSafeInteger(stockItems) ||
+    stockItems < 0 ||
+    totalItems < stockItems
+  ) {
+    throw new TypeError("Invalid catalog stock aggregate");
+  }
+  return {
+    totalItems,
+    inStock: stockItems,
+    preOrder: totalItems - stockItems,
+    ...(input.effectivePriceContext
+      ? {
+          price: {
+            min: Math.floor(rows[0]?.minPrice ?? 0),
+            max: Math.ceil(rows[0]?.maxPrice ?? 0),
+            currency: input.effectivePriceContext.currency,
+          },
+        }
+      : {}),
+  };
+}
 
 export type ShopCatalogProjectionFacetItem = {
   key: string;
@@ -232,10 +298,13 @@ export function normalizeShopCatalogProjectionQuery(
       SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
     ),
     useEuropePrice: input.useEuropePrice ?? false,
+    effectivePriceContext: input.effectivePriceContext ?? null,
   });
 }
 
 function projectionPriceSql(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
+  if (input.effectivePriceContext)
+    return buildShopCatalogEffectivePriceSql(input.effectivePriceContext);
   if (input.useEuropePrice) {
     return Prisma.sql`COALESCE(
       (SELECT COALESCE(
@@ -402,7 +471,8 @@ function correlatedYearConstraintSql(year: number) {
 function projectionFacetBaseConditions(
   input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
   includeBrand: boolean,
-  includeCategory = true
+  includeCategory = true,
+  priceOverride?: Prisma.Sql
 ) {
   const conditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
@@ -421,7 +491,7 @@ function projectionFacetBaseConditions(
       Prisma.sql`projection."productId" NOT IN (${Prisma.join(input.excludeProductIds)})`
     );
   }
-  const price = projectionPriceSql(input);
+  const price = priceOverride ?? projectionPriceSql(input);
   if (input.minPrice != null) conditions.push(Prisma.sql`${price} >= ${input.minPrice}`);
   if (input.maxPrice != null) conditions.push(Prisma.sql`${price} <= ${input.maxPrice}`);
   if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
@@ -809,7 +879,21 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     input.maxPrice == null
   )
     return null;
-  const conditions = projectionFacetBaseConditions(input, true);
+  const reuseEffectivePrice = Boolean(
+    input.effectivePriceContext &&
+    (input.minPrice != null ||
+      input.maxPrice != null ||
+      input.order === "price_asc" ||
+      input.order === "price_desc" ||
+      input.order === "brand_interleave")
+  );
+  const price = reuseEffectivePrice ? Prisma.sql`ordered_price.amount` : projectionPriceSql(input);
+  // Keep one canonical/default-variant lookup per candidate even when both
+  // bounds and ordering use it. OFFSET 0 prevents scalar-subquery inlining.
+  const priceJoin = reuseEffectivePrice
+    ? Prisma.sql`CROSS JOIN LATERAL (SELECT ${projectionPriceSql(input)} AS amount OFFSET 0) ordered_price`
+    : Prisma.empty;
+  const conditions = projectionFacetBaseConditions(input, true, true, price);
   if (input.after) {
     conditions.push(
       Prisma.sql`(projection."stableRank" > ${input.after.stableRank}::numeric OR (projection."stableRank" = ${input.after.stableRank}::numeric AND projection."productId" > ${input.after.productId}))`
@@ -817,7 +901,6 @@ export function buildShopCatalogProjectionOrderedQuerySql(
   }
   const vehicleCondition = selectedVehicleCondition(input);
   if (vehicleCondition) conditions.push(vehicleCondition);
-  const price = projectionPriceSql(input);
   const canonicalBrand = canonicalProjectionBrandSql();
   const seed =
     input.orderSeed ??
@@ -859,6 +942,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
       projection."minPriceEurEurope", projection."minPriceUsd", projection."minPriceUah",
       projection."contentHash", projection."projectionVersion"
     FROM "ShopCatalogProjection" projection
+    ${priceJoin}
     WHERE ${Prisma.join(conditions, " AND ")}
     ORDER BY ${order}, projection."productId" ASC
     LIMIT ${input.limit + 1}

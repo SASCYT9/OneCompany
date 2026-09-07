@@ -41,6 +41,7 @@ test(
       queryShopCatalogProjectionFacets,
       queryShopCatalogProjection,
       countShopCatalogProjection,
+      queryShopCatalogProjectionStockSummary,
     } = await import("../../../src/lib/shopCatalogProjectionQuery.server");
     const run = `vehicle-facet-${Date.now()}`;
     const ids: string[] = [];
@@ -154,6 +155,24 @@ test(
         );
         const selection = { locale, scope: "auto", make: "BMW", model: "M5", productIds: ids };
         assert.equal(await countShopCatalogProjection(selection), 1);
+        assert.deepEqual(
+          await queryShopCatalogProjectionStockSummary({ ...selection, offset: 999, limit: 1 }, [
+            ids[1],
+            ids[2],
+          ]),
+          { totalItems: 1, inStock: 0, preOrder: 1 }
+        );
+        assert.deepEqual(
+          await queryShopCatalogProjectionStockSummary(selection, [ids[0], ids[0], ids[1]]),
+          { totalItems: 1, inStock: 1, preOrder: 0 }
+        );
+        assert.deepEqual(
+          await queryShopCatalogProjectionStockSummary(
+            { ...selection, excludeProductIds: [ids[0]] },
+            ids
+          ),
+          { totalItems: 0, inStock: 0, preOrder: 0 }
+        );
         assert.deepEqual(
           (await queryShopCatalogProjection(selection)).items.map((item) => item.productId),
           [ids[0]]

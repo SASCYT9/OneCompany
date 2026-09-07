@@ -7,9 +7,11 @@ export const state =
     countQueries: [],
     productFindManyCalls: 0,
     settingsCalls: 0,
+    stockSummary: { totalItems: 0, inStock: 0, preOrder: 0 },
   });
 
 export function reset() {
+  state.stockSummary = { totalItems: 0, inStock: 0, preOrder: 0 };
   state.legacyCalls = 0;
   state.queries.length = 0;
   state.facetQueries.length = 0;
@@ -33,7 +35,7 @@ export const prisma = {
 
 export async function getOrCreateShopSettings() {
   state.settingsCalls += 1;
-  return { currencyRates: { USD: 1, UAH: 40 } };
+  return { currencyRates: { EUR: 1, USD: 1, UAH: 40 } };
 }
 export function getShopSettingsRuntime(value) {
   return value;
@@ -79,6 +81,9 @@ export async function buildShopViewerPricingContextServer() {
 export function resolveShopProductPricing() {
   return null;
 }
+export function resolveCheckoutAudience() {
+  return "b2c";
+}
 export async function getShopCatalogCardPricingByIds() {
   return [];
 }
@@ -102,7 +107,7 @@ export async function queryShopCatalogProjectionFacets(query) {
     },
   };
 }
-export async function countShopCatalogProjection(query) {
+export async function queryShopCatalogProjectionStockSummary(query) {
   state.countQueries.push(query);
-  return 0;
+  return state.stockSummary;
 }

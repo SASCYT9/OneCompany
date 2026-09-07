@@ -283,6 +283,24 @@ Luna перевірила package-manager configuration: Vercel явно вик�
 pnpm файли мають неузгоджені `allowBuilds` placeholders; до використання pnpm треба
 окремо узгодити й перевірити цю конфігурацію. Зміни package manager/тарифу не виконані.
 
+## Локальна хвиля цін і фільтрів — 2026-09-07
+
+T3/T4: Premium використовує ціну поточного покупця в SQL-фільтрах, сортуванні,
+фасетах і підрахунках; stock/price aggregate більше не залежить від поточної сторінки.
+Перевірено B2C/B2B, Europe, три валюти, explicit/default-variant prices та null/zero.
+Legacy fuel перевіряється в одному application/clause; type/kind/strict/multi-brand
+поки спрямовуються до legacy, щоб параметри не ігнорувалися.
+
+Ordered SQL повторно використовує один розрахунок ціни. На чотирьох DB fixtures
+EXPLAIN показав зменшення читань canonical price з 8 до 4 без зміни результатів;
+це не вимір продуктивності повного каталогу. Пройшли 85 unit і 4 DB integration
+тести, TypeScript та ESLint із нулем помилок / 551 попередженням по репозиторію.
+Деталі й залишкові gates — [STATUS.md](docs/catalog-v2/STATUS.md).
+
+Далі: репрезентативні SQL/latency виміри, повторні price computations у фасетах,
+global/filtered discovery statistics, smart text/category/scope та повне source
+coverage. Чинні release gates не пройдені; production і reader flags не змінювалися.
+
 ## 9. Коли весь план завершено
 
 Усі acceptance gates пакетів мають evidence; BMW M5 G90 та інші golden cases правильні; основні search/PDP запити не сканують весь каталог; B2B/regional prices, publication freshness і strict HTTP збережені; UI працює в погодженій матриці; cold/warm затримки й витрати виміряні окремо; review та rollback готові. Локальне завершення і production-підтвердження — різні статуси. Якщо production ще не дозволений, фінальний стан: **готово локально, реліз і production-виміри очікують окремого рішення**.

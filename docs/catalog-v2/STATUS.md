@@ -4,6 +4,50 @@ Last updated: 2026-09-07
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
+## Latest local wave: effective prices, stock summaries and fuel
+
+Work items: T3/T4 filter correctness and price query cost; local implementation,
+not production acceptance. Root integrated and reviewed Terra/Luna handoffs.
+
+- Premium product filtering, sorting, facets and summaries now share the same
+  viewer-effective price context as cards: B2C/B2B, Europe, explicit per-currency
+  prices, discounts, conversion and product/default-variant null-versus-zero rules.
+  The context is request-private and no new public response fields expose discounts.
+- Ordered effective-price SQL reuses one canonical lookup for both bounds and
+  ordering. EXPLAIN ANALYZE on four fixture products shows three canonical price
+  subplans/eight reads before, one subplan/four reads after, for USD/UAH/EUR cases.
+  This establishes removed repeated work, not a production speedup or scale gate.
+- One selected-population aggregate replaces the count query and returns stock
+  intersections and requested-currency price bounds independent of page/offset.
+  Global-versus-filtered discovery statistics still need a separate contract.
+- Legacy fuel now uses same-application/same-clause evidence and fails closed when
+  unavailable. The extracted canonical resolver preserves the DB-less guard.
+  Unsupported type/kind/strict/multiple-brand parameters explicitly use legacy.
+  Legacy explicit price sorting now honors the requested currency; quote-only
+  products sort last in both directions.
+
+Final validation: 85 selected unit tests passed, four serial PostgreSQL integration
+tests passed on the disposable database after the 44-migration replay, TypeScript
+passed, and repository ESLint reported zero errors / 551 warnings. The price-query
+integration also verifies the actual EXPLAIN plan shares a canonical price lookup.
+Logs: `artifacts/storefront-wave4-regressions.log`, `storefront-wave4-final-integration.log`,
+`storefront-wave4-typecheck.log`, `storefront-wave4-lint.log`, and the before/after
+price-plan logs in the same ignored artifacts directory.
+
+Local HTTP evidence: BMW/M5/G90
+returns 47 snapshot products without fuel; adding unsupported snapshot fuel gives
+HTTP 200, zero results and no semantic fallback. No production query was performed.
+The old single-line source assertion was updated to allow multiline conditions
+while retaining the local-mode guard and checking the extracted resolver guard.
+
+Remaining release gates: current all-source canonical coverage/backfills, smart
+text/category/scope parity, native type/kind/strict semantics, global facet discovery,
+representative effective-price/facet query plans and latency, supported-Node build,
+Preview/device matrix, production shadow/freshness/rollback and cost measurements.
+Other V2 callers without the new effective context retain their existing price path.
+Facet SQL still repeats pricing across branches. Local Node 24.19.0 is outside the
+declared >=20 <23 range. No production activation, migration, push or deployment.
+
 ## Storefront performance and correctness follow-up - 2026-09-07
 
 User authorized local implementation of [PERFORMANCE_EXECUTION_PLAN.md](../../PERFORMANCE_EXECUTION_PLAN.md).
@@ -29,10 +73,10 @@ activation fails. No production build, DB backfill, deployment or measured
 production speed/cost improvement is claimed by this opt-in patch.
 
 Additional Luna audit: [filter contract matrix](FILTER_CONTRACT_AUDIT_2026-09-07.md).
-Open release blockers include viewer-effective B2B price filtering/sorting,
+The initial audit found release blockers including viewer-effective B2B price filtering/sorting,
 product type/kind and strict URL semantics, category/scope normalization, filtered
 stock/price statistics, and fuel handling on the legacy serving path. The new
-reader remains opt-in; a fast local fixture is not evidence that these are resolved.
+reader remains opt-in; see the latest local wave above for resolved items and limits.
 
 Next local fix wave: premium `preOrder` now excludes warehouse IDs across product,
 facet and count inputs. OPF/GPF stays in the same clause, forces native vehicle
@@ -41,7 +85,8 @@ that lack OPF evidence. Root reviewed and corrected the initial agent facet path
 Validation: 32 unit tests, TypeScript, scoped ESLint, and two serial disposable-DB
 integrations passed after a clean 44-migration replay; the vehicle regression was
 repeated after the final facet fix. Stock summary counts and the other audit
-blockers remain open. No production environment or reader flag was changed.
+blockers were open at this checkpoint; the latest local wave supersedes that status.
+No production environment or reader flag was changed.
 
 | Package              | Local state                            | Evidence / remaining gate                                                                                                                                                                                                                                                                                                                  |
 | -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

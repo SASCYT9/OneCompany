@@ -1,3 +1,7 @@
+import {
+  resolveCanonicalVehicleProductIds,
+  isMissingStrictCatalogSchema,
+} from "@/lib/shopStockCanonicalVehicleIds.server";
 import { after, NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
@@ -88,17 +92,14 @@ import {
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
 import {
-  splitVehicleChassisCodes,
-  vehicleMakeAliases,
-  vehicleModelAliases,
-} from "@/lib/shopVehicleTaxonomy";
-import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { canUsePremiumCatalogProjection } from "@/lib/shopCatalogPremiumEligibility";
+import { compareShopStockPriceAmounts } from "@/lib/shopStockPriceSort";
 import { singleFlight } from "@/lib/singleFlight";
 export { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 
@@ -755,20 +756,6 @@ function presentStrictApplicationEquals(column: Prisma.Sql, value: string | null
   `;
 }
 
-function isMissingStrictCatalogSchema(error: unknown) {
-  const code = String((error as { code?: unknown })?.code ?? "");
-  const message = String((error as { message?: unknown })?.message ?? "");
-  return (
-    code === "P2021" ||
-    code === "P2010" ||
-    code === "42P01" ||
-    code === "42703" ||
-    /ShopProductKnowledge|ShopVehicleApplication|column .* does not exist|does not exist/i.test(
-      message
-    )
-  );
-}
-
 type StrictCatalogResolution = {
   available: boolean;
   matches: Map<string, StrictCatalogMatch>;
@@ -805,178 +792,6 @@ async function hasStrictCatalogCoverage() {
     publishedProducts > 0 && indexedProducts / publishedProducts >= 0.95 && activeApplications > 0;
   strictCoverageCache = { expiresAt: now + 5 * 60_000, ready };
   return ready;
-}
-
-async function resolveCanonicalVehicleProductIds(input: {
-  make: string;
-  model: string;
-  chassis: string;
-  year: number | null;
-  engine: string | null;
-  opfGpf: string | null;
-  scope: ShopStockVehicleScope | null;
-}): Promise<string[] | null> {
-  if (
-    !input.make &&
-    !input.model &&
-    !input.chassis &&
-    !input.year &&
-    !input.engine &&
-    !input.opfGpf
-  ) {
-    return null;
-  }
-  if (isLocalStorefrontMode()) return null;
-  try {
-    const exactTextConstraint = (
-      dimension: "SCOPE" | "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE" | "OPF_GPF",
-      value: string
-    ) => ({
-      dimension,
-      state: "EXACT" as const,
-      textValue: {
-        in: dimension === "MAKE" ? vehicleMakeAliases(value) : [value],
-        mode: "insensitive" as const,
-      },
-    });
-    const modelAliases = input.model
-      ? [
-          ...vehicleModelAliases(input.make, input.model),
-          ...(
-            await prisma.shopCatalogProjectionConstraint.findMany({
-              where: {
-                dimension: "MODEL",
-                state: "EXACT",
-                textValue: { not: null },
-              },
-              distinct: ["textValue"],
-              select: { textValue: true },
-            })
-          )
-            .map((row) => row.textValue)
-            .filter(
-              (value): value is string =>
-                Boolean(value) && shopVehicleModelsMatch(value!, input.model, input.make)
-            ),
-        ]
-      : [];
-    const uniqueModelAliases = [...new Set(modelAliases)];
-    const chassisAliases = input.chassis
-      ? [
-          input.chassis,
-          ...(
-            await prisma.shopCatalogProjectionConstraint.findMany({
-              where: {
-                dimension: { in: ["GENERATION", "CHASSIS"] },
-                state: "EXACT",
-                textValue: { contains: input.chassis, mode: "insensitive" },
-              },
-              distinct: ["textValue"],
-              select: { textValue: true },
-            })
-          )
-            .map((row) => row.textValue)
-            .filter(
-              (value): value is string =>
-                Boolean(value) &&
-                splitVehicleChassisCodes(value!).some(
-                  (code) => code.toLocaleLowerCase() === input.chassis.toLocaleLowerCase()
-                )
-            ),
-        ]
-      : [];
-    const uniqueChassisAliases = [...new Set(chassisAliases)];
-    const canonicalClauseConstraints = [
-      ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
-      ...(input.make ? [exactTextConstraint("MAKE", input.make)] : []),
-      ...(input.model
-        ? [
-            {
-              dimension: "MODEL" as const,
-              state: "EXACT" as const,
-              textValue: { in: uniqueModelAliases, mode: "insensitive" as const },
-            },
-          ]
-        : []),
-      ...(input.chassis
-        ? [
-            {
-              OR: [
-                {
-                  dimension: "GENERATION" as const,
-                  state: "EXACT" as const,
-                  textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
-                },
-                {
-                  dimension: "CHASSIS" as const,
-                  state: "EXACT" as const,
-                  textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
-                },
-              ],
-            },
-          ]
-        : []),
-      ...(input.engine ? [exactTextConstraint("ENGINE", input.engine)] : []),
-      ...(input.opfGpf ? [exactTextConstraint("OPF_GPF", input.opfGpf)] : []),
-      ...(input.year
-        ? [
-            {
-              dimension: "YEAR" as const,
-              state: "EXACT" as const,
-              AND: [
-                { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
-                { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
-              ],
-            },
-          ]
-        : []),
-    ];
-    const [applicationRows, policyRows] = await Promise.all([
-      prisma.shopVehicleApplication.findMany({
-        where: {
-          isActive: true,
-          isUniversal: false,
-          verificationStatus: { not: "BLOCKED" },
-          ...(input.scope ? { scope: input.scope } : {}),
-          ...(input.make
-            ? { make: { in: vehicleMakeAliases(input.make), mode: "insensitive" } }
-            : {}),
-          ...(input.model ? { model: { in: uniqueModelAliases, mode: "insensitive" } } : {}),
-          ...(input.chassis
-            ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } }
-            : {}),
-          ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
-          ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
-          ...(input.year
-            ? {
-                AND: [
-                  { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
-                  { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
-                ],
-              }
-            : {}),
-          product: { isPublished: true, status: "ACTIVE" },
-        },
-        distinct: ["productId"],
-        select: { productId: true },
-      }),
-      prisma.shopCatalogProjectionClause.findMany({
-        where: {
-          policy: { mode: { not: "UNIVERSAL" } },
-          product: { isPublished: true, status: "ACTIVE" },
-          AND: canonicalClauseConstraints.map((constraint) => ({
-            constraints: { some: constraint },
-          })),
-        },
-        distinct: ["productId"],
-        select: { productId: true },
-      }),
-    ]);
-    return [...new Set([...applicationRows, ...policyRows].map((row) => row.productId))];
-  } catch (error) {
-    if (isMissingStrictCatalogSchema(error)) return null;
-    throw error;
-  }
 }
 
 async function resolveStrictCatalogMatches(
@@ -1181,7 +996,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     if (
       !isLocalStorefrontMode() &&
-      process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr"
+      process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr" &&
+      canUsePremiumCatalogProjection(new URL(request.url).searchParams)
     ) {
       return await queryPremiumCatalogProjection(searchParams);
     }
@@ -1198,6 +1014,7 @@ export async function GET(request: NextRequest) {
     const chassis = searchParams.get("chassis")?.trim() || "";
     const requestedYear = strictCatalogConstraints.year;
     const requestedEngine = strictCatalogConstraints.engine;
+    const requestedFuel = searchParams.get("fuel")?.trim() || null;
     const requestedOpfGpf = strictCatalogConstraints.opfGpf;
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
     const stock = parseStockSearchStock(searchParams.get("stock"));
@@ -1221,7 +1038,13 @@ export async function GET(request: NextRequest) {
     );
     const hasBrandFilter = brandNames.length > 0;
     const hasVehicleConstraints = Boolean(
-      make || model || chassis || requestedYear || requestedEngine || requestedOpfGpf
+      make ||
+      model ||
+      chassis ||
+      requestedYear ||
+      requestedEngine ||
+      requestedFuel ||
+      requestedOpfGpf
     );
     const strictCatalogApplied =
       strictMatch &&
@@ -1281,6 +1104,7 @@ export async function GET(request: NextRequest) {
           chassis,
           year: requestedYear,
           engine: requestedEngine,
+          fuel: requestedFuel,
           opfGpf: requestedOpfGpf,
           scope: vehicleScope,
         }),
@@ -1288,15 +1112,21 @@ export async function GET(request: NextRequest) {
       ]);
     mark("context");
     const allProductsWithFitments =
-      canonicalVehicleProductIds === null
-        ? await getShopProductsWithFitments()
-        : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
+      requestedFuel && canonicalVehicleProductIds === null
+        ? []
+        : canonicalVehicleProductIds === null
+          ? await getShopProductsWithFitments()
+          : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
     mark("catalog");
     let scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
       allProductsWithFitments,
       vehicleScope
     );
-    if (canonicalVehicleProductIds !== null && matchesEventuriSharedV8Application(make, model)) {
+    if (
+      canonicalVehicleProductIds !== null &&
+      !requestedFuel &&
+      matchesEventuriSharedV8Application(make, model)
+    ) {
       const sharedIntakeItems = filterShopStockItemsByVehicleScope(
         (await getShopProductsWithFitments()).filter((item) =>
           isEventuriSharedV8Intake(item.product.sku)
@@ -1430,7 +1260,11 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter(matchesPriceRange);
     }
 
-    if (
+    if (requestedFuel && canonicalVehicleProductIds === null) {
+      // Legacy fitment snapshots do not carry a verified fuel dimension.
+      // Fail closed rather than claiming a fuel match from incomplete data.
+      filtered = [];
+    } else if (
       (make || model || chassis || requestedYear) &&
       !strictCatalogEffective &&
       canonicalVehicleProductIds === null
@@ -1509,11 +1343,23 @@ export async function GET(request: NextRequest) {
 
     const sortByExplicitSort = (items: typeof scoredItems) => {
       if (sort === "price_asc") {
-        items.sort((a, b) => getProductPriceForSort(a.product) - getProductPriceForSort(b.product));
+        items.sort((a, b) =>
+          compareShopStockPriceAmounts(
+            getProductPriceForFilter(a.product),
+            getProductPriceForFilter(b.product),
+            "asc"
+          )
+        );
         return;
       }
       if (sort === "price_desc") {
-        items.sort((a, b) => getProductPriceForSort(b.product) - getProductPriceForSort(a.product));
+        items.sort((a, b) =>
+          compareShopStockPriceAmounts(
+            getProductPriceForFilter(a.product),
+            getProductPriceForFilter(b.product),
+            "desc"
+          )
+        );
         return;
       }
       if (sort === "name_asc") {

@@ -3,6 +3,10 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const searchRoute = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+const canonicalVehicleReader = readFileSync(
+  "src/lib/shopStockCanonicalVehicleIds.server.ts",
+  "utf8"
+);
 const fitmentRoute = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
 const stockPage = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
 
@@ -39,9 +43,13 @@ test("fitment selectors skip canonical Prisma coverage in local snapshot mode", 
   assert.match(fitmentRoute, /await getShopProductsWithFitments\(\)/);
   assert.match(
     searchRoute,
-    /if \(!isLocalStorefrontMode\(\) && process\.env\.SHOP_CATALOG_V2_READER_MODE/
+    /if\s*\(\s*!isLocalStorefrontMode\(\)\s*&&\s*process\.env\.SHOP_CATALOG_V2_READER_MODE/
   );
   assert.match(searchRoute, /return await queryPremiumCatalogProjection\(searchParams\)/);
+  const localGuard = canonicalVehicleReader.indexOf("if (isLocalStorefrontMode()) return null;");
+  const firstDatabaseRead = canonicalVehicleReader.indexOf("await prisma.");
+  assert.ok(localGuard >= 0, "canonical vehicle lookup must skip the database in local mode");
+  assert.ok(firstDatabaseRead > localGuard, "the local guard must precede canonical Prisma reads");
 });
 
 test("initial search remains immediate across React Strict Mode effect replay", () => {

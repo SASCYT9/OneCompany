@@ -42,9 +42,48 @@ registerHooks({
 
 const modulePromise = import("../../../src/lib/shopCatalogPremiumProjection.server");
 
+test("stock statistics come from the filtered aggregate instead of the global warehouse", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  mock.state.stockSummary = { totalItems: 7, inStock: 2, preOrder: 5 };
+  const response = await queryPremiumCatalogProjection(
+    new URLSearchParams("locale=ua&brand=fixture&limit=1&page=2")
+  );
+  const body = await response.json();
+  assert.equal(body.meta.totalItems, 7);
+  assert.deepEqual(body.filterStats.stock, { all: 7, inStock: 2, preOrder: 5 });
+  assert.equal(mock.state.countQueries.length, 1);
+});
+
 function params(values: Record<string, string>) {
   return new URLSearchParams({ locale: "en", ...values });
 }
+
+test("price bounds use the population aggregate in the requested currency even on an empty page", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  const price = { min: 2400, max: 8000, currency: "UAH" };
+  Object.assign(mock.state.stockSummary, { price });
+  const response = await queryPremiumCatalogProjection(
+    params({ currency: "UAH", page: "99", minPrice: "2300", maxPrice: "8100" })
+  );
+  const body = await response.json();
+  assert.deepEqual(body.data, []);
+  assert.deepEqual(body.filters.price, price);
+  for (const query of [
+    ...mock.state.queries,
+    ...mock.state.facetQueries,
+    ...mock.state.countQueries,
+  ]) {
+    assert.equal(query.priceCurrency, "UAH");
+    assert.equal(query.effectivePriceContext.currency, "UAH");
+    assert.deepEqual(query.effectivePriceContext.currencyRates, { EUR: 1, USD: 1, UAH: 40 });
+    assert.equal(query.minPrice, 2300);
+    assert.equal(query.maxPrice, 8100);
+  }
+});
 
 test("projection vehicle reader makes one native constraint query and no legacy resolution", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;

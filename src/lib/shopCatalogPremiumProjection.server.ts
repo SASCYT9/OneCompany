@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
 import {
-  countShopCatalogProjection,
+  queryShopCatalogProjectionStockSummary,
   queryShopCatalogProjection,
   queryShopCatalogProjectionFacets,
   type ShopCatalogProjectionQueryInput,
@@ -32,6 +32,7 @@ import {
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
+import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
 
 const PAGE_SIZE = 24;
 
@@ -127,16 +128,18 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   ]);
   const settings = getShopSettingsRuntime(settingsRecord);
   const useEuropePrice = isEuropePricingCountry(params.get("country"));
-  if (useEuropePrice) {
-    const rate =
-      priceCurrency === "USD"
-        ? settings.currencyRates.USD || 1.152174
-        : priceCurrency === "UAH"
-          ? settings.currencyRates.UAH || 53
-          : 1;
-    minPrice = minPrice == null ? null : minPrice / rate;
-    maxPrice = maxPrice == null ? null : maxPrice / rate;
-  }
+  const pricingContext = await measure(
+    "pricing_context",
+    buildShopViewerPricingContextServer({
+      prisma,
+      settings,
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: params.get("country"),
+    })
+  );
   const query: ShopCatalogProjectionQueryInput = {
     locale,
     limit: requestedLimit,
@@ -151,8 +154,13 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     ...vehiclePlan.constraints,
     minPrice,
     maxPrice,
-    priceCurrency: useEuropePrice ? "EUR" : priceCurrency,
+    priceCurrency,
     useEuropePrice,
+    effectivePriceContext: buildShopCatalogEffectivePriceContext({
+      viewer: pricingContext,
+      currency: priceCurrency,
+      currencyRates: settings.currencyRates,
+    }),
     offset: (page - 1) * requestedLimit,
   };
   const warehouseProductIds = warehouseProducts.map((product) => product.id);
@@ -213,25 +221,17 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.year = null;
   }
 
-  const [result, facetResult, totalItems] = await Promise.all([
+  const [result, facetResult, stockSummary] = await Promise.all([
     measure("products", queryShopCatalogProjection(query)),
     measure("facets", queryShopCatalogProjectionFacets(query)),
-    measure("count", countShopCatalogProjection(query)),
+    measure("count", queryShopCatalogProjectionStockSummary(query, warehouseProductIds)),
   ]);
+  const totalItems = stockSummary.totalItems;
   const items = result.items;
   const prices = await measure(
     "prices",
     getShopCatalogCardPricingByIds(items.map((item) => item.productId))
   );
-  const pricingContext = await buildShopViewerPricingContextServer({
-    prisma,
-    settings,
-    customerId: session?.customerId,
-    customerGroup: session?.group,
-    isAuthenticated: Boolean(session),
-    customerB2BDiscountPercent: session?.b2bDiscountPercent,
-    priceCountry: params.get("country"),
-  });
   const priceByProduct = new Map(prices.map((price) => [price.productId, price]));
 
   const data = items.map((item) => {
@@ -292,7 +292,6 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     };
   });
 
-  const pricesOnPage = data.map((item) => item.price).filter((price) => price > 0);
   const brandCounts = new Map<string, number>();
   for (const { label, count } of facetResult.facets.brand) {
     const displayBrand = getProductDisplayBrand(label);
@@ -305,15 +304,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     categories: facetResult.facets.category.map(({ label, count }) => ({ label, count })),
     stock: {
       all: totalItems,
-      inStock: requestedStock === "inStock" ? totalItems : warehouseProductIds.length,
-      preOrder:
-        requestedStock === "inStock" ? 0 : Math.max(0, totalItems - warehouseProductIds.length),
+      inStock: stockSummary.inStock,
+      preOrder: stockSummary.preOrder,
     },
-    price: {
-      min: pricesOnPage.length ? Math.floor(Math.min(...pricesOnPage)) : 0,
-      max: pricesOnPage.length ? Math.ceil(Math.max(...pricesOnPage)) : 0,
-      currency: "USD",
-    },
+    price: stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency },
   };
   const response = NextResponse.json({
     data,
