@@ -3,9 +3,9 @@ import Link from "next/link";
 
 import type {
   ShopCatalogProjectionFacetResult,
-  ShopCatalogProjectionQueryInput,
   ShopCatalogProjectionQueryResult,
 } from "@/lib/shopCatalogProjectionQuery.server";
+import type { ShopCatalogStorefrontQuery } from "@/lib/shopCatalogStorefrontQuery";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import CatalogV2Filters from "./CatalogV2Filters";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
@@ -26,7 +26,7 @@ type Props = {
   locale: "ua" | "en";
   result: ShopCatalogProjectionQueryResult;
   facets: ShopCatalogProjectionFacetResult["facets"];
-  query: ShopCatalogProjectionQueryInput;
+  query: ShopCatalogStorefrontQuery;
   cardPrices: Record<string, CatalogCardPrice>;
   pricingContext: ShopViewerPricingContext;
 };
@@ -37,14 +37,32 @@ function nextPageHref(locale: Props["locale"], query: Props["query"], result: Pr
   const strings: Array<[string, string | null | undefined]> = [
     ["q", query.text],
     ["scope", query.scope],
-    ["brand", query.brand],
     ["category", query.category],
     ["make", query.make],
     ["model", query.model],
     ["generation", query.generation],
     ["engine", query.engine],
     ["fuel", query.fuel],
+    ["opfGpf", query.opfGpf],
+    ["stock", query.stock],
+    ["productType", query.productType],
+    ["productKind", query.productKind],
+    ["sort", query.order],
+    ["currency", query.priceCurrency],
+    ["facetMode", query.facetMode],
+    ["country", query.country],
+    ["limit", query.limit == null ? null : String(query.limit)],
   ];
+  const brands = query.brands ?? [];
+  if (brands.length) {
+    for (const brand of brands) params.append("brand", brand);
+  } else if (query.brand) {
+    params.set("brand", query.brand);
+  }
+  if (query.useEuropePrice) params.set("europePrice", "1");
+  if (query.strict) params.set("strict", "1");
+  if (query.minPrice != null) params.set("minPrice", String(query.minPrice));
+  if (query.maxPrice != null) params.set("maxPrice", String(query.maxPrice));
   for (const [key, value] of strings) if (value) params.set(key, value);
   if (query.year != null) params.set("year", String(query.year));
   params.set("afterRank", result.nextCursor.stableRank);

@@ -15,7 +15,6 @@ registerHooks({
     return nextResolve(specifier, context);
   },
 });
-
 const flagModule = import("../../../src/lib/shopCatalogReaderFlag.server");
 const queryModule = import("../../../src/lib/shopCatalogStorefrontQuery");
 
@@ -151,12 +150,14 @@ test("storefront DTO carries bounded price, stock, scope, facets and product fil
   assert.equal(parsed.opfGpf, "with");
 });
 
-test("catalog page keeps the premium UI while its API reads the bounded projection", () => {
+test("catalog page serves projection SSR only behind the reader guard", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
   const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
   const adapter = readFileSync("src/lib/shopCatalogPremiumProjection.server.ts", "utf8");
-  assert.match(source, /PremiumCatalogPage/);
-  assert.match(source, /stock\/page/);
+  assert.match(source, /resolveShopCatalogReaderFlag/);
+  assert.match(source, /isShopCatalogReaderRequestEnabled/);
+  assert.match(source, /CatalogV2Server/);
+  assert.doesNotMatch(source, /PremiumCatalogPage/);
   assert.doesNotMatch(source, /fetch\(/);
   assert.match(api, /queryPremiumCatalogProjection/);
   assert.match(adapter, /queryShopCatalogProjection\(query\)/);
@@ -166,7 +167,8 @@ test("catalog page keeps the premium UI while its API reads the bounded projecti
   assert.match(adapter, /getShopCatalogCardPricingByIds/);
   assert.match(adapter, /=== "moto" \? "moto" : null/);
   assert.match(adapter, /Promise\.all/);
-  assert.match(source, /PremiumCatalogPage/);
+  assert.match(source, /CatalogV2Server/);
+  assert.match(source, /redirect\(legacyCatalogHref/);
   const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
   assert.match(premium, /setSelectedBrands\(\[\]\)/);
   assert.match(premium, /renderStandardCompatibilityFields/);
@@ -188,14 +190,15 @@ test("canary routing is request-bound and the page still fails closed without it
   assert.match(proxy, /NextResponse\.rewrite\(legacyUrl\)/);
   assert.match(proxy, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
   assert.match(proxy, /Vary", "Cookie/);
-  assert.match(page, /PremiumCatalogPage/);
+  assert.match(page, /CatalogV2Server/);
+  assert.match(page, /isShopCatalogReaderRequestEnabled/);
   assert.match(suggest, /isShopCatalogReaderRequestEnabled/);
 });
 
-test("premium catalog adapter keeps projection failures recoverable in the stock API", () => {
+test("projection catalog keeps recoverable API failures isolated from SSR", () => {
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
   const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
-  assert.match(page, /PremiumCatalogPage/);
+  assert.match(page, /CatalogV2Server/);
   assert.match(api, /catch \(error: any\)/);
   assert.match(api, /NextResponse\.json\(\{ error: error\.message \}, \{ status: 500 \}\)/);
 });
