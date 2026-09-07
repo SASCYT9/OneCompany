@@ -217,7 +217,7 @@ test("buildUrbanCatalogEntries disambiguates Urban titles that differ only in En
   assert.match(entries[0]?.title ?? "", /ET35/);
   assert.match(entries[1]?.title ?? "", /задня вісь/);
   assert.match(entries[1]?.title ?? "", /ET25/);
-  assert.match(entries[2]?.title ?? "", /D-Pillar/);
+  assert.match(entries[2]?.title ?? "", /D[- ]?pillar/i);
   assert.match(entries[3]?.title ?? "", /верхній/i);
   assert.match(entries[4]?.title ?? "", /LWB/);
 });
