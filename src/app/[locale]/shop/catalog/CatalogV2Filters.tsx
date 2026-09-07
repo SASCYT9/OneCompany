@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
-import type {
-  ShopCatalogProjectionFacetResult,
-  ShopCatalogProjectionQueryInput,
-} from "@/lib/shopCatalogProjectionQuery.server";
+import type { ShopCatalogProjectionFacetResult } from "@/lib/shopCatalogProjectionQuery.server";
 import type { ShopCatalogSuggestion } from "@/lib/shopCatalogSuggestion.server";
+import type { ShopCatalogStorefrontQuery } from "@/lib/shopCatalogStorefrontQuery";
 import {
   applyShopCatalogFilterChange,
   buildShopCatalogFilterHref,
@@ -23,7 +21,7 @@ type FilterState = ShopCatalogFilterState;
 type Props = {
   locale: "ua" | "en";
   facets: ShopCatalogProjectionFacetResult["facets"];
-  query: ShopCatalogProjectionQueryInput;
+  query: ShopCatalogStorefrontQuery;
   copy: Record<
     | "search"
     | "brand"

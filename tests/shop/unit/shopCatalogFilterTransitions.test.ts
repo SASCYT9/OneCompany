@@ -89,6 +89,51 @@ test("SSR query becomes plain serializable client filter state", () => {
       year: "2024",
       engine: "",
       fuel: "",
+      scope: null,
+      stock: null,
+      productType: null,
+      productKind: null,
+      sort: null,
+      currency: null,
+      minPrice: null,
+      maxPrice: null,
+      country: null,
+      facetMode: null,
+      strict: false,
+      useEuropePrice: false,
     }
+  );
+});
+
+test("facet changes preserve non-visual catalog query dimensions", () => {
+  const state = shopCatalogFilterStateFromQuery({
+    locale: "ua",
+    text: "intake",
+    brand: "eventuri",
+    category: "intake",
+    make: "bmw",
+    model: "m5",
+    generation: "g90",
+    year: 2025,
+    engine: "s68",
+    fuel: "petrol",
+    scope: "moto",
+    stock: "inStock",
+    productType: "exhaust",
+    productKind: "catback",
+    order: "price_desc",
+    priceCurrency: "EUR",
+    minPrice: 100,
+    maxPrice: 500,
+    country: "PL",
+    facetMode: "global",
+    strict: true,
+    useEuropePrice: true,
+  });
+
+  const next = applyShopCatalogFilterChange(state, "make", "audi");
+  assert.equal(
+    buildShopCatalogFilterHref("ua", next),
+    "/ua/shop/catalog?q=intake&brand=eventuri&category=intake&make=audi&scope=moto&stock=inStock&productType=exhaust&productKind=catback&sort=price_desc&currency=EUR&minPrice=100&maxPrice=500&country=PL&facetMode=global&strict=1&europePrice=1"
   );
 });
