@@ -27,6 +27,7 @@ export type ShopCatalogSelectorArtifactReadiness = Readonly<{
     | "projection_version_mismatch"
     | "projection_locale_incomplete"
     | "projection_policy_missing"
+    | "projection_policy_incomplete"
     | "projection_clause_unverified"
     | "projection_constraint_unknown"
     | "projection_empty"
@@ -59,6 +60,7 @@ export type ShopCatalogSelectorArtifactReadinessInput = {
     localeCompleteProducts: number;
     versionMismatchRows: number;
     policyProducts: number;
+    policyClauseMismatchProducts: number;
     unverifiedClauseProducts: number;
     unknownConstraintProducts: number;
   };
@@ -89,6 +91,15 @@ export function evaluateShopCatalogSelectorArtifactReadiness(
   if (input.projection.localeCompleteProducts < input.projection.activePublishedProducts)
     return base("projection_locale_incomplete");
   if (input.projection.policyProducts < 1) return base("projection_policy_missing");
+  // A single current policy is not enough: an active projection without its
+  // policy would disappear from every selector query while the release marker
+  // still looked healthy. Require one current policy for every exposed
+  // product, and reject policies whose durable clause count does not match the
+  // rows that were actually published.
+  if (input.projection.policyProducts < input.projection.activePublishedProducts)
+    return base("projection_policy_incomplete");
+  if (input.projection.policyClauseMismatchProducts > 0)
+    return base("projection_policy_incomplete");
   if (input.projection.unverifiedClauseProducts > 0) return base("projection_clause_unverified");
   if (input.projection.unknownConstraintProducts > 0) return base("projection_constraint_unknown");
   return base("ready", true);
@@ -101,6 +112,7 @@ type ProjectionReadinessRow = {
   localeCompleteProducts: bigint;
   versionMismatchRows: bigint;
   policyProducts: bigint;
+  policyClauseMismatchProducts: bigint;
   unverifiedClauseProducts: bigint;
   unknownConstraintProducts: bigint;
 };
@@ -181,6 +193,7 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
           localeCompleteProducts: 0,
           versionMismatchRows: 0,
           policyProducts: 0,
+          policyClauseMismatchProducts: 0,
           unverifiedClauseProducts: 0,
           unknownConstraintProducts: 0,
         },
@@ -196,6 +209,7 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
           localeCompleteProducts: 0,
           versionMismatchRows: 0,
           policyProducts: 0,
+          policyClauseMismatchProducts: 0,
           unverifiedClauseProducts: 0,
           unknownConstraintProducts: 0,
         },
@@ -213,11 +227,28 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
         GROUP BY projection."productId"
       ),
       current_policies AS (
-        SELECT DISTINCT policy."productId"
+        SELECT DISTINCT policy."productId", policy."targetKey", policy."sourceVersion", policy."clauseCount"
         FROM active
         JOIN "ShopCatalogProjectionPolicy" policy
           ON policy."productId" = active."productId"
          AND policy."sourceVersion" = ${BigInt(projectionVersion)}
+      ),
+      policy_clause_counts AS (
+        SELECT policy."productId",
+               policy."targetKey",
+               policy."clauseCount",
+               count(clause."id")::bigint AS actual_clause_count
+        FROM current_policies policy
+        LEFT JOIN "ShopCatalogProjectionClause" clause
+          ON clause."targetKey" = policy."targetKey"
+         AND clause."productId" = policy."productId"
+         AND clause."sourceVersion" = policy."sourceVersion"
+        GROUP BY policy."productId", policy."targetKey", policy."clauseCount"
+      ),
+      policy_gaps AS (
+        SELECT DISTINCT "productId"
+        FROM policy_clause_counts
+        WHERE actual_clause_count <> "clauseCount"
       ),
       bad_clauses AS (
         SELECT DISTINCT clause."productId"
@@ -234,13 +265,13 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
           ON constraint_row."productId" = active."productId"
          AND constraint_row."sourceVersion" = ${BigInt(projectionVersion)}
           AND constraint_row."state" = 'UNKNOWN'
-          AND constraint_row."dimension" = 'MAKE'
       )
       SELECT
         (SELECT count(*)::bigint FROM active) AS "activePublishedProducts",
         (SELECT count(*)::bigint FROM active WHERE locale_count = 2) AS "localeCompleteProducts",
         (SELECT coalesce(sum(version_mismatch), 0)::bigint FROM active) AS "versionMismatchRows",
-        (SELECT count(*)::bigint FROM current_policies) AS "policyProducts",
+        (SELECT count(DISTINCT "productId")::bigint FROM current_policies) AS "policyProducts",
+        (SELECT count(DISTINCT "productId")::bigint FROM policy_gaps) AS "policyClauseMismatchProducts",
         (SELECT count(*)::bigint FROM bad_clauses) AS "unverifiedClauseProducts",
         (SELECT count(*)::bigint FROM unknown_constraints) AS "unknownConstraintProducts"
     `);
@@ -254,6 +285,7 @@ async function readShopCatalogSelectorArtifactReadinessUncached(
         localeCompleteProducts: count(row.localeCompleteProducts),
         versionMismatchRows: count(row.versionMismatchRows),
         policyProducts: count(row.policyProducts),
+        policyClauseMismatchProducts: count(row.policyClauseMismatchProducts),
         unverifiedClauseProducts: count(row.unverifiedClauseProducts),
         unknownConstraintProducts: count(row.unknownConstraintProducts),
       },

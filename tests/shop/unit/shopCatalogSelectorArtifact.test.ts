@@ -26,7 +26,8 @@ const projection = {
   activePublishedProducts: 10,
   localeCompleteProducts: 10,
   versionMismatchRows: 0,
-  policyProducts: 4,
+  policyProducts: 10,
+  policyClauseMismatchProducts: 0,
   unverifiedClauseProducts: 0,
   unknownConstraintProducts: 0,
 };
@@ -52,6 +53,10 @@ test("partial or stale projection fails closed", async () => {
     {
       projection: { ...projection, versionMismatchRows: 1 },
       reason: "projection_version_mismatch",
+    },
+    {
+      projection: { ...projection, policyProducts: 4 },
+      reason: "projection_policy_incomplete",
     },
     {
       projection: { ...projection, unverifiedClauseProducts: 1 },
@@ -89,5 +94,13 @@ test("missing policy rows and invalid release markers fail closed", async () => 
       projection: { ...projection, policyProducts: 0 },
     }).reason,
     "projection_policy_missing"
+  );
+  assert.equal(
+    evaluateShopCatalogSelectorArtifactReadiness({
+      state,
+      checkpoint,
+      projection: { ...projection, policyClauseMismatchProducts: 1 },
+    }).reason,
+    "projection_policy_incomplete"
   );
 });
