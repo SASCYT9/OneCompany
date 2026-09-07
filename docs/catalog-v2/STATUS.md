@@ -137,9 +137,10 @@ brand/vehicle/product suggestion shape, records privacy-safe `catalog_v2_read` t
 keeps the existing full-fitment implementation only as the reader-off/local fallback. Projection
 matching now accepts all normalized query tokens in any order and exact normalized SKUs, which
 prevents reordered vehicle and separator-heavy part-number queries from missing valid results.
-The focused suggestion contract tests pass 5/5 and scoped ESLint passes; TypeScript is currently
-blocked by concurrent Node 22 test-harness edits that leave implicit-any errors in unrelated
-tests. No production flag, database write, or deployment was performed.
+The focused suggestion contract tests pass 5/5 and scoped ESLint passes. Node 20/22 test modules
+now use a compatibility harness (`18bec8bc`) so the selected catalog suite can run on the supported
+runtime without relying on the unavailable Node 24 `registerHooks` API. No production flag, database
+write, or deployment was performed.
 
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
