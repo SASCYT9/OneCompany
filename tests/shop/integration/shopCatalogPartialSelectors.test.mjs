@@ -30,7 +30,7 @@ test(
       CREATE TEMP TABLE "ShopCatalogProjection" ("productId" text, "projectionVersion" bigint, "catalogVersion" bigint, "sourceVersion" bigint, "schemaVersion" int, locale text, "isPublished" boolean, "statusKey" text) ON COMMIT DROP;
       CREATE TEMP TABLE "ShopCatalogProjectionPolicy" ("targetKey" text, "productId" text, "sourceVersion" bigint) ON COMMIT DROP;
       CREATE TEMP TABLE "ShopCatalogProjectionClause" ("targetKey" text, "clauseKey" text, "productId" text, "sourceVersion" bigint, verification text) ON COMMIT DROP;
-      CREATE TEMP TABLE "ShopCatalogProjectionConstraint" ("targetKey" text, "clauseKey" text, "productId" text, "sourceVersion" bigint, dimension text, state text, "textValue" text, "yearFrom" int, "yearTo" int) ON COMMIT DROP;
+      CREATE TEMP TABLE "ShopCatalogProjectionConstraint" ("targetKey" text, "clauseKey" text, "productId" text, "sourceVersion" bigint, dimension "ShopCatalogCompatibilityDimension", state "ShopCatalogConstraintState", "textValue" text, "yearFrom" int, "yearTo" int) ON COMMIT DROP;
       INSERT INTO "ShopProduct" VALUES ('current', 7, true, 'ACTIVE', 'Fixture', 'Fixture'), ('stale', 9, true, 'ACTIVE', 'Fixture', 'Fixture');
       INSERT INTO "ShopCatalogProjection" VALUES ('current', 7, 7, 3, 1, 'en', true, 'ACTIVE'), ('stale', 8, 8, 4, 1, 'en', true, 'ACTIVE');
       INSERT INTO "ShopCatalogProjectionPolicy" VALUES ('current', 'current', 3), ('stale', 'stale', 4);
@@ -45,7 +45,19 @@ test(
       const { getBoundedPublishedFitmentOptions } =
         await import("../../../src/lib/shopCanonicalFitmentOptions.server.ts");
       const client = {
-        $queryRaw: async (query) => (await db.query(query.text, query.values)).rows,
+        // Prisma binds JS strings as PostgreSQL text; pg otherwise leaves their
+        // type unknown and would miss enum-versus-text production failures.
+        $queryRaw: async (query) =>
+          (
+            await db.query(
+              query.text.replace(/\$(\d+)/g, (placeholder, index) =>
+                typeof query.values[Number(index) - 1] === "string"
+                  ? `${placeholder}::text`
+                  : placeholder
+              ),
+              query.values
+            )
+          ).rows,
       };
       const input = {
         make: null,

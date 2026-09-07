@@ -356,7 +356,7 @@ export async function getBoundedPublishedFitmentOptions(
   ) => {
     const rows = await client.$queryRaw<Array<{ value: string | null }>>(Prisma.sql`
       SELECT option_constraint."textValue" AS value
-      ${currentClause(Prisma.sql`AND option_constraint."dimension" = ${dimension} ${extra}`)}
+      ${currentClause(Prisma.sql`AND option_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension" ${extra}`)}
       GROUP BY option_constraint."textValue"
       ORDER BY option_constraint."textValue" ASC
       LIMIT ${BOUNDED_SELECTOR_VALUE_LIMIT}
