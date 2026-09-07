@@ -98,6 +98,7 @@ docs/*
 docs/catalog-v2/*
 !docs/catalog-v2/MASTER_PLAN.md
 !docs/catalog-v2/STATUS.md
+!docs/catalog-v2/FILTER_CONTRACT_AUDIT_2026-09-07.md
 !docs/catalog-v2/ADR-*.md
 !docs/operations/
 docs/operations/*

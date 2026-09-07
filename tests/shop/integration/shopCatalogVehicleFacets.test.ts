@@ -52,6 +52,7 @@ test(
         model: "M5",
         generation: "G90",
         engine: "S68",
+        opfGpf: "with",
         yearFrom: 2024,
         yearTo: 2026,
       },
@@ -61,6 +62,7 @@ test(
         model: "M3",
         generation: "G80",
         engine: "S58",
+        opfGpf: "without",
         yearFrom: 2020,
         yearTo: 2026,
       },
@@ -70,6 +72,7 @@ test(
         model: "S 1000 RR",
         generation: "K67",
         engine: "999cc",
+        opfGpf: "without",
         yearFrom: 2019,
         yearTo: 2026,
       },
@@ -182,6 +185,47 @@ test(
           productIds: ids,
         });
         assert.equal(wrongEngine.items.length, 0);
+        const opfSelected = await queryShopCatalogProjectionFacets({
+          locale,
+          scope: "auto",
+          make: "BMW",
+          opfGpf: "with",
+          productIds: ids,
+        });
+        // OPF/GPF is terminal (there is no output facet for it), but it still
+        // restricts the visible model candidates to its exact source clause.
+        assert.deepEqual(
+          opfSelected.facets.model.map((item) => item.label),
+          ["M5"]
+        );
+        // Without a product-ID restriction this must still query live clauses;
+        // precomputed make counters do not contain OPF-specific evidence.
+        const unavailableOpfMake = await queryShopCatalogProjectionFacets({
+          locale,
+          brand: "fixture-b",
+          opfGpf: "with",
+        });
+        assert.deepEqual(unavailableOpfMake.facets.make, []);
+        const wrongOpf = await queryShopCatalogProjection({
+          locale,
+          scope: "auto",
+          make: "BMW",
+          model: "M5",
+          opfGpf: "without",
+          productIds: ids,
+        });
+        assert.equal(wrongOpf.items.length, 0);
+        assert.equal(
+          await countShopCatalogProjection({
+            locale,
+            scope: "auto",
+            make: "BMW",
+            model: "M5",
+            opfGpf: "without",
+            productIds: ids,
+          }),
+          0
+        );
         const scopedBrand = await queryShopCatalogProjectionFacets({
           locale,
           scope: "auto",

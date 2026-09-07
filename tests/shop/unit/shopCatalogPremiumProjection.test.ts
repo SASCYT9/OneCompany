@@ -117,7 +117,35 @@ test("legacy vehicle reader resolves once and restricts the projection to return
   }
 });
 
-test("native auto, moto and default engine/fuel queries never build legacy ID lists", async () => {
+test("pre-order selection excludes warehouse products in native and legacy queries", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  const oldMode = process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+  try {
+    for (const mode of ["projection", "legacy"]) {
+      mock.reset();
+      process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = mode;
+      await queryPremiumCatalogProjection(params({ make: "BMW", model: "M5", stock: "preOrder" }));
+      for (const query of [
+        ...mock.state.queries,
+        ...mock.state.facetQueries,
+        ...mock.state.countQueries,
+      ]) {
+        assert.deepEqual(
+          new Set(query.excludeProductIds),
+          new Set(["warehouse-a", "warehouse-b", "shared-duplicate"])
+        );
+        assert.deepEqual(query.productIds, mode === "legacy" ? ["legacy-id"] : undefined);
+        assert.equal(query.make, mode === "legacy" ? null : "BMW");
+      }
+    }
+  } finally {
+    if (oldMode === undefined) delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+    else process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = oldMode;
+  }
+});
+
+test("native auto, moto and engine/fuel/OPF queries never build legacy ID lists", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");
   const oldMode = process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
@@ -146,6 +174,12 @@ test("native auto, moto and default engine/fuel queries never build legacy ID li
       model: "M5",
       generation: "G90",
     },
+    {
+      mode: "legacy",
+      query: "locale=ua&make=BMW&model=M5&chassis=G90&opfGpf=without",
+      model: "M5",
+      generation: "G90",
+    },
   ];
   try {
     for (const fixture of cases) {
@@ -167,6 +201,7 @@ test("native auto, moto and default engine/fuel queries never build legacy ID li
         assert.equal(query.generation, fixture.generation);
         assert.equal(query.engine, input.get("engine"));
         assert.equal(query.fuel, input.get("fuel"));
+        assert.equal(query.opfGpf, input.get("opfGpf"));
         assert.equal(query.scope, input.get("scope"));
         assert.equal(query.locale, input.get("locale"));
       }

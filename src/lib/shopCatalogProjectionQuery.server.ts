@@ -38,6 +38,7 @@ export type ShopCatalogProjectionQueryInput = {
   year?: number | null;
   engine?: string | null;
   fuel?: string | null;
+  opfGpf?: string | null;
   productIds?: readonly string[] | null;
   excludeProductIds?: readonly string[] | null;
   minPrice?: number | null;
@@ -121,7 +122,7 @@ export type ShopCatalogProjectionShadowQueryResult =
       result: ShopCatalogProjectionQueryResult;
     };
 
-type VehicleDimension = "make" | "model" | "generation" | "engine" | "fuel";
+type VehicleDimension = "make" | "model" | "generation" | "engine" | "fuel" | "opfGpf";
 
 const VEHICLE_DIMENSIONS: Readonly<Record<VehicleDimension, ShopCatalogCompatibilityDimension>> = {
   make: ShopCatalogCompatibilityDimension.MAKE,
@@ -129,12 +130,26 @@ const VEHICLE_DIMENSIONS: Readonly<Record<VehicleDimension, ShopCatalogCompatibi
   generation: ShopCatalogCompatibilityDimension.GENERATION,
   engine: ShopCatalogCompatibilityDimension.ENGINE,
   fuel: ShopCatalogCompatibilityDimension.FUEL,
+  opfGpf: ShopCatalogCompatibilityDimension.OPF_GPF,
 };
 
 function optionalBounded(value: string | null | undefined, field: string, max: number) {
   const normalized = value?.trim() ?? "";
   if (!normalized) return null;
   if (normalized.length > max) throw new TypeError(`${field} exceeds ${max} characters`);
+  return normalized;
+}
+
+function normalizeOpfGpf(value: string | null | undefined) {
+  const normalized = optionalBounded(
+    value,
+    "opfGpf",
+    SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
+  )?.toLowerCase();
+  if (normalized == null) return null;
+  if (normalized !== "with" && normalized !== "without") {
+    throw new TypeError("opfGpf must be with or without");
+  }
   return normalized;
 }
 
@@ -201,6 +216,7 @@ export function normalizeShopCatalogProjectionQuery(
     year: input.year ?? null,
     engine: optionalBounded(input.engine, "engine", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     fuel: optionalBounded(input.fuel, "fuel", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    opfGpf: normalizeOpfGpf(input.opfGpf),
     productIds: input.productIds ? [...new Set(input.productIds.filter(Boolean))] : null,
     excludeProductIds: input.excludeProductIds
       ? [...new Set(input.excludeProductIds.filter(Boolean))]
@@ -471,9 +487,16 @@ function selectedVehicleFacetConstraints(
     "year",
     "engine",
     "fuel",
+    "opfGpf",
   ];
+  // OPF/GPF has no output facet, so it is terminal: every visible candidate
+  // facet must still stay in the selected clause when it is selected.
+  const fields = new Set<VehicleDimension | "year">([
+    ...order.slice(0, order.indexOf(before)),
+    ...(before === "opfGpf" ? [] : ["opfGpf" as const]),
+  ]);
   const constraints: Prisma.Sql[] = [];
-  for (const field of order.slice(0, order.indexOf(before))) {
+  for (const field of fields) {
     if (field === "year") {
       if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
       continue;
@@ -617,6 +640,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
   // scanning every policy just to show the initial make dropdown.
   const liveMakeCounts = Boolean(
     input.text ||
+    input.opfGpf ||
     input.productIds ||
     input.excludeProductIds?.length ||
     input.category ||
@@ -805,6 +829,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
       input.year?.toString(),
       input.engine,
       input.fuel,
+      input.opfGpf,
       input.category,
     ]
       .filter(Boolean)

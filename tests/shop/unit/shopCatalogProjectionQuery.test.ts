@@ -73,6 +73,50 @@ test("query normalization is bounded and fail-closed", async () => {
   );
 });
 
+test("OPF-only query constraints stay clause-correlated in SQL and ORM", async () => {
+  const {
+    buildShopCatalogProjectionVehicleQuerySql,
+    buildShopCatalogProjectionWhere,
+    normalizeShopCatalogProjectionQuery,
+  } = await queryModule;
+  const query = buildShopCatalogProjectionVehicleQuerySql({ locale: "en", opfGpf: " WITH " });
+  assert.ok(query);
+  assert.equal(query.values.includes("OPF_GPF"), true);
+  assert.equal(query.values.includes("with"), true);
+  const where = JSON.stringify(buildShopCatalogProjectionWhere({ locale: "en", opfGpf: "with" }));
+  assert.match(where, /\"dimension\":\"OPF_GPF\"/);
+  assert.match(where, /\"textValue\":\{\"in\":\[\"with\"\]/);
+  assert.equal(
+    normalizeShopCatalogProjectionQuery({ locale: "en", opfGpf: " WITHOUT " }).opfGpf,
+    "without"
+  );
+  for (const opfGpf of ["unknown", "with;without", "any"]) {
+    assert.throws(
+      () => normalizeShopCatalogProjectionQuery({ locale: "en", opfGpf }),
+      /opfGpf must be with or without/
+    );
+  }
+  assert.throws(
+    () => normalizeShopCatalogProjectionQuery({ locale: "en", opfGpf: "x".repeat(321) }),
+    /opfGpf exceeds 320 characters/
+  );
+});
+
+test("selected terminal OPF constrains visible vehicle facet candidates", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
+  const query = buildShopCatalogProjectionFacetQuerySql({
+    locale: "en",
+    make: "BMW",
+    opfGpf: "with",
+  });
+  // OPF is intentionally not a new facet output; it must still participate in
+  // each visible make/model candidate branch as a same-clause condition.
+  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length + 1, 4);
+  assert.equal(query.values.filter((value) => value === "OPF_GPF").length >= 4, true);
+  assert.equal(query.values.filter((value) => value === "with").length >= 4, true);
+  assert.doesNotMatch(query.sql, /ShopCatalogProjectionFacetCount/);
+});
+
 test("vehicle filters stay correlated inside one clause regardless of review status", async () => {
   const { buildShopCatalogProjectionWhere } = await queryModule;
   const where = buildShopCatalogProjectionWhere({

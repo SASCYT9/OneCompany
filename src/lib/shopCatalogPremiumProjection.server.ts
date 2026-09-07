@@ -91,7 +91,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const priceCurrency =
     requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
   const requestedSort = params.get("sort");
-  const requestedStock = params.get("stock") === "inStock" ? "inStock" : null;
+  const stock = params.get("stock");
+  const requestedStock = stock === "inStock" || stock === "preOrder" ? stock : null;
   // Vehicle resolution is independent of prices, warehouse stock and session.
   // Start it immediately so their database round-trips do not add to its latency.
   const vehicleProductIdsPromise = measure(
@@ -166,6 +167,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     .filter((product) => product.id !== canonicalSharedEventuriId)
     .map((product) => product.id);
   if (requestedStock === "inStock") query.productIds = warehouseProductIds;
+  if (requestedStock === "preOrder") {
+    query.excludeProductIds = [...new Set([...query.excludeProductIds, ...warehouseProductIds])];
+  }
 
   const hasVehicleSelection = Boolean(query.make || query.model || query.generation || query.year);
   query.orderSeed = [
@@ -175,6 +179,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.year,
     query.engine,
     query.fuel,
+    query.opfGpf,
   ]
     .filter(Boolean)
     .join("|");
@@ -190,7 +195,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
             : "default";
 
   // Until every historical brand is backfilled into compatibility policies,
-  // preserve the complete product-owned vehicle coverage. Engine/fuel remain
+  // preserve the complete product-owned vehicle coverage. Engine/fuel/OPF remain
   // projection-native because legacy evidence does not model them reliably.
   if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
     if (vehicleProductIds) {

@@ -28,6 +28,21 @@ The build-wrapper failure test proves no snapshot/index/Next stage starts when
 activation fails. No production build, DB backfill, deployment or measured
 production speed/cost improvement is claimed by this opt-in patch.
 
+Additional Luna audit: [filter contract matrix](FILTER_CONTRACT_AUDIT_2026-09-07.md).
+Open release blockers include viewer-effective B2B price filtering/sorting,
+product type/kind and strict URL semantics, category/scope normalization, filtered
+stock/price statistics, and fuel handling on the legacy serving path. The new
+reader remains opt-in; a fast local fixture is not evidence that these are resolved.
+
+Next local fix wave: premium `preOrder` now excludes warehouse IDs across product,
+facet and count inputs. OPF/GPF stays in the same clause, forces native vehicle
+resolution, validates with/without, and uses live make facets instead of counters
+that lack OPF evidence. Root reviewed and corrected the initial agent facet path.
+Validation: 32 unit tests, TypeScript, scoped ESLint, and two serial disposable-DB
+integrations passed after a clean 44-migration replay; the vehicle regression was
+repeated after the final facet fix. Stock summary counts and the other audit
+blockers remain open. No production environment or reader flag was changed.
+
 | Package              | Local state                            | Evidence / remaining gate                                                                                                                                                                                                                                                                                                                  |
 | -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | C0                   | Environment isolated                   | Dedicated disposable localhost PostgreSQL; existing migrations replayed. DB-less preview remains separate.                                                                                                                                                                                                                                 |

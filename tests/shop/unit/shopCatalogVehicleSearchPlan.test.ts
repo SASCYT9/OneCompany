@@ -53,3 +53,22 @@ test("default and invalid reader modes remain legacy", () => {
     assert.equal(plan.canonical, false);
   }
 });
+
+test("OPF selection stays native and is not discarded", () => {
+  const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams("make=BMW&opfGpf=with"));
+  assert.equal(plan.canonical, true);
+  assert.equal(plan.constraints.opfGpf, "with");
+});
+
+test("invalid OPF selections fail closed before the legacy bridge can run", () => {
+  for (const opfGpf of ["unknown", "with;without", "any"]) {
+    assert.throws(
+      () => buildShopCatalogVehicleSearchPlan(new URLSearchParams(`make=BMW&opfGpf=${opfGpf}`)),
+      /opfGpf must be with or without/
+    );
+  }
+  assert.throws(
+    () => buildShopCatalogVehicleSearchPlan(new URLSearchParams(`opfGpf=${"x".repeat(321)}`)),
+    /opfGpf exceeds 320 characters/
+  );
+});
