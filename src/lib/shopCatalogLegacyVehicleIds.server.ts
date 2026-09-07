@@ -27,9 +27,36 @@ let cachedProducts: Array<{
 let cachedAt = 0;
 const CACHE_MS = 5 * 60_000;
 
+// Resolving the legacy bridge requires two potentially large relation scans.
+// Keep the final answer by normalized vehicle query as well, so repeated
+// requests do not repeat those scans while the fitment catalog is warm.
+const RESOLUTION_CACHE_MS = 60_000;
+const RESOLUTION_CACHE_MAX_ENTRIES = 256;
+const resolvedVehicleIdsCache = new Map<string, { ids: string[]; expiresAt: number }>();
+const pendingVehicleResolutions = new Map<string, Promise<string[]>>();
+
+function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
+  return JSON.stringify([
+    canonicalVehicleMakeLabel(input.make ?? ""),
+    input.model ? vehicleModelKey(input.model) : "",
+    normalizeShopSearchText(input.generation ?? ""),
+    input.year ?? null,
+  ]);
+}
+
+function cacheResolvedVehicleIds(key: string, ids: string[]) {
+  resolvedVehicleIdsCache.delete(key);
+  resolvedVehicleIdsCache.set(key, { ids, expiresAt: Date.now() + RESOLUTION_CACHE_MS });
+  while (resolvedVehicleIdsCache.size > RESOLUTION_CACHE_MAX_ENTRIES) {
+    const oldestKey = resolvedVehicleIdsCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    resolvedVehicleIdsCache.delete(oldestKey);
+  }
+}
+
 const getCachedFitmentProducts = singleFlight(async () => {
   if (cachedProducts && Date.now() - cachedAt < CACHE_MS) return cachedProducts;
-  const products = await getShopFitmentCatalogProducts();
+  const products = await getShopFitmentCatalogProducts({ evidenceOnly: true });
   cachedProducts = products.map((product) => ({
     id: product.id,
     fitment: extractProductFitment(product),
@@ -44,8 +71,7 @@ const getCachedFitmentProducts = singleFlight(async () => {
  * product IDs. Cards, prices, media and pagination still come from the bounded
  * catalog projection.
  */
-export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) {
-  if (!input.make && !input.model && !input.generation && !input.year) return null;
+async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery) {
   const canonicalMake = canonicalVehicleMakeLabel(input.make ?? "");
   const makeAliases = input.make ? vehicleMakeAliases(canonicalMake) : [];
   const [products, canonicalApplications, projectionClauses] = await Promise.all([
@@ -57,6 +83,14 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
             isUniversal: false,
             verificationStatus: { not: "BLOCKED" },
             make: { in: makeAliases, mode: "insensitive" },
+            ...(input.year
+              ? {
+                  AND: [
+                    { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+                    { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+                  ],
+                }
+              : {}),
             product: { isPublished: true, status: "ACTIVE" },
           },
           select: {
@@ -80,6 +114,24 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
                 textValue: { in: makeAliases, mode: "insensitive" },
               },
             },
+            ...(input.year
+              ? {
+                  AND: [
+                    {
+                      constraints: {
+                        some: {
+                          dimension: "YEAR",
+                          state: "EXACT",
+                          AND: [
+                            { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+                            { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+                          ],
+                        },
+                      },
+                    },
+                  ],
+                }
+              : {}),
           },
           select: {
             productId: true,
@@ -180,4 +232,35 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
     ids.add(clause.productId);
   }
   return [...ids];
+}
+
+export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) {
+  if (!input.make && !input.model && !input.generation && !input.year) return null;
+
+  const key = vehicleQueryCacheKey(input);
+  const cached = resolvedVehicleIdsCache.get(key);
+  if (cached) {
+    if (cached.expiresAt > Date.now()) {
+      // Refresh recency for bounded LRU eviction.
+      resolvedVehicleIdsCache.delete(key);
+      resolvedVehicleIdsCache.set(key, cached);
+      return cached.ids;
+    }
+    resolvedVehicleIdsCache.delete(key);
+  }
+
+  const pending = pendingVehicleResolutions.get(key);
+  if (pending) return pending;
+
+  const promise = resolveLegacyVehicleProductIdsUncached(input)
+    .then((ids) => {
+      cacheResolvedVehicleIds(key, ids);
+      return ids;
+    })
+    .finally(() => {
+      // Do not retain rejected promises (or completed flights) indefinitely.
+      pendingVehicleResolutions.delete(key);
+    });
+  pendingVehicleResolutions.set(key, promise);
+  return promise;
 }

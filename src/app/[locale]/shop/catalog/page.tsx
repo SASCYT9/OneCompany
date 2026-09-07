@@ -26,6 +26,15 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdmin
 import { prisma } from "@/lib/prisma";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
+import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
+import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
+import {
+  EVENTURI_SHARED_V8_INTAKE_SLUG,
+  EVENTURI_SHARED_V8_INTAKE_SLUGS,
+  EVENTURI_SHARED_V8_INTAKE_SKU,
+  isEventuriSharedV8Intake,
+  matchesEventuriSharedV8Application,
+} from "@/lib/eventuriSharedIntake";
 import {
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
@@ -118,11 +127,32 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   await connection();
   const resolvedLocale = resolveLocale(locale);
   const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
+  const vehicleParams = new URLSearchParams();
+  for (const key of [
+    "make",
+    "model",
+    "generation",
+    "chassis",
+    "year",
+    "engine",
+    "fuel",
+    "opfGpf",
+  ] as const) {
+    for (const value of catalogParamValues(filters, key)) vehicleParams.append(key, value);
+  }
+  const vehiclePlan = buildShopCatalogVehicleSearchPlan(vehicleParams, {
+    readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE,
+  });
   let renderProps: ComponentProps<typeof CatalogV2Server> | undefined;
   try {
-    const warehouseProductsPromise =
+    const vehicleProductIdsPromise = vehiclePlan.canonical
+      ? Promise.resolve(null)
+      : resolveLegacyVehicleProductIds(vehiclePlan.constraints);
+    const warehouseProductsPromise: Promise<
+      Array<{ id: string; sku: string | null; slug: string }>
+    > =
       query.stock === "all"
-        ? Promise.resolve([] as Array<{ id: string }>)
+        ? Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>)
         : prisma.shopProduct.findMany({
             where: {
               isPublished: true,
@@ -139,13 +169,33 @@ export default async function CatalogPage({ params, searchParams }: Props) {
                 { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
               ],
             },
-            select: { id: true },
+            select: { id: true, sku: true, slug: true },
           });
-    const [settingsRecord, session, warehouseProducts] = await Promise.all([
-      getOrCreateShopSettings(prisma),
-      getCurrentShopCustomerSession(),
-      warehouseProductsPromise,
-    ]);
+    const shouldReadSharedEventuri =
+      query.stock === "all" &&
+      (!query.make || matchesEventuriSharedV8Application(query.make, query.model));
+    const sharedEventuriProductsPromise =
+      shouldReadSharedEventuri && query.stock === "all"
+        ? prisma.shopProduct.findMany({
+            where: {
+              isPublished: true,
+              status: "ACTIVE",
+              OR: [
+                { sku: { equals: EVENTURI_SHARED_V8_INTAKE_SKU, mode: "insensitive" as const } },
+                { slug: { in: [...EVENTURI_SHARED_V8_INTAKE_SLUGS] } },
+              ],
+            },
+            select: { id: true, sku: true, slug: true },
+          })
+        : Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>);
+    const [settingsRecord, session, warehouseProducts, vehicleProductIds, sharedEventuriProducts] =
+      await Promise.all([
+        getOrCreateShopSettings(prisma),
+        getCurrentShopCustomerSession(),
+        warehouseProductsPromise,
+        vehicleProductIdsPromise,
+        sharedEventuriProductsPromise,
+      ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const pricingContext = await buildShopViewerPricingContextServer({
       prisma,
@@ -164,6 +214,9 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     const warehouseProductIds = warehouseProducts.map((product) => product.id);
     const projectionQuery = {
       ...query,
+      // The established catalog treats auto as the default unpartitioned tab;
+      // only moto is a strict projection scope.
+      scope: query.scope === "moto" ? "moto" : null,
       effectivePriceContext,
       ...(query.stock === "inStock"
         ? { productIds: warehouseProductIds }
@@ -171,6 +224,40 @@ export default async function CatalogPage({ params, searchParams }: Props) {
           ? { excludeProductIds: warehouseProductIds }
           : {}),
     };
+    const sharedEventuriProductsInStock = warehouseProducts.filter(
+      (product) =>
+        isEventuriSharedV8Intake(product.sku) ||
+        EVENTURI_SHARED_V8_INTAKE_SLUGS.includes(product.slug)
+    );
+    const allSharedEventuriProducts = [...sharedEventuriProductsInStock, ...sharedEventuriProducts];
+    const canonicalSharedEventuriId = allSharedEventuriProducts.find(
+      (product) => product.slug === EVENTURI_SHARED_V8_INTAKE_SLUG
+    )?.id;
+    projectionQuery.excludeProductIds = [
+      ...new Set([
+        ...(projectionQuery.excludeProductIds ?? []),
+        ...allSharedEventuriProducts
+          .filter((product) => product.id !== canonicalSharedEventuriId)
+          .map((product) => product.id),
+      ]),
+    ];
+    if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
+      if (vehicleProductIds) {
+        const effectiveVehicleProductIds =
+          canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
+            ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
+            : vehicleProductIds;
+        projectionQuery.productIds = projectionQuery.productIds
+          ? effectiveVehicleProductIds.filter((productId) =>
+              projectionQuery.productIds?.includes(productId)
+            )
+          : effectiveVehicleProductIds;
+      }
+      projectionQuery.make = null;
+      projectionQuery.model = null;
+      projectionQuery.generation = null;
+      projectionQuery.year = null;
+    }
     const [listingRead, facetRead] = await Promise.all([
       observeShopCatalogRead({
         operation: "listing",

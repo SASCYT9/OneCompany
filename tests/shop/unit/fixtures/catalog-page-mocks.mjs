@@ -4,6 +4,8 @@ export const calls =
     queries: [],
     facetQueries: [],
     warehouseQueries: 0,
+    legacyCalls: 0,
+    sharedLookupQueries: 0,
   });
 
 export async function connection() {}
@@ -18,13 +20,32 @@ export function reset() {
   calls.queries.length = 0;
   calls.facetQueries.length = 0;
   calls.warehouseQueries = 0;
+  calls.legacyCalls = 0;
+  calls.sharedLookupQueries = 0;
 }
 
 export const prisma = {
   shopProduct: {
-    findMany: async () => {
+    findMany: async (args = {}) => {
+      const sharedLookup = JSON.stringify(args).includes(
+        "4-0tfsi-twin-turbo-v8-black-carbon-intake-system"
+      );
+      if (sharedLookup) {
+        calls.sharedLookupQueries += 1;
+        return [
+          { id: "shared-duplicate", sku: "EVE-4V8TT-CF-INT", slug: "eventuri-legacy" },
+          {
+            id: "shared-canonical",
+            sku: "OTHER",
+            slug: "4-0tfsi-twin-turbo-v8-black-carbon-intake-system",
+          },
+        ];
+      }
       calls.warehouseQueries += 1;
-      return [{ id: "warehouse-a" }, { id: "warehouse-b" }];
+      return [
+        { id: "warehouse-a", sku: "STOCK-A", slug: "stock-a" },
+        { id: "warehouse-b", sku: "STOCK-B", slug: "stock-b" },
+      ];
     },
   },
 };
@@ -91,6 +112,39 @@ export function isShopCatalogReaderRequestEnabled() {
 }
 export function canUsePremiumCatalogProjection() {
   return true;
+}
+export function buildShopCatalogVehicleSearchPlan(params) {
+  const constraints = {
+    make: params.get("make") || null,
+    model: params.get("model") || null,
+    generation: params.get("chassis") || params.get("generation") || null,
+    year: params.get("year") ? Number(params.get("year")) : null,
+    engine: params.get("engine") || null,
+    fuel: params.get("fuel") || null,
+    opfGpf: params.get("opfGpf") || null,
+  };
+  const canonical = Boolean(constraints.engine || constraints.fuel || constraints.opfGpf);
+  return { constraints, canonical, reader: canonical ? "projection" : "legacy" };
+}
+export async function resolveLegacyVehicleProductIds() {
+  calls.legacyCalls += 1;
+  return ["legacy-id", "legacy-stock-id"];
+}
+export const EVENTURI_SHARED_V8_INTAKE_SKU = "EVE-4V8TT-CF-INT";
+export const EVENTURI_SHARED_V8_INTAKE_SLUG = "4-0tfsi-twin-turbo-v8-black-carbon-intake-system";
+export const EVENTURI_SHARED_V8_INTAKE_SLUGS = [EVENTURI_SHARED_V8_INTAKE_SLUG];
+export function isEventuriSharedV8Intake(sku) {
+  return sku?.toUpperCase() === EVENTURI_SHARED_V8_INTAKE_SKU;
+}
+export function matchesEventuriSharedV8Application(make, model) {
+  const models = {
+    audi: ["q8", "sq7", "sq8", "rsq8"],
+    lamborghini: ["urus"],
+    porsche: ["cayenne"],
+    bentley: ["bentayga"],
+  };
+  const values = models[make?.toLowerCase()];
+  return Boolean(values && (!model || values.includes(model.toLowerCase())));
 }
 export function observeShopCatalogRead({ execute }) {
   return execute().then((value) => ({ value }));

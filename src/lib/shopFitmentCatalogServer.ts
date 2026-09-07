@@ -25,7 +25,12 @@ const money = (
  * only need search/fitment evidence plus card pricing and a primary image, so
  * keep this projection deliberately small and deterministic.
  */
-export async function getShopFitmentCatalogProducts(): Promise<ShopProduct[]> {
+export async function getShopFitmentCatalogProducts(
+  options: { evidenceOnly?: boolean } = {}
+): Promise<ShopProduct[]> {
+  // Vehicle ID resolution does not render prices or media. Keep every text field
+  // consumed by the fitment extractor while omitting that unrelated DB payload.
+  const includeCommerce = !options.evidenceOnly;
   const products: ShopProduct[] = [];
   // Keep each rich response capped at 250 rows, while overlapping four reads.
   // ID windows are keyset-paginated; avoid increasingly expensive OFFSET scans.
@@ -63,20 +68,20 @@ export async function getShopFitmentCatalogProducts(): Promise<ShopProduct[]> {
           collectionUa: true,
           collectionEn: true,
           stock: true,
-          priceEur: true,
-          priceUsd: true,
-          priceUah: true,
-          priceEurEurope: true,
-          priceEurB2b: true,
-          priceUsdB2b: true,
-          priceUahB2b: true,
-          compareAtEur: true,
-          compareAtUsd: true,
-          compareAtUah: true,
-          compareAtEurB2b: true,
-          compareAtUsdB2b: true,
-          compareAtUahB2b: true,
-          image: true,
+          priceEur: includeCommerce,
+          priceUsd: includeCommerce,
+          priceUah: includeCommerce,
+          priceEurEurope: includeCommerce,
+          priceEurB2b: includeCommerce,
+          priceUsdB2b: includeCommerce,
+          priceUahB2b: includeCommerce,
+          compareAtEur: includeCommerce,
+          compareAtUsd: includeCommerce,
+          compareAtUah: includeCommerce,
+          compareAtEurB2b: includeCommerce,
+          compareAtUsdB2b: includeCommerce,
+          compareAtUahB2b: includeCommerce,
+          image: includeCommerce,
           collections: {
             select: {
               sortOrder: true,
@@ -102,22 +107,22 @@ export async function getShopFitmentCatalogProducts(): Promise<ShopProduct[]> {
               option1Value: true,
               option2Value: true,
               option3Value: true,
-              inventoryQty: true,
-              image: true,
+              inventoryQty: includeCommerce,
+              image: includeCommerce,
               isDefault: true,
-              priceEur: true,
-              priceUsd: true,
-              priceUah: true,
-              priceEurEurope: true,
-              priceEurB2b: true,
-              priceUsdB2b: true,
-              priceUahB2b: true,
-              compareAtEur: true,
-              compareAtUsd: true,
-              compareAtUah: true,
-              compareAtEurB2b: true,
-              compareAtUsdB2b: true,
-              compareAtUahB2b: true,
+              priceEur: includeCommerce,
+              priceUsd: includeCommerce,
+              priceUah: includeCommerce,
+              priceEurEurope: includeCommerce,
+              priceEurB2b: includeCommerce,
+              priceUsdB2b: includeCommerce,
+              priceUahB2b: includeCommerce,
+              compareAtEur: includeCommerce,
+              compareAtUsd: includeCommerce,
+              compareAtUah: includeCommerce,
+              compareAtEurB2b: includeCommerce,
+              compareAtUsdB2b: includeCommerce,
+              compareAtUahB2b: includeCommerce,
             },
           },
         },
