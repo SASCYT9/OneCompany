@@ -9,32 +9,234 @@
  * 5. Same scope fallback                                              → last resort
  */
 
-import type { ShopProduct } from './shopCatalog';
+import type { ShopProduct } from "./shopCatalog";
+
+/**
+ * The related-products cards only need identity, title/category, image and
+ * price bands. Keeping this projection separate from the full PDP mapper lets
+ * the related query select a narrow row without changing the card contract.
+ */
+export type ShopRelatedProductRow = {
+  id: string;
+  slug: string;
+  sku: string | null;
+  scope: string;
+  brand: string | null;
+  vendor: string | null;
+  productType: string | null;
+  tags: string[];
+  titleUa: string;
+  titleEn: string;
+  categoryUa: string | null;
+  categoryEn: string | null;
+  collectionUa: string | null;
+  collectionEn: string | null;
+  stock: string;
+  priceEur: unknown;
+  priceEurEurope: unknown;
+  priceUsd: unknown;
+  priceUah: unknown;
+  priceEurB2b: unknown;
+  priceUsdB2b: unknown;
+  priceUahB2b: unknown;
+  compareAtEur: unknown;
+  compareAtUsd: unknown;
+  compareAtUah: unknown;
+  compareAtEurB2b: unknown;
+  compareAtUsdB2b: unknown;
+  compareAtUahB2b: unknown;
+  image: string | null;
+};
+
+function relatedMoney(row: ShopRelatedProductRow, prefix: string) {
+  const value = (field: string) => {
+    const raw = row[field as keyof ShopRelatedProductRow];
+    const parsed = typeof raw === "number" ? raw : Number(raw ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  return { eur: value(`${prefix}Eur`), usd: value(`${prefix}Usd`), uah: value(`${prefix}Uah`) };
+}
+
+function relatedEuropeMoney(row: ShopRelatedProductRow) {
+  const raw = Number(row.priceEurEurope ?? 0);
+  return { eur: Number.isFinite(raw) ? raw : 0, usd: 0, uah: 0 };
+}
+
+/** Convert a narrow DB row to the existing card-facing ShopProduct shape. */
+export function projectShopRelatedProduct(row: ShopRelatedProductRow): ShopProduct {
+  const emptyText = { ua: "", en: "" };
+  return {
+    id: row.id,
+    slug: row.slug,
+    sku: row.sku ?? "",
+    scope: row.scope === "moto" ? "moto" : "auto",
+    brand: row.brand ?? row.vendor ?? "",
+    vendor: row.vendor ?? undefined,
+    productType: row.productType ?? undefined,
+    tags: row.tags ?? [],
+    title: { ua: row.titleUa, en: row.titleEn },
+    category: { ua: row.categoryUa ?? "", en: row.categoryEn ?? "" },
+    shortDescription: emptyText,
+    longDescription: emptyText,
+    leadTime: emptyText,
+    stock: row.stock === "preOrder" ? "preOrder" : "inStock",
+    collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
+    price: relatedMoney(row, "price"),
+    europePrice: relatedEuropeMoney(row),
+    b2bPrice: {
+      eur: Number(row.priceEurB2b ?? 0) || 0,
+      usd: Number(row.priceUsdB2b ?? 0) || 0,
+      uah: Number(row.priceUahB2b ?? 0) || 0,
+    },
+    compareAt: {
+      eur: Number(row.compareAtEur ?? 0) || 0,
+      usd: Number(row.compareAtUsd ?? 0) || 0,
+      uah: Number(row.compareAtUah ?? 0) || 0,
+    },
+    b2bCompareAt: {
+      eur: Number(row.compareAtEurB2b ?? 0) || 0,
+      usd: Number(row.compareAtUsdB2b ?? 0) || 0,
+      uah: Number(row.compareAtUahB2b ?? 0) || 0,
+    },
+    image: row.image ?? "",
+    highlights: [],
+  };
+}
 
 /* ── Vehicle token extraction ────────────────────────────────── */
 
 /** Known vehicle chassis / platform codes to boost matching weight */
 const CHASSIS_CODES = new Set([
   // BMW
-  'E30','E36','E46','E82','E87','E90','E91','E92','E93','F06','F10','F12','F13',
-  'F15','F16','F20','F22','F30','F31','F32','F33','F34','F36','F40','F80','F82',
-  'F83','F85','F86','F87','F90','F91','F92','F93','F95','F96','F97','F98',
-  'G01','G02','G05','G06','G07','G08','G11','G12','G14','G15','G16','G20','G21',
-  'G22','G23','G26','G29','G30','G31','G32','G42','G43','G70','G80','G81','G82',
-  'G83','G87','G8X',
+  "E30",
+  "E36",
+  "E46",
+  "E82",
+  "E87",
+  "E90",
+  "E91",
+  "E92",
+  "E93",
+  "F06",
+  "F10",
+  "F12",
+  "F13",
+  "F15",
+  "F16",
+  "F20",
+  "F22",
+  "F30",
+  "F31",
+  "F32",
+  "F33",
+  "F34",
+  "F36",
+  "F40",
+  "F80",
+  "F82",
+  "F83",
+  "F85",
+  "F86",
+  "F87",
+  "F90",
+  "F91",
+  "F92",
+  "F93",
+  "F95",
+  "F96",
+  "F97",
+  "F98",
+  "G01",
+  "G02",
+  "G05",
+  "G06",
+  "G07",
+  "G08",
+  "G11",
+  "G12",
+  "G14",
+  "G15",
+  "G16",
+  "G20",
+  "G21",
+  "G22",
+  "G23",
+  "G26",
+  "G29",
+  "G30",
+  "G31",
+  "G32",
+  "G42",
+  "G43",
+  "G70",
+  "G80",
+  "G81",
+  "G82",
+  "G83",
+  "G87",
+  "G8X",
   // Audi
-  'B9','B9.5','C8','D5','PQ35',
+  "B9",
+  "B9.5",
+  "C8",
+  "D5",
+  "PQ35",
   // Porsche
-  '991','991.1','991.2','992','992.1','992.2','718','981','982','9YA','9Y0','9PA',
+  "991",
+  "991.1",
+  "991.2",
+  "992",
+  "992.1",
+  "992.2",
+  "718",
+  "981",
+  "982",
+  "9YA",
+  "9Y0",
+  "9PA",
   // Mercedes
-  'W463','W464','W465','W176','W177','W205','W206','W213','W222','W223',
-  'C190','C63','C43','C167','X167','R231','R232',
+  "W463",
+  "W464",
+  "W465",
+  "W176",
+  "W177",
+  "W205",
+  "W206",
+  "W213",
+  "W222",
+  "W223",
+  "C190",
+  "C63",
+  "C43",
+  "C167",
+  "X167",
+  "R231",
+  "R232",
   // Range Rover / Land Rover
-  'L405','L460','L461','L462','L494','L538','L551','L663',
+  "L405",
+  "L460",
+  "L461",
+  "L462",
+  "L494",
+  "L538",
+  "L551",
+  "L663",
   // Lamborghini
-  'LP610','LP640','LP700','LP740','LP750',
+  "LP610",
+  "LP640",
+  "LP700",
+  "LP740",
+  "LP750",
   // Others
-  'R56','R57','R58','R59','GR','JCW','SVR','SVJ','SE',
+  "R56",
+  "R57",
+  "R58",
+  "R59",
+  "GR",
+  "JCW",
+  "SVR",
+  "SVJ",
+  "SE",
 ]);
 
 /**
@@ -52,26 +254,29 @@ export function extractVehicleTokens(title: string): {
   // Try to extract the vehicle part after "for". If absent (iPE-style titles
   // like "BMW M3 / M4 (G80 / G82) Exhaust System"), fall back to the whole
   // title so make and chassis codes can still be picked up.
-  const forMatch = normalized.match(/\bFOR\s+(.+?)(?:\s*(?:EC\s|OPF|GPF|FACELIFT|\d{4}\s*[-–])|\s*$)/);
+  const forMatch = normalized.match(
+    /\bFOR\s+(.+?)(?:\s*(?:EC\s|OPF|GPF|FACELIFT|\d{4}\s*[-–])|\s*$)/
+  );
   const vehiclePart = forMatch ? forMatch[1] : normalized;
 
   // Tokenize
   const rawTokens = vehiclePart
-    .replace(/[()\/,]/g, ' ')
+    .replace(/[()\/,]/g, " ")
     .split(/\s+/)
-    .filter(t => t.length > 0);
+    .filter((t) => t.length > 0);
 
   // The first token is typically the make
   const make = rawTokens.length > 0 ? rawTokens[0] : null;
 
   // Find chassis codes
-  const chassisCodes = rawTokens.filter(t => CHASSIS_CODES.has(t));
+  const chassisCodes = rawTokens.filter((t) => CHASSIS_CODES.has(t));
 
   // Model tokens: significant words (not year numbers, not single letters)
-  const modelTokens = rawTokens.filter(t =>
-    t.length > 1 &&
-    !/^\d{4}$/.test(t) &&      // not a 4-digit year
-    !/^[-–]$/.test(t)          // not dashes
+  const modelTokens = rawTokens.filter(
+    (t) =>
+      t.length > 1 &&
+      !/^\d{4}$/.test(t) && // not a 4-digit year
+      !/^[-–]$/.test(t) // not dashes
   );
 
   return {
@@ -90,16 +295,15 @@ function scoreRelated(
   currentTokens: ReturnType<typeof extractVehicleTokens>
 ): number {
   let score = 0;
-  const title = (candidate.title?.en || '').toUpperCase();
+  const title = (candidate.title?.en || "").toUpperCase();
 
   // ── Brand match: +10 ──
-  const sameBrand =
-    current.brand.toUpperCase() === candidate.brand.toUpperCase();
+  const sameBrand = current.brand.toUpperCase() === candidate.brand.toUpperCase();
   if (sameBrand) score += 10;
 
   // ── Category match: +3 ──
-  const currentCat = (current.category?.en || '').toUpperCase();
-  const candidateCat = (candidate.category?.en || '').toUpperCase();
+  const currentCat = (current.category?.en || "").toUpperCase();
+  const candidateCat = (candidate.category?.en || "").toUpperCase();
   if (currentCat && candidateCat && currentCat === candidateCat) score += 3;
 
   // ── Vehicle matching ──
@@ -116,8 +320,8 @@ function scoreRelated(
   }
 
   // Model token overlap: +5 each
-  const candidateTokens = extractVehicleTokens(candidate.title?.en || '');
-  const overlapCount = currentTokens.modelTokens.filter(t =>
+  const candidateTokens = extractVehicleTokens(candidate.title?.en || "");
+  const overlapCount = currentTokens.modelTokens.filter((t) =>
     candidateTokens.modelTokens.includes(t)
   ).length;
   score += overlapCount * 5;
@@ -136,10 +340,10 @@ export function findRelatedProducts(
   allProducts: ShopProduct[],
   limit = 3
 ): ShopProduct[] {
-  const currentTokens = extractVehicleTokens(currentProduct.title?.en || '');
-  const candidates = allProducts.filter(p => p.slug !== currentProduct.slug);
+  const currentTokens = extractVehicleTokens(currentProduct.title?.en || "");
+  const candidates = allProducts.filter((p) => p.slug !== currentProduct.slug);
 
-  const scored = candidates.map(candidate => ({
+  const scored = candidates.map((candidate) => ({
     product: candidate,
     score: scoreRelated(currentProduct, candidate, currentTokens),
   }));
@@ -153,5 +357,5 @@ export function findRelatedProducts(
     return bBrand - aBrand;
   });
 
-  return scored.slice(0, limit).map(s => s.product);
+  return scored.slice(0, limit).map((s) => s.product);
 }

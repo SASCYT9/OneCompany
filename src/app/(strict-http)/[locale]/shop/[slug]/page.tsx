@@ -10,7 +10,10 @@ import {
   resolveLocale,
   type SupportedLocale,
 } from "@/lib/seo";
-import { getShopProductBySlugServer, getShopProductsByBrandServer } from "@/lib/shopCatalogServer";
+import {
+  getShopProductBySlugServer,
+  getShopRelatedProductsByBrandServer,
+} from "@/lib/shopCatalogServer";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import {
   buildShopViewerPricingContext,
@@ -247,7 +250,7 @@ async function RelatedProductsSection({
   // Brand-scoped fetch — ~95% of related-product picks come from the same
   // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
   // the Suspense subtree so it doesn't block the main PDP first byte.
-  const brandPool = await getShopProductsByBrandServer(product.brand);
+  const brandPool = await getShopRelatedProductsByBrandServer(product.brand);
   const relatedProducts = findRelatedProducts(product, brandPool, 3);
   if (!relatedProducts.length) return null;
   const isUa = locale === "ua";

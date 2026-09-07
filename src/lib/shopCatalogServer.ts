@@ -42,6 +42,7 @@ import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import { projectShopRelatedProduct, type ShopRelatedProductRow } from "@/lib/shopRelatedProducts";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
@@ -2423,6 +2424,98 @@ export async function getShopProductsByBrandServer(
     return await promise;
   } finally {
     brandProductsPromise.delete(cacheKey);
+  }
+}
+
+/**
+ * Bounded read model for PDP related-product cards.
+ *
+ * The full brand reader is intentionally rich for collection grids, but a PDP
+ * card never reads descriptions, galleries, variants, media, bundles, or
+ * collections. Reusing that reader made a product page transfer every heavy
+ * relation for the whole brand before scoring three cards. This path keeps the
+ * same brand predicate and scoring input while selecting only the card fields.
+ */
+const relatedProductsCache = new Map<string, { products: ShopProduct[]; ts: number }>();
+const relatedProductsPromise = new Map<string, Promise<ShopProduct[]>>();
+
+export async function getShopRelatedProductsByBrandServer(brand: string): Promise<ShopProduct[]> {
+  const cacheKey = `related:${brand.trim().toLowerCase()}`;
+  const now = Date.now();
+  const cached = relatedProductsCache.get(cacheKey);
+  if (cached && now - cached.ts < BRAND_PRODUCTS_CACHE_TTL_MS) {
+    return cached.products.map(applyShopProductImageOverrides);
+  }
+
+  if (process.env.NEXT_PHASE === "phase-production-build" || isLocalStorefrontMode()) {
+    return getShopProductsByBrandServer(brand);
+  }
+
+  const inflight = relatedProductsPromise.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    try {
+      const rows = await getPrismaCachedClient().shopProduct.findMany({
+        where: {
+          isPublished: true,
+          status: "ACTIVE",
+          OR: [
+            { brand: { equals: brand, mode: "insensitive" } },
+            { vendor: { equals: brand, mode: "insensitive" } },
+          ],
+        },
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          slug: true,
+          sku: true,
+          scope: true,
+          brand: true,
+          vendor: true,
+          productType: true,
+          tags: true,
+          titleUa: true,
+          titleEn: true,
+          categoryUa: true,
+          categoryEn: true,
+          collectionUa: true,
+          collectionEn: true,
+          stock: true,
+          priceEur: true,
+          priceEurEurope: true,
+          priceUsd: true,
+          priceUah: true,
+          priceEurB2b: true,
+          priceUsdB2b: true,
+          priceUahB2b: true,
+          compareAtEur: true,
+          compareAtUsd: true,
+          compareAtUah: true,
+          compareAtEurB2b: true,
+          compareAtUsdB2b: true,
+          compareAtUahB2b: true,
+          image: true,
+        },
+      });
+      const products = rows
+        .map((row) =>
+          applyShopProductImageOverrides(projectShopRelatedProduct(row as ShopRelatedProductRow))
+        )
+        .filter(shouldExposeCatalogProduct);
+      relatedProductsCache.set(cacheKey, { products, ts: Date.now() });
+      return products;
+    } catch (error) {
+      if (process.env.NODE_ENV === "production") throw error;
+      return getShopProductsByBrandServer(brand);
+    }
+  })();
+
+  relatedProductsPromise.set(cacheKey, promise);
+  try {
+    return await promise;
+  } finally {
+    relatedProductsPromise.delete(cacheKey);
   }
 }
 
