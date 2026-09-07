@@ -77,6 +77,46 @@ test("activation requires every raw leaf mapped, quarantined with issue, or igno
   assert.equal(complete.ignoredLeafCount, 1);
 });
 
+test("activation fails closed for orphaned and duplicate provenance decisions", () => {
+  const rawPayload = { sku: "RC-1" };
+  const provenance = [
+    {
+      fieldPath: "sku",
+      ordinal: 0,
+      mappingStatus: "MAPPED" as const,
+      canonicalEntityId: "p1",
+      canonicalField: "sku",
+    },
+    {
+      fieldPath: "sku",
+      ordinal: 0,
+      mappingStatus: "MAPPED" as const,
+      canonicalEntityId: "p1",
+      canonicalField: "sku",
+    },
+    {
+      fieldPath: "sourceOnly",
+      ordinal: 0,
+      mappingStatus: "IGNORED_WITH_REASON" as const,
+      reason: "supplier-only field",
+    },
+  ];
+  const coverage = buildShopCatalogSourceRecordCoverage({
+    recordKey: "racechip:RC-1",
+    rawPayload,
+    provenance,
+  });
+  assert.equal(coverage.coveragePercent, 100);
+  assert.equal(coverage.activationReady, false);
+  assert.deepEqual(
+    coverage.invalid.map(({ fieldPath, ordinal, reason }) => ({ fieldPath, ordinal, reason })),
+    [
+      { fieldPath: "sku", ordinal: 0, reason: "duplicate_provenance" },
+      { fieldPath: "sourceOnly", ordinal: 0, reason: "provenance_without_raw_leaf" },
+    ]
+  );
+});
+
 test("coverage fingerprint is stable across object key order", () => {
   const provenance = [
     { fieldPath: "a", ordinal: 0, mappingStatus: "IGNORED_WITH_REASON" as const, reason: "test" },

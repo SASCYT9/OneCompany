@@ -87,11 +87,32 @@ export function buildShopCatalogSourceRecordCoverage(input: {
   provenance: readonly ShopCatalogCoverageProvenance[];
 }): ShopCatalogSourceRecordCoverage {
   const leaves = flattenShopCatalogRawPayload(input.rawPayload);
-  const provenance = new Map(
-    input.provenance.map((entry) => [`${entry.fieldPath}\u0000${entry.ordinal}`, entry])
-  );
+  const leafKeys = new Set(leaves.map((leaf) => `${leaf.fieldPath}\u0000${leaf.ordinal}`));
+  const provenance = new Map<string, ShopCatalogCoverageProvenance>();
   const missing: ShopCatalogSourceRecordCoverage["missing"] = [];
   const invalid: ShopCatalogSourceRecordCoverage["invalid"] = [];
+  // A raw leaf may have exactly one provenance decision.  Do not let a Map
+  // silently discard duplicate or orphaned decisions: either case means the
+  // immutable evidence cannot be replayed losslessly.
+  for (const entry of input.provenance) {
+    const key = `${entry.fieldPath}\u0000${entry.ordinal}`;
+    if (provenance.has(key)) {
+      invalid.push({
+        fieldPath: entry.fieldPath,
+        ordinal: entry.ordinal,
+        reason: "duplicate_provenance",
+      });
+      continue;
+    }
+    provenance.set(key, entry);
+    if (!leafKeys.has(key)) {
+      invalid.push({
+        fieldPath: entry.fieldPath,
+        ordinal: entry.ordinal,
+        reason: "provenance_without_raw_leaf",
+      });
+    }
+  }
   let mappedLeafCount = 0;
   let quarantinedLeafCount = 0;
   let ignoredLeafCount = 0;
