@@ -169,6 +169,9 @@ test("catalog page serves projection SSR only behind the reader guard", () => {
   assert.match(adapter, /Promise\.all/);
   assert.match(source, /CatalogV2Server/);
   assert.match(source, /redirect\(legacyCatalogHref/);
+  assert.match(source, /canUsePremiumCatalogProjection/);
+  assert.match(source, /eligibilityParams/);
+  assert.match(source, /product type\/kind, strict, global facets/);
   const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
   assert.match(premium, /setSelectedBrands\(\[\]\)/);
   assert.match(premium, /renderStandardCompatibilityFields/);

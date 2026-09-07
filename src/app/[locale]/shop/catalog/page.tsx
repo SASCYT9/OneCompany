@@ -17,6 +17,7 @@ import {
   parseShopCatalogStorefrontQuery,
   type CatalogSearchParams,
 } from "@/lib/shopCatalogStorefrontQuery";
+import { canUsePremiumCatalogProjection } from "@/lib/shopCatalogPremiumEligibility";
 import { resolveLocale } from "@/lib/seo";
 import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
@@ -92,6 +93,18 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   ) {
     // Normal requests are internally rewritten by next.config. This is a
     // fail-closed fallback for direct route-module invocation only.
+    redirect(legacyCatalogHref(locale, filters));
+  }
+
+  // The projection DTO contains some URL dimensions for transport and link
+  // continuity even though their native semantics are not published yet.
+  // Gate those requests before parsing/defaulting can turn them into a
+  // projection no-op (product type/kind, strict, global facets, and OR brands).
+  const eligibilityParams = {
+    get: (name: string) => catalogParamValues(filters, name)[0] ?? null,
+    getAll: (name: string) => [...catalogParamValues(filters, name)],
+  };
+  if (!canUsePremiumCatalogProjection(eligibilityParams)) {
     redirect(legacyCatalogHref(locale, filters));
   }
 
