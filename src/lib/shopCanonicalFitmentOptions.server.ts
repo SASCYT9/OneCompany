@@ -30,11 +30,6 @@ export async function getCanonicalFitmentOptions(input: {
   // describe one complete projection.
   const readiness = await readShopCatalogSelectorArtifactReadiness();
   if (!readiness.ready) return null;
-  // Projection rows are not evidence of a complete selector artifact.  Keep
-  // the existing bounded legacy fallback until the publisher has completed a
-  // release and the persisted coverage gate agrees with its version.
-  const readiness = await readShopCatalogSelectorArtifactReadiness();
-  if (!readiness.ready) return null;
   const withSelectedYear = (
     where: Prisma.ShopCatalogProjectionClauseWhereInput
   ): Prisma.ShopCatalogProjectionClauseWhereInput =>
