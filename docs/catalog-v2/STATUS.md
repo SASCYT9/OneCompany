@@ -28,6 +28,10 @@ incomplete artifacts, so a future route can switch only after persisted
 readiness metadata exists. Direct route wiring is intentionally still blocked
 until that artifact is published and coverage is proven.
 
+Commit `b63d41ac` centralizes bounded catalog URL parsing for SSR hydration and
+history state. Invalid page, year, sort, stock, currency, and vehicle values
+fall back deterministically; the focused URL suite passes 2/2.
+
 R02 coverage work is in commits `319ec361` and `0216429f`: a deterministic
 source-revision coverage manifest records immutable revision heads and blocks
 selector publication for missing, partial, unexpected, duplicate, or tampered
