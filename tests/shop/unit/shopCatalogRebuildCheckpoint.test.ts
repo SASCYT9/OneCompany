@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { registerHooks } from "node:module";
 import path from "node:path";
 import test from "node:test";
@@ -45,4 +46,16 @@ test("checkpoint cursor must advance strictly with a non-empty page", async () =
       }),
     /positive/
   );
+});
+
+test("final rebuild completion can atomically publish the opt-in source marker", () => {
+  const source = readFileSync("src/lib/shopCatalogRebuildCheckpoint.server.ts", "utf8");
+  assert.match(source, /persistShopCatalogSourceCoverageMarkerWithClient/);
+  assert.match(source, /sourceCoverage\?: ShopCatalogSourceCoveragePublicationInput/);
+  assert.match(
+    source,
+    /updateMany\(\{[\s\S]*status: "COMPLETED"[\s\S]*\}\);[\s\S]*persistShopCatalogSourceCoverageMarkerWithClient/
+  );
+  assert.match(source, /prisma\.\$transaction\([\s\S]*completeCheckpointInTransaction/);
+  assert.match(source, /sourceCoverageMarker: null/);
 });

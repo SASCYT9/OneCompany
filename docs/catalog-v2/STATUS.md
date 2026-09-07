@@ -120,6 +120,15 @@ columns, with 4/4 marker tests and 22/22 KW/FI evidence tests passing. Marker
 publication still must be invoked by the source release coordinator before any
 production reader activation.
 
+The checkpointed projection coordinator now exposes an explicit
+`sourceCoverage` opt-in on its final empty-page call. When supplied, it marks
+the rebuild `COMPLETED` and persists the validated source-coverage marker in
+one serializable transaction; marker validation failure rolls back completion.
+Existing callers remain marker-free until they provide an immutable complete
+source manifest and required source set. The integration path is covered by
+the checkpoint contract test and the disposable PostgreSQL projection test;
+no production rebuild or marker write was run.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and

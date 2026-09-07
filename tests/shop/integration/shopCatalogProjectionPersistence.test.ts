@@ -29,6 +29,7 @@ const sourceModule = import("../../../src/lib/shopCatalogProjectionSource.server
 const mutationModule = import("../../../src/lib/shopCatalogMutationCoordinator.server");
 const outboxModule = import("../../../src/lib/shopCatalogOutboxWorker.server");
 const checkpointModule = import("../../../src/lib/shopCatalogRebuildCheckpoint.server");
+const sourceCoverageModule = import("../../../src/lib/shopCatalogSourceRevisionCoverage");
 const suggestionModule = import("../../../src/lib/shopCatalogSuggestion.server");
 const publicationStatusModule = import("../../../src/lib/shopCatalogPublicationStatus.server");
 
@@ -189,8 +190,32 @@ test(
         runId: rebuildRunId,
         source: revisionSource,
         limit: 10,
+        sourceCoverage: {
+          manifest: (await sourceCoverageModule).buildShopCatalogSourceRevisionCoverageManifest({
+            projectionVersion: 2,
+            selectorFingerprint: "a".repeat(64),
+            sources: [
+              {
+                sourceId: "fi",
+                revision: "fi-1",
+                expectedRecords: 1,
+                observedRecords: 1,
+                readyRecords: 1,
+              },
+              {
+                sourceId: "kw",
+                revision: "kw-1",
+                expectedRecords: 1,
+                observedRecords: 1,
+                readyRecords: 1,
+              },
+            ],
+          }),
+          requiredSourceIds: ["fi", "kw"],
+        },
       });
       assert.equal(completedRebuild.checkpoint.status, "COMPLETED");
+      assert.equal(completedRebuild.sourceCoverageMarker?.marker.projectionVersion, "2");
 
       const workerId = `catalog-integration-${Date.now()}`;
       const jobs = await claimShopCatalogOutbox({ workerId, limit: 10 });

@@ -10,6 +10,8 @@ import {
   type ShopCatalogProjectionRebuildSource,
 } from "./shopCatalogProjectionPersistence.server";
 import type { ShopCatalogProjectionBuild } from "./shopCatalogProjection.server";
+import type { ShopCatalogSourceCoverageMarkerPlan } from "./shopCatalogSourceCoverageMarker.server";
+import type { ShopCatalogSourceRevisionCoverageManifest } from "./shopCatalogSourceRevisionCoverage";
 
 export const SHOP_CATALOG_REBUILD_CHECKPOINT_ID = "catalog-v2-projection" as const;
 
@@ -221,6 +223,51 @@ export async function failShopCatalogRebuildCheckpoint(input: {
   return readShopCatalogRebuildCheckpoint(id);
 }
 
+export type ShopCatalogSourceCoveragePublicationInput = {
+  manifest: ShopCatalogSourceRevisionCoverageManifest;
+  requiredSourceIds: readonly string[];
+};
+
+/**
+ * Completes a rebuild and, when explicitly requested, publishes source
+ * coverage while the checkpoint row is still owned by this transaction.
+ * Failing the marker validation rolls back the COMPLETED transition, so a
+ * partial or stale projection can never advertise a ready source marker.
+ */
+async function completeCheckpointInTransaction(input: {
+  tx: Prisma.TransactionClient;
+  checkpointId: string;
+  runId: string;
+  sourceCoverage?: ShopCatalogSourceCoveragePublicationInput;
+}) {
+  const updated = await input.tx.shopCatalogRebuildCheckpoint.updateMany({
+    where: { id: input.checkpointId, runId: input.runId, status: "RUNNING" },
+    data: { status: "COMPLETED", completedAt: new Date(), lastError: null },
+  });
+  if (updated.count !== 1) {
+    throw new Error(`Catalog rebuild checkpoint ${input.checkpointId} cannot complete`);
+  }
+  let sourceCoverageMarker: ShopCatalogSourceCoverageMarkerPlan | null = null;
+  if (input.sourceCoverage) {
+    // Keep the marker coordinator out of the module's static dependency graph:
+    // it imports the canonical checkpoint ID for its standalone API.
+    const { persistShopCatalogSourceCoverageMarkerWithClient } =
+      await import("./shopCatalogSourceCoverageMarker.server");
+    sourceCoverageMarker = await persistShopCatalogSourceCoverageMarkerWithClient(input.tx, {
+      ...input.sourceCoverage,
+      checkpointId: input.checkpointId,
+    });
+  }
+  const row = await input.tx.shopCatalogRebuildCheckpoint.findUnique({
+    where: { id: input.checkpointId },
+  });
+  if (!row) throw new Error(`Catalog rebuild checkpoint ${input.checkpointId} disappeared`);
+  return Object.freeze({
+    checkpoint: snapshot(row),
+    sourceCoverageMarker,
+  });
+}
+
 /**
  * Executes one page and checkpoints only after every product transaction has
  * committed. Replaying after a crash is safe because persistence is idempotent.
@@ -231,9 +278,12 @@ export async function runCheckpointedShopCatalogRebuildPage(input: {
   checkpointId?: string;
   limit?: number;
   persist?: (build: ShopCatalogProjectionBuild) => Promise<ShopCatalogProjectionPersistResult>;
+  /** Opt-in: publish the complete source coverage marker with finalization. */
+  sourceCoverage?: ShopCatalogSourceCoveragePublicationInput;
 }): Promise<{
   checkpoint: ShopCatalogRebuildCheckpointSnapshot;
   page: ShopCatalogProjectionRebuildPageResult;
+  sourceCoverageMarker: ShopCatalogSourceCoverageMarkerPlan | null;
 }> {
   const id = input.checkpointId ?? SHOP_CATALOG_REBUILD_CHECKPOINT_ID;
   const checkpoint = await readShopCatalogRebuildCheckpoint(id);
@@ -246,14 +296,26 @@ export async function runCheckpointedShopCatalogRebuildPage(input: {
     limit: input.limit,
     persist: input.persist,
   });
-  const updated = page.batch.productCount
-    ? await advanceShopCatalogRebuildCheckpoint({
+  if (page.batch.productCount) {
+    const updated = await advanceShopCatalogRebuildCheckpoint({
+      checkpointId: id,
+      runId: input.runId,
+      nextCursor: page.nextCursor!,
+      pageProductCount: page.batch.productCount,
+    });
+    if (!updated) throw new Error(`Catalog rebuild checkpoint ${id} disappeared`);
+    return Object.freeze({ checkpoint: updated, page, sourceCoverageMarker: null });
+  }
+
+  const finalized = await prisma.$transaction(
+    (tx) =>
+      completeCheckpointInTransaction({
+        tx,
         checkpointId: id,
         runId: input.runId,
-        nextCursor: page.nextCursor!,
-        pageProductCount: page.batch.productCount,
-      })
-    : await completeShopCatalogRebuildCheckpoint({ checkpointId: id, runId: input.runId });
-  if (!updated) throw new Error(`Catalog rebuild checkpoint ${id} disappeared`);
-  return Object.freeze({ checkpoint: updated, page });
+        sourceCoverage: input.sourceCoverage,
+      }),
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+  );
+  return Object.freeze({ ...finalized, page });
 }
