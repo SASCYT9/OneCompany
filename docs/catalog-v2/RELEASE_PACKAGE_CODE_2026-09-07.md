@@ -2,13 +2,14 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `abfa7c79d4c78760dc31ca6705caf02c42451a8f`
+Release commit: `4bbf4fec` (guarded projection SSR route)
 
 ## Included behavior
 
 - Lossless KW/FI canonical policy persistence with explicit review and unknown states.
 - Versioned source coverage marker and atomic checkpoint finalization.
 - Bounded Catalog V2 listing, fitment, search, and suggestion reads.
+- Explicit guarded SSR route for `/shop/catalog`; reader-off still rewrites to the legacy storefront.
 - Token-order-insensitive suggestions with exact normalized SKU priority.
 - BMW M5 G90 → S68 canonical alias handling.
 - Narrow PDP related-product reads, fresh bounded card pricing, and existing cache/privacy guards.

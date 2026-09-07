@@ -136,6 +136,8 @@ the hero/reel remains eager and the media-loading regression test passes 1/1.
 This complements the existing first-card preload limit and does not alter remote
 image optimization or CDN behavior.
 
+Commit `4bbf4fec` restores the guarded Catalog V2 SSR route at `/shop/catalog`. Reader-off requests remain internally rewritten to the legacy storefront; explicit `ssr` requests render the projection-backed server page, and canary requests still require the request-bound canary header. Typecheck and the focused catalog/stock suite pass locally. The browser gate must be rerun against a fresh local build; the existing server on port 3000 predates this route commit.
+
 The disposable all-source runner was re-run after the local waves and remains
 fail-closed: the fixture manifest still marks FI EXHAUST (223) and KW Suspensions
 (1,999) unverified, and its historical selector fixture reports source-specific
