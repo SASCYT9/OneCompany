@@ -28,6 +28,12 @@ incomplete artifacts, so a future route can switch only after persisted
 readiness metadata exists. Direct route wiring is intentionally still blocked
 until that artifact is published and coverage is proven.
 
+R02 coverage work is in commits `319ec361` and `0216429f`: a deterministic
+source-revision coverage manifest records immutable revision heads and blocks
+selector publication for missing, partial, unexpected, duplicate, or tampered
+source entries. The focused coverage and selector suite now passes 16/16;
+coverage is still a publication input and has not been run against production.
+
 The R10/R05 cost and search pass is included in commit `3a90621d` (with the
 deterministic install change in `08835e1c`). Build snapshot generation now
 reuses the shared Prisma singleton, while ordinary product/SKU searches skip
