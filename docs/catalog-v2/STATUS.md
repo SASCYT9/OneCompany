@@ -842,3 +842,7 @@ Production actions performed: none
 - Atomic feed publication no longer invalidates the root App Router layout after every sync. Existing-product price/inventory changes revalidate only that product's UA/EN PDP aliases; newly created products additionally invalidate only their resolved brand listing and segment product tags.
 - Legacy custom-storefront routing, listing surface, pagination behavior, aliases, and slug prefixes now come from one declarative registry. The separate iPE runtime compatibility branch and duplicated revalidation maps are removed; brands without an explicit legacy storefront continue through the general catalog without new route code.
 - A repository-wide source contract now discovers every route/script using a Catalog V2 product or global coordinator and rejects root-layout, shop-layout, and whole-catalog path invalidation. It exposed and removed the remaining shop-settings layout fan-out; settings freshness now uses its versioned global publication plus the exact `shop-settings` data tag.
+
+Commit `eb9463ae` adds bounded Shopify CDN responsive variants (320–2400px) for product media, avoiding Vercel image transformations on Shopify-hosted assets while preserving lazy/priority behavior. Image source tests pass 5/5.
+
+Commit `ed116c29` makes projection text search token-aware and order-independent across SQL and ORM paths. Structured SKUs receive exact normalized matching, including version-scoped variant SKUs; BMW M5 G90/S68 regression coverage passes. The selected Catalog V2/stock/pricing suite now passes 408/408.
