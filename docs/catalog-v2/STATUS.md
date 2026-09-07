@@ -4,6 +4,10 @@ Last updated: 2026-09-07
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
+Current continuation/handoff: [IMPLEMENTATION_HANDOFF_2026-09-07.md](./IMPLEMENTATION_HANDOFF_2026-09-07.md).
+It lists the complete remaining R01–R12 sequence after code commit `7077a0c1`;
+this link does not mark any remaining implementation or release gate complete.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
