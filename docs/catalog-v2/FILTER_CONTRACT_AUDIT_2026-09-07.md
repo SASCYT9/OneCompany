@@ -140,6 +140,22 @@ entry gate now routes `strict=1` requests to legacy until projection stores the
 same evidence, trust/source rules, coverage gate, and version correlation.
 Projection text or product-kind matches are not strict evidence.
 
+## Completed source-policy follow-up
+
+The full disposable persistence run retained all 15,163 supported source records
+and commerce hashes. Source-to-canonical comparison now respects case-insensitive
+taxonomy identity rather than treating supplier display casing as missing fitment.
+The actual discrepancy was four unresolved Ilmberger products using `auto`; the
+adapter now explicitly carries `moto` at normalization level. Local versioned
+promotion retained previous policies, raw hashes and UNKNOWN make/model evidence.
+All 14 supported sources then passed whole-clause canonical/projection comparison.
+KW (1,999) and Fi EXHAUST (223) remain explicitly unsupported by this gate.
+
+Canonical option queries now group duplicate text/year tuples in PostgreSQL.
+The real helper integration captures GROUP BY SQL without LIMIT and verifies year
+and chassis correlation. This preserves existing lists but does not fix the
+partial canonical/legacy early-return coverage gap or certify public endpoints.
+
 ## Suggested acceptance checks
 
 - Compare legacy and projection result IDs for auto and moto with no filters,

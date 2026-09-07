@@ -12,10 +12,23 @@ import type {
 export function compareSelectorCoverage(
   expected: readonly Policy[],
   actual: readonly Policy[],
-  options: { canonicalIdentity?: boolean; policyRules?: boolean; clauseIdentity?: boolean } = {}
+  options: {
+    canonicalIdentity?: boolean;
+    policyRules?: boolean;
+    clauseIdentity?: boolean;
+    /** Source labels resolve through case-insensitive make/model/generation keys. */
+    caseInsensitiveTaxonomy?: boolean;
+  } = {}
 ) {
-  function valueKey(value: Value): string {
-    if (typeof value === "string") return JSON.stringify(value.trim());
+  function valueKey(value: Value, dimension: string): string {
+    if (typeof value === "string") {
+      const label = value.trim();
+      return JSON.stringify(
+        options.caseInsensitiveTaxonomy && ["make", "model", "generation"].includes(dimension)
+          ? label.toLowerCase()
+          : label
+      );
+    }
     if (typeof value !== "object") return JSON.stringify(value);
     if ("kind" in value)
       return options.canonicalIdentity
@@ -48,7 +61,9 @@ export function compareSelectorCoverage(
                 JSON.stringify([
                   constraint.dimension,
                   constraint.state,
-                  constraint.state === "EXACT" ? constraint.values.map(valueKey).sort() : [],
+                  constraint.state === "EXACT"
+                    ? constraint.values.map((value) => valueKey(value, constraint.dimension)).sort()
+                    : [],
                 ])
               )
               .sort(),

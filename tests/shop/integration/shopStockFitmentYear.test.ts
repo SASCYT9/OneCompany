@@ -31,7 +31,16 @@ test(
   async () => {
     const previous = process.env.SHOP_LOCAL_CATALOG_SNAPSHOT;
     process.env.SHOP_LOCAL_CATALOG_SNAPSHOT = "0";
-    const client = new PrismaClient({ datasources: { db: { url } } });
+    const client = new PrismaClient({
+      datasources: { db: { url } },
+      log: [{ emit: "event", level: "query" }],
+    });
+    const previousPrisma = global.__onecompany_prisma;
+    const selectorSql: string[] = [];
+    let recordSelectorSql = false;
+    client.$on("query", ({ query }) => {
+      if (recordSelectorSql) selectorSql.push(query);
+    });
     const id = `fitment-year-${randomUUID()}`;
     const targetKey = `product:${id}`;
     const fixtures: Array<{
@@ -104,6 +113,8 @@ test(
           });
         await client.shopCatalogProjectionConstraint.createMany({ data: constraints });
       }
+      global.__onecompany_prisma = client;
+      recordSelectorSql = true;
       const { getCanonicalFitmentOptions } =
         await import("../../../src/lib/shopCanonicalFitmentOptions.server");
       const base = {
@@ -139,11 +150,29 @@ test(
         "unknown-year",
         "year-irrelevant",
       ]);
+      const optionReads = selectorSql.filter(
+        (sql) => sql.startsWith("SELECT") && sql.includes('"ShopCatalogProjectionConstraint"')
+      );
+      assert.ok(optionReads.length > 0, "the actual selector must issue observable option reads");
+      for (const sql of optionReads) {
+        assert.match(
+          sql,
+          /GROUP BY/,
+          "PostgreSQL must deduplicate options before transferring rows"
+        );
+        assert.doesNotMatch(
+          sql,
+          /\bLIMIT\b/,
+          "existing option sets must not be silently truncated"
+        );
+      }
     } finally {
+      recordSelectorSql = false;
       try {
         await client.shopProduct.deleteMany({ where: { id } });
       } finally {
         await client.$disconnect();
+        global.__onecompany_prisma = previousPrisma;
         if (previous === undefined) delete process.env.SHOP_LOCAL_CATALOG_SNAPSHOT;
         else process.env.SHOP_LOCAL_CATALOG_SNAPSHOT = previous;
       }

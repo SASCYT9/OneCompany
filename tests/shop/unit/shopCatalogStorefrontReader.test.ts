@@ -158,7 +158,7 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   const canonical = readFileSync("src/lib/shopCanonicalFitmentOptions.server.ts", "utf8");
   assert.match(api, /await getCanonicalFitmentOptions\(/);
 
-  assert.match(canonical, /shopCatalogProjectionConstraint\.findMany/);
+  assert.match(canonical, /shopCatalogProjectionConstraint\.groupBy/);
   for (const dimension of ["MAKE", "MODEL", "CHASSIS", "GENERATION", "ENGINE"]) {
     assert.match(canonical, new RegExp(`exactValues\\("${dimension}"`));
   }

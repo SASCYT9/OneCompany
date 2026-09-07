@@ -190,3 +190,53 @@ test("coverage mismatch reports are bounded without losing failure counts", () =
   assert.equal(result.missingCount, 300);
   assert.equal(result.missing.length, 10);
 });
+
+test("source taxonomy label casing may differ while identity and scope stay strict", () => {
+  const expected = policy();
+  const actual = structuredClone(expected);
+  for (const clause of actual.clauses)
+    for (const constraint of clause.constraints) {
+      if (["make", "model"].includes(constraint.dimension) && constraint.state === "EXACT")
+        constraint.values = constraint.values.map((value) =>
+          typeof value === "string" ? value.toLowerCase() : value
+        );
+    }
+  assert.equal(compareSelectorCoverage([expected], [actual]).passed, false);
+  assert.equal(
+    compareSelectorCoverage([expected], [actual], { caseInsensitiveTaxonomy: true }).passed,
+    true
+  );
+  assert.equal(compareSelectorCoverage([expected], [actual], strict).passed, false);
+  const model = actual.clauses[0].constraints.find(
+    (constraint) => constraint.dimension === "model"
+  )!;
+  if (model.state === "EXACT") model.values = ["a5"];
+  assert.equal(
+    compareSelectorCoverage([expected], [actual], { caseInsensitiveTaxonomy: true }).passed,
+    false
+  );
+  const auto = {
+    ...expected,
+    clauses: expected.clauses.map((clause) => ({
+      ...clause,
+      constraints: [
+        ...clause.constraints,
+        { dimension: "scope" as const, state: "EXACT" as const, values: ["auto"] },
+      ],
+    })),
+  };
+  const moto = {
+    ...expected,
+    clauses: expected.clauses.map((clause) => ({
+      ...clause,
+      constraints: [
+        ...clause.constraints,
+        { dimension: "scope" as const, state: "EXACT" as const, values: ["moto"] },
+      ],
+    })),
+  };
+  assert.equal(
+    compareSelectorCoverage([auto], [moto], { caseInsensitiveTaxonomy: true }).passed,
+    false
+  );
+});

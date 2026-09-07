@@ -74,15 +74,14 @@ export async function getCanonicalFitmentOptions(input: {
     dimension: "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE",
     where: Prisma.ShopCatalogProjectionClauseWhereInput
   ) => {
-    const rows = await prisma.shopCatalogProjectionConstraint.findMany({
+    const rows = await prisma.shopCatalogProjectionConstraint.groupBy({
+      by: ["textValue"],
       where: {
         dimension,
         state: "EXACT",
         textValue: { not: null },
         clause: where,
       },
-      distinct: ["textValue"],
-      select: { textValue: true },
       orderBy: { textValue: "asc" },
     });
     const values = rows
@@ -192,10 +191,9 @@ export async function getCanonicalFitmentOptions(input: {
       : modelClauseWhere;
     const [engines, ranges] = await Promise.all([
       exactValues("ENGINE", withSelectedYear(detailClauseWhere)),
-      prisma.shopCatalogProjectionConstraint.findMany({
+      prisma.shopCatalogProjectionConstraint.groupBy({
+        by: ["yearFrom", "yearTo"],
         where: { dimension: "YEAR", state: "EXACT", clause: detailClauseWhere },
-        distinct: ["yearFrom", "yearTo"],
-        select: { yearFrom: true, yearTo: true },
       }),
     ]);
     const maxYear = new Date().getFullYear() + 2;

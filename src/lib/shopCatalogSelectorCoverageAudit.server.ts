@@ -79,7 +79,9 @@ export async function auditShopCatalogSelectorCoverageWithClient(
               if (clause.verification === "VERIFIED") report.verifiedClauses++;
               else report.reviewClauses++;
             }
-          const normalizedParity = compareSelectorCoverage([expected], canonical);
+          const normalizedParity = compareSelectorCoverage([expected], canonical, {
+            caseInsensitiveTaxonomy: true,
+          });
           report.missingSignatures += normalizedParity.missingCount;
           report.extraSignatures += normalizedParity.extraCount;
           if (!normalizedParity.passed) failure("normalization-to-canonical", normalizedParity);

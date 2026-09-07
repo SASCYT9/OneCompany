@@ -28,7 +28,46 @@ first three selector sources passed (ADRO 261, Akrapovic 425, Brabus 977). The l
 Burger nested Prisma read then exceeded PostgreSQL's stack limit. The audit now
 loads each relation in bounded keyset pages instead of expanding a whole target
 page into one nested include; the CLI also persists an aborted/failing audit in
-its report. A complete rerun is still required at this checkpoint.
+its report. The full rerun on `114b918c09206d40f94483a28910c3e6b03db132`
+completed all 44 migrations, 15,163 inserts and idempotent replays, 666,469
+provenance leaves, and lossless commerce/localization checks without a stack error.
+
+The completed audit separated case-only taxonomy labels (for example `MINI` /
+`Mini`) from actual lost fitment. Source-to-canonical comparison now follows the
+existing case-insensitive make/model/generation keys; engine identities, years,
+scope, states and whole-clause correlation remain strict. Canonical-to-projection
+comparison retains exact label and ID checks. After this correction, only four
+Ilmberger targets failed: empty review applications used the shared `auto` default.
+The adapter now supplies `moto` even with no applications. A PostgreSQL regression
+proves that MAKE/MODEL stay UNKNOWN and the policy stays NEEDS_REVIEW.
+
+A restored disposable copy of that complete fixture was used to rehearse four
+explicit source-revision promotions (`9d8ec2e8818d:scope-fix-fixture-v2`). All four
+old policies and raw payload hashes were retained; new active policies have the
+correct scope, and replay inserted zero records. The subsequent read-only audit
+passed all 15,163 supported targets across all 14 sources with zero mismatches.
+This is a restored-fixture recheck plus a four-target promotion, not a second full
+backfill. The overall source gate still fails for 2,222 unsupported KW/Fi records.
+Existing production policies need a reviewed, versioned re-normalization;
+deploying adapter code alone will not repair an immutable source replay.
+
+The request-time canonical option helper now uses PostgreSQL GROUP BY for text
+values and year-range pairs instead of Prisma client-side distinct. Its predicates,
+ordering and complete option sets are preserved. The actual helper's PostgreSQL
+integration test captures SQL and requires GROUP BY without LIMIT, alongside the
+selected-year/chassis and UNKNOWN/ANY/NOT_APPLICABLE behavior checks. No latency or
+billing reduction is inferred from these correctness tests.
+
+Validation: 352 selected catalog/stock/pricing unit tests and three real PostgreSQL
+integration tests passed; TypeScript passed. Full ESLint passed with zero errors
+and 550 existing warnings. The clean code commit for the read-only audit is
+recorded in its JSON report. Local Node 24.19.0 is outside the
+repository's supported >=20 <23 range; supported-runtime build remains a gate.
+Artifacts: `artifacts/storefront-wave6-final-{regressions,db-tests,typecheck,lint}.log`,
+`artifacts/catalog-v2-all-source/catalog-v2-all-source-gate.json`,
+`selector-existing-fixture-audit.json`, `ilmberger-scope-fixture-promotion.json`.
+Fixture dump SHA-256:
+`5F9CAEDE01D46F0F877C0A6E7C0581062E914A42BAD3BFEEF07CDA9940334B10`.
 
 Fi's draft builder also marked review/unknown/empty/incomplete fitment as verified.
 It now keeps source applications but marks them needs_review/unknown-confidence;
@@ -40,7 +79,9 @@ review-required or incomplete applications. No existing database rows were chang
 This gate covers normalized evidence -> persisted canonical policies
 -> in-memory projection build. Raw-source extraction completeness, persisted
 projection publication, storefront option endpoint coverage and production
-activation remain separate, open gates. It does not change request-time behavior.
+activation remain separate, open gates. The offline audit does not run in requests;
+only the option-query GROUP BY change above affects request-time behavior.
+Production actions performed: none.
 
 ## Previous local wave: shared facet pricing and year-aware engine choices
 
