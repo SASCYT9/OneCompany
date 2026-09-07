@@ -24,6 +24,7 @@ tmp
 !/scripts/generate-shop-filter-indexes.ts
 !/scripts/lib/
 !/scripts/lib/atomic-catalog-directory.ts
+!/scripts/lib/catalog-build-artifact.ts
 /tests/
 /public/logos.rar
 /.shop-products-dev-cache.json

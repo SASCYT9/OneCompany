@@ -9,4 +9,5 @@ test("Vercel source package includes every custom build entrypoint dependency", 
   assert.match(prebuild, /\.\/lib\/atomic-catalog-directory/);
   assert.match(ignore, /^!\/scripts\/lib\/$/m);
   assert.match(ignore, /^!\/scripts\/lib\/atomic-catalog-directory\.ts$/m);
+  assert.match(ignore, /^!\/scripts\/lib\/catalog-build-artifact\.ts$/m);
 });

@@ -63,6 +63,17 @@ needs. Focused vehicle-search tests (20/20) and TypeScript pass. Full catalog
 snapshot generation on every production build remains the largest build-cost
 item and needs a separately published artifact/cache design.
 
+The R10 artifact boundary is now implemented in `scripts/lib/catalog-build-artifact.ts`.
+`prebuild-shop-snapshot.ts` can restore a fully hashed, versioned catalog fallback and
+settings/products snapshot from an opt-in cache under `.next/cache` (or an explicit
+`CATALOG_BUILD_CACHE_DIR`), then skip the database-wide read. Reuse requires an explicit
+immutable `CATALOG_BUILD_ARTIFACT_KEY`; an absent or mismatched key always falls back to
+the database generation path. The cache validates every file, snapshot counts and shard
+shape before restore, writes its manifest last, and is included in the Vercel source
+package. Focused artifact/build-package/activation tests pass 7/7. The key still needs
+to be issued by a future publication pipeline from a real catalog publication digest;
+no production cache or environment variable was changed here.
+
 Commit `efe1f086` adds an explicit BMW M5 G90 alias group. `BMW M5 G90` now
 stays correlated to `BMW → M5 → G90 → S68`, while a broad `BMW M5` query remains
 unrestricted. Vehicle search regression coverage passes 22/22.
@@ -73,6 +84,13 @@ production build with readers off (590 static pages), SEO 18/18, full ESLint
 suite is 330/341 because 11 harness tests import unavailable `node:module`
 `registerHooks`; this is a test-runtime compatibility issue to resolve before
 claiming the full acceptance gate. No production action was performed.
+
+Commit `ca15a76c` adds an opt-in, hash-validated catalog build artifact cache.
+It restores snapshots only for an explicitly supplied bounded artifact key and
+falls back to database regeneration on missing, corrupt, or mismatched data;
+the focused artifact suite passes 4/4. The key must come from the authoritative
+publication pipeline before enabling it on Vercel, so the default build remains
+unchanged until that integration is configured.
 
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
