@@ -98,6 +98,14 @@ existing CDN stale policy. Its focused contract suite passes 10/10. Commit
 `ab038628` also parallelizes the independent chassis/generation GROUP BY reads
 at the final selector level; TypeScript and scoped lint pass.
 
+R03 selector readiness is now implemented in commits `4dd74a8b`, `9847e06e`,
+and `f17f0dfd`. The canonical fitment reader checks active state, version and
+fingerprint parity, completed rebuild checkpoint, both locales, and bounded
+projection aggregates before serving selectors. The check is single-flight and
+cached for 15 seconds; incomplete releases return `null` and retain the legacy
+fallback. The remaining R02 integration is making source coverage markers
+authoritative in the release pipeline.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
