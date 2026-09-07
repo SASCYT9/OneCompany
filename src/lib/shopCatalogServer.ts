@@ -9,7 +9,11 @@ import path from "path";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 
 import { cache } from "react";
-import { EXCLUDED_CROSS_SHOP_BRAND_TOKENS, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
+import {
+  EXCLUDED_CROSS_SHOP_BRAND_TOKENS,
+  isExcludedFromCrossShop,
+  type Fitment,
+} from "@/lib/crossShopFitment";
 
 import {
   SHOP_PRODUCTS,
@@ -24,6 +28,7 @@ import {
   getRacechipCatalogFallbackProductBySlug,
 } from "@/lib/racechipCatalogFallback";
 import { Prisma } from "@prisma/client";
+import { queryShopCatalogProjection } from "@/lib/shopCatalogProjectionQuery.server";
 import {
   adminProductInclude,
   brandGridProductInclude,
@@ -3463,6 +3468,55 @@ export async function getShopProductsByIdsServer(ids: string[]): Promise<ShopPro
         (order.get(left.id ?? "") ?? Number.MAX_SAFE_INTEGER) -
         (order.get(right.id ?? "") ?? Number.MAX_SAFE_INTEGER)
     );
+}
+
+/**
+ * Resolve a bounded recommendation candidate set from the published V2
+ * projection.  The old recommendation loader is intentionally retained for
+ * reader-off compatibility, but an enabled V2 reader must not scan the whole
+ * catalog merely to find products for the same vehicle.
+ *
+ * The projection returns only product identities; the existing bounded ID
+ * loader then hydrates the small candidate set with the fields required by
+ * the fitment scorer.  Keeping the two phases separate preserves the
+ * canonical fitment predicate and avoids constructing a second, incomplete
+ * recommendation model.
+ */
+export async function getShopRecommendationProductsForFitmentServer(
+  fitment: Pick<Fitment, "make" | "models" | "chassisCodes">,
+  excludeProductId?: string | null
+): Promise<ShopProduct[]> {
+  const model =
+    [...fitment.models]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .sort((left, right) => right.length - left.length)[0] ?? null;
+  const generation =
+    fitment.chassisCodes
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .sort((left, right) => right.length - left.length)[0] ?? null;
+  const make = fitment.make?.trim() || null;
+
+  // A make-less product without a model/chassis has no safe canonical scope;
+  // returning no candidates lets the optional recommendation surface fail
+  // closed instead of falling back to an unbounded catalog read.
+  if (!make && !model && !generation) return [];
+
+  const result = await queryShopCatalogProjection({
+    locale: "en",
+    make,
+    model,
+    generation,
+    limit: 100,
+    // Interleave brands before the scorer removes the source product's own
+    // brand; a stable-rank-only page can otherwise spend its entire bounded
+    // budget on one large supplier and return no cross-shop candidates.
+    order: "brand_interleave",
+    orderSeed: [make, model, generation].filter(Boolean).join("|"),
+    ...(excludeProductId?.trim() ? { excludeProductIds: [excludeProductId.trim()] } : {}),
+  });
+  return getShopProductsByIdsServer(result.items.map((item) => item.productId));
 }
 
 export type ShopProductLookupResult =

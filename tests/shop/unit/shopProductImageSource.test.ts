@@ -39,6 +39,15 @@ test("Shopify gallery variants add only a bounded width parameter", () => {
   );
 });
 
+test("protocol-relative Shopify sources receive the same bounded CDN variants", () => {
+  const source = "//cdn.shopify.com/s/files/1/asset/image.jpg";
+  assert.equal(
+    resolveShopProductImageSrc(source, 320),
+    "https://cdn.shopify.com/s/files/1/asset/image.jpg?width=320"
+  );
+  assert.match(buildShopProductImageSrcSet(source, [320]) ?? "", /width=320.*320w/);
+});
+
 test("unknown supplier hosts and full-size sources are unchanged", () => {
   const source = "https://images.example.test/product.jpg?token=abc";
   assert.equal(resolveShopProductImageSrc(source, 240), source);

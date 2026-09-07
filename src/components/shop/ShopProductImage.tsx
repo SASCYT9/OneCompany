@@ -73,9 +73,10 @@ function publicShopifyImage(src: string): URL | null {
 
 export function resolveShopProductImageSrc(src: string | null | undefined, width?: number) {
   const original = String(src ?? "").trim();
-  if (!width || !Number.isFinite(width) || width <= 0 || !publicShopifyImage(original))
+  const normalized = normalizeImageSrc(original);
+  if (!width || !Number.isFinite(width) || width <= 0 || !publicShopifyImage(normalized))
     return original;
-  const url = publicShopifyImage(normalizeImageSrc(original));
+  const url = publicShopifyImage(normalized);
   if (!url) return original;
   url.searchParams.set(
     "width",
@@ -89,7 +90,7 @@ export function buildShopProductImageSrcSet(
   widths: readonly number[]
 ) {
   const original = String(src ?? "").trim();
-  if (!publicShopifyImage(original)) return undefined;
+  if (!publicShopifyImage(normalizeImageSrc(original))) return undefined;
   const bounded = [
     ...new Set(
       widths
