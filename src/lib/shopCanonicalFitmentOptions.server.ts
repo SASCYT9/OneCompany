@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { isVehicleMakeCompatibleWithScope } from "@/lib/shopStockVehicleScope";
+import { readShopCatalogSelectorArtifactReadiness } from "@/lib/shopCatalogSelectorArtifact.server";
 import {
   canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
@@ -23,6 +24,11 @@ export async function getCanonicalFitmentOptions(input: {
   details: boolean;
 }) {
   if (isLocalStorefrontMode()) return null;
+  // Projection rows are not evidence of a complete selector artifact.  Keep
+  // the existing bounded legacy fallback until the publisher has completed a
+  // release and the persisted coverage gate agrees with its version.
+  const readiness = await readShopCatalogSelectorArtifactReadiness();
+  if (!readiness.ready) return null;
   const withSelectedYear = (
     where: Prisma.ShopCatalogProjectionClauseWhereInput
   ): Prisma.ShopCatalogProjectionClauseWhereInput =>
