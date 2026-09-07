@@ -1,0 +1,23 @@
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px 56px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 32px;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    padding: 48px 48px 80px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 64px;
+  }
+}

@@ -6,7 +6,11 @@ import { ShoppingBag } from "lucide-react";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import type { SupportedLocale } from "@/lib/seo";
-import type { CrossShopGroup, CrossShopMatch, Fitment } from "@/lib/crossShopFitment";
+import type { Fitment } from "@/lib/crossShopFitment";
+import type {
+  CrossShopCardGroup as CrossShopGroup,
+  CrossShopCardMatch as CrossShopMatch,
+} from "@/lib/crossShopRecommendationCard";
 import {
   buildCrossShopHeading,
   prettifyVehicleLabel,

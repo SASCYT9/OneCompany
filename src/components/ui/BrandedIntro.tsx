@@ -1,15 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import BrandedLoadingScreen from "./BrandedLoadingScreen";
 
 const SESSION_KEY = "onecompany:intro-seen";
 
 export function BrandedIntro() {
+  const pathname = usePathname();
   const [exiting, setExiting] = useState(false);
   const [visible, setVisible] = useState(true);
 
+  // Shop pages own their loading and streaming states. Do not mount the fixed
+  // branded screen there: it would cover the already available HTML before JS
+  // hydrates (and would remain visible forever with JS disabled).
+  const isShop = pathname?.split("/").includes("shop") ?? false;
+
   useEffect(() => {
+    if (isShop) return;
     let seen = false;
     try {
       seen = sessionStorage.getItem(SESSION_KEY) === "1";
@@ -29,9 +37,9 @@ export function BrandedIntro() {
       window.clearTimeout(revealTimer);
       window.clearTimeout(removeTimer);
     };
-  }, []);
+  }, [isShop]);
 
-  if (!visible) return null;
+  if (isShop || !visible) return null;
   return <BrandedLoadingScreen exiting={exiting} />;
 }
 export default BrandedIntro;

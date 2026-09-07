@@ -1,0 +1,10 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 223,
+  "offset": 0,
+  "passed": 223,
+  "reviewRequired": 0,
+  "issueCounts": {},
+  "databaseWrites": 0
+}

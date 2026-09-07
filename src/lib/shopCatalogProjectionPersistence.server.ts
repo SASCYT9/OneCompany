@@ -383,7 +383,9 @@ export function planShopCatalogProjectionPersistence(
     state: row.state,
     valueOrdinal: row.valueOrdinal,
     valueKind: row.value?.kind ?? null,
-    textValue: row.value?.kind === "text" ? row.value.text : null,
+    textValue:
+      row.value?.kind === "text" || row.value?.kind === "powertrain" ? row.value.text : null,
+    powertrainId: row.value?.kind === "powertrain" ? row.value.powertrainId : null,
     numberValue: row.value?.kind === "number" ? row.value.number : null,
     booleanValue: row.value?.kind === "boolean" ? row.value.boolean : null,
     yearFrom: row.value?.kind === "year_range" ? row.value.yearFrom : null,

@@ -54,7 +54,13 @@ export type ShopCatalogV2YearRange = {
   to: number | null;
 };
 
-export type ShopCatalogV2CompatibilityValue = string | number | boolean | ShopCatalogV2YearRange;
+export type ShopCatalogV2CanonicalPowertrainValue = {
+  kind: "powertrain";
+  powertrainId: string;
+  code: string;
+};
+export type ShopCatalogV2CompatibilityValue =
+  string | number | boolean | ShopCatalogV2YearRange | ShopCatalogV2CanonicalPowertrainValue;
 export type ShopCatalogV2CompatibilityQueryValue = string | number | boolean;
 
 export type ShopCatalogV2ExactConstraint = {
@@ -69,8 +75,7 @@ export type ShopCatalogV2NonExactConstraint = {
 };
 
 export type ShopCatalogV2CompatibilityConstraint =
-  | ShopCatalogV2ExactConstraint
-  | ShopCatalogV2NonExactConstraint;
+  ShopCatalogV2ExactConstraint | ShopCatalogV2NonExactConstraint;
 
 export type ShopCatalogV2CompatibilityVerification = "VERIFIED" | "INFERRED" | "NEEDS_REVIEW";
 
@@ -111,10 +116,7 @@ export type ShopCatalogV2CompatibilityQuery = Partial<
 >;
 
 export type ShopCatalogV2StrictMatchStatus =
-  | "exact"
-  | "requires_input"
-  | "requires_verification"
-  | "no_match";
+  "exact" | "requires_input" | "requires_verification" | "no_match";
 
 export type ShopCatalogV2StrictMatchResult = {
   status: ShopCatalogV2StrictMatchStatus;
@@ -133,6 +135,13 @@ function isDimension(value: unknown): value is ShopCatalogV2CompatibilityDimensi
 
 function isYearRange(value: ShopCatalogV2CompatibilityValue): value is ShopCatalogV2YearRange {
   return typeof value === "object" && value !== null && "from" in value && "to" in value;
+}
+function isCanonicalPowertrain(
+  value: ShopCatalogV2CompatibilityValue
+): value is ShopCatalogV2CanonicalPowertrainValue {
+  return (
+    typeof value === "object" && value !== null && "kind" in value && value.kind === "powertrain"
+  );
 }
 
 function validYear(value: number | null) {
@@ -164,6 +173,7 @@ function exactValueMatches(
       (expected.to === null || actual <= expected.to)
     );
   }
+  if (isCanonicalPowertrain(expected)) return expected.code === actual;
   return expected === actual;
 }
 
@@ -250,6 +260,11 @@ export function validateShopCatalogV2CompatibilityPolicy(
           if (isYearRange(value) && !validYearRange(value)) {
             errors.push(`${constraintPath} contains an invalid year range`);
           }
+          if (
+            isCanonicalPowertrain(value) &&
+            (constraint.dimension !== "engine" || !value.powertrainId.trim() || !value.code.trim())
+          )
+            errors.push(`${constraintPath} contains an invalid canonical powertrain`);
         }
       }
     }

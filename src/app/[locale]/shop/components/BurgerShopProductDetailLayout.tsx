@@ -1,6 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import {
+  buildShopProductImageSrcSet,
+  resolveShopProductImageSrc,
+} from "@/components/shop/ShopProductImage";
 import Link from "next/link";
 import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
@@ -19,6 +23,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
+import styles from "./BurgerShopProductDetailLayout.module.css";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
@@ -31,7 +36,6 @@ type Props = {
   viewerContext: ShopViewerPricingContext;
   rates: Record<string, number> | null;
   defaultVariant: ShopProductVariantSummary | null;
-  relatedProducts: ShopProduct[];
 };
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
@@ -117,7 +121,6 @@ export function BurgerShopProductDetailLayout({
   viewerContext: ssrViewerContext,
   rates,
   defaultVariant,
-  relatedProducts,
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const pricing = resolveShopProductPricing(product, viewerContext);
@@ -181,17 +184,10 @@ export function BurgerShopProductDetailLayout({
         </Link>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 48px 80px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: 64,
-            alignItems: "start",
-          }}
-        >
+      <div className={styles.content}>
+        <div className={styles.grid}>
           {/* ── Left: Media Gallery ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             {/* Main Image */}
             <div
               style={{
@@ -203,14 +199,19 @@ export function BurgerShopProductDetailLayout({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 40,
+                padding: "clamp(20px, 4vw, 40px)",
                 overflow: "hidden",
               }}
             >
               {mainImage ? (
                 <img
                   src={mainImage}
+                  srcSet={buildShopProductImageSrcSet(mainImage, [640, 1200, 1800, 2400])}
+                  sizes="(max-width: 1023px) calc(100vw - 80px), (max-width: 1400px) 50vw, 640px"
                   alt={title}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                   onError={() => {
                     // Mark this image broken; advance to next visible image if available.
                     setBrokenIdx((prev) => new Set([...prev, gallery.indexOf(mainImage)]));
@@ -262,9 +263,13 @@ export function BurgerShopProductDetailLayout({
                     <button
                       key={realIdx + img}
                       type="button"
+                      aria-label={`${isUa ? "Фото" : "Image"} ${realIdx + 1}`}
+                      aria-pressed={isActive}
                       onClick={() => setActiveImageIdx(realIdx)}
                       style={{
                         all: "unset",
+                        boxSizing: "border-box",
+                        minWidth: 0,
                         aspectRatio: "1",
                         background: "hsl(var(--card))",
                         border: `1.5px solid ${isActive ? "var(--burger-yellow, #FFD700)" : "hsl(var(--foreground) / 0.12)"}`,
@@ -285,8 +290,10 @@ export function BurgerShopProductDetailLayout({
                       }}
                     >
                       <img
-                        src={img}
+                        src={resolveShopProductImageSrc(img, 240)}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         onError={() => setBrokenIdx((prev) => new Set([...prev, realIdx]))}
                         style={{ width: "100%", height: "100%", objectFit: "contain" }}
                       />
@@ -298,7 +305,15 @@ export function BurgerShopProductDetailLayout({
           </div>
 
           {/* ── Right: Details ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 24,
+              minWidth: 0,
+              overflowWrap: "anywhere",
+            }}
+          >
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
                 <div
@@ -364,7 +379,7 @@ export function BurgerShopProductDetailLayout({
                 style={{
                   background: "hsl(var(--card))",
                   border: "1px solid hsl(var(--foreground) / 0.12)",
-                  padding: 32,
+                  padding: "clamp(20px, 4vw, 32px)",
                   marginTop: 32,
                   display: "flex",
                   flexDirection: "column",
@@ -383,7 +398,9 @@ export function BurgerShopProductDetailLayout({
                   >
                     {isUa ? "Ціна" : "Price"}
                   </div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+                  <div
+                    style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 16 }}
+                  >
                     <div style={{ fontSize: 36, fontWeight: 800, color: "var(--burger-yellow)" }}>
                       <ShopPrimaryPriceBox
                         locale={resolvedLocale}
@@ -446,7 +463,7 @@ export function BurgerShopProductDetailLayout({
                 </div>
 
                 {/* CTA Action logic */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16 }}>
                   <div style={{ width: "100%", padding: "2px" }}>
                     {!pricing.effectivePrice || pricing.effectivePrice.usd === 0 ? (
                       <Link

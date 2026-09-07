@@ -22,7 +22,7 @@ test("pricing and inventory mutations invalidate only affected PDP aliases", () 
     helper.indexOf("export function revalidateShopStorefrontProductDetail"),
     helper.indexOf("export function revalidateShopStorefrontProduct(")
   );
-  assert.match(detail, /buildShopStorefrontProductPath/);
+  assert.match(detail, /revalidateShopStorefrontProducts\(\[product\], true\)/);
   assert.doesNotMatch(detail, /revalidateTag|LISTING_SURFACE/);
 
   for (const route of [
@@ -50,7 +50,7 @@ test("manual product mutations delegate storefront invalidation without duplicat
 });
 
 test("storefront invalidation takes legacy listing behavior from the shared route registry", () => {
-  const source = read("src/lib/shopStorefrontRevalidation.ts");
+  const source = read("src/lib/shopStorefrontRevalidationPlan.ts");
   assert.match(source, /getStorefrontRoute\(segment\)/);
   assert.match(source, /route\.listingSurface/);
   assert.match(source, /route\.paginated/);

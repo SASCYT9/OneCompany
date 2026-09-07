@@ -344,6 +344,30 @@ test("projection builder rejects invalid compatibility and preserves long catalo
   assert.equal(projection.projections.find((row) => row.locale === "en")?.cardCopy, longCopy);
 });
 
+test("canonical engine identity cannot cross projection clauses", async () => {
+  const { buildShopCatalogProjection } = await projectionModule;
+  const source = projectionSource();
+  source.compatibilityPolicies = [
+    normalizeLegacyApplicationsToShopCatalogV2Policy({
+      target: { productId: source.productId },
+      verification: "VERIFIED",
+      requiredDimensions: ["make", "model", "engine"],
+      applications: [
+        { id: "bmw-s68", make: "BMW", model: "M5", engine: "S68", scope: "auto" },
+        { id: "other-s68", make: "Other", model: "M5", engine: "S68", scope: "auto" },
+      ],
+    }),
+  ];
+  source.canonicalPowertrains = [
+    { variantId: null, clauseId: "bmw-s68", code: "S68", powertrainId: "powertrain-bmw-s68" },
+  ];
+  const constraints = buildShopCatalogProjection(source).compatibilityConstraints.filter(
+    (item) => item.dimension === "engine" && item.state === "EXACT"
+  );
+  assert.equal(constraints.find((item) => item.clauseId === "bmw-s68")?.value?.kind, "powertrain");
+  assert.equal(constraints.find((item) => item.clauseId === "other-s68")?.value?.kind, "text");
+});
+
 test("bounded batch builder uses deterministic product-id cursor and rejects full-catalog input", async () => {
   const { buildShopCatalogProjectionBatch, SHOP_CATALOG_PROJECTION_LIMITS } =
     await projectionModule;

@@ -2,7 +2,6 @@ import "server-only";
 
 import {
   Prisma,
-  ShopCatalogClauseVerification,
   ShopCatalogCompatibilityDimension,
   ShopCatalogCompatibilityMode,
   ShopCatalogConstraintState,
@@ -10,11 +9,13 @@ import {
 
 import { prisma } from "./prisma";
 import type { ShopCatalogShadowFlag } from "./shopCatalogShadowFlag.server";
-import { canonicalizeVehicleModels, vehicleModelAliases, vehicleMakeAliases, vehicleModelKey } from "./shopVehicleTaxonomy";
 import {
-  isUrbanProductBrand,
-  URBAN_PRODUCT_BRAND_ALIASES,
-} from "./shopProductDisplayBrand";
+  canonicalizeVehicleModels,
+  vehicleModelAliases,
+  vehicleMakeAliases,
+  vehicleModelKey,
+} from "./shopVehicleTaxonomy";
+import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
   defaultPageSize: 24,
@@ -81,30 +82,8 @@ export async function countShopCatalogProjection(
 ): Promise<number> {
   const input = normalizeShopCatalogProjectionQuery(raw);
   const conditions = projectionFacetBaseConditions(input, true);
-  const vehicleConstraints: Prisma.Sql[] = [];
-  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
-    const value = input[field];
-    if (value) {
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
-    }
-  }
-  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
-  if (vehicleConstraints.length) {
-    conditions.push(Prisma.sql`
-      EXISTS (
-        SELECT 1
-        FROM "ShopCatalogProjectionPolicy" policy
-        JOIN "ShopCatalogProjectionClause" clause
-          ON clause."targetKey" = policy."targetKey"
-         AND clause."productId" = policy."productId"
-         AND clause."sourceVersion" = policy."sourceVersion"
-        WHERE policy."productId" = projection."productId"
-          AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
-          AND ${Prisma.join(vehicleConstraints, " AND ")}
-        OFFSET 0
-      )
-    `);
-  }
+  const vehicleCondition = selectedVehicleCondition(input);
+  if (vehicleCondition) conditions.push(vehicleCondition);
   const rows = await prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
     SELECT count(*)::bigint AS "count"
     FROM "ShopCatalogProjection" projection
@@ -196,6 +175,9 @@ export function normalizeShopCatalogProjectionQuery(
     (!input.after.productId.trim() || !/^-?\d+(?:\.\d+)?$/.test(input.after.stableRank))
   ) {
     throw new TypeError("after cursor is invalid");
+  }
+  if (input.after && (offset !== 0 || (input.order && input.order !== "default"))) {
+    throw new TypeError("stable-rank cursor requires default order and no offset");
   }
   return Object.freeze({
     locale: input.locale,
@@ -312,9 +294,15 @@ function textConstraint(
       },
       {
         state: ShopCatalogConstraintState.EXACT,
-        textValue: { in: dimension === ShopCatalogCompatibilityDimension.MODEL && make
-          ? vehicleModelAliases(make, value)
-          : dimension === ShopCatalogCompatibilityDimension.MAKE ? vehicleMakeAliases(value) : [value], mode: "insensitive" },
+        textValue: {
+          in:
+            dimension === ShopCatalogCompatibilityDimension.MODEL && make
+              ? vehicleModelAliases(make, value)
+              : dimension === ShopCatalogCompatibilityDimension.MAKE
+                ? vehicleMakeAliases(value)
+                : [value],
+          mode: "insensitive",
+        },
       },
     ],
   };
@@ -342,12 +330,16 @@ function escapeLike(value: string) {
   return value.replace(/([\\%_])/g, "\\$1");
 }
 
-function correlatedTextConstraintSql(dimension: ShopCatalogCompatibilityDimension, value: string, make?: string | null) {
+function correlatedTextConstraintSql(
+  dimension: ShopCatalogCompatibilityDimension,
+  value: string,
+  make?: string | null
+) {
   const exactMatch =
     dimension === ShopCatalogCompatibilityDimension.MODEL
       ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join([...new Set((make ? vehicleModelAliases(make, value) : [value]).map(vehicleModelKey))])})`
       : dimension === ShopCatalogCompatibilityDimension.MAKE
-        ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map(alias => alias.toLowerCase()))})`
+        ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map((alias) => alias.toLowerCase()))})`
         : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
   return Prisma.sql`
     EXISTS (
@@ -433,6 +425,31 @@ function projectionFacetBaseConditions(
   return conditions;
 }
 
+/** All selected dimensions must be satisfied by the same version of one clause. */
+function selectedVehicleCondition(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>
+): Prisma.Sql | null {
+  const constraints: Prisma.Sql[] = [];
+  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
+    const value = input[field];
+    if (value)
+      constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
+  }
+  if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
+  if (!constraints.length) return null;
+  return Prisma.sql`EXISTS (
+    SELECT 1 FROM "ShopCatalogProjectionPolicy" policy
+    JOIN "ShopCatalogProjectionClause" clause
+      ON clause."targetKey" = policy."targetKey"
+     AND clause."productId" = policy."productId"
+     AND clause."sourceVersion" = policy."sourceVersion"
+    WHERE policy."productId" = projection."productId"
+      AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+      AND ${Prisma.join(constraints, " AND ")}
+    OFFSET 0
+  )`;
+}
+
 function projectionBrandConditionSql(brand: string): Prisma.Sql {
   if (isUrbanProductBrand(brand)) {
     return Prisma.sql`(
@@ -462,7 +479,8 @@ function selectedVehicleFacetConstraints(
       continue;
     }
     const value = input[field];
-    if (value) constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
+    if (value)
+      constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
   }
   return constraints;
 }
@@ -534,10 +552,18 @@ export function buildShopCatalogProjectionFacetQuerySql(
   raw: ShopCatalogProjectionQueryInput
 ): Prisma.Sql {
   const input = normalizeShopCatalogProjectionQuery(raw);
+  const vehicleCondition = selectedVehicleCondition(input);
   const brandBranch =
-    input.text || input.productIds
+    input.text ||
+    input.productIds ||
+    input.excludeProductIds?.length ||
+    input.category ||
+    input.minPrice != null ||
+    input.maxPrice != null ||
+    vehicleCondition
       ? (() => {
           const brandConditions = projectionFacetBaseConditions(input, false);
+          if (vehicleCondition) brandConditions.push(vehicleCondition);
           return Prisma.sql`
           (SELECT
              'brand'::text AS "dimension",
@@ -569,6 +595,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
          ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
          LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
   const categoryConditions = projectionFacetBaseConditions(input, true, false);
+  if (vehicleCondition) categoryConditions.push(vehicleCondition);
   const categoryBranch = Prisma.sql`
     (SELECT
        'category'::text AS "dimension",
@@ -585,35 +612,52 @@ export function buildShopCatalogProjectionFacetQuerySql(
      ORDER BY "count" DESC, "label" ASC
      LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
   const branches = [brandBranch, categoryBranch];
-  // Facets unlock progressively. This prevents the empty first request from
-  // aggregating every compatibility dimension across the whole catalog.
-  if (input.brand) {
+  // Vehicle selection is independent of the product manufacturer. Aggregate
+  // existing per-brand make counters for the all-brand entry point; this avoids
+  // scanning every policy just to show the initial make dropdown.
+  const liveMakeCounts = Boolean(
+    input.text ||
+    input.productIds ||
+    input.excludeProductIds?.length ||
+    input.category ||
+    input.minPrice != null ||
+    input.maxPrice != null ||
+    isUrbanProductBrand(input.brand ?? "")
+  );
+  if (!input.brand && !liveMakeCounts) {
+    branches.push(Prisma.sql`
+      (SELECT 'make'::text AS "dimension", facet."valueKey" AS "key",
+         min(facet."valueLabel") AS "label", sum(facet."productCount")::bigint AS "count",
+         NULL::integer AS "yearFrom", NULL::integer AS "yearTo"
+       FROM "ShopCatalogProjectionFacetCount" facet
+       WHERE facet."locale" = ${input.locale} AND facet."dimension" = 'MAKE'
+         AND facet."prefixKey" LIKE ${input.scope ? `scope:${escapeLike(input.scope)}|brand:%` : "brand:%"} ESCAPE '\\'
+         AND facet."productCount" > 0
+       GROUP BY facet."valueKey"
+       ORDER BY "count" DESC, "label" ASC
+       LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`);
+  } else {
     branches.push(
-      input.text || isUrbanProductBrand(input.brand)
+      liveMakeCounts
         ? vehicleFacetBranch(input, "make")
         : Prisma.sql`
-            (SELECT
-               'make'::text AS "dimension",
-               facet."valueKey" AS "key",
-               facet."valueLabel" AS "label",
-               facet."productCount"::bigint AS "count",
-               NULL::integer AS "yearFrom",
-               NULL::integer AS "yearTo"
-             FROM "ShopCatalogProjectionFacetCount" facet
-             WHERE facet."locale" = ${input.locale}
-               AND facet."dimension" = 'MAKE'
-               AND facet."prefixKey" = ${
-                 input.scope
-                   ? `scope:${input.scope}|brand:${input.brand.toLowerCase()}`
-                   : `brand:${input.brand.toLowerCase()}`
-               }
-               AND facet."productCount" > 0
-             ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
-             LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
+      (SELECT 'make'::text AS "dimension", facet."valueKey" AS "key",
+         facet."valueLabel" AS "label", facet."productCount"::bigint AS "count",
+         NULL::integer AS "yearFrom", NULL::integer AS "yearTo"
+       FROM "ShopCatalogProjectionFacetCount" facet
+       WHERE facet."locale" = ${input.locale} AND facet."dimension" = 'MAKE'
+         AND facet."prefixKey" = ${
+           input.scope
+             ? `scope:${input.scope}|brand:${input.brand!.toLowerCase()}`
+             : `brand:${input.brand!.toLowerCase()}`
+         }
+         AND facet."productCount" > 0
+       ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
+       LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
     );
   }
-  if (input.brand && input.make) branches.push(vehicleFacetBranch(input, "model"));
-  if (input.brand && input.make && input.model) {
+  if (input.make) branches.push(vehicleFacetBranch(input, "model"));
+  if (input.make && input.model) {
     branches.push(vehicleFacetBranch(input, "generation"));
     branches.push(vehicleFacetBranch(input, "year"));
     branches.push(vehicleFacetBranch(input, "engine"));
@@ -666,7 +710,12 @@ export async function queryShopCatalogProjectionFacets(
       for (const label of canonicalizeVehicleModels(raw.make, [item.label])) {
         const key = vehicleModelKey(label);
         const existing = canonicalModels.get(key);
-        canonicalModels.set(key, { ...item, key, label, count: (existing?.count ?? 0) + item.count });
+        canonicalModels.set(key, {
+          ...item,
+          key,
+          label,
+          count: (existing?.count ?? 0) + item.count,
+        });
       }
     }
     facets.model = [...canonicalModels.values()].sort((left, right) =>
@@ -687,54 +736,15 @@ export function buildShopCatalogProjectionVehicleQuerySql(
   raw: ShopCatalogProjectionQueryInput
 ): Prisma.Sql | null {
   const input = normalizeShopCatalogProjectionQuery(raw);
-  const vehicleConstraints: Prisma.Sql[] = [];
-  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
-    const value = input[field];
-    if (value) {
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
-    }
-  }
-  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
-  if (vehicleConstraints.length === 0) return null;
-
-  const projectionConditions: Prisma.Sql[] = [
-    Prisma.sql`projection."locale" = ${input.locale}`,
-    Prisma.sql`projection."isPublished" = true`,
-    Prisma.sql`projection."statusKey" = 'ACTIVE'`,
-  ];
-  if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
-  if (input.brand) {
-    projectionConditions.push(projectionBrandConditionSql(input.brand));
-  }
-  if (input.category) {
-    projectionConditions.push(
-      Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
-    );
-  }
-  if (input.text) {
-    projectionConditions.push(
-      Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(input.text)}%`} ESCAPE '\\'`
-    );
-  }
+  const vehicleCondition = selectedVehicleCondition(input);
+  if (!vehicleCondition) return null;
+  const projectionConditions = projectionFacetBaseConditions(input, true);
+  projectionConditions.push(vehicleCondition);
   if (input.after) {
     projectionConditions.push(
       Prisma.sql`(projection."stableRank" > ${input.after.stableRank}::numeric OR (projection."stableRank" = ${input.after.stableRank}::numeric AND projection."productId" > ${input.after.productId}))`
     );
   }
-
-  projectionConditions.push(Prisma.sql`
-    EXISTS (
-      SELECT 1
-      FROM "ShopCatalogProjectionPolicy" policy
-      JOIN "ShopCatalogProjectionClause" clause
-        ON clause."targetKey" = policy."targetKey"
-       AND clause."productId" = policy."productId"
-       AND clause."sourceVersion" = policy."sourceVersion"
-      WHERE policy."productId" = projection."productId"
-        AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
-        AND ${Prisma.join(vehicleConstraints, " AND ")}
-      OFFSET 0
-    )`);
 
   return Prisma.sql`
     SELECT
@@ -766,28 +776,23 @@ export function buildShopCatalogProjectionOrderedQuerySql(
   raw: ShopCatalogProjectionQueryInput
 ): Prisma.Sql | null {
   const input = normalizeShopCatalogProjectionQuery(raw);
-  if (input.order === "default" && input.offset === 0) return null;
+  // Price filters use canonical prices, which cannot be expressed by the
+  // projection-only ORM path. Keep them on SQL even on the first default page.
+  if (
+    input.order === "default" &&
+    input.offset === 0 &&
+    input.minPrice == null &&
+    input.maxPrice == null
+  )
+    return null;
   const conditions = projectionFacetBaseConditions(input, true);
-  const vehicleConstraints: Prisma.Sql[] = [];
-  for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
-    const value = input[field];
-    if (value)
-      vehicleConstraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
+  if (input.after) {
+    conditions.push(
+      Prisma.sql`(projection."stableRank" > ${input.after.stableRank}::numeric OR (projection."stableRank" = ${input.after.stableRank}::numeric AND projection."productId" > ${input.after.productId}))`
+    );
   }
-  if (input.year != null) vehicleConstraints.push(correlatedYearConstraintSql(input.year));
-  if (vehicleConstraints.length) {
-    conditions.push(Prisma.sql`EXISTS (
-      SELECT 1 FROM "ShopCatalogProjectionPolicy" policy
-      JOIN "ShopCatalogProjectionClause" clause
-        ON clause."targetKey" = policy."targetKey"
-       AND clause."productId" = policy."productId"
-       AND clause."sourceVersion" = policy."sourceVersion"
-      WHERE policy."productId" = projection."productId"
-        AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
-        AND ${Prisma.join(vehicleConstraints, " AND ")}
-      OFFSET 0
-    )`);
-  }
+  const vehicleCondition = selectedVehicleCondition(input);
+  if (vehicleCondition) conditions.push(vehicleCondition);
   const price = projectionPriceSql(input);
   const canonicalBrand = canonicalProjectionBrandSql();
   const seed =
@@ -848,9 +853,7 @@ export function buildShopCatalogProjectionWhere(
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));
   if (input.brand) {
-    const urbanAliases = isUrbanProductBrand(input.brand)
-      ? [...URBAN_PRODUCT_BRAND_ALIASES]
-      : null;
+    const urbanAliases = isUrbanProductBrand(input.brand) ? [...URBAN_PRODUCT_BRAND_ALIASES] : null;
     and.push({
       OR: urbanAliases
         ? [
@@ -878,6 +881,9 @@ export function buildShopCatalogProjectionWhere(
         { stableRank: input.after.stableRank, productId: { gt: input.after.productId } },
       ],
     });
+  }
+  if (input.excludeProductIds?.length) {
+    and.push({ productId: { notIn: [...input.excludeProductIds] } });
   }
 
   return {
@@ -986,7 +992,10 @@ export async function queryShopCatalogProjection(
     source: "catalog_v2_projection",
     items: Object.freeze(visible),
     hasMore,
-    nextCursor: last && hasMore ? { stableRank: last.stableRank, productId: last.productId } : null,
+    nextCursor:
+      last && hasMore && input.order === "default"
+        ? { stableRank: last.stableRank, productId: last.productId }
+        : null,
   });
 }
 

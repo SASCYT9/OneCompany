@@ -9,6 +9,7 @@ import path from "path";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 
 import { cache } from "react";
+import { EXCLUDED_CROSS_SHOP_BRAND_TOKENS, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 
 import {
   SHOP_PRODUCTS,
@@ -1206,9 +1207,14 @@ function normalizeShopifyImageUrl(url: string | null | undefined): string {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
-  const verifiedUrbanMedia = getUrbanVerifiedProductMedia(product.sku) ?? getUrbanVerifiedProductMedia(product.slug);
+  const verifiedUrbanMedia =
+    getUrbanVerifiedProductMedia(product.sku) ?? getUrbanVerifiedProductMedia(product.slug);
   if (verifiedUrbanMedia) {
-    return { ...product, image: verifiedUrbanMedia.image, gallery: [...verifiedUrbanMedia.gallery] };
+    return {
+      ...product,
+      image: verifiedUrbanMedia.image,
+      gallery: [...verifiedUrbanMedia.gallery],
+    };
   }
   const override = getShopProductImageOverrideForSku(product.sku);
   const hasGirodiscPlaceholder =
@@ -1268,8 +1274,7 @@ function normalizeBrandImageKey(value: string | null | undefined) {
 
 function hasCatalogPrice(
   product:
-    | Pick<ShopProduct, "price">
-    | Pick<AdminShopProductRecord, "priceEur" | "priceUsd" | "priceUah">
+    Pick<ShopProduct, "price"> | Pick<AdminShopProductRecord, "priceEur" | "priceUsd" | "priceUah">
 ) {
   if ("price" in product) {
     return [product.price.eur, product.price.usd, product.price.uah].some(
@@ -1446,7 +1451,10 @@ function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet
   };
 }
 
-function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
+type CatalogDbRecord = Omit<AdminShopProductRecord, "options" | "metafields" | "bundle"> &
+  Partial<Pick<AdminShopProductRecord, "options" | "metafields" | "bundle">>;
+
+function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const num = (v: unknown) => (v != null && typeof v === "number" ? v : v != null ? Number(v) : 0);
   const hl = row.highlights as { ua?: string[]; en?: string[] } | null;
   const highlightsArr = Array.isArray(hl?.ua)
@@ -1460,9 +1468,11 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   const galleryFromMedia = sortedMedia
     .filter((item) => item.mediaType === "IMAGE")
     .map((item) => item.src);
-  const externalVideos = sortedMedia.flatMap((item) =>
-    item.mediaType === "EXTERNAL_VIDEO" ? [parseSupportedExternalVideo(item.src)] : []
-  ).filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const externalVideos = sortedMedia
+    .flatMap((item) =>
+      item.mediaType === "EXTERNAL_VIDEO" ? [parseSupportedExternalVideo(item.src)] : []
+    )
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const legacyGallery = Array.isArray(row.gallery)
     ? row.gallery.filter((item): item is string => typeof item === "string")
     : [];
@@ -1960,173 +1970,231 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   return [...normalized, ...brabusBySku.values()];
 }
 
-let globalProductsCache: ShopProduct[] | null = null;
-let lastCacheTime = 0;
-let globalProductsPromise: Promise<ShopProduct[]> | null = null;
 const SHOP_PRODUCTS_DEV_CACHE_VERSION = 8;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
-export async function getShopProductsServer(): Promise<ShopProduct[]> {
-  const now = Date.now();
-  // Memory cache: lifted from 45s to 5 min. Original 45s was tuned for build-
-  // time OOM avoidance, but in steady-state prod the short TTL causes every
-  // cold Lambda to re-run a ~30k row catalog query + heavy includes. Brand
-  // pages now use `getShopProductsByBrandServer` so this all-products cache
-  // is hit mainly by sitemap, feed, and cross-shop-fitment paths (PDP
-  // related-products), all of which tolerate 5 min staleness.
-  if (globalProductsCache && now - lastCacheTime < 5 * 60 * 1000) {
-    return globalProductsCache.map(applyShopProductImageOverrides);
-  }
-  if (globalProductsPromise) {
-    return globalProductsPromise;
-  }
+export const getShopProductsServer = createCatalogLoader(false);
 
-  // Build workers and DB-less local verification use the public, versioned
-  // shards. Production runtime with a configured DB prefers fresh queries.
-  if (process.env.NEXT_PHASE === "phase-production-build" || !process.env.DATABASE_URL) {
-    try {
-      const products = await getAllCatalogFallbackProducts();
-      if (products.length > 0) {
-        globalProductsCache = products;
-        lastCacheTime = Date.now();
-        return globalProductsCache.map(applyShopProductImageOverrides);
-      }
-    } catch (err) {
-      console.warn("[shopCatalogServer] failed to load product fallback shards:", err);
+/** Fitment needs product text, variants and collections, but not PDP-only
+ * option definitions, material/sound metafields or recursive bundle contents.
+ * Keep this cache separate so feed/admin consumers still receive full records.
+ */
+export const getShopRecommendationProductsServer = createCatalogLoader(true);
+
+function createCatalogLoader(recommendationsOnly: boolean) {
+  const selectCandidates = (products: ShopProduct[]) =>
+    recommendationsOnly
+      ? products.filter((product) => !isExcludedFromCrossShop(product))
+      : products;
+  let globalProductsCache: ShopProduct[] | null = null;
+  let lastCacheTime = 0;
+  let globalProductsPromise: Promise<ShopProduct[]> | null = null;
+  return async function loadCatalog(): Promise<ShopProduct[]> {
+    const now = Date.now();
+    // Memory cache: lifted from 45s to 5 min. Original 45s was tuned for build-
+    // time OOM avoidance, but in steady-state prod the short TTL causes every
+    // cold Lambda to re-run a ~30k row catalog query + heavy includes. Brand
+    // pages now use `getShopProductsByBrandServer` so this all-products cache
+    // is hit mainly by sitemap, feed, and cross-shop-fitment paths (PDP
+    // related-products), all of which tolerate 5 min staleness.
+    if (globalProductsCache && now - lastCacheTime < 5 * 60 * 1000) {
+      // Overrides are applied when filling the cache. Preserve product identity
+      // for derived fitment caches, but give callers their own sortable array.
+      return globalProductsCache.slice();
     }
-  }
+    if (globalProductsPromise) {
+      return globalProductsPromise;
+    }
 
-  // File cache for local development to avoid repeated filesystem checks
-  const isDev = process.env.NODE_ENV === "development";
-  const cachePath = isDev ? path.join(process.cwd(), ".shop-products-dev-cache.json") : "";
-
-  if (isDev && fs.existsSync(cachePath)) {
-    try {
-      const stat = fs.statSync(cachePath);
-
-      // Smart cache validation: check if any DB product has been updated since the cache file was generated
-      let latestDbTime = 0;
+    // Build workers and DB-less local verification use the public, versioned
+    // shards. Production runtime with a configured DB prefers fresh queries.
+    if (process.env.NEXT_PHASE === "phase-production-build" || !process.env.DATABASE_URL) {
       try {
-        const latestDbUpdate = await prisma.shopProduct.aggregate({
-          _max: { updatedAt: true },
-        });
-        latestDbTime = latestDbUpdate._max.updatedAt
-          ? new Date(latestDbUpdate._max.updatedAt).getTime()
-          : 0;
-      } catch {
-        // DB not connected, or tables not migrated yet
-      }
-
-      // Use file cache only if it's less than 3 hours old AND has not been invalidated by newer updates
-      if (now - stat.mtimeMs < 1000 * 60 * 60 * 3 && latestDbTime < stat.mtimeMs) {
-        const fileContent = fs.readFileSync(cachePath, "utf8");
-        const parsedCache = JSON.parse(fileContent);
-        const cachedProducts =
-          parsedCache &&
-          typeof parsedCache === "object" &&
-          parsedCache.version === SHOP_PRODUCTS_DEV_CACHE_VERSION &&
-          Array.isArray(parsedCache.products)
-            ? parsedCache.products
-            : null;
-
-        if (cachedProducts) {
-          globalProductsCache = normalizeCatalogProducts(cachedProducts).map(
-            applyShopProductImageOverrides
-          );
-          lastCacheTime = stat.mtimeMs;
-          return globalProductsCache as ShopProduct[];
+        const products = await getAllCatalogFallbackProducts();
+        if (products.length > 0) {
+          globalProductsCache = selectCandidates(products).map(applyShopProductImageOverrides);
+          lastCacheTime = Date.now();
+          return globalProductsCache.slice();
         }
+      } catch (err) {
+        console.warn("[shopCatalogServer] failed to load product fallback shards:", err);
       }
-    } catch {
-      // ignore parse errors and fetch fresh
     }
-  }
 
-  globalProductsPromise = (async () => {
-    let dbRows: AdminShopProductRecord[] = [];
-    const hiddenDbSlugs = new Set<string>();
-    try {
-      // Fetch status & visibility metadata of ALL DB items to ensure we don't fall back to static copies of hidden products
-      const allDbMetadata = await prisma.shopProduct.findMany({
-        select: { slug: true, isPublished: true, status: true },
-      });
-      for (const row of allDbMetadata) {
-        if (!row.isPublished || row.status !== "ACTIVE") {
+    // File cache for local development to avoid repeated filesystem checks
+    const isDev = process.env.NODE_ENV === "development";
+    const cachePath =
+      isDev && !recommendationsOnly
+        ? path.join(process.cwd(), ".shop-products-dev-cache.json")
+        : "";
+
+    if (cachePath && fs.existsSync(cachePath)) {
+      try {
+        const stat = fs.statSync(cachePath);
+
+        // Smart cache validation: check if any DB product has been updated since the cache file was generated
+        let latestDbTime = 0;
+        try {
+          const latestDbUpdate = await prisma.shopProduct.aggregate({
+            _max: { updatedAt: true },
+          });
+          latestDbTime = latestDbUpdate._max.updatedAt
+            ? new Date(latestDbUpdate._max.updatedAt).getTime()
+            : 0;
+        } catch {
+          // DB not connected, or tables not migrated yet
+        }
+
+        // Use file cache only if it's less than 3 hours old AND has not been invalidated by newer updates
+        if (now - stat.mtimeMs < 1000 * 60 * 60 * 3 && latestDbTime < stat.mtimeMs) {
+          const fileContent = fs.readFileSync(cachePath, "utf8");
+          const parsedCache = JSON.parse(fileContent);
+          const cachedProducts =
+            parsedCache &&
+            typeof parsedCache === "object" &&
+            parsedCache.version === SHOP_PRODUCTS_DEV_CACHE_VERSION &&
+            Array.isArray(parsedCache.products)
+              ? parsedCache.products
+              : null;
+
+          if (cachedProducts) {
+            globalProductsCache = normalizeCatalogProducts(cachedProducts).map(
+              applyShopProductImageOverrides
+            );
+            lastCacheTime = stat.mtimeMs;
+            return globalProductsCache as ShopProduct[];
+          }
+        }
+      } catch {
+        // ignore parse errors and fetch fresh
+      }
+    }
+
+    globalProductsPromise = (async () => {
+      let dbRows: CatalogDbRecord[] = [];
+      const hiddenDbSlugs = new Set<string>();
+      try {
+        // Only hidden slugs are needed to suppress their static fallback copies.
+        const allDbMetadata = await prisma.shopProduct.findMany({
+          where: {
+            OR: [{ isPublished: false }, { status: { not: "ACTIVE" } }],
+          },
+          select: { slug: true },
+        });
+        for (const row of allDbMetadata) {
           hiddenDbSlugs.add(row.slug);
         }
+
+        dbRows = await prisma.shopProduct.findMany({
+          where: {
+            isPublished: true,
+            status: "ACTIVE",
+            ...(recommendationsOnly
+              ? {
+                  // Explicit NULL branches preserve unbranded/vendor-less products.
+                  AND: EXCLUDED_CROSS_SHOP_BRAND_TOKENS.flatMap((token) => [
+                    {
+                      OR: [
+                        { brand: null },
+                        {
+                          NOT: {
+                            brand: {
+                              contains: token,
+                              mode: "insensitive" as const,
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      OR: [
+                        { vendor: null },
+                        {
+                          NOT: {
+                            vendor: {
+                              contains: token,
+                              mode: "insensitive" as const,
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ]),
+                }
+              : {}),
+          },
+          orderBy: { updatedAt: "desc" },
+          include: recommendationsOnly ? brandGridProductInclude : adminProductInclude,
+        });
+      } catch (err) {
+        console.error("[shopCatalogServer] getShopProductsServer DB query failed:", err);
+        if (process.env.NODE_ENV === "production") {
+          throw err;
+        }
+        const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
+        if (localSnapshotProducts.length > 0) {
+          return selectCandidates(localSnapshotProducts).map(applyShopProductImageOverrides);
+        }
+        // No DB or not migrated — use only static in dev
+        return selectCandidates(normalizeCatalogProducts(STATIC_CATALOG_FALLBACK_PRODUCTS));
       }
 
-      dbRows = await prisma.shopProduct.findMany({
-        where: { isPublished: true, status: "ACTIVE" },
-        orderBy: { updatedAt: "desc" },
-        include: adminProductInclude,
-      });
-    } catch (err) {
-      console.error("[shopCatalogServer] getShopProductsServer DB query failed:", err);
-      if (process.env.NODE_ENV === "production") {
-        throw err;
-      }
+      const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
+      const bySlug = new Map<string, ShopProduct>();
+      dbProducts.forEach((product) => bySlug.set(product.slug, product));
+      const liveFeedBrands = new Set(
+        dbProducts
+          .filter((product) => isFeedManagedCatalogProduct(product) && hasCatalogPrice(product))
+          .flatMap((product) =>
+            [product.brand, product.vendor].map((value) => normalizeBrandImageKey(value))
+          )
+          .filter((value) => FEED_MANAGED_BRANDS.has(value))
+      );
       const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
-      if (localSnapshotProducts.length > 0) {
-        return localSnapshotProducts.map(applyShopProductImageOverrides);
+      [...STATIC_CATALOG_FALLBACK_PRODUCTS, ...localSnapshotProducts].forEach((p) => {
+        if (hiddenDbSlugs.has(p.slug)) {
+          return; // Skip static copy if it's explicitly hidden or unpublished/archived in the database
+        }
+        if (!shouldExposeCatalogProduct(p)) {
+          return;
+        }
+
+        if (
+          isFeedManagedCatalogProduct(p) &&
+          [p.brand, p.vendor].some((value) => liveFeedBrands.has(normalizeBrandImageKey(value)))
+        ) {
+          return;
+        }
+        if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
+      });
+
+      globalProductsCache = selectCandidates(Array.from(bySlug.values())).map(
+        applyShopProductImageOverrides
+      );
+      lastCacheTime = Date.now();
+
+      if (isDev && cachePath) {
+        try {
+          fs.writeFileSync(
+            cachePath,
+            JSON.stringify({
+              version: SHOP_PRODUCTS_DEV_CACHE_VERSION,
+              products: globalProductsCache,
+            }),
+            "utf8"
+          );
+        } catch {}
       }
-      // No DB or not migrated — use only static in dev
-      return normalizeCatalogProducts(STATIC_CATALOG_FALLBACK_PRODUCTS);
+
+      return globalProductsCache;
+    })();
+
+    try {
+      return await globalProductsPromise;
+    } finally {
+      globalProductsPromise = null;
     }
-
-    const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
-    const bySlug = new Map<string, ShopProduct>();
-    dbProducts.forEach((product) => bySlug.set(product.slug, product));
-    const liveFeedBrands = new Set(
-      dbProducts
-        .filter((product) => isFeedManagedCatalogProduct(product) && hasCatalogPrice(product))
-        .flatMap((product) =>
-          [product.brand, product.vendor].map((value) => normalizeBrandImageKey(value))
-        )
-        .filter((value) => FEED_MANAGED_BRANDS.has(value))
-    );
-    const localSnapshotProducts = await getLocalCatalogSnapshotProducts();
-    [...STATIC_CATALOG_FALLBACK_PRODUCTS, ...localSnapshotProducts].forEach((p) => {
-      if (hiddenDbSlugs.has(p.slug)) {
-        return; // Skip static copy if it's explicitly hidden or unpublished/archived in the database
-      }
-      if (!shouldExposeCatalogProduct(p)) {
-        return;
-      }
-
-      if (
-        isFeedManagedCatalogProduct(p) &&
-        [p.brand, p.vendor].some((value) => liveFeedBrands.has(normalizeBrandImageKey(value)))
-      ) {
-        return;
-      }
-      if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
-    });
-
-    globalProductsCache = Array.from(bySlug.values()).map(applyShopProductImageOverrides);
-    lastCacheTime = Date.now();
-
-    if (isDev && cachePath) {
-      try {
-        fs.writeFileSync(
-          cachePath,
-          JSON.stringify({
-            version: SHOP_PRODUCTS_DEV_CACHE_VERSION,
-            products: globalProductsCache,
-          }),
-          "utf8"
-        );
-      } catch {}
-    }
-
-    return globalProductsCache;
-  })();
-
-  try {
-    return await globalProductsPromise;
-  } finally {
-    globalProductsPromise = null;
-  }
+  };
 }
 
 // Per-brand cache for narrowly-scoped catalog pages.

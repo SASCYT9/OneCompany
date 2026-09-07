@@ -3380,19 +3380,20 @@ model VehicleModel {
 }
 
 model VehiclePowertrain {
-  id                  String                          @id @default(cuid())
-  powertrainKey       String                          @unique
-  makeId              String?
-  code                String?
-  name                String
-  fuelKey             String?
-  isActive            Boolean                         @default(true)
-  createdAt           DateTime                        @default(now())
-  updatedAt           DateTime                        @updatedAt
-  make                VehicleMake?                    @relation(fields: [makeId], references: [id], onDelete: Restrict)
-  configurations      VehicleConfiguration[]
-  aliases             VehicleTaxonomyAlias[]          @relation("VehicleTaxonomyAliasTargetPowertrain")
-  compatibilityValues ShopCatalogCompatibilityValue[]
+  id                    String                            @id @default(cuid())
+  powertrainKey         String                            @unique
+  makeId                String?
+  code                  String?
+  name                  String
+  fuelKey               String?
+  isActive              Boolean                           @default(true)
+  createdAt             DateTime                          @default(now())
+  updatedAt             DateTime                          @updatedAt
+  make                  VehicleMake?                      @relation(fields: [makeId], references: [id], onDelete: Restrict)
+  configurations        VehicleConfiguration[]
+  aliases               VehicleTaxonomyAlias[]            @relation("VehicleTaxonomyAliasTargetPowertrain")
+  compatibilityValues   ShopCatalogCompatibilityValue[]
+  projectionConstraints ShopCatalogProjectionConstraint[]
 
   @@index([makeId, code])
   @@index([fuelKey, isActive])
@@ -3832,9 +3833,11 @@ model ShopCatalogProjectionConstraint {
   booleanValue  Boolean?
   yearFrom      Int?
   yearTo        Int?
+  powertrainId  String?
   product       ShopProduct                       @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant       ShopProductVariant?               @relation(fields: [variantId, productId], references: [id, productId], onDelete: Cascade)
   clause        ShopCatalogProjectionClause       @relation(fields: [targetKey, clauseKey, productId, sourceVersion], references: [targetKey, clauseKey, productId, sourceVersion], onDelete: Cascade)
+  powertrain    VehiclePowertrain?                @relation(fields: [powertrainId], references: [id], onDelete: Restrict)
 
   @@unique([targetKey, clauseKey, dimension, valueOrdinal])
   @@index([dimension, state, textValue, productId])
@@ -3843,6 +3846,7 @@ model ShopCatalogProjectionConstraint {
   @@index([dimension, state, yearFrom, yearTo, productId])
   @@index([variantId, dimension, state])
   @@index([sourceVersion])
+  @@index([powertrainId, dimension, state])
 }
 
 model ShopCatalogState {

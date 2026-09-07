@@ -1,0 +1,13 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 1000,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:technical_tokens_missing:1251-1355": 1,
+    "body:technical_tokens_missing:1251-1355": 1
+  },
+  "databaseWrites": 0
+}

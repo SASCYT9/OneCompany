@@ -1,0 +1,13 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 1,
+  "offset": 200,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:english_contains_cyrillic": 1,
+    "body:english_contains_cyrillic": 1
+  },
+  "databaseWrites": 0
+}

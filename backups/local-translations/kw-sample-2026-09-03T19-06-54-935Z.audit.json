@@ -1,0 +1,11 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body:english_contains_cyrillic": 1
+  },
+  "databaseWrites": 0
+}

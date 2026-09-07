@@ -41,6 +41,18 @@ import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
 import { getVehicleMakeLogoPath, normalizeVehicleMakeName } from "@/lib/vehicleMakeLogos";
 import {
+  canonicalVehicleModelLabel,
+  canonicalizeVehicleChassisCodes,
+  vehicleModelKey,
+} from "@/lib/shopVehicleTaxonomy";
+import {
+  hasFitmentResponseType,
+  isCurrentFitmentRequest,
+  isStringArray,
+  parseShopStockJsonResponse,
+  resolveFitmentOption,
+} from "@/lib/shopStockFitmentState";
+import {
   cleanShopAiProductKind,
   formatShopAiProductKind,
   type ShopAiProductKind,
@@ -55,8 +67,7 @@ import {
 } from "@/lib/shopWarehouseInventory";
 
 const StockAiAssistant = dynamic(
-  () =>
-    import("@/components/shop/StockAiAssistant").then((module) => module.StockAiAssistant),
+  () => import("@/components/shop/StockAiAssistant").then((module) => module.StockAiAssistant),
   {
     ssr: false,
     loading: () => (
@@ -157,13 +168,19 @@ type StockSearchResponse = {
 const getCatalogProductPresentation = (item: StockItem, locale: "ua" | "en") => {
   const name = item.name.trim();
   const brand = item.brand.trim();
-  const cleanTitle = brand && name.toLocaleLowerCase().startsWith(brand.toLocaleLowerCase())
-    ? name.slice(brand.length).trim()
-    : name;
-  return resolveShopWarehouseProductCopy(item.partNumber, locale, {
-    title: cleanTitle,
-    description: item.description.trim(),
-  }, item.slug);
+  const cleanTitle =
+    brand && name.toLocaleLowerCase().startsWith(brand.toLocaleLowerCase())
+      ? name.slice(brand.length).trim()
+      : name;
+  return resolveShopWarehouseProductCopy(
+    item.partNumber,
+    locale,
+    {
+      title: cleanTitle,
+      description: item.description.trim(),
+    },
+    item.slug
+  );
 };
 
 const STOCK_LABELS: Record<StockFilter, { ua: string; en: string }> = {
@@ -246,11 +263,7 @@ function SmartScrollArea({
   className: string;
   children: React.ReactNode;
 }) {
-  return (
-    <div className={`${className} overscroll-contain`}>
-      {children}
-    </div>
-  );
+  return <div className={`${className} overscroll-contain`}>{children}</div>;
 }
 
 const POPULAR_VEHICLE_MAKES = [
@@ -729,8 +742,6 @@ function StockPageContent() {
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
 
-  const initialModelRef = useRef(searchParams.get("model") || "");
-  const initialChassisRef = useRef(searchParams.get("chassis") || "");
   const initialSearchRef = useRef(true);
   const searchRequestRef = useRef<AbortController | null>(null);
   const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -802,9 +813,7 @@ function StockPageContent() {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [stockFilter, setStockFilter] = useState<StockFilter>(
-    initialStock === "inStock" || initialStock === "preOrder"
-      ? initialStock
-      : "all"
+    initialStock === "inStock" || initialStock === "preOrder" ? initialStock : "all"
   );
   const [sortOrder, setSortOrder] = useState<StockSort>(
     initialSort === "price_asc" || initialSort === "price_desc" || initialSort === "name_asc"
@@ -815,6 +824,27 @@ function StockPageContent() {
   const [vehicleMode, setVehicleMode] = useState<VehicleMode>(
     searchParams.get("scope") === "moto" ? "moto" : "auto"
   );
+  const [make, setMake] = useState(searchParams.get("make") || "");
+  const [model, setModel] = useState(searchParams.get("model") || "");
+  const [chassis, setChassis] = useState(searchParams.get("chassis") || "");
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands.slice(0, 1));
+  const showWarehouseHero =
+    vehicleMode === "auto" &&
+    !query.trim() &&
+    !make &&
+    !model &&
+    !chassis &&
+    !selectedBrands.length &&
+    !localCategory &&
+    !productTypeFilter &&
+    (!productKindFilter || productKindFilter === "any") &&
+    !requestedYear &&
+    !engineFilter &&
+    !fuelFilter &&
+    !opfGpfFilter &&
+    !minPriceFilter &&
+    !maxPriceFilter &&
+    stockFilter === "all";
   const heroProducts = useMemo(() => {
     const uniqueInventory = new Map<string, StockItem>();
     for (const item of warehouseHeroItems) {
@@ -844,7 +874,7 @@ function StockPageContent() {
 
     return featured;
   }, [warehouseHeroItems]);
-  const activeHeroProduct = heroProducts[heroProductIndex] ?? null;
+  const activeHeroProduct = showWarehouseHero ? (heroProducts[heroProductIndex] ?? null) : null;
   const heroRailProducts = useMemo(
     () =>
       heroProducts.length > 1
@@ -859,6 +889,7 @@ function StockPageContent() {
   const mobileFiltersCloseButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    if (!showWarehouseHero) return;
     const controller = new AbortController();
     const params = new URLSearchParams({
       locale,
@@ -882,30 +913,37 @@ function StockPageContent() {
       });
 
     return () => controller.abort();
-  }, [country, currency, locale]);
+  }, [country, currency, locale, showWarehouseHero]);
 
   useEffect(() => {
     setHeroProductIndex((current) => (heroProducts.length ? current % heroProducts.length : 0));
   }, [heroProducts.length]);
 
   useEffect(() => {
-    if (heroPaused || !heroInView || heroProducts.length < 2 || shouldReduceMotion) return;
+    if (
+      !showWarehouseHero ||
+      heroPaused ||
+      !heroInView ||
+      heroProducts.length < 2 ||
+      shouldReduceMotion
+    )
+      return;
     const interval = window.setInterval(() => {
       setHeroProductIndex((current) => (current + 1) % heroProducts.length);
     }, 7000);
     return () => window.clearInterval(interval);
-  }, [heroInView, heroPaused, heroProducts.length, shouldReduceMotion]);
+  }, [heroInView, heroPaused, heroProducts.length, shouldReduceMotion, showWarehouseHero]);
 
   useEffect(() => {
     const hero = heroSectionRef.current;
     if (!hero || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setHeroInView(entry.isIntersecting),
-      { rootMargin: "120px 0px", threshold: 0.01 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setHeroInView(entry.isIntersecting), {
+      rootMargin: "120px 0px",
+      threshold: 0.01,
+    });
     observer.observe(hero);
     return () => observer.disconnect();
-  }, []);
+  }, [showWarehouseHero]);
 
   useEffect(() => {
     const handleOpenCatalogFilters = () => setMobileFiltersOpen(true);
@@ -988,10 +1026,21 @@ function StockPageContent() {
   const [modelsLoading, setModelsLoading] = useState(false);
   const [submodelsLoading, setSubmodelsLoading] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState(false);
+  const [submodelsError, setSubmodelsError] = useState(false);
+  const [makesError, setMakesError] = useState(false);
+  const [detailsState, setDetailsState] = useState<
+    "idle" | "loading" | "ready" | "missing" | "error"
+  >("idle");
+  const makesRequestKeyRef = useRef("");
+  const modelsRequestKeyRef = useRef("");
+  const chassisRequestKeyRef = useRef("");
+  const detailsRequestKeyRef = useRef("");
+  const makesGenerationRef = useRef(0);
+  const modelsGenerationRef = useRef(0);
+  const chassisGenerationRef = useRef(0);
+  const detailsGenerationRef = useRef(0);
 
-  const [make, setMake] = useState(searchParams.get("make") || "");
-  const [model, setModel] = useState("");
-  const [chassis, setChassis] = useState("");
   const [makePickerOpen, setMakePickerOpen] = useState(false);
   const [makePickerQuery, setMakePickerQuery] = useState("");
   const makePickerDialogRef = useRef<HTMLDivElement | null>(null);
@@ -1000,8 +1049,6 @@ function StockPageContent() {
     (mode: VehicleMode) => {
       if (mode === vehicleMode) return;
 
-      initialModelRef.current = "";
-      initialChassisRef.current = "";
       scopeSearchImmediateRef.current = true;
       if (autoSearchTimerRef.current) clearTimeout(autoSearchTimerRef.current);
       autoSearchTimerRef.current = null;
@@ -1217,7 +1264,6 @@ function StockPageContent() {
 
   // Brand is a single standardized catalog dimension. Combining several
   // brands here used to be silently reduced by the projection reader.
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands.slice(0, 1));
   const activeFitmentBrand = selectedBrands[0]?.trim() ?? "";
   const fitmentBrandParam = activeFitmentBrand
     ? `&brand=${encodeURIComponent(activeFitmentBrand)}`
@@ -1343,35 +1389,45 @@ function StockPageContent() {
 
   // Fitment values do not depend on locale, country, or currency.
   useEffect(() => {
+    const requestKey = `${vehicleMode}|${activeFitmentBrand}`;
+    makesRequestKeyRef.current = requestKey;
+    const generation = ++makesGenerationRef.current;
     const controller = new AbortController();
     fetch(`/api/shop/stock/fitment?scope=${vehicleMode}${fitmentBrandParam}`, {
       signal: controller.signal,
     })
-      .then((response) => response.json())
-      .then((fitmentRes) => {
-        const nextMakes = Array.isArray(fitmentRes.data) ? fitmentRes.data : [];
-        setMakes(nextMakes);
-        if (
-          make &&
-          !nextMakes.some(
-            (makeName: string) =>
-              normalizeVehicleMakeName(makeName) === normalizeVehicleMakeName(make)
-          )
-        ) {
-          initialModelRef.current = "";
-          initialChassisRef.current = "";
-          setMake("");
-          setModel("");
-          setChassis("");
-          setModels([]);
-          setChassisCodes([]);
-          setFitmentYears([]);
-          setFitmentEngines([]);
-        }
+      .then((response) => {
+        return parseShopStockJsonResponse(response);
       })
-      .catch(() => {});
+      .then((fitmentRes) => {
+        if (
+          controller.signal.aborted ||
+          generation !== makesGenerationRef.current ||
+          !isCurrentFitmentRequest(
+            requestKey,
+            makesRequestKeyRef.current,
+            controller.signal.aborted
+          )
+        )
+          return;
+        if (!hasFitmentResponseType(fitmentRes, "makes") || !isStringArray(fitmentRes.data)) {
+          throw new Error("invalid fitment makes response");
+        }
+        const nextMakes = fitmentRes.data;
+        setMakes(nextMakes);
+        setMakesError(false);
+      })
+      .catch((error: unknown) => {
+        if (
+          !(error instanceof DOMException && error.name === "AbortError") &&
+          generation === makesGenerationRef.current &&
+          isCurrentFitmentRequest(requestKey, makesRequestKeyRef.current)
+        ) {
+          setMakesError(true);
+        }
+      });
     return () => controller.abort();
-  }, [fitmentBrandParam, make, vehicleMode]);
+  }, [activeFitmentBrand, fitmentBrandParam, vehicleMode]);
 
   // Cascading: Make → Models
   useEffect(() => {
@@ -1382,34 +1438,64 @@ function StockPageContent() {
       setChassisCodes([]);
       setFitmentYears([]);
       setFitmentEngines([]);
+      setModelsError(false);
+      setSubmodelsError(false);
+      setDetailsState("idle");
+      setModelsLoading(false);
+      setSubmodelsLoading(false);
+      setDetailsLoading(false);
       return;
     }
     setModelsLoading(true);
+    setModelsError(false);
     const controller = new AbortController();
-    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}${fitmentBrandParam}`, {
-      signal: controller.signal,
-    })
-      .then((r) => r.json())
+    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}`;
+    modelsRequestKeyRef.current = requestKey;
+    const generation = ++modelsGenerationRef.current;
+    fetch(
+      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}${fitmentBrandParam}`,
+      {
+        signal: controller.signal,
+      }
+    )
+      .then((r) => {
+        return parseShopStockJsonResponse(r);
+      })
       .then((res) => {
-        const nextModels = res.data || [];
+        if (
+          controller.signal.aborted ||
+          generation !== modelsGenerationRef.current ||
+          !isCurrentFitmentRequest(requestKey, modelsRequestKeyRef.current)
+        )
+          return;
+        if (!hasFitmentResponseType(res, "models") || !isStringArray(res.data)) {
+          throw new Error("invalid fitment models response");
+        }
+        const nextModels = res.data;
         setModels(nextModels);
-        const initialModel = initialModelRef.current;
-        if (initialModel && nextModels.includes(initialModel)) {
-          setModel(initialModel);
-          initialModelRef.current = "";
+        setModel((currentModel) => {
+          const requestedModel = currentModel;
+          const canonicalModel = resolveFitmentOption(nextModels, requestedModel, (value) =>
+            vehicleModelKey(canonicalVehicleModelLabel(make, value))
+          );
+          return canonicalModel ?? currentModel;
+        });
+      })
+      .catch((error: unknown) => {
+        if (
+          !(error instanceof DOMException && error.name === "AbortError") &&
+          generation === modelsGenerationRef.current &&
+          isCurrentFitmentRequest(requestKey, modelsRequestKeyRef.current)
+        ) {
+          setModelsError(true);
         }
       })
-      .catch(() => {})
       .finally(() => {
         if (!controller.signal.aborted) setModelsLoading(false);
       });
-    if (!initialModelRef.current) {
-      setModel("");
-      setChassis("");
-    }
     setChassisCodes([]);
     return () => controller.abort();
-  }, [fitmentBrandParam, make, vehicleMode]);
+  }, [activeFitmentBrand, fitmentBrandParam, make, vehicleMode]);
 
   // Cascading: Model → Chassis
   useEffect(() => {
@@ -1418,43 +1504,74 @@ function StockPageContent() {
       setChassis("");
       setFitmentYears([]);
       setFitmentEngines([]);
+      setSubmodelsError(false);
+      setDetailsState("idle");
+      setSubmodelsLoading(false);
+      setDetailsLoading(false);
       return;
     }
     setSubmodelsLoading(true);
+    setSubmodelsError(false);
     const controller = new AbortController();
+    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}`;
+    chassisRequestKeyRef.current = requestKey;
+    const generation = ++chassisGenerationRef.current;
     fetch(
       `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}${fitmentBrandParam}`,
       { signal: controller.signal }
     )
-      .then((r) => r.json())
+      .then((r) => {
+        return parseShopStockJsonResponse(r);
+      })
       .then((res) => {
-        const nextChassisCodes = res.data || [];
+        if (
+          controller.signal.aborted ||
+          generation !== chassisGenerationRef.current ||
+          !isCurrentFitmentRequest(requestKey, chassisRequestKeyRef.current)
+        )
+          return;
+        if (!hasFitmentResponseType(res, "chassis") || !isStringArray(res.data)) {
+          throw new Error("invalid fitment chassis response");
+        }
+        const rawChassisCodes = res.data;
+        const nextChassisCodes = canonicalizeVehicleChassisCodes(rawChassisCodes, make, model);
         setChassisCodes(nextChassisCodes);
-        const initialChassis = initialChassisRef.current;
-        if (initialChassis && nextChassisCodes.includes(initialChassis)) {
-          setChassis(initialChassis);
-          initialChassisRef.current = "";
+        setChassis((currentChassis) => {
+          const requestedChassis = currentChassis;
+          const canonicalChassis = resolveFitmentOption(nextChassisCodes, requestedChassis);
+          return canonicalChassis ?? currentChassis;
+        });
+      })
+      .catch((error: unknown) => {
+        if (
+          !(error instanceof DOMException && error.name === "AbortError") &&
+          generation === chassisGenerationRef.current &&
+          isCurrentFitmentRequest(requestKey, chassisRequestKeyRef.current)
+        ) {
+          setSubmodelsError(true);
         }
       })
-      .catch(() => {})
       .finally(() => {
         if (!controller.signal.aborted) setSubmodelsLoading(false);
       });
-    if (!initialChassisRef.current) {
-      setChassis("");
-    }
     return () => controller.abort();
-  }, [fitmentBrandParam, make, model, vehicleMode]);
+  }, [activeFitmentBrand, fitmentBrandParam, make, model, vehicleMode]);
 
   // Model/chassis → valid years and engines from the same correlated clauses.
   useEffect(() => {
     if (!make || !model) {
       setFitmentYears([]);
       setFitmentEngines([]);
+      setDetailsState("idle");
+      setDetailsLoading(false);
       return;
     }
     setDetailsLoading(true);
+    setDetailsState("loading");
     const controller = new AbortController();
+    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}`;
+    detailsRequestKeyRef.current = requestKey;
+    const generation = ++detailsGenerationRef.current;
     const params = new URLSearchParams({
       scope: vehicleMode,
       make,
@@ -1464,16 +1581,44 @@ function StockPageContent() {
     if (chassis) params.set("chassis", chassis);
     if (activeFitmentBrand) params.set("brand", activeFitmentBrand);
     fetch(`/api/shop/stock/fitment?${params.toString()}`, { signal: controller.signal })
-      .then((response) => response.json())
       .then((response) => {
-        const details = response?.type === "details" ? response.data : null;
-        setFitmentYears(Array.isArray(details?.years) ? details.years : []);
-        setFitmentEngines(Array.isArray(details?.engines) ? details.engines : []);
+        return parseShopStockJsonResponse(response);
       })
-      .catch(() => {
-        if (!controller.signal.aborted) {
+      .then((response) => {
+        if (
+          controller.signal.aborted ||
+          generation !== detailsGenerationRef.current ||
+          !isCurrentFitmentRequest(requestKey, detailsRequestKeyRef.current)
+        )
+          return;
+        const details =
+          hasFitmentResponseType(response, "details") &&
+          response.data &&
+          typeof response.data === "object"
+            ? (response.data as { years?: unknown; engines?: unknown })
+            : null;
+        if (!details || !Array.isArray(details.years) || !isStringArray(details.engines)) {
+          throw new Error("invalid fitment details response");
+        }
+        const years =
+          Array.isArray(details?.years) &&
+          details.years.every((year: unknown) => Number.isInteger(year))
+            ? details.years
+            : [];
+        const engines = isStringArray(details?.engines) ? details.engines : [];
+        setFitmentYears(years);
+        setFitmentEngines(engines);
+        setDetailsState(engines.length || years.length ? "ready" : "missing");
+      })
+      .catch((error: unknown) => {
+        if (
+          !(error instanceof DOMException && error.name === "AbortError") &&
+          generation === detailsGenerationRef.current &&
+          isCurrentFitmentRequest(requestKey, detailsRequestKeyRef.current)
+        ) {
           setFitmentYears([]);
           setFitmentEngines([]);
+          setDetailsState("error");
         }
       })
       .finally(() => {
@@ -1531,8 +1676,11 @@ function StockPageContent() {
         const res = await fetch(`/api/shop/stock/search?${cacheKey}`, {
           signal: controller.signal,
         });
-        const data = (await res.json()) as StockSearchResponse;
-        if (!res.ok) throw new Error(data.error);
+        const payload = await parseShopStockJsonResponse(res);
+        const data = payload as StockSearchResponse;
+        if (!data || typeof data !== "object" || !Array.isArray(data.data)) {
+          throw new Error("stock_response_invalid");
+        }
         if (controller.signal.aborted) return;
         searchResponseCacheRef.current.set(cacheKey, { timestamp: Date.now(), data });
         if (searchResponseCacheRef.current.size > 40) {
@@ -1546,7 +1694,16 @@ function StockPageContent() {
         setTotalItems(0);
         setTotalPages(1);
         setFilterStats(null);
-        setError(error instanceof Error ? error.message : "Search failed");
+        const errorCode = error instanceof Error ? error.message : "";
+        setError(
+          errorCode === "stock_response_invalid"
+            ? isUa
+              ? "Сервер повернув некоректну відповідь. Спробуйте ще раз."
+              : "The server returned an invalid response. Please try again."
+            : isUa
+              ? "Не вдалося завантажити товари. Спробуйте ще раз."
+              : "Products could not be loaded. Please try again."
+        );
       } finally {
         if (searchRequestRef.current === controller) {
           searchRequestRef.current = null;
@@ -1577,6 +1734,7 @@ function StockPageContent() {
       currency,
       vehicleMode,
       applySearchPayload,
+      isUa,
     ]
   );
 
@@ -1638,8 +1796,6 @@ function StockPageContent() {
   }
 
   function handleResetFilters() {
-    initialModelRef.current = "";
-    initialChassisRef.current = "";
     if (vehicleMode !== "auto") {
       scopeSearchImmediateRef.current = true;
       searchRequestRef.current?.abort();
@@ -1789,8 +1945,6 @@ function StockPageContent() {
   }, [locale, makePickerQuery, makes]);
 
   const handleSelectVehicleMake = (nextMake: string) => {
-    initialModelRef.current = "";
-    initialChassisRef.current = "";
     setMake(nextMake);
     setModel("");
     setChassis("");
@@ -1826,10 +1980,8 @@ function StockPageContent() {
       return;
     }
 
-    initialModelRef.current = suggestion.model || "";
-    initialChassisRef.current = "";
     setMake(suggestion.make);
-    setModel("");
+    setModel(suggestion.model || "");
     setChassis("");
     setRequestedYear(null);
     setEngineFilter("");
@@ -2038,7 +2190,6 @@ function StockPageContent() {
             value={model}
             disabled={!make || modelsLoading}
             onChange={(event) => {
-              initialChassisRef.current = "";
               setModel(event.target.value);
               setChassis("");
               setRequestedYear(null);
@@ -2051,17 +2202,21 @@ function StockPageContent() {
                 ? isUa
                   ? "Завантаження..."
                   : "Loading..."
-                : make
+                : modelsError
                   ? isUa
-                    ? vehicleMode === "auto"
-                      ? "Модель авто"
-                      : "Модель мото"
-                    : vehicleMode === "auto"
-                      ? "Car model"
-                      : "Moto model"
-                  : isUa
-                    ? "Спочатку марка"
-                    : "Select make first"}
+                    ? "Не вдалося завантажити моделі"
+                    : "Models unavailable"
+                  : make
+                    ? isUa
+                      ? vehicleMode === "auto"
+                        ? "Модель авто"
+                        : "Модель мото"
+                      : vehicleMode === "auto"
+                        ? "Car model"
+                        : "Moto model"
+                    : isUa
+                      ? "Спочатку марка"
+                      : "Select make first"}
             </option>
             {models.map((modelName) => (
               <option
@@ -2093,13 +2248,17 @@ function StockPageContent() {
                 ? isUa
                   ? "Завантаження..."
                   : "Loading..."
-                : model
+                : submodelsError
                   ? isUa
-                    ? "Кузов / шасі"
-                    : "Chassis"
-                  : isUa
-                    ? "Спочатку модель"
-                    : "Select model first"}
+                    ? "Не вдалося завантажити кузови"
+                    : "Chassis unavailable"
+                  : model
+                    ? isUa
+                      ? "Кузов / шасі"
+                      : "Chassis"
+                    : isUa
+                      ? "Спочатку модель"
+                      : "Select model first"}
             </option>
             {chassisCodes.map((code) => (
               <option key={code} value={code} className="bg-card text-foreground dark:bg-[#121216]">
@@ -2125,7 +2284,9 @@ function StockPageContent() {
           {fitmentYears.length > 0 ? (
             <select
               value={requestedYear ?? ""}
-              onChange={(event) => setRequestedYear(event.target.value ? Number(event.target.value) : null)}
+              onChange={(event) =>
+                setRequestedYear(event.target.value ? Number(event.target.value) : null)
+              }
               disabled={detailsLoading}
               className={`${fieldClass} appearance-none pr-9`}
             >
@@ -2133,7 +2294,11 @@ function StockPageContent() {
                 {isUa ? "Будь-який рік" : "Any year"}
               </option>
               {fitmentYears.map((year) => (
-                <option key={year} value={year} className="bg-card text-foreground dark:bg-[#121216]">
+                <option
+                  key={year}
+                  value={year}
+                  className="bg-card text-foreground dark:bg-[#121216]"
+                >
                   {year}
                 </option>
               ))}
@@ -2153,7 +2318,9 @@ function StockPageContent() {
               className={fieldClass}
             />
           )}
-          {fitmentYears.length > 0 ? <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" /> : null}
+          {fitmentYears.length > 0 ? (
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+          ) : null}
         </label>
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Двигун" : "Engine"}</span>
@@ -2167,12 +2334,32 @@ function StockPageContent() {
               <option value="" className="bg-card text-foreground dark:bg-[#121216]">
                 {isUa ? "Будь-який двигун" : "Any engine"}
               </option>
+              {engineFilter && !fitmentEngines.includes(engineFilter) ? (
+                <option value={engineFilter}>{engineFilter}</option>
+              ) : null}
               {fitmentEngines.map((engine) => (
-                <option key={engine} value={engine} className="bg-card text-foreground dark:bg-[#121216]">
+                <option
+                  key={engine}
+                  value={engine}
+                  className="bg-card text-foreground dark:bg-[#121216]"
+                >
                   {engine}
                 </option>
               ))}
             </select>
+          ) : detailsState === "missing" || detailsState === "ready" || detailsState === "error" ? (
+            <div
+              className={`${fieldClass} flex items-center text-[10px] normal-case tracking-normal text-foreground/45`}
+              role="status"
+            >
+              {detailsState === "error"
+                ? isUa
+                  ? "Дані двигуна недоступні"
+                  : "Engine data unavailable"
+                : isUa
+                  ? "Двигун не вказаний у даних сумісності"
+                  : "No engine data for this vehicle"}
+            </div>
           ) : (
             <input
               type="text"
@@ -2184,7 +2371,9 @@ function StockPageContent() {
               className={fieldClass}
             />
           )}
-          {fitmentEngines.length > 0 ? <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" /> : null}
+          {fitmentEngines.length > 0 ? (
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+          ) : null}
         </label>
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Паливо" : "Fuel"}</span>
@@ -2626,7 +2815,7 @@ function StockPageContent() {
         const priceLabel = formatItemPrice(item);
         const showEventuriAvailability = shouldShowEventuriStockBadge(
           item.brand,
-          item.inStock ? "inStock" : "preOrder",
+          item.inStock ? "inStock" : "preOrder"
         );
         const vehicleLabel =
           [make, model, chassis].filter(Boolean).join(" ") ||
@@ -2807,7 +2996,7 @@ function StockPageContent() {
       isB2B,
       vehicleMode,
       locale,
-    ],
+    ]
   );
 
   return (
@@ -2929,7 +3118,14 @@ function StockPageContent() {
                 </div>
 
                 <SmartScrollArea className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/35 sm:p-5">
-                  {visibleVehicleMakes.length > 0 ? (
+                  {makesError ? (
+                    <div
+                      className="py-16 text-center text-sm font-light text-foreground/45"
+                      role="status"
+                    >
+                      {isUa ? "Не вдалося завантажити марки" : "Makes unavailable"}
+                    </div>
+                  ) : visibleVehicleMakes.length > 0 ? (
                     <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 sm:gap-2 md:grid-cols-4 lg:grid-cols-5">
                       {visibleVehicleMakes.map((makeName) => {
                         const selected = makeName === make;
@@ -2981,69 +3177,152 @@ function StockPageContent() {
       </CatalogOverlayPortal>
 
       <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
-        <section
-          ref={heroSectionRef}
-          onMouseEnter={() => setHeroPaused(true)}
-          onMouseLeave={() => setHeroPaused(false)}
-          onFocusCapture={() => setHeroPaused(true)}
-          onBlurCapture={() => setHeroPaused(false)}
-          className="relative z-30 isolate mb-0 min-h-[590px] overflow-hidden rounded-[18px] border border-black/10 bg-[#eeeae2] text-[#11110f] shadow-[0_18px_55px_rgba(0,0,0,0.14)] dark:border-white/10 dark:bg-[#050505] dark:text-white lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
-        >
-          <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.85),transparent_34%),linear-gradient(105deg,#e8e3da_0%,#f6f3ed_55%,#ded8cd_100%)] dark:bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]" />
-          <div className="relative z-10 grid min-h-[590px] grid-cols-1 content-start gap-5 px-5 pb-[110px] pt-5 sm:px-8 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-[112px] lg:pt-5 xl:px-16">
-            {activeHeroProduct ? (
-              <>
-                <motion.div
-                  key={`hero-image-${activeHeroProduct.id}`}
-                  initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                  className="pointer-events-none relative flex h-[230px] min-w-0 items-center justify-center sm:h-[265px] lg:h-[275px]"
-                >
-                  <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
-                    <Image src={resolveShopWarehouseHeroImage(activeHeroProduct.partNumber, activeHeroProduct.thumbnail)!} alt="" fill priority={heroProductIndex === 0} quality={75} sizes="(min-width: 1024px) 550px, 88vw" className="object-contain object-center p-4 mix-blend-multiply contrast-[1.04] sm:p-5" />
-                  </span>
-                </motion.div>
-                <motion.div
-                  key={`hero-copy-${activeHeroProduct.id}`}
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.42 }}
-                  className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f6f24] dark:text-[#c6a657]">{activeHeroProduct.brand}<span className="mx-2 text-black/20 dark:text-white/20">·</span>{activeHeroProduct.partNumber}</p>
-                  <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">{getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en").title}</h2>
-                  <p className="mt-2 line-clamp-2 max-w-[430px] text-[11px] font-light leading-relaxed text-black/55 dark:text-white/52 sm:text-xs">{getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en").description}</p>
-                  <p className="mt-3 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">{formatItemPrice(activeHeroProduct)}</p>
-                  <div className="mt-2 flex w-fit items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-700 shadow-[0_0_16px_rgba(16,185,129,0.07)] dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
-                    <span className="h-1 w-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] dark:bg-emerald-400" />
-                    {isUa ? "В наявності · готово до відправлення" : "In stock · ready to ship"}
-                  </div>
-                  <Link href={resolveShopCatalogProductHref(locale, activeHeroProduct.href, activeHeroProduct.slug)} className="mt-4 flex h-11 w-fit items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-[#eeeae2] dark:focus-visible:ring-offset-black">
-                    {isUa ? "Детальніше" : "View product"}<ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                  <div className="mt-3 flex max-w-[250px] items-center justify-between border-b border-black/12 pb-2 dark:border-white/12">
-                    <button type="button" aria-label={isUa ? "Попередній товар" : "Previous product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current - 1 + heroProducts.length) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"><ArrowLeft className="h-4 w-4" /></button>
-                    <span className="text-[10px] tracking-[0.16em] text-black/42 dark:text-white/45">{String(heroProducts.length ? heroProductIndex + 1 : 0).padStart(2, "0")} / {String(heroProducts.length).padStart(2, "0")}</span>
-                    <button type="button" aria-label={isUa ? "Наступний товар" : "Next product"} disabled={heroProducts.length < 2} onClick={() => setHeroProductIndex((current) => (current + 1) % heroProducts.length)} className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"><ArrowRight className="h-4 w-4" /></button>
-                  </div>
-                </motion.div>
-              </>
-            ) : null}
-          </div>
-
-          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-black/10 bg-white/95 dark:border-white/10 dark:bg-black/95">
-            <div className="flex min-w-0 flex-1 overflow-x-auto">
-              {heroRailProducts.map(({ product, index }) => (
-                <button key={product.id} type="button" onClick={() => setHeroProductIndex(index)} className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-black/10 px-4 text-left transition hover:bg-black/[0.035] dark:border-white/10 dark:hover:bg-white/[0.04] sm:min-w-[230px]">
-                  <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]"><Image src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!} alt="" fill quality={75} sizes="80px" className="object-cover object-center mix-blend-multiply contrast-[1.04]" /></span>
-                  <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8f6f24] dark:text-[#c6a657]">{product.partNumber || product.brand}</span><span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-black/62 group-hover:text-black dark:text-white/68 dark:group-hover:text-white">{getCatalogProductPresentation(product, isUa ? "ua" : "en").title}</span></span>
-                </button>
-              ))}
+        <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
+        {showWarehouseHero ? (
+          <section
+            ref={heroSectionRef}
+            onMouseEnter={() => setHeroPaused(true)}
+            onMouseLeave={() => setHeroPaused(false)}
+            onFocusCapture={() => setHeroPaused(true)}
+            onBlurCapture={() => setHeroPaused(false)}
+            className="relative z-30 isolate mb-0 min-h-[590px] overflow-hidden rounded-[18px] border border-black/10 bg-[#eeeae2] text-[#11110f] shadow-[0_18px_55px_rgba(0,0,0,0.14)] dark:border-white/10 dark:bg-[#050505] dark:text-white lg:-mx-6 lg:min-h-[430px] lg:rounded-none lg:border-x-0 2xl:-mx-8"
+          >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.85),transparent_34%),linear-gradient(105deg,#e8e3da_0%,#f6f3ed_55%,#ded8cd_100%)] dark:bg-[radial-gradient(circle_at_58%_38%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(105deg,#050505_0%,#080808_55%,#020202_100%)]"
+            />
+            <div className="relative z-10 grid min-h-[590px] grid-cols-1 content-start gap-5 px-5 pb-[110px] pt-5 sm:px-8 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-[112px] lg:pt-5 xl:px-16">
+              {activeHeroProduct ? (
+                <>
+                  <motion.div
+                    key={`hero-image-${activeHeroProduct.id}`}
+                    initial={shouldReduceMotion ? false : { opacity: 0, x: 24, scale: 0.97 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    className="pointer-events-none relative flex h-[230px] min-w-0 items-center justify-center sm:h-[265px] lg:h-[275px]"
+                  >
+                    <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
+                      <Image
+                        src={resolveShopWarehouseHeroImage(
+                          activeHeroProduct.partNumber,
+                          activeHeroProduct.thumbnail
+                        )!}
+                        alt=""
+                        fill
+                        priority={heroProductIndex === 0}
+                        quality={75}
+                        sizes="(min-width: 1024px) 550px, 88vw"
+                        className="object-contain object-center p-4 mix-blend-multiply contrast-[1.04] sm:p-5"
+                      />
+                    </span>
+                  </motion.div>
+                  <motion.div
+                    key={`hero-copy-${activeHeroProduct.id}`}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.42 }}
+                    className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f6f24] dark:text-[#c6a657]">
+                      {activeHeroProduct.brand}
+                      <span className="mx-2 text-black/20 dark:text-white/20">·</span>
+                      {activeHeroProduct.partNumber}
+                    </p>
+                    <h2 className="mt-2 line-clamp-2 max-w-[440px] text-xl font-light leading-tight tracking-[-0.025em] sm:text-2xl lg:text-[28px]">
+                      {getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en").title}
+                    </h2>
+                    <p className="mt-2 line-clamp-2 max-w-[430px] text-[11px] font-light leading-relaxed text-black/55 dark:text-white/52 sm:text-xs">
+                      {
+                        getCatalogProductPresentation(activeHeroProduct, isUa ? "ua" : "en")
+                          .description
+                      }
+                    </p>
+                    <p className="mt-3 text-[26px] font-light tracking-[-0.025em] sm:text-[30px]">
+                      {formatItemPrice(activeHeroProduct)}
+                    </p>
+                    <div className="mt-2 flex w-fit items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-700 shadow-[0_0_16px_rgba(16,185,129,0.07)] dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
+                      <span className="h-1 w-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] dark:bg-emerald-400" />
+                      {isUa ? "В наявності · готово до відправлення" : "In stock · ready to ship"}
+                    </div>
+                    <Link
+                      href={resolveShopCatalogProductHref(
+                        locale,
+                        activeHeroProduct.href,
+                        activeHeroProduct.slug
+                      )}
+                      className="mt-4 flex h-11 w-fit items-center gap-5 bg-[#c6a657] px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-black transition hover:bg-[#dfc06d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a657] focus-visible:ring-offset-2 focus-visible:ring-offset-[#eeeae2] dark:focus-visible:ring-offset-black"
+                    >
+                      {isUa ? "Детальніше" : "View product"}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <div className="mt-3 flex max-w-[250px] items-center justify-between border-b border-black/12 pb-2 dark:border-white/12">
+                      <button
+                        type="button"
+                        aria-label={isUa ? "Попередній товар" : "Previous product"}
+                        disabled={heroProducts.length < 2}
+                        onClick={() =>
+                          setHeroProductIndex(
+                            (current) => (current - 1 + heroProducts.length) % heroProducts.length
+                          )
+                        }
+                        className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </button>
+                      <span className="text-[10px] tracking-[0.16em] text-black/42 dark:text-white/45">
+                        {String(heroProducts.length ? heroProductIndex + 1 : 0).padStart(2, "0")} /{" "}
+                        {String(heroProducts.length).padStart(2, "0")}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={isUa ? "Наступний товар" : "Next product"}
+                        disabled={heroProducts.length < 2}
+                        onClick={() =>
+                          setHeroProductIndex((current) => (current + 1) % heroProducts.length)
+                        }
+                        className="grid h-8 w-8 place-items-center text-black/55 transition hover:text-[#8f6f24] disabled:opacity-25 dark:text-white/70 dark:hover:text-[#c6a657]"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              ) : null}
             </div>
-          </div>
-        </section>
+
+            <div className="absolute inset-x-0 bottom-0 z-30 flex h-[92px] items-stretch border-t border-black/10 bg-white/95 dark:border-white/10 dark:bg-black/95">
+              <div className="flex min-w-0 flex-1 overflow-x-auto">
+                {heroRailProducts.map(({ product, index }) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => setHeroProductIndex(index)}
+                    className="group flex min-w-[190px] flex-1 items-center gap-3 border-r border-black/10 px-4 text-left transition hover:bg-black/[0.035] dark:border-white/10 dark:hover:bg-white/[0.04] sm:min-w-[230px]"
+                  >
+                    <span className="relative h-14 w-20 shrink-0 overflow-hidden bg-[#d8d4ca]">
+                      <Image
+                        src={resolveShopWarehouseHeroImage(product.partNumber, product.thumbnail)!}
+                        alt=""
+                        fill
+                        quality={75}
+                        sizes="80px"
+                        className="object-cover object-center mix-blend-multiply contrast-[1.04]"
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8f6f24] dark:text-[#c6a657]">
+                        {product.partNumber || product.brand}
+                      </span>
+                      <span className="mt-1 line-clamp-2 block text-[11px] font-light leading-tight text-black/62 group-hover:text-black dark:text-white/68 dark:group-hover:text-white">
+                        {getCatalogProductPresentation(product, isUa ? "ua" : "en").title}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section
           aria-label={
@@ -3707,7 +3986,26 @@ function StockPageContent() {
               </motion.div>
             )}
 
-            {loading && items.length === 0 ? null : !hasSearched ? (
+            <div
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="min-h-8 text-sm text-foreground/65"
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="h-3 w-3 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"
+                  />
+                  {isUa
+                    ? "Підбираємо товари за вашими фільтрами…"
+                    : "Finding products for your filters…"}
+                </span>
+              ) : null}
+            </div>
+            {error && items.length === 0 ? null : loading &&
+              items.length === 0 ? null : !hasSearched ? (
               <div className="rounded-none border border-foreground/10 bg-foreground/[0.014] py-32 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
                 <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-foreground/10 shadow-[0_0_30px_rgba(255,255,255,0.02)]">
                   <Package className="w-8 h-8 text-foreground/45" />

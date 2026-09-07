@@ -1,27 +1,55 @@
 # Catalog V2 — live execution status
 
-Last updated: 2026-09-01
-Working branch: `codex/catalog-v2-foundation`  
+Last updated: 2026-09-07
+Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
+
+## Storefront performance and correctness follow-up - 2026-09-07
+
+User authorized local implementation of [PERFORMANCE_EXECUTION_PLAN.md](../../PERFORMANCE_EXECUTION_PLAN.md).
+Root integrates/reviews GPT-5.6 Terra and GPT-5.6 Luna work in explicitly owned files.
+User authorized local branch commits on 2026-09-07. Push, deployment, production migration and environment pulls remain unauthorized.
+Older P6 Done rows below are historical evidence, not proof of current production reader coverage.
+
+| Package              | Local state                            | Evidence / remaining gate                                                                                                                                                                                                                                                                                                                  |
+| -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| C0                   | Environment isolated                   | Dedicated disposable localhost PostgreSQL; existing migrations replayed. DB-less preview remains separate.                                                                                                                                                                                                                                 |
+| T1                   | Snapshot diagnostics implemented       | 17,385 products audited; four real Burger Kia/Hyundai/Genesis products have legacy BMW M5 G90 tags. Counts describe the snapshot, not current production.                                                                                                                                                                                  |
+| T2                   | Local implementation verified          | Existing normalizer quarantines contaminated source evidence. Typed powertrain identity now survives actual canonical policy -> AdminSnapshot -> stored immutable revision -> projection replay. Review engine text stays review-only. Additive migration replayed on a fresh disposable DB; production coverage/backfill remains open.    |
+| T3 / root            | Query consistency fixes implemented    | All-brand make/model facets; same-clause brand/category filtering; default vehicle SQL now retains IDs, exclusions and price filters. Engine/fuel queries now retain all vehicle fields and skip the legacy scan; broad vehicle selection still uses that scan pending coverage/cutover.                                                   |
+| L1                   | Local browser checks passed            | Preserve deep links during partial facet responses; abort/generation guards; immediate suggestion state; localized failed/non-JSON responses separate from valid empty results. Mobile panel retains M5/G90, stays inside viewport and focuses Close.                                                                                      |
+| L4                   | Burger image change implemented        | Responsive Shopify main image + 240 px thumbnails, unsigned URLs only, bounded srcset descriptors. One public sample: 240 px 9,523 bytes; 1200 px 107,072 bytes. Not an aggregate page benchmark. Fixed Burger fixed two-column mobile overflow (623 -> 375 px on a 375 px viewport); main image 35 -> 294 px. Gallery switching verified. |
+| L5                   | Implemented                            | Shop pages bypass decorative intro overlay; deferred recommendations handle missing observer and disconnect on unmount. Filtered catalogs no longer fetch/render unrelated warehouse hero carousel.                                                                                                                                        |
+| T6                   | Audit recorded; implementation pending | Full snapshot/index rebuild per build and five cron schedules identified. Artifact reuse requires a proven catalog/settings version key; no external build/plan setting changed. See local docs/operations/catalog-build-cost-audit-2026-09-07.md.                                                                                         |
+| L2/L3/L6/L7/T4/T5/T7 | Remaining acceptance work              | Prior local optimizations preserved; full SSR, smart search/coverage, device matrix, pricing/freshness and representative performance gates are not certified.                                                                                                                                                                             |
+
+Root validation: TypeScript passed; 123 selected unit tests passed; three PostgreSQL integration tests passed on a fresh migration replay, and engine snapshot/vehicle regressions passed again after the mapper changes. Scoped ESLint: zero errors, six existing Burger warnings. Test logs: `artifacts/storefront-wave1-unit-tests.log`. The first parallel DB run collided on shared aggregate rows; repeat validation used serial test execution in a newly created database. This does not certify concurrent publication throughput.
+
+Browser evidence: DB-less local development, UA catalog with BMW/M5/G90 retained, EN Burger PDP and responsive gallery, mobile filter focus and bounds; viewport restored afterwards. No production p95 or real iOS-device measurements are claimed. Current local Node is 24.19.0, outside package's >=20 <23 range; supported-Node production build validation remains open.
+
+Release order remains migration -> regenerate client -> validate/rebuild current source revisions -> coverage/shadow gates -> reader activation. Old production projection rows are not repaired just by changing local code. No build/deploy was run.
+
+Validation is patch-local; dirty-tree release gates are not bypassed. No claim of a 100x site speedup,
+production cost reduction, complete engine coverage, or production activation follows from these fixtures.
 
 ## Current sprint: P6 lossless normalization and backfill
 
-| ID        | Work item                                      | Status      | Verification / remaining work                                         |
-| --------- | ---------------------------------------------- | ----------- | --------------------------------------------------------------------- |
-| C2-P6-001 | Deterministic raw-field coverage contract      | Done        | Every scalar/empty value gets stable path, ordinal, and fingerprint    |
-| C2-P6-002 | Per-source coverage/parity report              | Done        | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof |
-| C2-P6-003 | RaceChip normalization/backfill                | Done        | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof |
-| C2-P6-004 | ADRO normalization/backfill                    | Done        | Shared ledger core, aliases, correlated policies, CLI, PostgreSQL proof |
-| C2-P6-005 | Eventuri mixed-policy normalization/backfill   | Done        | Mixed universal/exact/review policies, CLI, PostgreSQL proof            |
-| C2-P6-006 | Remaining-source lossless inventory/backfills  | Done        | 15,132/15,132 owned identities and 665,508 raw leaves; all 14 logical sources wired |
-| C2-P6-007 | Brabus normalization/backfill                  | Done        | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof |
-| C2-P6-008 | Urban normalization/backfill                   | Done        | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof |
-| C2-P6-009 | Öhlins normalization/backfill                  | Done        | 489 records, universal split, drivetrain quarantine, PostgreSQL proof |
-| C2-P6-010 | Akrapovič normalization/backfill               | Done        | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof |
-| C2-P6-011 | iPE normalization/backfill                     | Done        | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof |
-| C2-P6-012 | CSF normalization/backfill                     | Done        | 297 records, tag quarantine, exact transmission, concurrency proof |
-| C2-P6-013 | GiroDisc normalization/backfill                | Done        | 958 records, dimension-safe parsing, parent quarantine, PostgreSQL proof |
-| C2-P6-020 | Full all-source backfill and replay gate        | Done        | 15,132 records, 665,508 provenance leaves, exact parity, 15,132/15,132 idempotent replay |
+| ID        | Work item                                     | Status | Verification / remaining work                                                            |
+| --------- | --------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| C2-P6-001 | Deterministic raw-field coverage contract     | Done   | Every scalar/empty value gets stable path, ordinal, and fingerprint                      |
+| C2-P6-002 | Per-source coverage/parity report             | Done   | Bounded current-head audit, fail-closed activation CLI, PostgreSQL proof                 |
+| C2-P6-003 | RaceChip normalization/backfill               | Done   | Lossless ledger, taxonomy aliases, versioned 13-dimension policies, PostgreSQL proof     |
+| C2-P6-004 | ADRO normalization/backfill                   | Done   | Shared ledger core, aliases, correlated policies, CLI, PostgreSQL proof                  |
+| C2-P6-005 | Eventuri mixed-policy normalization/backfill  | Done   | Mixed universal/exact/review policies, CLI, PostgreSQL proof                             |
+| C2-P6-006 | Remaining-source lossless inventory/backfills | Done   | 15,132/15,132 owned identities and 665,508 raw leaves; all 14 logical sources wired      |
+| C2-P6-007 | Brabus normalization/backfill                 | Done   | 977 records, conflict quarantine, shared policy engine, PostgreSQL proof                 |
+| C2-P6-008 | Urban normalization/backfill                  | Done   | 259 records, wheel-tag quarantine, shared policy engine, PostgreSQL proof                |
+| C2-P6-009 | Öhlins normalization/backfill                 | Done   | 489 records, universal split, drivetrain quarantine, PostgreSQL proof                    |
+| C2-P6-010 | Akrapovič normalization/backfill              | Done   | 421 records, auto/moto isolation, engine/OPF quarantine, PostgreSQL proof                |
+| C2-P6-011 | iPE normalization/backfill                    | Done   | 111 records, variant-first OPF, duplicate-SKU safety, PostgreSQL proof                   |
+| C2-P6-012 | CSF normalization/backfill                    | Done   | 297 records, tag quarantine, exact transmission, concurrency proof                       |
+| C2-P6-013 | GiroDisc normalization/backfill               | Done   | 958 records, dimension-safe parsing, parent quarantine, PostgreSQL proof                 |
+| C2-P6-020 | Full all-source backfill and replay gate      | Done   | 15,132 records, 665,508 provenance leaves, exact parity, 15,132/15,132 idempotent replay |
 
 The P6 field ledger now deterministically flattens arbitrary supplier JSON without dropping empty
 arrays/objects or repeated array values. Each leaf must be mapped to a canonical target,
@@ -112,24 +140,24 @@ complex titles. PostgreSQL proves correlated W218/W212 clauses and parent-only q
 
 ## Completed sprint: P5 unified admin publication
 
-| ID        | Work item                                      | Status      | Verification / remaining work                                                |
-| --------- | ---------------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
-| C2-P5-001 | Version-specific publication status contract   | Done        | Saved/Publishing/Published/Failed resolver and authorized no-store API        |
-| C2-P5-002 | Product editor publication visibility          | Done        | Editor polls exact saved version; failed work is never presented as published |
-| C2-P5-003 | Commit-to-visible latency and concurrency gate | Done        | 30 samples: p95 416 ms, p99 504 ms; exactly one same-version contention winner |
-| C2-P5-007 | Global settings and price-book publication     | Done        | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate |
-| C2-P6-021 | Shared canonical promotion lock protocol       | Done        | Page-wide stable advisory locks; two-client PostgreSQL contention regression |
-| C2-P7-001 | Reproducible signed activation marker          | Done        | Guard-validated signer CLI; weak/stale/lagging evidence fails closed |
-| C2-P7-002 | Segmented deterministic canary and rollback    | Done        | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete |
-| C2-P7-003 | Durable commit-bound shadow evidence           | Done        | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate |
-| C2-P7-004 | Read-only operational readiness telemetry      | Done        | Authenticated no-store report for catalog size, projection lag, outbox age/retries/dead letters, failed receipts, and commit shadow parity |
-| C2-P7-005 | Privacy-safe live reader performance telemetry | Done        | Listing/facet/suggestion duration, bounded DB-query count and returned rows; no raw query/filter values |
-| C2-P7-006 | Signed progressive rollout ceiling             | Done        | Evidence v2 caps canary percentage and requires separate explicit approval for full SSR |
-| C2-P7-007 | Unbypassable production build guard            | Done        | Next config blocks unsigned/over-scoped V2 before route selection; reader-off rollback remains buildable |
-| C2-P7-008 | Signed observation window and decision owner    | Done        | Canary requires 24h, full SSR 72h, and every activation names its responsible owner |
-| C2-P7-009 | Canonical regional/B2B card-price parity        | Done        | Fresh bounded page hydration; shared pricing engine; no projection price rendering |
-| C2-P5-008 | Targeted PDP freshness after price/inventory    | Done        | Exact-slug reads bypass external TTL; changed product aliases revalidate without listing invalidation |
-| C2-P5-009 | Viewer-specific brand pricing context           | Done        | Own-session no-store endpoint; B2B-only system/customer maps; client requests deduplicated |
+| ID        | Work item                                      | Status | Verification / remaining work                                                                                                              |
+| --------- | ---------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| C2-P5-001 | Version-specific publication status contract   | Done   | Saved/Publishing/Published/Failed resolver and authorized no-store API                                                                     |
+| C2-P5-002 | Product editor publication visibility          | Done   | Editor polls exact saved version; failed work is never presented as published                                                              |
+| C2-P5-003 | Commit-to-visible latency and concurrency gate | Done   | 30 samples: p95 416 ms, p99 504 ms; exactly one same-version contention winner                                                             |
+| C2-P5-007 | Global settings and price-book publication     | Done   | Monotonic global cursors, atomic audit/outbox, 42-migration PostgreSQL concurrency gate                                                    |
+| C2-P6-021 | Shared canonical promotion lock protocol       | Done   | Page-wide stable advisory locks; two-client PostgreSQL contention regression                                                               |
+| C2-P7-001 | Reproducible signed activation marker          | Done   | Guard-validated signer CLI; weak/stale/lagging evidence fails closed                                                                       |
+| C2-P7-002 | Segmented deterministic canary and rollback    | Done   | Locale/brand/category/percentage routing; browser-verified 0%/100% and autocomplete                                                        |
+| C2-P7-003 | Durable commit-bound shadow evidence           | Done   | Hourly segment aggregates, read-only evidence CLI, 43-migration PostgreSQL concurrency gate                                                |
+| C2-P7-004 | Read-only operational readiness telemetry      | Done   | Authenticated no-store report for catalog size, projection lag, outbox age/retries/dead letters, failed receipts, and commit shadow parity |
+| C2-P7-005 | Privacy-safe live reader performance telemetry | Done   | Listing/facet/suggestion duration, bounded DB-query count and returned rows; no raw query/filter values                                    |
+| C2-P7-006 | Signed progressive rollout ceiling             | Done   | Evidence v2 caps canary percentage and requires separate explicit approval for full SSR                                                    |
+| C2-P7-007 | Unbypassable production build guard            | Done   | Next config blocks unsigned/over-scoped V2 before route selection; reader-off rollback remains buildable                                   |
+| C2-P7-008 | Signed observation window and decision owner   | Done   | Canary requires 24h, full SSR 72h, and every activation names its responsible owner                                                        |
+| C2-P7-009 | Canonical regional/B2B card-price parity       | Done   | Fresh bounded page hydration; shared pricing engine; no projection price rendering                                                         |
+| C2-P5-008 | Targeted PDP freshness after price/inventory   | Done   | Exact-slug reads bypass external TTL; changed product aliases revalidate without listing invalidation                                      |
+| C2-P5-009 | Viewer-specific brand pricing context          | Done   | Own-session no-store endpoint; B2B-only system/customer maps; client requests deduplicated                                                 |
 
 Publication status is derived from the exact outbox event and every required target receipt for
 the requested canonical version. A successful product save remains `SAVED` until workers begin,
@@ -147,12 +175,12 @@ out to product ISR. See [GLOBAL_PUBLICATION_GATE_2026-09-01.md](./GLOBAL_PUBLICA
 
 ## Completed sprint: P3 indexed reads and P4 server-rendered storefront
 
-| ID        | Work item                                      | Status      | Verification / remaining work                                                       |
-| --------- | ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
-| C2-P3-001 | Bounded indexed listing and fitment query      | Done        | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass         |
-| C2-P3-002 | Progressive facet and suggestion query service | Done        | Correlated facets plus bounded product/brand/vehicle suggestions pass the 500k gate |
-| C2-P4-001 | Flag-off direct Server Component first page    | Done        | Explicit `ssr` only; default legacy branch makes no V2 read; first 24 cards are SSR |
-| C2-P4-002 | Interactive progressive filters and pagination | Done        | GET fallback, client transitions, parent resets, abortable autocomplete, keyset next |
+| ID        | Work item                                      | Status | Verification / remaining work                                                        |
+| --------- | ---------------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| C2-P3-001 | Bounded indexed listing and fitment query      | Done   | Keyset query, correlated clauses, shadow parity, and 500k EXPLAIN gate pass          |
+| C2-P3-002 | Progressive facet and suggestion query service | Done   | Correlated facets plus bounded product/brand/vehicle suggestions pass the 500k gate  |
+| C2-P4-001 | Flag-off direct Server Component first page    | Done   | Explicit `ssr` only; default legacy branch makes no V2 read; first 24 cards are SSR  |
+| C2-P4-002 | Interactive progressive filters and pagination | Done   | GET fallback, client transitions, parent resets, abortable autocomplete, keyset next |
 
 The V2 storefront reader has its own fail-closed `SHOP_CATALOG_V2_READER_MODE` contract and is
 not coupled to shadow comparison. Missing, `off`, and invalid values keep the existing stock
@@ -261,13 +289,13 @@ Status values: `Pending`, `In progress`, `Blocked`, `Review`, `Done`.
 | C2-P2-001 | Persist projection batches and add a resumable rebuild worker                          | Done   | P1 complete           | Cursor, counts, restart replay, and completion are durable                           |
 | C2-P2-002 | Add mutation coordinator and transactional outbox publisher                            | Done   | P1 complete           | Active writers, optimistic revisions, bounded publication, and outage recovery drill |
 | C2-P2-003 | Add flag-off indexed query adapter and shadow traffic comparison                       | Done   | P2 projection writer  | Correlated indexed query and compare-only endpoint telemetry                         |
-| C2-P6-014 | Normalize and persist lossless do88 compatibility                                     | Done   | P6 source framework   | 1,230 records; universal/vehicle/review semantics and PostgreSQL gate                 |
-| C2-P6-015 | Normalize and persist lossless Burger compatibility                                   | Done   | P6 source framework   | Duplicate-SKU-safe identity; correlated chassis/engine and pollution quarantine       |
-| C2-P6-016 | Normalize and persist lossless Ilmberger motorcycle compatibility                     | Done   | P6 source framework   | Product-level moto policies; correlated per-model years and PostgreSQL gate            |
-| C2-P6-017 | Normalize and persist the lossless Remus generic-shard subset                         | Done   | P6 source framework   | Ordered make/model/year groups, OPF/GPF semantics, and PostgreSQL gate                 |
-| C2-P6-018 | Add fail-closed all-source ownership and growth gate                                  | Done   | All source adapters   | Exact manifest partition, unique IDs, entrypoints, raw-leaf inventory                  |
-| C2-P6-019 | Add commit-bound production reader activation guard                                   | Done   | Ownership/perf/parity | Signed fresh evidence required before `SHOP_CATALOG_V2_READER_MODE=ssr`                 |
-| C2-P5-006 | Remove cross-instance staleness from regional shop settings                            | Done   | Admin settings PATCH  | Every live request observes current pricing/tax/currency/shipping DB state              |
+| C2-P6-014 | Normalize and persist lossless do88 compatibility                                      | Done   | P6 source framework   | 1,230 records; universal/vehicle/review semantics and PostgreSQL gate                |
+| C2-P6-015 | Normalize and persist lossless Burger compatibility                                    | Done   | P6 source framework   | Duplicate-SKU-safe identity; correlated chassis/engine and pollution quarantine      |
+| C2-P6-016 | Normalize and persist lossless Ilmberger motorcycle compatibility                      | Done   | P6 source framework   | Product-level moto policies; correlated per-model years and PostgreSQL gate          |
+| C2-P6-017 | Normalize and persist the lossless Remus generic-shard subset                          | Done   | P6 source framework   | Ordered make/model/year groups, OPF/GPF semantics, and PostgreSQL gate               |
+| C2-P6-018 | Add fail-closed all-source ownership and growth gate                                   | Done   | All source adapters   | Exact manifest partition, unique IDs, entrypoints, raw-leaf inventory                |
+| C2-P6-019 | Add commit-bound production reader activation guard                                    | Done   | Ownership/perf/parity | Signed fresh evidence required before `SHOP_CATALOG_V2_READER_MODE=ssr`              |
+| C2-P5-006 | Remove cross-instance staleness from regional shop settings                            | Done   | Admin settings PATCH  | Every live request observes current pricing/tax/currency/shipping DB state           |
 
 ## Residual risks after P0
 
@@ -365,6 +393,7 @@ Data-loss/compatibility risks:
 Known follow-ups:
 Production actions performed: none
 ```
+
 ## Commit-bound release evidence (2026-09-01)
 
 - Scale and commit-to-visible publication artifacts now include the exact 40-character Git commit and their Docker runners refuse a dirty worktree.

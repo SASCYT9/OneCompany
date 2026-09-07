@@ -5,6 +5,7 @@ import Image, { type ImageProps } from "next/image";
 import { isAbsoluteHttpUrl, isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 
 const DEFAULT_FALLBACK_SRC = "/images/placeholders/product-fallback.svg";
+const MAX_SHOPIFY_IMAGE_WIDTH = 2400;
 
 type ShopProductImageProps = Omit<ImageProps, "src" | "alt"> & {
   src?: string | null;
@@ -48,6 +49,56 @@ function normalizeImageSrc(src: string | null | undefined) {
 
   const withProtocol = normalized.startsWith("//") ? `https:${normalized}` : normalized;
   return upgradeSupplierImage(withProtocol);
+}
+
+/** Only known public Shopify image parameters are safe to transform. */
+function publicShopifyImage(src: string): URL | null {
+  try {
+    const url = new URL(src);
+    if (
+      url.hostname !== "cdn.shopify.com" ||
+      !["https:", "http:"].includes(url.protocol) ||
+      url.username ||
+      url.password
+    )
+      return null;
+    const publicParams = new Set(["v", "width", "height", "crop", "format", "pad"]);
+    if ([...url.searchParams.keys()].some((key) => !publicParams.has(key))) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+export function resolveShopProductImageSrc(src: string | null | undefined, width?: number) {
+  const original = String(src ?? "").trim();
+  if (!width || !Number.isFinite(width) || width <= 0 || !publicShopifyImage(original))
+    return original;
+  const url = publicShopifyImage(normalizeImageSrc(original));
+  if (!url) return original;
+  url.searchParams.set(
+    "width",
+    String(Math.max(1, Math.min(MAX_SHOPIFY_IMAGE_WIDTH, Math.round(width))))
+  );
+  return url.toString();
+}
+
+export function buildShopProductImageSrcSet(
+  src: string | null | undefined,
+  widths: readonly number[]
+) {
+  const original = String(src ?? "").trim();
+  if (!publicShopifyImage(original)) return undefined;
+  const bounded = [
+    ...new Set(
+      widths
+        .filter((width) => Number.isFinite(width) && width > 0)
+        .map((width) => Math.max(1, Math.min(MAX_SHOPIFY_IMAGE_WIDTH, Math.round(width))))
+    ),
+  ];
+  return bounded.length
+    ? bounded.map((width) => `${resolveShopProductImageSrc(original, width)} ${width}w`).join(", ")
+    : undefined;
 }
 
 export function ShopProductImage({

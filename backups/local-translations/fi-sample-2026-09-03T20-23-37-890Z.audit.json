@@ -1,0 +1,14 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 1,
+  "offset": 198,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:numbers_changed": 1,
+    "body-segment:technical_tokens_missing:G90/G99": 1,
+    "body:numbers_changed": 1
+  },
+  "databaseWrites": 0
+}

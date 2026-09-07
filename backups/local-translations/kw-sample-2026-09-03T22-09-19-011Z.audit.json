@@ -1,0 +1,16 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1999,
+  "offset": 0,
+  "passed": 1512,
+  "reviewRequired": 487,
+  "issueCounts": {
+    "body:numbers_changed": 85,
+    "body:unit_missing:mm": 397,
+    "title:numbers_changed": 3,
+    "title:technical_tokens_missing:V2": 2,
+    "title:technical_tokens_missing:V3": 5
+  },
+  "databaseWrites": 0
+}

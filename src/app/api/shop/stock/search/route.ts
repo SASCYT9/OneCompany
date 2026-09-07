@@ -87,7 +87,11 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
-import { splitVehicleChassisCodes, vehicleMakeAliases, vehicleModelAliases } from "@/lib/shopVehicleTaxonomy";
+import {
+  splitVehicleChassisCodes,
+  vehicleMakeAliases,
+  vehicleModelAliases,
+} from "@/lib/shopVehicleTaxonomy";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
@@ -326,11 +330,7 @@ function consolidateEventuriSharedV8IntakeItems(
   };
   const consolidated = indexProductWithFitment(product);
   const fitmentText = buildShopSearchText(
-    fitments.flatMap((fitment) => [
-      fitment.make,
-      ...fitment.models,
-      ...fitment.chassisCodes,
-    ])
+    fitments.flatMap((fitment) => [fitment.make, ...fitment.models, ...fitment.chassisCodes])
   );
 
   Object.assign(consolidated, {
@@ -344,11 +344,7 @@ function consolidateEventuriSharedV8IntakeItems(
       titleText: consolidated.titleText,
       skuText: consolidated.skuText,
       compactSkuText: consolidated.compactSkuText,
-      fitmentText: buildShopSearchText([
-        fitment.make,
-        ...fitment.models,
-        ...fitment.chassisCodes,
-      ]),
+      fitmentText: buildShopSearchText([fitment.make, ...fitment.models, ...fitment.chassisCodes]),
       yearRanges: fitment.yearRanges,
       fitmentMake: fitment.make,
     })),
@@ -737,10 +733,7 @@ function readGlobalFilterStatsCache(key: string) {
   return cached.value;
 }
 
-function writeGlobalFilterStatsCache(
-  key: string,
-  value: ReturnType<typeof buildFilterStats>
-) {
+function writeGlobalFilterStatsCache(key: string, value: ReturnType<typeof buildFilterStats>) {
   if (globalFilterStatsCache.size >= 32) {
     const oldestKey = globalFilterStatsCache.keys().next().value;
     if (oldestKey) globalFilterStatsCache.delete(oldestKey);
@@ -841,20 +834,25 @@ async function resolveCanonicalVehicleProductIds(input: {
     ) => ({
       dimension,
       state: "EXACT" as const,
-      textValue: { in: dimension === "MAKE" ? vehicleMakeAliases(value) : [value], mode: "insensitive" as const },
+      textValue: {
+        in: dimension === "MAKE" ? vehicleMakeAliases(value) : [value],
+        mode: "insensitive" as const,
+      },
     });
     const modelAliases = input.model
       ? [
           ...vehicleModelAliases(input.make, input.model),
-          ...(await prisma.shopCatalogProjectionConstraint.findMany({
-            where: {
-              dimension: "MODEL",
-              state: "EXACT",
-              textValue: { not: null },
-            },
-            distinct: ["textValue"],
-            select: { textValue: true },
-          }))
+          ...(
+            await prisma.shopCatalogProjectionConstraint.findMany({
+              where: {
+                dimension: "MODEL",
+                state: "EXACT",
+                textValue: { not: null },
+              },
+              distinct: ["textValue"],
+              select: { textValue: true },
+            })
+          )
             .map((row) => row.textValue)
             .filter(
               (value): value is string =>
@@ -866,15 +864,17 @@ async function resolveCanonicalVehicleProductIds(input: {
     const chassisAliases = input.chassis
       ? [
           input.chassis,
-          ...(await prisma.shopCatalogProjectionConstraint.findMany({
-            where: {
-              dimension: { in: ["GENERATION", "CHASSIS"] },
-              state: "EXACT",
-              textValue: { contains: input.chassis, mode: "insensitive" },
-            },
-            distinct: ["textValue"],
-            select: { textValue: true },
-          }))
+          ...(
+            await prisma.shopCatalogProjectionConstraint.findMany({
+              where: {
+                dimension: { in: ["GENERATION", "CHASSIS"] },
+                state: "EXACT",
+                textValue: { contains: input.chassis, mode: "insensitive" },
+              },
+              distinct: ["textValue"],
+              select: { textValue: true },
+            })
+          )
             .map((row) => row.textValue)
             .filter(
               (value): value is string =>
@@ -890,39 +890,45 @@ async function resolveCanonicalVehicleProductIds(input: {
       ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
       ...(input.make ? [exactTextConstraint("MAKE", input.make)] : []),
       ...(input.model
-        ? [{
-            dimension: "MODEL" as const,
-            state: "EXACT" as const,
-            textValue: { in: uniqueModelAliases, mode: "insensitive" as const },
-          }]
+        ? [
+            {
+              dimension: "MODEL" as const,
+              state: "EXACT" as const,
+              textValue: { in: uniqueModelAliases, mode: "insensitive" as const },
+            },
+          ]
         : []),
       ...(input.chassis
-        ? [{
-            OR: [
-              {
-                dimension: "GENERATION" as const,
-                state: "EXACT" as const,
-                textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
-              },
-              {
-                dimension: "CHASSIS" as const,
-                state: "EXACT" as const,
-                textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
-              },
-            ],
-          }]
+        ? [
+            {
+              OR: [
+                {
+                  dimension: "GENERATION" as const,
+                  state: "EXACT" as const,
+                  textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
+                },
+                {
+                  dimension: "CHASSIS" as const,
+                  state: "EXACT" as const,
+                  textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
+                },
+              ],
+            },
+          ]
         : []),
       ...(input.engine ? [exactTextConstraint("ENGINE", input.engine)] : []),
       ...(input.opfGpf ? [exactTextConstraint("OPF_GPF", input.opfGpf)] : []),
       ...(input.year
-        ? [{
-            dimension: "YEAR" as const,
-            state: "EXACT" as const,
-            AND: [
-              { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
-              { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
-            ],
-          }]
+        ? [
+            {
+              dimension: "YEAR" as const,
+              state: "EXACT" as const,
+              AND: [
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: input.year } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: input.year } }] },
+              ],
+            },
+          ]
         : []),
     ];
     const [applicationRows, policyRows] = await Promise.all([
@@ -932,11 +938,13 @@ async function resolveCanonicalVehicleProductIds(input: {
           isUniversal: false,
           verificationStatus: { not: "BLOCKED" },
           ...(input.scope ? { scope: input.scope } : {}),
-          ...(input.make ? { make: { in: vehicleMakeAliases(input.make), mode: "insensitive" } } : {}),
-          ...(input.model
-            ? { model: { in: uniqueModelAliases, mode: "insensitive" } }
+          ...(input.make
+            ? { make: { in: vehicleMakeAliases(input.make), mode: "insensitive" } }
             : {}),
-          ...(input.chassis ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } } : {}),
+          ...(input.model ? { model: { in: uniqueModelAliases, mode: "insensitive" } } : {}),
+          ...(input.chassis
+            ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } }
+            : {}),
           ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
           ...(input.opfGpf ? { opfGpf: input.opfGpf } : {}),
           ...(input.year
@@ -1171,8 +1179,11 @@ export async function GET(request: NextRequest) {
   };
   try {
     const { searchParams } = new URL(request.url);
-    if (process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr") {
-      return queryPremiumCatalogProjection(searchParams);
+    if (
+      !isLocalStorefrontMode() &&
+      process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr"
+    ) {
+      return await queryPremiumCatalogProjection(searchParams);
     }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     const q = searchParams.get("q")?.trim() || "";
@@ -1285,10 +1296,7 @@ export async function GET(request: NextRequest) {
       allProductsWithFitments,
       vehicleScope
     );
-    if (
-      canonicalVehicleProductIds !== null &&
-      matchesEventuriSharedV8Application(make, model)
-    ) {
+    if (canonicalVehicleProductIds !== null && matchesEventuriSharedV8Application(make, model)) {
       const sharedIntakeItems = filterShopStockItemsByVehicleScope(
         (await getShopProductsWithFitments()).filter((item) =>
           isEventuriSharedV8Intake(item.product.sku)
@@ -1296,9 +1304,7 @@ export async function GET(request: NextRequest) {
         vehicleScope
       );
       scopedProductsWithFitments = [
-        ...scopedProductsWithFitments.filter(
-          (item) => !isEventuriSharedV8Intake(item.product.sku)
-        ),
+        ...scopedProductsWithFitments.filter((item) => !isEventuriSharedV8Intake(item.product.sku)),
         ...sharedIntakeItems,
       ];
     }
@@ -1412,8 +1418,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (stock !== "all") {
-      filtered = filtered.filter((item) =>
-        (isShopWarehouseInStockProduct(item.product.sku, item.product.slug) ? "inStock" : "preOrder") === stock
+      filtered = filtered.filter(
+        (item) =>
+          (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+            ? "inStock"
+            : "preOrder") === stock
       );
     }
 
@@ -1537,7 +1546,9 @@ export async function GET(request: NextRequest) {
             normalizedTitle
           );
 
-        let catalogScore = isShopWarehouseInStockProduct(item.product.sku, item.product.slug) ? 120 : 0;
+        let catalogScore = isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+          ? 120
+          : 0;
         if (hasImage) catalogScore += 45;
         if (productPrice > 0) catalogScore += 15 + Math.min(30, Math.log10(productPrice + 1) * 6);
         if (hasFitment) catalogScore += 12;
@@ -1706,7 +1717,9 @@ export async function GET(request: NextRequest) {
       if (stock !== "all") {
         fallbackFiltered = fallbackFiltered.filter(
           (item) =>
-            (isShopWarehouseInStockProduct(item.product.sku, item.product.slug) ? "inStock" : "preOrder") === stock
+            (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+              ? "inStock"
+              : "preOrder") === stock
         );
       }
       if (hasPriceFilter) {
@@ -1763,7 +1776,9 @@ export async function GET(request: NextRequest) {
         if (stock !== "all") {
           globalSource = globalSource.filter(
             (item) =>
-              (isShopWarehouseInStockProduct(item.product.sku, item.product.slug) ? "inStock" : "preOrder") === stock
+              (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+                ? "inStock"
+                : "preOrder") === stock
           );
         }
         if (hasPriceFilter) {
@@ -2065,7 +2080,10 @@ export async function GET(request: NextRequest) {
       "Cache-Control",
       session ? "private, no-store" : "public, s-maxage=60, stale-while-revalidate=300"
     );
-    response.headers.set("Server-Timing", [...timings, `total;dur=${(performance.now() - startedAt).toFixed(1)}`].join(", "));
+    response.headers.set(
+      "Server-Timing",
+      [...timings, `total;dur=${(performance.now() - startedAt).toFixed(1)}`].join(", ")
+    );
     return response;
   } catch (error: any) {
     console.error("[Stock Search API Error]", error);

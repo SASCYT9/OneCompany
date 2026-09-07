@@ -1,0 +1,16 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 1750,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:required_term_missing:coilover": 1,
+    "body-segment:required_term_missing:rebound": 1,
+    "body-segment:unit_missing:mm": 1,
+    "body:required_term_missing:rebound": 1,
+    "body:unit_missing:mm": 1
+  },
+  "databaseWrites": 0
+}

@@ -110,6 +110,13 @@ export type ShopCatalogProjectionSource = {
   sharedSearchTerms?: readonly string[];
   variants?: readonly ShopCatalogProjectionVariantInput[];
   compatibilityPolicies?: readonly ShopCatalogV2CompatibilityPolicy[];
+  /** Only an exact canonical clause may attach an ENGINE identity. */
+  canonicalPowertrains?: readonly {
+    variantId: string | null;
+    clauseId: string;
+    code: string;
+    powertrainId: string;
+  }[];
 };
 
 export type ShopCatalogProjectionMediaRecord = {
@@ -190,6 +197,7 @@ export type ShopCatalogProjectionClauseRecord = {
 
 export type ShopCatalogProjectionConstraintValue =
   | { kind: "text"; text: string }
+  | { kind: "powertrain"; text: string; powertrainId: string }
   | { kind: "number"; number: number }
   | { kind: "boolean"; boolean: boolean }
   | { kind: "year_range"; yearFrom: number | null; yearTo: number | null };
@@ -246,7 +254,8 @@ function requiredText(
   maxLength: number | null = SHOP_CATALOG_PROJECTION_LIMITS.identity
 ) {
   if (typeof value !== "string" || !value.trim()) fail(`${field} is required`);
-  if (maxLength !== null && value.length > maxLength) fail(`${field} exceeds ${maxLength} characters`);
+  if (maxLength !== null && value.length > maxLength)
+    fail(`${field} exceeds ${maxLength} characters`);
   return value;
 }
 
@@ -382,6 +391,18 @@ function normalizedConstraintValue(
   if (isYearRange(value)) {
     return { kind: "year_range", yearFrom: value.from, yearTo: value.to };
   }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "kind" in value &&
+    value.kind === "powertrain"
+  ) {
+    return {
+      kind: "powertrain",
+      text: requiredText(value.code, field, SHOP_CATALOG_PROJECTION_LIMITS.searchTerm),
+      powertrainId: requiredText(value.powertrainId, `${field}.powertrainId`),
+    };
+  }
   if (typeof value === "string") {
     return {
       kind: "text",
@@ -392,11 +413,13 @@ function normalizedConstraintValue(
     if (!Number.isFinite(value)) fail(`${field} must be finite`);
     return { kind: "number", number: value };
   }
-  return { kind: "boolean", boolean: value };
+  if (typeof value === "boolean") return { kind: "boolean", boolean: value };
+  return fail(`${field} has an unsupported compatibility value`);
 }
 
 function constraintValueKey(value: ShopCatalogProjectionConstraintValue) {
   if (value.kind === "text") return `0:${value.text}`;
+  if (value.kind === "powertrain") return `0:${value.text}:${value.powertrainId}`;
   if (value.kind === "number") return `1:${value.number}`;
   if (value.kind === "boolean") return `2:${value.boolean ? 1 : 0}`;
   return `3:${value.yearFrom ?? ""}:${value.yearTo ?? ""}`;
@@ -447,6 +470,12 @@ function normalizedCompatibility(input: {
   sourceVersion: string;
   variantIds: ReadonlySet<string>;
   policies: readonly ShopCatalogV2CompatibilityPolicy[];
+  canonicalPowertrains: readonly {
+    variantId: string | null;
+    clauseId: string;
+    code: string;
+    powertrainId: string;
+  }[];
 }) {
   if (input.policies.length > SHOP_CATALOG_PROJECTION_LIMITS.policiesPerProduct) {
     fail(
@@ -459,7 +488,45 @@ function normalizedCompatibility(input: {
   const clauses: ShopCatalogProjectionClauseRecord[] = [];
   const constraints: ShopCatalogProjectionConstraintRecord[] = [];
 
-  for (const policy of input.policies) {
+  const resolvePowertrain = (variantId: string | null, clauseId: string, code: string) => {
+    const found = input.canonicalPowertrains.filter(
+      (item) =>
+        item.variantId === variantId &&
+        item.clauseId === clauseId &&
+        item.code.toLocaleLowerCase("en-US") === code.toLocaleLowerCase("en-US")
+    );
+    if (new Set(found.map((item) => item.powertrainId)).size > 1)
+      fail(`conflicting canonical powertrains for ${variantId ?? "$product"}/${code}`);
+    return found[0] ?? null;
+  };
+  for (const rawPolicy of input.policies) {
+    const policy = {
+      ...rawPolicy,
+      clauses: rawPolicy.clauses.map((clause) => ({
+        ...clause,
+        constraints: clause.constraints.map((constraint) => {
+          if (constraint.dimension !== "engine" || constraint.state !== "EXACT") return constraint;
+          return {
+            ...constraint,
+            values: constraint.values.map((value) => {
+              if (typeof value !== "string") return value;
+              const powertrain = resolvePowertrain(
+                rawPolicy.target.variantId?.trim() || null,
+                clause.id,
+                value
+              );
+              return powertrain
+                ? {
+                    kind: "powertrain" as const,
+                    code: powertrain.code,
+                    powertrainId: powertrain.powertrainId,
+                  }
+                : value;
+            }),
+          };
+        }),
+      })),
+    } satisfies ShopCatalogV2CompatibilityPolicy;
     const errors = validateShopCatalogV2CompatibilityPolicy(policy);
     if (errors.length) fail(`compatibility policy is invalid: ${errors.join("; ")}`);
     if (policy.target.productId !== input.productId) {
@@ -631,7 +698,8 @@ function buildSearchText(input: {
   compatibilityConstraints: readonly ShopCatalogProjectionConstraintRecord[];
 }) {
   const compatibilityTerms = input.compatibilityConstraints.flatMap((constraint) => {
-    if (constraint.value?.kind === "text") return [constraint.value.text];
+    if (constraint.value?.kind === "text" || constraint.value?.kind === "powertrain")
+      return [constraint.value.text];
     if (constraint.value?.kind === "number") return [String(constraint.value.number)];
     if (constraint.value?.kind === "year_range") {
       return [constraint.value.yearFrom, constraint.value.yearTo]
@@ -694,7 +762,12 @@ export function buildShopCatalogProjection(
   const primaryMedia = normalizedPrimaryMedia(source.primaryMedia);
   const tags = uniqueSortedText(source.tags, "tags", undefined, null);
   const collectionKeys = uniqueSortedText(source.collectionKeys, "collectionKeys", undefined, null);
-  const sharedSearchTerms = uniqueSortedText(source.sharedSearchTerms, "sharedSearchTerms", undefined, null);
+  const sharedSearchTerms = uniqueSortedText(
+    source.sharedSearchTerms,
+    "sharedSearchTerms",
+    undefined,
+    null
+  );
   const variants = source.variants ?? [];
   const normalizedVariantResult = normalizedVariants(productId, sourceVersion, sku, variants);
   const compatibility = normalizedCompatibility({
@@ -702,6 +775,7 @@ export function buildShopCatalogProjection(
     sourceVersion,
     variantIds: normalizedVariantResult.variantIds,
     policies: source.compatibilityPolicies ?? [],
+    canonicalPowertrains: source.canonicalPowertrains ?? [],
   });
   const compatibilityHash = hashValue({
     policies: compatibility.policies,
@@ -712,16 +786,8 @@ export function buildShopCatalogProjection(
   const projections = SHOP_CATALOG_PROJECTION_LOCALES.map((locale) => {
     const localeInput = source.locales[locale];
     if (!localeInput) fail(`locales.${locale} is required`);
-    const title = requiredText(
-      localeInput.title,
-      `locales.${locale}.title`,
-      null
-    );
-    const cardCopy = optionalText(
-      localeInput.cardCopy,
-      `locales.${locale}.cardCopy`,
-      null
-    );
+    const title = requiredText(localeInput.title, `locales.${locale}.title`, null);
+    const cardCopy = optionalText(localeInput.cardCopy, `locales.${locale}.cardCopy`, null);
     const localeSearchTerms = uniqueSortedText(
       localeInput.searchTerms,
       `locales.${locale}.searchTerms`,

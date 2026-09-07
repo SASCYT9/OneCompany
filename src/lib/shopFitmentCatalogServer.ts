@@ -1,3 +1,4 @@
+import { boundedCatalogPages } from "@/lib/boundedCatalogPages";
 import type { ShopMoneySet, ShopProduct } from "@/lib/shopCatalog";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
@@ -26,92 +27,104 @@ const money = (
  */
 export async function getShopFitmentCatalogProducts(): Promise<ShopProduct[]> {
   const products: ShopProduct[] = [];
-  let cursor: string | undefined;
-
-  while (true) {
-    const rows = await prisma.shopProduct.findMany({
-      where: { isPublished: true, status: "ACTIVE" },
-      orderBy: { id: "asc" },
-      take: PAGE_SIZE,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      select: {
-        id: true,
-        slug: true,
-        sku: true,
-        scope: true,
-        brand: true,
-        vendor: true,
-        productType: true,
-        tags: true,
-        titleUa: true,
-        titleEn: true,
-        categoryUa: true,
-        categoryEn: true,
-        shortDescUa: true,
-        shortDescEn: true,
-        collectionUa: true,
-        collectionEn: true,
-        stock: true,
-        priceEur: true,
-        priceUsd: true,
-        priceUah: true,
-        priceEurEurope: true,
-        priceEurB2b: true,
-        priceUsdB2b: true,
-        priceUahB2b: true,
-        compareAtEur: true,
-        compareAtUsd: true,
-        compareAtUah: true,
-        compareAtEurB2b: true,
-        compareAtUsdB2b: true,
-        compareAtUahB2b: true,
-        image: true,
-        collections: {
-          select: {
-            sortOrder: true,
-            collection: {
-              select: {
-                id: true,
-                handle: true,
-                titleUa: true,
-                titleEn: true,
-                brand: true,
-                isUrban: true,
+  // Keep each rich response capped at 250 rows, while overlapping four reads.
+  // ID windows are keyset-paginated; avoid increasingly expensive OFFSET scans.
+  const pages = boundedCatalogPages({
+    pageSize: PAGE_SIZE,
+    concurrency: 4,
+    readIds: async (after, limit) => {
+      const rows = await prisma.shopProduct.findMany({
+        where: { isPublished: true, status: "ACTIVE", ...(after ? { id: { gt: after } } : {}) },
+        orderBy: { id: "asc" },
+        take: limit,
+        select: { id: true },
+      });
+      return rows.map((row) => row.id);
+    },
+    readRows: (ids) =>
+      prisma.shopProduct.findMany({
+        where: { id: { in: ids }, isPublished: true, status: "ACTIVE" },
+        orderBy: { id: "asc" },
+        select: {
+          id: true,
+          slug: true,
+          sku: true,
+          scope: true,
+          brand: true,
+          vendor: true,
+          productType: true,
+          tags: true,
+          titleUa: true,
+          titleEn: true,
+          categoryUa: true,
+          categoryEn: true,
+          shortDescUa: true,
+          shortDescEn: true,
+          collectionUa: true,
+          collectionEn: true,
+          stock: true,
+          priceEur: true,
+          priceUsd: true,
+          priceUah: true,
+          priceEurEurope: true,
+          priceEurB2b: true,
+          priceUsdB2b: true,
+          priceUahB2b: true,
+          compareAtEur: true,
+          compareAtUsd: true,
+          compareAtUah: true,
+          compareAtEurB2b: true,
+          compareAtUsdB2b: true,
+          compareAtUahB2b: true,
+          image: true,
+          collections: {
+            select: {
+              sortOrder: true,
+              collection: {
+                select: {
+                  id: true,
+                  handle: true,
+                  titleUa: true,
+                  titleEn: true,
+                  brand: true,
+                  isUrban: true,
+                },
               },
             },
           },
-        },
-        variants: {
-          orderBy: { position: "asc" },
-          select: {
-            id: true,
-            title: true,
-            sku: true,
-            position: true,
-            option1Value: true,
-            option2Value: true,
-            option3Value: true,
-            inventoryQty: true,
-            image: true,
-            isDefault: true,
-            priceEur: true,
-            priceUsd: true,
-            priceUah: true,
-            priceEurEurope: true,
-            priceEurB2b: true,
-            priceUsdB2b: true,
-            priceUahB2b: true,
-            compareAtEur: true,
-            compareAtUsd: true,
-            compareAtUah: true,
-            compareAtEurB2b: true,
-            compareAtUsdB2b: true,
-            compareAtUahB2b: true,
+          variants: {
+            orderBy: { position: "asc" },
+            select: {
+              id: true,
+              title: true,
+              sku: true,
+              position: true,
+              option1Value: true,
+              option2Value: true,
+              option3Value: true,
+              inventoryQty: true,
+              image: true,
+              isDefault: true,
+              priceEur: true,
+              priceUsd: true,
+              priceUah: true,
+              priceEurEurope: true,
+              priceEurB2b: true,
+              priceUsdB2b: true,
+              priceUahB2b: true,
+              compareAtEur: true,
+              compareAtUsd: true,
+              compareAtUah: true,
+              compareAtEurB2b: true,
+              compareAtUsdB2b: true,
+              compareAtUahB2b: true,
+            },
           },
         },
-      },
-    });
+      }),
+  });
 
+  for await (const rows of pages) {
     for (const row of rows) {
       products.push({
         id: row.id,
@@ -167,9 +180,6 @@ export async function getShopFitmentCatalogProducts(): Promise<ShopProduct[]> {
         })),
       });
     }
-
-    if (rows.length < PAGE_SIZE) break;
-    cursor = rows.at(-1)?.id;
   }
 
   return products;

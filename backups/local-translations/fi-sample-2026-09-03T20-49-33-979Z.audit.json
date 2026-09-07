@@ -1,0 +1,23 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 223,
+  "offset": 0,
+  "passed": 204,
+  "reviewRequired": 19,
+  "issueCounts": {
+    "body-segment:english_contains_cyrillic": 1,
+    "body-segment:numbers_changed": 14,
+    "body-segment:required_term_missing:lowering": 1,
+    "body-segment:technical_tokens_missing:B9": 1,
+    "body-segment:technical_tokens_missing:C8": 1,
+    "body-segment:technical_tokens_missing:F8": 1,
+    "body-segment:technical_tokens_missing:I3": 1,
+    "body:duplicate_word": 1,
+    "body:english_contains_cyrillic": 1,
+    "body:numbers_changed": 14,
+    "body:required_term_missing:lowering": 1,
+    "title:english_contains_cyrillic": 3
+  },
+  "databaseWrites": 0
+}

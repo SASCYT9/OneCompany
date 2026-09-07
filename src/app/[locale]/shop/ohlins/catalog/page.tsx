@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
-import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getOhlinsProductsServer } from "@/lib/shopCatalogServer";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
@@ -47,7 +47,7 @@ export async function renderOhlinsCatalogPage({ params }: Props, requestedPage =
 
   const [settingsRuntime, products] = await Promise.all([
     getPublicShopSettingsRuntime(),
-    getShopProductsServer(),
+    getOhlinsProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);

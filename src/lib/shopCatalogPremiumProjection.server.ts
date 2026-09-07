@@ -31,6 +31,7 @@ import {
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 
 const PAGE_SIZE = 24;
 
@@ -78,8 +79,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const locale = params.get("locale") === "en" ? "en" : "ua";
   const page = positiveInteger(params.get("page"), 1);
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
-  const yearText = clean(params.get("year"), 4);
-  const year = yearText && /^\d{4}$/.test(yearText) ? Number(yearText) : null;
+  const vehiclePlan = buildShopCatalogVehicleSearchPlan(params);
   let minPrice = nonNegativeAmount(params.get("minPrice"));
   let maxPrice = nonNegativeAmount(params.get("maxPrice"));
   if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
@@ -90,6 +90,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     requestedCurrency === "EUR" || requestedCurrency === "UAH" ? requestedCurrency : "USD";
   const requestedSort = params.get("sort");
   const requestedStock = params.get("stock") === "inStock" ? "inStock" : null;
+  // Vehicle resolution is independent of prices, warehouse stock and session.
+  // Start it immediately so their database round-trips do not add to its latency.
+  const vehicleProductIdsPromise = measure(
+    "vehicle",
+    vehiclePlan.canonical
+      ? Promise.resolve(null)
+      : resolveLegacyVehicleProductIds(vehiclePlan.constraints)
+  );
   const warehouseProductsPromise = measure(
     "warehouse",
     prisma.shopProduct.findMany({
@@ -107,10 +115,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       select: { id: true, sku: true, slug: true },
     })
   );
-  const [settingsRecord, warehouseProducts, session] = await Promise.all([
+  const [settingsRecord, warehouseProducts, session, vehicleProductIds] = await Promise.all([
     measure("settings", getOrCreateShopSettings(prisma)),
     warehouseProductsPromise,
     measure("session", getCurrentShopCustomerSession()),
+    vehicleProductIdsPromise,
   ]);
   const settings = getShopSettingsRuntime(settingsRecord);
   const useEuropePrice = isEuropePricingCountry(params.get("country"));
@@ -135,12 +144,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     scope: params.get("scope")?.trim().toLowerCase() === "moto" ? "moto" : null,
     brand: firstBrand(params),
     category: clean(params.get("category")),
-    make: clean(params.get("make")),
-    model: clean(params.get("model")),
-    generation: clean(params.get("chassis") ?? params.get("generation")),
-    year: year && year >= 1886 && year <= 2200 ? year : null,
-    engine: clean(params.get("engine")),
-    fuel: clean(params.get("fuel")),
+    ...vehiclePlan.constraints,
     minPrice,
     maxPrice,
     priceCurrency: useEuropePrice ? "EUR" : priceCurrency,
@@ -185,16 +189,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // Until every historical brand is backfilled into compatibility policies,
   // preserve the complete product-owned vehicle coverage. Engine/fuel remain
   // projection-native because legacy evidence does not model them reliably.
-  if (query.make || query.model || query.generation || query.year) {
-    const vehicleProductIds = await measure(
-      "vehicle",
-      resolveLegacyVehicleProductIds({
-        make: query.make,
-        model: query.model,
-        generation: query.generation,
-        year: query.year,
-      })
-    );
+  if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
     if (vehicleProductIds) {
       const effectiveVehicleProductIds =
         canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)

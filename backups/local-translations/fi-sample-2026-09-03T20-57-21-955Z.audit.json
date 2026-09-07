@@ -1,0 +1,13 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 223,
+  "offset": 0,
+  "passed": 222,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:required_term_missing:lowering": 1,
+    "body:required_term_missing:lowering": 1
+  },
+  "databaseWrites": 0
+}

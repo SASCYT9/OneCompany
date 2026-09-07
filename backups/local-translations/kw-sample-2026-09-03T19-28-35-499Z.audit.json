@@ -1,0 +1,19 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 2500,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:numbers_changed": 1,
+    "body-segment:required_term_missing:coilover": 1,
+    "body-segment:required_term_missing:rebound": 1,
+    "body-segment:technical_tokens_missing:4600": 1,
+    "body:numbers_changed": 1,
+    "body:required_term_missing:rebound": 1,
+    "body:technical_tokens_missing:4600": 1,
+    "title:required_term_missing:coilover": 1
+  },
+  "databaseWrites": 0
+}

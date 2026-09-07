@@ -1,0 +1,11 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body:duplicate_word": 1
+  },
+  "databaseWrites": 0
+}

@@ -1,0 +1,10 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 250,
+  "passed": 1,
+  "reviewRequired": 0,
+  "issueCounts": {},
+  "databaseWrites": 0
+}

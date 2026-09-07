@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -66,12 +66,7 @@ import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { getUrbanCollectionPageConfig } from "../data/urbanCollectionPages.server";
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
-import {
-  extractProductFitment,
-  findCrossShopFitmentMatches,
-  isExcludedFromCrossShop,
-} from "@/lib/crossShopFitment";
-import CrossShopFitment from "./CrossShopFitment";
+import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -432,20 +427,10 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   const product = await requireCanonicalStorefrontProduct({ locale, slug, mode });
 
-  // ONLY Brabus + Burger layouts embed the `relatedProducts` array (lines
-  // 787, 798 below — they have custom-branded "recommended combinations"
-  // sections inside their layouts). Every other PDP mode that flows through
-  // this template (akrapovic, csf, adro, ipe, ohlins, girodisc, forged,
-  // racechip-via-default, urban, do88, generic) renders the default inline
-  // layout, which does NOT show related products at all.
-  //
-  // So `pickRelatedProductsPool` (loads 350-1000 products through
-  // mapDbToCatalog with Urban/Brabus/Akrapovic editorial copy generators)
-  // was running unconditionally for data ~80% of PDPs threw away — cold
-  // Lambda spent 3-8 s producing rows nothing rendered. Gate it.
+  // Only Brabus renders same-brand related products. Burger's layout does
+  // not consume them; fetching its entire brand catalog blocked the PDP.
   const isBrabusMode = mode === "brabus" || product.brand === "Brabus";
-  const isBurgerMode = mode === "burger" || product.brand === "Burger Motorsports";
-  const needsRelated = isBrabusMode || isBurgerMode;
+  const needsRelated = isBrabusMode;
   const allProducts: ShopProduct[] = needsRelated
     ? await pickRelatedProductsPool(mode, product.brand)
     : [];
@@ -753,15 +738,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
         : findRelatedProducts(product, allProducts, 3);
   const relatedProducts = relatedProductsRaw;
 
-  // Cross-shop fitment matches — show parts from OTHER stores that fit the
-  // same vehicle (e.g. ADRO M3 G80 bumper → iPE / Akrapovic / Ohlins / CSF
-  // matches for the same chassis). Suppressed for Urban / Brabus / Turn14.
-  //
-  // The match computation iterates the full ~30k cross-brand catalog in JS
-  // and used to block the main PDP first-byte by ~1 s. It's now deferred to
-  // a streaming Suspense boundary at the bottom of the page (see
-  // CrossShopFitmentStreamingSection below), so the product info renders
-  // immediately and the "also fits" widget streams in shortly after.
+  // Recommendations load near the viewport, outside the ISR render.
   const crossShopFitment = isExcludedFromCrossShop(product) ? null : extractProductFitment(product);
 
   const baseUrl =
@@ -846,7 +823,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           viewerContext={viewerContext}
           rates={rates}
           defaultVariant={defaultVariant}
-          relatedProducts={relatedProducts}
         />
       ) : (
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
@@ -1092,25 +1068,17 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
               </ShopProductVariantPurchaseSection>
             </div>
           </section>
-
         </div>
       )}
 
-      {/* Cross-shop fitment matches — sits below the main PDP layout for every
-          brand mode (Burger included). Suppressed for Brabus + Urban + Turn14
-          since `findCrossShopFitmentMatches` excludes their products both as
-          source and as candidates. Streams independently so the main PDP
-          first-byte isn't blocked by the cross-brand catalog scan. */}
       {crossShopFitment ? (
-        <Suspense fallback={null}>
-          <CrossShopFitmentStreamingSection product={product} locale={resolvedLocale} />
-        </Suspense>
+        <CrossShopFitmentDeferredSection product={product} locale={resolvedLocale} />
       ) : null}
     </div>
   );
 }
 
-async function CrossShopFitmentStreamingSection({
+function CrossShopFitmentDeferredSection({
   product,
   locale,
 }: {
@@ -1121,16 +1089,5 @@ async function CrossShopFitmentStreamingSection({
   const fitment = extractProductFitment(product);
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
-  const allProducts = await getShopProductsServer();
-  const groups = findCrossShopFitmentMatches(product, allProducts, {
-    perBrand: 3,
-    totalLimit: 24,
-  });
-  if (!groups.length) return null;
-
-  return (
-    <div className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-      <CrossShopFitment locale={locale} fitment={fitment} groups={groups} />
-    </div>
-  );
+  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
 }

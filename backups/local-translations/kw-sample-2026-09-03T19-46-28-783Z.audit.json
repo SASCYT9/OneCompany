@@ -1,0 +1,15 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 1200,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:english_contains_cyrillic": 1,
+    "body-segment:required_term_missing:coilover": 1,
+    "body-segment:unit_missing:mm": 1,
+    "body:english_contains_cyrillic": 1
+  },
+  "databaseWrites": 0
+}

@@ -1,0 +1,11 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:required_term_missing:stainless_steel": 1
+  },
+  "databaseWrites": 0
+}

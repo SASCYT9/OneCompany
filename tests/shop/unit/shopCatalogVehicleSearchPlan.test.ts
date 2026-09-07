@@ -1,0 +1,30 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { buildShopCatalogVehicleSearchPlan } from "../../../src/lib/shopCatalogVehicleSearchPlan";
+
+test("engine and fuel queries retain every vehicle constraint on the canonical path", () => {
+  for (const extra of ["engine=S68", "fuel=petrol", "engine=S68&fuel=hybrid"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(
+      new URLSearchParams(`make=BMW&model=M5&chassis=G90&year=2025&${extra}`)
+    );
+    assert.equal(plan.canonical, true);
+    assert.equal(plan.constraints.make, "BMW");
+    assert.equal(plan.constraints.model, "M5");
+    assert.equal(plan.constraints.generation, "G90");
+    assert.equal(plan.constraints.year, 2025);
+  }
+});
+
+test("the coverage bridge remains available for broad vehicle selection", () => {
+  assert.equal(
+    buildShopCatalogVehicleSearchPlan(new URLSearchParams("make=BMW&model=M5&generation=G90"))
+      .canonical,
+    false
+  );
+  const plan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams("scope=moto&make=BMW&model=S+1000+RR&engine=999cc&year=9999")
+  );
+  assert.equal(plan.canonical, true);
+  assert.equal(plan.constraints.model, "S 1000 RR");
+  assert.equal(plan.constraints.year, null);
+});

@@ -29,7 +29,7 @@ import { extractVehicleYearRanges, type VehicleYearRange } from "@/lib/shopVehic
 
 /* ── Excluded brands (no recommendations to or from these) ───── */
 
-const EXCLUDED_BRAND_TOKENS = ["urban", "brabus", "turn14", "turn 14"];
+export const EXCLUDED_CROSS_SHOP_BRAND_TOKENS = ["urban", "brabus", "turn14", "turn 14"] as const;
 
 export function isExcludedFromCrossShop(product: Pick<ShopProduct, "brand" | "vendor">) {
   const brand = String(product.brand ?? "")
@@ -38,7 +38,9 @@ export function isExcludedFromCrossShop(product: Pick<ShopProduct, "brand" | "ve
   const vendor = String(product.vendor ?? "")
     .trim()
     .toLowerCase();
-  return EXCLUDED_BRAND_TOKENS.some((token) => brand.includes(token) || vendor.includes(token));
+  return EXCLUDED_CROSS_SHOP_BRAND_TOKENS.some(
+    (token) => brand.includes(token) || vendor.includes(token)
+  );
 }
 
 /* ── Chassis-code dictionary (shared across brands) ───────────── */
@@ -3839,6 +3841,37 @@ export function findCrossShopFitmentMatches(
   allProducts: ReadonlyArray<ShopProduct>,
   options: { perBrand?: number; totalLimit?: number; minScore?: number } = {}
 ): CrossShopGroup[] {
+  return matchCrossShopFitment(currentProduct, allProducts, options, extractProductFitment);
+}
+
+/** Reuse extracted fitment for immutable catalog snapshots in a server process.
+ * Replacement product objects get fresh fitment; WeakMap does not retain expired
+ * catalogs. Scores, prices, exclusions and grouping are still evaluated per call.
+ * Keep the uncached public matcher for callers that edit objects in place.
+ */
+export function createCachedCrossShopFitmentMatcher() {
+  const fitments = new WeakMap<ShopProduct, Fitment>();
+  const getFitment = (product: ShopProduct): Fitment => {
+    const cached = fitments.get(product);
+    if (cached) return cached;
+    const fitment = extractProductFitment(product);
+    fitments.set(product, fitment);
+    return fitment;
+  };
+
+  return (
+    currentProduct: ShopProduct,
+    allProducts: ReadonlyArray<ShopProduct>,
+    options: { perBrand?: number; totalLimit?: number; minScore?: number } = {}
+  ): CrossShopGroup[] => matchCrossShopFitment(currentProduct, allProducts, options, getFitment);
+}
+
+function matchCrossShopFitment(
+  currentProduct: ShopProduct,
+  allProducts: ReadonlyArray<ShopProduct>,
+  options: { perBrand?: number; totalLimit?: number; minScore?: number },
+  getFitment: (product: ShopProduct) => Fitment
+): CrossShopGroup[] {
   // Default minScore = SCORE_MODEL_TOKEN: require at least a head-token model
   // hit OR a chassis match. Make-only (BMW + BMW) doesn't qualify, since
   // that pulls in unrelated parts for any BMW.
@@ -3846,7 +3879,7 @@ export function findCrossShopFitmentMatches(
 
   if (isExcludedFromCrossShop(currentProduct)) return [];
 
-  const targetFitment = extractProductFitment(currentProduct);
+  const targetFitment = getFitment(currentProduct);
   if (
     !targetFitment.make &&
     targetFitment.models.length === 0 &&
@@ -3870,7 +3903,7 @@ export function findCrossShopFitmentMatches(
       .toLowerCase();
     if (!candidateBrandKey || candidateBrandKey === currentBrandKey) continue;
 
-    const candidateFitment = extractProductFitment(candidate);
+    const candidateFitment = getFitment(candidate);
     const score = scoreMatch(targetFitment, candidateFitment);
     if (score < minScore) continue;
 

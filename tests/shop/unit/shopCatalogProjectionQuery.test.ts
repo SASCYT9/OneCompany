@@ -20,14 +20,21 @@ registerHooks({
 const queryModule = import("../../../src/lib/shopCatalogProjectionQuery.server");
 
 test("all selectable production models keep supplier aliases in both SQL search paths", async () => {
-  const { buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql } = await queryModule;
+  const { buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql } =
+    await queryModule;
   for (const { make, models } of productionModels) {
     for (const raw of models) {
       for (const model of canonicalizeVehicleModels(make, [raw])) {
-        for (const build of [buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql]) {
+        for (const build of [
+          buildShopCatalogProjectionVehicleQuerySql,
+          buildShopCatalogProjectionOrderedQuerySql,
+        ]) {
           const query = build({ locale: "ua", make, model, order: "price_asc" });
           assert.ok(query);
-          assert.ok(query.values.includes(vehicleModelKey(raw)), `${make} ${raw} remains reachable from ${model}`);
+          assert.ok(
+            query.values.includes(vehicleModelKey(raw)),
+            `${make} ${raw} remains reachable from ${model}`
+          );
           assert.match(query.sql, /compatibility_constraint\."clauseKey" = clause\."clauseKey"/);
         }
       }
@@ -36,8 +43,14 @@ test("all selectable production models keep supplier aliases in both SQL search 
 });
 
 test("ORM and cascading facets use the same aliases as catalog results", async () => {
-  const { buildShopCatalogProjectionWhere, buildShopCatalogProjectionFacetQuerySql } = await queryModule;
-  const input = { locale: "ua" as const, brand: "Eventuri", make: "Mercedes-Benz", model: "AMG G 63" };
+  const { buildShopCatalogProjectionWhere, buildShopCatalogProjectionFacetQuerySql } =
+    await queryModule;
+  const input = {
+    locale: "ua" as const,
+    brand: "Eventuri",
+    make: "Mercedes-Benz",
+    model: "AMG G 63",
+  };
   const where = JSON.stringify(buildShopCatalogProjectionWhere(input));
   assert.ok(where.includes("G63 AMG"));
   const facets = buildShopCatalogProjectionFacetQuerySql(input);
@@ -208,24 +221,50 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
   assert.equal(query.values.includes("S58"), true);
 });
 
-test("progressive facet SQL never applies a later vehicle field to an earlier facet", async () => {
+test("sparse vehicle selection filters product facets without unlocking later vehicle levels", async () => {
   const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
   const query = buildShopCatalogProjectionFacetQuerySql({
     locale: "en",
     engine: "S58",
     fuel: "petrol",
   });
-  // A sparse deep link cannot unlock expensive later aggregations. Only the
-  // Brand and category are cheap projection facets; vehicle facets remain locked.
-  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length, 1);
-  assert.equal(query.values.includes("S58"), false);
-  assert.equal(query.values.includes("petrol"), false);
+  // Brand/category describe matching products; initial make counters remain
+  // available so a sparse deep link can still be completed.
+  assert.equal((query.sql.match(/UNION ALL/g) ?? []).length, 2);
+  assert.equal(query.values.includes("S58"), true);
+  assert.equal(query.values.includes("petrol"), true);
+  assert.doesNotMatch(query.sql.split("UNION ALL").at(-1)!, /ShopCatalogProjectionConstraint/);
+});
+
+test("default vehicle and ordered reads both preserve price and product restrictions", async () => {
+  const { buildShopCatalogProjectionVehicleQuerySql, buildShopCatalogProjectionOrderedQuerySql } =
+    await queryModule;
+  for (const build of [
+    buildShopCatalogProjectionVehicleQuerySql,
+    buildShopCatalogProjectionOrderedQuerySql,
+  ]) {
+    const sql = build({
+      locale: "ua",
+      make: "BMW",
+      productIds: ["allowed"],
+      excludeProductIds: ["excluded"],
+      minPrice: 42,
+      maxPrice: 500,
+      order: "price_asc",
+    });
+    assert.ok(sql);
+    for (const value of ["allowed", "excluded", 42, 500]) assert.ok(sql.values.includes(value));
+    assert.match(sql.sql, /NOT IN/);
+    assert.match(sql.sql, /projection\."isPublished" = true/);
+  }
 });
 
 test("progressive facets unlock exactly one level at a time", async () => {
   const { buildShopCatalogProjectionFacetQuerySql } = await queryModule;
   const cases = [
-    [{ locale: "ua" as const }, 2],
+    [{ locale: "ua" as const }, 3],
+    [{ locale: "ua" as const, make: "BMW" }, 4],
+    [{ locale: "ua" as const, make: "BMW", model: "M5" }, 8],
     [{ locale: "ua" as const, brand: "Eventuri" }, 3],
     [{ locale: "ua" as const, brand: "Eventuri", make: "BMW" }, 4],
     [{ locale: "ua" as const, brand: "Eventuri", make: "BMW", model: "M2" }, 8],

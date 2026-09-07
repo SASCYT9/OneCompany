@@ -1,0 +1,19 @@
+{
+  "model": "translategemma:12b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 1200,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:numbers_changed": 1,
+    "body-segment:required_term_missing:coilover": 1,
+    "body-segment:required_term_missing:lowering": 1,
+    "body-segment:unit_missing:mm": 1,
+    "body:numbers_changed": 1,
+    "body:required_term_missing:coilover": 1,
+    "title:numbers_changed": 1,
+    "title:technical_tokens_missing:1.6|AW1|KJ1": 1
+  },
+  "databaseWrites": 0
+}

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Instagram, Youtube } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
+import GlobalPresence from "./GlobalPresence";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
 const TelegramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -126,15 +127,13 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
         ref={scopeRef}
         className="relative mx-auto max-w-7xl px-6 pt-12 pb-8 sm:px-8 sm:pt-20 sm:pb-12 lg:px-12"
       >
-        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-foreground/10 pt-12 sm:pt-16 text-center lg:text-left">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 lg:grid-cols-[1.1fr_0.95fr_0.7fr_1fr] lg:gap-x-10 items-start text-left">
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="col-span-2 lg:col-span-1 space-y-6">
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
-              <Logo tone="auto" className="w-40 mx-auto lg:mx-0" />
+              <Logo tone="auto" className="w-40" />
             </Link>
-            <p
-              className={`leading-relaxed text-foreground/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}
-            >
+            <p className={`leading-relaxed text-foreground/50 max-w-xs ${typography.bodySmall}`}>
               {t("description")}
             </p>
 
@@ -143,14 +142,14 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/50 font-semibold">
                 {locale === "ua" ? "Зв'язок у Telegram" : "Telegram contact"}
               </p>
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+              <div className="flex flex-wrap gap-3 justify-start">
                 <motion.a
                   href={TG_AUTO_HREF}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={locale === "ua" ? "Telegram — Авто" : "Telegram — Auto"}
                   whileHover={{ y: -2 }}
-                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-4 py-2 text-sm text-foreground/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-foreground"
+                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-3 py-2 text-xs text-foreground/85 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-foreground"
                 >
                   <TelegramIcon className="h-4 w-4 text-sky-400" />
                   <span className="font-semibold">{locale === "ua" ? "Авто" : "Auto"}</span>
@@ -164,7 +163,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                   rel="noreferrer"
                   aria-label={locale === "ua" ? "Telegram — Мото" : "Telegram — Moto"}
                   whileHover={{ y: -2 }}
-                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-4 py-2 text-sm text-foreground/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-foreground"
+                  className="group inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/6 px-3 py-2 text-xs text-foreground/85 transition-colors hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-foreground"
                 >
                   <TelegramIcon className="h-4 w-4 text-orange-400" />
                   <span className="font-semibold">{locale === "ua" ? "Мото" : "Moto"}</span>
@@ -175,7 +174,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               </div>
             </div>
 
-            <div className="flex gap-4 pt-2 justify-center lg:justify-start">
+            <div className="flex gap-4 pt-2 justify-start">
               {socials.map(({ icon: Icon, href, label }) => (
                 <motion.a
                   key={label}
@@ -193,7 +192,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
           </div>
 
           {/* Links Columns */}
-          <div className="lg:col-span-2 lg:col-start-6 space-y-6">
+          <div className="space-y-6">
             <h2
               className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
@@ -203,7 +202,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.body}`}
+                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.bodySmall}`}
                     href={link.href}
                     aria-label={`Navigate to ${link.name} page`}
                   >
@@ -214,7 +213,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
             </ul>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             <h2
               className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
             >
@@ -224,7 +223,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.body}`}
+                    className={`text-foreground/70 transition-colors hover:text-foreground hover:underline decoration-foreground/30 underline-offset-4 ${typography.bodySmall}`}
                     href={link.href}
                     aria-label={`Navigate to ${link.name} tuning section`}
                   >
@@ -235,36 +234,14 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
             </ul>
           </div>
 
-          <div className="lg:col-span-3 space-y-6">
-            <h2
-              className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-foreground/70`}
-            >
-              {t("headquarters")}
-            </h2>
-            <div className={`space-y-4 text-foreground/70 ${typography.body}`}>
-              <p className="leading-relaxed">
-                {t("addressLine1")}
-                <br />
-                {t("addressLine2")}
-                <br />
-                {t("addressLine3")}
-              </p>
-              <div className="space-y-2">
-                <a
-                  href="tel:+380660771700"
-                  className="block transition-colors hover:text-foreground"
-                >
-                  +380 66 077 17 00
-                </a>
-                <p className="text-foreground/60">{t("workingHours")}</p>
-              </div>
-            </div>
+          <div className="col-span-2 lg:col-span-1">
+            <GlobalPresence locale={locale} />
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div
-          className={`mt-12 sm:mt-20 flex flex-col border-t border-foreground/5 pt-8 gap-8 ${typography.body}`}
+          className={`mt-10 sm:mt-12 flex flex-col border-t border-foreground/10 pt-6 gap-6 text-xs leading-relaxed`}
         >
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-foreground/60">
             <div className="flex flex-col items-center lg:items-start gap-2">

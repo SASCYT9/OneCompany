@@ -34,9 +34,14 @@ test("unified stock search loads generated storefront products before Prisma in 
 test("fitment selectors skip canonical Prisma coverage in local snapshot mode", () => {
   assert.match(
     fitmentRoute,
-    /async function hasCanonicalCatalogCoverage\(\) \{\s*if \(isLocalStorefrontMode\(\)\) return false;/
+    /async function getCanonicalFitmentOptions\([\s\S]*?if \(isLocalStorefrontMode\(\)\) return null;/
   );
   assert.match(fitmentRoute, /await getShopProductsWithFitments\(\)/);
+  assert.match(
+    searchRoute,
+    /if \(!isLocalStorefrontMode\(\) && process\.env\.SHOP_CATALOG_V2_READER_MODE/
+  );
+  assert.match(searchRoute, /return await queryPremiumCatalogProjection\(searchParams\)/);
 });
 
 test("initial search remains immediate across React Strict Mode effect replay", () => {

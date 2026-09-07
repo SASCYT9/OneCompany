@@ -1,0 +1,12 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "offset": 1500,
+  "passed": 0,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "title:required_term_missing:coilover": 1
+  },
+  "databaseWrites": 0
+}

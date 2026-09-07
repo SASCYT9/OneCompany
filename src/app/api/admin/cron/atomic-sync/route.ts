@@ -10,10 +10,7 @@ import {
 } from "@/lib/shopCatalogImportWriter.server";
 import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
-import {
-  revalidateShopStorefrontProduct,
-  revalidateShopStorefrontProductDetail,
-} from "@/lib/shopStorefrontRevalidation";
+import { revalidateShopStorefrontProducts } from "@/lib/shopStorefrontRevalidation";
 
 const atomicCronSession = {
   email: "cron@system.local",
@@ -166,7 +163,7 @@ export async function GET(request: Request) {
         const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
 
         const creation = await publishShopCatalogImportCreation({
-            createData: {
+          createData: {
             slug: finalSlug,
             sku: mpn,
             brand,
@@ -215,10 +212,10 @@ export async function GET(request: Request) {
                   ],
                 }
               : undefined,
-            },
-            session: atomicCronSession,
-            reason: "sync.atomic.create",
-          });
+          },
+          session: atomicCronSession,
+          reason: "sync.atomic.create",
+        });
         catalog.push(creation);
         createdProductIds.add(creation.productId);
         createdCount++;
@@ -249,11 +246,16 @@ export async function GET(request: Request) {
         where: { id: { in: [...new Set(catalog.map((mutation) => mutation.productId))] } },
         select: { id: true, slug: true, brand: true, vendor: true, tags: true },
       });
-      for (const product of changedProducts) {
-        if (createdProductIds.has(product.id)) revalidateShopStorefrontProduct(product);
-        else revalidateShopStorefrontProductDetail(product);
-      }
-      console.log(`Targeted storefront revalidation completed for ${changedProducts.length} products.`);
+      revalidateShopStorefrontProducts(
+        changedProducts.filter((product) => createdProductIds.has(product.id))
+      );
+      revalidateShopStorefrontProducts(
+        changedProducts.filter((product) => !createdProductIds.has(product.id)),
+        true
+      );
+      console.log(
+        `Targeted storefront revalidation completed for ${changedProducts.length} products.`
+      );
     } catch (e) {
       console.error("Targeted storefront revalidation failed during atomic sync:", e);
     }

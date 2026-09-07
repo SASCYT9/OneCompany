@@ -1,0 +1,9 @@
+{
+  "model": "qwen3:14b",
+  "brand": "kw",
+  "processed": 1,
+  "passed": 1,
+  "reviewRequired": 0,
+  "issueCounts": {},
+  "databaseWrites": 0
+}

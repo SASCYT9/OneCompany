@@ -1,5 +1,6 @@
 import "server-only";
 
+import { singleFlight } from "@/lib/singleFlight";
 import { extractProductFitment } from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
@@ -19,16 +20,23 @@ type LegacyVehicleQuery = {
   year?: number | null;
 };
 
-let cachedProducts: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>> | null = null;
+let cachedProducts: Array<{
+  id: string | undefined;
+  fitment: ReturnType<typeof extractProductFitment>;
+}> | null = null;
 let cachedAt = 0;
 const CACHE_MS = 5 * 60_000;
 
-async function getCachedFitmentProducts() {
+const getCachedFitmentProducts = singleFlight(async () => {
   if (cachedProducts && Date.now() - cachedAt < CACHE_MS) return cachedProducts;
-  cachedProducts = await getShopFitmentCatalogProducts();
+  const products = await getShopFitmentCatalogProducts();
+  cachedProducts = products.map((product) => ({
+    id: product.id,
+    fitment: extractProductFitment(product),
+  }));
   cachedAt = Date.now();
   return cachedProducts;
-}
+});
 
 /**
  * Transitional compatibility bridge. Legacy product-owned fitment evidence has
@@ -91,7 +99,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
   const ids = new Set(
     products
       .filter((product) => {
-        return shopFitmentMatchesVehicleConstraints(extractProductFitment(product), {
+        return shopFitmentMatchesVehicleConstraints(product.fitment, {
           make: canonicalMake,
           model: input.model,
           chassis: input.generation,
@@ -132,9 +140,7 @@ export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) 
         .map((constraint) => constraint.textValue!);
     if (
       input.make &&
-      !exactTextValues("MAKE").some(
-        (value) => canonicalVehicleMakeLabel(value) === canonicalMake
-      )
+      !exactTextValues("MAKE").some((value) => canonicalVehicleMakeLabel(value) === canonicalMake)
     ) {
       continue;
     }

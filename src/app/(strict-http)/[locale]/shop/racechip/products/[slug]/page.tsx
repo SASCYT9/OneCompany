@@ -1,15 +1,10 @@
-import { Suspense } from "react";
+import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { getShopProductsServer, getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
+import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
 import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
-import {
-  extractProductFitment,
-  findCrossShopFitmentMatches,
-  isExcludedFromCrossShop,
-} from "@/lib/crossShopFitment";
+import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import CrossShopFitment from "@/app/[locale]/shop/components/CrossShopFitment";
 import RacechipShopProductDetailLayout from "@/app/[locale]/shop/components/RacechipShopProductDetailLayout";
 import { requireCanonicalStorefrontProduct } from "@/app/[locale]/shop/components/ShopProductDetailPage";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
@@ -67,10 +62,7 @@ export default async function RacechipProductPage({
     mode: "racechip",
   });
 
-  // Main PDP path: only fetch settings + product. The cross-shop lookup
-  // (which iterates ~30k products in JS to find fitment matches) used to
-  // block first paint by ~1 s; now it's deferred to a streaming Suspense
-  // boundary so the product info renders immediately.
+  // Recommendations load near the viewport, outside the ISR render.
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
 
@@ -86,14 +78,12 @@ export default async function RacechipProductPage({
         product={product}
         viewerContext={viewerContext}
       />
-      <Suspense fallback={null}>
-        <CrossShopFitmentSection product={product} locale={resolvedLocale} />
-      </Suspense>
+      <CrossShopFitmentSection product={product} locale={resolvedLocale} />
     </>
   );
 }
 
-async function CrossShopFitmentSection({
+function CrossShopFitmentSection({
   product,
   locale,
 }: {
@@ -105,16 +95,5 @@ async function CrossShopFitmentSection({
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
   // Cross-shop iterates the full catalog. Streaming makes this non-blocking.
-  const allProducts = await getShopProductsServer();
-  const groups = findCrossShopFitmentMatches(product, allProducts, {
-    perBrand: 3,
-    totalLimit: 24,
-  });
-  if (!groups.length) return null;
-
-  return (
-    <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-      <CrossShopFitment locale={locale} fitment={fitment} groups={groups} />
-    </div>
-  );
+  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
 }

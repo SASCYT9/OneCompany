@@ -15,6 +15,10 @@ import type {
   ShopCatalogV2CompatibilityConstraint,
   ShopCatalogV2CompatibilityPolicy,
 } from "./shopCatalogV2Compatibility";
+import {
+  canonicalPoliciesToProjectionV2,
+  type CanonicalPolicyProjectionInput,
+} from "./shopCatalogCanonicalPolicyProjection";
 
 type AdminProductRecord = Prisma.ShopProductGetPayload<{ include: typeof adminProductInclude }>;
 type ProjectionAdminProductRecord = Omit<AdminProductRecord, "bundle"> & {
@@ -46,7 +50,10 @@ function applicationClause(
     exact("drivetrain", application.drivetrains),
     exact("transmission", application.transmission ? [application.transmission] : []),
     exact("market", application.markets),
-    exact("opfGpf", application.opfGpf && application.opfGpf !== "unknown" ? [application.opfGpf] : []),
+    exact(
+      "opfGpf",
+      application.opfGpf && application.opfGpf !== "unknown" ? [application.opfGpf] : []
+    ),
   ].filter((constraint): constraint is ShopCatalogV2CompatibilityConstraint => Boolean(constraint));
   return {
     id: `normalized-fitment-${index + 1}`,
@@ -132,12 +139,32 @@ async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, produc
         },
       },
       knowledge: { include: { reviewTasks: true } },
+      catalogPolicies: {
+        where: { isActive: true },
+        include: {
+          dimensionRules: true,
+          clauses: {
+            include: {
+              constraints: {
+                include: {
+                  values: {
+                    include: { make: true, model: true, generation: true, powertrain: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
   if (!product) throw new Error(`Cannot snapshot missing product ${productId}`);
   const variantOrderItems = product.variants.length
     ? await tx.shopOrderItem.findMany({
-        where: { productId: null, variantId: { in: product.variants.map((variant) => variant.id) } },
+        where: {
+          productId: null,
+          variantId: { in: product.variants.map((variant) => variant.id) },
+        },
         select: { id: true, productId: true, variantId: true, productSlug: true },
       })
     : [];
@@ -145,13 +172,12 @@ async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, produc
 }
 
 export function buildShopCatalogProjectionSourceFromAdminRecord(
-  record: ProjectionAdminProductRecord,
+  record: ProjectionAdminProductRecord & { catalogPolicies?: CanonicalPolicyProjectionInput[] },
   nextCatalogVersion: string,
   inventoryLevelCount: number
 ): ShopCatalogProjectionSource {
   const normalizedMetafield = record.metafields.find(
-    (item) =>
-      item.namespace === NORMALIZED_FITMENT_NAMESPACE && item.key === NORMALIZED_FITMENT_KEY
+    (item) => item.namespace === NORMALIZED_FITMENT_NAMESPACE && item.key === NORMALIZED_FITMENT_KEY
   );
   const normalizedFitment = parseNormalizedFitment(normalizedMetafield?.value);
   const primaryMedia = record.media[0];
@@ -227,7 +253,9 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       isDefault: variant.isDefault,
       stableRank: variant.position || index + 1,
     })),
-    compatibilityPolicies: [compatibilityPolicyFromNormalizedFitment(record.id, normalizedFitment)],
+    compatibilityPolicies: record.catalogPolicies?.length
+      ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
+      : [compatibilityPolicyFromNormalizedFitment(record.id, normalizedFitment)],
   };
 }
 
@@ -244,7 +272,10 @@ export async function buildShopCatalogAdminSnapshot(
     projectionSource: buildShopCatalogProjectionSourceFromAdminRecord(
       record,
       nextCatalogVersion,
-      canonical.product.variants.reduce((count, variant) => count + variant.inventoryLevels.length, 0)
+      canonical.product.variants.reduce(
+        (count, variant) => count + variant.inventoryLevels.length,
+        0
+      )
     ),
     actorType: actor.type,
     actorId: actor.id ?? null,

@@ -4,8 +4,13 @@ import nextTs from "eslint-config-next/typescript";
 import reactHooks from "eslint-plugin-react-hooks";
 
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+  // pnpm can resolve Next's hooks plugin and our explicit plugin to different
+  // versions. Flat config requires one plugin instance for a given name.
+  ...[...nextVitals, ...nextTs].map((config) =>
+    config.plugins?.["react-hooks"]
+      ? { ...config, plugins: { ...config.plugins, "react-hooks": reactHooks } }
+      : config
+  ),
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,0 +1,12 @@
+{
+  "model": "translategemma:12b",
+  "brand": "fi",
+  "processed": 3,
+  "offset": 198,
+  "passed": 2,
+  "reviewRequired": 1,
+  "issueCounts": {
+    "body-segment:technical_tokens_missing:G90/G99|M5|V8": 1
+  },
+  "databaseWrites": 0
+}

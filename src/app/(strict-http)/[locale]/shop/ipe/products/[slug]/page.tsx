@@ -1,17 +1,12 @@
-import { Suspense } from "react";
+import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { resolveLocale, type SupportedLocale } from "@/lib/seo";
-import { getShopProductsServer, getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
+import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import {
-  extractProductFitment,
-  findCrossShopFitmentMatches,
-  isExcludedFromCrossShop,
-} from "@/lib/crossShopFitment";
+import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import CrossShopFitment from "@/app/[locale]/shop/components/CrossShopFitment";
 import {
   getShopProductPageMetadata,
   requireCanonicalStorefrontProduct,
@@ -50,7 +45,7 @@ export default async function IpeProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
   // Main PDP path: only product + settings (avoid full-catalog fetch).
-  // Cross-shop suggestions stream below via Suspense.
+  // Cross-shop suggestions load separately when the visitor approaches them.
   const [product, settingsRecord] = await Promise.all([
     requireCanonicalStorefrontProduct({ locale: resolvedLocale, slug, mode: "ipe" }),
     getOrCreateShopSettings(prisma),
@@ -73,14 +68,12 @@ export default async function IpeProductPage({ params }: Props) {
         pricing={pricing}
         viewerContext={viewerContext}
       />
-      <Suspense fallback={null}>
-        <CrossShopFitmentSection product={product} locale={resolvedLocale} />
-      </Suspense>
+      <CrossShopFitmentSection product={product} locale={resolvedLocale} />
     </>
   );
 }
 
-async function CrossShopFitmentSection({
+function CrossShopFitmentSection({
   product,
   locale,
 }: {
@@ -91,16 +84,5 @@ async function CrossShopFitmentSection({
   const fitment = extractProductFitment(product);
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
-  const allProducts = await getShopProductsServer();
-  const groups = findCrossShopFitmentMatches(product, allProducts, {
-    perBrand: 3,
-    totalLimit: 24,
-  });
-  if (!groups.length) return null;
-
-  return (
-    <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-      <CrossShopFitment locale={locale} fitment={fitment} groups={groups} />
-    </div>
-  );
+  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
 }
