@@ -131,6 +131,16 @@ source manifest and required source set. The integration path is covered by
 the checkpoint contract test and the disposable PostgreSQL projection test;
 no production rebuild or marker write was run.
 
+The R05 stock suggestion path now has a bounded Catalog V2 projection fast path when the
+reader explicitly serves `ssr` (or an authorized canary request). It returns the same
+brand/vehicle/product suggestion shape, records privacy-safe `catalog_v2_read` telemetry, and
+keeps the existing full-fitment implementation only as the reader-off/local fallback. Projection
+matching now accepts all normalized query tokens in any order and exact normalized SKUs, which
+prevents reordered vehicle and separator-heavy part-number queries from missing valid results.
+The focused suggestion contract tests pass 5/5 and scoped ESLint passes; TypeScript is currently
+blocked by concurrent Node 22 test-harness edits that leave implicit-any errors in unrelated
+tests. No production flag, database write, or deployment was performed.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and

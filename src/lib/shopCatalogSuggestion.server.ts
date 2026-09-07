@@ -7,7 +7,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
-import { normalizeShopSearchText } from "./shopSearch";
+import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
 import { compactShopCode } from "./shopVehicleSearch";
 
@@ -149,11 +149,26 @@ export async function queryShopCatalogSuggestions(
   if (!input.query) return Object.freeze([]);
   const searchPattern = `%${escapeLike(input.normalizedQuery)}%`;
   const prefixPattern = `${escapeLike(input.normalizedQuery)}%`;
+  // Match the same bounded token semantics as the stock search endpoint.
+  // A contiguous phrase is too strict for reordered vehicle queries (for
+  // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
+  // products. Exact normalized SKUs remain a separate high-priority match.
+  const queryTokens = tokenizeShopSearchQuery(input.query);
+  const tokenConditions = queryTokens.map(
+    (token) => Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(token)}%`} ESCAPE '\\'`
+  );
+  const lexicalCondition =
+    tokenConditions.length > 0
+      ? Prisma.sql`(
+          lower(coalesce(projection."normalizedSku", '')) = lower(${input.normalizedSku})
+          OR (${Prisma.join(tokenConditions, " AND ")})
+        )`
+      : Prisma.sql`projection."searchText" ILIKE ${searchPattern} ESCAPE '\\'`;
   const projectionConditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
     Prisma.sql`projection."isPublished" = true`,
     Prisma.sql`projection."statusKey" = 'ACTIVE'`,
-    Prisma.sql`projection."searchText" ILIKE ${searchPattern} ESCAPE '\\'`,
+    lexicalCondition,
   ];
   if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
 

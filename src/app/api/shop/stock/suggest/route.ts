@@ -6,6 +6,14 @@ import {
 } from "@/app/api/shop/stock/search/route";
 import { compactShopCode, parseVehicleSearchQuery } from "@/lib/shopVehicleSearch";
 import { normalizeShopSearchText, tokenizeShopSearchQuery } from "@/lib/shopSearch";
+import {
+  resolveShopCatalogReaderFlag,
+  isShopCatalogReaderRequestEnabled,
+  SHOP_CATALOG_V2_READER_MODE_ENV,
+} from "@/lib/shopCatalogReaderFlag.server";
+import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
+import { queryShopCatalogSuggestions } from "@/lib/shopCatalogSuggestion.server";
+import { observeShopCatalogRead, shopCatalogServerTiming } from "@/lib/shopCatalogReadTelemetry";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { getShopStockCategoryLabelForProduct } from "@/lib/shopStockTaxonomy";
 import { shouldIncludeStockSuggestionMatch } from "@/lib/shopStockSuggestion";
@@ -15,6 +23,41 @@ import {
 } from "@/lib/shopStockVehicleScope";
 
 const MAX_SUGGESTIONS = 10;
+
+async function queryProjectionSuggestions(input: {
+  locale: "ua" | "en";
+  query: string;
+  scope: "auto" | "moto" | null;
+}) {
+  const read = await observeShopCatalogRead({
+    operation: "suggestions",
+    locale: input.locale,
+    filters: { text: input.query, scope: input.scope },
+    databaseQueriesUpperBound: 3,
+    rows: (value) => value.length,
+    execute: () =>
+      queryShopCatalogSuggestions({
+        locale: input.locale,
+        query: input.query,
+        scope: input.scope,
+      }),
+  });
+
+  // Keep the established stock suggestion response shape. Catalog V2 has no
+  // category for some legacy products, while the stock UI renders a string.
+  const data = read.value.map((suggestion) =>
+    suggestion.type === "product"
+      ? { ...suggestion, category: suggestion.category ?? "" }
+      : suggestion
+  );
+  return {
+    data,
+    headers: {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+      "Server-Timing": shopCatalogServerTiming(read.metric),
+    },
+  };
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -27,6 +70,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
+    if (
+      isShopCatalogReaderRequestEnabled(
+        reader,
+        request.headers.get(SHOP_CATALOG_CANARY_REQUEST_HEADER)
+      )
+    ) {
+      const projection = await queryProjectionSuggestions({
+        locale,
+        query,
+        scope: vehicleScope,
+      });
+      return NextResponse.json(
+        { data: projection.data.slice(0, MAX_SUGGESTIONS) },
+        { headers: projection.headers }
+      );
+    }
+
     const normalizedQuery = normalizeShopSearchText(query);
     const compactQuery = compactShopCode(query);
     const tokens = tokenizeShopSearchQuery(query);
