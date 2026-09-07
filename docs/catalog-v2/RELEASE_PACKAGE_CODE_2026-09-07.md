@@ -2,7 +2,7 @@
 
 Date: 2026-09-07  
 Branch: `codex/storefront-cost-optimization`  
-Release commit: `6cf69360` (SSR, search, media, viewport, artifact reuse, freshness, acceptance, immutable source evidence, bounded recommendations, token-aware suggestions, and full filter-state transitions)
+Release commit: `1e3dcee8` (SSR, search, media, viewport, artifact reuse, freshness, acceptance, immutable source evidence, bounded recommendations, token-aware suggestions, native text queries, selector guards, and full filter-state transitions)
 
 ## Included behavior
 
@@ -38,7 +38,7 @@ rollback. Investigate lag/dead-letter/failed-receipt evidence before retrying.
 - `npm run shop:catalog:v2:publication:docker` — final local disposable-DB baseline `b757eefa`, 30 samples, p95 82.926 ms, p99 126.240 ms, one contention winner; all 44 migrations replayed.
 - `artifacts/catalog-v2-scale/catalog-v2-scale-gate.json` — exact audit baseline `675d829670f5402e99a1c92f63d77afed99f5a63`, 100k/500k query scale evidence, maximum warm p95 75.541 ms.
 - The executable release code is `6cf69360` plus native text-query fix `9b60ecc0`, selector hardening `fc97f8ba`, and source-evidence hardening `139f3e08`; source evidence now includes and verifies the immutable payload hash and source revision, provenance duplicates/orphans fail closed, selector readiness requires complete clause coverage, and SSR recommendations/suggestions use bounded projection paths. Final documentation/evidence commit is updated after validation.
-- The storefront acceptance artifact was regenerated on clean commit `b93a9412`; it covers UA/EN, 390×844 and 1440×1000, 30 browser/runtime samples, and expected selector fail-closed responses.
+- The storefront acceptance artifact was regenerated on clean commit `1e3dcee8`; it covers UA/EN, 390×844 and 1440×1000, 30 browser/runtime samples, and expected selector fail-closed responses.
 
 ## Open approval gates
 
