@@ -79,7 +79,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const locale = params.get("locale") === "en" ? "en" : "ua";
   const page = positiveInteger(params.get("page"), 1);
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
-  const vehiclePlan = buildShopCatalogVehicleSearchPlan(params);
+  const vehiclePlan = buildShopCatalogVehicleSearchPlan(params, {
+    readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE,
+  });
   let minPrice = nonNegativeAmount(params.get("minPrice"));
   let maxPrice = nonNegativeAmount(params.get("maxPrice"));
   if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
@@ -98,6 +100,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       ? Promise.resolve(null)
       : resolveLegacyVehicleProductIds(vehiclePlan.constraints)
   );
+  timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
   const warehouseProductsPromise = measure(
     "warehouse",
     prisma.shopProduct.findMany({

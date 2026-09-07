@@ -11,6 +11,23 @@ Root integrates/reviews GPT-5.6 Terra and GPT-5.6 Luna work in explicitly owned 
 User authorized local branch commits on 2026-09-07. Push, deployment, production migration and environment pulls remain unauthorized.
 Older P6 Done rows below are historical evidence, not proof of current production reader coverage.
 
+Post-checkpoint follow-up (`23106ffc`): native broad vehicle reads are implemented
+behind `SHOP_CATALOG_V2_VEHICLE_READER_MODE=projection`, default `legacy`. The premium
+adapter keeps make/model/generation/year together and bypasses the legacy resolver
+in that mode. This does not certify current all-source coverage or enable Production.
+`npm run build` now validates the existing signed release evidence before snapshots,
+filter indexes or Next compilation. Native vehicle mode requires full SSR activation;
+development NODE_ENV cannot bypass this build check. The marker is an activation
+check, not a runtime lease that switches readers when it expires.
+
+Follow-up verification: 29 selected unit tests pass, including the real premium
+adapter with mocked data dependencies and the real vehicle planner (auto/moto,
+UA/EN, stock/exclusions/price bounds, engine/fuel, and zero legacy resolver calls
+in native mode). TypeScript and scoped ESLint pass with zero errors or warnings.
+The build-wrapper failure test proves no snapshot/index/Next stage starts when
+activation fails. No production build, DB backfill, deployment or measured
+production speed/cost improvement is claimed by this opt-in patch.
+
 | Package              | Local state                            | Evidence / remaining gate                                                                                                                                                                                                                                                                                                                  |
 | -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | C0                   | Environment isolated                   | Dedicated disposable localhost PostgreSQL; existing migrations replayed. DB-less preview remains separate.                                                                                                                                                                                                                                 |

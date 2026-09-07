@@ -1,5 +1,8 @@
 /** Preserve one correlated vehicle query when engine/fuel need canonical evidence. */
-export function buildShopCatalogVehicleSearchPlan(params: URLSearchParams) {
+export function buildShopCatalogVehicleSearchPlan(
+  params: URLSearchParams,
+  input: { readerMode?: string } = {}
+) {
   const clean = (value: string | null) => {
     const text = value?.trim() ?? "";
     return text && text.length <= 320 ? text : null;
@@ -16,6 +19,7 @@ export function buildShopCatalogVehicleSearchPlan(params: URLSearchParams) {
   };
   // The legacy bridge has no engine or fuel evidence. Combining its IDs with
   // an engine-only query would allow fields from different clauses to match.
-  const canonical = Boolean(constraints.engine || constraints.fuel);
-  return { constraints, canonical };
+  const reader = input.readerMode?.trim().toLowerCase() === "projection" ? "projection" : "legacy";
+  const canonical = reader === "projection" || Boolean(constraints.engine || constraints.fuel);
+  return { constraints, canonical, reader };
 }

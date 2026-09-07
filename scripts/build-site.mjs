@@ -30,6 +30,9 @@ function run(entrypoint, args) {
 const tsxCli = path.resolve("node_modules", "tsx", "dist", "cli.mjs");
 const nextCli = path.resolve("node_modules", "next", "dist", "bin", "next");
 
+// Git-triggered Vercel builds do not run the manual predeploy wrapper. Validate
+// reader activation before any expensive catalog snapshot or Next build work.
+run(tsxCli, ["scripts/check-catalog-v2-release-activation.ts", "--production-build"]);
 run(tsxCli, ["scripts/prebuild-shop-snapshot.ts"]);
 run(tsxCli, ["scripts/generate-shop-filter-indexes.ts"]);
 run(nextCli, ["build"]);

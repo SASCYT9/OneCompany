@@ -28,3 +28,28 @@ test("the coverage bridge remains available for broad vehicle selection", () => 
   assert.equal(plan.constraints.model, "S 1000 RR");
   assert.equal(plan.constraints.year, null);
 });
+
+test("projection mode keeps broad vehicle constraints without the legacy bridge", () => {
+  for (const query of [
+    "make=BMW&model=M5&chassis=G90&year=2025",
+    "scope=moto&make=BMW&model=S+1000+RR&year=2024",
+  ]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams(query), {
+      readerMode: "projection",
+    });
+    assert.equal(plan.reader, "projection");
+    assert.equal(plan.canonical, true);
+    assert.ok(plan.constraints.make);
+    assert.ok(plan.constraints.model);
+  }
+});
+
+test("default and invalid reader modes remain legacy", () => {
+  for (const readerMode of [undefined, "", "native", "ProjectionX"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams("make=BMW&model=M5"), {
+      readerMode,
+    });
+    assert.equal(plan.reader, "legacy");
+    assert.equal(plan.canonical, false);
+  }
+});

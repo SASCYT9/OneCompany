@@ -263,6 +263,26 @@ Production/інші зовнішні дії: жодних
 Файли, які можна передати іншому власнику:
 ```
 
+## Локальна хвиля після checkpoint — 2026-09-07
+
+Checkpoint `23106ffc` зберіг усі попередні зміни. T3 тепер має окремий opt-in
+`SHOP_CATALOG_V2_VEHICLE_READER_MODE=projection`: broad vehicle constraints
+залишаються в correlated SQL, legacy resolver не запускається. Default — `legacy`;
+engine/fuel залишаються canonical-native незалежно від цього перемикача.
+Це реалізація для перевірки, не завершення coverage/cutover всього каталогу.
+
+`npm run build` перевіряє існуючий підписаний Catalog V2 release marker перед
+snapshot/index/Next stages, включно з Git-triggered Vercel builds. Для нового
+vehicle mode потрібен повний `ssr` із відповідним evidence; dev NODE_ENV не обходить
+production-build gate. Expiry перевіряється при збірці, а не на кожному запиті:
+читач не перемикається самовільно назад через 24 години. Source coverage, shadow,
+актуальні revisions і репрезентативні виміри перед активацією залишаються обов'язковими.
+
+Luna перевірила package-manager configuration: Vercel явно використовує npm,
+тому наявність pnpm lockfile сама по собі не доводить додаткові витрати. Збережені
+pnpm файли мають неузгоджені `allowBuilds` placeholders; до використання pnpm треба
+окремо узгодити й перевірити цю конфігурацію. Зміни package manager/тарифу не виконані.
+
 ## 9. Коли весь план завершено
 
 Усі acceptance gates пакетів мають evidence; BMW M5 G90 та інші golden cases правильні; основні search/PDP запити не сканують весь каталог; B2B/regional prices, publication freshness і strict HTTP збережені; UI працює в погодженій матриці; cold/warm затримки й витрати виміряні окремо; review та rollback готові. Локальне завершення і production-підтвердження — різні статуси. Якщо production ще не дозволений, фінальний стан: **готово локально, реліз і production-виміри очікують окремого рішення**.
