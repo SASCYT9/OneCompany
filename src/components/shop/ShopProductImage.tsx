@@ -6,6 +6,7 @@ import { isAbsoluteHttpUrl, isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 
 const DEFAULT_FALLBACK_SRC = "/images/placeholders/product-fallback.svg";
 const MAX_SHOPIFY_IMAGE_WIDTH = 2400;
+const SHOPIFY_RESPONSIVE_WIDTHS = [320, 640, 960, 1280, 1920, MAX_SHOPIFY_IMAGE_WIDTH] as const;
 
 type ShopProductImageProps = Omit<ImageProps, "src" | "alt"> & {
   src?: string | null;
@@ -116,6 +117,69 @@ export function ShopProductImage({
   useEffect(() => {
     setCurrentSrc(normalizedSrc || normalizedFallback);
   }, [normalizedFallback, normalizedSrc]);
+
+  // Shopify's CDN can resize public assets with a bounded `width` parameter.
+  // Use its own responsive variants instead of routing these images through
+  // Vercel's optimizer (which would add a paid transformation per width).
+  // Keep Next/Image for every other host because their resize/signature
+  // semantics are unknown.
+  const shopifySrcSet = buildShopProductImageSrcSet(currentSrc, SHOPIFY_RESPONSIVE_WIDTHS);
+  if (shopifySrcSet) {
+    const {
+      className,
+      style,
+      fill,
+      priority,
+      loading,
+      fetchPriority,
+      sizes,
+      width,
+      height,
+      quality: _quality,
+      placeholder: _placeholder,
+      blurDataURL: _blurDataURL,
+      overrideSrc: _overrideSrc,
+      preload: _preload,
+      unoptimized: _unoptimized,
+      onLoadingComplete: _onLoadingComplete,
+      onError,
+      ...nativeProps
+    } = props;
+    // These Next/Image-only controls have no native <img> equivalent. Keep
+    // the destructuring explicit so they cannot leak as invalid DOM props.
+    void _quality;
+    void _placeholder;
+    void _blurDataURL;
+    void _overrideSrc;
+    void _preload;
+    void _unoptimized;
+    void _onLoadingComplete;
+    const handleError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+      onError?.(event as never);
+      if (currentSrc !== normalizedFallback) setCurrentSrc(normalizedFallback);
+    };
+    // Shopify CDN srcset avoids paid Vercel transforms for this known-safe host.
+    /* eslint-disable @next/next/no-img-element */
+    return (
+      <img
+        {...nativeProps}
+        src={resolveShopProductImageSrc(currentSrc, 960)}
+        srcSet={shopifySrcSet}
+        sizes={sizes}
+        alt={alt}
+        width={fill ? undefined : width}
+        height={fill ? undefined : height}
+        loading={priority ? "eager" : (loading ?? "lazy")}
+        fetchPriority={priority ? "high" : fetchPriority}
+        className={className}
+        style={
+          fill ? { position: "absolute", inset: 0, width: "100%", height: "100%", ...style } : style
+        }
+        onError={handleError}
+      />
+    );
+    /* eslint-enable @next/next/no-img-element */
+  }
 
   return (
     <Image

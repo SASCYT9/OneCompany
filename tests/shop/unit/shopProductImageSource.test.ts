@@ -1,10 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 import {
   buildShopProductImageSrcSet,
   resolveShopProductImageSrc,
+  ShopProductImage,
 } from "../../../src/components/shop/ShopProductImage";
+
+test("Shopify product images use bounded CDN responsive variants without Vercel transforms", () => {
+  const html = renderToStaticMarkup(
+    createElement(ShopProductImage, {
+      src: "https://cdn.shopify.com/s/files/1/asset/image.jpg",
+      alt: "Product",
+      fill: true,
+      sizes: "(max-width: 768px) 100vw, 25vw",
+    })
+  );
+  assert.match(html, /srcSet="[^"]*width=320[^"]*320w/);
+  assert.match(html, /width=1920/);
+  assert.match(html, /sizes="\(max-width: 768px\) 100vw, 25vw"/);
+  assert.match(html, /loading="lazy"/);
+  assert.doesNotMatch(html, /_next\/image/);
+});
 
 test("Shopify gallery variants add only a bounded width parameter", () => {
   assert.equal(
