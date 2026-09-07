@@ -131,6 +131,11 @@ source manifest and required source set. The integration path is covered by
 the checkpoint contract test and the disposable PostgreSQL projection test;
 no production rebuild or marker write was run.
 
+Commit `abfa7c79` defers below-fold ADRO collage images with native lazy loading;
+the hero/reel remains eager and the media-loading regression test passes 1/1.
+This complements the existing first-card preload limit and does not alter remote
+image optimization or CDN behavior.
+
 The R05 stock suggestion path now has a bounded Catalog V2 projection fast path when the
 reader explicitly serves `ssr` (or an authorized canary request). It returns the same
 brand/vehicle/product suggestion shape, records privacy-safe `catalog_v2_read` telemetry, and
