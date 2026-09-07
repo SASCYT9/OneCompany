@@ -12,10 +12,7 @@ test("publication status is version-specific and cannot call pending work publis
 });
 
 test("admin publication endpoint is authorized, dynamic, and uncached", () => {
-  const source = readFileSync(
-    "src/app/api/admin/shop/products/[id]/publication/route.ts",
-    "utf8"
-  );
+  const source = readFileSync("src/app/api/admin/shop/products/[id]/publication/route.ts", "utf8");
   assert.match(source, /SHOP_PRODUCTS_READ/);
   assert.match(source, /dynamic = "force-dynamic"/);
   assert.match(source, /private, no-store/);
@@ -23,14 +20,12 @@ test("admin publication endpoint is authorized, dynamic, and uncached", () => {
 });
 
 test("product editor distinguishes saved state from verified publication", () => {
-  const source = readFileSync(
-    "src/app/admin/shop/components/AdminProductEditor.tsx",
-    "utf8"
-  );
+  const source = readFileSync("src/app/admin/shop/components/AdminProductEditor.tsx", "utf8");
   assert.match(source, /publicationVersion/);
   assert.match(source, /\/publication\$\{suffix\}/);
   assert.match(source, /next\.status !== "PUBLISHED" && next\.status !== "FAILED"/);
   assert.match(source, /Збережено\. Публікація перевіряється окремо\./);
-  assert.match(source, /Publication failed/);
+  assert.match(source, /publication\.status === "FAILED" \? "error" : "success"/);
+  assert.match(source, /Зміни збережено, але публікація не завершилась/);
   assert.doesNotMatch(source, /setSuccess\("Saved"\)/);
 });

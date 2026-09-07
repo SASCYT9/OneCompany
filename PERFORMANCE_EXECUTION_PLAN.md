@@ -301,6 +301,31 @@ EXPLAIN показав зменшення читань canonical price з 8 до
 global/filtered discovery statistics, smart text/category/scope та повне source
 coverage. Чинні release gates не пройдені; production і reader flags не змінювалися.
 
+## Наступна хвиля: результати та порядок продовження — 2026-09-07
+
+T3: повторні розрахунки ціни між гілками фасетів прибрані. На однакових чотирьох
+fixtures EXPLAIN показав 18 → 4 читання canonical price. Реальні SQL читачі також
+перевірено на 1k/10k synthetic products; warm single sample 10k facets — 419.83 ms,
+ordered — 401.40 ms. Це проміжний локальний результат, не production/p95 evidence.
+
+L1/T4: список двигунів враховує вибраний рік у межах одного clause, список років
+залишається повним. Root доповнив Luna patch прямим engine endpoint, HTTP 400 для
+невалідного року та PostgreSQL regression для різних двигунів одного товару.
+334 unit tests, 5 DB integrations і 2 scale runs пройшли; деталі у STATUS.md.
+
+Подальша послідовність:
+
+1. T4/T5 — виміряти повноту makes/models/chassis/engines по нормалізованих джерелах.
+   Підтверджено: часткові canonical options приховують legacy-only моделі. Усунути
+   через повний indexed source projection та перевірку наборів опцій, без нового
+   повного сканування каталогу на кожен запит і без повернення забруднених fitments.
+2. T3 — зменшити broad effective-price cost і перевірити 100k/500k, cold/warm та
+   кілька повторів. Поточні 10k/0.4s не доводять виконання остаточного SLO.
+3. T4 — узгодити global/filtered facet discovery та category/scope mapping;
+   впроваджувати native type/kind/strict лише з еквівалентними доказами сумісності.
+4. T7 — supported-Node build, Preview/device matrix, freshness/shadow і rollback;
+   production activation та виміри вартості виконуються після окремого рішення.
+
 ## 9. Коли весь план завершено
 
 Усі acceptance gates пакетів мають evidence; BMW M5 G90 та інші golden cases правильні; основні search/PDP запити не сканують весь каталог; B2B/regional prices, publication freshness і strict HTTP збережені; UI працює в погодженій матриці; cold/warm затримки й витрати виміряні окремо; review та rollback готові. Локальне завершення і production-підтвердження — різні статуси. Якщо production ще не дозволений, фінальний стан: **готово локально, реліз і production-виміри очікують окремого рішення**.

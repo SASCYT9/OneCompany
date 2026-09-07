@@ -83,7 +83,15 @@ test(
         const id = `${run}-${index}`;
         ids.push(id);
         await client.shopProduct.create({
-          data: { id, slug: id, titleUa: id, titleEn: id, isPublished: true, status: "ACTIVE" },
+          data: {
+            id,
+            slug: id,
+            titleUa: id,
+            titleEn: id,
+            priceUsd: 10,
+            isPublished: true,
+            status: "ACTIVE",
+          },
         });
         const source: ShopCatalogProjectionSource = {
           productId: id,
@@ -154,6 +162,30 @@ test(
           ["M5"]
         );
         const selection = { locale, scope: "auto", make: "BMW", model: "M5", productIds: ids };
+        const pricedSelection = {
+          ...selection,
+          minPrice: 5,
+          maxPrice: 15,
+          effectivePriceContext: {
+            audience: "b2c" as const,
+            useEuropeBase: false,
+            currency: "USD" as const,
+            currencyRates: { EUR: 1, USD: 1, UAH: 40 },
+            customerB2BDiscountPercent: null,
+            defaultB2BDiscountPercent: null,
+            customerBrandDiscounts: {},
+            systemBrandDiscounts: {},
+          },
+        };
+        assert.deepEqual(
+          (await queryShopCatalogProjectionFacets(pricedSelection)).facets,
+          selected.facets
+        );
+        assert.deepEqual(
+          (await queryShopCatalogProjectionFacets({ ...pricedSelection, year: 2020 })).facets
+            .engine,
+          []
+        );
         assert.equal(await countShopCatalogProjection(selection), 1);
         assert.deepEqual(
           await queryShopCatalogProjectionStockSummary({ ...selection, offset: 999, limit: 1 }, [

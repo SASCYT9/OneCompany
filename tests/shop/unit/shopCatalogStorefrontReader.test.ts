@@ -99,7 +99,8 @@ test("catalog page keeps the premium UI while its API reads the bounded projecti
   assert.match(api, /queryPremiumCatalogProjection/);
   assert.match(adapter, /queryShopCatalogProjection\(query\)/);
   assert.match(adapter, /queryShopCatalogProjectionFacets\(query\)/);
-  assert.match(adapter, /countShopCatalogProjection\(query\)/);
+  assert.match(adapter, /queryShopCatalogProjectionStockSummary\(query, warehouseProductIds\)/);
+  assert.match(adapter, /totalItems = stockSummary\.totalItems/);
   assert.match(adapter, /getShopCatalogCardPricingByIds/);
   assert.match(adapter, /=== "moto" \? "moto" : null/);
   assert.match(adapter, /Promise\.all/);
@@ -139,9 +140,8 @@ test("premium catalog adapter keeps projection failures recoverable in the stock
 
 test("vehicle filtering reads canonical projection clauses without depending on AI coverage", () => {
   const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
-  const resolverStart = api.indexOf("async function resolveCanonicalVehicleProductIds");
-  const resolverEnd = api.indexOf("async function resolveStrictCatalogMatches", resolverStart);
-  const resolver = api.slice(resolverStart, resolverEnd);
+  const resolver = readFileSync("src/lib/shopStockCanonicalVehicleIds.server.ts", "utf8");
+  assert.match(api, /resolveCanonicalVehicleProductIds/);
 
   assert.match(resolver, /shopCatalogProjectionClause\.findMany/);
   assert.match(resolver, /canonicalClauseConstraints/);
@@ -155,9 +155,8 @@ test("vehicle filtering reads canonical projection clauses without depending on 
 test("fitment selectors read the same projection clauses as vehicle search", () => {
   const api = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
-  const canonicalStart = api.indexOf("async function getCanonicalFitmentOptions");
-  const canonicalEnd = api.indexOf("export async function GET", canonicalStart);
-  const canonical = api.slice(canonicalStart, canonicalEnd);
+  const canonical = readFileSync("src/lib/shopCanonicalFitmentOptions.server.ts", "utf8");
+  assert.match(api, /await getCanonicalFitmentOptions\(/);
 
   assert.match(canonical, /shopCatalogProjectionConstraint\.findMany/);
   for (const dimension of ["MAKE", "MODEL", "CHASSIS", "GENERATION", "ENGINE"]) {
@@ -170,6 +169,12 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   assert.match(api, /searchParams\.get\("details"\) === "1"/);
   assert.match(page, /fitmentBrandParam/);
   assert.match(page, /details: "1"/);
+  const detailsEffect = page.slice(
+    page.indexOf("// Model/chassis"),
+    page.indexOf("// Search handler")
+  );
+  assert.match(detailsEffect, /params\.set\("year", String\(requestedYear\)\)/);
+  assert.match(detailsEffect, /chassis, make, model, requestedYear, vehicleMode/);
   assert.match(page, /fitmentYears\.map/);
   assert.match(page, /fitmentEngines\.map/);
 });

@@ -8,6 +8,10 @@ const canonicalVehicleReader = readFileSync(
   "utf8"
 );
 const fitmentRoute = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
+const canonicalFitmentReader = readFileSync(
+  "src/lib/shopCanonicalFitmentOptions.server.ts",
+  "utf8"
+);
 const stockPage = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
 
 test("unified stock search loads generated storefront products before Prisma in local mode", () => {
@@ -37,10 +41,11 @@ test("unified stock search loads generated storefront products before Prisma in 
 
 test("fitment selectors skip canonical Prisma coverage in local snapshot mode", () => {
   assert.match(
-    fitmentRoute,
+    canonicalFitmentReader,
     /async function getCanonicalFitmentOptions\([\s\S]*?if \(isLocalStorefrontMode\(\)\) return null;/
   );
   assert.match(fitmentRoute, /await getShopProductsWithFitments\(\)/);
+  assert.match(fitmentRoute, /await getCanonicalFitmentOptions\(/);
   assert.match(
     searchRoute,
     /if\s*\(\s*!isLocalStorefrontMode\(\)\s*&&\s*process\.env\.SHOP_CATALOG_V2_READER_MODE/

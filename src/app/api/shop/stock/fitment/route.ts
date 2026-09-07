@@ -1,22 +1,16 @@
-import { Prisma } from "@prisma/client";
+import { getCanonicalFitmentOptions } from "@/lib/shopCanonicalFitmentOptions.server";
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "../search/route";
-import { prisma } from "@/lib/prisma";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
   filterShopStockItemsByVehicleScope,
   isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
-import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
   canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
   canonicalizeVehicleModels,
-  canonicalVehicleMakeLabel,
-  vehicleMakeAliases,
-  vehicleModelAliases,
-  vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
 
 const cachedJson = (body: unknown) =>
@@ -28,181 +22,21 @@ const cachedJson = (body: unknown) =>
     },
   });
 
-async function getCanonicalFitmentOptions(input: {
-  make: string | null;
-  model: string | null;
-  chassis: string | null;
-  brand: string | null;
-  scope: "auto" | "moto" | null;
-  details: boolean;
-}) {
-  if (isLocalStorefrontMode()) return null;
-  const productWhere: Prisma.ShopProductWhereInput = {
-    isPublished: true,
-    status: "ACTIVE",
-    ...(input.brand
-      ? {
-          OR: [
-            { brand: { equals: input.brand, mode: "insensitive" } },
-            { vendor: { equals: input.brand, mode: "insensitive" } },
-          ],
-        }
-      : {}),
-  };
-  const clauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
-    product: productWhere,
-  };
-  const scopeClausePredicate: Prisma.ShopCatalogProjectionClauseWhereInput | null = input.scope
-    ? { constraints: { some: { dimension: "SCOPE", state: "EXACT", textValue: input.scope } } }
-    : null;
-  if (scopeClausePredicate) clauseWhere.AND = [scopeClausePredicate];
-
-  const exactValues = async (
-    dimension: "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE",
-    where: Prisma.ShopCatalogProjectionClauseWhereInput
-  ) => {
-    const rows = await prisma.shopCatalogProjectionConstraint.findMany({
-      where: {
-        dimension,
-        state: "EXACT",
-        textValue: { not: null },
-        clause: where,
-      },
-      distinct: ["textValue"],
-      select: { textValue: true },
-      orderBy: { textValue: "asc" },
-    });
-    const values = rows.map((row) => row.textValue).filter((value): value is string => Boolean(value));
-    return values;
-  };
-
-  if (!input.make) {
-    const rows = await exactValues("MAKE", clauseWhere);
-    if (!rows.length) return null;
-    return {
-      type: "makes" as const,
-      data: canonicalizeVehicleMakes(
-        rows.filter((value) => isVehicleMakeCompatibleWithScope(value, input.scope))
-      ),
-    };
-  }
-
-  const canonicalMake = canonicalVehicleMakeLabel(input.make);
-  const makeAliases = vehicleMakeAliases(canonicalMake);
-
-  const makeClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
-    ...clauseWhere,
-    AND: [
-      ...(scopeClausePredicate ? [scopeClausePredicate] : []),
-      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { in: makeAliases, mode: "insensitive" } } } },
-    ],
-  };
-
-  if (!input.model) {
-    const rows = await exactValues("MODEL", makeClauseWhere);
-    if (!rows.length) return null;
-    const data = canonicalizeVehicleModels(canonicalMake, rows);
-    return { type: "models" as const, make: canonicalMake, data };
-  }
-
-  const modelRows = await exactValues("MODEL", makeClauseWhere);
-  const requestedModelAliases = vehicleModelAliases(canonicalMake, input.model);
-  const requestedModelKeys = new Set(requestedModelAliases.map(vehicleModelKey));
-  const modelAliases = modelRows.filter((value) => requestedModelKeys.has(vehicleModelKey(value)));
-  if (!modelAliases.length) modelAliases.push(input.model);
-
-  const modelClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
-    ...clauseWhere,
-    AND: [
-      ...(scopeClausePredicate ? [scopeClausePredicate] : []),
-      { constraints: { some: { dimension: "MAKE", state: "EXACT", textValue: { in: makeAliases, mode: "insensitive" } } } },
-      { constraints: { some: { dimension: "MODEL", state: "EXACT", textValue: { in: modelAliases, mode: "insensitive" } } } },
-    ],
-  };
-
-  if (input.details) {
-    const detailClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = input.chassis
-      ? {
-          ...modelClauseWhere,
-          AND: [
-            ...((modelClauseWhere.AND as Prisma.ShopCatalogProjectionClauseWhereInput[]) ?? []),
-            {
-              OR: [
-                { constraints: { some: { dimension: "CHASSIS", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
-                { constraints: { some: { dimension: "GENERATION", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
-              ],
-            },
-          ],
-        }
-      : modelClauseWhere;
-    const [engines, ranges] = await Promise.all([
-      exactValues("ENGINE", detailClauseWhere),
-      prisma.shopCatalogProjectionConstraint.findMany({
-        where: { dimension: "YEAR", state: "EXACT", clause: detailClauseWhere },
-        distinct: ["yearFrom", "yearTo"],
-        select: { yearFrom: true, yearTo: true },
-      }),
-    ]);
-    const maxYear = new Date().getFullYear() + 2;
-    const years = new Set<number>();
-    for (const range of ranges) {
-      const from = Math.max(1886, range.yearFrom ?? 1886);
-      const to = Math.min(maxYear, range.yearTo ?? maxYear);
-      for (let year = from; year <= to; year += 1) years.add(year);
-    }
-    return {
-      type: "details" as const,
-      make: input.make,
-      model: input.model,
-      chassis: input.chassis,
-      data: {
-        years: [...years].sort((left, right) => right - left),
-        engines,
-      },
-    };
-  }
-
-  if (input.chassis) {
-    const chassisClauseWhere: Prisma.ShopCatalogProjectionClauseWhereInput = {
-      ...modelClauseWhere,
-      AND: [
-        ...((modelClauseWhere.AND as Prisma.ShopCatalogProjectionClauseWhereInput[]) ?? []),
-        {
-          OR: [
-            { constraints: { some: { dimension: "CHASSIS", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
-            { constraints: { some: { dimension: "GENERATION", state: "EXACT", textValue: { equals: input.chassis, mode: "insensitive" } } } },
-          ],
-        },
-      ],
-    };
-    const rows = await exactValues("ENGINE", chassisClauseWhere);
-    return {
-      type: "engines" as const,
-      make: input.make,
-      model: input.model,
-      chassis: input.chassis,
-      data: rows,
-    };
-  }
-
-  const rows = [
-    ...(await exactValues("CHASSIS", modelClauseWhere)),
-    ...(await exactValues("GENERATION", modelClauseWhere)),
-  ];
-  return {
-    type: "chassis" as const,
-    make: input.make,
-    model: input.model,
-    data: canonicalizeVehicleChassisCodes(rows, canonicalMake, input.model),
-  };
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const make = searchParams.get("make");
     const model = searchParams.get("model");
     const chassis = searchParams.get("chassis");
+    const rawYear = searchParams.get("year")?.trim() ?? "";
+    const yearNumber = /^\d{4}$/.test(rawYear) ? Number(rawYear) : null;
+    const year =
+      yearNumber != null && yearNumber >= 1886 && yearNumber <= new Date().getFullYear() + 2
+        ? yearNumber
+        : null;
+    if (rawYear && year == null) {
+      return NextResponse.json({ error: "Invalid vehicle year" }, { status: 400 });
+    }
     const brand = searchParams.get("brand")?.trim() || null;
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
@@ -211,6 +45,7 @@ export async function GET(request: NextRequest) {
       make,
       model,
       chassis,
+      year,
       brand,
       scope: vehicleScope,
       details,
@@ -237,7 +72,9 @@ export async function GET(request: NextRequest) {
         item.fitments.filter(
           (fitment) =>
             shopVehicleMakesMatch(fitment.make, make) &&
-            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model, fitment.make)) &&
+            fitment.models.some((candidate: string) =>
+              shopVehicleModelsMatch(candidate, model, fitment.make)
+            ) &&
             (!chassis ||
               fitment.chassisCodes.some(
                 (candidate: string) => candidate.toLocaleLowerCase() === chassis.toLocaleLowerCase()
@@ -297,7 +134,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      let models = canonicalizeVehicleModels(make, Array.from(modelsSet));
+      const models = canonicalizeVehicleModels(make, Array.from(modelsSet));
       return cachedJson({ type: "models", make, data: models });
     }
 
@@ -311,7 +148,9 @@ export async function GET(request: NextRequest) {
         for (const fitment of item.fitments) {
           if (
             shopVehicleMakesMatch(fitment.make, make) &&
-            fitment.models.some((candidate: string) => shopVehicleModelsMatch(candidate, model, fitment.make))
+            fitment.models.some((candidate: string) =>
+              shopVehicleModelsMatch(candidate, model, fitment.make)
+            )
           ) {
             for (const code of fitment.chassisCodes) {
               chassisSet.add(code);

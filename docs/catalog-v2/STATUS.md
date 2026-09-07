@@ -4,7 +4,58 @@ Last updated: 2026-09-07
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)
 
-## Latest local wave: effective prices, stock summaries and fuel
+## Latest local wave: shared facet pricing and year-aware engine choices
+
+Starting from `13f59354`. Root implemented T3 shared facet pricing and integrated
+Terra's actual-query scale harness. Luna audited selector completeness and added
+year request wiring; root completed canonical reader extraction, direct-engine
+year filtering, invalid-year handling and the real database regression.
+
+- Price-bounded effective-price facets now share one narrow materialized candidate
+  set. Common locale/status/scope/text/ID/exclusion/price predicates are retained;
+  brand/category branches retain their independent discovery behavior and vehicle
+  options retain their correlated clause prefixes. Unpriced requests keep the old
+  counter/query paths. On four identical fixtures the actual facet EXPLAIN changed
+  from six canonical price subplans / 18 reads to one subplan / four reads.
+- The actual-reader scale harness passed with 1,000 and 10,000 synthetic products
+  (250 / 2,500 default variants). Warm single samples at 10k: ordered 401.40 ms,
+  facets 419.83 ms, summary 411.86 ms; separate count 782.39 ms. These are B2B Europe
+  UAH price-range reads after setup/reference reads/EXPLAIN, not p95, cold, full
+  request, supplier, vehicle-policy or Vercel measurements. Broad-price cost still
+  grows with candidates; 100k/500k acceptance and production savings remain open.
+- Fitment details now receive the selected year and narrow only engine choices;
+  year options remain broad for the selected model/chassis. Direct engines use the
+  same rule. ANY/NOT_APPLICABLE year evidence is accepted; UNKNOWN/missing evidence
+  does not satisfy a selected year. Invalid nonempty years return HTTP 400.
+- Root checked same-product early/late engine clauses, explicit year states,
+  other-chassis exclusion, direct engine/details parity, and unchanged year options
+  on real PostgreSQL. DB-less local HTTP returns details for valid years and 400
+  for invalid years. Local browser loaded BMW/M5/G90/2025 with 33 products and kept
+  the year selection; engine evidence is absent in the local snapshot as expected.
+- Final checks: 334 selected unit tests, five serial DB integrations and the two
+  scale runs passed; TypeScript passed; full ESLint: zero errors / 551 warnings.
+  Source contracts now follow the extracted readers, the aggregate count provider,
+  and the already-translated admin failure label, retaining their semantic checks.
+
+Artifacts: `artifacts/storefront-wave5-{regressions,final-integration,typecheck,lint}.log`,
+`storefront-wave5-facet-plan-{before,after}.log`, `storefront-wave5-scale-{1000,10000}.log`.
+All DB work used a fresh disposable localhost PostgreSQL after replaying 44 migrations.
+No production credentials, reads, writes, flags or deployments changed. No full build
+was run. Current Node 24 is outside the supported package range.
+
+Confirmed next correctness gate: the canonical selector returns as soon as it has
+any rows, so mixed coverage can omit legacy-only makes/models/chassis. A canonical
+Audi A4 plus a legacy-only Audi Q5 yields only A4. This remains unfixed; merging all
+legacy rows at request time would add cost and can restore known polluted fitments.
+Complete normalized source projection and option-set coverage must precede cutover.
+The concrete offline extension point is `scripts/verify-catalog-v2-all-source-backfill.ts`
+(`draftsBySource` after persistence), invoked through the existing clean-commit
+`shop:catalog:v2:all-source:docker` runner. Compare normalized source application
+tuples with persisted canonical and projected clauses. Current raw-leaf coverage,
+ownership and policy-count assertions do not establish selector option completeness;
+this tuple gate is planned, not implemented or executed by this wave.
+
+## Previous local wave: effective prices, stock summaries and fuel
 
 Work items: T3/T4 filter correctness and price query cost; local implementation,
 not production acceptance. Root integrated and reviewed Terra/Luna handoffs.
@@ -45,7 +96,7 @@ text/category/scope parity, native type/kind/strict semantics, global facet disc
 representative effective-price/facet query plans and latency, supported-Node build,
 Preview/device matrix, production shadow/freshness/rollback and cost measurements.
 Other V2 callers without the new effective context retain their existing price path.
-Facet SQL still repeats pricing across branches. Local Node 24.19.0 is outside the
+Facet SQL repeated pricing across branches at that checkpoint (fixed above). Local Node 24.19.0 is outside the
 declared >=20 <23 range. No production activation, migration, push or deployment.
 
 ## Storefront performance and correctness follow-up - 2026-09-07

@@ -81,6 +81,7 @@ test(
       queryShopCatalogProjectionFacets,
       queryShopCatalogProjectionStockSummary,
       buildShopCatalogProjectionOrderedQuerySql,
+      buildShopCatalogProjectionFacetQuerySql,
     } = await import("../../../src/lib/shopCatalogProjectionQuery.server");
     const run = `effective-projection-price-${Date.now()}`;
     const ids = ["alpha", "bravo", "charlie", "unpriced"].map((name) => `${run}-${name}`);
@@ -283,6 +284,34 @@ test(
           new Set(expected.map((entry) => entry.card.productId))
         );
 
+        const facetExplain = await client.$queryRaw<
+          Array<{ "QUERY PLAN": Array<{ Plan: Record<string, unknown> }> }>
+        >(
+          Prisma.sql`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${buildShopCatalogProjectionFacetQuerySql(query)}`
+        );
+        nodes.length = 0;
+        visit(facetExplain[0]["QUERY PLAN"][0].Plan);
+        const facetPriceReads = nodes.filter((node) => node["Relation Name"] === "ShopProduct");
+        assert.equal(
+          facetPriceReads.length,
+          1,
+          "all facets must share one canonical price subplan"
+        );
+        assert.ok(
+          facetPriceReads.reduce((sum, node) => sum + Number(node["Actual Loops"] ?? 0), 0) <=
+            ids.length
+        );
+        t.diagnostic(
+          JSON.stringify({
+            currency: current.currency,
+            facetPricePlanNodes: facetPriceReads.length,
+            facetPriceReadLoops: facetPriceReads.reduce(
+              (sum, node) => sum + Number(node["Actual Loops"] ?? 0),
+              0
+            ),
+            fixtureProducts: ids.length,
+          })
+        );
         const facets = await queryShopCatalogProjectionFacets(query);
         const expectedBrands = new Map<string, number>();
         const expectedCategories = new Map<string, number>();
@@ -300,6 +329,32 @@ test(
           new Map(facets.facets.category.map((facet) => [facet.label, facet.count])),
           expectedCategories
         );
+        const disjoint = await queryShopCatalogProjectionFacets({
+          ...query,
+          brand: "Alpha",
+          category: "Exhaust",
+        });
+        assert.deepEqual(
+          new Map(disjoint.facets.brand.map((facet) => [facet.label, facet.count])),
+          new Map([["Bravo", 1]])
+        );
+        assert.deepEqual(
+          new Map(disjoint.facets.category.map((facet) => [facet.label, facet.count])),
+          new Map([["Intake", 1]])
+        );
+        const excluded = await queryShopCatalogProjectionFacets({
+          ...query,
+          excludeProductIds: [ids[0]],
+        });
+        assert.deepEqual(
+          new Map(excluded.facets.brand.map((facet) => [facet.label, facet.count])),
+          new Map([["Bravo", 1]])
+        );
+        const noTextMatch = await queryShopCatalogProjectionFacets({
+          ...query,
+          text: "no-matching-fixture-text",
+        });
+        assert.ok(Object.values(noTextMatch.facets).every((items) => items.length === 0));
 
         const summary = await queryShopCatalogProjectionStockSummary(
           { ...query, limit: 1, offset: 1 },

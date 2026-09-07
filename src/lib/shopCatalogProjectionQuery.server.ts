@@ -578,14 +578,58 @@ function selectedVehicleFacetConstraints(
   return constraints;
 }
 
+type ProjectionFacetSource = {
+  prefix: Prisma.Sql;
+  from: Prisma.Sql;
+  conditions: (includeBrand: boolean, includeCategory?: boolean) => Prisma.Sql[];
+};
+
+function buildProjectionFacetSource(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>
+): ProjectionFacetSource {
+  if (!input.effectivePriceContext || (input.minPrice == null && input.maxPrice == null)) {
+    return {
+      prefix: Prisma.empty,
+      from: Prisma.sql`"ShopCatalogProjection" projection`,
+      conditions: (includeBrand, includeCategory = true) =>
+        projectionFacetBaseConditions(input, includeBrand, includeCategory),
+    };
+  }
+  // Price is common to every facet, whereas brand/category and vehicle prefixes
+  // intentionally differ between branches. Materialize only the shared candidate
+  // fields once; do not repeat canonical/default-variant pricing in every UNION.
+  const common = projectionFacetBaseConditions(input, false, false, Prisma.sql`facet_price.amount`);
+  return {
+    prefix: Prisma.sql`WITH priced_facet_projection AS MATERIALIZED (
+      SELECT projection."productId", projection."brandKey", projection."brandLabel",
+             projection."categoryKey", projection."categoryLabel"
+      FROM "ShopCatalogProjection" projection
+      CROSS JOIN LATERAL (SELECT ${projectionPriceSql(input)} AS amount OFFSET 0) facet_price
+      WHERE ${Prisma.join(common, " AND ")}
+    )`,
+    from: Prisma.sql`priced_facet_projection projection`,
+    conditions: (includeBrand, includeCategory = true) => {
+      const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
+      if (includeBrand && input.brand) conditions.push(projectionBrandConditionSql(input.brand));
+      if (includeCategory && input.category) {
+        conditions.push(
+          Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
+        );
+      }
+      return conditions;
+    },
+  };
+}
+
 function vehicleFacetBranch(
   input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
-  field: VehicleDimension | "year"
+  field: VehicleDimension | "year",
+  source: ProjectionFacetSource
 ) {
   const dimension =
     field === "year" ? ShopCatalogCompatibilityDimension.YEAR : VEHICLE_DIMENSIONS[field];
   const prefix = selectedVehicleFacetConstraints(input, field);
-  const conditions = projectionFacetBaseConditions(input, true);
+  const conditions = source.conditions(true);
   const key =
     field === "year"
       ? Prisma.sql`concat(coalesce(candidate."yearFrom"::text, ''), ':', coalesce(candidate."yearTo"::text, ''))`
@@ -608,7 +652,7 @@ function vehicleFacetBranch(
        count(DISTINCT projection."productId")::bigint AS "count",
        ${field === "year" ? Prisma.sql`candidate."yearFrom"` : Prisma.sql`NULL::integer`} AS "yearFrom",
        ${field === "year" ? Prisma.sql`candidate."yearTo"` : Prisma.sql`NULL::integer`} AS "yearTo"
-     FROM "ShopCatalogProjection" projection
+     FROM ${source.from}
      JOIN LATERAL (
        SELECT candidate_row.*
        FROM "ShopCatalogProjectionPolicy" policy
@@ -645,6 +689,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
   raw: ShopCatalogProjectionQueryInput
 ): Prisma.Sql {
   const input = normalizeShopCatalogProjectionQuery(raw);
+  const source = buildProjectionFacetSource(input);
   const vehicleCondition = selectedVehicleCondition(input);
   const brandBranch =
     input.text ||
@@ -655,7 +700,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
     input.maxPrice != null ||
     vehicleCondition
       ? (() => {
-          const brandConditions = projectionFacetBaseConditions(input, false);
+          const brandConditions = source.conditions(false);
           if (vehicleCondition) brandConditions.push(vehicleCondition);
           return Prisma.sql`
           (SELECT
@@ -665,7 +710,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
              count(*)::bigint AS "count",
              NULL::integer AS "yearFrom",
              NULL::integer AS "yearTo"
-           FROM "ShopCatalogProjection" projection
+           FROM ${source.from}
            WHERE ${Prisma.join(brandConditions, " AND ")}
              AND projection."brandKey" <> ''
            GROUP BY projection."brandKey"
@@ -687,7 +732,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
            AND facet."productCount" > 0
          ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
          LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
-  const categoryConditions = projectionFacetBaseConditions(input, true, false);
+  const categoryConditions = source.conditions(true, false);
   if (vehicleCondition) categoryConditions.push(vehicleCondition);
   const categoryBranch = Prisma.sql`
     (SELECT
@@ -697,7 +742,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
        count(*)::bigint AS "count",
        NULL::integer AS "yearFrom",
        NULL::integer AS "yearTo"
-     FROM "ShopCatalogProjection" projection
+     FROM ${source.from}
      WHERE ${Prisma.join(categoryConditions, " AND ")}
        AND projection."categoryKey" IS NOT NULL
        AND projection."categoryKey" <> ''
@@ -733,7 +778,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
   } else {
     branches.push(
       liveMakeCounts
-        ? vehicleFacetBranch(input, "make")
+        ? vehicleFacetBranch(input, "make", source)
         : Prisma.sql`
       (SELECT 'make'::text AS "dimension", facet."valueKey" AS "key",
          facet."valueLabel" AS "label", facet."productCount"::bigint AS "count",
@@ -750,14 +795,14 @@ export function buildShopCatalogProjectionFacetQuerySql(
        LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
     );
   }
-  if (input.make) branches.push(vehicleFacetBranch(input, "model"));
+  if (input.make) branches.push(vehicleFacetBranch(input, "model", source));
   if (input.make && input.model) {
-    branches.push(vehicleFacetBranch(input, "generation"));
-    branches.push(vehicleFacetBranch(input, "year"));
-    branches.push(vehicleFacetBranch(input, "engine"));
-    branches.push(vehicleFacetBranch(input, "fuel"));
+    branches.push(vehicleFacetBranch(input, "generation", source));
+    branches.push(vehicleFacetBranch(input, "year", source));
+    branches.push(vehicleFacetBranch(input, "engine", source));
+    branches.push(vehicleFacetBranch(input, "fuel", source));
   }
-  return Prisma.sql`${Prisma.join(branches, " UNION ALL ")}`;
+  return Prisma.sql`${source.prefix} ${Prisma.join(branches, " UNION ALL ")}`;
 }
 
 export async function queryShopCatalogProjectionFacets(

@@ -1569,7 +1569,7 @@ function StockPageContent() {
     setDetailsLoading(true);
     setDetailsState("loading");
     const controller = new AbortController();
-    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}`;
+    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}|${requestedYear ?? ""}`;
     detailsRequestKeyRef.current = requestKey;
     const generation = ++detailsGenerationRef.current;
     const params = new URLSearchParams({
@@ -1579,6 +1579,7 @@ function StockPageContent() {
       details: "1",
     });
     if (chassis) params.set("chassis", chassis);
+    if (requestedYear) params.set("year", String(requestedYear));
     if (activeFitmentBrand) params.set("brand", activeFitmentBrand);
     fetch(`/api/shop/stock/fitment?${params.toString()}`, { signal: controller.signal })
       .then((response) => {
@@ -1625,7 +1626,7 @@ function StockPageContent() {
         if (!controller.signal.aborted) setDetailsLoading(false);
       });
     return () => controller.abort();
-  }, [activeFitmentBrand, chassis, make, model, vehicleMode]);
+  }, [activeFitmentBrand, chassis, make, model, requestedYear, vehicleMode]);
 
   // Search handler
   const doSearch = useCallback(

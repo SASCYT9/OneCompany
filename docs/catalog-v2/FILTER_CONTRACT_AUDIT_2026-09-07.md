@@ -53,8 +53,10 @@ values.
    discount priority as card pricing. Ordered queries share one price evaluation
    between both bounds and sorting. On four fixtures, EXPLAIN reduced canonical
    product subplans from three to one and reads from eight to four. This is not a
-   production latency benchmark. Facet branches still evaluate price separately;
-   representative data, query plans and B2B-map cost need measurement. Other V2
+   production latency benchmark. Price-bounded facets now share one materialized
+   candidate set (six subplans / 18 reads became one / four on the same fixtures).
+   Actual-query 1k/10k scale fixtures passed; at 10k the warm facet sample was
+   419.83 ms. Representative data, cold/p95 and B2B-map cost still need measurement. Other V2
    callers without the context are outside this patch's pricing parity claim.
 2. **Unsupported URL/chip filters now explicitly use legacy.** `productType`,
    non-`any` `productKind`, `strict=1` and multiple brands no longer enter a reader
@@ -72,6 +74,18 @@ values.
    `auto -> null` behavior is an intentional coverage bridge for legacy `SHOP`
    rows, not a correctness proof. Measure and quarantine moto leakage, then
    normalize scope keys/migrate the legacy rows before changing it to exact auto.
+6. **Canonical selector presence is not completeness.** `getCanonicalFitmentOptions`
+   returns early when canonical make/model rows exist. Example: canonical Audi A4
+   plus legacy-only Audi Q5 yields only A4, because fallback is never consulted.
+   This also affects makes/chassis under partial source coverage. Do not fix this
+   by adding an unbounded request scan or restoring polluted legacy tags; validate
+   normalized per-source option coverage and publish the complete indexed data.
+7. **Engine options now respect the selected year.** The UI sends year and keys its
+   detail request by year; canonical details and direct engines require matching
+   YEAR evidence in the same clause. Exact ranges and explicit ANY/NOT_APPLICABLE
+   pass; UNKNOWN/missing do not. The year dropdown retains the full model/chassis
+   range. Real PostgreSQL tests cover early/late engines on one product, a different
+   chassis and explicit year states. Invalid nonempty year returns HTTP 400.
 
 ## Product type, product kind, and strict implementation contract
 
