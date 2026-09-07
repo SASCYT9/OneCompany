@@ -63,6 +63,10 @@ needs. Focused vehicle-search tests (20/20) and TypeScript pass. Full catalog
 snapshot generation on every production build remains the largest build-cost
 item and needs a separately published artifact/cache design.
 
+Commit `efe1f086` adds an explicit BMW M5 G90 alias group. `BMW M5 G90` now
+stays correlated to `BMW → M5 → G90 → S68`, while a broad `BMW M5` query remains
+unrestricted. Vehicle search regression coverage passes 22/22.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
