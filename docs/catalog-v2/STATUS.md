@@ -67,6 +67,13 @@ Commit `efe1f086` adds an explicit BMW M5 G90 alias group. `BMW M5 G90` now
 stays correlated to `BMW → M5 → G90 → S68`, while a broad `BMW M5` query remains
 unrestricted. Vehicle search regression coverage passes 22/22.
 
+R11 local verification under Node `22.14.0` passed TypeScript, the full Next
+production build with readers off (590 static pages), SEO 18/18, full ESLint
+(0 errors, 550 existing warnings), and `git diff --check`. The selected catalog
+suite is 330/341 because 11 harness tests import unavailable `node:module`
+`registerHooks`; this is a test-runtime compatibility issue to resolve before
+claiming the full acceptance gate. No production action was performed.
+
 ## Latest local wave: preserve KW/FI import evidence (T4)
 
 Starting from `2a207f69`. New FI imports now persist the raw Shopify product and
