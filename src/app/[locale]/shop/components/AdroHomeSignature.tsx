@@ -95,8 +95,11 @@ export default function AdroHomeSignature({ locale, availableVehicles, featuredP
             { src: "/images/shop/adro/swan-04.webp", alt: "BMW M4 ADRO — Rear quarter" },
           ].map((p, i) => (
             <div key={`t${i}`} className="adro__collage-cell">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.src} alt={p.alt} loading="eager" />
+              {}
+              {/* The collage follows two full-screen video sections and is
+                  below the fold on phones and desktop. Keep it out of the
+                  critical request queue until the customer approaches it. */}
+              <img src={p.src} alt={p.alt} loading="lazy" />
             </div>
           ))}
 
