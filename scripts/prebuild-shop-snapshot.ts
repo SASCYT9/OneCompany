@@ -35,6 +35,12 @@ import {
   replaceCatalogDirectoryAtomically,
   replaceFileAtomically,
 } from "./lib/atomic-catalog-directory";
+import {
+  readCatalogBuildArtifactKey,
+  resolveCatalogBuildCacheDir,
+  restoreCatalogBuildArtifact,
+  saveCatalogBuildArtifact,
+} from "./lib/catalog-build-artifact";
 
 const SETTINGS_OUTPUT = path.join(process.cwd(), "data", "shop-settings.snapshot.json");
 const PRODUCTS_OUTPUT = path.join(process.cwd(), "data", "shop-products.snapshot.json");
@@ -62,6 +68,34 @@ async function recoverProductsWithRetry(slugs: string[]) {
 async function main() {
   let stagedFallbackDirectory: string | null = null;
   try {
+    // Reuse only an explicitly keyed, fully hashed artifact.  The key must be
+    // supplied by the publication pipeline; a build commit alone cannot prove
+    // that prices, stock, or visibility in the database are unchanged.
+    const artifactKey = readCatalogBuildArtifactKey();
+    if (artifactKey) {
+      const cacheDir = resolveCatalogBuildCacheDir({
+        configuredDir: process.env.CATALOG_BUILD_CACHE_DIR,
+      });
+      const restored = restoreCatalogBuildArtifact({
+        cacheDir,
+        key: artifactKey,
+        paths: {
+          productsOutput: PRODUCTS_OUTPUT,
+          settingsOutput: SETTINGS_OUTPUT,
+          fallbackOutputDir: FALLBACK_OUTPUT_DIR,
+        },
+      });
+      if (restored) {
+        console.log(
+          `[prebuild-shop-snapshot] restored catalog artifact ${artifactKey} ` +
+            `(${restored.manifest.productCount} products) from ${path.relative(process.cwd(), cacheDir)}`
+        );
+        return;
+      }
+      console.log(
+        `[prebuild-shop-snapshot] no valid artifact for ${artifactKey}; generating from database`
+      );
+    }
     console.log("[prebuild-shop-snapshot] fetching settings and product count...");
     const [settings, activeProducts] = await Promise.all([
       prisma.shopSettings.findUnique({ where: { key: "shop" } }),
@@ -226,6 +260,25 @@ async function main() {
     console.log(
       `[prebuild-shop-snapshot] wrote simplified products to ${path.relative(process.cwd(), PRODUCTS_OUTPUT)}`
     );
+    if (artifactKey) {
+      const cacheDir = resolveCatalogBuildCacheDir({
+        configuredDir: process.env.CATALOG_BUILD_CACHE_DIR,
+      });
+      saveCatalogBuildArtifact({
+        cacheDir,
+        key: artifactKey,
+        paths: {
+          productsOutput: PRODUCTS_OUTPUT,
+          settingsOutput: SETTINGS_OUTPUT,
+          fallbackOutputDir: FALLBACK_OUTPUT_DIR,
+        },
+        productCount: simplifiedProducts.length,
+        activeDatabaseCount: productCount,
+      });
+      console.log(
+        `[prebuild-shop-snapshot] cached catalog artifact in ${path.relative(process.cwd(), cacheDir)}`
+      );
+    }
   } finally {
     if (stagedFallbackDirectory) {
       fs.rmSync(stagedFallbackDirectory, { recursive: true, force: true });
