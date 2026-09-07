@@ -254,10 +254,14 @@ export async function getCanonicalFitmentOptions(input: {
     };
   }
 
-  const rows = [
-    ...(await exactValues("CHASSIS", modelClauseWhere)),
-    ...(await exactValues("GENERATION", modelClauseWhere)),
-  ];
+  // Chassis and generation are independent dimensions. Run both bounded
+  // GROUP BY reads together so the final selector level does not add a second
+  // round-trip before returning options.
+  const [chassisRows, generationRows] = await Promise.all([
+    exactValues("CHASSIS", modelClauseWhere),
+    exactValues("GENERATION", modelClauseWhere),
+  ]);
+  const rows = [...chassisRows, ...generationRows];
   return {
     type: "chassis" as const,
     make: input.make,
