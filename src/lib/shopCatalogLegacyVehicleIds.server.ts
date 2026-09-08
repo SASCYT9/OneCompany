@@ -9,6 +9,7 @@ import {
   canonicalVehicleMakeLabel,
   canonicalVehicleModelLabel,
   vehicleMakeAliases,
+  vehicleModelAliases,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
 
@@ -97,7 +98,18 @@ function cacheVehicleEvidence(key: string, value: VehicleEvidence) {
   }
 }
 
-async function getCachedFitmentProducts() {
+async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
+  if (productIds) {
+    if (productIds.length === 0) return [];
+    const products = await getShopFitmentCatalogProducts({
+      evidenceOnly: true,
+      productIds,
+    });
+    return products.map((product) => ({
+      id: product.id,
+      fitment: extractProductFitment(product),
+    }));
+  }
   if (sharedCache.cachedProducts && Date.now() - sharedCache.cachedAt < CACHE_MS) {
     return sharedCache.cachedProducts;
   }
@@ -115,6 +127,99 @@ async function getCachedFitmentProducts() {
       sharedCache.fitmentPending = undefined;
     });
   return sharedCache.fitmentPending;
+}
+
+type ProductTextField = "titleEn" | "titleUa" | "slug" | "collectionEn" | "collectionUa";
+
+function productTextAlternatives(fields: readonly ProductTextField[], values: readonly string[]) {
+  return values
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .flatMap((value) =>
+      fields.map((field) => ({ [field]: { contains: value, mode: "insensitive" } }))
+    );
+}
+
+/**
+ * Keep the legacy bridge broad enough for historical feeds, but bound the
+ * product read to rows that can actually mention the selected vehicle. The
+ * previous implementation loaded and parsed the entire active catalog before
+ * checking the vehicle, which made a cold filter request several seconds.
+ */
+async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonicalMake: string) {
+  const makeKey = canonicalMake.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
+  const makeValues = [
+    ...new Set([canonicalMake, ...(input.make ? vehicleMakeAliases(canonicalMake) : [])]),
+  ];
+  const modelValues = input.model ? vehicleModelAliases(canonicalMake, input.model) : [];
+  const generationValues = input.generation ? [input.generation] : [];
+  const tagValues = new Set<string>();
+  const modelTagValues = new Set<string>();
+  const generationTagValues = new Set<string>();
+
+  // A bare fits-make tag is intentionally broad. Use it only for a make-only
+  // selection; model/generation selections get focused tags plus text joins.
+  if (input.make && !input.model && !input.generation) {
+    tagValues.add(`fits-make:${makeKey}`);
+  }
+  for (const model of modelValues) {
+    const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
+    if (input.make) {
+      modelTagValues.add(`fits-model:${makeKey}:${modelKey}`);
+      modelTagValues.add(`fits:${makeKey}-${modelKey}`);
+    }
+    modelTagValues.add(`model:${modelKey}`);
+  }
+  for (const generation of generationValues) {
+    const generationKey = generation.trim().toLowerCase();
+    generationTagValues.add(`chassis:${generationKey}`);
+    generationTagValues.add(`chassis:${generation.trim().toUpperCase()}`);
+    for (const model of modelValues) {
+      const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
+      if (input.make) generationTagValues.add(`fits-trim:${makeKey}:${modelKey}:${generationKey}`);
+    }
+  }
+  for (const tag of [...modelTagValues, ...generationTagValues]) tagValues.add(tag);
+
+  const textFields: ProductTextField[] = [
+    "titleEn",
+    "titleUa",
+    "slug",
+    "collectionEn",
+    "collectionUa",
+  ];
+  const makeText = productTextAlternatives(textFields, makeValues);
+  const modelText = productTextAlternatives(textFields, modelValues);
+  const generationText = productTextAlternatives(textFields, generationValues);
+  const alternatives: Record<string, unknown>[] = [];
+  if (tagValues.size > 0) alternatives.push({ tags: { hasSome: [...tagValues] } });
+  if (input.make && (input.model || input.generation)) {
+    const makeTag = `fits-make:${makeKey}`;
+    const focusedTags = [...modelTagValues, ...generationTagValues];
+    if (focusedTags.length > 0) {
+      alternatives.push({ AND: [{ tags: { has: makeTag } }, { tags: { hasSome: focusedTags } }] });
+    }
+  }
+  if (makeText.length > 0 && modelText.length > 0 && generationText.length > 0) {
+    alternatives.push({ AND: [{ OR: makeText }, { OR: modelText }, { OR: generationText }] });
+  }
+  if (makeText.length > 0 && modelText.length > 0) {
+    alternatives.push({ AND: [{ OR: makeText }, { OR: modelText }] });
+  }
+  if (makeText.length > 0 && generationText.length > 0) {
+    alternatives.push({ AND: [{ OR: makeText }, { OR: generationText }] });
+  }
+  if (alternatives.length === 0) return null;
+
+  const rows = await prisma.shopProduct.findMany({
+    where: {
+      isPublished: true,
+      status: "ACTIVE",
+      OR: alternatives,
+    },
+    select: { id: true },
+  });
+  return rows.map((row) => row.id);
 }
 
 async function getCachedVehicleEvidence(
@@ -210,12 +315,17 @@ async function getCachedVehicleEvidence(
 async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery) {
   const canonicalMake = canonicalVehicleMakeLabel(input.make ?? "");
   const makeAliases = input.make ? vehicleMakeAliases(canonicalMake) : [];
-  const [products, evidence] = await Promise.all([
-    getCachedFitmentProducts(),
+  const [candidateIds, evidence] = await Promise.all([
+    input.make
+      ? findLegacyFitmentCandidateIds(input, canonicalMake).catch(() => null)
+      : Promise.resolve<string[] | null>(null),
     input.make
       ? getCachedVehicleEvidence(canonicalMake, makeAliases, input.year)
       : Promise.resolve<VehicleEvidence>({ applications: [], clauses: [] }),
   ]);
+  // Canonical relation evidence can resolve IDs without loading their product
+  // payload. Only parse bounded text candidates for the historical fallback.
+  const products = await getCachedFitmentProducts(candidateIds);
   const { applications: canonicalApplications, clauses: projectionClauses } = evidence;
   const ids = new Set(
     products

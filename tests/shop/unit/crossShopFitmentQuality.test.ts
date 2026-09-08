@@ -6,6 +6,7 @@ import {
   extractProductFitment,
   isKnownVehicleModelForMake,
 } from "../../../src/lib/crossShopFitment";
+import { shopFitmentMatchesVehicleConstraints } from "../../../src/lib/shopVehicleConstraints";
 
 function product(input: Partial<ShopProduct> & Pick<ShopProduct, "title">): ShopProduct {
   return {
@@ -126,6 +127,30 @@ test("Burger title make overrides a contradictory legacy brand tag", () => {
 
   assert.equal(fitment.make, "Alfa Romeo");
   assert.deepEqual(fitment.models, ["Quadrifoglio", "Giulia", "Stelvio"]);
+});
+
+test("ambiguous Burger chassis tags cannot turn a Kia product into BMW fitment", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "Burger Motorsports",
+      slug: "burger-jb4-for-kia-stinger-genesis-g70",
+      title: {
+        ua: "JB4 тюнер для Kia Stinger / Genesis G70",
+        en: "Kia Stinger / Genesis G70 3.3L Turbo JB4 Tuner",
+      },
+      tags: ["fits-make:bmw", "fits-model:bmw:m5", "fits-trim:bmw:m5:g90", "model:G90"],
+    })
+  );
+
+  assert.equal(fitment.make, "Kia");
+  assert.equal(
+    shopFitmentMatchesVehicleConstraints(fitment, {
+      make: "BMW",
+      model: "M5",
+      chassis: "G90",
+    }),
+    false
+  );
 });
 
 test("BMW model options reject known cross-make and supplier-noise labels", () => {

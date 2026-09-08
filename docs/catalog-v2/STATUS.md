@@ -965,3 +965,27 @@ BMW M5 F90; reopen filters, choose Audi, model selection remains visible; close
 button preserves Audi. Full Next build passed; 418 related tests passed; typecheck
 and touched-file ESLint have zero errors. This is local verification, not rollout.
 Production blockers listed above remain unresolved.
+
+### 2026-09-08 - legacy fitment correctness and bounded cold reads
+
+The legacy bridge now gives an explicit vehicle make in the product title or
+slug priority over a contradictory generated `fits-make:*` tag. Namespaced
+`fits-model:*` tags are accepted only when their make namespace agrees with the
+resolved make. The Burger Kia/Hyundai records with polluted BMW tags therefore
+no longer enter BMW M5 results, while the diagnostics audit still reports the
+source pollution for cleanup. This is parser-side protection only; no remote
+product or tag was edited.
+
+Cold legacy resolution now runs a bounded candidate query first and reads fitment
+evidence only for the selected product IDs. Evidence-only reads omit prices,
+media and variants; canonical application/projection IDs remain direct, and a
+candidate-query error falls back to the previous full read for availability.
+The focused regression set is 53/53 on Node 22.14.0, TypeScript passes, and the
+Next production build completes all 590 static pages.
+
+Local read-only preview samples after the change (configured remote database,
+not production guarantees): BMW M5 G90 about 3.9 s cold / 0.3 s warm with 48
+results; BMW M3 G80 2.7 s / 0.3 s with 144; Audi A4 B9 1.8 s / 0.3 s with 94;
+Porsche 911 992 1.5 s / 0.3 s with 28. The M5 G90 response contains no Burger
+Kia/Genesis products. Production activation, selector coverage and deployment
+remain intentionally unchanged and still require their existing gates.

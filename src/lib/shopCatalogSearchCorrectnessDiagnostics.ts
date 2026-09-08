@@ -78,7 +78,7 @@ function tagValues(product: CatalogSearchDiagnosticProduct, prefix: string) {
     .filter(Boolean);
 }
 
-/** Vehicle makes stated by source tags, separate from parser-derived fits-* evidence. */
+/** Vehicle makes stated by source brand tags, separate from parser-derived evidence. */
 export function declaredVehicleMakes(product: CatalogSearchDiagnosticProduct) {
   return [
     ...new Set(tagValues(product, "brand:").map(canonicalVehicleMakeLabel).filter(Boolean)),
@@ -88,17 +88,20 @@ export function declaredVehicleMakes(product: CatalogSearchDiagnosticProduct) {
 export function diagnoseLegacySnapshotProduct(product: CatalogSearchDiagnosticProduct) {
   const fitment = extractProductFitment(product as never);
   const declaredMakes = declaredVehicleMakes(product);
+  const taggedFitmentMakes = tagValues(product, "fits-make:").map(canonicalVehicleMakeLabel);
   const fittedMake = canonicalVehicleMakeLabel(fitment.make ?? "");
   const conflictingDeclaredMakes = fittedMake
-    ? declaredMakes.filter((make) => make !== fittedMake)
-    : [];
+    ? [...declaredMakes, ...taggedFitmentMakes].filter((make) => make !== fittedMake)
+    : [...declaredMakes, ...taggedFitmentMakes];
   return {
     fitment,
     declaredMakes,
     ambiguousMakeEvidence: Boolean(fittedMake && conflictingDeclaredMakes.length),
     reason:
       fittedMake && conflictingDeclaredMakes.length
-        ? `parsed fitment make ${fittedMake} conflicts with source brand tags ${conflictingDeclaredMakes.join(", ")}`
+        ? `parsed fitment make ${fittedMake} conflicts with source vehicle tags ${[
+            ...new Set(conflictingDeclaredMakes),
+          ].join(", ")}`
         : null,
   };
 }
@@ -138,13 +141,20 @@ export function auditLegacySnapshotCatalog(input: {
       recordCoverage(counts, product);
       recordCoverage(totals, product);
       const diagnosis = diagnoseLegacySnapshotProduct(product);
+      const suspiciousRequestedMake =
+        diagnosis.ambiguousMakeEvidence &&
+        tagValues(product, "fits-make:").some(
+          (value) =>
+            canonicalVehicleMakeLabel(value) === canonicalVehicleMakeLabel(input.query.make)
+        );
       if (
         shopFitmentMatchesVehicleConstraints(diagnosis.fitment, {
           make: input.query.make,
           model: input.query.model,
           chassis: input.query.chassis,
           year: input.query.year,
-        })
+        }) ||
+        suspiciousRequestedMake
       ) {
         queryMatches.push({
           slug: product.slug,

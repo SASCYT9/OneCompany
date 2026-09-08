@@ -1773,11 +1773,12 @@ function extractChassisFromText(text: string): string[] {
   return [...found];
 }
 
-function extractTagModels(product: ShopProduct): string[] {
+function extractTagModels(product: ShopProduct, expectedMake?: string | null): string[] {
   const tags = product.tags ?? [];
   const productBrand = String(product.brand ?? "")
     .trim()
     .toLowerCase();
+  const expectedMakeKey = expectedMake ? normalizeFitmentKey(expectedMake) : null;
   const acceptsSupplierModelTag =
     productBrand.includes("burger") || productBrand.includes("burgertuning");
   const canonicalModels: string[] = [];
@@ -1788,6 +1789,10 @@ function extractTagModels(product: ShopProduct): string[] {
       .toLowerCase();
     if (normalized.startsWith("fits-model:")) {
       const parts = normalized.split(":");
+      const taggedMake = parts[1]?.replace(/[-_]/g, " ").trim() ?? "";
+      if (expectedMakeKey && taggedMake && normalizeFitmentKey(taggedMake) !== expectedMakeKey) {
+        continue;
+      }
       const model = parts.slice(2).join(":").replace(/[-_]/g, " ").trim();
       if (model) canonicalModels.push(model);
       continue;
@@ -1822,6 +1827,52 @@ function extractDedicatedTagMake(product: ShopProduct): string | null {
     return slug.charAt(0).toUpperCase() + slug.slice(1);
   }
   return null;
+}
+
+/**
+ * Read explicit manufacturer names from the product's own title/slug. Supplier
+ * feeds sometimes generate `fits-make:*` tags from an ambiguous chassis token
+ * (G70/G80/G90); an explicit name in the title is stronger evidence than that
+ * derived tag. Keep model-only patterns out of this pass.
+ */
+function extractNamedTitleMakes(product: ShopProduct): string[] {
+  const text = [product.title?.en, product.title?.ua, product.slug].filter(Boolean).join(" | ");
+  const aliases: ReadonlyArray<[string, RegExp]> = [
+    ["BMW", /\bbmw\b/i],
+    ["Porsche", /\bporsche\b/i],
+    ["Toyota", /\btoyota\b/i],
+    ["Subaru", /\bsubaru\b/i],
+    ["Tesla", /\btesla\b/i],
+    ["Ford", /\bford\b/i],
+    ["Kia", /\bkia\b/i],
+    ["Honda", /\bhonda\b/i],
+    ["Hyundai", /\bhyundai\b/i],
+    ["Genesis", /\bgenesis\b/i],
+    ["Chevrolet", /\bchevrolet\b/i],
+    ["Audi", /\baudi\b/i],
+    ["Volkswagen", /\b(?:volkswagen|vw)\b/i],
+    ["Mercedes-AMG", /\bmercedes\s*[-–—]?\s*amg\b/i],
+    ["Mercedes-Benz", /\bmercedes\s*[-–—]?\s*benz\b/i],
+    ["Lamborghini", /\blamborghini\b/i],
+    ["McLaren", /\bmclaren\b/i],
+    ["Ferrari", /\bferrari\b/i],
+    ["Land Rover", /\bland\s*[-–—]?\s*rover\b/i],
+    ["Range Rover", /\brange\s*[-–—]?\s*rover\b/i],
+    ["Alfa Romeo", /\balfa\s+romeo\b/i],
+    ["Nissan", /\bnissan\b/i],
+    ["Dodge", /\bdodge\b/i],
+    ["Ram", /\bram\b/i],
+    ["Maserati", /\bmaserati\b/i],
+    ["Volvo", /\bvolvo\b/i],
+    ["Jaguar", /\bjaguar\b/i],
+    ["Mini", /\bmini\b/i],
+    ["Renault", /\brenault\b/i],
+    ["Peugeot", /\bpeugeot\b/i],
+    ["Fiat", /\bfiat\b/i],
+    ["Cupra", /\bcupra\b/i],
+    ["Ducati", /\bducati\b/i],
+  ];
+  return aliases.filter(([, pattern]) => pattern.test(text)).map(([make]) => make);
 }
 
 function extractLegacyTagMake(product: ShopProduct): string | null {
@@ -2930,11 +2981,24 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     if (ipeModel) models = [ipeModel];
   } else if (brand.includes("girodisc")) {
     make = extractTagMake(product);
-    models = extractTagModels(product);
+    models = extractTagModels(product, make);
   }
 
   // 2. Generic fallbacks for anything still missing
-  if (!make) make = extractDedicatedTagMake(product);
+  if (!make) {
+    const titleMakes = extractNamedTitleMakes(product);
+    const taggedMake = extractDedicatedTagMake(product);
+    // A generated tag is trusted only when the title agrees with it. If the
+    // title names another make, ignore the colliding supplier tag entirely.
+    // With several named makes, retain the tagged one when it is among them;
+    // otherwise use the first explicit make as the conservative fallback.
+    make =
+      titleMakes.length === 0
+        ? taggedMake
+        : taggedMake && titleMakes.includes(taggedMake)
+          ? taggedMake
+          : (titleMakes[0] ?? null);
+  }
   if (!make) {
     const titleOwnedText = [product.title?.en, product.title?.ua, product.slug]
       .filter(Boolean)
@@ -2952,7 +3016,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   }
 
   if (models.length === 0) {
-    models = extractTagModels(product);
+    models = extractTagModels(product, make);
     if (models.length === 0) {
       models = detectModelsFromText(fitmentEvidenceText, make);
     }

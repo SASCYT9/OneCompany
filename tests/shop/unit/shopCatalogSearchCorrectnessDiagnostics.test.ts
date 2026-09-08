@@ -29,7 +29,7 @@ test("diagnostic identifies polluted legacy BMW tags on a Kia/Hyundai product", 
       "fits-trim:bmw:m5:g90",
     ])
   );
-  assert.equal(result.fitment.make, "BMW");
+  assert.equal(result.fitment.make, "Kia");
   assert.deepEqual(result.declaredMakes, ["Hyundai", "Kia"]);
   assert.equal(result.ambiguousMakeEvidence, true);
   assert.match(result.reason ?? "", /conflicts/);

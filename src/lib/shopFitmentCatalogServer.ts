@@ -26,19 +26,26 @@ const money = (
  * keep this projection deliberately small and deterministic.
  */
 export async function getShopFitmentCatalogProducts(
-  options: { evidenceOnly?: boolean } = {}
+  options: { evidenceOnly?: boolean; productIds?: readonly string[] } = {}
 ): Promise<ShopProduct[]> {
   // Vehicle ID resolution does not render prices or media. Keep every text field
   // consumed by the fitment extractor while omitting that unrelated DB payload.
   const includeCommerce = !options.evidenceOnly;
+  const requestedProductIds = options.productIds
+    ? [...new Set(options.productIds.filter((id): id is string => Boolean(id)))].sort()
+    : null;
   const products: ShopProduct[] = [];
   // Rich card reads retain 250-row pages. Text-only evidence uses larger
   // windows to reduce database round trips, splitting on byte-limit errors.
   // ID windows are keyset-paginated; avoid increasingly expensive OFFSET scans.
   const pages = boundedCatalogPages({
-    pageSize: options.evidenceOnly ? 1_000 : PAGE_SIZE,
+    pageSize: requestedProductIds ? 500 : options.evidenceOnly ? 1_000 : PAGE_SIZE,
     concurrency: 4,
     readIds: async (after, limit) => {
+      if (requestedProductIds) {
+        const start = after ? requestedProductIds.indexOf(after) + 1 : 0;
+        return requestedProductIds.slice(Math.max(0, start), start + limit);
+      }
       const rows = await prisma.shopProduct.findMany({
         where: { isPublished: true, status: "ACTIVE", ...(after ? { id: { gt: after } } : {}) },
         orderBy: { id: "asc" },
@@ -99,34 +106,41 @@ export async function getShopFitmentCatalogProducts(
                 },
               },
             },
-            variants: {
-              orderBy: { position: "asc" },
-              select: {
-                id: true,
-                title: true,
-                sku: true,
-                position: true,
-                option1Value: true,
-                option2Value: true,
-                option3Value: true,
-                inventoryQty: includeCommerce,
-                image: includeCommerce,
-                isDefault: true,
-                priceEur: includeCommerce,
-                priceUsd: includeCommerce,
-                priceUah: includeCommerce,
-                priceEurEurope: includeCommerce,
-                priceEurB2b: includeCommerce,
-                priceUsdB2b: includeCommerce,
-                priceUahB2b: includeCommerce,
-                compareAtEur: includeCommerce,
-                compareAtUsd: includeCommerce,
-                compareAtUah: includeCommerce,
-                compareAtEurB2b: includeCommerce,
-                compareAtUsdB2b: includeCommerce,
-                compareAtUahB2b: includeCommerce,
-              },
-            },
+            // Variant options and inventory do not contribute to fitment
+            // extraction. Avoid multiplying the cold legacy scan by the
+            // variant graph; rich storefront reads still keep it intact.
+            ...(includeCommerce
+              ? {
+                  variants: {
+                    orderBy: { position: "asc" },
+                    select: {
+                      id: true,
+                      title: true,
+                      sku: true,
+                      position: true,
+                      option1Value: true,
+                      option2Value: true,
+                      option3Value: true,
+                      inventoryQty: true,
+                      image: true,
+                      isDefault: true,
+                      priceEur: true,
+                      priceUsd: true,
+                      priceUah: true,
+                      priceEurEurope: true,
+                      priceEurB2b: true,
+                      priceUsdB2b: true,
+                      priceUahB2b: true,
+                      compareAtEur: true,
+                      compareAtUsd: true,
+                      compareAtUah: true,
+                      compareAtEurB2b: true,
+                      compareAtUsdB2b: true,
+                      compareAtUahB2b: true,
+                    },
+                  },
+                }
+              : {}),
           },
         })
       ),
@@ -165,7 +179,7 @@ export async function getShopFitmentCatalogProducts(
           isUrban: entry.collection.isUrban,
           sortOrder: entry.sortOrder,
         })),
-        variants: row.variants.map((variant) => ({
+        variants: (row.variants ?? []).map((variant) => ({
           id: variant.id,
           title: variant.title,
           sku: variant.sku,

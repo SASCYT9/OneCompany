@@ -22,11 +22,12 @@ test("evidence-only catalog omits commerce data without changing extracted compa
     slim.map((p) => p.id),
     full.map((p) => p.id)
   );
-  const detail = calls.find((call: { select: { variants?: unknown } }) => call.select.variants);
+  const detail = calls.find(
+    (call: { select: { variants?: unknown; priceUsd?: unknown } }) =>
+      !("variants" in call.select) && "priceUsd" in call.select
+  );
   assert.equal(detail.select.priceUsd, false);
   assert.equal(detail.select.image, false);
-  assert.equal(detail.select.variants.select.priceUsd, false);
-  assert.equal(detail.select.variants.select.title, true);
-  assert.equal(detail.select.variants.select.option2Value, true);
+  assert.equal(detail.select.variants, undefined);
   assert.ok(detail.select.collections);
 });
