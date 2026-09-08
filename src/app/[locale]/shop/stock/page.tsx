@@ -1952,16 +1952,30 @@ function StockPageContent() {
   }, [locale, makePickerQuery, makes]);
 
   const handleSelectVehicleMake = (nextMake: string) => {
+    // Closing the nested picker consumes its temporary history entry immediately.
+    // Publish the new vehicle URL before closing so a fast mobile tap cannot let
+    // the popstate handler restore the pre-selection URL before React's effect
+    // has had a chance to run.
+    if (typeof window !== "undefined") {
+      const nextUrl = new URL(window.location.href);
+      if (nextMake) nextUrl.searchParams.set("make", nextMake);
+      else nextUrl.searchParams.delete("make");
+      for (const key of ["model", "chassis", "year", "engine", "fuel", "opfGpf", "page"]) {
+        nextUrl.searchParams.delete(key);
+      }
+      const nextHref = `${nextUrl.pathname}${nextUrl.search}`;
+      rememberFiltersUrl(nextHref);
+      rememberMakeUrl(nextHref);
+      window.history.replaceState(window.history.state, "", nextHref);
+    }
     setMake(nextMake);
     setModel("");
     setChassis("");
     setRequestedYear(null);
     setEngineFilter("");
     setFuelFilter("");
-    // Selecting a new vehicle starts a vehicle-wide search. A brand can still
-    // be applied afterwards, but a stale brand must not silently hide all
-    // other compatible products.
-    setSelectedBrands([]);
+    // Keep any product-brand filter the customer already selected. Vehicle
+    // and product brand are independent dimensions and can be combined.
     setMakePickerOpen(false);
     setMakePickerQuery("");
   };
