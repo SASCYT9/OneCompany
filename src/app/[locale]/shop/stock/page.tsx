@@ -25,6 +25,7 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+import { useCatalogOverlay } from "@/components/shop/useCatalogOverlay";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -820,7 +821,9 @@ function StockPageContent() {
       ? initialSort
       : "default"
   );
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen, rememberFiltersUrl] =
+    useCatalogOverlay("filters");
+  const [makePickerOpen, setMakePickerOpen, rememberMakeUrl] = useCatalogOverlay("make");
   const [vehicleMode, setVehicleMode] = useState<VehicleMode>(
     searchParams.get("scope") === "moto" ? "moto" : "auto"
   );
@@ -953,7 +956,7 @@ function StockPageContent() {
   }, []);
 
   useEffect(() => {
-    if (!mobileFiltersOpen) return;
+    if (!mobileFiltersOpen || makePickerOpen) return;
 
     const desktopMedia = window.matchMedia("(min-width: 1024px)");
     if (desktopMedia.matches) {
@@ -1015,7 +1018,7 @@ function StockPageContent() {
         );
       }
     };
-  }, [mobileFiltersOpen]);
+  }, [mobileFiltersOpen, makePickerOpen, setMobileFiltersOpen]);
 
   // Vehicle fitment state
   const [makes, setMakes] = useState<string[]>([]);
@@ -1041,7 +1044,6 @@ function StockPageContent() {
   const chassisGenerationRef = useRef(0);
   const detailsGenerationRef = useRef(0);
 
-  const [makePickerOpen, setMakePickerOpen] = useState(false);
   const [makePickerQuery, setMakePickerQuery] = useState("");
   const makePickerDialogRef = useRef<HTMLDivElement | null>(null);
   const makePickerSearchInputRef = useRef<HTMLInputElement | null>(null);
@@ -1089,7 +1091,7 @@ function StockPageContent() {
     [vehicleMode]
   );
   const handleOpenMakePicker = useCallback(() => {
-    setMobileFiltersOpen(false);
+    // Keep the filter sheet beneath the make picker so model/chassis remain one tap away.
     setMakePickerOpen(true);
   }, []);
 
@@ -1305,11 +1307,15 @@ function StockPageContent() {
       const nextUrl = queryString
         ? `${window.location.pathname}?${queryString}`
         : window.location.pathname;
+      rememberFiltersUrl(nextUrl);
+      rememberMakeUrl(nextUrl);
       if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
         window.history.replaceState(window.history.state, "", nextUrl);
       }
     },
     [
+      rememberFiltersUrl,
+      rememberMakeUrl,
       chassis,
       currency,
       engineFilter,

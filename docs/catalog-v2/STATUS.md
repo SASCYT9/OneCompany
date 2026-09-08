@@ -950,3 +950,18 @@ projection clauses. Legacy extraction trusts the generated dedicated tags before
 the title, so they leak into BMW results. Fix source-priority/collision handling
 with fixtures across makes; do not hardcode these product IDs or claim all52 are
 valid BMW matches. No remote data was edited, no deployment performed.
+
+### 2026-09-08 � mobile filter navigation
+
+Existing mobile filter panel and nested make picker now have temporary browser
+history entries. Back dismisses the top panel first and preserves the latest
+selected filters on the underlying catalog entry. Choosing a make leaves the
+filter sheet open for model/chassis selection. No visual redesign applied.
+
+Verified in the in-app browser at 390 x 844: open filters from bottom navigation,
+open make picker, Back closes only picker, change G90 to F90, Back closes filters
+while retaining F90 in the URL and results; open an Akrapovic PDP and Back restores
+BMW M5 F90; reopen filters, choose Audi, model selection remains visible; close
+button preserves Audi. Full Next build passed; 418 related tests passed; typecheck
+and touched-file ESLint have zero errors. This is local verification, not rollout.
+Production blockers listed above remain unresolved.
