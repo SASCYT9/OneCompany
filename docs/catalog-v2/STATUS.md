@@ -1,5 +1,31 @@
 # Catalog V2 — live execution status
 
+## Final bounded release review — 2026-09-08
+
+At `f8d678c5`, nine read-only localhost:3200 API requests succeeded (HTTP 200):
+BMW M5 G90 2.94 s first sample / 719 ms repeated (48 products), BMW models
+252 ms, M5 chassis 681–931 ms, G90 details 889 ms, Mercedes-Benz search
+1.56 s (1,842 products), and G90/Burger Motorsports 377 ms (7 products).
+These are small diagnostic samples, not cold-process or percentile guarantees.
+Previously observed browser failures could not be reproduced; their cause remains
+unresolved. The owner accepts approximately two seconds; the first BMW sample
+still exceeds that target.
+
+Fixed a deployment-package omission: `.vercelignore` now includes the activation
+checker invoked by `build-site.mjs`. The package contract checks all TSX build
+entrypoints. Package/artifact/activation tests passed 13/13.
+
+The full wrapper's local activation failure comes from requesting `ssr` without
+signed release evidence. Direct Next compilation passes but is not wrapper
+acceptance. Actual production flags and the full release wrapper still need
+verification. Full native V2 activation remains dependent on coverage and signed
+observation evidence; do not change reader mode merely to pass a build.
+
+Artifact reuse remains opt-in without an authoritative publication-key producer.
+No build-cost saving or monthly invoice reduction has been measured. Existing
+backup files are excluded from the Vercel source package. No production settings,
+data, push, or deployment changed during this review.
+
 Last updated: 2026-09-08
 Working branch: `codex/storefront-cost-optimization` (P6 history below: `codex/catalog-v2-foundation`)
 Master plan: [MASTER_PLAN.md](./MASTER_PLAN.md)

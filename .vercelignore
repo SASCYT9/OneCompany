@@ -20,6 +20,7 @@ tmp
 !/scripts/
 !/scripts/cleanup-prisma-temp-engines.js
 !/scripts/build-site.mjs
+!/scripts/check-catalog-v2-release-activation.ts
 !/scripts/prebuild-shop-snapshot.ts
 !/scripts/generate-shop-filter-indexes.ts
 !/scripts/lib/
